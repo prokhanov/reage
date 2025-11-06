@@ -24,15 +24,23 @@ const BODY_AREAS: Record<string, BodyArea> = {
   brain: {
     id: "brain",
     name: "Мозг и нервная система",
-    path: "M85,15 Q95,10 105,15 L105,35 Q95,40 85,35 Z",
+    path: "M85,25 Q100,15 115,25 L115,45 Q100,50 85,45 Z",
     categories: ["Гормоны", "Витамины"],
+    color: "hsl(var(--primary))",
+    issues: []
+  },
+  thyroid: {
+    id: "thyroid",
+    name: "Щитовидная железа",
+    path: "M92,65 Q100,63 108,65 L108,72 Q100,74 92,72 Z",
+    categories: ["Гормоны", "Щитовидная железа"],
     color: "hsl(var(--primary))",
     issues: []
   },
   heart: {
     id: "heart",
     name: "Сердце",
-    path: "M80,50 L85,45 Q95,40 100,50 Q105,40 115,45 L120,50 L100,75 Z",
+    path: "M85,85 L90,80 Q100,75 105,85 Q110,75 120,80 L115,85 L100,105 Z",
     categories: ["Липиды", "Сердце"],
     color: "hsl(var(--primary))",
     issues: []
@@ -40,40 +48,32 @@ const BODY_AREAS: Record<string, BodyArea> = {
   liver: {
     id: "liver",
     name: "Печень",
-    path: "M110,70 L130,75 L128,95 L108,90 Z",
+    path: "M105,105 L125,110 L123,135 L105,130 Z",
     categories: ["Печень", "Метаболизм"],
-    color: "hsl(var(--primary))",
-    issues: []
-  },
-  kidneys: {
-    id: "kidneys",
-    name: "Почки",
-    path: "M75,85 Q80,85 82,95 Q80,100 75,100 Q70,100 68,95 Q70,85 75,85 Z M115,85 Q120,85 122,95 Q120,100 115,100 Q110,100 108,95 Q110,85 115,85 Z",
-    categories: ["Почки"],
-    color: "hsl(var(--primary))",
-    issues: []
-  },
-  thyroid: {
-    id: "thyroid",
-    name: "Щитовидная железа",
-    path: "M90,42 Q95,40 100,42 L100,48 Q95,50 90,48 Z",
-    categories: ["Гормоны", "Щитовидная железа"],
-    color: "hsl(var(--primary))",
-    issues: []
-  },
-  blood: {
-    id: "blood",
-    name: "Кровь",
-    path: "M70,55 L70,110 L80,110 L80,55 Z M110,55 L110,110 L120,110 L120,55 Z",
-    categories: ["Кровь", "Общий анализ крови"],
     color: "hsl(var(--primary))",
     issues: []
   },
   stomach: {
     id: "stomach",
     name: "Желудок и ЖКТ",
-    path: "M85,75 L105,75 L108,90 L82,90 Z",
+    path: "M85,115 L105,115 L108,140 L82,140 Z",
     categories: ["Метаболизм", "Пищеварение"],
+    color: "hsl(var(--primary))",
+    issues: []
+  },
+  kidneys: {
+    id: "kidneys",
+    name: "Почки",
+    path: "M75,135 Q78,135 80,145 Q78,152 75,152 Q72,152 70,145 Q72,135 75,135 Z M125,135 Q128,135 130,145 Q128,152 125,152 Q122,152 120,145 Q122,135 125,135 Z",
+    categories: ["Почки"],
+    color: "hsl(var(--primary))",
+    issues: []
+  },
+  blood: {
+    id: "blood",
+    name: "Кровь",
+    path: "M70,85 L70,165 L75,165 L75,85 Z M125,85 L125,165 L130,165 L130,85 Z",
+    categories: ["Кровь", "Общий анализ крови"],
     color: "hsl(var(--primary))",
     issues: []
   }
@@ -85,8 +85,13 @@ export function BodyHeatmap({ biomarkerData }: BodyHeatmapProps) {
   // Анализируем биомаркеры и определяем проблемные области
   const analyzeAreas = () => {
     const areas = { ...BODY_AREAS };
+    const processedBiomarkers = new Set<string>();
     
     biomarkerData.forEach(biomarker => {
+      // Пропускаем, если уже обработали этот биомаркер
+      if (processedBiomarkers.has(biomarker.name)) return;
+      processedBiomarkers.add(biomarker.name);
+      
       const isAbnormal = 
         (biomarker.normal_min !== undefined && biomarker.value < biomarker.normal_min) ||
         (biomarker.normal_max !== undefined && biomarker.value > biomarker.normal_max);
@@ -122,32 +127,36 @@ export function BodyHeatmap({ biomarkerData }: BodyHeatmapProps) {
     <TooltipProvider>
       <div className="w-full flex flex-col items-center gap-4">
         <svg
-          viewBox="0 0 190 180"
-          className="w-full max-w-md"
+          viewBox="0 0 200 320"
+          className="w-full max-w-sm"
           style={{ filter: "drop-shadow(0 0 10px rgba(0,0,0,0.1))" }}
         >
-          {/* Тело силуэта */}
+          {/* Тело силуэта - более реалистичное */}
           <g id="body-outline">
             {/* Голова */}
-            <ellipse cx="95" cy="25" rx="18" ry="22" fill="hsl(var(--muted))" opacity="0.3" />
+            <ellipse cx="100" cy="35" rx="22" ry="28" fill="hsl(var(--muted))" opacity="0.2" />
             
             {/* Шея */}
-            <rect x="88" y="42" width="14" height="10" fill="hsl(var(--muted))" opacity="0.3" />
+            <path d="M90,60 L110,60 L108,75 L92,75 Z" fill="hsl(var(--muted))" opacity="0.2" />
             
-            {/* Торс */}
+            {/* Плечи и торс */}
             <path
-              d="M70,52 L120,52 L125,110 L65,110 Z"
+              d="M65,75 Q70,72 80,75 L92,75 L92,135 Q100,145 108,135 L108,75 L120,75 Q130,72 135,75 
+                 L135,95 Q132,100 130,105 L130,165 Q125,180 100,180 Q75,180 70,165 L70,105 Q68,100 65,95 Z"
               fill="hsl(var(--muted))"
-              opacity="0.3"
+              opacity="0.2"
             />
             
             {/* Руки */}
-            <rect x="50" y="52" width="20" height="60" rx="8" fill="hsl(var(--muted))" opacity="0.3" />
-            <rect x="120" y="52" width="20" height="60" rx="8" fill="hsl(var(--muted))" opacity="0.3" />
+            <ellipse cx="55" cy="115" rx="10" ry="45" fill="hsl(var(--muted))" opacity="0.2" />
+            <ellipse cx="145" cy="115" rx="10" ry="45" fill="hsl(var(--muted))" opacity="0.2" />
+            
+            {/* Таз */}
+            <path d="M70,165 L130,165 L128,185 L72,185 Z" fill="hsl(var(--muted))" opacity="0.2" />
             
             {/* Ноги */}
-            <rect x="75" y="110" width="15" height="60" rx="6" fill="hsl(var(--muted))" opacity="0.3" />
-            <rect x="100" y="110" width="15" height="60" rx="6" fill="hsl(var(--muted))" opacity="0.3" />
+            <path d="M75,185 L85,185 L87,305 Q85,310 80,310 Q75,310 73,305 Z" fill="hsl(var(--muted))" opacity="0.2" />
+            <path d="M115,185 L125,185 L127,305 Q125,310 120,310 Q115,310 113,305 Z" fill="hsl(var(--muted))" opacity="0.2" />
           </g>
 
           {/* Органы с подсветкой */}
