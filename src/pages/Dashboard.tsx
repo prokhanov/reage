@@ -112,14 +112,8 @@ export default function Dashboard() {
         if (!dateMap[date]) dateMap[date] = {};
         if (!dateMap[date][category]) dateMap[date][category] = { sum: 0, count: 0 };
         
-        // Нормализуем значение к процентам от нормы
-        let normalizedValue = item.value;
-        if (item.biomarkers?.normal_min && item.biomarkers?.normal_max) {
-          const mid = (item.biomarkers.normal_min + item.biomarkers.normal_max) / 2;
-          normalizedValue = (item.value / mid) * 100;
-        }
-        
-        dateMap[date][category].sum += normalizedValue;
+        // Просто суммируем значения без нормализации
+        dateMap[date][category].sum += item.value;
         dateMap[date][category].count += 1;
       });
 
@@ -135,12 +129,33 @@ export default function Dashboard() {
         .sort((a, b) => b[1] - a[1])
         .map(([cat]) => cat);
 
-      // Формируем данные для графика
-      const formatted = Object.entries(dateMap).map(([date, categories]) => {
-        const point: any = { date };
+      // Формируем данные для графика с усреднением
+      const categoryAverages: Record<string, number[]> = {};
+      allCategories.forEach(cat => {
+        categoryAverages[cat] = [];
+      });
+
+      Object.entries(dateMap).forEach(([date, categories]) => {
         allCategories.forEach(cat => {
           if (categories[cat]) {
-            point[cat] = Math.round(categories[cat].sum / categories[cat].count);
+            const avg = categories[cat].sum / categories[cat].count;
+            categoryAverages[cat].push(avg);
+          } else {
+            categoryAverages[cat].push(NaN);
+          }
+        });
+      });
+
+      // Нормализуем относительно первого значения (индексация: первое = 100)
+      const formatted = Object.keys(dateMap).map((date, idx) => {
+        const point: any = { date };
+        allCategories.forEach(cat => {
+          const values = categoryAverages[cat];
+          const firstValue = values.find(v => !isNaN(v));
+          const currentValue = values[idx];
+          
+          if (firstValue && !isNaN(currentValue)) {
+            point[cat] = Math.round((currentValue / firstValue) * 100);
           }
         });
         return point;
@@ -149,7 +164,7 @@ export default function Dashboard() {
       setTrendData(formatted);
       setTrendMeta({ 
         name: allCategories.join(", "),
-        unit: "% от нормы" 
+        unit: "индекс (первое = 100%)" 
       });
       setTrendCategories(allCategories);
     } catch (error) {
@@ -284,7 +299,7 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
                     <span className="text-sm text-muted-foreground">
-                      Все категории (нормализовано к % от нормы)
+                      Все категории (индекс изменений: базовое = 100%)
                     </span>
                   </div>
                   <ResponsiveContainer width="100%" height={300}>
