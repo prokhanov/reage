@@ -83,11 +83,12 @@ serve(async (req) => {
       .order('date', { ascending: false })
       .limit(5);
 
-    // Get previous recommendations
+    // Get previous recommendations (exclude current analysis recommendations)
     const { data: previousRecommendations } = await supabase
       .from('recommendations')
       .select('*')
       .eq('user_id', analysis.user_id)
+      .or(`analysis_id.is.null,analysis_id.neq.${analysisId}`)
       .order('created_at', { ascending: false })
       .limit(10);
 
