@@ -260,17 +260,27 @@ export default function AnalysisDetail() {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-              {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </h2>
-            {analysis?.lab_name && (
-              <p className="text-muted-foreground">Лаборатория: {analysis.lab_name}</p>
-            )}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/analyses")}
+              className="hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </h2>
+              {analysis?.lab_name && (
+                <p className="text-muted-foreground">Лаборатория: {analysis.lab_name}</p>
+              )}
+            </div>
           </div>
 
           <Button
