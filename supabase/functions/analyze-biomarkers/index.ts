@@ -158,16 +158,19 @@ ${biomarkerSummary}
       : null;
 
     // Update analysis with health metrics
-    await supabase
+    const { error: updateError } = await supabase
       .from('analyses')
       .update({
         health_index,
         biological_age,
       })
       .eq('id', analysisId);
+    if (updateError) {
+      console.error('Failed to update analysis metrics:', updateError);
+    }
 
     // Save full report as a single recommendation
-    await supabase
+    const { error: insertError } = await supabase
       .from('recommendations')
       .insert({
         user_id: analysis.user_id,
@@ -175,6 +178,13 @@ ${biomarkerSummary}
         type: 'Полный отчет',
         text: fullText,
       });
+    if (insertError) {
+      console.error('Failed to insert recommendation:', insertError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to save recommendation' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ 
