@@ -326,7 +326,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 content: categoryPrompt
               }
             ],
-            max_completion_tokens: 8000
+            max_completion_tokens: 16000
           }),
         });
 
@@ -349,13 +349,22 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
         const data = await response.json();
         const categoryReport = data.choices[0].message.content;
+        const finishReason = data.choices[0].finish_reason;
         const tokensUsed = (data.usage?.total_tokens || 0);
         
-        categoryReports[category] = categoryReport;
-        categoryStatuses[category] = { success: true, tokens: tokensUsed };
+        // Проверка на обрыв текста
+        if (finishReason === "length") {
+          console.warn(`WARNING: Category ${category} was truncated at token limit`);
+          categoryReports[category] = categoryReport + "\n\n[⚠️ ВНИМАНИЕ: Отчёт был сокращён из-за ограничения по длине. Рекомендуется перегенерировать.]";
+          categoryStatuses[category] = { success: true, tokens: tokensUsed, truncated: true };
+        } else {
+          categoryReports[category] = categoryReport;
+          categoryStatuses[category] = { success: true, tokens: tokensUsed };
+        }
+        
         totalTokens += tokensUsed;
 
-        console.log(`Category ${category} completed: ${tokensUsed} tokens`);
+        console.log(`Category ${category} completed: ${tokensUsed} tokens, finish_reason: ${finishReason}`);
 
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
@@ -434,15 +443,24 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               content: summaryPrompt
             }
           ],
-          max_completion_tokens: 4000
+          max_completion_tokens: 16000
         }),
       });
 
       if (summaryResponse.ok) {
         const summaryData = await summaryResponse.json();
+        const summaryFinishReason = summaryData.choices[0].finish_reason;
         summaryReport = summaryData.choices[0].message.content;
-        totalTokens += (summaryData.usage?.total_tokens || 0);
-        console.log(`Summary completed: ${summaryData.usage?.total_tokens || 0} tokens`);
+        const summaryTokens = summaryData.usage?.total_tokens || 0;
+        
+        // Проверка на обрыв резюме
+        if (summaryFinishReason === "length") {
+          console.warn("WARNING: Summary was truncated at token limit");
+          summaryReport += "\n\n[⚠️ ВНИМАНИЕ: Резюме было сокращено из-за ограничения по длине. Рекомендуется перегенерировать.]";
+        }
+        
+        totalTokens += summaryTokens;
+        console.log(`Summary completed: ${summaryTokens} tokens, finish_reason: ${summaryFinishReason}`);
       } else {
         console.error("Failed to generate summary");
         summaryReport = "Не удалось сгенерировать общее резюме";
