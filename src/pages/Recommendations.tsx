@@ -42,13 +42,20 @@ interface Recommendation {
   created_at: string;
 }
 
+interface RecommendationReport {
+  date: string;
+  recommendations: Recommendation[];
+  count: number;
+}
+
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
+  const [selectedReport, setSelectedReport] = useState<RecommendationReport | null>(null);
   const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -70,6 +77,24 @@ export default function Recommendations() {
 
       if (error) throw error;
       setRecommendations(data || []);
+      
+      // Группировка по дате
+      const grouped = (data || []).reduce((acc, rec) => {
+        const date = format(new Date(rec.created_at), "yyyy-MM-dd");
+        if (!acc[date]) {
+          acc[date] = [];
+        }
+        acc[date].push(rec);
+        return acc;
+      }, {} as Record<string, Recommendation[]>);
+
+      const reportsList = Object.entries(grouped).map(([date, recs]) => ({
+        date,
+        recommendations: recs,
+        count: recs.length,
+      })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      setReports(reportsList);
     } catch (error: any) {
       console.error("Error loading recommendations:", error);
       toast({
@@ -82,41 +107,42 @@ export default function Recommendations() {
     }
   };
 
-  const handleView = (recommendation: Recommendation) => {
-    setSelectedRecommendation(recommendation);
+  const handleView = (report: RecommendationReport) => {
+    setSelectedReport(report);
     setViewDialogOpen(true);
   };
 
-  const handleDeleteClick = (recommendation: Recommendation) => {
-    setSelectedRecommendation(recommendation);
+  const handleDeleteClick = (report: RecommendationReport) => {
+    setSelectedReport(report);
     setDeleteDialogOpen(true);
   };
 
   const handleDelete = async () => {
-    if (!selectedRecommendation) return;
+    if (!selectedReport) return;
 
     setDeleting(true);
     try {
+      const ids = selectedReport.recommendations.map(r => r.id);
       const { error } = await supabase
         .from("recommendations")
         .delete()
-        .eq("id", selectedRecommendation.id);
+        .in("id", ids);
 
       if (error) throw error;
 
       toast({
         title: "Успешно",
-        description: "Рекомендация удалена",
+        description: "Отчет удален",
       });
 
-      setRecommendations((prev) => prev.filter((r) => r.id !== selectedRecommendation.id));
+      await loadRecommendations();
       setDeleteDialogOpen(false);
-      setSelectedRecommendation(null);
+      setSelectedReport(null);
     } catch (error: any) {
-      console.error("Error deleting recommendation:", error);
+      console.error("Error deleting report:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось удалить рекомендацию",
+        description: "Не удалось удалить отчет",
         variant: "destructive",
       });
     } finally {
@@ -124,9 +150,14 @@ export default function Recommendations() {
     }
   };
 
-  const truncateText = (text: string, maxLength: number = 100) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + "...";
+  const groupByType = (recommendations: Recommendation[]) => {
+    return recommendations.reduce((acc, rec) => {
+      if (!acc[rec.type]) {
+        acc[rec.type] = [];
+      }
+      acc[rec.type].push(rec);
+      return acc;
+    }, {} as Record<string, Recommendation[]>);
   };
 
   if (loading) {
@@ -149,7 +180,7 @@ export default function Recommendations() {
           </p>
         </div>
 
-        {recommendations.length === 0 ? (
+        {reports.length === 0 ? (
           <Card className="border-dashed border-2 border-primary/30 bg-card/50">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Brain className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
@@ -167,37 +198,33 @@ export default function Recommendations() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Тип</TableHead>
-                  <TableHead>Рекомендация</TableHead>
-                  <TableHead>Дата создания</TableHead>
+                  <TableHead>Дата отчета</TableHead>
+                  <TableHead>Разделов</TableHead>
                   <TableHead className="text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recommendations.map((rec) => (
-                  <TableRow key={rec.id}>
-                    <TableCell>
-                      <Badge variant="outline">{rec.type}</Badge>
-                    </TableCell>
-                    <TableCell className="max-w-md">
-                      {truncateText(rec.text)}
+                {reports.map((report) => (
+                  <TableRow key={report.date}>
+                    <TableCell className="font-medium">
+                      {format(new Date(report.date), "d MMMM yyyy", { locale: ru })}
                     </TableCell>
                     <TableCell>
-                      {format(new Date(rec.created_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                      <Badge variant="secondary">{report.count}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleView(rec)}
+                          onClick={() => handleView(report)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteClick(rec)}
+                          onClick={() => handleDeleteClick(report)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -212,19 +239,30 @@ export default function Recommendations() {
 
         {/* View Dialog */}
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Badge variant="outline">{selectedRecommendation?.type}</Badge>
+              <DialogTitle>
+                Отчет от {selectedReport && format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}
               </DialogTitle>
               <DialogDescription>
-                {selectedRecommendation && format(new Date(selectedRecommendation.created_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                {selectedReport?.count} {selectedReport?.count === 1 ? 'раздел' : 'разделов'}
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-4">
-              <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                {selectedRecommendation?.text}
-              </p>
+            <div className="mt-6 space-y-6">
+              {selectedReport && Object.entries(groupByType(selectedReport.recommendations)).map(([type, recs]) => (
+                <div key={type} className="space-y-3">
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <Badge variant="outline" className="text-base py-1">{type}</Badge>
+                  </div>
+                  {recs.map((rec) => (
+                    <div key={rec.id} className="pl-4 py-2 border-l-2 border-primary/20">
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                        {rec.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
           </DialogContent>
         </Dialog>
@@ -233,9 +271,9 @@ export default function Recommendations() {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Удалить рекомендацию?</AlertDialogTitle>
+              <AlertDialogTitle>Удалить отчет?</AlertDialogTitle>
               <AlertDialogDescription>
-                Это действие нельзя отменить. Рекомендация будет удалена навсегда.
+                Это действие нельзя отменить. Все рекомендации за эту дату будут удалены навсегда.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
