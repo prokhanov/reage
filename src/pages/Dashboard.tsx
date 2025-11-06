@@ -254,46 +254,190 @@ export default function Dashboard() {
     );
   }
 
+  const chronologicalAge = profile?.birth_date ? calculateAge(profile.birth_date) : null;
+  const ageDifference = latestBioAge && chronologicalAge ? chronologicalAge - latestBioAge : null;
+  const circleProgress = latestHealthIndex ? latestHealthIndex : 0;
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-6">
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-            Добро пожаловать, {profile?.full_name}
+            Добро пожаловать, {profile?.name}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Хронологический возраст: <span className="text-primary font-medium">{profile?.birth_date ? calculateAge(profile.birth_date) : "—"} лет</span>
+            Паспортный возраст: <span className="text-primary font-medium">{chronologicalAge || "—"} лет</span>
           </p>
         </div>
 
-        {/* Top Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Central Bio Age Circle */}
+        <Card className="border-border bg-card backdrop-blur-sm">
+          <CardContent className="pt-8 pb-8">
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+              {/* Circular Progress */}
+              <div className="relative flex items-center justify-center">
+                <svg className="w-64 h-64 transform -rotate-90">
+                  {/* Background circle */}
+                  <circle
+                    cx="128"
+                    cy="128"
+                    r="112"
+                    stroke="hsl(var(--border))"
+                    strokeWidth="16"
+                    fill="none"
+                    opacity="0.2"
+                  />
+                  {/* Progress circle */}
+                  <circle
+                    cx="128"
+                    cy="128"
+                    r="112"
+                    stroke={
+                      ageDifference && ageDifference > 0 
+                        ? "hsl(var(--status-good))" 
+                        : ageDifference && ageDifference < 0
+                        ? "hsl(var(--status-bad))"
+                        : "hsl(var(--primary))"
+                    }
+                    strokeWidth="16"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 112}`}
+                    strokeDashoffset={`${2 * Math.PI * 112 * (1 - circleProgress / 100)}`}
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                
+                {/* Center content */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <div className="text-6xl font-bold text-foreground animate-scale-in">
+                    {latestBioAge ? latestBioAge.toFixed(1) : "—"}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-2">
+                    лет
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1 px-4">
+                    Биологический возраст
+                  </div>
+                </div>
+              </div>
+
+              {/* Age Comparison */}
+              <div className="flex flex-col gap-4 text-center lg:text-left">
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold text-foreground">
+                    Ваш биологический возраст
+                  </h3>
+                  {latestBioAge && chronologicalAge && ageDifference !== null ? (
+                    <>
+                      {ageDifference > 0 ? (
+                        <p className="text-lg text-status-good animate-fade-in">
+                          Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе, чем ваш паспортный возраст! 🎉
+                        </p>
+                      ) : ageDifference < 0 ? (
+                        <p className="text-lg text-status-bad animate-fade-in">
+                          Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше вашего паспортного возраста
+                        </p>
+                      ) : (
+                        <p className="text-lg text-muted-foreground animate-fade-in">
+                          Это соответствует вашему паспортному возрасту
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-lg text-muted-foreground">
+                      Добавьте анализ, чтобы узнать свой биологический возраст
+                    </p>
+                  )}
+                </div>
+
+                {/* Health Index */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 justify-center lg:justify-start">
+                    <Heart className="h-5 w-5 text-accent" />
+                    <span className="text-sm text-muted-foreground">Индекс здоровья:</span>
+                    <span className="text-2xl font-bold text-foreground">{latestHealthIndex || "—"}</span>
+                    <span className="text-sm text-muted-foreground">/100</span>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="flex flex-col items-center lg:items-start gap-1">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Анализов</span>
+                    </div>
+                    <span className="text-xl font-bold text-foreground">{analysesCount}</span>
+                  </div>
+                  <div className="flex flex-col items-center lg:items-start gap-1">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-status-good" />
+                      <span className="text-sm text-muted-foreground">Скорость</span>
+                    </div>
+                    <span className="text-xl font-bold text-foreground">{agingRate ? agingRate.toFixed(2) : "—"}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Secondary Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Биологический возраст</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Разница в возрасте</CardTitle>
               <Brain className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">
-                {latestBioAge || "—"}
+              <div className={`text-3xl font-bold ${
+                ageDifference && ageDifference > 0 
+                  ? "text-status-good" 
+                  : ageDifference && ageDifference < 0
+                  ? "text-status-bad"
+                  : "text-foreground"
+              }`}>
+                {ageDifference !== null ? (ageDifference > 0 ? `−${ageDifference.toFixed(1)}` : `+${Math.abs(ageDifference).toFixed(1)}`) : "—"}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {latestBioAge ? "лет" : "Требуется анализ"}
+                {ageDifference !== null ? "лет от паспортного" : "Требуется анализ"}
               </p>
             </CardContent>
           </Card>
 
           <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Индекс здоровья</CardTitle>
-              <Heart className="h-5 w-5 text-accent" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Скорость старения</CardTitle>
+              <Activity className="h-5 w-5 text-accent" />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-3xl font-bold ${
+                agingRate && agingRate < 1 
+                  ? "text-status-good" 
+                  : agingRate && agingRate > 1
+                  ? "text-status-bad"
+                  : "text-foreground"
+              }`}>
+                {agingRate ? agingRate.toFixed(2) : "—"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {agingRate ? (agingRate < 1 ? "Медленнее нормы" : agingRate > 1 ? "Быстрее нормы" : "Норма") : "Требуется анализ"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Тренд за месяц</CardTitle>
+              <TrendingUp className="h-5 w-5 text-status-good" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-foreground">
-                {latestHealthIndex || "—"}
+                {ageTrend || "—"}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">0-100 шкала</p>
+              <p className="text-xs text-muted-foreground mt-1">Изменение возраста</p>
             </CardContent>
           </Card>
 
@@ -305,34 +449,6 @@ export default function Dashboard() {
             <CardContent>
               <div className="text-3xl font-bold text-foreground">{analysesCount}</div>
               <p className="text-xs text-muted-foreground mt-1">За всё время</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Тренд</CardTitle>
-              <TrendingUp className="h-5 w-5 text-status-good" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">
-                {ageTrend || "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Изменение за месяц</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Скорость старения</CardTitle>
-              <Activity className="h-5 w-5 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">
-                {agingRate ? agingRate.toFixed(2) : "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {agingRate ? (agingRate < 1 ? "Медленнее нормы" : agingRate > 1 ? "Быстрее нормы" : "Норма") : "Требуется анализ"}
-              </p>
             </CardContent>
           </Card>
         </div>
