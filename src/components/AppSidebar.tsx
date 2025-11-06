@@ -1,9 +1,10 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -21,6 +22,29 @@ const navItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    checkSuperAdminRole();
+  }, []);
+
+  const checkSuperAdminRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "superadmin")
+        .single();
+
+      setIsSuperAdmin(!!data);
+    } catch (error) {
+      setIsSuperAdmin(false);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -74,6 +98,25 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </NavLink>
             ))}
           </nav>
+
+          {/* Admin Section */}
+          {isSuperAdmin && (
+            <div className="p-4 border-t border-border/30 space-y-1">
+              <NavLink
+                to="/admin/ai-settings"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                    "hover:bg-primary/10 hover:text-primary",
+                    isActive && "bg-primary/15 text-primary border border-primary/20"
+                  )
+                }
+              >
+                <Settings className="h-4 w-4" />
+                <span className="font-medium">Настройки AI</span>
+              </NavLink>
+            </div>
+          )}
 
           {/* User Profile & Logout */}
           <div className="p-4 border-t border-border/30 space-y-1">

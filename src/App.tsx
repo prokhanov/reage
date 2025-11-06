@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SuperAdminRoute } from "@/components/SuperAdminRoute";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -14,6 +16,7 @@ import AnalysisDetail from "./pages/AnalysisDetail";
 import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
 import Trends from "./pages/Trends";
+import AISettings from "./pages/admin/AISettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +91,18 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Trends />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ai-settings"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <DashboardLayout>
+                    <AISettings />
+                  </DashboardLayout>
+                </SuperAdminRoute>
               </ProtectedRoute>
             }
           />
