@@ -61,6 +61,16 @@ const App = () => (
             }
           />
           <Route
+            path="/profile/:userId"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <Profile />
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/analyses"
             element={
               <ProtectedRoute>

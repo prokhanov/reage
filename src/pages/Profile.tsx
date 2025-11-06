@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   User, Mail, Calendar, Ruler, Heart, Edit2, LogOut, 
-  Shield, Activity
+  Shield, Activity, ArrowLeft, Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Profile {
   name: string;
@@ -30,31 +31,86 @@ interface MedicalCondition {
 }
 
 export default function Profile() {
+  const { userId: viewingUserId } = useParams<{ userId: string }>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState("");
   const [medicalHistory, setMedicalHistory] = useState<MedicalCondition[]>([]);
   const [loading, setLoading] = useState(true);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editMedicalOpen, setEditMedicalOpen] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isViewingAsUser, setIsViewingAsUser] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    loadProfile();
-    loadMedicalHistory();
-  }, []);
+    checkPermissionsAndLoad();
+  }, [viewingUserId]);
+
+  const checkPermissionsAndLoad = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Не авторизован");
+
+      setCurrentUserId(user.id);
+
+      // Check if superadmin
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "superadmin")
+        .single();
+
+      const isSuperAdminUser = !!roleData;
+      setIsSuperAdmin(isSuperAdminUser);
+
+      // If viewing another user's profile, check permissions
+      if (viewingUserId && viewingUserId !== user.id) {
+        if (!isSuperAdminUser) {
+          toast({
+            title: "Доступ запрещен",
+            description: "У вас нет прав для просмотра этого профиля",
+            variant: "destructive"
+          });
+          navigate("/profile");
+          return;
+        }
+        setIsViewingAsUser(true);
+      }
+
+      loadProfile();
+      loadMedicalHistory();
+    } catch (error: any) {
+      console.error("Error checking permissions:", error);
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   const loadProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Не авторизован");
 
-      setEmail(user.email || "");
+      const targetUserId = viewingUserId || user.id;
+
+      // Get email from auth.users if viewing another user
+      if (viewingUserId && viewingUserId !== user.id) {
+        // For viewed user, we'll show a placeholder since we can't access auth.users directly
+        setEmail("***@***.***");
+      } else {
+        setEmail(user.email || "");
+      }
 
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", targetUserId)
         .single();
 
       if (error) throw error;
@@ -76,10 +132,12 @@ export default function Profile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const targetUserId = viewingUserId || user.id;
+
       const { data, error } = await supabase
         .from("medical_history")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", targetUserId);
 
       if (error) throw error;
       setMedicalHistory(data || []);
@@ -132,11 +190,31 @@ export default function Profile() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Admin viewing indicator */}
+        {isViewingAsUser && (
+          <Alert className="mb-6 border-primary bg-primary/10">
+            <Eye className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>
+                Вы просматриваете профиль как суперадмин. Это то, что видит пользователь.
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/admin/patients")}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                К списку пациентов
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Профиль</h1>
           <p className="text-muted-foreground">
-            Управляйте своими персональными данными
+            {isViewingAsUser ? "Профиль пациента" : "Управляйте своими персональными данными"}
           </p>
         </div>
 
@@ -151,18 +229,20 @@ export default function Profile() {
                 <div>
                   <h2 className="text-xl font-bold">Личная информация</h2>
                   <p className="text-sm text-muted-foreground">
-                    Основные данные о вас
+                    Основные данные о {isViewingAsUser ? "пациенте" : "вас"}
                   </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditProfileOpen(true)}
-              >
-                <Edit2 className="h-4 w-4 mr-2" />
-                Редактировать
-              </Button>
+              {!isViewingAsUser && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditProfileOpen(true)}
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Редактировать
+                </Button>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,14 +318,16 @@ export default function Profile() {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditMedicalOpen(true)}
-              >
-                <Edit2 className="h-4 w-4 mr-2" />
-                Редактировать
-              </Button>
+              {!isViewingAsUser && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditMedicalOpen(true)}
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Редактировать
+                </Button>
+              )}
             </div>
 
             {medicalHistory.length === 0 ? (
@@ -273,51 +355,57 @@ export default function Profile() {
             )}
           </Card>
 
-          {/* Security Card */}
-          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <Shield className="h-6 w-6 text-orange-500" />
+          {/* Security Card - only for own profile */}
+          {!isViewingAsUser && (
+            <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-orange-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Безопасность</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Управление аккаунтом
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold">Безопасность</h2>
-                <p className="text-sm text-muted-foreground">
-                  Управление аккаунтом
-                </p>
-              </div>
-            </div>
 
-            <Button 
-              variant="destructive" 
-              onClick={handleLogout} 
-              className="w-full"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Выйти из системы
-            </Button>
-          </Card>
+              <Button 
+                variant="destructive" 
+                onClick={handleLogout} 
+                className="w-full"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Выйти из системы
+              </Button>
+            </Card>
+          )}
         </div>
 
-        {/* Edit Dialogs */}
-        <EditProfileDialog
-          open={editProfileOpen}
-          onOpenChange={setEditProfileOpen}
-          profile={profile}
-          onSuccess={() => {
-            loadProfile();
-            setEditProfileOpen(false);
-          }}
-        />
+        {/* Edit Dialogs - only for own profile */}
+        {!isViewingAsUser && (
+          <>
+            <EditProfileDialog
+              open={editProfileOpen}
+              onOpenChange={setEditProfileOpen}
+              profile={profile}
+              onSuccess={() => {
+                loadProfile();
+                setEditProfileOpen(false);
+              }}
+            />
 
-        <EditMedicalHistoryDialog
-          open={editMedicalOpen}
-          onOpenChange={setEditMedicalOpen}
-          medicalHistory={medicalHistory}
-          onSuccess={() => {
-            loadMedicalHistory();
-            setEditMedicalOpen(false);
-          }}
-        />
+            <EditMedicalHistoryDialog
+              open={editMedicalOpen}
+              onOpenChange={setEditMedicalOpen}
+              medicalHistory={medicalHistory}
+              onSuccess={() => {
+                loadMedicalHistory();
+                setEditMedicalOpen(false);
+              }}
+            />
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
