@@ -175,7 +175,7 @@ ${biomarkerSummary}
       .insert({
         user_id: analysis.user_id,
         analysis_id: analysisId,
-        type: 'Полный отчет',
+        type: 'Общее резюме',
         text: fullText,
       });
     if (insertError) {
