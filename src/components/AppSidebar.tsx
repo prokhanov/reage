@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,6 +103,19 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           {/* Admin Section */}
           {isSuperAdmin && (
             <div className="p-4 border-t border-border/30 space-y-1">
+              <NavLink
+                to="/admin/patients"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                    "hover:bg-primary/10 hover:text-primary",
+                    isActive && "bg-primary/15 text-primary border border-primary/20"
+                  )
+                }
+              >
+                <Users className="h-4 w-4" />
+                <span className="font-medium">Пациенты</span>
+              </NavLink>
               <NavLink
                 to="/admin/ai-settings"
                 className={({ isActive }) =>

@@ -20,6 +20,8 @@ import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
+import Patients from "./pages/admin/Patients";
+import PatientProfile from "./pages/admin/PatientProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -125,6 +127,30 @@ const App = () => (
                 <SuperAdminRoute>
                   <DashboardLayout>
                     <DataManagement />
+                  </DashboardLayout>
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/patients"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <DashboardLayout>
+                    <Patients />
+                  </DashboardLayout>
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/patients/:userId"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <DashboardLayout>
+                    <PatientProfile />
                   </DashboardLayout>
                 </SuperAdminRoute>
               </ProtectedRoute>
