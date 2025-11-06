@@ -264,20 +264,59 @@ export default function Biomarkers() {
                               </p>
                             )}
 
-                            {(biomarker.normal_min !== null || biomarker.normal_max !== null) && (
+                            {(biomarker.normal_min !== null || biomarker.normal_max !== null) && biomarker.latest_value !== null && (
                               <div className="pt-2 border-t border-border/30">
                                 <p className="text-xs text-muted-foreground mb-1">Норма:</p>
-                                <div className="flex items-center gap-2">
-                                  <div className="flex-1 h-2 bg-secondary rounded-full relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-destructive via-green-500 to-destructive opacity-50" />
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 h-3 bg-secondary rounded-full relative overflow-hidden">
+                                      <div className="absolute inset-0 bg-gradient-to-r from-destructive/70 via-green-500/70 to-destructive/70" />
+                                      {(() => {
+                                        const min = biomarker.normal_min ?? 0;
+                                        const max = biomarker.normal_max ?? biomarker.latest_value * 2;
+                                        const range = max - min;
+                                        const value = biomarker.latest_value;
+                                        
+                                        // Расчет позиции с небольшим отступом от краев
+                                        let position = ((value - min) / range) * 100;
+                                        position = Math.max(2, Math.min(98, position)); // Ограничиваем 2-98%
+                                        
+                                        // Определяем цвет в зависимости от нормы
+                                        let markerColor = "bg-green-500";
+                                        if (biomarker.normal_min !== null && value < biomarker.normal_min) {
+                                          markerColor = "bg-destructive";
+                                        } else if (biomarker.normal_max !== null && value > biomarker.normal_max) {
+                                          markerColor = "bg-destructive";
+                                        }
+                                        
+                                        return (
+                                          <div 
+                                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${markerColor} border-2 border-background shadow-lg z-10`}
+                                            style={{ left: `${position}%` }}
+                                          />
+                                        );
+                                      })()}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                      {biomarker.normal_min !== null && biomarker.normal_max !== null
+                                        ? `${biomarker.normal_min}-${biomarker.normal_max}`
+                                        : biomarker.normal_min !== null
+                                        ? `> ${biomarker.normal_min}`
+                                        : `< ${biomarker.normal_max}`}
+                                    </span>
                                   </div>
-                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                    {biomarker.normal_min !== null && biomarker.normal_max !== null
-                                      ? `${biomarker.normal_min}-${biomarker.normal_max}`
-                                      : biomarker.normal_min !== null
-                                      ? `> ${biomarker.normal_min}`
-                                      : `< ${biomarker.normal_max}`}
-                                  </span>
+                                  <div className="flex justify-between items-baseline">
+                                    <span className="text-xs text-muted-foreground">Текущее:</span>
+                                    <span className={`text-sm font-semibold ${
+                                      inRange === false
+                                        ? "text-destructive"
+                                        : inRange === true
+                                        ? "text-green-500"
+                                        : "text-foreground"
+                                    }`}>
+                                      {biomarker.latest_value.toFixed(2)} {biomarker.unit}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             )}
