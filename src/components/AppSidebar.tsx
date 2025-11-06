@@ -203,19 +203,33 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
           {/* User Profile & Logout */}
           <div className="p-4 border-t border-border/30 space-y-1">
-            <NavLink
-              to="/profile"
-              className={({ isActive }) =>
-                cn(
+            {viewAsUserId ? (
+              <button
+                onClick={() => { setSimPath("/profile"); setIsOpen(false); }}
+                className={cn(
                   "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
                   "hover:bg-primary/10 hover:text-primary",
-                  isActive && "bg-primary/15 text-primary border border-primary/20"
-                )
-              }
-            >
-              <User className="h-4 w-4" />
-              <span className="font-medium">Профиль</span>
-            </NavLink>
+                  simPath === "/profile" && "bg-primary/15 text-primary border border-primary/20"
+                )}
+              >
+                <User className="h-4 w-4" />
+                <span className="font-medium">Профиль</span>
+              </button>
+            ) : (
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                    "hover:bg-primary/10 hover:text-primary",
+                    isActive && "bg-primary/15 text-primary border border-primary/20"
+                  )
+                }
+              >
+                <User className="h-4 w-4" />
+                <span className="font-medium">Профиль</span>
+              </NavLink>
+            )}
             
             {!viewAsUserId && (
               <button
