@@ -12,12 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { BirthDatePicker } from "@/components/BirthDatePicker";
 
 interface Profile {
   name: string;
@@ -149,36 +144,10 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           {/* Birth Date */}
           <div className="space-y-2">
             <Label>Дата рождения *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.birth_date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.birth_date ? (
-                    format(formData.birth_date, "d MMMM yyyy", { locale: ru })
-                  ) : (
-                    <span>Выберите дату</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.birth_date}
-                  onSelect={(date) => setFormData({ ...formData, birth_date: date })}
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
-                  }
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+            <BirthDatePicker
+              value={formData.birth_date}
+              onChange={(date) => setFormData({ ...formData, birth_date: date })}
+            />
           </div>
 
           {/* Height */}
