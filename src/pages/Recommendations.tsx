@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, Trash2, Brain } from "lucide-react";
+import { Eye, Trash2, Brain, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { MarkdownContent } from "@/components/MarkdownContent";
 import {
   Table,
   TableBody,
@@ -175,6 +176,76 @@ export default function Recommendations() {
     }, {} as Record<string, Recommendation[]>);
   };
 
+  const handleExportPDF = () => {
+    if (!selectedReport) return;
+
+    // Создаем окно для печати
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось открыть окно печати. Проверьте настройки браузера.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const element = document.getElementById('report-content');
+    if (!element) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось найти контент для экспорта",
+        variant: "destructive",
+      });
+      printWindow.close();
+      return;
+    }
+
+    // Копируем стили
+    const styles = Array.from(document.styleSheets)
+      .map(styleSheet => {
+        try {
+          return Array.from(styleSheet.cssRules)
+            .map(rule => rule.cssText)
+            .join('\n');
+        } catch (e) {
+          return '';
+        }
+      })
+      .join('\n');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Отчет от ${format(new Date(selectedReport.date), "dd-MM-yyyy")}</title>
+          <style>
+            ${styles}
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              padding: 20px;
+              max-width: 800px;
+              margin: 0 auto;
+            }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          ${element.innerHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    
+    // Даем время на загрузку стилей, затем печатаем
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -256,8 +327,19 @@ export default function Recommendations() {
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                Отчет от {selectedReport && format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}
+              <DialogTitle className="flex items-center justify-between">
+                <span>
+                  Отчет от {selectedReport && format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPDF}
+                  className="ml-4"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Экспорт в PDF
+                </Button>
               </DialogTitle>
               <DialogDescription>
                 {selectedReport?.count} {selectedReport?.count === 1 ? 'раздел' : 'разделов'}
@@ -273,48 +355,44 @@ export default function Recommendations() {
               );
 
               return (
-                <Tabs defaultValue="summary" className="mt-6">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="summary">Общее резюме</TabsTrigger>
-                    <TabsTrigger value="categories">По категориям</TabsTrigger>
-                    <TabsTrigger value="full">Полный отчет</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="summary" className="space-y-4 mt-4">
-                    {summary && (
-                      <div className="prose prose-sm max-w-none">
-                        <p className="whitespace-pre-wrap">{summary.text}</p>
-                      </div>
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="categories" className="mt-4">
-                    <Accordion type="multiple" className="space-y-2">
-                      {categories.map(([type, recs]) => (
-                        <AccordionItem key={type} value={type}>
-                          <AccordionTrigger className="text-base font-semibold">
-                            {type}
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            {recs.map((rec) => (
-                              <div key={rec.id} className="prose prose-sm max-w-none">
-                                <p className="whitespace-pre-wrap">{rec.text}</p>
-                              </div>
-                            ))}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </TabsContent>
-                  
-                  <TabsContent value="full" className="space-y-4 mt-4">
-                    {fullReport && (
-                      <div className="prose prose-sm max-w-none">
-                        <p className="whitespace-pre-wrap">{fullReport.text}</p>
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                <div id="report-content">
+                  <Tabs defaultValue="summary" className="mt-6">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="summary">Общее резюме</TabsTrigger>
+                      <TabsTrigger value="categories">По категориям</TabsTrigger>
+                      <TabsTrigger value="full">Полный отчет</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="summary" className="space-y-4 mt-4">
+                      {summary && (
+                        <MarkdownContent content={summary.text} />
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="categories" className="mt-4">
+                      <Accordion type="multiple" className="space-y-2">
+                        {categories.map(([type, recs]) => (
+                          <AccordionItem key={type} value={type}>
+                            <AccordionTrigger className="text-base font-semibold">
+                              {type}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              {recs.map((rec) => (
+                                <MarkdownContent key={rec.id} content={rec.text} />
+                              ))}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </TabsContent>
+                    
+                    <TabsContent value="full" className="space-y-4 mt-4">
+                      {fullReport && (
+                        <MarkdownContent content={fullReport.text} />
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </div>
               );
             })()}
           </DialogContent>
