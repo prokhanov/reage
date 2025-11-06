@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Activity, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BiomarkerData {
   id: string;
@@ -213,7 +214,7 @@ export default function Biomarkers() {
                           <TableHead className="font-semibold">Тренд</TableHead>
                           <TableHead className="font-semibold">Дата теста</TableHead>
                           <TableHead className="font-semibold">Шкала нормы</TableHead>
-                          <TableHead className="font-semibold">Описание</TableHead>
+                          <TableHead className="font-semibold w-16"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -352,14 +353,19 @@ export default function Biomarkers() {
                                 )}
                               </TableCell>
                               
-                              <TableCell className="max-w-[300px]">
+                              <TableCell className="text-center">
                                 {biomarker.description ? (
-                                  <p className="text-xs text-muted-foreground line-clamp-2">
-                                    {biomarker.description}
-                                  </p>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground">-</span>
-                                )}
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <button className="inline-flex items-center justify-center rounded-full w-5 h-5 bg-primary/10 hover:bg-primary/20 transition-colors">
+                                        <Info className="h-3 w-3 text-primary" />
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="max-w-xs" side="left">
+                                      <p className="text-sm">{biomarker.description}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ) : null}
                               </TableCell>
                             </TableRow>
                           );
