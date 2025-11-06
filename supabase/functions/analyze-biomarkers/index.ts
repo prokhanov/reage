@@ -62,6 +62,35 @@ serve(async (req) => {
       .eq('id', analysis.user_id)
       .maybeSingle();
 
+    // Get previous analyses for trend comparison (last 5)
+    const { data: previousAnalyses } = await supabase
+      .from('analyses')
+      .select(`
+        date,
+        health_index,
+        biological_age,
+        analysis_values (
+          value,
+          biomarkers (
+            name,
+            code,
+            unit
+          )
+        )
+      `)
+      .eq('user_id', analysis.user_id)
+      .neq('id', analysisId)
+      .order('date', { ascending: false })
+      .limit(5);
+
+    // Get previous recommendations
+    const { data: previousRecommendations } = await supabase
+      .from('recommendations')
+      .select('*')
+      .eq('user_id', analysis.user_id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
     // Get AI prompt settings - use analysis_summary_prompt as the main system prompt
     const { data: promptSetting } = await supabase
       .from('ai_prompt_settings')
@@ -83,6 +112,45 @@ serve(async (req) => {
       })
       .join('\n');
 
+    // Prepare historical data for trend analysis
+    let historicalContext = '';
+    if (previousAnalyses && previousAnalyses.length > 0) {
+      historicalContext = '\n\nИСТОРИЯ ПРЕДЫДУЩИХ АНАЛИЗОВ:\n';
+      previousAnalyses.forEach((prevAnalysis: any) => {
+        historicalContext += `\nДата: ${prevAnalysis.date}`;
+        if (prevAnalysis.health_index) {
+          historicalContext += ` | Индекс здоровья: ${prevAnalysis.health_index}%`;
+        }
+        if (prevAnalysis.biological_age) {
+          historicalContext += ` | Биологический возраст: ${prevAnalysis.biological_age}`;
+        }
+        historicalContext += '\n';
+        
+        // Compare biomarkers with current analysis
+        prevAnalysis.analysis_values?.forEach((prevValue: any) => {
+          const currentValue = analysis.analysis_values.find((cv: any) => 
+            cv.biomarkers.code === prevValue.biomarkers.code
+          );
+          
+          if (currentValue) {
+            const change = currentValue.value - prevValue.value;
+            const changePercent = ((change / prevValue.value) * 100).toFixed(1);
+            const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
+            historicalContext += `  ${prevValue.biomarkers.name}: ${prevValue.value} → ${currentValue.value} ${currentValue.biomarkers.unit} ${arrow} ${changePercent}%\n`;
+          }
+        });
+      });
+    }
+
+    // Prepare previous recommendations context
+    let recommendationsContext = '';
+    if (previousRecommendations && previousRecommendations.length > 0) {
+      recommendationsContext = '\n\nПРЕДЫДУЩИЕ РЕКОМЕНДАЦИИ:\n';
+      previousRecommendations.slice(0, 5).forEach((rec: any) => {
+        recommendationsContext += `\n[${rec.type}] ${rec.text.substring(0, 200)}...\n`;
+      });
+    }
+
     const userContext = `
 Возраст: ${profile ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : 'не указан'}
 Пол: ${profile?.gender === 'male' ? 'мужской' : profile?.gender === 'female' ? 'женский' : 'не указан'}
@@ -92,15 +160,19 @@ serve(async (req) => {
 `;
 
     const systemPrompt = promptSetting?.prompt_text || 
-      'Ты эксперт по долголетию и здоровью. Проанализируй результаты анализов и создай краткое резюме на русском языке в дружелюбном тоне. Никогда не ставь диагнозы.';
+      'Ты эксперт по долголетию и здоровью. Проанализируй результаты анализов, ОБЯЗАТЕЛЬНО обрати внимание на динамику изменений показателей по сравнению с предыдущими анализами. Отметь положительные и отрицательные тренды. Учитывай предыдущие рекомендации и оцени, следовал ли им пациент. Создай краткое резюме на русском языке в дружелюбном тоне. Никогда не ставь диагнозы.';
 
     // User prompt with data
     const userPrompt = `
 КОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:
 ${userContext}
 
-РЕЗУЛЬТАТЫ АНАЛИЗОВ:
+ТЕКУЩИЕ РЕЗУЛЬТАТЫ АНАЛИЗОВ (${analysis.date}):
 ${biomarkerSummary}
+${historicalContext}
+${recommendationsContext}
+
+ВАЖНО: Проанализируй динамику изменений показателей. Отметь улучшения и ухудшения. Если есть предыдущие рекомендации, оцени их эффективность на основе текущих результатов.
 `;
 
     // Call Lovable AI
