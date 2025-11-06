@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [trendData, setTrendData] = useState<any[]>([]);
   const [trendMeta, setTrendMeta] = useState<{ name: string; unit: string } | null>(null);
+  const [trendCategories, setTrendCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProfile();
@@ -80,7 +81,7 @@ export default function Dashboard() {
         .select(`
           value,
           biomarker_id,
-          biomarkers (name, unit),
+          biomarkers (name, unit, category, normal_min, normal_max),
           analyses!inner (
             date,
             user_id
@@ -98,24 +99,60 @@ export default function Dashboard() {
         return;
       }
 
-      const groups = data.reduce((acc: Record<string, any[]>, item: any) => {
-        (acc[item.biomarker_id] = acc[item.biomarker_id] || []).push(item);
-        return acc;
-      }, {});
-      const topGroupId = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length)[0];
-      const topGroup = groups[topGroupId];
+      // Группируем по датам и категориям
+      const dateMap: Record<string, Record<string, { sum: number; count: number }>> = {};
+      
+      data.forEach((item: any) => {
+        const date = new Date(item.analyses.date).toLocaleDateString("ru-RU", { 
+          day: "numeric", 
+          month: "short" 
+        });
+        const category = item.biomarkers?.category || "Прочее";
+        
+        if (!dateMap[date]) dateMap[date] = {};
+        if (!dateMap[date][category]) dateMap[date][category] = { sum: 0, count: 0 };
+        
+        // Нормализуем значение к процентам от нормы
+        let normalizedValue = item.value;
+        if (item.biomarkers?.normal_min && item.biomarkers?.normal_max) {
+          const mid = (item.biomarkers.normal_min + item.biomarkers.normal_max) / 2;
+          normalizedValue = (item.value / mid) * 100;
+        }
+        
+        dateMap[date][category].sum += normalizedValue;
+        dateMap[date][category].count += 1;
+      });
 
-      const formatted = topGroup.map((item: any) => ({
-        date: new Date(item.analyses.date).toLocaleDateString("ru-RU", { day: "numeric", month: "short" }),
-        value: item.value,
-      }));
+      // Определяем топ-3 категории по количеству данных
+      const categoryStats: Record<string, number> = {};
+      Object.values(dateMap).forEach(dateData => {
+        Object.entries(dateData).forEach(([cat, stats]) => {
+          categoryStats[cat] = (categoryStats[cat] || 0) + stats.count;
+        });
+      });
+      
+      const topCategories = Object.entries(categoryStats)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([cat]) => cat);
+
+      // Формируем данные для графика
+      const formatted = Object.entries(dateMap).map(([date, categories]) => {
+        const point: any = { date };
+        topCategories.forEach(cat => {
+          if (categories[cat]) {
+            point[cat] = Math.round(categories[cat].sum / categories[cat].count);
+          }
+        });
+        return point;
+      });
 
       setTrendData(formatted);
-      const first = topGroup[0];
-      setTrendMeta({
-        name: first.biomarkers?.name || "Показатель",
-        unit: first.biomarkers?.unit || "",
+      setTrendMeta({ 
+        name: topCategories.join(", "),
+        unit: "% от нормы" 
       });
+      setTrendCategories(topCategories);
     } catch (error) {
       console.error("Error fetching biomarker trend:", error);
     }
@@ -248,7 +285,7 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
                     <span className="text-sm text-muted-foreground">
-                      {trendMeta?.name} {trendMeta?.unit ? `(${trendMeta.unit})` : ""}
+                      Топ-{trendCategories.length} категории (нормализовано)
                     </span>
                   </div>
                   <ResponsiveContainer width="100%" height={300}>
@@ -263,13 +300,24 @@ export default function Dashboard() {
                           borderRadius: "8px",
                         }}
                       />
-                      <Line
-                        type="monotone"
-                        dataKey="value"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={3}
-                        dot={{ fill: "hsl(var(--primary))", r: 5 }}
-                      />
+                      {trendCategories.map((category, index) => {
+                        const colors = [
+                          "hsl(var(--primary))",
+                          "hsl(var(--accent))",
+                          "hsl(var(--secondary))",
+                        ];
+                        return (
+                          <Line
+                            key={category}
+                            type="monotone"
+                            dataKey={category}
+                            stroke={colors[index]}
+                            strokeWidth={2}
+                            dot={{ fill: colors[index], r: 4 }}
+                            name={category}
+                          />
+                        );
+                      })}
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
