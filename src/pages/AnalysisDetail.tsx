@@ -3,12 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { Progress } from "@/components/ui/progress";
 
 interface Biomarker {
   id: string;
@@ -16,6 +15,7 @@ interface Biomarker {
   code: string;
   unit: string;
   category: string;
+  description: string | null;
   normal_min: number | null;
   normal_max: number | null;
 }
@@ -33,16 +33,24 @@ export default function AnalysisDetail() {
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedBiomarker, setSelectedBiomarker] = useState("");
-  const [biomarkerValue, setBiomarkerValue] = useState("");
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadData();
   }, [id]);
+
+  useEffect(() => {
+    // Initialize input values from existing analysis values
+    const initialValues: Record<string, string> = {};
+    values.forEach((v) => {
+      initialValues[v.biomarker_id] = v.value.toString();
+    });
+    setInputValues(initialValues);
+  }, [values]);
 
   const loadData = async () => {
     try {
@@ -93,63 +101,60 @@ export default function AnalysisDetail() {
     }
   };
 
-  const handleAddValue = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSaveAll = async () => {
+    setSaving(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Не авторизован");
 
-      const { error } = await supabase.from("analysis_values").insert({
-        analysis_id: id,
-        biomarker_id: selectedBiomarker,
-        value: parseFloat(biomarkerValue),
-      });
+      // Get all biomarkers that have values entered
+      const entriesToSave = Object.entries(inputValues)
+        .filter(([_, value]) => value && value.trim() !== "")
+        .map(([biomarkerId, value]) => ({
+          analysis_id: id,
+          biomarker_id: biomarkerId,
+          value: parseFloat(value),
+        }));
 
-      if (error) throw error;
+      if (entriesToSave.length === 0) {
+        toast({
+          title: "Нет данных",
+          description: "Введите хотя бы одно значение",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Delete existing values for this analysis
+      const { error: deleteError } = await supabase
+        .from("analysis_values")
+        .delete()
+        .eq("analysis_id", id);
+
+      if (deleteError) throw deleteError;
+
+      // Insert all new values
+      const { error: insertError } = await supabase
+        .from("analysis_values")
+        .insert(entriesToSave);
+
+      if (insertError) throw insertError;
 
       toast({
         title: "Успешно!",
-        description: "Показатель добавлен",
+        description: `Сохранено ${entriesToSave.length} показателей`,
       });
 
-      setDialogOpen(false);
-      setSelectedBiomarker("");
-      setBiomarkerValue("");
       loadData();
     } catch (error: any) {
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось добавить показатель",
+        description: error.message || "Не удалось сохранить показатели",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteValue = async (valueId: string) => {
-    try {
-      const { error } = await supabase
-        .from("analysis_values")
-        .delete()
-        .eq("id", valueId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Удалено",
-        description: "Показатель удален",
-      });
-
-      loadData();
-    } catch (error: any) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось удалить показатель",
-        variant: "destructive",
-      });
+      setSaving(false);
     }
   };
 
@@ -190,33 +195,27 @@ export default function AnalysisDetail() {
     }
   };
 
-  const getStatus = (value: number, biomarker: Biomarker) => {
-    if (biomarker.normal_min === null || biomarker.normal_max === null) return "unknown";
-    if (value < biomarker.normal_min) return "low";
-    if (value > biomarker.normal_max) return "high";
-    return "normal";
+  const getProgressValue = (value: string, biomarker: Biomarker) => {
+    if (!value || biomarker.normal_min === null || biomarker.normal_max === null) return 50;
+    const numValue = parseFloat(value);
+    const range = biomarker.normal_max - biomarker.normal_min;
+    const position = ((numValue - biomarker.normal_min) / range) * 100;
+    return Math.max(0, Math.min(100, position));
   };
 
-  const statusColors = {
-    low: "text-status-danger",
-    high: "text-status-warning",
-    normal: "text-status-good",
-    unknown: "text-muted-foreground",
+  const getProgressColor = (value: string, biomarker: Biomarker) => {
+    if (!value || biomarker.normal_min === null || biomarker.normal_max === null) return "bg-muted";
+    const numValue = parseFloat(value);
+    if (numValue < biomarker.normal_min) return "bg-status-danger";
+    if (numValue > biomarker.normal_max) return "bg-status-warning";
+    return "bg-status-good";
   };
 
-  const statusLabels = {
-    low: "Ниже нормы",
-    high: "Выше нормы",
-    normal: "В норме",
-    unknown: "Нет нормы",
-  };
-
-  const groupedValues = values.reduce((acc, value) => {
-    const category = value.biomarkers.category;
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(value);
+  const groupedBiomarkers = biomarkers.reduce((acc, biomarker) => {
+    if (!acc[biomarker.category]) acc[biomarker.category] = [];
+    acc[biomarker.category].push(biomarker);
     return acc;
-  }, {} as Record<string, AnalysisValue[]>);
+  }, {} as Record<string, Biomarker[]>);
 
   if (loading && !analysis) {
     return (
@@ -228,7 +227,7 @@ export default function AnalysisDetail() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -242,62 +241,25 @@ export default function AnalysisDetail() {
             {analysis?.lab_name && (
               <p className="text-muted-foreground">Лаборатория: {analysis.lab_name}</p>
             )}
+            <p className="text-sm text-muted-foreground mt-2">
+              Введите значения для нужных показателей и нажмите "Сохранить всё"
+            </p>
           </div>
 
           <div className="flex gap-2">
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="shadow-neon-primary">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Добавить показатель
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-card border-primary/30">
-                <DialogHeader>
-                  <DialogTitle className="bg-gradient-primary bg-clip-text text-transparent">
-                    Новый показатель
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleAddValue} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="biomarker">Биомаркер</Label>
-                    <select
-                      id="biomarker"
-                      value={selectedBiomarker}
-                      onChange={(e) => setSelectedBiomarker(e.target.value)}
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      required
-                    >
-                      <option value="">Выберите показатель</option>
-                      {biomarkers.map((b) => (
-                        <option key={b.id} value={b.id}>
-                          {b.name} ({b.category})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="value">Значение</Label>
-                    <Input
-                      id="value"
-                      type="number"
-                      step="0.01"
-                      value={biomarkerValue}
-                      onChange={(e) => setBiomarkerValue(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Добавление..." : "Добавить"}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button
+              onClick={handleSaveAll}
+              disabled={saving}
+              className="shadow-neon-primary"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {saving ? "Сохранение..." : "Сохранить всё"}
+            </Button>
 
             <Button
               onClick={handleAnalyze}
               disabled={analyzing || values.length === 0}
-              className="shadow-neon-secondary"
+              className="shadow-neon-accent"
             >
               <Sparkles className="mr-2 h-4 w-4" />
               {analyzing ? "Анализируем..." : "AI-анализ"}
@@ -305,73 +267,115 @@ export default function AnalysisDetail() {
           </div>
         </div>
 
-        {/* Values by category */}
-        {Object.keys(groupedValues).length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card/50">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <p className="text-muted-foreground text-center mb-6">
-                Пока нет добавленных показателей
-              </p>
-              <Button onClick={() => setDialogOpen(true)} className="shadow-neon-primary">
-                <Plus className="mr-2 h-4 w-4" />
-                Добавить первый показатель
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedValues).map(([category, categoryValues]) => (
-              <Card
-                key={category}
-                className="border-primary/20 bg-gradient-to-br from-card to-primary/5"
-              >
-                <CardHeader>
-                  <CardTitle className="text-xl">{category}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {categoryValues.map((value) => {
-                      const status = getStatus(value.value, value.biomarkers);
-                      return (
-                        <div
-                          key={value.id}
-                          className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border hover:border-primary/50 transition-all group"
-                        >
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{value.biomarkers.name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {value.biomarkers.normal_min !== null &&
-                                value.biomarkers.normal_max !== null &&
-                                `Норма: ${value.biomarkers.normal_min}-${value.biomarkers.normal_max} ${value.biomarkers.unit}`}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <p className="text-2xl font-bold">
-                                {value.value} {value.biomarkers.unit}
-                              </p>
-                              <p className={`text-sm font-medium ${statusColors[status]}`}>
-                                {statusLabels[status]}
-                              </p>
+        {/* Biomarkers by category */}
+        <div className="space-y-6">
+          {Object.entries(groupedBiomarkers).map(([category, categoryBiomarkers]) => (
+            <Card
+              key={category}
+              className="border-primary/20 bg-gradient-to-br from-card to-primary/5"
+            >
+              <CardHeader>
+                <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
+                  {category}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {categoryBiomarkers.map((biomarker) => {
+                    const currentValue = inputValues[biomarker.id] || "";
+                    const progressValue = getProgressValue(currentValue, biomarker);
+                    const progressColor = getProgressColor(currentValue, biomarker);
+
+                    return (
+                      <div
+                        key={biomarker.id}
+                        className="p-4 rounded-lg bg-muted/20 border border-border hover:border-primary/30 transition-all"
+                      >
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                          {/* Info column */}
+                          <div className="lg:col-span-5 space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <h4 className="font-semibold text-foreground">{biomarker.name}</h4>
+                                <p className="text-xs text-muted-foreground mt-0.5">{biomarker.code}</p>
+                              </div>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {biomarker.unit}
+                              </span>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteValue(value.id)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {biomarker.description && (
+                              <p className="text-sm text-muted-foreground leading-relaxed">
+                                {biomarker.description}
+                              </p>
+                            )}
+                            {biomarker.normal_min !== null && biomarker.normal_max !== null && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="text-muted-foreground">Референс:</span>
+                                <span className="font-medium text-status-good">
+                                  {biomarker.normal_min} - {biomarker.normal_max} {biomarker.unit}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Input column */}
+                          <div className="lg:col-span-3 flex items-center">
+                            <div className="w-full">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="Значение"
+                                value={currentValue}
+                                onChange={(e) =>
+                                  setInputValues({
+                                    ...inputValues,
+                                    [biomarker.id]: e.target.value,
+                                  })
+                                }
+                                className="w-full text-lg font-semibold text-center bg-background border-primary/30 focus:border-primary"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Visual indicator column */}
+                          <div className="lg:col-span-4 flex items-center">
+                            {currentValue && biomarker.normal_min !== null && biomarker.normal_max !== null ? (
+                              <div className="w-full space-y-2">
+                                <div className="relative h-8 bg-muted rounded-full overflow-hidden border border-border">
+                                  {/* Danger zone left */}
+                                  <div className="absolute left-0 top-0 bottom-0 w-[10%] bg-status-danger/20" />
+                                  {/* Normal zone */}
+                                  <div className="absolute left-[10%] top-0 bottom-0 right-[10%] bg-status-good/20" />
+                                  {/* Danger zone right */}
+                                  <div className="absolute right-0 top-0 bottom-0 w-[10%] bg-status-warning/20" />
+                                  
+                                  {/* Value indicator */}
+                                  <div
+                                    className={`absolute top-0 bottom-0 w-1.5 ${progressColor} shadow-lg transition-all`}
+                                    style={{ left: `${progressValue}%` }}
+                                  />
+                                </div>
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                  <span>Низко</span>
+                                  <span className="text-status-good">Норма</span>
+                                  <span>Высоко</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-full text-center text-sm text-muted-foreground">
+                                {currentValue ? "Нет референсных значений" : "Введите значение"}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </DashboardLayout>
   );
