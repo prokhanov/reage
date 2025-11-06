@@ -9,6 +9,10 @@ import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import Analyses from "./pages/Analyses";
+import AnalysisDetail from "./pages/AnalysisDetail";
+import Recommendations from "./pages/Recommendations";
+import Trends from "./pages/Trends";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,7 +50,38 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route
+            path="/analyses"
+            element={
+              <ProtectedRoute>
+                <Analyses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analyses/:id"
+            element={
+              <ProtectedRoute>
+                <AnalysisDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/recommendations"
+            element={
+              <ProtectedRoute>
+                <Recommendations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trends"
+            element={
+              <ProtectedRoute>
+                <Trends />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
