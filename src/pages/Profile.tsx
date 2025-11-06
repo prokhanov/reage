@@ -38,6 +38,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editMedicalOpen, setEditMedicalOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,8 +49,9 @@ export default function Profile() {
 
   const loadProfile = async () => {
     try {
-      const userId = await getUserId();
-      if (!userId) throw new Error("Не авторизован");
+      const uid = await getUserId();
+      if (!uid) throw new Error("Не авторизован");
+      setUserId(uid);
 
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
@@ -59,7 +61,7 @@ export default function Profile() {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
+        .eq("id", uid)
         .single();
 
       if (error) throw error;
@@ -308,6 +310,7 @@ export default function Profile() {
           open={editProfileOpen}
           onOpenChange={setEditProfileOpen}
           profile={profile}
+          userId={userId}
           onSuccess={() => {
             loadProfile();
             setEditProfileOpen(false);
@@ -318,6 +321,7 @@ export default function Profile() {
           open={editMedicalOpen}
           onOpenChange={setEditMedicalOpen}
           medicalHistory={medicalHistory}
+          userId={userId}
           onSuccess={() => {
             loadMedicalHistory();
             setEditMedicalOpen(false);

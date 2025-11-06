@@ -24,6 +24,7 @@ interface EditMedicalHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   medicalHistory: MedicalCondition[];
+  userId: string | null;
   onSuccess: () => void;
 }
 
@@ -122,7 +123,8 @@ const medicalCategories = [
 export function EditMedicalHistoryDialog({ 
   open, 
   onOpenChange, 
-  medicalHistory, 
+  medicalHistory,
+  userId,
   onSuccess 
 }: EditMedicalHistoryDialogProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -215,21 +217,20 @@ export function EditMedicalHistoryDialog({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      if (!userId) throw new Error("Не авторизован");
 
       // Delete all existing
       await supabase
         .from("medical_history")
         .delete()
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       // Insert new selections
       if (selectedConditions.size > 0) {
         const medicalData = Array.from(selectedConditions).map(key => {
           const [category, condition] = key.split('|');
           return {
-            user_id: user.id,
+            user_id: userId,
             category,
             condition
           };

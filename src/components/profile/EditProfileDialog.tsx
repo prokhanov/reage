@@ -30,10 +30,11 @@ interface EditProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   profile: Profile | null;
+  userId: string | null;
   onSuccess: () => void;
 }
 
-export function EditProfileDialog({ open, onOpenChange, profile, onSuccess }: EditProfileDialogProps) {
+export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess }: EditProfileDialogProps) {
   const [formData, setFormData] = useState({
     name: profile?.name || "",
     gender: profile?.gender || "male",
@@ -55,8 +56,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, onSuccess }: Ed
 
     setIsSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      if (!userId) throw new Error("Не авторизован");
 
       const { error } = await supabase
         .from("profiles")
@@ -66,7 +66,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, onSuccess }: Ed
           birth_date: formData.birth_date.toISOString().split('T')[0],
           height: formData.height ? parseFloat(formData.height) : null,
         })
-        .eq("id", user.id);
+        .eq("id", userId);
 
       if (error) throw error;
 
