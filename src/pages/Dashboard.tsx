@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, TrendingUp, Brain, Heart } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,10 +15,13 @@ export default function Dashboard() {
   const [latestHealthIndex, setLatestHealthIndex] = useState<number | null>(null);
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
+  const [trendData, setTrendData] = useState<any[]>([]);
+  const [trendMeta, setTrendMeta] = useState<{ name: string; unit: string } | null>(null);
 
   useEffect(() => {
     fetchProfile();
     fetchAnalysesStats();
+    fetchBiomarkerTrend();
   }, []);
 
   const fetchAnalysesStats = async () => {
@@ -60,6 +64,60 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error fetching analyses stats:", error);
+    }
+  };
+
+  const fetchBiomarkerTrend = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const monthsAgo = new Date();
+      monthsAgo.setMonth(monthsAgo.getMonth() - 6);
+
+      const { data, error } = await supabase
+        .from("analysis_values")
+        .select(`
+          value,
+          biomarker_id,
+          biomarkers (name, unit),
+          analyses!inner (
+            date,
+            user_id
+          )
+        `)
+        .eq("analyses.user_id", user.id)
+        .gte("analyses.date", monthsAgo.toISOString().split("T")[0])
+        .order("analyses(date)", { ascending: true });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        setTrendData([]);
+        setTrendMeta(null);
+        return;
+      }
+
+      const groups = data.reduce((acc: Record<string, any[]>, item: any) => {
+        (acc[item.biomarker_id] = acc[item.biomarker_id] || []).push(item);
+        return acc;
+      }, {});
+      const topGroupId = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length)[0];
+      const topGroup = groups[topGroupId];
+
+      const formatted = topGroup.map((item: any) => ({
+        date: new Date(item.analyses.date).toLocaleDateString("ru-RU", { day: "numeric", month: "short" }),
+        value: item.value,
+      }));
+
+      setTrendData(formatted);
+      const first = topGroup[0];
+      setTrendMeta({
+        name: first.biomarkers?.name || "Показатель",
+        unit: first.biomarkers?.unit || "",
+      });
+    } catch (error) {
+      console.error("Error fetching biomarker trend:", error);
     }
   };
 
@@ -186,13 +244,44 @@ export default function Dashboard() {
               <CardTitle className="text-lg">Динамика биомаркеров</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                  <p className="text-sm">Нет данных для отображения</p>
-                  <p className="text-xs mt-2">Добавьте анализы для просмотра трендов</p>
+              {trendData.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between px-2">
+                    <span className="text-sm text-muted-foreground">
+                      {trendMeta?.name} {trendMeta?.unit ? `(${trendMeta.unit})` : ""}
+                    </span>
+                  </div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={3}
+                        dot={{ fill: "hsl(var(--primary))", r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
-              </div>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                    <p className="text-sm">Нет данных для отображения</p>
+                    <p className="text-xs mt-2">Добавьте анализы для просмотра трендов</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
