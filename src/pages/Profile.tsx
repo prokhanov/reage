@@ -366,6 +366,9 @@ export default function Profile() {
 
   const genderEmoji = profile?.gender === "female" ? "👩" : "👨";
   const age = getAge();
+  const chronologicalAge = age;
+  const ageDifference = latestBioAge && chronologicalAge ? chronologicalAge - latestBioAge : null;
+  const circleProgress = latestHealthIndex ? latestHealthIndex : 0;
 
   return (
     <DashboardLayout>
@@ -473,7 +476,7 @@ export default function Profile() {
                     <CardTitle>Карта показателей</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <BodyHeatmap data={bodyHeatmapData} />
+                    <BodyHeatmap biomarkerData={bodyHeatmapData} />
                   </CardContent>
                 </Card>
               )}
