@@ -326,7 +326,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 content: categoryPrompt
               }
             ],
-            max_completion_tokens: 2200
+            max_completion_tokens: 16000
           }),
         });
 
@@ -443,7 +443,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               content: summaryPrompt
             }
           ],
-          max_completion_tokens: 1800
+          max_completion_tokens: 16000
         }),
       });
 
