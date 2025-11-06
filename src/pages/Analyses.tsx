@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, Calendar, FlaskConical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -16,6 +17,7 @@ interface Analysis {
   lab_name: string | null;
   health_index: number | null;
   biological_age: number | null;
+  biomarkers_count?: number;
 }
 
 export default function Analyses() {
@@ -45,7 +47,23 @@ export default function Analyses() {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      setAnalyses(data || []);
+      
+      // Получаем количество биомаркеров для каждого анализа
+      const analysesWithCounts = await Promise.all(
+        (data || []).map(async (analysis) => {
+          const { count } = await supabase
+            .from("analysis_values")
+            .select("*", { count: "exact", head: true })
+            .eq("analysis_id", analysis.id);
+          
+          return {
+            ...analysis,
+            biomarkers_count: count || 0,
+          };
+        })
+      );
+      
+      setAnalyses(analysesWithCounts);
     } catch (error: any) {
       console.error("Error loading analyses:", error);
       toast({
@@ -180,7 +198,7 @@ export default function Analyses() {
                 onClick={() => navigate(`/analyses/${analysis.id}`)}
               >
                 <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <Calendar className="h-5 w-5 text-primary" />
                     <CardTitle className="text-lg">
                       {new Date(analysis.date).toLocaleDateString("ru-RU", {
@@ -189,6 +207,11 @@ export default function Analyses() {
                         year: "numeric",
                       })}
                     </CardTitle>
+                    {analysis.biomarkers_count !== undefined && analysis.biomarkers_count > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {analysis.biomarkers_count} маркеров
+                      </Badge>
+                    )}
                   </div>
                   {analysis.lab_name && (
                     <p className="text-sm text-muted-foreground">{analysis.lab_name}</p>
