@@ -66,8 +66,8 @@ export default function Profile() {
   }[profile?.gender || "male"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="border-b bg-card/50 backdrop-blur-sm">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border/50 bg-card/30 backdrop-blur-xl">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -81,37 +81,43 @@ export default function Profile() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card className="shadow-xl">
+        <Card className="shadow-neon-accent border-accent/30 bg-gradient-to-br from-card to-card/50">
           <CardHeader>
-            <CardTitle className="text-3xl">Профиль</CardTitle>
+            <CardTitle className="text-3xl bg-gradient-primary bg-clip-text text-transparent">
+              Профиль
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div>
+            <div className="p-4 rounded-lg bg-muted/30 border border-border">
               <label className="text-sm text-muted-foreground">Имя</label>
               <p className="text-lg font-medium">{profile?.name}</p>
             </div>
 
-            <div>
+            <div className="p-4 rounded-lg bg-muted/30 border border-border">
               <label className="text-sm text-muted-foreground">Дата рождения</label>
               <p className="text-lg font-medium">
                 {profile?.birth_date && new Date(profile.birth_date).toLocaleDateString("ru-RU")}
               </p>
             </div>
 
-            <div>
+            <div className="p-4 rounded-lg bg-muted/30 border border-border">
               <label className="text-sm text-muted-foreground">Пол</label>
               <p className="text-lg font-medium">{genderLabel}</p>
             </div>
 
             {profile?.telegram_id && (
-              <div>
+              <div className="p-4 rounded-lg bg-muted/30 border border-border">
                 <label className="text-sm text-muted-foreground">Telegram ID</label>
                 <p className="text-lg font-medium">{profile.telegram_id}</p>
               </div>
             )}
 
-            <div className="pt-6 border-t">
-              <Button variant="destructive" onClick={handleLogout} className="w-full">
+            <div className="pt-6 border-t border-border">
+              <Button 
+                variant="destructive" 
+                onClick={handleLogout} 
+                className="w-full shadow-md hover:shadow-lg"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Выйти из системы
               </Button>

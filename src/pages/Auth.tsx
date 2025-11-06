@@ -130,8 +130,8 @@ export default function Auth() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 px-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-md shadow-neon-primary border-primary/30 bg-gradient-to-br from-card to-card/50">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
             {isLogin ? "Вход" : "Регистрация"}

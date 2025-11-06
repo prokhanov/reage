@@ -71,10 +71,10 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 px-4 py-12">
-      <Card className="w-full max-w-2xl shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <Card className="w-full max-w-2xl shadow-neon-secondary border-secondary/30 bg-gradient-to-br from-card to-card/50">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+          <CardTitle className="text-3xl font-bold bg-gradient-secondary bg-clip-text text-transparent">
             Давайте познакомимся
           </CardTitle>
           <CardDescription>
@@ -105,8 +105,8 @@ export default function Onboarding() {
                     onClick={() => toggleGoal(goal)}
                     className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
                       formData.goals.includes(goal)
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        ? "bg-primary text-primary-foreground shadow-neon-primary scale-105"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80 border border-border"
                     }`}
                   >
                     {goal}

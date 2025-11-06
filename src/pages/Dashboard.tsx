@@ -73,19 +73,29 @@ export default function Dashboard() {
   const healthIndex = 78; // Mock data
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card/50 backdrop-blur-sm">
+      <header className="border-b border-border/50 bg-card/30 backdrop-blur-xl">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
             ReAge
           </h1>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/profile")}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate("/profile")}
+              className="hover:bg-primary/10 hover:text-primary transition-all"
+            >
               <User className="mr-2 h-4 w-4" />
               Профиль
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="hover:bg-destructive/10 hover:text-destructive transition-all"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Выйти
             </Button>
@@ -96,19 +106,21 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Добро пожаловать, {profile?.name}!</h2>
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+            Добро пожаловать, {profile?.name}!
+          </h2>
           <p className="text-muted-foreground">
             Ваш персональный дашборд здоровья и долголетия
           </p>
         </div>
 
         {/* Health Index Card */}
-        <Card className="mb-8 border-2 shadow-lg">
+        <Card className="mb-8 border-2 border-primary/30 shadow-neon-primary bg-gradient-to-br from-card to-card/50">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-center gap-8">
               {/* Circular Health Index */}
               <div className="relative">
-                <div className="w-48 h-48 rounded-full bg-gradient-to-br from-primary to-secondary p-1">
+                <div className="w-48 h-48 rounded-full bg-gradient-hero p-1 shadow-neon-primary animate-pulse">
                   <div className="w-full h-full rounded-full bg-card flex flex-col items-center justify-center">
                     <span className="text-5xl font-bold bg-gradient-hero bg-clip-text text-transparent">
                       {healthIndex}
@@ -122,17 +134,18 @@ export default function Dashboard() {
               <div className="flex-1 text-center md:text-left">
                 <h3 className="text-2xl font-bold mb-4">Ваш возраст</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-lg bg-muted/50">
+                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 hover:shadow-neon-primary transition-all">
                     <p className="text-sm text-muted-foreground mb-1">Биологический возраст</p>
                     <p className="text-3xl font-bold text-primary">{biologicalAge} лет</p>
                   </div>
-                  <div className="p-4 rounded-lg bg-muted/50">
+                  <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/30 hover:shadow-neon-secondary transition-all">
                     <p className="text-sm text-muted-foreground mb-1">Хронологический возраст</p>
-                    <p className="text-3xl font-bold text-foreground">{chronologicalAge} лет</p>
+                    <p className="text-3xl font-bold text-secondary">{chronologicalAge} лет</p>
                   </div>
                 </div>
-                <p className="mt-4 text-sm text-status-good font-medium">
-                  ✨ Отлично! Ваш биологический возраст ниже хронологического
+                <p className="mt-4 text-sm text-status-good font-medium flex items-center justify-center md:justify-start gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-status-good animate-pulse" />
+                  Отлично! Ваш биологический возраст ниже хронологического
                 </p>
               </div>
             </div>
@@ -141,7 +154,7 @@ export default function Dashboard() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-neon-primary hover:border-primary/50 transition-all border-primary/20 bg-gradient-to-br from-card to-primary/5">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Activity className="h-5 w-5 text-primary" />
@@ -156,10 +169,10 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-neon-accent hover:border-accent/50 transition-all border-accent/20 bg-gradient-to-br from-card to-accent/5">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-destructive" />
+                <Heart className="h-5 w-5 text-accent" />
                 <CardTitle className="text-lg">Воспаление</CardTitle>
               </div>
             </CardHeader>
@@ -169,7 +182,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-neon-secondary hover:border-secondary/50 transition-all border-secondary/20 bg-gradient-to-br from-card to-secondary/5">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-secondary" />
@@ -182,7 +195,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-neon-primary hover:border-primary/50 transition-all border-primary/20 bg-gradient-to-br from-card to-primary/5">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Pill className="h-5 w-5 text-primary" />
@@ -201,7 +214,7 @@ export default function Dashboard() {
           <Button
             variant="outline"
             size="lg"
-            className="h-24 flex flex-col gap-2"
+            className="h-24 flex flex-col gap-2 border-primary/30 hover:border-primary hover:shadow-neon-primary hover:bg-primary/10 transition-all"
             onClick={() => navigate("/analyses")}
           >
             <FileText className="h-6 w-6" />
@@ -210,7 +223,7 @@ export default function Dashboard() {
           <Button
             variant="outline"
             size="lg"
-            className="h-24 flex flex-col gap-2"
+            className="h-24 flex flex-col gap-2 border-accent/30 hover:border-accent hover:shadow-neon-accent hover:bg-accent/10 transition-all"
             onClick={() => navigate("/recommendations")}
           >
             <Pill className="h-6 w-6" />
@@ -219,7 +232,7 @@ export default function Dashboard() {
           <Button
             variant="outline"
             size="lg"
-            className="h-24 flex flex-col gap-2"
+            className="h-24 flex flex-col gap-2 border-secondary/30 hover:border-secondary hover:shadow-neon-secondary hover:bg-secondary/10 transition-all"
             onClick={() => navigate("/trends")}
           >
             <BarChart3 className="h-6 w-6" />
