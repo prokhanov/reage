@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BodyHeatmap } from "@/components/BodyHeatmap";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [trendMeta, setTrendMeta] = useState<{ name: string; unit: string } | null>(null);
   const [trendCategories, setTrendCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [bodyHeatmapData, setBodyHeatmapData] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProfile();
@@ -33,6 +35,7 @@ export default function Dashboard() {
     if (profile) {
       fetchAnalysesStats();
       fetchBiomarkerTrend();
+      fetchBodyHeatmapData();
     }
   }, [profile]);
 
@@ -241,6 +244,51 @@ export default function Dashboard() {
     setSelectedCategories([]);
   };
 
+  const fetchBodyHeatmapData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Получаем последний анализ
+      const { data: analyses } = await supabase
+        .from("analyses")
+        .select("id")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
+        .limit(1);
+
+      if (!analyses || analyses.length === 0) return;
+
+      // Получаем биомаркеры последнего анализа с их нормами
+      const { data: biomarkerValues, error } = await supabase
+        .from("analysis_values")
+        .select(`
+          value,
+          biomarkers (
+            name,
+            category,
+            normal_min,
+            normal_max
+          )
+        `)
+        .eq("analysis_id", analyses[0].id);
+
+      if (error) throw error;
+
+      const formattedData = biomarkerValues?.map((item: any) => ({
+        category: item.biomarkers.category,
+        name: item.biomarkers.name,
+        value: item.value,
+        normal_min: item.biomarkers.normal_min,
+        normal_max: item.biomarkers.normal_max
+      })) || [];
+
+      setBodyHeatmapData(formattedData);
+    } catch (error) {
+      console.error("Error fetching body heatmap data:", error);
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -297,7 +345,7 @@ export default function Dashboard() {
                       ageDifference && ageDifference > 0 
                         ? "hsl(var(--status-good))" 
                         : ageDifference && ageDifference < 0
-                        ? "hsl(var(--status-bad))"
+                        ? "hsl(var(--status-danger))"
                         : "hsl(var(--primary))"
                     }
                     strokeWidth="16"
@@ -331,14 +379,14 @@ export default function Dashboard() {
                   </h3>
                   {latestBioAge && chronologicalAge && ageDifference !== null ? (
                     <>
-                      {ageDifference > 0 ? (
-                        <p className="text-lg text-status-good animate-fade-in">
-                          Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе, чем ваш паспортный возраст! 🎉
-                        </p>
-                      ) : ageDifference < 0 ? (
-                        <p className="text-lg text-status-bad animate-fade-in">
-                          Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше вашего паспортного возраста
-                        </p>
+                    {ageDifference > 0 ? (
+                      <p className="text-lg text-status-good animate-fade-in">
+                        Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе, чем ваш паспортный возраст! 🎉
+                      </p>
+                    ) : ageDifference < 0 ? (
+                      <p className="text-lg text-status-danger animate-fade-in">
+                        Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше вашего паспортного возраста
+                      </p>
                       ) : (
                         <p className="text-lg text-muted-foreground animate-fade-in">
                           Это соответствует вашему паспортному возрасту
@@ -396,7 +444,7 @@ export default function Dashboard() {
                 ageDifference && ageDifference > 0 
                   ? "text-status-good" 
                   : ageDifference && ageDifference < 0
-                  ? "text-status-bad"
+                  ? "text-status-danger"
                   : "text-foreground"
               }`}>
                 {ageDifference !== null ? (ageDifference > 0 ? `−${ageDifference.toFixed(1)}` : `+${Math.abs(ageDifference).toFixed(1)}`) : "—"}
@@ -417,7 +465,7 @@ export default function Dashboard() {
                 agingRate && agingRate < 1 
                   ? "text-status-good" 
                   : agingRate && agingRate > 1
-                  ? "text-status-bad"
+                  ? "text-status-danger"
                   : "text-foreground"
               }`}>
                 {agingRate ? agingRate.toFixed(2) : "—"}
@@ -604,30 +652,53 @@ export default function Dashboard() {
           {/* Circular Progress - Health Score */}
           <Card className="border-border bg-card backdrop-blur-sm">
             <CardHeader>
+              <CardTitle className="text-lg">Карта тела</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {bodyHeatmapData.length > 0 ? (
+                <BodyHeatmap biomarkerData={bodyHeatmapData} />
+              ) : (
+                <div className="h-[300px] flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                    <p className="text-sm">Нет данных для отображения</p>
+                    <p className="text-xs mt-2">Добавьте анализ для просмотра карты тела</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bottom Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Health Score */}
+          <Card className="border-border bg-card backdrop-blur-sm">
+            <CardHeader>
               <CardTitle className="text-lg">Общая оценка</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] flex items-center justify-center">
-                  <div className="relative w-48 h-48">
+              <div className="h-[280px] flex items-center justify-center">
+                  <div className="relative w-44 h-44">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle
-                        cx="96"
-                        cy="96"
-                        r="88"
+                        cx="88"
+                        cy="88"
+                        r="76"
                         stroke="hsl(var(--border))"
                         strokeWidth="12"
                         fill="none"
                       />
                       {latestHealthIndex && (
                         <circle
-                          cx="96"
-                          cy="96"
-                          r="88"
+                          cx="88"
+                          cy="88"
+                          r="76"
                           stroke="hsl(var(--primary))"
                           strokeWidth="12"
                           fill="none"
-                          strokeDasharray="552.92"
-                          strokeDashoffset={552.92 - (552.92 * latestHealthIndex) / 100}
+                          strokeDasharray="477.52"
+                          strokeDashoffset={477.52 - (477.52 * latestHealthIndex) / 100}
                           className="transition-all duration-1000"
                           style={{ filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.5))' }}
                         />
@@ -645,11 +716,8 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-border bg-card backdrop-blur-sm">
+          <Card className="border-border bg-card backdrop-blur-sm lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-lg">Недавние анализы</CardTitle>
             </CardHeader>
