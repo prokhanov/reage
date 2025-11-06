@@ -17,7 +17,6 @@ import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
 import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
-import SymptomsHistory from "./pages/SymptomsHistory";
 import AISettings from "./pages/admin/AISettings";
 import NotFound from "./pages/NotFound";
 
@@ -101,14 +100,6 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <MyState />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/symptoms-history"
-            element={
-              <ProtectedRoute>
-                <SymptomsHistory />
               </ProtectedRoute>
             }
           />

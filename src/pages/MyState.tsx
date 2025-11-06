@@ -5,10 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 const symptomCategories = [
   {
@@ -186,21 +190,76 @@ const symptomCategories = [
 ];
 
 const severityLevels = [
-  { value: 0, label: "Нет", color: "text-muted-foreground" },
-  { value: 1, label: "Легко", color: "text-yellow-500" },
-  { value: 2, label: "Средне", color: "text-orange-500" },
-  { value: 3, label: "Сильно", color: "text-red-500" }
+  { value: 0, label: "Нет", color: "text-muted-foreground", badgeVariant: "secondary" as const },
+  { value: 1, label: "Легко", color: "text-yellow-500", badgeVariant: "outline" as const },
+  { value: 2, label: "Средне", color: "text-orange-500", badgeVariant: "outline" as const },
+  { value: 3, label: "Сильно", color: "text-red-500", badgeVariant: "destructive" as const }
 ];
+
+interface SymptomRecord {
+  id: string;
+  category: string;
+  symptom: string;
+  severity: number;
+  tracked_at: string;
+}
+
+const categoryEmojis: Record<string, string> = {
+  "Энергия и фокус": "🧠",
+  "Сон и восстановление": "😴",
+  "Обмен веществ и вес": "💪",
+  "Сердце и сосуды": "❤️",
+  "Гормоны и либидо": "🧘‍♂️",
+  "Микроэлементы и кости": "🦴",
+  "Иммунитет и воспаление": "💉",
+  "Витамины и антиоксиданты": "🌿",
+  "Эмоции и стресс": "🧠",
+  "Внешний вид": "💧",
+  "Старение и долголетие": "⚙️"
+};
 
 export default function MyState() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [symptoms, setSymptoms] = useState<SymptomRecord[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [lastTrackedDate, setLastTrackedDate] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const currentCategory = symptomCategories[currentStep];
   const progress = ((currentStep + 1) / symptomCategories.length) * 100;
+
+  useEffect(() => {
+    fetchSymptoms();
+  }, []);
+
+  const fetchSymptoms = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_symptoms')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('tracked_at', { ascending: false });
+
+      if (error) throw error;
+
+      setSymptoms(data || []);
+      
+      if (data && data.length > 0) {
+        setLastTrackedDate(data[0].tracked_at);
+      }
+    } catch (error) {
+      console.error('Error fetching symptoms:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const handleAnswerChange = (symptom: string, severity: number) => {
     setAnswers(prev => ({
@@ -238,13 +297,11 @@ export default function MyState() {
         return;
       }
 
-      // Delete old symptoms for this user
       await supabase
         .from('user_symptoms')
         .delete()
         .eq('user_id', user.id);
 
-      // Prepare data for insert
       const symptomsData = Object.entries(answers)
         .filter(([_, severity]) => severity > 0)
         .map(([key, severity]) => {
@@ -262,7 +319,7 @@ export default function MyState() {
           title: "Все отлично! 🎉",
           description: "У вас не отмечено ни одного симптома"
         });
-        navigate('/dashboard');
+        await fetchSymptoms();
         return;
       }
 
@@ -277,7 +334,7 @@ export default function MyState() {
         description: `Отслеживается ${symptomsData.length} симптомов`
       });
 
-      navigate('/dashboard');
+      await fetchSymptoms();
     } catch (error) {
       console.error('Error saving symptoms:', error);
       toast({
@@ -290,121 +347,260 @@ export default function MyState() {
     }
   };
 
+  const groupedByCategory = symptoms.reduce((acc, symptom) => {
+    if (!acc[symptom.category]) {
+      acc[symptom.category] = [];
+    }
+    acc[symptom.category].push(symptom);
+    return acc;
+  }, {} as Record<string, SymptomRecord[]>);
+
+  const getSeverityConfig = (severity: number) => {
+    return severityLevels[severity] || severityLevels[0];
+  };
+
+  const getTotalSymptomsByLevel = () => {
+    const counts = { mild: 0, moderate: 0, severe: 0 };
+    symptoms.forEach(s => {
+      if (s.severity === 1) counts.mild++;
+      if (s.severity === 2) counts.moderate++;
+      if (s.severity === 3) counts.severe++;
+    });
+    return counts;
+  };
+
+  const stats = getTotalSymptomsByLevel();
+
   return (
     <DashboardLayout>
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+      <div className="container max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Мое состояние</h1>
           <p className="text-muted-foreground">
-            Оцените каждый симптом по 4-балльной шкале
+            Отслеживайте свои симптомы и следите за изменениями
           </p>
         </div>
 
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">
-              Шаг {currentStep + 1} из {symptomCategories.length}
-            </span>
-            <span className="text-sm font-medium">
-              {Math.round(progress)}%
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
+        <Tabs defaultValue="survey" className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+            <TabsTrigger value="survey">Опросник</TabsTrigger>
+            <TabsTrigger value="history">История</TabsTrigger>
+          </TabsList>
 
-        <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-4xl">{currentCategory.emoji}</span>
-              <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Отметьте все симптомы, которые вы испытываете
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            {currentCategory.symptoms.map((symptom, index) => {
-              const key = `${currentCategory.title}|${symptom}`;
-              const currentValue = answers[key] || 0;
-
-              return (
-                <div 
-                  key={index}
-                  className="p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
-                >
-                  <div className="mb-3">
-                    <label className="text-sm font-medium leading-relaxed">
-                      {symptom}
-                    </label>
-                  </div>
-                  
-                  <RadioGroup
-                    value={currentValue.toString()}
-                    onValueChange={(value) => handleAnswerChange(symptom, parseInt(value))}
-                    className="flex gap-2"
-                  >
-                    {severityLevels.map((level) => (
-                      <div key={level.value} className="flex-1">
-                        <Label
-                          htmlFor={`${key}-${level.value}`}
-                          className={`
-                            flex flex-col items-center gap-2 p-3 rounded-md border-2 cursor-pointer
-                            transition-all hover:border-primary/50
-                            ${currentValue === level.value 
-                              ? 'border-primary bg-primary/10' 
-                              : 'border-border/50 bg-background/50'
-                            }
-                          `}
-                        >
-                          <RadioGroupItem
-                            value={level.value.toString()}
-                            id={`${key}-${level.value}`}
-                            className="sr-only"
-                          />
-                          <span className={`text-xs font-medium ${level.color}`}>
-                            {level.label}
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
+          {/* Survey Tab */}
+          <TabsContent value="survey" className="space-y-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">
+                    Шаг {currentStep + 1} из {symptomCategories.length}
+                  </span>
+                  <span className="text-sm font-medium">
+                    {Math.round(progress)}%
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+                <Progress value={progress} className="h-2" />
+              </div>
 
-          <div className="flex gap-3 mt-8">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-              className="flex-1"
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Назад
-            </Button>
+              <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-4xl">{currentCategory.emoji}</span>
+                    <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Отметьте все симптомы, которые вы испытываете
+                  </p>
+                </div>
 
-            {currentStep < symptomCategories.length - 1 ? (
-              <Button
-                onClick={handleNext}
-                className="flex-1"
-              >
-                Далее
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
+                <div className="space-y-6">
+                  {currentCategory.symptoms.map((symptom, index) => {
+                    const key = `${currentCategory.title}|${symptom}`;
+                    const currentValue = answers[key] || 0;
+
+                    return (
+                      <div 
+                        key={index}
+                        className="p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                      >
+                        <div className="mb-3">
+                          <label className="text-sm font-medium leading-relaxed">
+                            {symptom}
+                          </label>
+                        </div>
+                        
+                        <RadioGroup
+                          value={currentValue.toString()}
+                          onValueChange={(value) => handleAnswerChange(symptom, parseInt(value))}
+                          className="flex gap-2"
+                        >
+                          {severityLevels.map((level) => (
+                            <div key={level.value} className="flex-1">
+                              <Label
+                                htmlFor={`${key}-${level.value}`}
+                                className={`
+                                  flex flex-col items-center gap-2 p-3 rounded-md border-2 cursor-pointer
+                                  transition-all hover:border-primary/50
+                                  ${currentValue === level.value 
+                                    ? 'border-primary bg-primary/10' 
+                                    : 'border-border/50 bg-background/50'
+                                  }
+                                `}
+                              >
+                                <RadioGroupItem
+                                  value={level.value.toString()}
+                                  id={`${key}-${level.value}`}
+                                  className="sr-only"
+                                />
+                                <span className={`text-xs font-medium ${level.color}`}>
+                                  {level.label}
+                                </span>
+                              </Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentStep === 0}
+                    className="flex-1"
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Назад
+                  </Button>
+
+                  {currentStep < symptomCategories.length - 1 ? (
+                    <Button
+                      onClick={handleNext}
+                      className="flex-1"
+                    >
+                      Далее
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                      className="flex-1"
+                    >
+                      {isSubmitting ? "Сохранение..." : "Завершить"}
+                      <Check className="ml-2 h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history" className="space-y-6">
+            {loadingHistory ? (
+              <div className="animate-pulse space-y-4">
+                <div className="h-32 bg-muted rounded"></div>
+                <div className="h-64 bg-muted rounded"></div>
+              </div>
+            ) : symptoms.length === 0 ? (
+              <Card className="p-12 text-center">
+                <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Нет записей</h2>
+                <p className="text-muted-foreground">
+                  Пройдите опросник, чтобы начать отслеживать симптомы
+                </p>
+              </Card>
             ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                {isSubmitting ? "Сохранение..." : "Завершить"}
-                <Check className="ml-2 h-4 w-4" />
-              </Button>
+              <>
+                {lastTrackedDate && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span className="text-sm">
+                      Последнее обновление: {format(new Date(lastTrackedDate), "d MMMM yyyy, HH:mm", { locale: ru })}
+                    </span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Card className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Всего симптомов</p>
+                        <p className="text-2xl font-bold">{symptoms.length}</p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-primary" />
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 bg-yellow-500/5">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Легкие</p>
+                      <p className="text-2xl font-bold text-yellow-500">{stats.mild}</p>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 bg-orange-500/5">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Средние</p>
+                      <p className="text-2xl font-bold text-orange-500">{stats.moderate}</p>
+                    </div>
+                  </Card>
+
+                  <Card className="p-6 bg-red-500/5">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Сильные</p>
+                      <p className="text-2xl font-bold text-red-500">{stats.severe}</p>
+                    </div>
+                  </Card>
+                </div>
+
+                <div className="space-y-6">
+                  {Object.entries(groupedByCategory).map(([category, categorySymptoms]) => {
+                    const emoji = categoryEmojis[category] || "📋";
+                    
+                    return (
+                      <Card key={category} className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="text-3xl">{emoji}</span>
+                          <div>
+                            <h2 className="text-xl font-bold">{category}</h2>
+                            <p className="text-sm text-muted-foreground">
+                              {categorySymptoms.length} {categorySymptoms.length === 1 ? 'симптом' : 'симптомов'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {categorySymptoms.map((symptom) => {
+                            const config = getSeverityConfig(symptom.severity);
+                            
+                            return (
+                              <div
+                                key={symptom.id}
+                                className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                              >
+                                <span className="text-sm flex-1">{symptom.symptom}</span>
+                                <Badge 
+                                  variant={config.badgeVariant}
+                                  className={config.color}
+                                >
+                                  {config.label}
+                                </Badge>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
             )}
-          </div>
-        </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
