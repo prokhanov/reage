@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Analyses from "./pages/Analyses";
 import AnalysisDetail from "./pages/AnalysisDetail";
+import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
 import Trends from "./pages/Trends";
 import NotFound from "./pages/NotFound";
@@ -63,6 +64,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <AnalysisDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/biomarkers"
+            element={
+              <ProtectedRoute>
+                <Biomarkers />
               </ProtectedRoute>
             }
           />
