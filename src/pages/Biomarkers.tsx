@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 interface BiomarkerData {
   id: string;
@@ -169,7 +169,8 @@ export default function Biomarkers() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <TooltipProvider>
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
             Биомаркеры
@@ -357,8 +358,8 @@ export default function Biomarkers() {
                                 {biomarker.description ? (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <button className="inline-flex items-center justify-center rounded-full w-5 h-5 bg-primary/10 hover:bg-primary/20 transition-colors">
-                                        <Info className="h-3 w-3 text-primary" />
+                                      <button className="inline-flex items-center justify-center rounded-full w-7 h-7 bg-primary/10 hover:bg-primary/20 transition-colors">
+                                        <Info className="h-5 w-5 text-primary" />
                                       </button>
                                     </TooltipTrigger>
                                     <TooltipContent className="max-w-xs" side="left">
@@ -376,9 +377,10 @@ export default function Biomarkers() {
                 </AccordionContent>
               </AccordionItem>
             ))}
-          </Accordion>
+        </Accordion>
         )}
       </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 }
