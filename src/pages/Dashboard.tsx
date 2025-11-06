@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity, Heart, Zap, Pill, BarChart3, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Heart, Zap, Pill, LogOut, User, BarChart3, FileText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 interface Profile {
   name: string;
@@ -15,7 +15,6 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     loadProfile();
@@ -34,19 +33,9 @@ export default function Dashboard() {
 
       if (error) throw error;
       setProfile(data);
-    } catch (error: any) {
-      console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: "Вы вышли из системы",
-    });
-    navigate("/");
   };
 
   const calculateAge = (birthDate: string) => {
@@ -73,36 +62,7 @@ export default function Dashboard() {
   const healthIndex = 78; // Mock data
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/30 backdrop-blur-xl">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            ReAge
-          </h1>
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate("/profile")}
-              className="hover:bg-primary/10 hover:text-primary transition-all"
-            >
-              <User className="mr-2 h-4 w-4" />
-              Профиль
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleLogout}
-              className="hover:bg-destructive/10 hover:text-destructive transition-all"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Выйти
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -240,6 +200,6 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

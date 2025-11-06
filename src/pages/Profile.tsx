@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 interface Profile {
   name: string;
@@ -66,20 +67,7 @@ export default function Profile() {
   }[profile?.gender || "male"];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50 bg-card/30 backdrop-blur-xl">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Назад
-          </Button>
-          <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            ReAge
-          </h1>
-          <div className="w-20" />
-        </div>
-      </header>
-
+    <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <Card className="shadow-neon-accent border-accent/30 bg-gradient-to-br from-card to-card/50">
           <CardHeader>
@@ -125,6 +113,6 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

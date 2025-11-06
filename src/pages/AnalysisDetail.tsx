@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 interface Biomarker {
   id: string;
@@ -226,20 +227,7 @@ export default function AnalysisDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50 bg-card/30 backdrop-blur-xl">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/analyses")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            К списку
-          </Button>
-          <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            Детали анализа
-          </h1>
-          <div className="w-20" />
-        </div>
-      </header>
-
+    <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -385,6 +373,6 @@ export default function AnalysisDetail() {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

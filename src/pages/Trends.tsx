@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 interface Biomarker {
   id: string;
@@ -144,20 +145,7 @@ export default function Trends() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50 bg-card/30 backdrop-blur-xl">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Назад
-          </Button>
-          <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            Тренды
-          </h1>
-          <div className="w-20" />
-        </div>
-      </header>
-
+    <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
@@ -319,6 +307,6 @@ export default function Trends() {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
