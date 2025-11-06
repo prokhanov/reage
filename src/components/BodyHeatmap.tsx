@@ -84,24 +84,36 @@ export function BodyHeatmap({ biomarkerData }: BodyHeatmapProps) {
 
   // Анализируем биомаркеры и определяем проблемные области
   const analyzeAreas = () => {
-    const areas = { ...BODY_AREAS };
+    // Глубокая копия с очисткой issues и сбросом цвета на базовый
+    const areas: Record<string, BodyArea> = Object.fromEntries(
+      Object.entries(BODY_AREAS).map(([id, a]) => [
+        id,
+        { ...a, issues: [], color: "hsl(var(--primary))" },
+      ])
+    );
+
     const processedBiomarkers = new Set<string>();
-    
-    biomarkerData.forEach(biomarker => {
-      // Пропускаем, если уже обработали этот биомаркер
+
+    biomarkerData.forEach((biomarker) => {
+      // Пропускаем дубликаты по названию из источника
       if (processedBiomarkers.has(biomarker.name)) return;
       processedBiomarkers.add(biomarker.name);
-      
-      const isAbnormal = 
+
+      const isAbnormal =
         (biomarker.normal_min !== undefined && biomarker.value < biomarker.normal_min) ||
         (biomarker.normal_max !== undefined && biomarker.value > biomarker.normal_max);
 
       if (isAbnormal) {
-        Object.keys(areas).forEach(areaId => {
+        Object.keys(areas).forEach((areaId) => {
           const area = areas[areaId];
-          if (area.categories.some(cat => biomarker.category.includes(cat))) {
-            area.issues.push(biomarker.name);
-            // Устанавливаем цвет в зависимости от серьезности
+          const match = area.categories.some(
+            (cat) => cat.toLowerCase() === String(biomarker.category || "").toLowerCase()
+          );
+          if (match) {
+            if (!area.issues.includes(biomarker.name)) {
+              area.issues.push(biomarker.name);
+            }
+            // Цвет по степени серьезности
             if (area.issues.length === 1) {
               area.color = "hsl(var(--status-warning))";
             } else if (area.issues.length >= 2) {

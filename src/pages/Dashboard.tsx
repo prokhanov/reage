@@ -275,7 +275,7 @@ export default function Dashboard() {
 
       if (error) throw error;
 
-      const formattedData = biomarkerValues?.map((item: any) => ({
+      const formattedDataRaw = biomarkerValues?.map((item: any) => ({
         category: item.biomarkers.category,
         name: item.biomarkers.name,
         value: item.value,
@@ -283,7 +283,10 @@ export default function Dashboard() {
         normal_max: item.biomarkers.normal_max
       })) || [];
 
-      setBodyHeatmapData(formattedData);
+      // Удаляем возможные дубликаты по названию биомаркера
+      const deduped = Array.from(new Map(formattedDataRaw.map((i: any) => [i.name, i])).values());
+
+      setBodyHeatmapData(deduped);
     } catch (error) {
       console.error("Error fetching body heatmap data:", error);
     }
