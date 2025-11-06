@@ -117,8 +117,14 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")
-      .eq("user_id", analysis.user_id)
+      .eq("id", analysis.user_id)
       .single();
+
+    // Получаем медицинскую историю
+    const { data: medicalHistory } = await supabase
+      .from("medical_history")
+      .select("*")
+      .eq("user_id", analysis.user_id);
 
     // Получаем жалобы пользователя
     const { data: complaints } = await supabase
@@ -160,14 +166,62 @@ serve(async (req) => {
       return acc;
     }, {} as Record<string, any[]>);
 
-    // Формируем контекст пациента
-    const userContext = `
-Пациент: ${profile?.full_name || "Не указано"}
-Возраст: ${profile?.birth_date ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : "Не указано"}
-Пол: ${profile?.gender || "Не указано"}
+    // Рассчитываем BMI
+    const calculateBMI = (weight: number | null, height: number | null) => {
+      if (!weight || !height || height <= 0) return null;
+      const heightInMeters = height / 100;
+      return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    };
 
-Жалобы и симптомы:
-${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.complaint}`).join("\n") : "Не указаны"}
+    const bmi = calculateBMI(
+      profile?.weight ? Number(profile.weight) : null,
+      profile?.height ? Number(profile.height) : null
+    );
+
+    // Группируем медицинскую историю по категориям
+    const groupedMedicalHistory = (medicalHistory || []).reduce((acc: any, item: any) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item.condition);
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    const medicalHistoryText = Object.keys(groupedMedicalHistory).length > 0
+      ? Object.entries(groupedMedicalHistory)
+          .map(([category, conditions]) => `  ${category}:\n    - ${(conditions as string[]).join("\n    - ")}`)
+          .join("\n")
+      : "  Не указана";
+
+    // Формируем контекст пациента
+    const age = profile?.birth_date ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : null;
+    
+    const userContext = `
+ДАННЫЕ ПАЦИЕНТА:
+Имя: ${profile?.name || "Не указано"}
+Возраст: ${age || "Не указано"} лет
+Пол: ${profile?.gender || "Не указано"}
+Рост: ${profile?.height ? `${profile.height} см` : "Не указано"}
+Вес: ${profile?.weight ? `${profile.weight} кг` : "Не указано"}
+BMI: ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
+
+МЕДИЦИНСКИЙ АНАМНЕЗ:
+${medicalHistoryText}
+
+ТЕКУЩИЕ ЖАЛОБЫ И СИМПТОМЫ:
+${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.main_complaints || c.complaint || "Не указано"}`).join("\n") : "Не указаны"}
+
+ВАЖНО ДЛЯ ИНТЕРПРЕТАЦИИ:
+При наличии хронических заболеваний в анамнезе, учитывай их при оценке биомаркеров:
+- При диабете: не пугать лёгким повышением HbA1c, оценивать в контексте компенсации
+- При гипотиреозе: корректно интерпретировать ТТГ, холестерин, креатинкиназу
+- При аутоиммунных заболеваниях: учитывать возможное повышение СРБ, ферритина, СОЭ
+- При ожирении/избыточном весе: ожидать инсулинорезистентность, дислипидемию
+- При сердечно-сосудистых заболеваниях: более строго оценивать липидный профиль
+- При возрасте 50+: корректировать референсные интервалы с учётом возраста
+
+Всегда указывай связь показателей с имеющимися заболеваниями, например:
+"Ваш ТТГ немного повышен (5.2 мМЕ/л при норме до 4), что может быть связано с ранее указанным гипотиреозом. Это требует консультации эндокринолога для возможной коррекции терапии."
     `.trim();
 
     // Получаем тренды для каждой категории
