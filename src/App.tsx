@@ -19,6 +19,7 @@ import Recommendations from "./pages/Recommendations";
 import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
 import AISettings from "./pages/admin/AISettings";
+import DataManagement from "./pages/admin/DataManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -112,6 +113,18 @@ const App = () => (
                 <SuperAdminRoute>
                   <DashboardLayout>
                     <AISettings />
+                  </DashboardLayout>
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/data-management"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <DashboardLayout>
+                    <DataManagement />
                   </DashboardLayout>
                 </SuperAdminRoute>
               </ProtectedRoute>

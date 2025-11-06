@@ -179,6 +179,30 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_conditions_templates: {
+        Row: {
+          category: string
+          condition: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          condition: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          condition?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medical_history: {
         Row: {
           category: string

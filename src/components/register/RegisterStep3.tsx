@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, ArrowLeft, Heart, Brain, Utensils, Activity, Bone, Shield, Flower2, Droplet, Baby, BabyIcon, Eye, Pill } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RegisterFormData } from "@/pages/Register";
 import { ChevronDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RegisterStep3Props {
   formData: RegisterFormData;
@@ -146,6 +147,77 @@ const medicalCategories = [
 export function RegisterStep3({ formData, updateFormData, onSubmit, onBack, isSubmitting }: RegisterStep3Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [openCategories, setOpenCategories] = useState<string[]>([]);
+  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadMedicalConditions();
+  }, []);
+
+  const loadMedicalConditions = async () => {
+    try {
+      const { data } = await supabase
+        .from("medical_conditions_templates")
+        .select("*")
+        .order("category", { ascending: true })
+        .order("condition", { ascending: true });
+
+      if (data && data.length > 0) {
+        // Group by category
+        const grouped = data.reduce((acc: any, item) => {
+          const existing = acc.find((cat: any) => cat.title === item.category);
+          if (existing) {
+            existing.conditions.push(item.condition);
+          } else {
+            acc.push({
+              emoji: getCategoryEmoji(item.category),
+              title: item.category,
+              icon: getCategoryIcon(item.category),
+              conditions: [item.condition]
+            });
+          }
+          return acc;
+        }, []);
+        setDynamicCategories(grouped);
+      }
+    } catch (error) {
+      console.error("Error loading medical conditions:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getCategoryEmoji = (category: string) => {
+    const emojiMap: Record<string, string> = {
+      "🫀 Сердечно-сосудистая система": "🫀",
+      "🧠 Нервная система": "🧠",
+      "🍽 Пищеварительная система": "🍽",
+      "🩸 Метаболические нарушения": "🩸",
+      "🧘‍♀️ Гормональные нарушения": "🧘‍♀️",
+      "💪 Опорно-двигательная система": "💪",
+      "🦠 Иммунная система": "🦠",
+      "🩸 Кроветворная система": "🩸",
+      "💊 Инфекционные заболевания": "💊",
+      "🧬 Онкология": "🧬"
+    };
+    return emojiMap[category] || "📋";
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const iconMap: Record<string, any> = {
+      "🫀 Сердечно-сосудистая система": Heart,
+      "🧠 Нервная система": Brain,
+      "🍽 Пищеварительная система": Utensils,
+      "🩸 Метаболические нарушения": Droplet,
+      "🧘‍♀️ Гормональные нарушения": Activity,
+      "💪 Опорно-двигательная система": Bone,
+      "🦠 Иммунная система": Shield,
+      "🩸 Кроветворная система": Droplet,
+      "💊 Инфекционные заболевания": Pill,
+      "🧬 Онкология": Activity
+    };
+    return iconMap[category] || Activity;
+  };
 
   const toggleCondition = (category: string, condition: string) => {
     const key = `${category}|${condition}`;
@@ -168,12 +240,23 @@ export function RegisterStep3({ formData, updateFormData, onSubmit, onBack, isSu
     );
   };
 
-  const filteredCategories = medicalCategories.map(category => ({
+  // Use dynamic categories if loaded, otherwise fallback to static
+  const categoriesToUse = dynamicCategories.length > 0 ? dynamicCategories : medicalCategories;
+
+  const filteredCategories = categoriesToUse.map(category => ({
     ...category,
     conditions: category.conditions.filter(c =>
       c.toLowerCase().includes(searchTerm.toLowerCase())
     )
   })).filter(category => category.conditions.length > 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-muted-foreground">Загрузка...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

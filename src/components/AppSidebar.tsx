@@ -116,6 +116,19 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 <Settings className="h-4 w-4" />
                 <span className="font-medium">Настройки AI</span>
               </NavLink>
+              <NavLink
+                to="/admin/data-management"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                    "hover:bg-primary/10 hover:text-primary",
+                    isActive && "bg-primary/15 text-primary border border-primary/20"
+                  )
+                }
+              >
+                <FlaskConical className="h-4 w-4" />
+                <span className="font-medium">Управление данными</span>
+              </NavLink>
             </div>
           )}
 
