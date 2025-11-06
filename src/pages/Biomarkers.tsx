@@ -245,13 +245,37 @@ export default function Biomarkers() {
                                   <span className="text-sm text-muted-foreground">
                                     Последнее значение:
                                   </span>
-                                  <span className={`text-xl font-bold ${
-                                    inRange === false
-                                      ? "text-destructive"
-                                      : inRange === true
-                                      ? "text-green-500"
-                                      : "text-primary"
-                                  }`}>
+                                  <span 
+                                    className="text-xl font-bold"
+                                    style={{
+                                      color: (() => {
+                                        if (biomarker.normal_min === null && biomarker.normal_max === null) {
+                                          return "hsl(var(--primary))";
+                                        }
+                                        
+                                        const min = biomarker.normal_min ?? 0;
+                                        const max = biomarker.normal_max ?? biomarker.latest_value * 2;
+                                        const value = biomarker.latest_value;
+                                        
+                                        // Расчет позиции на шкале (0-1)
+                                        let position = (value - min) / (max - min);
+                                        position = Math.max(0, Math.min(1, position));
+                                        
+                                        // Градиент: красный (0) -> зеленый (0.5) -> красный (1)
+                                        // Используем квадратичную функцию для более плавного перехода
+                                        let hue: number;
+                                        if (position < 0.5) {
+                                          // От красного (0°) к зеленому (120°)
+                                          hue = position * 2 * 120;
+                                        } else {
+                                          // От зеленого (120°) к красному (0°)
+                                          hue = 120 - (position - 0.5) * 2 * 120;
+                                        }
+                                        
+                                        return `hsl(${hue}, 70%, 50%)`;
+                                      })()
+                                    }}
+                                  >
                                     {biomarker.latest_value.toFixed(2)} {biomarker.unit}
                                   </span>
                                 </div>
