@@ -2,10 +2,38 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Utensils, Moon, Dumbbell, Pill, Brain, Heart } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Eye, Trash2, Brain } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 interface Recommendation {
   id: string;
@@ -14,30 +42,14 @@ interface Recommendation {
   created_at: string;
 }
 
-const categoryIcons: Record<string, any> = {
-  "Питание": Utensils,
-  "Сон": Moon,
-  "Активность": Dumbbell,
-  "Добавки": Pill,
-  "Стресс": Brain,
-  "Образ жизни": Heart,
-  "Общее резюме": Brain,
-};
-
-const categoryColors: Record<string, string> = {
-  "Питание": "primary",
-  "Сон": "secondary",
-  "Активность": "accent",
-  "Добавки": "primary",
-  "Стресс": "secondary",
-  "Образ жизни": "accent",
-  "Общее резюме": "primary",
-};
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -70,18 +82,52 @@ export default function Recommendations() {
     }
   };
 
-  const categories = Array.from(new Set(recommendations.map((r) => r.type)));
-  const filteredRecommendations = selectedCategory
-    ? recommendations.filter((r) => r.type === selectedCategory)
-    : recommendations;
+  const handleView = (recommendation: Recommendation) => {
+    setSelectedRecommendation(recommendation);
+    setViewDialogOpen(true);
+  };
 
-  const groupedRecommendations = filteredRecommendations.reduce((acc, rec) => {
-    if (!acc[rec.type]) {
-      acc[rec.type] = [];
+  const handleDeleteClick = (recommendation: Recommendation) => {
+    setSelectedRecommendation(recommendation);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedRecommendation) return;
+
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("recommendations")
+        .delete()
+        .eq("id", selectedRecommendation.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Успешно",
+        description: "Рекомендация удалена",
+      });
+
+      setRecommendations((prev) => prev.filter((r) => r.id !== selectedRecommendation.id));
+      setDeleteDialogOpen(false);
+      setSelectedRecommendation(null);
+    } catch (error: any) {
+      console.error("Error deleting recommendation:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить рекомендацию",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
     }
-    acc[rec.type].push(rec);
-    return acc;
-  }, {} as Record<string, Recommendation[]>);
+  };
+
+  const truncateText = (text: string, maxLength: number = 100) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
 
   if (loading) {
     return (
@@ -103,39 +149,6 @@ export default function Recommendations() {
           </p>
         </div>
 
-        {/* Category Filter */}
-        {categories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-8">
-            <Button
-              variant={selectedCategory === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(null)}
-              className={
-                selectedCategory === null
-                  ? "shadow-neon-primary"
-                  : "border-primary/30 hover:border-primary hover:shadow-neon-primary"
-              }
-            >
-              Все
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className={
-                  selectedCategory === category
-                    ? "shadow-neon-primary"
-                    : "border-primary/30 hover:border-primary hover:shadow-neon-primary"
-                }
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-        )}
-
         {recommendations.length === 0 ? (
           <Card className="border-dashed border-2 border-primary/30 bg-card/50">
             <CardContent className="flex flex-col items-center justify-center py-16">
@@ -150,48 +163,93 @@ export default function Recommendations() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8">
-            {Object.entries(groupedRecommendations).map(([type, recs]) => {
-              const Icon = categoryIcons[type] || Brain;
-              const colorClass = categoryColors[type] || "primary";
-              
-              return (
-                <div key={type}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div
-                      className={`w-12 h-12 rounded-full bg-${colorClass}/10 border border-${colorClass}/30 flex items-center justify-center group-hover:shadow-neon-${colorClass} transition-all`}
-                    >
-                      <Icon className={`h-6 w-6 text-${colorClass}`} />
-                    </div>
-                    <h3 className="text-2xl font-bold">{type}</h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4">
-                    {recs.map((rec) => (
-                      <Card
-                        key={rec.id}
-                        className={`hover:shadow-neon-${colorClass} hover:border-${colorClass}/50 transition-all border-${colorClass}/20 bg-gradient-to-br from-card to-${colorClass}/5`}
-                      >
-                        <CardContent className="pt-6">
-                          <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                            {rec.text}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-4">
-                            {new Date(rec.created_at).toLocaleDateString("ru-RU", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Тип</TableHead>
+                  <TableHead>Рекомендация</TableHead>
+                  <TableHead>Дата создания</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recommendations.map((rec) => (
+                  <TableRow key={rec.id}>
+                    <TableCell>
+                      <Badge variant="outline">{rec.type}</Badge>
+                    </TableCell>
+                    <TableCell className="max-w-md">
+                      {truncateText(rec.text)}
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(rec.created_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleView(rec)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(rec)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
         )}
+
+        {/* View Dialog */}
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Badge variant="outline">{selectedRecommendation?.type}</Badge>
+              </DialogTitle>
+              <DialogDescription>
+                {selectedRecommendation && format(new Date(selectedRecommendation.created_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                {selectedRecommendation?.text}
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Удалить рекомендацию?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Это действие нельзя отменить. Рекомендация будет удалена навсегда.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? "Удаление..." : "Удалить"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
