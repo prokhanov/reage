@@ -1,0 +1,213 @@
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+interface Profile {
+  name: string;
+  birth_date: string;
+  gender: string;
+  height: number | null;
+}
+
+interface EditProfileDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  profile: Profile | null;
+  onSuccess: () => void;
+}
+
+export function EditProfileDialog({ open, onOpenChange, profile, onSuccess }: EditProfileDialogProps) {
+  const [formData, setFormData] = useState({
+    name: profile?.name || "",
+    gender: profile?.gender || "male",
+    birth_date: profile?.birth_date ? new Date(profile.birth_date) : undefined,
+    height: profile?.height?.toString() || "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  const handleSave = async () => {
+    if (!formData.name || !formData.birth_date) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Не авторизован");
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          name: formData.name,
+          gender: formData.gender,
+          birth_date: formData.birth_date.toISOString().split('T')[0],
+          height: formData.height ? parseFloat(formData.height) : null,
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Успешно сохранено! ✅",
+        description: "Профиль обновлен"
+      });
+
+      onSuccess();
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Ошибка сохранения",
+        description: error.message || "Попробуйте еще раз",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Редактировать профиль</DialogTitle>
+          <DialogDescription>
+            Обновите вашу личную информацию
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-name">Имя *</Label>
+            <Input
+              id="edit-name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ваше имя"
+            />
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-3">
+            <Label>Пол *</Label>
+            <RadioGroup 
+              value={formData.gender} 
+              onValueChange={(value) => setFormData({ ...formData, gender: value })}
+              className="grid grid-cols-2 gap-4"
+            >
+              <div>
+                <RadioGroupItem value="male" id="edit-male" className="peer sr-only" />
+                <Label
+                  htmlFor="edit-male"
+                  className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <span className="text-2xl mb-2">👨</span>
+                  <span className="font-medium">Мужчина</span>
+                </Label>
+              </div>
+              <div>
+                <RadioGroupItem value="female" id="edit-female" className="peer sr-only" />
+                <Label
+                  htmlFor="edit-female"
+                  className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <span className="text-2xl mb-2">👩</span>
+                  <span className="font-medium">Женщина</span>
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Birth Date */}
+          <div className="space-y-2">
+            <Label>Дата рождения *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.birth_date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.birth_date ? (
+                    format(formData.birth_date, "d MMMM yyyy", { locale: ru })
+                  ) : (
+                    <span>Выберите дату</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.birth_date}
+                  onSelect={(date) => setFormData({ ...formData, birth_date: date })}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Height */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-height">Рост (см)</Label>
+            <Input
+              id="edit-height"
+              type="number"
+              value={formData.height}
+              onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+              placeholder="175"
+              step="0.1"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="flex-1"
+            disabled={isSaving}
+          >
+            Отмена
+          </Button>
+          <Button
+            onClick={handleSave}
+            className="flex-1"
+            disabled={isSaving}
+          >
+            {isSaving ? "Сохранение..." : "Сохранить"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
