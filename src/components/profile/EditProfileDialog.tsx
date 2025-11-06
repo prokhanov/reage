@@ -58,7 +58,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     try {
       if (!userId) throw new Error("Не авторизован");
 
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from("profiles")
         .update({
           name: formData.name,
@@ -66,7 +66,9 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           birth_date: formData.birth_date.toISOString().split('T')[0],
           height: formData.height ? parseFloat(formData.height) : null,
         })
-        .eq("id", userId);
+        .eq("id", userId)
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -75,6 +77,9 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         description: "Профиль обновлен"
       });
 
+      // Small delay to ensure database is updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       onSuccess();
     } catch (error: any) {
       console.error("Error saving profile:", error);
