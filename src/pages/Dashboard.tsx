@@ -76,46 +76,46 @@ export default function Dashboard() {
 
         {/* Top Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Биологический возраст</CardTitle>
               <Brain className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">—</div>
+              <div className="text-3xl font-bold text-foreground">—</div>
               <p className="text-xs text-muted-foreground mt-1">Требуется анализ</p>
             </CardContent>
           </Card>
 
-          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Индекс здоровья</CardTitle>
               <Heart className="h-5 w-5 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-accent">—</div>
+              <div className="text-3xl font-bold text-foreground">—</div>
               <p className="text-xs text-muted-foreground mt-1">0-100 шкала</p>
             </CardContent>
           </Card>
 
-          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Всего анализов</CardTitle>
               <Activity className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">0</div>
+              <div className="text-3xl font-bold text-foreground">0</div>
               <p className="text-xs text-muted-foreground mt-1">За всё время</p>
             </CardContent>
           </Card>
 
-          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Тренд</CardTitle>
               <TrendingUp className="h-5 w-5 text-status-good" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-status-good">—</div>
+              <div className="text-3xl font-bold text-foreground">—</div>
               <p className="text-xs text-muted-foreground mt-1">Изменение за месяц</p>
             </CardContent>
           </Card>
@@ -124,7 +124,7 @@ export default function Dashboard() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Large Chart - Biomarkers Over Time */}
-          <Card className="lg:col-span-2 border-border/30 bg-secondary/30 backdrop-blur-sm">
+          <Card className="lg:col-span-2 border-border bg-card backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg">Динамика биомаркеров</CardTitle>
             </CardHeader>
@@ -140,7 +140,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Circular Progress - Health Score */}
-          <Card className="border-border/30 bg-secondary/30 backdrop-blur-sm">
+          <Card className="border-border bg-card backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg">Общая оценка</CardTitle>
             </CardHeader>
@@ -166,7 +166,7 @@ export default function Dashboard() {
                       strokeDasharray="552.92"
                       strokeDashoffset="552.92"
                       className="transition-all duration-1000"
-                      style={{ filter: 'drop-shadow(0 0 8px hsl(var(--primary)))' }}
+                      style={{ filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.5))' }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -181,7 +181,7 @@ export default function Dashboard() {
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="border-border/30 bg-secondary/30 backdrop-blur-sm">
+          <Card className="border-border bg-card backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg">Недавние анализы</CardTitle>
             </CardHeader>
@@ -200,7 +200,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/30 bg-secondary/30 backdrop-blur-sm">
+          <Card className="border-border bg-card backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg">Ключевые рекомендации</CardTitle>
             </CardHeader>
