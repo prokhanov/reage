@@ -9,15 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    name: "",
-    birthDate: "",
-    gender: "male",
   });
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,68 +48,17 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Добро пожаловать!",
-          description: "Вы успешно вошли в систему",
-        });
-      } else {
-        // Validate form
-        if (!formData.name || !formData.birthDate) {
-          toast({
-            title: "Ошибка",
-            description: "Пожалуйста, заполните все поля",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-
-        const redirectUrl = `${window.location.origin}/onboarding`;
-
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: redirectUrl,
-            data: {
-              name: formData.name,
-              birth_date: formData.birthDate,
-              gender: formData.gender,
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          // Create profile
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .insert({
-              id: data.user.id,
-              name: formData.name,
-              birth_date: formData.birthDate,
-              gender: formData.gender,
-            });
-
-          if (profileError) {
-            console.error("Profile creation error:", profileError);
-          }
-
-          toast({
-            title: "Регистрация успешна!",
-            description: "Перенаправляем вас...",
-          });
-        }
-      }
+      toast({
+        title: "Добро пожаловать!",
+        description: "Вы успешно вошли в систему",
+      });
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -134,54 +79,14 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-neon-primary border-primary/30 bg-gradient-to-br from-card to-card/50">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            {isLogin ? "Вход" : "Регистрация"}
+            Вход
           </CardTitle>
           <CardDescription>
-            {isLogin
-              ? "Войдите в свой аккаунт ReAge"
-              : "Создайте аккаунт и начните отслеживать свое здоровье"}
+            Войдите в свой аккаунт ReAge
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Имя</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Иван Иванов"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="birthDate">Дата рождения</Label>
-                  <Input
-                    id="birthDate"
-                    type="date"
-                    value={formData.birthDate}
-                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Пол</Label>
-                  <select
-                    id="gender"
-                    value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="male">Мужской</option>
-                    <option value="female">Женский</option>
-                    <option value="other">Другой</option>
-                  </select>
-                </div>
-              </>
-            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -205,17 +110,17 @@ export default function Auth() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Загрузка..." : isLogin ? "Войти" : "Зарегистрироваться"}
+              {loading ? "Загрузка..." : "Войти"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            {isLogin ? "Нет аккаунта? " : "Уже есть аккаунт? "}
+            Нет аккаунта?{" "}
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => navigate('/register')}
               className="text-primary hover:underline font-medium"
             >
-              {isLogin ? "Зарегистрируйтесь" : "Войдите"}
+              Зарегистрируйтесь
             </button>
           </div>
         </CardContent>

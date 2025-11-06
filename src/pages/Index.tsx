@@ -28,7 +28,7 @@ const Index = () => {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/register")}
               className="text-lg px-8 border-primary/50 hover:border-primary hover:shadow-neon-primary transition-all"
             >
               Зарегистрироваться

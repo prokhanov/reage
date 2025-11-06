@@ -179,33 +179,63 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_history: {
+        Row: {
+          category: string
+          condition: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          condition: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          condition?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           birth_date: string
           created_at: string
           gender: string
+          height: number | null
           id: string
           name: string
           telegram_id: string | null
           updated_at: string
+          weight: number | null
         }
         Insert: {
           birth_date: string
           created_at?: string
           gender: string
+          height?: number | null
           id: string
           name: string
           telegram_id?: string | null
           updated_at?: string
+          weight?: number | null
         }
         Update: {
           birth_date?: string
           created_at?: string
           gender?: string
+          height?: number | null
           id?: string
           name?: string
           telegram_id?: string | null
           updated_at?: string
+          weight?: number | null
         }
         Relationships: []
       }
