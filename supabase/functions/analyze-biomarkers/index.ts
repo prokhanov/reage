@@ -54,20 +54,20 @@ serve(async (req) => {
       .eq('user_id', analysis.user_id)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', analysis.user_id)
-      .single();
+      .maybeSingle();
 
-    // Get AI prompt settings
+    // Get AI prompt settings - use analysis_summary_prompt as the main system prompt
     const { data: promptSetting } = await supabase
       .from('ai_prompt_settings')
       .select('prompt_text')
       .eq('key', 'analysis_summary_prompt')
-      .single();
+      .maybeSingle();
 
     // Prepare biomarker summary
     const biomarkerSummary = analysis.analysis_values
@@ -94,36 +94,14 @@ serve(async (req) => {
     const systemPrompt = promptSetting?.prompt_text || 
       'Ты эксперт по долголетию и здоровью. Проанализируй результаты анализов и создай краткое резюме на русском языке в дружелюбном тоне. Никогда не ставь диагнозы.';
 
-    const userPrompt = `Проанализируй результаты анализов пользователя и дай персональные рекомендации.
-
+    // User prompt with data
+    const userPrompt = `
 КОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:
 ${userContext}
 
 РЕЗУЛЬТАТЫ АНАЛИЗОВ:
 ${biomarkerSummary}
-
-Создай:
-1. Общее резюме (2-3 предложения) - ключевые находки
-2. Рекомендации по категориям:
-   - Питание (2-3 конкретных совета)
-   - Сон (1-2 совета)
-   - Активность (1-2 совета)
-   - Добавки (если нужно, 2-3 конкретных)
-   - Стресс и восстановление (1-2 совета)
-
-Формат ответа JSON:
-{
-  "summary": "текст общего резюме",
-  "health_index": число от 0 до 100,
-  "biological_age": примерный биологический возраст,
-  "recommendations": {
-    "Питание": "текст",
-    "Сон": "текст",
-    "Активность": "текст",
-    "Добавки": "текст",
-    "Стресс": "текст"
-  }
-}`;
+`;
 
     // Call Lovable AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -137,8 +115,7 @@ ${biomarkerSummary}
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
-        ],
-        response_format: { type: 'json_object' }
+        ]
       }),
     });
 
@@ -164,47 +141,47 @@ ${biomarkerSummary}
     }
 
     const aiData = await aiResponse.json();
-    const result = JSON.parse(aiData.choices[0].message.content);
+    const fullText = aiData.choices[0].message.content;
+
+    // Calculate basic health metrics from biomarkers
+    const totalMarkers = analysis.analysis_values.length;
+    const normalMarkers = analysis.analysis_values.filter((av: any) => {
+      const b = av.biomarkers;
+      const isInRange = (!b.normal_min || av.value >= b.normal_min) && 
+                        (!b.normal_max || av.value <= b.normal_max);
+      return isInRange;
+    }).length;
+    
+    const health_index = Math.round((normalMarkers / totalMarkers) * 100);
+    const biological_age = profile 
+      ? Math.round((new Date().getFullYear() - new Date(profile.birth_date).getFullYear()) * (100 / health_index))
+      : null;
 
     // Update analysis with health metrics
     await supabase
       .from('analyses')
       .update({
-        health_index: result.health_index,
-        biological_age: result.biological_age,
+        health_index,
+        biological_age,
       })
       .eq('id', analysisId);
 
-    // Save summary recommendation
+    // Save full report as a single recommendation
     await supabase
       .from('recommendations')
       .insert({
         user_id: analysis.user_id,
         analysis_id: analysisId,
-        type: 'Общее резюме',
-        text: result.summary,
+        type: 'Полный отчет',
+        text: fullText,
       });
-
-    // Save category recommendations
-    for (const [type, text] of Object.entries(result.recommendations)) {
-      if (text) {
-        await supabase
-          .from('recommendations')
-          .insert({
-            user_id: analysis.user_id,
-            analysis_id: analysisId,
-            type,
-            text: text as string,
-          });
-      }
-    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        health_index: result.health_index,
-        biological_age: result.biological_age,
-        summary: result.summary 
+        health_index,
+        biological_age,
+        summary: fullText.substring(0, 500) + '...' 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
