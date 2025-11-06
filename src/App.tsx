@@ -16,6 +16,7 @@ import AnalysisDetail from "./pages/AnalysisDetail";
 import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
 import Trends from "./pages/Trends";
+import MyState from "./pages/MyState";
 import AISettings from "./pages/admin/AISettings";
 import NotFound from "./pages/NotFound";
 
@@ -91,6 +92,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Trends />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-state"
+            element={
+              <ProtectedRoute>
+                <MyState />
               </ProtectedRoute>
             }
           />

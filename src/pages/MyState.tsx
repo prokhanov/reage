@@ -1,0 +1,411 @@
+import { useState, useEffect } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+
+const symptomCategories = [
+  {
+    emoji: "🧠",
+    title: "Энергия и фокус",
+    symptoms: [
+      "Постоянная усталость",
+      "Просыпаюсь уставшим",
+      "Днём тянет спать",
+      "Нужен кофе, чтобы \"запуститься\"",
+      "Нет мотивации",
+      "Трудно сосредоточиться",
+      "Голова как \"в тумане\"",
+      "Память ухудшилась",
+      "Становлюсь рассеянным",
+      "Часто злюсь без причины",
+      "Уровень энергии скачет в течение дня"
+    ]
+  },
+  {
+    emoji: "😴",
+    title: "Сон и восстановление",
+    symptoms: [
+      "Трудно заснуть",
+      "Просыпаюсь ночью",
+      "Поверхностный сон",
+      "Сны тревожные, частые",
+      "Рано просыпаюсь и не могу уснуть",
+      "После сна не чувствую отдыха",
+      "Храп, апноэ",
+      "Часто встаю в туалет ночью",
+      "Ложусь поздно, не могу уснуть до 2 ночи"
+    ]
+  },
+  {
+    emoji: "💪",
+    title: "Обмен веществ и вес",
+    symptoms: [
+      "Сложно худеть",
+      "Вес растёт, даже если ем мало",
+      "Быстро набираю после диеты",
+      "Часто тянет на сладкое",
+      "После еды клонит в сон",
+      "Чувство тяжести после еды",
+      "Вздутие живота",
+      "Запоры или нестабельный стул",
+      "Часто отёки по утрам",
+      "Потею сильнее обычного",
+      "Живот увеличился, особенно низ",
+      "Холодные руки и ноги"
+    ]
+  },
+  {
+    emoji: "❤️",
+    title: "Сердце и сосуды",
+    symptoms: [
+      "Сердцебиения",
+      "Повышенное давление",
+      "Пониженное давление",
+      "Головокружения",
+      "Мушки перед глазами",
+      "Пульс стал чаще",
+      "Покалывания или сжатие в груди",
+      "Быстро устаю при нагрузке"
+    ]
+  },
+  {
+    emoji: "🧘‍♂️",
+    title: "Гормоны и либидо",
+    symptoms: [
+      "Пониженное либидо",
+      "Эрекция слабая или нестабильная",
+      "У женщин — снижение чувствительности",
+      "Сложно получить оргазм",
+      "У мужчин — уменьшение утренних эрекций",
+      "Цикл стал нерегулярным",
+      "У женщин — ПМС, раздражительность перед месячными",
+      "Выпадают волосы",
+      "Повышенная жирность кожи",
+      "Потеря мышечной массы",
+      "Настроение \"качели\"",
+      "Частая раздражительность"
+    ]
+  },
+  {
+    emoji: "🦴",
+    title: "Микроэлементы и кости",
+    symptoms: [
+      "Судороги ног, особенно ночью",
+      "Мышцы \"сводит\"",
+      "Ломкие ногти",
+      "Волосы стали тоньше",
+      "Часто трещины на губах",
+      "Кожа сухая",
+      "Мурашки без причины",
+      "Зубы стали чувствительными",
+      "Ломота в костях"
+    ]
+  },
+  {
+    emoji: "💉",
+    title: "Иммунитет и воспаление",
+    symptoms: [
+      "Часто болею",
+      "Простуды затягиваются",
+      "Слизистые воспаляются",
+      "Повышенная температура \"без причины\"",
+      "Болят суставы",
+      "Подташнивает время от времени",
+      "Есть хронические воспаления (гайморит, кожа, ЖКТ)",
+      "Медленно заживают раны",
+      "Слабая переносимость жары или холода"
+    ]
+  },
+  {
+    emoji: "🌿",
+    title: "Витамины и антиоксиданты",
+    symptoms: [
+      "Бледная кожа",
+      "Тусклый цвет лица",
+      "Сухие губы",
+      "Мешки под глазами",
+      "Зрение ухудшилось",
+      "Частые головные боли",
+      "После тренировок долго восстанавливаюсь",
+      "Повышенная чувствительность к солнцу",
+      "Руки дрожат при усталости"
+    ]
+  },
+  {
+    emoji: "🧠",
+    title: "Эмоции и стресс",
+    symptoms: [
+      "Частая тревожность",
+      "Панические атаки",
+      "Эмоциональные качели",
+      "Не могу расслабиться",
+      "Раздражает всё",
+      "Ощущение внутреннего напряжения",
+      "Плаксивость",
+      "Невозможность \"остановить мысли\"",
+      "Ощущение апатии",
+      "Устал от людей",
+      "Нет желания что-либо делать"
+    ]
+  },
+  {
+    emoji: "💧",
+    title: "Внешний вид",
+    symptoms: [
+      "Кожа сероватая, сухая или тусклая",
+      "Прыщи у взрослых",
+      "Отёки под глазами",
+      "Волосы ломаются и выпадают",
+      "Лицо выглядит \"усталым\"",
+      "Морщины усилились",
+      "Потеря упругости кожи",
+      "Пигментные пятна"
+    ]
+  },
+  {
+    emoji: "⚙️",
+    title: "Старение и долголетие",
+    symptoms: [
+      "Ощущение, что \"старею быстро\"",
+      "Меньше выносливости, чем раньше",
+      "После стрессов восстанавливаюсь медленно",
+      "Мышцы теряют тонус",
+      "Ногти растут медленнее",
+      "Дольше восстанавливаюсь после болезней",
+      "Хуже перевариваю пищу",
+      "Часто чувствую \"тяжесть\" во всём теле"
+    ]
+  }
+];
+
+const severityLevels = [
+  { value: 0, label: "Нет", color: "text-muted-foreground" },
+  { value: 1, label: "Легко", color: "text-yellow-500" },
+  { value: 2, label: "Средне", color: "text-orange-500" },
+  { value: 3, label: "Сильно", color: "text-red-500" }
+];
+
+export default function MyState() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const currentCategory = symptomCategories[currentStep];
+  const progress = ((currentStep + 1) / symptomCategories.length) * 100;
+
+  const handleAnswerChange = (symptom: string, severity: number) => {
+    setAnswers(prev => ({
+      ...prev,
+      [`${currentCategory.title}|${symptom}`]: severity
+    }));
+  };
+
+  const handleNext = () => {
+    if (currentStep < symptomCategories.length - 1) {
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Ошибка",
+          description: "Необходимо войти в систему",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Delete old symptoms for this user
+      await supabase
+        .from('user_symptoms')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Prepare data for insert
+      const symptomsData = Object.entries(answers)
+        .filter(([_, severity]) => severity > 0)
+        .map(([key, severity]) => {
+          const [category, symptom] = key.split('|');
+          return {
+            user_id: user.id,
+            category,
+            symptom,
+            severity
+          };
+        });
+
+      if (symptomsData.length === 0) {
+        toast({
+          title: "Все отлично! 🎉",
+          description: "У вас не отмечено ни одного симптома"
+        });
+        navigate('/dashboard');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('user_symptoms')
+        .insert(symptomsData);
+
+      if (error) throw error;
+
+      toast({
+        title: "Успешно сохранено! ✅",
+        description: `Отслеживается ${symptomsData.length} симптомов`
+      });
+
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error saving symptoms:', error);
+      toast({
+        title: "Ошибка сохранения",
+        description: "Попробуйте еще раз",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="container max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Мое состояние</h1>
+          <p className="text-muted-foreground">
+            Оцените каждый симптом по 4-балльной шкале
+          </p>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">
+              Шаг {currentStep + 1} из {symptomCategories.length}
+            </span>
+            <span className="text-sm font-medium">
+              {Math.round(progress)}%
+            </span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+
+        <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-4xl">{currentCategory.emoji}</span>
+              <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Отметьте все симптомы, которые вы испытываете
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {currentCategory.symptoms.map((symptom, index) => {
+              const key = `${currentCategory.title}|${symptom}`;
+              const currentValue = answers[key] || 0;
+
+              return (
+                <div 
+                  key={index}
+                  className="p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                >
+                  <div className="mb-3">
+                    <label className="text-sm font-medium leading-relaxed">
+                      {symptom}
+                    </label>
+                  </div>
+                  
+                  <RadioGroup
+                    value={currentValue.toString()}
+                    onValueChange={(value) => handleAnswerChange(symptom, parseInt(value))}
+                    className="flex gap-2"
+                  >
+                    {severityLevels.map((level) => (
+                      <div key={level.value} className="flex-1">
+                        <Label
+                          htmlFor={`${key}-${level.value}`}
+                          className={`
+                            flex flex-col items-center gap-2 p-3 rounded-md border-2 cursor-pointer
+                            transition-all hover:border-primary/50
+                            ${currentValue === level.value 
+                              ? 'border-primary bg-primary/10' 
+                              : 'border-border/50 bg-background/50'
+                            }
+                          `}
+                        >
+                          <RadioGroupItem
+                            value={level.value.toString()}
+                            id={`${key}-${level.value}`}
+                            className="sr-only"
+                          />
+                          <span className={`text-xs font-medium ${level.color}`}>
+                            {level.label}
+                          </span>
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex gap-3 mt-8">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 0}
+              className="flex-1"
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Назад
+            </Button>
+
+            {currentStep < symptomCategories.length - 1 ? (
+              <Button
+                onClick={handleNext}
+                className="flex-1"
+              >
+                Далее
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                {isSubmitting ? "Сохранение..." : "Завершить"}
+                <Check className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}

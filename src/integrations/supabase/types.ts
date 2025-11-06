@@ -265,6 +265,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_symptoms: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          severity: number
+          symptom: string
+          tracked_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          severity: number
+          symptom: string
+          tracked_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          severity?: number
+          symptom?: string
+          tracked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

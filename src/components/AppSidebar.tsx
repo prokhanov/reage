@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ const navItems = [
   { to: "/analyses", label: "Анализы", icon: FlaskConical },
   { to: "/biomarkers", label: "Маркеры", icon: Activity },
   { to: "/trends", label: "Тренды", icon: TrendingUp },
+  { to: "/my-state", label: "Мое состояние", icon: Heart },
   { to: "/recommendations", label: "Рекомендации", icon: Lightbulb },
 ];
 
