@@ -208,7 +208,9 @@ export default function Analyses() {
                       })}
                     </CardTitle>
                     {analysis.biomarkers_count !== undefined && analysis.biomarkers_count > 0 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge 
+                        className="text-xs bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 shadow-sm"
+                      >
                         {analysis.biomarkers_count} маркеров
                       </Badge>
                     )}
