@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,12 +40,20 @@ export default function AnalysisDetail() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingBiomarker, setEditingBiomarker] = useState<Biomarker | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadData();
   }, [id]);
+
+  useEffect(() => {
+    // Auto-expand all categories on load
+    const allCategories = Object.keys(groupedBiomarkers);
+    const expanded = allCategories.reduce((acc, cat) => ({ ...acc, [cat]: true }), {});
+    setExpandedCategories(expanded);
+  }, [biomarkers]);
 
   const loadData = async () => {
     try {
@@ -331,14 +339,30 @@ export default function AnalysisDetail() {
               Object.entries(groupedValues).map(([category, categoryValues]) => (
                 <Card
                   key={category}
-                  className="border-primary/20 bg-gradient-to-br from-card to-primary/5"
+                  className="border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <CardHeader>
-                    <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
-                      {category}
-                    </CardTitle>
+                  <CardHeader 
+                    className="cursor-pointer hover:bg-primary/5 transition-colors rounded-t-lg"
+                    onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
+                          {category}
+                        </CardTitle>
+                        <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
+                          {categoryValues.length}
+                        </span>
+                      </div>
+                      {expandedCategories[category] ? (
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
                   </CardHeader>
-                  <CardContent>
+                  {expandedCategories[category] && (
+                    <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categoryValues.map((value) => {
                         const angle = getGaugeAngle(value.value, value.biomarkers);
@@ -516,7 +540,8 @@ export default function AnalysisDetail() {
                         );
                       })}
                     </div>
-                  </CardContent>
+                    </CardContent>
+                  )}
                 </Card>
               ))
             )}
@@ -524,17 +549,45 @@ export default function AnalysisDetail() {
 
           {/* All Biomarkers Tab */}
           <TabsContent value="all" className="space-y-6">
-            {Object.entries(groupedBiomarkers).map(([category, categoryBiomarkers]) => (
-              <Card
-                key={category}
-                className="border-primary/20 bg-gradient-to-br from-card to-primary/5"
-              >
-                <CardHeader>
-                  <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
-                    {category}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            {Object.entries(groupedBiomarkers).map(([category, categoryBiomarkers]) => {
+              const enteredCount = categoryBiomarkers.filter(b => 
+                values.some(v => v.biomarker_id === b.id)
+              ).length;
+              
+              return (
+                <Card
+                  key={category}
+                  className="border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <CardHeader 
+                    className="cursor-pointer hover:bg-primary/5 transition-colors rounded-t-lg"
+                    onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
+                          {category}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-accent/20 text-accent border border-accent/30">
+                            {categoryBiomarkers.length} всего
+                          </span>
+                          {enteredCount > 0 && (
+                            <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
+                              {enteredCount} введено
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {expandedCategories[category] ? (
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </CardHeader>
+                  {expandedCategories[category] && (
+                    <CardContent>
                   <div className="space-y-3">
                     {categoryBiomarkers.map((biomarker) => {
                       const existingValue = values.find((v) => v.biomarker_id === biomarker.id);
@@ -585,9 +638,11 @@ export default function AnalysisDetail() {
                       );
                     })}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
           </TabsContent>
         </Tabs>
 
