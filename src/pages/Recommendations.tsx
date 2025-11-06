@@ -40,6 +40,7 @@ interface Recommendation {
   type: string;
   text: string;
   created_at: string;
+  analysis_date: string | null;
 }
 
 interface RecommendationReport {
@@ -71,16 +72,28 @@ export default function Recommendations() {
 
       const { data, error } = await supabase
         .from("recommendations")
-        .select("*")
+        .select(`
+          *,
+          analyses!recommendations_analysis_id_fkey(date)
+        `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setRecommendations(data || []);
       
-      // Группировка по дате
-      const grouped = (data || []).reduce((acc, rec) => {
-        const date = format(new Date(rec.created_at), "yyyy-MM-dd");
+      // Преобразуем данные, добавляя analysis_date
+      const transformedData = (data || []).map(rec => ({
+        ...rec,
+        analysis_date: rec.analyses?.date || null
+      }));
+      
+      setRecommendations(transformedData);
+      
+      // Группировка по дате анализа (или created_at если анализа нет)
+      const grouped = transformedData.reduce((acc, rec) => {
+        const date = rec.analysis_date 
+          ? format(new Date(rec.analysis_date), "yyyy-MM-dd")
+          : format(new Date(rec.created_at), "yyyy-MM-dd");
         if (!acc[date]) {
           acc[date] = [];
         }
