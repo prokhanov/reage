@@ -70,6 +70,32 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Загружаем промпты из БД
+    const { data: promptSettings } = await supabase
+      .from("ai_prompt_settings")
+      .select("*");
+
+    // Создаём словарь для быстрого доступа к промптам
+    const prompts = (promptSettings || []).reduce((acc, p) => {
+      acc[p.key] = p.prompt_text;
+      return acc;
+    }, {} as Record<string, string>);
+
+    console.log(`Loaded ${Object.keys(prompts).length} prompts from database`);
+
+    // Маппинг русских названий категорий на английские ключи
+    const CATEGORY_KEY_MAP: Record<string, string> = {
+      "Липиды": "lipids",
+      "Гормоны": "hormones",
+      "Метаболизм": "metabolism",
+      "Старение": "aging",
+      "Воспаление": "inflammation",
+      "Иммунитет": "immunity",
+      "Витамины": "vitamins",
+      "Микроэлементы": "minerals",
+      "Антиоксиданты": "antioxidants"
+    };
+
     // Получаем анализ с биомаркерами
     const { data: analysis, error: analysisError } = await supabase
       .from("analyses")
@@ -213,18 +239,23 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           `.trim();
         }).join("\n\n");
 
-        const categoryPrompt = `
+        // Получаем промпты из БД с fallback на дефолтные
+        const categoryKey = CATEGORY_KEY_MAP[category];
+        const userPromptKey = `category_${categoryKey}_user`;
+        const systemPromptKey = `category_${categoryKey}_system`;
+
+        const userPromptTemplate = prompts[userPromptKey] || `
 КОНТЕКСТ ПАЦИЕНТА:
-${userContext}
+{userContext}
 
 БИОМАРКЕРЫ КАТЕГОРИИ "${category}":
-${biomarkersText}
+{biomarkersText}
 
 ИСТОРИЧЕСКИЕ ТРЕНДЫ:
-${getCategoryTrends(category)}
+{trends}
 
 ПРЕДЫДУЩИЕ РЕКОМЕНДАЦИИ:
-${getCategoryRecommendations(category)}
+{recommendations}
 
 Дай ОЧЕНЬ ПОДРОБНЫЙ анализ (6000+ слов):
 
@@ -266,6 +297,17 @@ ${getCategoryRecommendations(category)}
 Пиши простым языком, но будь максимально информативным и конкретным.
         `.trim();
 
+        // Подставляем данные в шаблон
+        const categoryPrompt = userPromptTemplate
+          .replace(/{userContext}/g, userContext)
+          .replace(/{category}/g, category)
+          .replace(/{biomarkersText}/g, biomarkersText)
+          .replace(/{trends}/g, getCategoryTrends(category))
+          .replace(/{recommendations}/g, getCategoryRecommendations(category));
+
+        const systemPrompt = prompts[systemPromptKey] || 
+          `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
+
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -277,7 +319,7 @@ ${getCategoryRecommendations(category)}
             messages: [
               {
                 role: "system",
-                content: `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`
+                content: systemPrompt
               },
               {
                 role: "user",
@@ -331,12 +373,12 @@ ${getCategoryRecommendations(category)}
         `=== ${cat} ===\n${report.substring(0, 2000)}...`
       ).join("\n\n");
 
-      const summaryPrompt = `
+      const summaryUserPromptTemplate = prompts['summary_user'] || `
 КОНТЕКСТ ПАЦИЕНТА:
-${userContext}
+{userContext}
 
 ДЕТАЛЬНЫЕ ОТЧЕТЫ ПО СИСТЕМАМ:
-${allReportsText}
+{allReportsText}
 
 На основе этих детальных отчетов дай ОБЩЕЕ РЕЗЮМЕ (3000+ слов):
 
@@ -367,6 +409,13 @@ ${allReportsText}
    - Долгосрочная перспектива здоровья и долголетия
       `.trim();
 
+      const summaryPrompt = summaryUserPromptTemplate
+        .replace(/{userContext}/g, userContext)
+        .replace(/{allReportsText}/g, allReportsText);
+
+      const summarySystemPrompt = prompts['summary_system'] || 
+        "Ты главный врач-куратор долголетия. Твоя задача - дать общую оценку здоровья пациента на основе детальных отчетов по всем системам организма.";
+
       const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -378,7 +427,7 @@ ${allReportsText}
           messages: [
             {
               role: "system",
-              content: "Ты главный врач-куратор долголетия. Твоя задача - дать общую оценку здоровья пациента на основе детальных отчетов по всем системам организма."
+              content: summarySystemPrompt
             },
             {
               role: "user",
