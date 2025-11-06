@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 interface Biomarker {
   id: string;
@@ -36,6 +37,7 @@ export default function AnalysisDetail() {
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0, currentCategory: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingBiomarker, setEditingBiomarker] = useState<Biomarker | null>(null);
@@ -191,6 +193,9 @@ export default function AnalysisDetail() {
       return;
     }
 
+    // Определяем количество категорий
+    const categories = [...new Set(values.map(v => v.biomarkers.category))];
+    setAnalysisProgress({ current: 0, total: categories.length, currentCategory: categories[0] || "" });
     setAnalyzing(true);
 
     try {
@@ -198,11 +203,31 @@ export default function AnalysisDetail() {
         body: { analysisId: id },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes("402") || error.message?.includes("Payment required")) {
+          toast({
+            title: "Недостаточно средств",
+            description: "Пополните баланс в Settings → Workspace → Usage",
+            variant: "destructive",
+          });
+        } else if (error.message?.includes("429") || error.message?.includes("Rate limit")) {
+          toast({
+            title: "Превышен лимит запросов",
+            description: "Подождите несколько минут и попробуйте снова",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
 
+      const successCount = Object.values(data.categories_processed).filter((s: any) => s.success).length;
+      
       toast({
         title: "Анализ завершен!",
-        description: `Индекс здоровья: ${data.health_index}. Биологический возраст: ${data.biological_age} лет`,
+        description: `Обработано категорий: ${successCount}/${categories.length}. Индекс здоровья: ${data.health_index}%. Биологический возраст: ${data.biological_age} лет. Использовано ~${data.total_tokens} токенов (~${data.estimated_cost_credits} кредитов)`,
+        duration: 10000
       });
 
       loadData();
@@ -300,6 +325,29 @@ export default function AnalysisDetail() {
             {analyzing ? "Анализируем..." : "AI-анализ"}
           </Button>
         </div>
+
+        {/* Progress Dialog */}
+        {analyzing && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <Card className="w-full max-w-md p-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">
+                  Анализируем ваши показатели...
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Детальный анализ по категориям</span>
+                    <span>{analysisProgress.current}/{analysisProgress.total}</span>
+                  </div>
+                  <Progress value={(analysisProgress.current / analysisProgress.total) * 100} />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Это может занять 2-3 минуты. Создаем детальный отчет с персональными рекомендациями...
+                </p>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Search */}
         <div className="mb-6">

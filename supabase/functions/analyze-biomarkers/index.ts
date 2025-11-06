@@ -1,279 +1,506 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+// Категории и их специализации
+const CATEGORY_EXPERTS = {
+  "Липиды": {
+    role: "эксперт по кардиоваскулярному здоровью и липидному профилю",
+    specialization: "атеросклерозе, холестерине, триглицеридах и сердечно-сосудистых рисках"
+  },
+  "Гормоны": {
+    role: "эндокринолог с 20-летним опытом",
+    specialization: "гормональном балансе, щитовидной железе, половых гормонах и надпочечниках"
+  },
+  "Метаболизм": {
+    role: "эксперт по обмену веществ",
+    specialization: "углеводном и белковом обмене, инсулинорезистентности и метаболическом синдроме"
+  },
+  "Старение": {
+    role: "геронтолог и специалист по антиэйджингу",
+    specialization: "биомаркерах старения, теломерах и стратегиях долголетия"
+  },
+  "Воспаление": {
+    role: "иммунолог, специалист по воспалительным процессам",
+    specialization: "хроническом воспалении, цитокинах и иммунной регуляции"
+  },
+  "Иммунитет": {
+    role: "иммунолог, специалист по иммунной системе",
+    specialization: "врожденном и адаптивном иммунитете, иммунодефицитах и аутоиммунных процессах"
+  },
+  "Витамины": {
+    role: "нутрициолог, специалист по микронутриентам",
+    specialization: "витаминном статусе, дефицитах и оптимальных дозировках"
+  },
+  "Микроэлементы": {
+    role: "нутрициолог, специалист по минеральному балансу",
+    specialization: "микроэлементах, их взаимодействии и влиянии на здоровье"
+  },
+  "Антиоксиданты": {
+    role: "специалист по оксидативному стрессу и клеточной защите",
+    specialization: "свободных радикалах, антиоксидантной защите и митохондриальном здоровье"
+  }
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { analysisId } = await req.json();
-    
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!analysisId) {
+      throw new Error("Не указан ID анализа");
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!supabaseUrl || !supabaseKey || !lovableApiKey) {
+      throw new Error("Не настроены переменные окружения");
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get analysis with values and biomarkers
+    // Получаем анализ с биомаркерами
     const { data: analysis, error: analysisError } = await supabase
-      .from('analyses')
+      .from("analyses")
       .select(`
         *,
         analysis_values (
-          value,
-          biomarkers (
-            name,
-            code,
-            unit,
-            category,
-            normal_min,
-            normal_max,
-            description
-          )
+          *,
+          biomarkers (*)
         )
       `)
-      .eq('id', analysisId)
+      .eq("id", analysisId)
       .single();
 
-    if (analysisError) throw analysisError;
+    if (analysisError || !analysis) {
+      throw new Error("Анализ не найден");
+    }
 
-    // Get user complaints and profile
-    const { data: complaint } = await supabase
-      .from('complaints')
-      .select('*')
-      .eq('user_id', analysis.user_id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
+    // Получаем профиль пользователя
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', analysis.user_id)
-      .maybeSingle();
+      .from("profiles")
+      .select("*")
+      .eq("user_id", analysis.user_id)
+      .single();
 
-    // Get previous analyses for trend comparison (last 5)
-    const { data: previousAnalyses } = await supabase
-      .from('analyses')
-      .select(`
-        date,
-        health_index,
-        biological_age,
-        analysis_values (
-          value,
-          biomarkers (
-            name,
-            code,
-            unit
-          )
-        )
-      `)
-      .eq('user_id', analysis.user_id)
-      .neq('id', analysisId)
-      .order('date', { ascending: false })
-      .limit(5);
-
-    // Get previous recommendations (exclude current analysis recommendations)
-    const { data: previousRecommendations } = await supabase
-      .from('recommendations')
-      .select('*')
-      .eq('user_id', analysis.user_id)
-      .or(`analysis_id.is.null,analysis_id.neq.${analysisId}`)
-      .order('created_at', { ascending: false })
+    // Получаем жалобы пользователя
+    const { data: complaints } = await supabase
+      .from("complaints")
+      .select("*")
+      .eq("user_id", analysis.user_id)
+      .order("created_at", { ascending: false })
       .limit(10);
 
-    // Get AI prompt settings - use analysis_summary_prompt as the main system prompt
-    const { data: promptSetting } = await supabase
-      .from('ai_prompt_settings')
-      .select('prompt_text')
-      .eq('key', 'analysis_summary_prompt')
-      .maybeSingle();
+    // Получаем предыдущие анализы для трендов
+    const { data: previousAnalyses } = await supabase
+      .from("analyses")
+      .select(`
+        *,
+        analysis_values (
+          *,
+          biomarkers (*)
+        )
+      `)
+      .eq("user_id", analysis.user_id)
+      .lt("date", analysis.date)
+      .order("date", { ascending: false })
+      .limit(5);
 
-    // Prepare biomarker summary
-    const biomarkerSummary = analysis.analysis_values
-      .map((av: any) => {
-        const b = av.biomarkers;
-        const isLow = b.normal_min && av.value < b.normal_min;
-        const isHigh = b.normal_max && av.value > b.normal_max;
-        const status = isLow ? 'НИЖЕ НОРМЫ' : isHigh ? 'ВЫШЕ НОРМЫ' : 'В НОРМЕ';
-        
-        return `- ${b.name} (${b.category}): ${av.value} ${b.unit} [${status}]${
-          b.normal_min && b.normal_max ? ` (норма: ${b.normal_min}-${b.normal_max})` : ''
-        }`;
-      })
-      .join('\n');
+    // Получаем предыдущие рекомендации (исключая текущий анализ)
+    const { data: previousRecommendations } = await supabase
+      .from("recommendations")
+      .select("*")
+      .eq("user_id", analysis.user_id)
+      .or(`analysis_id.is.null,analysis_id.neq.${analysisId}`)
+      .order("created_at", { ascending: false })
+      .limit(10);
 
-    // Prepare historical data for trend analysis
-    let historicalContext = '';
-    if (previousAnalyses && previousAnalyses.length > 0) {
-      historicalContext = '\n\nИСТОРИЯ ПРЕДЫДУЩИХ АНАЛИЗОВ:\n';
-      previousAnalyses.forEach((prevAnalysis: any) => {
-        historicalContext += `\nДата: ${prevAnalysis.date}`;
-        if (prevAnalysis.health_index) {
-          historicalContext += ` | Индекс здоровья: ${prevAnalysis.health_index}%`;
-        }
-        if (prevAnalysis.biological_age) {
-          historicalContext += ` | Биологический возраст: ${prevAnalysis.biological_age}`;
-        }
-        historicalContext += '\n';
-        
-        // Compare biomarkers with current analysis
-        prevAnalysis.analysis_values?.forEach((prevValue: any) => {
-          const currentValue = analysis.analysis_values.find((cv: any) => 
-            cv.biomarkers.code === prevValue.biomarkers.code
-          );
-          
-          if (currentValue) {
-            const change = currentValue.value - prevValue.value;
-            const changePercent = ((change / prevValue.value) * 100).toFixed(1);
-            const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
-            historicalContext += `  ${prevValue.biomarkers.name}: ${prevValue.value} → ${currentValue.value} ${currentValue.biomarkers.unit} ${arrow} ${changePercent}%\n`;
-          }
-        });
-      });
-    }
+    // Группируем биомаркеры по категориям
+    const categorizedBiomarkers = analysis.analysis_values.reduce((acc: any, av: any) => {
+      const category = av.biomarkers.category;
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(av);
+      return acc;
+    }, {} as Record<string, any[]>);
 
-    // Prepare previous recommendations context
-    let recommendationsContext = '';
-    if (previousRecommendations && previousRecommendations.length > 0) {
-      recommendationsContext = '\n\nПРЕДЫДУЩИЕ РЕКОМЕНДАЦИИ:\n';
-      previousRecommendations.slice(0, 5).forEach((rec: any) => {
-        recommendationsContext += `\n[${rec.type}] ${rec.text.substring(0, 200)}...\n`;
-      });
-    }
-
+    // Формируем контекст пациента
     const userContext = `
-Возраст: ${profile ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : 'не указан'}
-Пол: ${profile?.gender === 'male' ? 'мужской' : profile?.gender === 'female' ? 'женский' : 'не указан'}
-Жалобы: ${complaint?.main_complaints || 'не указаны'}
-Цели: ${complaint?.goals || 'не указаны'}
-Образ жизни: ${complaint?.lifestyle || 'не указан'}
-`;
+Пациент: ${profile?.full_name || "Не указано"}
+Возраст: ${profile?.birth_date ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : "Не указано"}
+Пол: ${profile?.gender || "Не указано"}
 
-    const systemPrompt = promptSetting?.prompt_text || 
-      'Ты эксперт по долголетию и здоровью. Проанализируй результаты анализов, ОБЯЗАТЕЛЬНО обрати внимание на динамику изменений показателей по сравнению с предыдущими анализами. Отметь положительные и отрицательные тренды. Учитывай предыдущие рекомендации и оцени, следовал ли им пациент. Создай краткое резюме на русском языке в дружелюбном тоне. Никогда не ставь диагнозы.';
+Жалобы и симптомы:
+${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.complaint}`).join("\n") : "Не указаны"}
+    `.trim();
 
-    // User prompt with data
-    const userPrompt = `
-КОНТЕКСТ ПОЛЬЗОВАТЕЛЯ:
+    // Получаем тренды для каждой категории
+    const getCategoryTrends = (category: string) => {
+      if (!previousAnalyses || previousAnalyses.length === 0) {
+        return "Нет предыдущих анализов для сравнения";
+      }
+
+      const trends: string[] = [];
+      previousAnalyses.forEach((prevAnalysis: any) => {
+        const prevValues = prevAnalysis.analysis_values.filter(
+          (av: any) => av.biomarkers.category === category
+        );
+        if (prevValues.length > 0) {
+          trends.push(`\nАнализ от ${new Date(prevAnalysis.date).toLocaleDateString("ru-RU")}:`);
+          prevValues.forEach((pv: any) => {
+            trends.push(`  ${pv.biomarkers.name}: ${pv.value} ${pv.biomarkers.unit}`);
+          });
+        }
+      });
+
+      return trends.length > 0 ? trends.join("\n") : "Нет данных по этой категории в предыдущих анализах";
+    };
+
+    // Получаем релевантные предыдущие рекомендации для категории
+    const getCategoryRecommendations = (category: string) => {
+      if (!previousRecommendations || previousRecommendations.length === 0) {
+        return "Нет предыдущих рекомендаций";
+      }
+
+      const relevant = previousRecommendations.filter((r: any) => 
+        r.type === category || r.type === "Общее резюме"
+      );
+
+      return relevant.length > 0
+        ? relevant.map((r: any) => `[${r.type}] ${r.text.substring(0, 500)}...`).join("\n\n")
+        : "Нет релевантных рекомендаций";
+    };
+
+    console.log(`Starting detailed analysis for ${Object.keys(categorizedBiomarkers).length} categories`);
+
+    // Параллельные запросы для каждой категории
+    const categoryReports: Record<string, string> = {};
+    const categoryStatuses: Record<string, any> = {};
+    let totalTokens = 0;
+
+    const categoryPromises = Object.entries(categorizedBiomarkers).map(async ([category, biomarkers]) => {
+      try {
+        const expert = CATEGORY_EXPERTS[category as keyof typeof CATEGORY_EXPERTS];
+        
+        if (!expert) {
+          console.warn(`No expert defined for category: ${category}`);
+          categoryStatuses[category] = { success: false, error: "Нет специализации" };
+          return;
+        }
+
+        // Формируем детальный промпт для категории
+        const biomarkersText = (biomarkers as any[]).map((bm: any) => {
+          const isLow = bm.biomarkers.normal_min !== null && bm.value < bm.biomarkers.normal_min;
+          const isHigh = bm.biomarkers.normal_max !== null && bm.value > bm.biomarkers.normal_max;
+          const status = isLow ? "⬇️ НИЗКИЙ" : isHigh ? "⬆️ ВЫСОКИЙ" : "✅ НОРМА";
+          
+          return `
+${bm.biomarkers.name} (${bm.biomarkers.code}):
+  Значение: ${bm.value} ${bm.biomarkers.unit}
+  Норма: ${bm.biomarkers.normal_min || "?"} - ${bm.biomarkers.normal_max || "?"} ${bm.biomarkers.unit}
+  Статус: ${status}
+  ${bm.biomarkers.description ? `Описание: ${bm.biomarkers.description}` : ""}
+          `.trim();
+        }).join("\n\n");
+
+        const categoryPrompt = `
+КОНТЕКСТ ПАЦИЕНТА:
 ${userContext}
 
-ТЕКУЩИЕ РЕЗУЛЬТАТЫ АНАЛИЗОВ (${analysis.date}):
-${biomarkerSummary}
-${historicalContext}
-${recommendationsContext}
+БИОМАРКЕРЫ КАТЕГОРИИ "${category}":
+${biomarkersText}
 
-ВАЖНО: Проанализируй динамику изменений показателей. Отметь улучшения и ухудшения. Если есть предыдущие рекомендации, оцени их эффективность на основе текущих результатов.
-`;
+ИСТОРИЧЕСКИЕ ТРЕНДЫ:
+${getCategoryTrends(category)}
 
-    // Call Lovable AI
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      }),
+ПРЕДЫДУЩИЕ РЕКОМЕНДАЦИИ:
+${getCategoryRecommendations(category)}
+
+Дай ОЧЕНЬ ПОДРОБНЫЙ анализ (6000+ слов):
+
+1. ДЕТАЛЬНАЯ ОЦЕНКА КАЖДОГО ПОКАЗАТЕЛЯ:
+   - Что означает этот биомаркер
+   - Как он влияет на здоровье
+   - Почему именно такое значение
+   - Взаимосвязи с другими показателями в этой категории
+
+2. СИСТЕМНЫЙ АНАЛИЗ:
+   - Как показатели связаны друг с другом
+   - Общая картина состояния системы
+   - Комплексная оценка рисков
+
+3. ДИНАМИКА И ТРЕНДЫ:
+   - Как изменились показатели со времени последних анализов
+   - Положительные тренды - что работает хорошо
+   - Негативные тренды - что требует внимания
+   - Оценка эффективности предыдущих рекомендаций
+
+4. РИСКИ И ПРОГНОЗ:
+   - Краткосрочные риски (1-3 месяца)
+   - Среднесрочные риски (3-12 месяцев)
+   - Долгосрочные риски (1-5 лет)
+   - Что может произойти при сохранении текущей динамики
+
+5. ДЕТАЛЬНЫЕ РЕКОМЕНДАЦИИ:
+   - Питание: конкретные продукты, размеры порций, время приема
+   - Добавки: конкретные названия, дозировки, схемы приема, продолжительность
+   - Образ жизни: физическая активность, сон, стресс-менеджмент
+   - Дополнительные обследования: какие анализы нужны, когда их сдать
+
+6. ПЛАН ДЕЙСТВИЙ:
+   - Что делать в первую очередь (первые 2 недели)
+   - Что внедрять постепенно (1-3 месяца)
+   - Когда ожидать первых результатов
+   - Когда пересдать анализы для контроля
+
+Пиши простым языком, но будь максимально информативным и конкретным.
+        `.trim();
+
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${lovableApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              {
+                role: "system",
+                content: `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`
+              },
+              {
+                role: "user",
+                content: categoryPrompt
+              }
+            ],
+            max_completion_tokens: 8000
+          }),
+        });
+
+        if (response.status === 429) {
+          categoryStatuses[category] = { success: false, error: "Rate limit exceeded" };
+          console.error(`Rate limit for category ${category}`);
+          return;
+        }
+
+        if (response.status === 402) {
+          categoryStatuses[category] = { success: false, error: "Insufficient credits" };
+          console.error(`Insufficient credits for category ${category}`);
+          return;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`AI API error for ${category}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        const categoryReport = data.choices[0].message.content;
+        const tokensUsed = (data.usage?.total_tokens || 0);
+        
+        categoryReports[category] = categoryReport;
+        categoryStatuses[category] = { success: true, tokens: tokensUsed };
+        totalTokens += tokensUsed;
+
+        console.log(`Category ${category} completed: ${tokensUsed} tokens`);
+
+      } catch (error: any) {
+        console.error(`Error processing category ${category}:`, error);
+        categoryStatuses[category] = { success: false, error: error.message };
+      }
     });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI API error:', aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), 
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+    // Ждем завершения всех категорий
+    await Promise.all(categoryPromises);
+
+    // Формируем общее резюме на основе всех отчетов
+    let summaryReport = "";
+    try {
+      const allReportsText = Object.entries(categoryReports).map(([cat, report]) => 
+        `=== ${cat} ===\n${report.substring(0, 2000)}...`
+      ).join("\n\n");
+
+      const summaryPrompt = `
+КОНТЕКСТ ПАЦИЕНТА:
+${userContext}
+
+ДЕТАЛЬНЫЕ ОТЧЕТЫ ПО СИСТЕМАМ:
+${allReportsText}
+
+На основе этих детальных отчетов дай ОБЩЕЕ РЕЗЮМЕ (3000+ слов):
+
+1. ОБЩАЯ ОЦЕНКА ЗДОРОВЬЯ:
+   - Интегральная картина состояния здоровья
+   - Общий прогноз
+
+2. КЛЮЧЕВЫЕ ПРОБЛЕМЫ И ПРИОРИТЕТЫ:
+   - Топ-3 самых важных проблемы, требующих немедленного внимания
+   - Почему именно эти проблемы критичны
+   - Какие системы наиболее уязвимы
+
+3. СИСТЕМНЫЕ ВЗАИМОСВЯЗИ:
+   - Как проблемы в одной системе влияют на другие
+   - Каскадные эффекты
+   - Порочные круги, которые нужно разорвать
+
+4. ИНТЕГРИРОВАННЫЙ ПЛАН ДЕЙСТВИЙ:
+   - Приоритезация рекомендаций из всех отчетов
+   - Что делать СНАЧАЛА (первый месяц)
+   - Что добавлять ПОТОМ (2-6 месяцев)
+   - Стратегия на год
+
+5. МОТИВАЦИЯ И ПЕРСПЕКТИВЫ:
+   - Что уже хорошо - положительные моменты
+   - Реалистичные ожидания от выполнения рекомендаций
+   - Как будет улучшаться состояние при соблюдении рекомендаций
+   - Долгосрочная перспектива здоровья и долголетия
+      `.trim();
+
+      const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: "Ты главный врач-куратор долголетия. Твоя задача - дать общую оценку здоровья пациента на основе детальных отчетов по всем системам организма."
+            },
+            {
+              role: "user",
+              content: summaryPrompt
+            }
+          ],
+          max_completion_tokens: 4000
+        }),
+      });
+
+      if (summaryResponse.ok) {
+        const summaryData = await summaryResponse.json();
+        summaryReport = summaryData.choices[0].message.content;
+        totalTokens += (summaryData.usage?.total_tokens || 0);
+        console.log(`Summary completed: ${summaryData.usage?.total_tokens || 0} tokens`);
+      } else {
+        console.error("Failed to generate summary");
+        summaryReport = "Не удалось сгенерировать общее резюме";
       }
-      
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add funds to your Lovable AI workspace.' }), 
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`AI API error: ${aiResponse.status}`);
+    } catch (error: any) {
+      console.error("Error generating summary:", error);
+      summaryReport = "Ошибка при генерации общего резюме";
     }
 
-    const aiData = await aiResponse.json();
-    const fullText = aiData.choices[0].message.content;
+    // Сохраняем все отчеты в базу данных
+    const recommendationsToInsert = [];
 
-    // Calculate basic health metrics from biomarkers
-    const totalMarkers = analysis.analysis_values.length;
-    const normalMarkers = analysis.analysis_values.filter((av: any) => {
-      const b = av.biomarkers;
-      const isInRange = (!b.normal_min || av.value >= b.normal_min) && 
-                        (!b.normal_max || av.value <= b.normal_max);
-      return isInRange;
-    }).length;
-    
-    const health_index = Math.round((normalMarkers / totalMarkers) * 100);
-    const biological_age = profile 
-      ? Math.round((new Date().getFullYear() - new Date(profile.birth_date).getFullYear()) * (100 / health_index))
-      : null;
-
-    // Update analysis with health metrics
-    const { error: updateError } = await supabase
-      .from('analyses')
-      .update({
-        health_index,
-        biological_age,
-      })
-      .eq('id', analysisId);
-    if (updateError) {
-      console.error('Failed to update analysis metrics:', updateError);
-    }
-
-    // Save full report as a single recommendation
-    const { error: insertError } = await supabase
-      .from('recommendations')
-      .insert({
+    // 9 детальных отчетов по категориям
+    for (const [category, report] of Object.entries(categoryReports)) {
+      recommendationsToInsert.push({
         user_id: analysis.user_id,
         analysis_id: analysisId,
-        type: 'Общее резюме',
-        text: fullText,
+        type: category,
+        text: report
       });
-    if (insertError) {
-      console.error('Failed to insert recommendation:', insertError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to save recommendation' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
 
+    // 1 общее резюме
+    if (summaryReport) {
+      recommendationsToInsert.push({
+        user_id: analysis.user_id,
+        analysis_id: analysisId,
+        type: "Общее резюме",
+        text: summaryReport
+      });
+    }
+
+    // 1 полный объединенный отчет
+    const fullReport = `
+# ПОЛНЫЙ МЕДИЦИНСКИЙ ОТЧЕТ
+Дата анализа: ${new Date(analysis.date).toLocaleDateString("ru-RU")}
+
+## ОБЩЕЕ РЕЗЮМЕ
+${summaryReport}
+
+## ДЕТАЛЬНЫЙ АНАЛИЗ ПО СИСТЕМАМ
+
+${Object.entries(categoryReports).map(([category, report]) => `
+### ${category.toUpperCase()}
+${report}
+`).join("\n\n")}
+    `.trim();
+
+    recommendationsToInsert.push({
+      user_id: analysis.user_id,
+      analysis_id: analysisId,
+      type: "Полный отчет",
+      text: fullReport
+    });
+
+    // Сохраняем все рекомендации
+    const { error: insertError } = await supabase
+      .from("recommendations")
+      .insert(recommendationsToInsert);
+
+    if (insertError) {
+      console.error("Error inserting recommendations:", insertError);
+      throw insertError;
+    }
+
+    // Вычисляем индекс здоровья и биологический возраст
+    const totalValues = analysis.analysis_values.length;
+    const normalValues = analysis.analysis_values.filter((av: any) => {
+      if (av.biomarkers.normal_min === null || av.biomarkers.normal_max === null) return true;
+      return av.value >= av.biomarkers.normal_min && av.value <= av.biomarkers.normal_max;
+    }).length;
+
+    const health_index = Math.round((normalValues / totalValues) * 100);
+    const biological_age = profile?.birth_date 
+      ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() - Math.round((health_index - 70) / 3)
+      : null;
+
+    // Обновляем анализ
+    await supabase
+      .from("analyses")
+      .update({ health_index, biological_age })
+      .eq("id", analysisId);
+
+    const estimatedCostCredits = (totalTokens / 50000).toFixed(2);
+
+    console.log(`Analysis completed. Total tokens: ${totalTokens}, Estimated cost: ${estimatedCostCredits} credits`);
+
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         health_index,
         biological_age,
-        summary: fullText.substring(0, 500) + '...' 
+        categories_processed: categoryStatuses,
+        total_tokens: totalTokens,
+        estimated_cost_credits: estimatedCostCredits,
+        summary: summaryReport.substring(0, 500) + "..."
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error: any) {
-    console.error('Error in analyze-biomarkers:', error);
+    console.error("Error in analyze-biomarkers:", error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });

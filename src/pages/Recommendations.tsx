@@ -34,6 +34,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Recommendation {
   id: string;
@@ -252,7 +254,7 @@ export default function Recommendations() {
 
         {/* View Dialog */}
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 Отчет от {selectedReport && format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}
@@ -261,22 +263,60 @@ export default function Recommendations() {
                 {selectedReport?.count} {selectedReport?.count === 1 ? 'раздел' : 'разделов'}
               </DialogDescription>
             </DialogHeader>
-            <div className="mt-6 space-y-6">
-              {selectedReport && Object.entries(groupByType(selectedReport.recommendations)).map(([type, recs]) => (
-                <div key={type} className="space-y-3">
-                  <div className="flex items-center gap-2 pb-2 border-b">
-                    <Badge variant="outline" className="text-base py-1">{type}</Badge>
-                  </div>
-                  {recs.map((rec) => (
-                    <div key={rec.id} className="pl-4 py-2 border-l-2 border-primary/20">
-                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                        {rec.text}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+            
+            {selectedReport && (() => {
+              const grouped = groupByType(selectedReport.recommendations);
+              const summary = grouped["Общее резюме"]?.[0];
+              const fullReport = grouped["Полный отчет"]?.[0];
+              const categories = Object.entries(grouped).filter(([type]) => 
+                type !== "Общее резюме" && type !== "Полный отчет"
+              );
+
+              return (
+                <Tabs defaultValue="summary" className="mt-6">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="summary">Общее резюме</TabsTrigger>
+                    <TabsTrigger value="categories">По категориям</TabsTrigger>
+                    <TabsTrigger value="full">Полный отчет</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="summary" className="space-y-4 mt-4">
+                    {summary && (
+                      <div className="prose prose-sm max-w-none">
+                        <p className="whitespace-pre-wrap">{summary.text}</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="categories" className="mt-4">
+                    <Accordion type="multiple" className="space-y-2">
+                      {categories.map(([type, recs]) => (
+                        <AccordionItem key={type} value={type}>
+                          <AccordionTrigger className="text-base font-semibold">
+                            {type}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            {recs.map((rec) => (
+                              <div key={rec.id} className="prose prose-sm max-w-none">
+                                <p className="whitespace-pre-wrap">{rec.text}</p>
+                              </div>
+                            ))}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </TabsContent>
+                  
+                  <TabsContent value="full" className="space-y-4 mt-4">
+                    {fullReport && (
+                      <div className="prose prose-sm max-w-none">
+                        <p className="whitespace-pre-wrap">{fullReport.text}</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              );
+            })()}
           </DialogContent>
         </Dialog>
 
