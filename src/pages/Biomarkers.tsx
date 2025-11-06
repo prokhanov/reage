@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface BiomarkerData {
   id: string;
@@ -203,50 +204,48 @@ export default function Biomarkers() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    {categoryBiomarkers.map((biomarker) => {
-                      const inRange = isInNormalRange(
-                        biomarker.latest_value,
-                        biomarker.normal_min,
-                        biomarker.normal_max
-                      );
+                  <div className="mt-4 border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-secondary/50">
+                          <TableHead className="font-semibold">Название</TableHead>
+                          <TableHead className="font-semibold">Последнее значение</TableHead>
+                          <TableHead className="font-semibold">Тренд</TableHead>
+                          <TableHead className="font-semibold">Дата теста</TableHead>
+                          <TableHead className="font-semibold">Шкала нормы</TableHead>
+                          <TableHead className="font-semibold">Описание</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {categoryBiomarkers.map((biomarker) => {
+                          const inRange = isInNormalRange(
+                            biomarker.latest_value,
+                            biomarker.normal_min,
+                            biomarker.normal_max
+                          );
 
-                      return (
-                        <Card
-                          key={biomarker.id}
-                          className={`border transition-all hover:shadow-md ${
-                            inRange === false
-                              ? "border-destructive/50 bg-destructive/5"
-                              : inRange === true
-                              ? "border-green-500/50 bg-green-500/5"
-                              : "border-primary/20"
-                          }`}
-                        >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <CardTitle className="text-base font-semibold">
-                                {biomarker.name}
-                              </CardTitle>
-                              {biomarker.trend && (
-                                <div className="flex items-center gap-1 shrink-0">
-                                  {getTrendIcon(biomarker.trend)}
-                                  <span className="text-xs text-muted-foreground">
-                                    {getTrendLabel(biomarker.trend)}
-                                  </span>
+                          return (
+                            <TableRow 
+                              key={biomarker.id}
+                              className={`${
+                                inRange === false
+                                  ? "bg-destructive/5 hover:bg-destructive/10"
+                                  : inRange === true
+                                  ? "bg-green-500/5 hover:bg-green-500/10"
+                                  : "hover:bg-secondary/50"
+                              }`}
+                            >
+                              <TableCell className="font-medium">
+                                <div>
+                                  <div className="font-semibold">{biomarker.name}</div>
+                                  <div className="text-xs text-muted-foreground">{biomarker.code}</div>
                                 </div>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground">{biomarker.code}</p>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {biomarker.latest_value !== null ? (
-                              <>
-                                <div className="flex justify-between items-baseline">
-                                  <span className="text-sm text-muted-foreground">
-                                    Последнее значение:
-                                  </span>
+                              </TableCell>
+                              
+                              <TableCell>
+                                {biomarker.latest_value !== null ? (
                                   <span 
-                                    className="text-xl font-bold"
+                                    className="text-lg font-bold"
                                     style={{
                                       color: (() => {
                                         if (biomarker.normal_min === null && biomarker.normal_max === null) {
@@ -257,18 +256,13 @@ export default function Biomarkers() {
                                         const max = biomarker.normal_max ?? biomarker.latest_value * 2;
                                         const value = biomarker.latest_value;
                                         
-                                        // Расчет позиции на шкале (0-1)
                                         let position = (value - min) / (max - min);
                                         position = Math.max(0, Math.min(1, position));
                                         
-                                        // Градиент: красный (0) -> зеленый (0.5) -> красный (1)
-                                        // Используем квадратичную функцию для более плавного перехода
                                         let hue: number;
                                         if (position < 0.5) {
-                                          // От красного (0°) к зеленому (120°)
                                           hue = position * 2 * 120;
                                         } else {
-                                          // От зеленого (120°) к красному (0°)
                                           hue = 120 - (position - 0.5) * 2 * 120;
                                         }
                                         
@@ -278,78 +272,100 @@ export default function Biomarkers() {
                                   >
                                     {biomarker.latest_value.toFixed(2)} {biomarker.unit}
                                   </span>
-                                </div>
-                                {biomarker.latest_date && (
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-xs text-muted-foreground">Дата:</span>
-                                    <span className="text-xs text-foreground">
-                                      {new Date(biomarker.latest_date).toLocaleDateString("ru-RU")}
-                                    </span>
-                                  </div>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground italic">Нет данных</span>
                                 )}
-                              </>
-                            ) : (
-                              <p className="text-sm text-muted-foreground italic">
-                                Нет данных
-                              </p>
-                            )}
-
-                            {(biomarker.normal_min !== null || biomarker.normal_max !== null) && biomarker.latest_value !== null && (
-                              <div className="pt-2 border-t border-border/30">
-                                <p className="text-xs text-muted-foreground mb-1">Норма:</p>
-                                <div className="space-y-2">
+                              </TableCell>
+                              
+                              <TableCell>
+                                {biomarker.trend ? (
                                   <div className="flex items-center gap-2">
-                                    <div className="flex-1 h-3 bg-secondary rounded-full relative overflow-hidden">
-                                      <div className="absolute inset-0 bg-gradient-to-r from-destructive/70 via-green-500/70 to-destructive/70" />
-                                      {(() => {
-                                        const min = biomarker.normal_min ?? 0;
-                                        const max = biomarker.normal_max ?? biomarker.latest_value * 2;
-                                        const range = max - min;
-                                        const value = biomarker.latest_value;
-                                        
-                                        // Расчет позиции с небольшим отступом от краев
-                                        let position = ((value - min) / range) * 100;
-                                        position = Math.max(2, Math.min(98, position)); // Ограничиваем 2-98%
-                                        
-                                        // Определяем цвет в зависимости от нормы
-                                        let markerColor = "bg-green-500";
-                                        if (biomarker.normal_min !== null && value < biomarker.normal_min) {
-                                          markerColor = "bg-destructive";
-                                        } else if (biomarker.normal_max !== null && value > biomarker.normal_max) {
-                                          markerColor = "bg-destructive";
-                                        }
-                                        
-                                        return (
-                                          <div 
-                                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${markerColor} border-2 border-background shadow-lg z-10`}
-                                            style={{ left: `${position}%` }}
-                                          />
-                                        );
-                                      })()}
-                                    </div>
-                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                      {biomarker.normal_min !== null && biomarker.normal_max !== null
-                                        ? `${biomarker.normal_min}-${biomarker.normal_max}`
-                                        : biomarker.normal_min !== null
-                                        ? `> ${biomarker.normal_min}`
-                                        : `< ${biomarker.normal_max}`}
-                                    </span>
+                                    {getTrendIcon(biomarker.trend)}
+                                    <span className="text-sm">{getTrendLabel(biomarker.trend)}</span>
                                   </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {biomarker.description && (
-                              <div className="pt-2 border-t border-border/30">
-                                <p className="text-xs text-muted-foreground line-clamp-2">
-                                  {biomarker.description}
-                                </p>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              
+                              <TableCell>
+                                {biomarker.latest_date ? (
+                                  <span className="text-sm">
+                                    {new Date(biomarker.latest_date).toLocaleDateString("ru-RU")}
+                                  </span>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              
+                              <TableCell className="min-w-[200px]">
+                                {biomarker.normal_min !== null || biomarker.normal_max !== null ? (
+                                  biomarker.latest_value !== null ? (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex-1 h-3 bg-secondary rounded-full relative overflow-hidden">
+                                          <div className="absolute inset-0 bg-gradient-to-r from-destructive/70 via-green-500/70 to-destructive/70" />
+                                          {(() => {
+                                            const min = biomarker.normal_min ?? 0;
+                                            const max = biomarker.normal_max ?? biomarker.latest_value * 2;
+                                            const range = max - min;
+                                            const value = biomarker.latest_value;
+                                            
+                                            let position = ((value - min) / range) * 100;
+                                            position = Math.max(2, Math.min(98, position));
+                                            
+                                            let markerColor = "bg-green-500";
+                                            if (biomarker.normal_min !== null && value < biomarker.normal_min) {
+                                              markerColor = "bg-destructive";
+                                            } else if (biomarker.normal_max !== null && value > biomarker.normal_max) {
+                                              markerColor = "bg-destructive";
+                                            }
+                                            
+                                            return (
+                                              <div 
+                                                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${markerColor} border-2 border-background shadow-lg z-10`}
+                                                style={{ left: `${position}%` }}
+                                              />
+                                            );
+                                          })()}
+                                        </div>
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">
+                                        {biomarker.normal_min !== null && biomarker.normal_max !== null
+                                          ? `${biomarker.normal_min}-${biomarker.normal_max} ${biomarker.unit}`
+                                          : biomarker.normal_min !== null
+                                          ? `> ${biomarker.normal_min} ${biomarker.unit}`
+                                          : `< ${biomarker.normal_max} ${biomarker.unit}`}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">
+                                      {biomarker.normal_min !== null && biomarker.normal_max !== null
+                                        ? `${biomarker.normal_min}-${biomarker.normal_max} ${biomarker.unit}`
+                                        : biomarker.normal_min !== null
+                                        ? `> ${biomarker.normal_min} ${biomarker.unit}`
+                                        : `< ${biomarker.normal_max} ${biomarker.unit}`}
+                                    </span>
+                                  )
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              
+                              <TableCell className="max-w-[300px]">
+                                {biomarker.description ? (
+                                  <p className="text-xs text-muted-foreground line-clamp-2">
+                                    {biomarker.description}
+                                  </p>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
                   </div>
                 </AccordionContent>
               </AccordionItem>
