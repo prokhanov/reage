@@ -169,7 +169,7 @@ export default function Biomarkers() {
 
   return (
     <DashboardLayout>
-      <TooltipProvider delayDuration={200}>
+      <TooltipProvider delayDuration={0}>
         <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
@@ -362,7 +362,7 @@ export default function Biomarkers() {
                                         <Info className="h-5 w-5 text-primary" />
                                       </button>
                                     </TooltipTrigger>
-                                    <TooltipContent className="max-w-xs" side="top" align="end" sideOffset={8}>
+                                    <TooltipContent className="max-w-xs" side="top" align="center" sideOffset={8}>
                                       <p className="text-sm">{biomarker.description}</p>
                                     </TooltipContent>
                                   </Tooltip>
