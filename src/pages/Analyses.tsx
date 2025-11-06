@@ -206,7 +206,7 @@ export default function Analyses() {
                       {analysis.biological_age !== null && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-muted-foreground">Био. возраст:</span>
-                          <span className="text-lg font-semibold text-secondary">
+                          <span className="text-lg font-semibold text-foreground">
                             {analysis.biological_age} лет
                           </span>
                         </div>
