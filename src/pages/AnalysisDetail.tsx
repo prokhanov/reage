@@ -195,36 +195,8 @@ export default function AnalysisDetail() {
 
     // Определяем количество категорий
     const categories = [...new Set(values.map(v => v.biomarkers.category))];
-    setAnalysisProgress({ current: 0, total: categories.length, currentCategory: "" });
+    setAnalysisProgress({ current: 0, total: categories.length, currentCategory: categories[0] || "" });
     setAnalyzing(true);
-
-    // Подписываемся на Realtime обновления рекомендаций
-    const channel = supabase
-      .channel('recommendations-progress')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'recommendations',
-          filter: `analysis_id=eq.${id}`
-        },
-        (payload) => {
-          const recommendation = payload.new as any;
-          // Обновляем счетчик только для категорий (не для резюме и полного отчета)
-          if (recommendation.type !== "Общее резюме" && recommendation.type !== "Полный отчет") {
-            setAnalysisProgress(prev => ({
-              ...prev,
-              current: prev.current + 1,
-              currentCategory: recommendation.type
-            }));
-          }
-        }
-      )
-      .subscribe();
-
-    // Даем время на подключение к Realtime
-    await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
       const { data, error } = await supabase.functions.invoke("analyze-biomarkers", {
@@ -268,8 +240,6 @@ export default function AnalysisDetail() {
       });
     } finally {
       setAnalyzing(false);
-      // Отписываемся от канала
-      supabase.removeChannel(channel);
     }
   };
 

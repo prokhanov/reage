@@ -209,19 +209,19 @@ ${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.compla
 
     console.log(`Starting detailed analysis for ${Object.keys(categorizedBiomarkers).length} categories`);
 
-    // Последовательная обработка категорий для отслеживания прогресса
+    // Параллельные запросы для каждой категории
     const categoryReports: Record<string, string> = {};
     const categoryStatuses: Record<string, any> = {};
     let totalTokens = 0;
 
-    for (const [category, biomarkers] of Object.entries(categorizedBiomarkers)) {
+    const categoryPromises = Object.entries(categorizedBiomarkers).map(async ([category, biomarkers]) => {
       try {
         const expert = CATEGORY_EXPERTS[category as keyof typeof CATEGORY_EXPERTS];
         
         if (!expert) {
           console.warn(`No expert defined for category: ${category}`);
           categoryStatuses[category] = { success: false, error: "Нет специализации" };
-          continue;
+          return;
         }
 
         // Формируем детальный промпт для категории
@@ -248,44 +248,74 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 КОНТЕКСТ ПАЦИЕНТА:
 {userContext}
 
-ПОКАЗАТЕЛИ КАТЕГОРИИ "${category}":
+БИОМАРКЕРЫ КАТЕГОРИИ "${category}":
 {biomarkersText}
 
-КОНТЕКСТ ИЗ ПРОШЛЫХ АНАЛИЗОВ:
-{previousContext}
-
-Дай подробный анализ (2200-2500 слов):
-- ТЕКУЩЕЕ СОСТОЯНИЕ
-- РИСКИ И ПРОГНОЗ
-- ДЕТАЛЬНЫЕ РЕКОМЕНДАЦИИ
-- ИНДИВИДУАЛЬНЫЙ ПЛАН ДЕЙСТВИЙ
-        `.trim();
-
-        const systemPromptTemplate = prompts[systemPromptKey] || `Ты ${expert.role} с 20+ годами опыта. Специализация: ${expert.specialization}.`;
-
-        const userPrompt = userPromptTemplate
-          .replace("{userContext}", userContext)
-          .replace("{biomarkersText}", biomarkersText)
-          .replace("{previousContext}", `
-ТРЕНДЫ ПОКАЗАТЕЛЕЙ:
-${getCategoryTrends(category)}
+ИСТОРИЧЕСКИЕ ТРЕНДЫ:
+{trends}
 
 ПРЕДЫДУЩИЕ РЕКОМЕНДАЦИИ:
-${getCategoryRecommendations(category)}
-          `.trim());
+{recommendations}
 
-        const systemPrompt = systemPromptTemplate;
+Дай ОЧЕНЬ ПОДРОБНЫЙ анализ (6000+ слов):
 
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+1. ДЕТАЛЬНАЯ ОЦЕНКА КАЖДОГО ПОКАЗАТЕЛЯ:
+   - Что означает этот биомаркер
+   - Как он влияет на здоровье
+   - Почему именно такое значение
+   - Взаимосвязи с другими показателями в этой категории
+
+2. СИСТЕМНЫЙ АНАЛИЗ:
+   - Как показатели связаны друг с другом
+   - Общая картина состояния системы
+   - Комплексная оценка рисков
+
+3. ДИНАМИКА И ТРЕНДЫ:
+   - Как изменились показатели со времени последних анализов
+   - Положительные тренды - что работает хорошо
+   - Негативные тренды - что требует внимания
+   - Оценка эффективности предыдущих рекомендаций
+
+4. РИСКИ И ПРОГНОЗ:
+   - Краткосрочные риски (1-3 месяца)
+   - Среднесрочные риски (3-12 месяцев)
+   - Долгосрочные риски (1-5 лет)
+   - Что может произойти при сохранении текущей динамики
+
+5. ДЕТАЛЬНЫЕ РЕКОМЕНДАЦИИ:
+   - Питание: конкретные продукты, размеры порций, время приема
+   - Добавки: конкретные названия, дозировки, схемы приема, продолжительность
+   - Образ жизни: физическая активность, сон, стресс-менеджмент
+   - Дополнительные обследования: какие анализы нужны, когда их сдать
+
+6. ПЛАН ДЕЙСТВИЙ:
+   - Что делать в первую очередь (первые 2 недели)
+   - Что внедрять постепенно (1-3 месяца)
+   - Когда ожидать первых результатов
+   - Когда пересдать анализы для контроля
+
+Пиши простым языком, но будь максимально информативным и конкретным.
+        `.trim();
+
+        // Подставляем данные в шаблон
+        const categoryPrompt = userPromptTemplate
+          .replace(/{userContext}/g, userContext)
+          .replace(/{category}/g, category)
+          .replace(/{biomarkersText}/g, biomarkersText)
+          .replace(/{trends}/g, getCategoryTrends(category))
+          .replace(/{recommendations}/g, getCategoryRecommendations(category));
+
+        const systemPrompt = prompts[systemPromptKey] || 
+          `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
+
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
+            "Authorization": `Bearer ${lovableApiKey}`,
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${Deno.env.get("LOVABLE_OPENROUTER_API_KEY")}`,
-            "HTTP-Referer": Deno.env.get("VITE_SUPABASE_URL") || "",
-            "X-Title": "BioAge Analyzer",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-pro",
+            model: "google/gemini-2.5-flash",
             messages: [
               {
                 role: "system",
@@ -293,17 +323,23 @@ ${getCategoryRecommendations(category)}
               },
               {
                 role: "user",
-                content: userPrompt
+                content: categoryPrompt
               }
             ],
             max_completion_tokens: 2200
           }),
         });
 
+        if (response.status === 429) {
+          categoryStatuses[category] = { success: false, error: "Rate limit exceeded" };
+          console.error(`Rate limit for category ${category}`);
+          return;
+        }
+
         if (response.status === 402) {
           categoryStatuses[category] = { success: false, error: "Insufficient credits" };
           console.error(`Insufficient credits for category ${category}`);
-          continue;
+          return;
         }
 
         if (!response.ok) {
@@ -330,21 +366,14 @@ ${getCategoryRecommendations(category)}
 
         console.log(`Category ${category} completed: ${tokensUsed} tokens, finish_reason: ${finishReason}`);
 
-        // Сохраняем рекомендацию сразу после обработки категории
-        await supabase
-          .from("recommendations")
-          .insert({
-            user_id: analysis.user_id,
-            analysis_id: analysisId,
-            type: category,
-            text: categoryReport
-          });
-
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
         categoryStatuses[category] = { success: false, error: error.message };
       }
-    }
+    });
+
+    // Ждем завершения всех категорий
+    await Promise.all(categoryPromises);
 
     // Формируем общее резюме на основе всех отчетов
     let summaryReport = "";
@@ -441,19 +470,30 @@ ${getCategoryRecommendations(category)}
       summaryReport = "Ошибка при генерации общего резюме";
     }
 
-    // Сохраняем общее резюме
-    if (summaryReport) {
-      await supabase
-        .from("recommendations")
-        .insert({
-          user_id: analysis.user_id,
-          analysis_id: analysisId,
-          type: "Общее резюме",
-          text: summaryReport
-        });
+    // Сохраняем все отчеты в базу данных
+    const recommendationsToInsert = [];
+
+    // 9 детальных отчетов по категориям
+    for (const [category, report] of Object.entries(categoryReports)) {
+      recommendationsToInsert.push({
+        user_id: analysis.user_id,
+        analysis_id: analysisId,
+        type: category,
+        text: report
+      });
     }
 
-    // Создаем полный объединенный отчет
+    // 1 общее резюме
+    if (summaryReport) {
+      recommendationsToInsert.push({
+        user_id: analysis.user_id,
+        analysis_id: analysisId,
+        type: "Общее резюме",
+        text: summaryReport
+      });
+    }
+
+    // 1 полный объединенный отчет
     const fullReport = `
 # ПОЛНЫЙ МЕДИЦИНСКИЙ ОТЧЕТ
 Дата анализа: ${new Date(analysis.date).toLocaleDateString("ru-RU")}
@@ -469,15 +509,22 @@ ${report}
 `).join("\n\n")}
     `.trim();
 
-    // Сохраняем полный отчет
-    await supabase
+    recommendationsToInsert.push({
+      user_id: analysis.user_id,
+      analysis_id: analysisId,
+      type: "Полный отчет",
+      text: fullReport
+    });
+
+    // Сохраняем все рекомендации
+    const { error: insertError } = await supabase
       .from("recommendations")
-      .insert({
-        user_id: analysis.user_id,
-        analysis_id: analysisId,
-        type: "Полный отчет",
-        text: fullReport
-      });
+      .insert(recommendationsToInsert);
+
+    if (insertError) {
+      console.error("Error inserting recommendations:", insertError);
+      throw insertError;
+    }
 
     // Вычисляем индекс здоровья и биологический возраст
     const totalValues = analysis.analysis_values.length;
