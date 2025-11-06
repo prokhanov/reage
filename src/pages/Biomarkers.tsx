@@ -245,7 +245,13 @@ export default function Biomarkers() {
                                   <span className="text-sm text-muted-foreground">
                                     Последнее значение:
                                   </span>
-                                  <span className="text-xl font-bold text-primary">
+                                  <span className={`text-xl font-bold ${
+                                    inRange === false
+                                      ? "text-destructive"
+                                      : inRange === true
+                                      ? "text-green-500"
+                                      : "text-primary"
+                                  }`}>
                                     {biomarker.latest_value.toFixed(2)} {biomarker.unit}
                                   </span>
                                 </div>
@@ -303,18 +309,6 @@ export default function Biomarkers() {
                                         : biomarker.normal_min !== null
                                         ? `> ${biomarker.normal_min}`
                                         : `< ${biomarker.normal_max}`}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-xs text-muted-foreground">Текущее:</span>
-                                    <span className={`text-sm font-semibold ${
-                                      inRange === false
-                                        ? "text-destructive"
-                                        : inRange === true
-                                        ? "text-green-500"
-                                        : "text-foreground"
-                                    }`}>
-                                      {biomarker.latest_value.toFixed(2)} {biomarker.unit}
                                     </span>
                                   </div>
                                 </div>
