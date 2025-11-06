@@ -3,11 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Biomarker {
   id: string;
@@ -33,24 +35,17 @@ export default function AnalysisDetail() {
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingBiomarker, setEditingBiomarker] = useState<Biomarker | null>(null);
+  const [editValue, setEditValue] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadData();
   }, [id]);
-
-  useEffect(() => {
-    // Initialize input values from existing analysis values
-    const initialValues: Record<string, string> = {};
-    values.forEach((v) => {
-      initialValues[v.biomarker_id] = v.value.toString();
-    });
-    setInputValues(initialValues);
-  }, [values]);
 
   const loadData = async () => {
     try {
@@ -101,60 +96,80 @@ export default function AnalysisDetail() {
     }
   };
 
-  const handleSaveAll = async () => {
-    setSaving(true);
+  const openEditDialog = (biomarker: Biomarker) => {
+    const existingValue = values.find((v) => v.biomarker_id === biomarker.id);
+    setEditingBiomarker(biomarker);
+    setEditValue(existingValue ? existingValue.value.toString() : "");
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveValue = async () => {
+    if (!editingBiomarker || !editValue) return;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Не авторизован");
 
-      // Get all biomarkers that have values entered
-      const entriesToSave = Object.entries(inputValues)
-        .filter(([_, value]) => value && value.trim() !== "")
-        .map(([biomarkerId, value]) => ({
-          analysis_id: id,
-          biomarker_id: biomarkerId,
-          value: parseFloat(value),
-        }));
+      const existingValue = values.find((v) => v.biomarker_id === editingBiomarker.id);
 
-      if (entriesToSave.length === 0) {
-        toast({
-          title: "Нет данных",
-          description: "Введите хотя бы одно значение",
-          variant: "destructive",
-        });
-        return;
+      if (existingValue) {
+        // Update existing value
+        const { error } = await supabase
+          .from("analysis_values")
+          .update({ value: parseFloat(editValue) })
+          .eq("id", existingValue.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new value
+        const { error } = await supabase
+          .from("analysis_values")
+          .insert({
+            analysis_id: id,
+            biomarker_id: editingBiomarker.id,
+            value: parseFloat(editValue),
+          });
+
+        if (error) throw error;
       }
-
-      // Delete existing values for this analysis
-      const { error: deleteError } = await supabase
-        .from("analysis_values")
-        .delete()
-        .eq("analysis_id", id);
-
-      if (deleteError) throw deleteError;
-
-      // Insert all new values
-      const { error: insertError } = await supabase
-        .from("analysis_values")
-        .insert(entriesToSave);
-
-      if (insertError) throw insertError;
 
       toast({
         title: "Успешно!",
-        description: `Сохранено ${entriesToSave.length} показателей`,
+        description: "Значение сохранено",
+      });
+
+      setEditDialogOpen(false);
+      loadData();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось сохранить значение",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteValue = async (valueId: string) => {
+    try {
+      const { error } = await supabase
+        .from("analysis_values")
+        .delete()
+        .eq("id", valueId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Удалено",
+        description: "Показатель удален",
       });
 
       loadData();
     } catch (error: any) {
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось сохранить показатели",
+        description: "Не удалось удалить показатель",
         variant: "destructive",
       });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -195,27 +210,42 @@ export default function AnalysisDetail() {
     }
   };
 
-  const getProgressValue = (value: string, biomarker: Biomarker) => {
-    if (!value || biomarker.normal_min === null || biomarker.normal_max === null) return 50;
-    const numValue = parseFloat(value);
+  const getGaugeAngle = (value: number, biomarker: Biomarker) => {
+    if (biomarker.normal_min === null || biomarker.normal_max === null) return 90;
     const range = biomarker.normal_max - biomarker.normal_min;
-    const position = ((numValue - biomarker.normal_min) / range) * 100;
-    return Math.max(0, Math.min(100, position));
+    const extendedMin = biomarker.normal_min - range * 0.5;
+    const extendedMax = biomarker.normal_max + range * 0.5;
+    const extendedRange = extendedMax - extendedMin;
+    const position = ((value - extendedMin) / extendedRange) * 180;
+    return Math.max(0, Math.min(180, position));
   };
 
-  const getProgressColor = (value: string, biomarker: Biomarker) => {
-    if (!value || biomarker.normal_min === null || biomarker.normal_max === null) return "bg-muted";
-    const numValue = parseFloat(value);
-    if (numValue < biomarker.normal_min) return "bg-status-danger";
-    if (numValue > biomarker.normal_max) return "bg-status-warning";
-    return "bg-status-good";
+  const getGaugeColor = (value: number, biomarker: Biomarker) => {
+    if (biomarker.normal_min === null || biomarker.normal_max === null) return "text-muted";
+    if (value < biomarker.normal_min) return "text-status-danger";
+    if (value > biomarker.normal_max) return "text-status-warning";
+    return "text-status-good";
   };
 
-  const groupedBiomarkers = biomarkers.reduce((acc, biomarker) => {
+  const filteredBiomarkers = biomarkers.filter(
+    (b) =>
+      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const groupedBiomarkers = filteredBiomarkers.reduce((acc, biomarker) => {
     if (!acc[biomarker.category]) acc[biomarker.category] = [];
     acc[biomarker.category].push(biomarker);
     return acc;
   }, {} as Record<string, Biomarker[]>);
+
+  const groupedValues = values.reduce((acc, value) => {
+    const category = value.biomarkers.category;
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(value);
+    return acc;
+  }, {} as Record<string, AnalysisValue[]>);
 
   if (loading && !analysis) {
     return (
@@ -229,7 +259,7 @@ export default function AnalysisDetail() {
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
               {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
@@ -241,141 +271,294 @@ export default function AnalysisDetail() {
             {analysis?.lab_name && (
               <p className="text-muted-foreground">Лаборатория: {analysis.lab_name}</p>
             )}
-            <p className="text-sm text-muted-foreground mt-2">
-              Введите значения для нужных показателей и нажмите "Сохранить всё"
-            </p>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              onClick={handleSaveAll}
-              disabled={saving}
-              className="shadow-neon-primary"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {saving ? "Сохранение..." : "Сохранить всё"}
-            </Button>
+          <Button
+            onClick={handleAnalyze}
+            disabled={analyzing || values.length === 0}
+            className="shadow-neon-accent"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            {analyzing ? "Анализируем..." : "AI-анализ"}
+          </Button>
+        </div>
 
-            <Button
-              onClick={handleAnalyze}
-              disabled={analyzing || values.length === 0}
-              className="shadow-neon-accent"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              {analyzing ? "Анализируем..." : "AI-анализ"}
-            </Button>
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по названию, коду или категории..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-card border-primary/30"
+            />
           </div>
         </div>
 
-        {/* Biomarkers by category */}
-        <div className="space-y-6">
-          {Object.entries(groupedBiomarkers).map(([category, categoryBiomarkers]) => (
-            <Card
-              key={category}
-              className="border-primary/20 bg-gradient-to-br from-card to-primary/5"
-            >
-              <CardHeader>
-                <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
-                  {category}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {categoryBiomarkers.map((biomarker) => {
-                    const currentValue = inputValues[biomarker.id] || "";
-                    const progressValue = getProgressValue(currentValue, biomarker);
-                    const progressColor = getProgressColor(currentValue, biomarker);
+        {/* Tabs */}
+        <Tabs defaultValue="entered" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="entered">
+              Введенные значения ({values.length})
+            </TabsTrigger>
+            <TabsTrigger value="all">
+              Все показатели ({filteredBiomarkers.length})
+            </TabsTrigger>
+          </TabsList>
 
-                    return (
-                      <div
-                        key={biomarker.id}
-                        className="p-4 rounded-lg bg-muted/20 border border-border hover:border-primary/30 transition-all"
-                      >
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                          {/* Info column */}
-                          <div className="lg:col-span-5 space-y-2">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <h4 className="font-semibold text-foreground">{biomarker.name}</h4>
-                                <p className="text-xs text-muted-foreground mt-0.5">{biomarker.code}</p>
+          {/* Entered Values Tab */}
+          <TabsContent value="entered" className="space-y-6">
+            {values.length === 0 ? (
+              <Card className="border-dashed border-2 border-primary/30">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <p className="text-muted-foreground text-center">
+                    Пока нет введенных значений
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              Object.entries(groupedValues).map(([category, categoryValues]) => (
+                <Card
+                  key={category}
+                  className="border-primary/20 bg-gradient-to-br from-card to-primary/5"
+                >
+                  <CardHeader>
+                    <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
+                      {category}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {categoryValues.map((value) => {
+                        const angle = getGaugeAngle(value.value, value.biomarkers);
+                        const color = getGaugeColor(value.value, value.biomarkers);
+
+                        return (
+                          <div
+                            key={value.id}
+                            className="p-4 rounded-lg bg-muted/20 border border-border hover:border-primary/30 transition-all group"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-foreground">{value.biomarkers.name}</h4>
+                                <p className="text-xs text-muted-foreground">{value.biomarkers.code}</p>
                               </div>
-                              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                {biomarker.unit}
-                              </span>
-                            </div>
-                            {biomarker.description && (
-                              <p className="text-sm text-muted-foreground leading-relaxed">
-                                {biomarker.description}
-                              </p>
-                            )}
-                            {biomarker.normal_min !== null && biomarker.normal_max !== null && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <span className="text-muted-foreground">Референс:</span>
-                                <span className="font-medium text-status-good">
-                                  {biomarker.normal_min} - {biomarker.normal_max} {biomarker.unit}
-                                </span>
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => openEditDialog(value.biomarkers)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                                  onClick={() => handleDeleteValue(value.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
-                            )}
-                          </div>
-
-                          {/* Input column */}
-                          <div className="lg:col-span-3 flex items-center">
-                            <div className="w-full">
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="Значение"
-                                value={currentValue}
-                                onChange={(e) =>
-                                  setInputValues({
-                                    ...inputValues,
-                                    [biomarker.id]: e.target.value,
-                                  })
-                                }
-                                className="w-full text-lg font-semibold text-center bg-background border-primary/30 focus:border-primary"
-                              />
                             </div>
-                          </div>
 
-                          {/* Visual indicator column */}
-                          <div className="lg:col-span-4 flex items-center">
-                            {currentValue && biomarker.normal_min !== null && biomarker.normal_max !== null ? (
-                              <div className="w-full space-y-2">
-                                <div className="relative h-8 bg-muted rounded-full overflow-hidden border border-border">
-                                  {/* Danger zone left */}
-                                  <div className="absolute left-0 top-0 bottom-0 w-[10%] bg-status-danger/20" />
-                                  {/* Normal zone */}
-                                  <div className="absolute left-[10%] top-0 bottom-0 right-[10%] bg-status-good/20" />
-                                  {/* Danger zone right */}
-                                  <div className="absolute right-0 top-0 bottom-0 w-[10%] bg-status-warning/20" />
-                                  
-                                  {/* Value indicator */}
-                                  <div
-                                    className={`absolute top-0 bottom-0 w-1.5 ${progressColor} shadow-lg transition-all`}
-                                    style={{ left: `${progressValue}%` }}
+                            {/* Gauge */}
+                            <div className="flex justify-center mb-3">
+                              <div className="relative w-32 h-16">
+                                <svg viewBox="0 0 100 50" className="w-full h-full">
+                                  {/* Background arc */}
+                                  <path
+                                    d="M 10 45 A 40 40 0 0 1 90 45"
+                                    fill="none"
+                                    stroke="hsl(var(--muted))"
+                                    strokeWidth="8"
+                                    strokeLinecap="round"
                                   />
-                                </div>
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                  <span>Низко</span>
-                                  <span className="text-status-good">Норма</span>
-                                  <span>Высоко</span>
-                                </div>
+                                  {/* Danger zone left */}
+                                  <path
+                                    d="M 10 45 A 40 40 0 0 1 30 20"
+                                    fill="none"
+                                    stroke="hsl(var(--status-danger))"
+                                    strokeWidth="8"
+                                    strokeLinecap="round"
+                                    opacity="0.3"
+                                  />
+                                  {/* Normal zone */}
+                                  <path
+                                    d="M 30 20 A 40 40 0 0 1 70 20"
+                                    fill="none"
+                                    stroke="hsl(var(--status-good))"
+                                    strokeWidth="8"
+                                    strokeLinecap="round"
+                                    opacity="0.3"
+                                  />
+                                  {/* Danger zone right */}
+                                  <path
+                                    d="M 70 20 A 40 40 0 0 1 90 45"
+                                    fill="none"
+                                    stroke="hsl(var(--status-warning))"
+                                    strokeWidth="8"
+                                    strokeLinecap="round"
+                                    opacity="0.3"
+                                  />
+                                  {/* Needle */}
+                                  <line
+                                    x1="50"
+                                    y1="45"
+                                    x2={50 + 35 * Math.cos((angle - 90) * Math.PI / 180)}
+                                    y2={45 + 35 * Math.sin((angle - 90) * Math.PI / 180)}
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    className={color}
+                                  />
+                                  {/* Center dot */}
+                                  <circle cx="50" cy="45" r="3" fill="currentColor" className={color} />
+                                </svg>
                               </div>
-                            ) : (
-                              <div className="w-full text-center text-sm text-muted-foreground">
-                                {currentValue ? "Нет референсных значений" : "Введите значение"}
+                            </div>
+
+                            {/* Value */}
+                            <div className="text-center mb-2">
+                              <p className={`text-2xl font-bold ${color}`}>
+                                {value.value}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{value.biomarkers.unit}</p>
+                            </div>
+
+                            {/* Reference range */}
+                            {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
+                              <div className="text-center text-xs text-muted-foreground">
+                                Референс: {value.biomarkers.normal_min}-{value.biomarkers.normal_max}
                               </div>
                             )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          {/* All Biomarkers Tab */}
+          <TabsContent value="all" className="space-y-6">
+            {Object.entries(groupedBiomarkers).map(([category, categoryBiomarkers]) => (
+              <Card
+                key={category}
+                className="border-primary/20 bg-gradient-to-br from-card to-primary/5"
+              >
+                <CardHeader>
+                  <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
+                    {category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {categoryBiomarkers.map((biomarker) => {
+                      const existingValue = values.find((v) => v.biomarker_id === biomarker.id);
+
+                      return (
+                        <div
+                          key={biomarker.id}
+                          className="p-4 rounded-lg bg-muted/20 border border-border hover:border-primary/30 transition-all group"
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <h4 className="font-semibold text-foreground">{biomarker.name}</h4>
+                                  <p className="text-xs text-muted-foreground">{biomarker.code}</p>
+                                </div>
+                                {existingValue && (
+                                  <span className="text-lg font-bold text-primary">
+                                    {existingValue.value} {biomarker.unit}
+                                  </span>
+                                )}
+                              </div>
+                              {biomarker.description && (
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                  {biomarker.description}
+                                </p>
+                              )}
+                              {biomarker.normal_min !== null && biomarker.normal_max !== null && (
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="text-muted-foreground">Референс:</span>
+                                  <span className="font-medium text-status-good">
+                                    {biomarker.normal_min} - {biomarker.normal_max} {biomarker.unit}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditDialog(biomarker)}
+                              className="border-primary/30 hover:bg-primary/10"
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              {existingValue ? "Редактировать" : "Добавить"}
+                            </Button>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
+
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="bg-card border-primary/30">
+            <DialogHeader>
+              <DialogTitle className="bg-gradient-primary bg-clip-text text-transparent">
+                {editingBiomarker?.name}
+              </DialogTitle>
+            </DialogHeader>
+            {editingBiomarker && (
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p><span className="font-medium">Код:</span> {editingBiomarker.code}</p>
+                  <p><span className="font-medium">Единица измерения:</span> {editingBiomarker.unit}</p>
+                  {editingBiomarker.normal_min !== null && editingBiomarker.normal_max !== null && (
+                    <p>
+                      <span className="font-medium">Референсные значения:</span>{" "}
+                      {editingBiomarker.normal_min} - {editingBiomarker.normal_max}
+                    </p>
+                  )}
+                  {editingBiomarker.description && (
+                    <p className="mt-2">{editingBiomarker.description}</p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-value">Значение</Label>
+                  <Input
+                    id="edit-value"
+                    type="number"
+                    step="0.01"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    placeholder="Введите значение"
+                    className="text-lg"
+                  />
+                </div>
+                <Button
+                  onClick={handleSaveValue}
+                  className="w-full"
+                  disabled={!editValue}
+                >
+                  Сохранить
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
