@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [latestBioAge, setLatestBioAge] = useState<number | null>(null);
   const [latestHealthIndex, setLatestHealthIndex] = useState<number | null>(null);
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
+  const [agingRate, setAgingRate] = useState<number | null>(null);
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [trendData, setTrendData] = useState<any[]>([]);
   const [trendMeta, setTrendMeta] = useState<{ name: string; unit: string } | null>(null);
@@ -26,9 +27,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchProfile();
-    fetchAnalysesStats();
-    fetchBiomarkerTrend();
   }, []);
+
+  useEffect(() => {
+    if (profile) {
+      fetchAnalysesStats();
+      fetchBiomarkerTrend();
+    }
+  }, [profile]);
 
   const fetchAnalysesStats = async () => {
     try {
@@ -58,6 +64,13 @@ export default function Dashboard() {
         setLatestBioAge(latestAnalysis.biological_age);
         setLatestHealthIndex(latestAnalysis.health_index);
         setRecentAnalyses(analyses.slice(0, 3)); // Последние 3 анализа
+        
+        // Рассчитываем скорость старения
+        if (latestAnalysis.biological_age && profile?.birth_date) {
+          const chronologicalAge = calculateAge(profile.birth_date);
+          const rate = latestAnalysis.biological_age / chronologicalAge;
+          setAgingRate(rate);
+        }
         
         // Рассчитываем тренд если есть предыдущий анализ
         if (analyses.length > 1) {
@@ -255,7 +268,7 @@ export default function Dashboard() {
         </div>
 
         {/* Top Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Биологический возраст</CardTitle>
@@ -305,6 +318,21 @@ export default function Dashboard() {
                 {ageTrend || "—"}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Изменение за месяц</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Скорость старения</CardTitle>
+              <Activity className="h-5 w-5 text-accent" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">
+                {agingRate ? agingRate.toFixed(2) : "—"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {agingRate ? (agingRate < 1 ? "Медленнее нормы" : agingRate > 1 ? "Быстрее нормы" : "Норма") : "Требуется анализ"}
+              </p>
             </CardContent>
           </Card>
         </div>
