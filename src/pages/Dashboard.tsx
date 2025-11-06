@@ -123,7 +123,7 @@ export default function Dashboard() {
         dateMap[date][category].count += 1;
       });
 
-      // Определяем топ-3 категории по количеству данных
+      // Определяем все категории с данными
       const categoryStats: Record<string, number> = {};
       Object.values(dateMap).forEach(dateData => {
         Object.entries(dateData).forEach(([cat, stats]) => {
@@ -131,15 +131,14 @@ export default function Dashboard() {
         });
       });
       
-      const topCategories = Object.entries(categoryStats)
+      const allCategories = Object.entries(categoryStats)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
         .map(([cat]) => cat);
 
       // Формируем данные для графика
       const formatted = Object.entries(dateMap).map(([date, categories]) => {
         const point: any = { date };
-        topCategories.forEach(cat => {
+        allCategories.forEach(cat => {
           if (categories[cat]) {
             point[cat] = Math.round(categories[cat].sum / categories[cat].count);
           }
@@ -149,10 +148,10 @@ export default function Dashboard() {
 
       setTrendData(formatted);
       setTrendMeta({ 
-        name: topCategories.join(", "),
+        name: allCategories.join(", "),
         unit: "% от нормы" 
       });
-      setTrendCategories(topCategories);
+      setTrendCategories(allCategories);
     } catch (error) {
       console.error("Error fetching biomarker trend:", error);
     }
@@ -285,19 +284,27 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
                     <span className="text-sm text-muted-foreground">
-                      Топ-{trendCategories.length} категории (нормализовано)
+                      Все категории (нормализовано к % от нормы)
                     </span>
                   </div>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: '12px' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="hsl(var(--foreground))" 
+                        style={{ fontSize: '12px' }} 
+                      />
+                      <YAxis 
+                        stroke="hsl(var(--foreground))" 
+                        style={{ fontSize: '12px' }} 
+                      />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
                           borderRadius: "8px",
+                          color: "hsl(var(--foreground))",
                         }}
                       />
                       {trendCategories.map((category, index) => {
@@ -305,15 +312,21 @@ export default function Dashboard() {
                           "hsl(var(--primary))",
                           "hsl(var(--accent))",
                           "hsl(var(--secondary))",
+                          "#10b981", // green
+                          "#f59e0b", // amber
+                          "#8b5cf6", // violet
+                          "#ec4899", // pink
+                          "#06b6d4", // cyan
                         ];
+                        const color = colors[index % colors.length];
                         return (
                           <Line
                             key={category}
                             type="monotone"
                             dataKey={category}
-                            stroke={colors[index]}
+                            stroke={color}
                             strokeWidth={2}
-                            dot={{ fill: colors[index], r: 4 }}
+                            dot={{ fill: color, r: 4 }}
                             name={category}
                           />
                         );
