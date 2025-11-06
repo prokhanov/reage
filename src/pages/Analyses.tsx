@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface Analysis {
   id: string;
@@ -21,6 +22,7 @@ interface Analysis {
 }
 
 export default function Analyses() {
+  const { getUserId, isViewMode } = useViewAsUser();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -37,13 +39,13 @@ export default function Analyses() {
 
   const loadAnalyses = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       const { data, error } = await supabase
         .from("analyses")
         .select("id, date, lab_name, health_index, biological_age")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (error) throw error;
 
@@ -84,16 +86,26 @@ export default function Analyses() {
 
   const handleCreateAnalysis = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isViewMode) {
+      toast({
+        title: "Действие недоступно",
+        description: "Создание анализа недоступно в режиме просмотра",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       const { data, error } = await supabase
         .from("analyses")
         .insert({
-          user_id: user.id,
+          user_id: userId,
           date: formData.date,
           lab_name: formData.labName || null,
         })

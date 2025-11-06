@@ -15,12 +15,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const { data: patients, isLoading } = useQuery({
     queryKey: ["patients"],
@@ -180,7 +180,7 @@ export default function Patients() {
                         <TableRow
                           key={patient.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => navigate(`/admin/patients/${patient.id}`)}
+                          onClick={() => setSelectedPatientId(patient.id)}
                         >
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -237,7 +237,7 @@ export default function Patients() {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/admin/patients/${patient.id}`);
+                                setSelectedPatientId(patient.id);
                               }}
                             >
                               <User className="w-4 h-4 mr-2" />
@@ -259,6 +259,11 @@ export default function Patients() {
             )}
           </CardContent>
         </Card>
+
+        <PatientViewDialog
+          patientId={selectedPatientId}
+          onClose={() => setSelectedPatientId(null)}
+        />
       </div>
     </DashboardLayout>
   );

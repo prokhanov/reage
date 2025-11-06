@@ -10,9 +10,11 @@ import { Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BodyHeatmap } from "@/components/BodyHeatmap";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { getUserId, isViewMode } = useViewAsUser();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [analysesCount, setAnalysesCount] = useState(0);
@@ -41,14 +43,14 @@ export default function Dashboard() {
 
   const fetchAnalysesStats = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getUserId();
+      if (!userId) return;
 
       // Получаем все анализы пользователя
       const { data: analyses, error: analysesError } = await supabase
         .from("analyses")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("date", { ascending: false });
 
       if (analysesError) throw analysesError;
@@ -91,8 +93,8 @@ export default function Dashboard() {
 
   const fetchBiomarkerTrend = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getUserId();
+      if (!userId) return;
 
       const monthsAgo = new Date();
       monthsAgo.setMonth(monthsAgo.getMonth() - 6);
@@ -108,7 +110,7 @@ export default function Dashboard() {
             user_id
           )
         `)
-        .eq("analyses.user_id", user.id)
+        .eq("analyses.user_id", userId)
         .gte("analyses.date", monthsAgo.toISOString().split("T")[0])
         .order("analyses(date)", { ascending: true });
 
@@ -196,16 +198,16 @@ export default function Dashboard() {
 
   const fetchProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/auth");
+      const userId = await getUserId();
+      if (!userId) {
+        if (!isViewMode) navigate("/auth");
         return;
       }
 
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", userId)
         .single();
 
       if (error) throw error;
@@ -246,14 +248,14 @@ export default function Dashboard() {
 
   const fetchBodyHeatmapData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getUserId();
+      if (!userId) return;
 
       // Получаем последний анализ
       const { data: analyses } = await supabase
         .from("analyses")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("date", { ascending: false })
         .limit(1);
 

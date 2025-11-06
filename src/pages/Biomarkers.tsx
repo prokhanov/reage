@@ -8,6 +8,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface BiomarkerData {
   id: string;
@@ -29,6 +30,7 @@ interface GroupedBiomarkers {
 }
 
 export default function Biomarkers() {
+  const { getUserId } = useViewAsUser();
   const [biomarkers, setBiomarkers] = useState<GroupedBiomarkers>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -39,8 +41,8 @@ export default function Biomarkers() {
 
   const loadBiomarkers = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       // Получаем все биомаркеры
       const { data: biomarkersData, error: biomarkersError } = await supabase
@@ -63,7 +65,7 @@ export default function Biomarkers() {
               analyses!inner(date, user_id)
             `)
             .eq("biomarker_id", biomarker.id)
-            .eq("analyses.user_id", user.id)
+            .eq("analyses.user_id", userId)
             .order("analyses(date)", { ascending: false })
             .limit(2);
 

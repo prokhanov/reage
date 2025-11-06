@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 const symptomCategories = [
   {
@@ -219,6 +220,7 @@ const categoryEmojis: Record<string, string> = {
 };
 
 export default function MyState() {
+  const { getUserId, isViewMode } = useViewAsUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -237,14 +239,14 @@ export default function MyState() {
 
   const fetchSymptoms = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const userId = await getUserId();
       
-      if (!user) return;
+      if (!userId) return;
 
       const { data, error } = await supabase
         .from('user_symptoms')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('tracked_at', { ascending: false });
 
       if (error) throw error;
@@ -283,12 +285,21 @@ export default function MyState() {
   };
 
   const handleSubmit = async () => {
+    if (isViewMode) {
+      toast({
+        title: "Действие недоступно",
+        description: "Сохранение данных недоступно в режиме просмотра",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const userId = await getUserId();
       
-      if (!user) {
+      if (!userId) {
         toast({
           title: "Ошибка",
           description: "Необходимо войти в систему",
@@ -300,14 +311,14 @@ export default function MyState() {
       await supabase
         .from('user_symptoms')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       const symptomsData = Object.entries(answers)
         .filter(([_, severity]) => severity > 0)
         .map(([key, severity]) => {
           const [category, symptom] = key.split('|');
           return {
-            user_id: user.id,
+            user_id: userId,
             category,
             symptom,
             severity

@@ -7,6 +7,7 @@ import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface Biomarker {
   id: string;
@@ -25,6 +26,7 @@ interface AnalysisValue {
 }
 
 export default function Trends() {
+  const { getUserId } = useViewAsUser();
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
   const [trendData, setTrendData] = useState<any[]>([]);
@@ -45,8 +47,8 @@ export default function Trends() {
 
   const loadBiomarkers = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       // Get biomarkers that have values
       const { data: valuesData, error: valuesError } = await supabase
@@ -86,8 +88,8 @@ export default function Trends() {
 
   const loadTrendData = async (biomarkerId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       const monthsAgo = new Date();
       monthsAgo.setMonth(monthsAgo.getMonth() - parseInt(period));
@@ -102,7 +104,7 @@ export default function Trends() {
           )
         `)
         .eq("biomarker_id", biomarkerId)
-        .eq("analyses.user_id", user.id)
+        .eq("analyses.user_id", userId)
         .gte("analyses.date", monthsAgo.toISOString().split("T")[0])
         .order("analyses(date)", { ascending: true });
 

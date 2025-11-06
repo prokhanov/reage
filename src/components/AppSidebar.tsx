@@ -1,10 +1,12 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { Badge } from "@/components/ui/badge";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -23,11 +25,33 @@ const navItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { viewAsUserId } = useContext(ViewAsPatientContext);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [patientName, setPatientName] = useState<string>("");
 
   useEffect(() => {
     checkSuperAdminRole();
   }, []);
+
+  useEffect(() => {
+    if (viewAsUserId) {
+      loadPatientName();
+    }
+  }, [viewAsUserId]);
+
+  const loadPatientName = async () => {
+    if (!viewAsUserId) return;
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", viewAsUserId)
+        .single();
+      setPatientName(data?.name || "");
+    } catch (error) {
+      console.error("Error loading patient name:", error);
+    }
+  };
 
   const checkSuperAdminRole = async () => {
     try {
@@ -80,6 +104,16 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             <p className="text-xs text-muted-foreground mt-1">Биологический возраст</p>
           </div>
 
+          {/* View Mode Badge */}
+          {viewAsUserId && (
+            <div className="px-4 py-3 bg-primary/10 border-b border-border/30">
+              <Badge variant="default" className="w-full justify-start gap-2">
+                <Eye className="h-3 w-3" />
+                Просмотр: {patientName}
+              </Badge>
+            </div>
+          )}
+
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             {navItems.map((item) => (
@@ -101,7 +135,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* Admin Section */}
-          {isSuperAdmin && (
+          {isSuperAdmin && !viewAsUserId && (
             <div className="p-4 border-t border-border/30 space-y-1">
               <NavLink
                 to="/admin/patients"
@@ -161,13 +195,15 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               <span className="font-medium">Профиль</span>
             </NavLink>
             
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-full text-left text-sm hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="font-medium">Выход</span>
-            </button>
+            {!viewAsUserId && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-full text-left text-sm hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="font-medium">Выход</span>
+              </button>
+            )}
           </div>
         </div>
       </aside>

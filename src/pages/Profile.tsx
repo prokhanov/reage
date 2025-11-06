@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface Profile {
   name: string;
@@ -30,6 +31,7 @@ interface MedicalCondition {
 }
 
 export default function Profile() {
+  const { getUserId, isViewMode } = useViewAsUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState("");
   const [medicalHistory, setMedicalHistory] = useState<MedicalCondition[]>([]);
@@ -46,15 +48,18 @@ export default function Profile() {
 
   const loadProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
-      setEmail(user.email || "");
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        setEmail(userData.user.email || "");
+      }
 
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", userId)
         .single();
 
       if (error) throw error;
@@ -73,13 +78,13 @@ export default function Profile() {
 
   const loadMedicalHistory = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getUserId();
+      if (!userId) return;
 
       const { data, error } = await supabase
         .from("medical_history")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (error) throw error;
       setMedicalHistory(data || []);

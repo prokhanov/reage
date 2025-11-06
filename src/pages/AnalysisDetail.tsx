@@ -11,6 +11,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface Biomarker {
   id: string;
@@ -32,6 +33,7 @@ interface AnalysisValue {
 
 export default function AnalysisDetail() {
   const { id } = useParams<{ id: string }>();
+  const { getUserId, isViewMode } = useViewAsUser();
   const [analysis, setAnalysis] = useState<any>(null);
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
@@ -59,15 +61,15 @@ export default function AnalysisDetail() {
 
   const loadData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       // Load analysis
       const { data: analysisData, error: analysisError } = await supabase
         .from("analyses")
         .select("*")
         .eq("id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .single();
 
       if (analysisError) throw analysisError;
@@ -115,10 +117,19 @@ export default function AnalysisDetail() {
 
   const handleSaveValue = async () => {
     if (!editingBiomarker || !editValue) return;
+    
+    if (isViewMode) {
+      toast({
+        title: "Действие недоступно",
+        description: "Редактирование недоступно в режиме просмотра",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       const existingValue = values.find((v) => v.biomarker_id === editingBiomarker.id);
 

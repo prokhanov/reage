@@ -37,6 +37,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface Recommendation {
   id: string;
@@ -54,6 +55,7 @@ interface RecommendationReport {
 
 
 export default function Recommendations() {
+  const { getUserId, isViewMode } = useViewAsUser();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,8 +72,8 @@ export default function Recommendations() {
 
   const loadRecommendations = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      const userId = await getUserId();
+      if (!userId) throw new Error("Не авторизован");
 
       const { data, error } = await supabase
         .from("recommendations")
@@ -79,7 +81,7 @@ export default function Recommendations() {
           *,
           analyses!recommendations_analysis_id_fkey(date)
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -135,6 +137,15 @@ export default function Recommendations() {
 
   const handleDelete = async () => {
     if (!selectedReport) return;
+    
+    if (isViewMode) {
+      toast({
+        title: "Действие недоступно",
+        description: "Удаление недоступно в режиме просмотра",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setDeleting(true);
     try {
