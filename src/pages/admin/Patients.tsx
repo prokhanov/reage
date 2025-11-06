@@ -25,15 +25,26 @@ export default function Patients() {
   const { data: patients, isLoading } = useQuery({
     queryKey: ["patients"],
     queryFn: async () => {
+      // Get all profiles first
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select(`
-          *,
-          user_roles (role)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
+      // Get user roles separately
+      const { data: allRoles } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      const rolesMap = (allRoles || []).reduce((acc: any, role: any) => {
+        if (!acc[role.user_id]) {
+          acc[role.user_id] = [];
+        }
+        acc[role.user_id].push(role.role);
+        return acc;
+      }, {});
 
       // Get analysis count for each user
       const profilesWithStats = await Promise.all(
@@ -51,11 +62,20 @@ export default function Patients() {
             .limit(1)
             .maybeSingle();
 
+          const userRoles = rolesMap[profile.id] || ["user"];
+          // Priority: superadmin > admin > user
+          const primaryRole = userRoles.includes("superadmin")
+            ? "superadmin"
+            : userRoles.includes("admin")
+            ? "admin"
+            : "user";
+
           return {
             ...profile,
             analysisCount: analysisCount || 0,
             latestAnalysisDate: latestAnalysis?.date,
-            role: (profile.user_roles as any)?.[0]?.role || "user",
+            role: primaryRole,
+            allRoles: userRoles,
           };
         })
       );
