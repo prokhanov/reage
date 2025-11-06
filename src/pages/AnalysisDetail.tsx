@@ -329,62 +329,180 @@ export default function AnalysisDetail() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {categoryValues.map((value) => {
+                        const angle = getGaugeAngle(value.value, value.biomarkers);
                         const color = getGaugeColor(value.value, value.biomarkers);
+                        const isLow = value.biomarkers.normal_min !== null && value.value < value.biomarkers.normal_min;
+                        const isHigh = value.biomarkers.normal_max !== null && value.value > value.biomarkers.normal_max;
+                        const isNormal = !isLow && !isHigh;
 
                         return (
-                          <div
+                          <Card
                             key={value.id}
-                            className="p-4 rounded-lg bg-muted/20 border border-border hover:border-primary/30 transition-all group"
+                            className="relative overflow-hidden border-border/50 bg-gradient-to-br from-card via-card to-muted/20 hover:border-primary/50 transition-all group"
                           >
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div>
-                                    <h4 className="font-semibold text-foreground">{value.biomarkers.name}</h4>
-                                    <p className="text-xs text-muted-foreground">{value.biomarkers.code}</p>
+                            <CardContent className="p-6">
+                              {/* Header with actions */}
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex-1">
+                                  <h4 className="text-lg font-bold text-foreground mb-1">
+                                    {value.biomarkers.name}
+                                  </h4>
+                                  <p className="text-xs text-muted-foreground font-mono">
+                                    {value.biomarkers.code}
+                                  </p>
+                                </div>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 hover:bg-primary/10"
+                                    onClick={() => openEditDialog(value.biomarkers)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                                    onClick={() => handleDeleteValue(value.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+
+                              {/* Gauge Chart */}
+                              <div className="flex justify-center mb-4">
+                                <div className="relative w-40 h-20">
+                                  <svg viewBox="0 0 120 60" className="w-full h-full">
+                                    {/* Background arc */}
+                                    <path
+                                      d="M 15 55 A 45 45 0 0 1 105 55"
+                                      fill="none"
+                                      stroke="hsl(var(--muted))"
+                                      strokeWidth="10"
+                                      strokeLinecap="round"
+                                      opacity="0.2"
+                                    />
+                                    
+                                    {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null ? (
+                                      <>
+                                        {/* Danger zone left (below normal) */}
+                                        <path
+                                          d="M 15 55 A 45 45 0 0 1 35 25"
+                                          fill="none"
+                                          stroke="hsl(var(--status-danger))"
+                                          strokeWidth="10"
+                                          strokeLinecap="round"
+                                          opacity="0.4"
+                                        />
+                                        {/* Normal zone */}
+                                        <path
+                                          d="M 35 25 A 45 45 0 0 1 85 25"
+                                          fill="none"
+                                          stroke="hsl(var(--status-good))"
+                                          strokeWidth="10"
+                                          strokeLinecap="round"
+                                          opacity="0.4"
+                                        />
+                                        {/* Danger zone right (above normal) */}
+                                        <path
+                                          d="M 85 25 A 45 45 0 0 1 105 55"
+                                          fill="none"
+                                          stroke="hsl(var(--status-warning))"
+                                          strokeWidth="10"
+                                          strokeLinecap="round"
+                                          opacity="0.4"
+                                        />
+                                      </>
+                                    ) : null}
+                                    
+                                    {/* Needle with glow */}
+                                    <defs>
+                                      <filter id={`glow-${value.id}`}>
+                                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                        <feMerge>
+                                          <feMergeNode in="coloredBlur"/>
+                                          <feMergeNode in="SourceGraphic"/>
+                                        </feMerge>
+                                      </filter>
+                                    </defs>
+                                    <line
+                                      x1="60"
+                                      y1="55"
+                                      x2={60 + 40 * Math.cos((angle - 90) * Math.PI / 180)}
+                                      y2={55 + 40 * Math.sin((angle - 90) * Math.PI / 180)}
+                                      stroke="currentColor"
+                                      strokeWidth="3"
+                                      strokeLinecap="round"
+                                      className={color}
+                                      filter={`url(#glow-${value.id})`}
+                                    />
+                                    {/* Center dot */}
+                                    <circle 
+                                      cx="60" 
+                                      cy="55" 
+                                      r="4" 
+                                      fill="currentColor" 
+                                      className={color}
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+
+                              {/* Value Display */}
+                              <div className="text-center mb-4">
+                                <div className={`text-4xl font-bold mb-1 ${color}`}>
+                                  {value.value}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {value.biomarkers.unit}
+                                </div>
+                              </div>
+
+                              {/* Status Badge */}
+                              {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
+                                <div className="flex justify-center mb-4">
+                                  {isLow && (
+                                    <div className="px-3 py-1 rounded-full bg-status-danger/20 text-status-danger text-sm font-medium border border-status-danger/30">
+                                      Ниже нормы
+                                    </div>
+                                  )}
+                                  {isHigh && (
+                                    <div className="px-3 py-1 rounded-full bg-status-warning/20 text-status-warning text-sm font-medium border border-status-warning/30">
+                                      Выше нормы
+                                    </div>
+                                  )}
+                                  {isNormal && (
+                                    <div className="px-3 py-1 rounded-full bg-status-good/20 text-status-good text-sm font-medium border border-status-good/30">
+                                      В норме
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Reference Range */}
+                              {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
+                                <div className="text-center mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
+                                  <div className="text-xs text-muted-foreground mb-1">
+                                    Референсные значения
                                   </div>
-                                  <div className="text-right">
-                                    <p className={`text-2xl font-bold ${color}`}>
-                                      {value.value} {value.biomarkers.unit}
-                                    </p>
+                                  <div className="text-sm font-semibold text-status-good">
+                                    {value.biomarkers.normal_min} - {value.biomarkers.normal_max} {value.biomarkers.unit}
                                   </div>
                                 </div>
-                                {value.biomarkers.description && (
-                                  <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {value.biomarkers.description}
-                                  </p>
-                                )}
-                                {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <span className="text-muted-foreground">Референс:</span>
-                                    <span className="font-medium text-status-good">
-                                      {value.biomarkers.normal_min} - {value.biomarkers.normal_max} {value.biomarkers.unit}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => openEditDialog(value.biomarkers)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => handleDeleteValue(value.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
+                              )}
+
+                              {/* Description */}
+                              {value.biomarkers.description && (
+                                <div className="text-sm text-muted-foreground leading-relaxed border-t border-border/30 pt-4">
+                                  {value.biomarkers.description}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
                         );
                       })}
                     </div>
