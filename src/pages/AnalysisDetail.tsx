@@ -329,9 +329,8 @@ export default function AnalysisDetail() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-3">
                       {categoryValues.map((value) => {
-                        const angle = getGaugeAngle(value.value, value.biomarkers);
                         const color = getGaugeColor(value.value, value.biomarkers);
 
                         return (
@@ -339,10 +338,32 @@ export default function AnalysisDetail() {
                             key={value.id}
                             className="p-4 rounded-lg bg-muted/20 border border-border hover:border-primary/30 transition-all group"
                           >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-foreground">{value.biomarkers.name}</h4>
-                                <p className="text-xs text-muted-foreground">{value.biomarkers.code}</p>
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div>
+                                    <h4 className="font-semibold text-foreground">{value.biomarkers.name}</h4>
+                                    <p className="text-xs text-muted-foreground">{value.biomarkers.code}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className={`text-2xl font-bold ${color}`}>
+                                      {value.value} {value.biomarkers.unit}
+                                    </p>
+                                  </div>
+                                </div>
+                                {value.biomarkers.description && (
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    {value.biomarkers.description}
+                                  </p>
+                                )}
+                                {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <span className="text-muted-foreground">Референс:</span>
+                                    <span className="font-medium text-status-good">
+                                      {value.biomarkers.normal_min} - {value.biomarkers.normal_max} {value.biomarkers.unit}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
@@ -363,77 +384,6 @@ export default function AnalysisDetail() {
                                 </Button>
                               </div>
                             </div>
-
-                            {/* Gauge */}
-                            <div className="flex justify-center mb-3">
-                              <div className="relative w-32 h-16">
-                                <svg viewBox="0 0 100 50" className="w-full h-full">
-                                  {/* Background arc */}
-                                  <path
-                                    d="M 10 45 A 40 40 0 0 1 90 45"
-                                    fill="none"
-                                    stroke="hsl(var(--muted))"
-                                    strokeWidth="8"
-                                    strokeLinecap="round"
-                                  />
-                                  {/* Danger zone left */}
-                                  <path
-                                    d="M 10 45 A 40 40 0 0 1 30 20"
-                                    fill="none"
-                                    stroke="hsl(var(--status-danger))"
-                                    strokeWidth="8"
-                                    strokeLinecap="round"
-                                    opacity="0.3"
-                                  />
-                                  {/* Normal zone */}
-                                  <path
-                                    d="M 30 20 A 40 40 0 0 1 70 20"
-                                    fill="none"
-                                    stroke="hsl(var(--status-good))"
-                                    strokeWidth="8"
-                                    strokeLinecap="round"
-                                    opacity="0.3"
-                                  />
-                                  {/* Danger zone right */}
-                                  <path
-                                    d="M 70 20 A 40 40 0 0 1 90 45"
-                                    fill="none"
-                                    stroke="hsl(var(--status-warning))"
-                                    strokeWidth="8"
-                                    strokeLinecap="round"
-                                    opacity="0.3"
-                                  />
-                                  {/* Needle */}
-                                  <line
-                                    x1="50"
-                                    y1="45"
-                                    x2={50 + 35 * Math.cos((angle - 90) * Math.PI / 180)}
-                                    y2={45 + 35 * Math.sin((angle - 90) * Math.PI / 180)}
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    className={color}
-                                  />
-                                  {/* Center dot */}
-                                  <circle cx="50" cy="45" r="3" fill="currentColor" className={color} />
-                                </svg>
-                              </div>
-                            </div>
-
-                            {/* Value */}
-                            <div className="text-center mb-2">
-                              <p className={`text-2xl font-bold ${color}`}>
-                                {value.value}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{value.biomarkers.unit}</p>
-                            </div>
-
-                            {/* Reference range */}
-                            {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
-                              <div className="text-center text-xs text-muted-foreground">
-                                Референс: {value.biomarkers.normal_min}-{value.biomarkers.normal_max}
-                              </div>
-                            )}
                           </div>
                         );
                       })}
