@@ -1,29 +1,26 @@
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { Activity, TrendingUp, Brain, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Heart, Zap, Pill, BarChart3, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DashboardLayout } from "@/components/DashboardLayout";
-
-interface Profile {
-  name: string;
-  birth_date: string;
-}
 
 export default function Dashboard() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProfile();
+    fetchProfile();
   }, []);
 
-  const loadProfile = async () => {
+  const fetchProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Не авторизован");
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
 
       const { data, error } = await supabase
         .from("profiles")
@@ -33,6 +30,8 @@ export default function Dashboard() {
 
       if (error) throw error;
       setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
     } finally {
       setLoading(false);
     }
@@ -51,153 +50,172 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Загрузка...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
 
-  const chronologicalAge = profile ? calculateAge(profile.birth_date) : 0;
-  const biologicalAge = 32; // Mock data
-  const healthIndex = 78; // Mock data
-
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Добро пожаловать, {profile?.name}!
-          </h2>
-          <p className="text-muted-foreground">
-            Ваш персональный дашборд здоровья и долголетия
+      <div className="p-4 md:p-8 space-y-6">
+        {/* Header */}
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            Добро пожаловать, {profile?.full_name}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Хронологический возраст: <span className="text-primary font-medium">{profile?.birth_date ? calculateAge(profile.birth_date) : "—"} лет</span>
           </p>
         </div>
 
-        {/* Health Index Card */}
-        <Card className="mb-8 border-2 border-primary/30 shadow-neon-primary bg-gradient-to-br from-card to-card/50">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              {/* Circular Health Index */}
-              <div className="relative">
-                <div className="w-48 h-48 rounded-full bg-gradient-hero p-1 shadow-neon-primary animate-pulse">
-                  <div className="w-full h-full rounded-full bg-card flex flex-col items-center justify-center">
-                    <span className="text-5xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-                      {healthIndex}
-                    </span>
-                    <span className="text-sm text-muted-foreground">Индекс здоровья</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Age Info */}
-              <div className="flex-1 text-center md:text-left">
-                <h3 className="text-2xl font-bold mb-4">Ваш возраст</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 hover:shadow-neon-primary transition-all">
-                    <p className="text-sm text-muted-foreground mb-1">Биологический возраст</p>
-                    <p className="text-3xl font-bold text-primary">{biologicalAge} лет</p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/30 hover:shadow-neon-secondary transition-all">
-                    <p className="text-sm text-muted-foreground mb-1">Хронологический возраст</p>
-                    <p className="text-3xl font-bold text-secondary">{chronologicalAge} лет</p>
-                  </div>
-                </div>
-                <p className="mt-4 text-sm text-status-good font-medium flex items-center justify-center md:justify-start gap-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-status-good animate-pulse" />
-                  Отлично! Ваш биологический возраст ниже хронологического
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="hover:shadow-neon-primary hover:border-primary/50 transition-all border-primary/20 bg-gradient-to-br from-card to-primary/5">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Метаболизм</CardTitle>
-              </div>
+        {/* Top Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Биологический возраст</CardTitle>
+              <Brain className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-status-good mb-1">Хорошо</p>
-              <p className="text-sm text-muted-foreground">
-                Уровень глюкозы в норме, инсулин стабилен
-              </p>
+              <div className="text-3xl font-bold text-primary">—</div>
+              <p className="text-xs text-muted-foreground mt-1">Требуется анализ</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-neon-accent hover:border-accent/50 transition-all border-accent/20 bg-gradient-to-br from-card to-accent/5">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-accent" />
-                <CardTitle className="text-lg">Воспаление</CardTitle>
-              </div>
+          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Индекс здоровья</CardTitle>
+              <Heart className="h-5 w-5 text-accent" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-status-warning mb-1">Есть риски</p>
-              <p className="text-sm text-muted-foreground">CRP немного повышен, требуется внимание</p>
+              <div className="text-3xl font-bold text-accent">—</div>
+              <p className="text-xs text-muted-foreground mt-1">0-100 шкала</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-neon-secondary hover:border-secondary/50 transition-all border-secondary/20 bg-gradient-to-br from-card to-secondary/5">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-secondary" />
-                <CardTitle className="text-lg">Гормоны</CardTitle>
-              </div>
+          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Всего анализов</CardTitle>
+              <Activity className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-status-good mb-1">Хорошо</p>
-              <p className="text-sm text-muted-foreground">Гормональный баланс в норме</p>
+              <div className="text-3xl font-bold">0</div>
+              <p className="text-xs text-muted-foreground mt-1">За всё время</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-neon-primary hover:border-primary/50 transition-all border-primary/20 bg-gradient-to-br from-card to-primary/5">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Pill className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Витамины</CardTitle>
-              </div>
+          <Card className="border-border/30 bg-secondary/50 backdrop-blur-sm hover:bg-secondary/70 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Тренд</CardTitle>
+              <TrendingUp className="h-5 w-5 text-status-good" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-status-warning mb-1">Требуется внимание</p>
-              <p className="text-sm text-muted-foreground">Витамин D ниже оптимального уровня</p>
+              <div className="text-3xl font-bold text-status-good">—</div>
+              <p className="text-xs text-muted-foreground mt-1">Изменение за месяц</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-24 flex flex-col gap-2 border-primary/30 hover:border-primary hover:shadow-neon-primary hover:bg-primary/10 transition-all"
-            onClick={() => navigate("/analyses")}
-          >
-            <FileText className="h-6 w-6" />
-            <span>Мои анализы</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-24 flex flex-col gap-2 border-accent/30 hover:border-accent hover:shadow-neon-accent hover:bg-accent/10 transition-all"
-            onClick={() => navigate("/recommendations")}
-          >
-            <Pill className="h-6 w-6" />
-            <span>Рекомендации</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-24 flex flex-col gap-2 border-secondary/30 hover:border-secondary hover:shadow-neon-secondary hover:bg-secondary/10 transition-all"
-            onClick={() => navigate("/trends")}
-          >
-            <BarChart3 className="h-6 w-6" />
-            <span>Тренды</span>
-          </Button>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Large Chart - Biomarkers Over Time */}
+          <Card className="lg:col-span-2 border-border/30 bg-secondary/30 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Динамика биомаркеров</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                  <p className="text-sm">Нет данных для отображения</p>
+                  <p className="text-xs mt-2">Добавьте анализы для просмотра трендов</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Circular Progress - Health Score */}
+          <Card className="border-border/30 bg-secondary/30 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Общая оценка</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="relative w-48 h-48">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="88"
+                      stroke="hsl(var(--border))"
+                      strokeWidth="12"
+                      fill="none"
+                    />
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="88"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="12"
+                      fill="none"
+                      strokeDasharray="552.92"
+                      strokeDashoffset="552.92"
+                      className="transition-all duration-1000"
+                      style={{ filter: 'drop-shadow(0 0 8px hsl(var(--primary)))' }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-4xl font-bold text-primary">—</span>
+                    <span className="text-xs text-muted-foreground mt-1">Нет данных</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bottom Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="border-border/30 bg-secondary/30 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Недавние анализы</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="text-center py-8 text-muted-foreground">
+                  <p className="text-sm">Анализы отсутствуют</p>
+                  <button 
+                    onClick={() => navigate("/analyses")}
+                    className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
+                  >
+                    Добавить первый анализ →
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/30 bg-secondary/30 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Ключевые рекомендации</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">Рекомендации появятся после анализа</p>
+                <button 
+                  onClick={() => navigate("/recommendations")}
+                  className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
+                >
+                  Смотреть все рекомендации →
+                </button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </DashboardLayout>

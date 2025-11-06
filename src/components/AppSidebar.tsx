@@ -1,14 +1,21 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Menu } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut } from "lucide-react";
+import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 }
+
+const navItems = [
+  { to: "/dashboard", label: "Дашборд", icon: Home },
+  { to: "/analyses", label: "Анализы", icon: FlaskConical },
+  { to: "/trends", label: "Тренды", icon: TrendingUp },
+  { to: "/recommendations", label: "Рекомендации", icon: Lightbulb },
+];
 
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
@@ -20,17 +27,9 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     navigate("/");
   };
 
-  const navItems = [
-    { title: "Дашборд", url: "/dashboard", icon: Home },
-    { title: "Анализы", url: "/analyses", icon: FlaskConical },
-    { title: "Тренды", url: "/trends", icon: TrendingUp },
-    { title: "Рекомендации", url: "/recommendations", icon: Lightbulb },
-    { title: "Профиль", url: "/profile", icon: User },
-  ];
-
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Overlay for mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
@@ -40,57 +39,64 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-64 transform bg-card/95 backdrop-blur-xl border-r border-primary/30 transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        className={cn(
+          "fixed top-0 left-0 z-50 h-screen bg-secondary/80 border-r border-border/30 backdrop-blur-xl transition-transform duration-300 ease-in-out",
+          "lg:translate-x-0 w-64",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
       >
-        <div className="flex h-full flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-border/50">
-            <h1 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent">
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="p-6 border-b border-border/30">
+            <h1 className="text-2xl font-bold text-primary">
               ReAge
             </h1>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setIsOpen(false)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
+            <p className="text-xs text-muted-foreground mt-1">Биологический возраст</p>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-2">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.url}
-                    to={item.url}
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-foreground transition-all hover:bg-primary/10 hover:text-primary"
-                    activeClassName="bg-primary/20 text-primary shadow-neon-primary border border-primary/50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="font-medium">{item.title}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
+          <nav className="flex-1 p-4 space-y-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                    "hover:bg-primary/10 hover:text-primary",
+                    isActive && "bg-primary/15 text-primary border border-primary/20"
+                  )
+                }
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="font-medium">{item.label}</span>
+              </NavLink>
+            ))}
           </nav>
 
-          {/* Footer */}
-          <div className="border-t border-border/50 p-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={handleLogout}
+          {/* User Profile & Logout */}
+          <div className="p-4 border-t border-border/30 space-y-1">
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                  "hover:bg-primary/10 hover:text-primary",
+                  isActive && "bg-primary/15 text-primary border border-primary/20"
+                )
+              }
             >
-              <LogOut className="mr-3 h-5 w-5" />
-              Выйти
-            </Button>
+              <User className="h-4 w-4" />
+              <span className="font-medium">Профиль</span>
+            </NavLink>
+            
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-full text-left text-sm hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="font-medium">Выход</span>
+            </button>
           </div>
         </div>
       </aside>
