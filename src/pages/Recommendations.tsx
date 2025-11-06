@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,37 +7,16 @@ import { Eye, Trash2, Brain, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { MarkdownContent } from "@/components/MarkdownContent";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 
 interface Recommendation {
   id: string;
@@ -56,6 +35,7 @@ interface RecommendationReport {
 
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
+  const { setSimPath } = useContext(ViewAsPatientContext);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -285,7 +265,7 @@ export default function Recommendations() {
               <p className="text-muted-foreground text-center mb-6">
                 Добавьте анализы, и AI сгенерирует персональные рекомендации для вас
               </p>
-              <Button onClick={() => navigate("/analyses")} className="shadow-neon-primary">
+              <Button onClick={() => (isViewMode ? setSimPath("/analyses") : navigate("/analyses"))} className="shadow-neon-primary">
                 Добавить анализ
               </Button>
             </CardContent>

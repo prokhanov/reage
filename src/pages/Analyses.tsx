@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 
 interface Analysis {
   id: string;
@@ -23,6 +24,7 @@ interface Analysis {
 
 export default function Analyses() {
   const { getUserId, isViewMode } = useViewAsUser();
+  const { setSimPath } = useContext(ViewAsPatientContext);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -213,7 +215,13 @@ export default function Analyses() {
               <Card
                 key={analysis.id}
                 className="hover:shadow-neon-primary hover:border-primary/50 transition-all cursor-pointer border-primary/20 bg-gradient-to-br from-card to-primary/5 group"
-                onClick={() => navigate(`/analyses/${analysis.id}`)}
+                onClick={() => {
+                  if (isViewMode) {
+                    toast({ title: "Доступно только в режиме пациента", description: "Откройте профиль пациента, чтобы редактировать анализ", variant: "destructive" });
+                    return;
+                  }
+                  navigate(`/analyses/${analysis.id}`);
+                }}
               >
                 <CardHeader>
                   <div className="flex items-center gap-2 mb-2 flex-wrap">

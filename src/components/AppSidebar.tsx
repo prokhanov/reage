@@ -25,7 +25,7 @@ const navItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { viewAsUserId } = useContext(ViewAsPatientContext);
+  const { viewAsUserId, simPath, setSimPath } = useContext(ViewAsPatientContext);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
 
@@ -116,22 +116,44 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
-                    "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20"
-                  )
-                }
-              >
-                <item.icon className="h-4 w-4" />
-                <span className="font-medium">{item.label}</span>
-              </NavLink>
-            ))}
+            {navItems.map((item) => {
+              const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
+              const baseClasses = cn(
+                "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                "hover:bg-primary/10 hover:text-primary",
+                activeInSim && "bg-primary/15 text-primary border border-primary/20"
+              );
+
+              if (viewAsUserId) {
+                return (
+                  <button
+                    key={item.to}
+                    onClick={() => { setSimPath(item.to); setIsOpen(false); }}
+                    className={baseClasses}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              }
+
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                      "hover:bg-primary/10 hover:text-primary",
+                      isActive && "bg-primary/15 text-primary border border-primary/20"
+                    )
+                  }
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span className="font-medium">{item.label}</span>
+                </NavLink>
+              );
+            })}
           </nav>
 
           {/* Admin Section */}

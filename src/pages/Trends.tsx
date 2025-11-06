@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 
 interface Biomarker {
   id: string;
@@ -27,6 +28,7 @@ interface AnalysisValue {
 
 export default function Trends() {
   const { getUserId } = useViewAsUser();
+  const { setSimPath } = useContext(ViewAsPatientContext);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
   const [trendData, setTrendData] = useState<any[]>([]);
@@ -166,7 +168,7 @@ export default function Trends() {
               <p className="text-muted-foreground text-center mb-6">
                 Добавьте несколько анализов, чтобы увидеть тренды
               </p>
-              <Button onClick={() => navigate("/analyses")} className="shadow-neon-primary">
+              <Button onClick={() => setSimPath("/analyses")} className="shadow-neon-primary">
                 Добавить анализ
               </Button>
             </CardContent>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 
 interface Biomarker {
   id: string;
@@ -34,6 +35,7 @@ interface AnalysisValue {
 export default function AnalysisDetail() {
   const { id } = useParams<{ id: string }>();
   const { getUserId, isViewMode } = useViewAsUser();
+  const { setSimPath } = useContext(ViewAsPatientContext);
   const [analysis, setAnalysis] = useState<any>(null);
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
@@ -242,7 +244,7 @@ export default function AnalysisDetail() {
       });
 
       loadData();
-      navigate("/recommendations");
+      (isViewMode ? setSimPath("/recommendations") : navigate("/recommendations"));
     } catch (error: any) {
       toast({
         title: "Ошибка анализа",
@@ -308,7 +310,7 @@ export default function AnalysisDetail() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/analyses")}
+              onClick={() => (isViewMode ? setSimPath("/analyses") : navigate("/analyses"))}
               className="hover:bg-primary/10 hover:text-primary transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
