@@ -1,8 +1,12 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, TrendingUp, Brain, Heart } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Filter } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +22,7 @@ export default function Dashboard() {
   const [trendData, setTrendData] = useState<any[]>([]);
   const [trendMeta, setTrendMeta] = useState<{ name: string; unit: string } | null>(null);
   const [trendCategories, setTrendCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProfile();
@@ -167,6 +172,7 @@ export default function Dashboard() {
         unit: "индекс (первое = 100%)" 
       });
       setTrendCategories(allCategories);
+      setSelectedCategories(allCategories); // Select all by default
     } catch (error) {
       console.error("Error fetching biomarker trend:", error);
     }
@@ -204,6 +210,22 @@ export default function Dashboard() {
       age--;
     }
     return age;
+  };
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const selectAllCategories = () => {
+    setSelectedCategories(trendCategories);
+  };
+
+  const deselectAllCategories = () => {
+    setSelectedCategories([]);
   };
 
   if (loading) {
@@ -292,7 +314,79 @@ export default function Dashboard() {
           {/* Large Chart - Biomarkers Over Time */}
           <Card className="lg:col-span-2 border-border bg-card backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Динамика биомаркеров</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Динамика биомаркеров</CardTitle>
+                {trendCategories.length > 0 && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Filter className="h-4 w-4" />
+                        Категории ({selectedCategories.length}/{trendCategories.length})
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 bg-card border-border z-50" align="end">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-sm">Выберите категории</h4>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={selectAllCategories}
+                              className="h-7 text-xs"
+                            >
+                              Все
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={deselectAllCategories}
+                              className="h-7 text-xs"
+                            >
+                              Сброс
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {trendCategories.map((category, index) => {
+                            const colors = [
+                              "hsl(var(--primary))",
+                              "hsl(var(--accent))",
+                              "hsl(var(--secondary))",
+                              "#10b981",
+                              "#f59e0b",
+                              "#8b5cf6",
+                              "#ec4899",
+                              "#06b6d4",
+                            ];
+                            const color = colors[index % colors.length];
+                            
+                            return (
+                              <div key={category} className="flex items-center space-x-3">
+                                <Checkbox
+                                  id={category}
+                                  checked={selectedCategories.includes(category)}
+                                  onCheckedChange={() => toggleCategory(category)}
+                                />
+                                <label
+                                  htmlFor={category}
+                                  className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                >
+                                  <div 
+                                    className="w-3 h-3 rounded-full" 
+                                    style={{ backgroundColor: color }}
+                                  />
+                                  {category}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {trendData.length > 0 ? (
@@ -322,7 +416,9 @@ export default function Dashboard() {
                           color: "hsl(var(--foreground))",
                         }}
                       />
-                      {trendCategories.map((category, index) => {
+                      {trendCategories
+                        .filter(category => selectedCategories.includes(category))
+                        .map((category, index) => {
                         const colors = [
                           "hsl(var(--primary))",
                           "hsl(var(--accent))",
@@ -333,7 +429,7 @@ export default function Dashboard() {
                           "#ec4899", // pink
                           "#06b6d4", // cyan
                         ];
-                        const color = colors[index % colors.length];
+                        const color = colors[trendCategories.indexOf(category) % colors.length];
                         return (
                           <Line
                             key={category}
