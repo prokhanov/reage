@@ -42,24 +42,30 @@ export default function Analyses() {
 
       const { data, error } = await supabase
         .from("analyses")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false });
+        .select("id, date, lab_name, health_index, biological_age")
+        .eq("user_id", user.id);
 
       if (error) throw error;
+
+      // Сортируем по дате на клиенте (во избежание ошибок order("date"))
+      const sorted = (data || []).sort(
+        (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
       
-      // Получаем количество биомаркеров для каждого анализа
+      // Получаем количество биомаркеров для каждого анализа (не падать при ошибке)
       const analysesWithCounts = await Promise.all(
-        (data || []).map(async (analysis) => {
-          const { count } = await supabase
+        sorted.map(async (analysis) => {
+          const { count, error: countError } = await supabase
             .from("analysis_values")
             .select("*", { count: "exact", head: true })
             .eq("analysis_id", analysis.id);
-          
+          if (countError) {
+            console.warn("Count error for analysis", analysis.id, countError);
+          }
           return {
             ...analysis,
             biomarkers_count: count || 0,
-          };
+          } as Analysis;
         })
       );
       
