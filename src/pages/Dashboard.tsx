@@ -9,10 +9,59 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [analysesCount, setAnalysesCount] = useState(0);
+  const [latestBioAge, setLatestBioAge] = useState<number | null>(null);
+  const [latestHealthIndex, setLatestHealthIndex] = useState<number | null>(null);
+  const [ageTrend, setAgeTrend] = useState<string | null>(null);
+  const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProfile();
+    fetchAnalysesStats();
   }, []);
+
+  const fetchAnalysesStats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Получаем все анализы пользователя
+      const { data: analyses, error: analysesError } = await supabase
+        .from("analyses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false });
+
+      if (analysesError) throw analysesError;
+
+      // Получаем последний анализ с показателями
+      if (analyses && analyses.length > 0) {
+        const latestAnalysis = analyses[0];
+        
+        // Получаем количество биомаркеров в последнем анализе
+        const { data: valuesCount } = await supabase
+          .from("analysis_values")
+          .select("id", { count: "exact" })
+          .eq("analysis_id", latestAnalysis.id);
+
+        setAnalysesCount(analyses.length);
+        setLatestBioAge(latestAnalysis.biological_age);
+        setLatestHealthIndex(latestAnalysis.health_index);
+        setRecentAnalyses(analyses.slice(0, 3)); // Последние 3 анализа
+        
+        // Рассчитываем тренд если есть предыдущий анализ
+        if (analyses.length > 1) {
+          const prevAnalysis = analyses[1];
+          if (latestAnalysis.biological_age && prevAnalysis.biological_age) {
+            const trend = prevAnalysis.biological_age - latestAnalysis.biological_age;
+            setAgeTrend(trend > 0 ? `−${trend}` : trend < 0 ? `+${Math.abs(trend)}` : "0");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching analyses stats:", error);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -82,8 +131,12 @@ export default function Dashboard() {
               <Brain className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">—</div>
-              <p className="text-xs text-muted-foreground mt-1">Требуется анализ</p>
+              <div className="text-3xl font-bold text-foreground">
+                {latestBioAge || "—"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {latestBioAge ? "лет" : "Требуется анализ"}
+              </p>
             </CardContent>
           </Card>
 
@@ -93,7 +146,9 @@ export default function Dashboard() {
               <Heart className="h-5 w-5 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">—</div>
+              <div className="text-3xl font-bold text-foreground">
+                {latestHealthIndex || "—"}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">0-100 шкала</p>
             </CardContent>
           </Card>
@@ -104,7 +159,7 @@ export default function Dashboard() {
               <Activity className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">0</div>
+              <div className="text-3xl font-bold text-foreground">{analysesCount}</div>
               <p className="text-xs text-muted-foreground mt-1">За всё время</p>
             </CardContent>
           </Card>
@@ -115,7 +170,9 @@ export default function Dashboard() {
               <TrendingUp className="h-5 w-5 text-status-good" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">—</div>
+              <div className="text-3xl font-bold text-foreground">
+                {ageTrend || "—"}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">Изменение за месяц</p>
             </CardContent>
           </Card>
@@ -146,34 +203,40 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="h-[300px] flex items-center justify-center">
-                <div className="relative w-48 h-48">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle
-                      cx="96"
-                      cy="96"
-                      r="88"
-                      stroke="hsl(var(--border))"
-                      strokeWidth="12"
-                      fill="none"
-                    />
-                    <circle
-                      cx="96"
-                      cy="96"
-                      r="88"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray="552.92"
-                      strokeDashoffset="552.92"
-                      className="transition-all duration-1000"
-                      style={{ filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.5))' }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-4xl font-bold text-primary">—</span>
-                    <span className="text-xs text-muted-foreground mt-1">Нет данных</span>
+                  <div className="relative w-48 h-48">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="96"
+                        cy="96"
+                        r="88"
+                        stroke="hsl(var(--border))"
+                        strokeWidth="12"
+                        fill="none"
+                      />
+                      {latestHealthIndex && (
+                        <circle
+                          cx="96"
+                          cy="96"
+                          r="88"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth="12"
+                          fill="none"
+                          strokeDasharray="552.92"
+                          strokeDashoffset={552.92 - (552.92 * latestHealthIndex) / 100}
+                          className="transition-all duration-1000"
+                          style={{ filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.5))' }}
+                        />
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-4xl font-bold text-primary">
+                        {latestHealthIndex || "—"}
+                      </span>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        {latestHealthIndex ? "из 100" : "Нет данных"}
+                      </span>
+                    </div>
                   </div>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -187,15 +250,46 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className="text-sm">Анализы отсутствуют</p>
-                  <button 
-                    onClick={() => navigate("/analyses")}
-                    className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
-                  >
-                    Добавить первый анализ →
-                  </button>
-                </div>
+                {recentAnalyses.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">Анализы отсутствуют</p>
+                    <button 
+                      onClick={() => navigate("/analyses")}
+                      className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
+                    >
+                      Добавить первый анализ →
+                    </button>
+                  </div>
+                ) : (
+                  recentAnalyses.map((analysis) => (
+                    <div
+                      key={analysis.id}
+                      onClick={() => navigate(`/analyses/${analysis.id}`)}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer transition-all border border-border/30 hover:border-primary/30"
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">
+                          {new Date(analysis.date).toLocaleDateString("ru-RU", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                        {analysis.lab_name && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{analysis.lab_name}</p>
+                        )}
+                      </div>
+                      {analysis.biological_age && (
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-primary">
+                            {analysis.biological_age} лет
+                          </p>
+                          <p className="text-xs text-muted-foreground">био. возраст</p>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
