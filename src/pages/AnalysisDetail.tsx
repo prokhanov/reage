@@ -258,14 +258,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             </div>
           </div>
 
-          {isSuperAdmin && isViewMode && analysis?.health_index && (
+          {isSuperAdmin && isViewMode && analysis?.status === "processed" && (
             <div className="flex gap-2">
               <Button
                 onClick={handleEditReport}
                 variant="outline"
               >
                 <Edit className="mr-2 h-4 w-4" />
-                Редактировать
+                Редактировать отчет
               </Button>
               <Button
                 onClick={handleAnalyze}
@@ -273,7 +273,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 className="shadow-neon-accent"
               >
                 <Sparkles className="mr-2 h-4 w-4" />
-                {analyzing ? "Генерируем..." : "AI-анализ"}
+                {analyzing ? "Генерируем..." : "Перегенерировать"}
               </Button>
             </div>
           )}

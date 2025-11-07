@@ -209,7 +209,7 @@ export default function Analyses() {
                       {analysis.lab_name && (
                         <p className="text-sm text-muted-foreground">{analysis.lab_name}</p>
                       )}
-                      {analysis.biomarkers_count !== undefined && analysis.biomarkers_count > 0 && (
+                      {analysis.biomarkers_count && analysis.biomarkers_count > 0 && (
                         <Badge 
                           variant="secondary"
                           className="text-xs"
@@ -246,7 +246,7 @@ export default function Analyses() {
                 </div>
                 {isViewMode && isSuperAdmin && (
                   <div className="absolute top-2 right-2 flex gap-1">
-                    {analysis.health_index && (
+                    {analysis.status === "processed" && (
                       <Button
                         variant="ghost"
                         size="icon"
