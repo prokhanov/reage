@@ -689,17 +689,14 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                               description: "Объяснение эффекта: механизм, улучшения, сроки, важность"
                             },
                             duration_months: { 
-                              type: "number",
-                              enum: [1, 2, 3, 4, 6],
-                              description: "Длительность курса в месяцах"
+                              type: "integer",
+                              description: "Длительность курса в месяцах (1, 2, 3, 4 или 6)"
                             }
                           },
-                          required: ["prescription", "effect", "duration_months"],
                           additionalProperties: false
                         }
                       }
                     },
-                    required: ["prescriptions"],
                     additionalProperties: false
                   }
                 }
