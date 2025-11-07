@@ -7,6 +7,7 @@ import Analyses from "@/pages/Analyses";
 import AnalysisDetail from "@/pages/AnalysisDetail";
 import Biomarkers from "@/pages/Biomarkers";
 import Recommendations from "@/pages/Recommendations";
+import Prescriptions from "@/pages/Prescriptions";
 import Trends from "@/pages/Trends";
 import MyState from "@/pages/MyState";
 function SimulatedContent() {
@@ -28,6 +29,8 @@ function SimulatedContent() {
       return <Biomarkers />;
     case "/recommendations":
       return <Recommendations />;
+    case "/prescriptions":
+      return <Prescriptions />;
     case "/trends":
       return <Trends />;
     case "/my-state":
