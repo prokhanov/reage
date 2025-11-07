@@ -349,6 +349,30 @@ export type Database = {
         }
         Relationships: []
       }
+      weight_history: {
+        Row: {
+          created_at: string
+          id: string
+          measured_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          measured_at?: string
+          user_id: string
+          weight: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          measured_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

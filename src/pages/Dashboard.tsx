@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BodyHeatmap } from "@/components/BodyHeatmap";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { WeightTracker } from "@/components/WeightTracker";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -323,6 +324,9 @@ export default function Dashboard() {
             Паспортный возраст: <span className="text-primary font-medium">{chronologicalAge || "—"} лет</span>
           </p>
         </div>
+
+        {/* Weight Tracker */}
+        <WeightTracker />
 
         {/* Central Bio Age Circle */}
         <Card className="border-border bg-card backdrop-blur-sm">
