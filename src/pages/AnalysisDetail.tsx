@@ -32,8 +32,9 @@ interface AnalysisValue {
   biomarkers: Biomarker;
 }
 
-export default function AnalysisDetail() {
-  const { id } = useParams<{ id: string }>();
+export default function AnalysisDetail({ analysisId }: { analysisId?: string }) {
+  const params = useParams<{ id: string }>();
+  const id = analysisId ?? params.id;
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const [analysis, setAnalysis] = useState<any>(null);
@@ -65,6 +66,7 @@ export default function AnalysisDetail() {
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
+      if (!id) throw new Error("Некорректный идентификатор анализа");
 
       // Load analysis
       const { data: analysisData, error: analysisError } = await supabase

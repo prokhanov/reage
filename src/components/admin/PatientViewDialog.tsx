@@ -17,7 +17,8 @@ function SimulatedContent() {
   const { simPath } = useContext(ViewAsPatientContext);
 
   if (simPath.startsWith("/analyses/")) {
-    return <AnalysisDetail />;
+    const id = simPath.split("/")[2] || "";
+    return <AnalysisDetail analysisId={id} />;
   }
 
   switch (simPath) {
