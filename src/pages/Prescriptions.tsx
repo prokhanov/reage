@@ -6,12 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Calendar, FileText, Plus } from "lucide-react";
+import { Trash2, Calendar, FileText, Plus, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
+import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
 import {
   Table,
   TableBody,
@@ -44,6 +45,7 @@ type Prescription = {
 export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editPrescription, setEditPrescription] = useState<Prescription | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isSuperAdmin } = useSuperAdminCheck();
@@ -111,10 +113,10 @@ export default function Prescriptions() {
           <TableRow className="hover:bg-transparent border-border/50">
             <TableHead className="font-semibold">Назначение</TableHead>
             <TableHead className="font-semibold">Эффект</TableHead>
-            <TableHead className="font-semibold">Статус</TableHead>
+            {isSuperAdmin && <TableHead className="font-semibold">Статус</TableHead>}
             <TableHead className="font-semibold">Контрольная дата</TableHead>
             <TableHead className="font-semibold">Создано</TableHead>
-            {isSuperAdmin && <TableHead className="w-[70px]"></TableHead>}
+            {isSuperAdmin && <TableHead className="w-[100px]"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -132,7 +134,7 @@ export default function Prescriptions() {
                   <span className="text-xs text-muted-foreground/50">—</span>
                 )}
               </TableCell>
-              <TableCell>{getStatusBadge(prescription.status)}</TableCell>
+              {isSuperAdmin && <TableCell>{getStatusBadge(prescription.status)}</TableCell>}
               <TableCell>
                 {prescription.control_date ? (
                   <div className="flex items-center gap-2 text-sm">
@@ -148,14 +150,24 @@ export default function Prescriptions() {
               </TableCell>
               {isSuperAdmin && (
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteId(prescription.id)}
-                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditPrescription(prescription)}
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteId(prescription.id)}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               )}
             </TableRow>
@@ -271,6 +283,12 @@ export default function Prescriptions() {
           userId={viewAsUserId}
         />
       )}
+
+      <EditPrescriptionDialog
+        open={!!editPrescription}
+        onOpenChange={(open) => !open && setEditPrescription(null)}
+        prescription={editPrescription}
+      />
     </DashboardLayout>
   );
 }
