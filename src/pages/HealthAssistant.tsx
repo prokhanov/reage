@@ -282,7 +282,7 @@ export default function HealthAssistant() {
                     }`}
                   >
                     {message.role === "assistant" ? (
-                      <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-4 prose-ul:my-3 prose-li:my-1 prose-strong:text-foreground prose-headings:text-foreground prose-headings:mb-3">
+                      <div className="text-sm leading-loose prose prose-sm dark:prose-invert max-w-none prose-p:my-6 prose-ul:my-4 prose-li:my-2 prose-strong:text-foreground prose-headings:text-foreground prose-headings:mt-6 prose-headings:mb-4">
                         <ReactMarkdown>
                           {message.content}
                         </ReactMarkdown>
