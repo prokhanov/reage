@@ -55,13 +55,18 @@ export default function HealthAssistant() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
+      if (!session?.access_token) {
+        throw new Error("Необходимо войти в систему");
+      }
+      
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-assistant`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({
             messages: newMessages,
@@ -70,8 +75,18 @@ export default function HealthAssistant() {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Ошибка при получении ответа");
+        const errorText = await response.text();
+        console.error("Error response:", response.status, errorText);
+        
+        let errorMessage = "Ошибка при получении ответа";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       if (!response.body) {
