@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -108,7 +109,7 @@ export default function Register() {
           id: authData.user.id,
           name: formData.name,
           gender: formData.gender,
-          birth_date: formData.birth_date?.toISOString().split('T')[0],
+          birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : undefined,
           weight: formData.weight ? parseFloat(formData.weight) : null,
           height: formData.height ? parseFloat(formData.height) : null
         });

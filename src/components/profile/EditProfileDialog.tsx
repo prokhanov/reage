@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -13,6 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { BirthDatePicker } from "@/components/BirthDatePicker";
+
+function parseLocalDate(s: string) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
 
 interface Profile {
   name: string;
@@ -33,7 +39,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   const [formData, setFormData] = useState({
     name: profile?.name || "",
     gender: profile?.gender || "male",
-    birth_date: profile?.birth_date ? new Date(profile.birth_date) : undefined,
+    birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -45,7 +51,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       setFormData({
         name: profile.name || "",
         gender: profile.gender || "male",
-        birth_date: profile.birth_date ? new Date(profile.birth_date) : undefined,
+        birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
       });
     }
@@ -70,7 +76,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         .update({
           name: formData.name,
           gender: formData.gender,
-          birth_date: formData.birth_date.toISOString().split('T')[0],
+          birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
         })
         .eq("id", userId)

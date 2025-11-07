@@ -107,7 +107,8 @@ export default function Profile() {
 
   const getAge = () => {
     if (!profile?.birth_date) return null;
-    const birthDate = new Date(profile.birth_date);
+    const [y, m, d] = profile.birth_date.split("-").map(Number);
+    const birthDate = new Date(y, (m || 1) - 1, d || 1);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();

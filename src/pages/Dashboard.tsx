@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { BodyHeatmap } from "@/components/BodyHeatmap";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { WeightTracker } from "@/components/WeightTracker";
+import { format } from "date-fns";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -112,7 +113,7 @@ export default function Dashboard() {
           )
         `)
         .eq("analyses.user_id", userId)
-        .gte("analyses.date", monthsAgo.toISOString().split("T")[0])
+        .gte("analyses.date", format(monthsAgo, 'yyyy-MM-dd'))
         .order("analyses(date)", { ascending: true });
 
       if (error) throw error;

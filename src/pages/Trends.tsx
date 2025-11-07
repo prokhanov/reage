@@ -9,6 +9,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { format } from "date-fns";
 
 interface Biomarker {
   id: string;
@@ -107,7 +108,7 @@ export default function Trends() {
         `)
         .eq("biomarker_id", biomarkerId)
         .eq("analyses.user_id", userId)
-        .gte("analyses.date", monthsAgo.toISOString().split("T")[0])
+        .gte("analyses.date", format(monthsAgo, 'yyyy-MM-dd'))
         .order("analyses(date)", { ascending: true });
 
       if (error) throw error;
