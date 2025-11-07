@@ -112,7 +112,6 @@ export default function Prescriptions() {
         <TableHeader>
           <TableRow className="hover:bg-transparent border-border/50">
             <TableHead className="font-semibold">Назначение</TableHead>
-            <TableHead className="font-semibold">Эффект</TableHead>
             {isSuperAdmin && <TableHead className="font-semibold">Статус</TableHead>}
             <TableHead className="font-semibold">Контрольная дата</TableHead>
             <TableHead className="font-semibold">Создано</TableHead>
@@ -122,17 +121,15 @@ export default function Prescriptions() {
         <TableBody>
           {prescriptions.map((prescription) => (
             <TableRow key={prescription.id} className="border-border/50">
-              <TableCell className="font-medium max-w-[300px]">
-                <div className="line-clamp-2">{prescription.prescription}</div>
-              </TableCell>
-              <TableCell className="max-w-[250px]">
-                {prescription.effect ? (
-                  <div className="text-sm text-muted-foreground line-clamp-2">
-                    {prescription.effect}
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground/50">—</span>
-                )}
+              <TableCell className="font-medium max-w-[400px]">
+                <div className="space-y-2">
+                  <div className="line-clamp-2">{prescription.prescription}</div>
+                  {prescription.effect && (
+                    <div className="text-sm text-muted-foreground line-clamp-2 pt-1 border-t border-border/30">
+                      <span className="font-medium text-foreground/70">Эффект:</span> {prescription.effect}
+                    </div>
+                  )}
+                </div>
               </TableCell>
               {isSuperAdmin && <TableCell>{getStatusBadge(prescription.status)}</TableCell>}
               <TableCell>
