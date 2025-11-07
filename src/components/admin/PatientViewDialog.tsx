@@ -50,7 +50,7 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
 
   return (
     <Dialog open={!!patientId} onOpenChange={onClose}>
-      <DialogContent className="max-w-none h-screen w-screen p-0 m-0 border-0 rounded-none overflow-hidden">
+      <DialogContent hideCloseButton className="max-w-none h-screen w-screen p-0 m-0 border-0 rounded-none overflow-hidden">
         <ViewAsPatientProvider userId={patientId}>
           <div className="h-screen w-full flex flex-col relative overflow-hidden">
             {/* Patient view content with scroll */}

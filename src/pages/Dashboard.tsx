@@ -333,7 +333,7 @@ export default function Dashboard() {
       <div className="p-4 md:p-8 space-y-6">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Добро пожаловать, {profile?.name}
           </h1>
           <p className="text-sm text-muted-foreground">
