@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { marked } from 'marked';
 
 interface Recommendation {
   id: string;
@@ -58,7 +59,14 @@ export function EditReportDialog({
         .order("type");
 
       if (error) throw error;
-      setRecommendations(data || []);
+      
+      // Convert markdown to HTML for better display in WYSIWYG editor
+      const processedData = (data || []).map(rec => ({
+        ...rec,
+        text: marked.parse(rec.text) as string
+      }));
+      
+      setRecommendations(processedData);
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -192,8 +200,8 @@ export function EditReportDialog({
                                 ['clean']
                               ]
                             }}
-                            className="bg-background"
-                            style={{ minHeight: '200px' }}
+                            className="bg-background rounded-md"
+                            style={{ minHeight: '350px' }}
                           />
                         </div>
                       ))}
