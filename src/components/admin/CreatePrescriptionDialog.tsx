@@ -40,6 +40,7 @@ export function CreatePrescriptionDialog({
   userId,
 }: CreatePrescriptionDialogProps) {
   const [prescription, setPrescription] = useState("");
+  const [effect, setEffect] = useState("");
   const [controlDate, setControlDate] = useState<Date>();
   const [status, setStatus] = useState<"on_review" | "confirmed">("on_review");
   const { toast } = useToast();
@@ -53,6 +54,7 @@ export function CreatePrescriptionDialog({
       const { error } = await supabase.from("prescriptions").insert({
         user_id: userId,
         prescription,
+        effect: effect.trim() || null,
         control_date: controlDate?.toISOString().split("T")[0] || null,
         status,
         created_by: user.id,
@@ -81,6 +83,7 @@ export function CreatePrescriptionDialog({
 
   const handleClose = () => {
     setPrescription("");
+    setEffect("");
     setControlDate(undefined);
     setStatus("on_review");
     onOpenChange(false);
@@ -114,11 +117,22 @@ export function CreatePrescriptionDialog({
               <Label htmlFor="prescription">Назначение *</Label>
               <Textarea
                 id="prescription"
-                placeholder="Например: Витамин Д 200 мг 3 раза в день, избегать жирного"
+                placeholder="Например: Витамин Д 2000 МЕ 1 раз в день"
                 value={prescription}
                 onChange={(e) => setPrescription(e.target.value)}
-                rows={4}
+                rows={3}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="effect">Эффект (для чего)</Label>
+              <Textarea
+                id="effect"
+                placeholder="Например: Повышение уровня витамина Д, укрепление костей"
+                value={effect}
+                onChange={(e) => setEffect(e.target.value)}
+                rows={2}
               />
             </div>
 

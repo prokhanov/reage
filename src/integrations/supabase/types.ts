@@ -235,6 +235,7 @@ export type Database = {
           control_date: string | null
           created_at: string
           created_by: string | null
+          effect: string | null
           id: string
           is_archived: boolean
           prescription: string
@@ -246,6 +247,7 @@ export type Database = {
           control_date?: string | null
           created_at?: string
           created_by?: string | null
+          effect?: string | null
           id?: string
           is_archived?: boolean
           prescription: string
@@ -257,6 +259,7 @@ export type Database = {
           control_date?: string | null
           created_at?: string
           created_by?: string | null
+          effect?: string | null
           id?: string
           is_archived?: boolean
           prescription?: string

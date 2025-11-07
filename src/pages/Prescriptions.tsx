@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,14 @@ import { ru } from "date-fns/locale";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +34,7 @@ import {
 type Prescription = {
   id: string;
   prescription: string;
+  effect: string | null;
   control_date: string | null;
   status: "on_review" | "confirmed";
   is_archived: boolean;
@@ -91,53 +99,70 @@ export default function Prescriptions() {
 
   const getStatusBadge = (status: "on_review" | "confirmed") => {
     if (status === "confirmed") {
-      return <Badge variant="default">Подтверждено</Badge>;
+      return <Badge variant="default" className="text-xs">Подтверждено</Badge>;
     }
-    return <Badge variant="secondary">На проверке</Badge>;
+    return <Badge variant="secondary" className="text-xs">На проверке</Badge>;
   };
 
-  const PrescriptionCard = ({ prescription }: { prescription: Prescription }) => (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <CardTitle className="text-lg">{prescription.prescription}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              <span>
-                Создано: {format(new Date(prescription.created_at), "d MMMM yyyy", { locale: ru })}
-              </span>
-            </div>
-          </div>
-          {isSuperAdmin && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDeleteId(prescription.id)}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            {getStatusBadge(prescription.status)}
-          </div>
-          {prescription.control_date && (
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span>
-                Контрольная дата:{" "}
-                {format(new Date(prescription.control_date), "d MMMM yyyy", { locale: ru })}
-              </span>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+  const PrescriptionTable = ({ prescriptions }: { prescriptions: Prescription[] }) => (
+    <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-border/50">
+            <TableHead className="font-semibold">Назначение</TableHead>
+            <TableHead className="font-semibold">Эффект</TableHead>
+            <TableHead className="font-semibold">Статус</TableHead>
+            <TableHead className="font-semibold">Контрольная дата</TableHead>
+            <TableHead className="font-semibold">Создано</TableHead>
+            {isSuperAdmin && <TableHead className="w-[70px]"></TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {prescriptions.map((prescription) => (
+            <TableRow key={prescription.id} className="border-border/50">
+              <TableCell className="font-medium max-w-[300px]">
+                <div className="line-clamp-2">{prescription.prescription}</div>
+              </TableCell>
+              <TableCell className="max-w-[250px]">
+                {prescription.effect ? (
+                  <div className="text-sm text-muted-foreground line-clamp-2">
+                    {prescription.effect}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground/50">—</span>
+                )}
+              </TableCell>
+              <TableCell>{getStatusBadge(prescription.status)}</TableCell>
+              <TableCell>
+                {prescription.control_date ? (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4 text-primary/70" />
+                    {format(new Date(prescription.control_date), "d MMM yyyy", { locale: ru })}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground/50">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground">
+                {format(new Date(prescription.created_at), "d MMM yyyy", { locale: ru })}
+              </TableCell>
+              {isSuperAdmin && (
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteId(prescription.id)}
+                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 
   if (isLoading) {
@@ -184,39 +209,31 @@ export default function Prescriptions() {
 
           <TabsContent value="active" className="space-y-4 mt-6">
             {activePrescriptions.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+              <div className="rounded-lg border border-dashed border-border/50 bg-card/30 p-12">
+                <div className="flex flex-col items-center justify-center">
+                  <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground text-center">
                     Нет активных назначений
                   </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {activePrescriptions.map((prescription) => (
-                  <PrescriptionCard key={prescription.id} prescription={prescription} />
-                ))}
+                </div>
               </div>
+            ) : (
+              <PrescriptionTable prescriptions={activePrescriptions} />
             )}
           </TabsContent>
 
           <TabsContent value="archive" className="space-y-4 mt-6">
             {archivedPrescriptions.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+              <div className="rounded-lg border border-dashed border-border/50 bg-card/30 p-12">
+                <div className="flex flex-col items-center justify-center">
+                  <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <p className="text-muted-foreground text-center">
                     Архив пуст
                   </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {archivedPrescriptions.map((prescription) => (
-                  <PrescriptionCard key={prescription.id} prescription={prescription} />
-                ))}
+                </div>
               </div>
+            ) : (
+              <PrescriptionTable prescriptions={archivedPrescriptions} />
             )}
           </TabsContent>
         </Tabs>
