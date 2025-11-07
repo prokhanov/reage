@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -38,6 +38,18 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+
+  // Update form data when profile changes
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        name: profile.name || "",
+        gender: profile.gender || "male",
+        birth_date: profile.birth_date ? new Date(profile.birth_date) : undefined,
+        height: profile.height?.toString() || "",
+      });
+    }
+  }, [profile]);
 
   const handleSave = async () => {
     if (!formData.name || !formData.birth_date) {
