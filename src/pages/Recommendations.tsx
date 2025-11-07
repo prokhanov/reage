@@ -372,19 +372,27 @@ export default function Recommendations() {
             
             {selectedReport && (() => {
               const grouped = groupByType(selectedReport.recommendations);
+              const patientData = grouped["Данные пациента"]?.[0];
               const summary = grouped["Общее резюме"]?.[0];
               const categories = Object.entries(grouped).filter(([type]) => 
-                type !== "Общее резюме"
+                type !== "Общее резюме" && type !== "Данные пациента"
               );
 
               // Динамически генерируем полный отчет из всех разделов
               const generateFullReport = () => {
                 let fullText = "";
                 
-                if (summary) {
-                  fullText += `## ОБЩЕЕ РЕЗЮМЕ\n\n${summary.text}\n\n`;
+                // 1. Данные пациента
+                if (patientData) {
+                  fullText += `${patientData.text}\n\n---\n\n`;
                 }
                 
+                // 2. Общее резюме
+                if (summary) {
+                  fullText += `## ОБЩЕЕ РЕЗЮМЕ\n\n${summary.text}\n\n---\n\n`;
+                }
+                
+                // 3. Детальный анализ
                 fullText += `## ДЕТАЛЬНЫЙ АНАЛИЗ ПО СИСТЕМАМ\n\n`;
                 
                 categories.forEach(([type, recs]) => {
@@ -406,11 +414,16 @@ export default function Recommendations() {
                       <TabsTrigger value="full">Полный отчет</TabsTrigger>
                     </TabsList>
                     
-                    <TabsContent value="summary" className="space-y-4 mt-4">
-                      {summary && (
-                        <MarkdownContent content={summary.text} />
-                      )}
-                    </TabsContent>
+                  <TabsContent value="summary" className="space-y-4 mt-4">
+                    {patientData && (
+                      <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
+                        <MarkdownContent content={patientData.text} />
+                      </div>
+                    )}
+                    {summary && (
+                      <MarkdownContent content={summary.text} />
+                    )}
+                  </TabsContent>
                     
                     <TabsContent value="categories" className="mt-4">
                       <Accordion type="multiple" className="space-y-2">

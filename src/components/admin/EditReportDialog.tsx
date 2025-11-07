@@ -67,7 +67,20 @@ export function EditReportDialog({
         text: marked.parse(section.text) as string
       }));
       
-      setSections(sectionsWithHtml);
+      // Сортируем разделы в правильном порядке
+      const sortOrder: Record<string, number> = {
+        "Данные пациента": 0,
+        "Общее резюме": 1,
+      };
+      
+      const sorted = sectionsWithHtml.sort((a, b) => {
+        const aOrder = sortOrder[a.type] ?? 100;
+        const bOrder = sortOrder[b.type] ?? 100;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.type.localeCompare(b.type);
+      });
+      
+      setSections(sorted);
     } catch (error: any) {
       toast({
         title: "Ошибка",

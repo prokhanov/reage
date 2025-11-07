@@ -224,6 +224,48 @@ ${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.main_c
 "Ваш ТТГ немного повышен (5.2 мМЕ/л при норме до 4), что может быть связано с ранее указанным гипотиреозом. Это требует консультации эндокринолога для возможной коррекции терапии."
     `.trim();
 
+    // Формируем вступительный раздел с данными пациента
+    const patientDataSection = `
+# ДАННЫЕ ПАЦИЕНТА
+
+## Персональная информация
+- **Имя:** ${profile?.name || 'Не указано'}
+- **Возраст:** ${age || 'Не указано'} лет
+- **Пол:** ${profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : 'Не указано'}
+- **Рост:** ${profile?.height ? `${profile.height} см` : 'Не указано'}
+- **Вес:** ${profile?.weight ? `${profile.weight} кг` : 'Не указано'}
+- **Индекс массы тела (BMI):** ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
+
+## Медицинская история
+${Object.keys(groupedMedicalHistory).length > 0 
+  ? Object.entries(groupedMedicalHistory)
+      .map(([category, conditions]) => `### ${category}\n${(conditions as string[]).map(c => `- ${c}`).join('\n')}`)
+      .join('\n\n')
+  : 'Не указана'
+}
+
+## Основные жалобы и симптомы
+${complaints && complaints.length > 0 
+  ? complaints.map((c: any) => `- ${c.main_complaints || c.complaint || "Не указано"}`).join("\n")
+  : 'Не указаны'
+}
+
+## Образ жизни
+${complaints && complaints.length > 0 && complaints[0].lifestyle 
+  ? complaints[0].lifestyle 
+  : 'Не указан'
+}
+
+## Цели
+${complaints && complaints.length > 0 && complaints[0].goals 
+  ? complaints[0].goals 
+  : 'Не указаны'
+}
+
+## Дата анализа
+${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}
+`.trim();
+
     // Получаем тренды для каждой категории
     const getCategoryTrends = (category: string) => {
       if (!previousAnalyses || previousAnalyses.length === 0) {
@@ -527,23 +569,31 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     // Сохраняем все отчеты в базу данных
     const recommendationsToInsert = [];
 
-    // 9 детальных отчетов по категориям
-    for (const [category, report] of Object.entries(categoryReports)) {
-      recommendationsToInsert.push({
-        user_id: analysis.user_id,
-        analysis_id: analysisId,
-        type: category,
-        text: report
-      });
-    }
+    // 1. Данные пациента (ПЕРВЫМ!)
+    recommendationsToInsert.push({
+      user_id: analysis.user_id,
+      analysis_id: analysisId,
+      type: "Данные пациента",
+      text: patientDataSection
+    });
 
-    // 1 общее резюме
+    // 2. Общее резюме
     if (summaryReport) {
       recommendationsToInsert.push({
         user_id: analysis.user_id,
         analysis_id: analysisId,
         type: "Общее резюме",
         text: summaryReport
+      });
+    }
+
+    // 3. Детальные отчеты по категориям (9 штук)
+    for (const [category, report] of Object.entries(categoryReports)) {
+      recommendationsToInsert.push({
+        user_id: analysis.user_id,
+        analysis_id: analysisId,
+        type: category,
+        text: report
       });
     }
 
