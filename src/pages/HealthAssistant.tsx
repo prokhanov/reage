@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { useChatConversations, useChatMessages } from "@/hooks/useChatConversations";
 
 interface Message {
@@ -283,7 +285,10 @@ export default function HealthAssistant() {
                   >
                     {message.role === "assistant" ? (
                       <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-4 prose-ul:my-3 prose-li:my-1 prose-strong:text-foreground prose-headings:text-foreground prose-headings:mb-3">
-                        <ReactMarkdown>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkBreaks]}
+                          components={{ br: () => (<><br /><br /></>) }}
+                        >
                           {message.content}
                         </ReactMarkdown>
                       </div>
