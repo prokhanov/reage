@@ -230,6 +230,41 @@ export type Database = {
         }
         Relationships: []
       }
+      prescription_adherence: {
+        Row: {
+          adherence_level: number
+          created_at: string
+          id: string
+          prescription_id: string
+          tracked_at: string
+          user_id: string
+        }
+        Insert: {
+          adherence_level: number
+          created_at?: string
+          id?: string
+          prescription_id: string
+          tracked_at?: string
+          user_id: string
+        }
+        Update: {
+          adherence_level?: number
+          created_at?: string
+          id?: string
+          prescription_id?: string
+          tracked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescription_adherence_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prescriptions: {
         Row: {
           analysis_id: string | null
