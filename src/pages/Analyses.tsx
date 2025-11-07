@@ -12,7 +12,6 @@ import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { CreateAnalysisWizard } from "@/components/admin/CreateAnalysisWizard";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
-import { EditAnalysisDialog } from "@/components/admin/EditAnalysisDialog";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import {
   AlertDialog,
@@ -45,7 +44,6 @@ export default function Analyses() {
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editReportDialogOpen, setEditReportDialogOpen] = useState(false);
   const [analysisToEdit, setAnalysisToEdit] = useState<Analysis | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -247,12 +245,11 @@ export default function Analyses() {
                   </CardContent>
                 </div>
                 {isViewMode && isSuperAdmin && (
-                  <div className="absolute top-2 right-2 flex gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div className="absolute top-2 right-2 flex gap-1">
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 hover:bg-primary/10"
-                      title="Редактировать анализ"
                       onClick={(e) => {
                         e.stopPropagation();
                         setAnalysisToEdit(analysis);
@@ -304,21 +301,13 @@ export default function Analyses() {
         />
 
         {analysisToEdit && (
-          <>
-            <EditAnalysisDialog
-              analysisId={analysisToEdit.id}
-              open={editDialogOpen}
-              onOpenChange={setEditDialogOpen}
-              onSuccess={loadAnalyses}
-            />
-            <EditReportDialog
-              analysisId={analysisToEdit.id}
-              analysisStatus={analysisToEdit.status}
-              open={editReportDialogOpen}
-              onOpenChange={setEditReportDialogOpen}
-              onStatusChange={loadAnalyses}
-            />
-          </>
+          <EditReportDialog
+            analysisId={analysisToEdit.id}
+            analysisStatus={analysisToEdit.status}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onStatusChange={loadAnalyses}
+          />
         )}
       </div>
     </DashboardLayout>

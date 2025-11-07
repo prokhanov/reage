@@ -15,7 +15,6 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
-import { EditAnalysisDialog } from "@/components/admin/EditAnalysisDialog";
 
 interface Biomarker {
   id: string;
@@ -49,7 +48,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0, currentCategory: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -262,13 +260,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
           {isSuperAdmin && isViewMode && (
             <div className="flex gap-2">
-              <Button
-                onClick={() => setEditDialogOpen(true)}
-                variant="outline"
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Редактировать анализ
-              </Button>
               <Button
                 onClick={handleEditReport}
                 variant="outline"
@@ -628,15 +619,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             })}
           </TabsContent>
         </Tabs>
-
-        {analysis && (
-          <EditAnalysisDialog
-            analysisId={analysis.id}
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            onSuccess={loadData}
-          />
-        )}
       </div>
     </DashboardLayout>
   );
