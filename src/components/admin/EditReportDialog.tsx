@@ -5,21 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
-import { marked } from 'marked';
 
 interface Recommendation {
   id: string;
   type: string;
   text: string;
-}
-
-interface CombinedReport {
-  fullText: string;
-  recommendations: Recommendation[];
 }
 
 interface EditReportDialogProps {
@@ -37,12 +30,10 @@ export function EditReportDialog({
   onOpenChange,
   onStatusChange 
 }: EditReportDialogProps) {
-  const [fullReportText, setFullReportText] = useState<string>("");
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [sections, setSections] = useState<Recommendation[]>([]);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [publishing, setPublishing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,27 +57,7 @@ export function EditReportDialog({
 
       if (error) throw error;
       
-      setRecommendations(data || []);
-      
-      // Combine all recommendations into one full report with section headers
-      const groupedByType = (data || []).reduce((acc, rec) => {
-        if (!acc[rec.type]) {
-          acc[rec.type] = [];
-        }
-        acc[rec.type].push(rec);
-        return acc;
-      }, {} as Record<string, Recommendation[]>);
-      
-      let combinedText = "";
-      Object.entries(groupedByType).forEach(([type, recs]) => {
-        combinedText += `<h2>${type}</h2>\n`;
-        recs.forEach(rec => {
-          combinedText += marked.parse(rec.text) as string;
-          combinedText += "\n\n";
-        });
-      });
-      
-      setFullReportText(combinedText);
+      setSections(data || []);
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -98,15 +69,21 @@ export function EditReportDialog({
     }
   };
 
+  const updateSection = (id: string, newText: string) => {
+    setSections(prev => prev.map(section => 
+      section.id === id ? { ...section, text: newText } : section
+    ));
+  };
+
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
-      // Save the full report text to all recommendations
-      for (const rec of recommendations) {
+      // Save each section individually
+      for (const section of sections) {
         const { error } = await supabase
           .from("recommendations")
-          .update({ text: fullReportText })
-          .eq("id", rec.id);
+          .update({ text: section.text })
+          .eq("id", section.id);
 
         if (error) throw error;
       }
@@ -211,15 +188,26 @@ export function EditReportDialog({
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="flex-1 overflow-hidden">
-              <ReactQuill
-                theme="bubble"
-                value={fullReportText}
-                onChange={setFullReportText}
-                placeholder="Выделите текст для форматирования..."
-                className="bg-background rounded-md border border-border p-6 h-full quill-editor"
-              />
-            </div>
+            <Tabs defaultValue={sections[0]?.type || "summary"} className="flex-1 overflow-hidden flex flex-col">
+              <TabsList className="shrink-0 grid w-full" style={{ gridTemplateColumns: `repeat(${sections.length}, minmax(0, 1fr))` }}>
+                {sections.map((section) => (
+                  <TabsTrigger key={section.id} value={section.type}>
+                    {section.type}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {sections.map((section) => (
+                <TabsContent key={section.id} value={section.type} className="flex-1 overflow-hidden mt-4">
+                  <ReactQuill
+                    theme="bubble"
+                    value={section.text}
+                    onChange={(text) => updateSection(section.id, text)}
+                    placeholder="Выделите текст для форматирования..."
+                    className="bg-background rounded-md border border-border p-6 h-full quill-editor"
+                  />
+                </TabsContent>
+              ))}
+            </Tabs>
           )}
         </div>
 

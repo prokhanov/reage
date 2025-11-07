@@ -373,10 +373,29 @@ export default function Recommendations() {
             {selectedReport && (() => {
               const grouped = groupByType(selectedReport.recommendations);
               const summary = grouped["Общее резюме"]?.[0];
-              const fullReport = grouped["Полный отчет"]?.[0];
               const categories = Object.entries(grouped).filter(([type]) => 
-                type !== "Общее резюме" && type !== "Полный отчет"
+                type !== "Общее резюме"
               );
+
+              // Динамически генерируем полный отчет из всех разделов
+              const generateFullReport = () => {
+                let fullText = "";
+                
+                if (summary) {
+                  fullText += `## ОБЩЕЕ РЕЗЮМЕ\n\n${summary.text}\n\n`;
+                }
+                
+                fullText += `## ДЕТАЛЬНЫЙ АНАЛИЗ ПО СИСТЕМАМ\n\n`;
+                
+                categories.forEach(([type, recs]) => {
+                  fullText += `### ${type.toUpperCase()}\n\n`;
+                  recs.forEach((rec) => {
+                    fullText += `${rec.text}\n\n`;
+                  });
+                });
+                
+                return fullText;
+              };
 
               return (
                 <div id="report-content">
@@ -411,9 +430,7 @@ export default function Recommendations() {
                     </TabsContent>
                     
                     <TabsContent value="full" className="space-y-4 mt-4">
-                      {fullReport && (
-                        <MarkdownContent content={fullReport.text} />
-                      )}
+                      <MarkdownContent content={generateFullReport()} />
                     </TabsContent>
                   </Tabs>
                 </div>

@@ -547,29 +547,6 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       });
     }
 
-    // 1 полный объединенный отчет
-    const fullReport = `
-# ПОЛНЫЙ МЕДИЦИНСКИЙ ОТЧЕТ
-Дата анализа: ${new Date(analysis.date).toLocaleDateString("ru-RU")}
-
-## ОБЩЕЕ РЕЗЮМЕ
-${summaryReport}
-
-## ДЕТАЛЬНЫЙ АНАЛИЗ ПО СИСТЕМАМ
-
-${Object.entries(categoryReports).map(([category, report]) => `
-### ${category.toUpperCase()}
-${report}
-`).join("\n\n")}
-    `.trim();
-
-    recommendationsToInsert.push({
-      user_id: analysis.user_id,
-      analysis_id: analysisId,
-      type: "Полный отчет",
-      text: fullReport
-    });
-
     // Сохраняем все рекомендации
     const { error: insertError } = await supabase
       .from("recommendations")
