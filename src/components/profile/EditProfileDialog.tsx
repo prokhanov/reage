@@ -77,7 +77,9 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         .select()
         .maybeSingle();
 
-      if (error) throw error;
+      if (error || !data) {
+        throw new Error("Недостаточно прав для обновления профиля");
+      }
 
       toast({
         title: "Успешно сохранено! ✅",
