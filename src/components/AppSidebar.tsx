@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState, useContext } from "react";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -208,6 +209,11 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </NavLink>
             </div>
           )}
+
+          {/* Theme Toggle */}
+          <div className="p-4 border-t border-border/30">
+            <ThemeToggle />
+          </div>
 
           {/* User Profile & Logout */}
           <div className="p-4 border-t border-border/30 space-y-1">
