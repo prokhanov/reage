@@ -65,15 +65,6 @@ export function WeightTracker() {
   };
 
   const handleSaveWeight = async () => {
-    if (isViewMode) {
-      toast({
-        title: "Действие недоступно",
-        description: "Сохранение данных недоступно в режиме просмотра",
-        variant: "destructive"
-      });
-      return;
-    }
-
     const weightValue = parseFloat(weight);
     if (!weight || weightValue <= 0 || weightValue > 500) {
       toast({
