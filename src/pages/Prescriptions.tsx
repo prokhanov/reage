@@ -151,7 +151,7 @@ export default function Prescriptions() {
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Назначения</h1>
+            <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Назначения</h1>
             <p className="text-muted-foreground mt-2">
               Рекомендации и назначения врача
             </p>
