@@ -2,13 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AnalysisStatusBadge } from "./AnalysisStatusBadge";
-import { Loader2, Send } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import MDEditor from '@uiw/react-md-editor';
 
 interface Recommendation {
   id: string;
@@ -141,7 +139,7 @@ export function EditReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[98vw] max-h-[98vh] w-full h-full overflow-hidden flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Редактирование отчета</DialogTitle>
@@ -162,41 +160,45 @@ export function EditReportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <Tabs defaultValue={Object.keys(groupedRecommendations)[0] || "all"} className="w-full">
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Object.keys(groupedRecommendations).length}, minmax(0, 1fr))` }}>
-              {Object.keys(groupedRecommendations).map((type) => (
-                <TabsTrigger key={type} value={type} className="text-xs">
-                  {type}
-                </TabsTrigger>
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <Tabs defaultValue={Object.keys(groupedRecommendations)[0] || "all"} className="w-full h-full flex flex-col">
+              <TabsList className="grid w-full shrink-0" style={{ gridTemplateColumns: `repeat(${Object.keys(groupedRecommendations).length}, minmax(0, 1fr))` }}>
+                {Object.keys(groupedRecommendations).map((type) => (
+                  <TabsTrigger key={type} value={type} className="text-xs">
+                    {type}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              {Object.entries(groupedRecommendations).map(([type, recs]) => (
+                <TabsContent key={type} value={type} className="flex-1 overflow-auto" data-color-mode="light">
+                  <div className="space-y-3 h-full">
+                    <h3 className="font-semibold text-base">{type}</h3>
+                    {recs.map((rec) => (
+                      <div key={rec.id} className="space-y-2 h-[calc(100%-2rem)]">
+                        <MDEditor
+                          value={rec.text}
+                          onChange={(val) => updateRecommendation(rec.id, val || "")}
+                          height="100%"
+                          preview="live"
+                          hideToolbar={false}
+                          enableScroll={true}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
               ))}
-            </TabsList>
+            </Tabs>
+          )}
+        </div>
 
-            {Object.entries(groupedRecommendations).map(([type, recs]) => (
-              <TabsContent key={type} value={type} className="space-y-4">
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-base">{type}</h3>
-                  {recs.map((rec) => (
-                    <div key={rec.id} className="space-y-2">
-                      <Textarea
-                        value={rec.text}
-                        onChange={(e) => updateRecommendation(rec.id, e.target.value)}
-                        rows={type === "Общее резюме" || type === "Полный отчет" ? 12 : 8}
-                        className="font-mono text-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        )}
-
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
           <Button
             onClick={handleSaveChanges}
             disabled={saving || loading}
