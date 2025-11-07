@@ -8,10 +8,9 @@ import { Send, Bot, User, Sparkles, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkBreaks from "remark-breaks";
 import { useChatConversations, useChatMessages } from "@/hooks/useChatConversations";
+import { MarkdownContent } from "@/components/MarkdownContent";
+import { normalizeMarkdown } from "@/lib/markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -284,14 +283,10 @@ export default function HealthAssistant() {
                     }`}
                   >
                     {message.role === "assistant" ? (
-                      <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-4 prose-ul:my-3 prose-li:my-1 prose-strong:text-foreground prose-headings:text-foreground prose-headings:mb-3">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm, remarkBreaks]}
-                          components={{ br: () => (<span className="block h-4" aria-hidden="true" />) }}
-                        >
-                          {message.content}
-                        </ReactMarkdown>
-                      </div>
+                      <MarkdownContent
+                        content={normalizeMarkdown(message.content)}
+                        className="text-sm"
+                      />
                     ) : (
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {message.content}
