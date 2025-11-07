@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -123,17 +123,14 @@ export default function PatientProfile() {
 
   if (loadingProfile) {
     return (
-      <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
           <p className="text-muted-foreground">Загрузка профиля...</p>
         </div>
-      </DashboardLayout>
     );
   }
 
   if (!profile) {
     return (
-      <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
           <AlertCircle className="w-12 h-12 text-muted-foreground" />
           <p className="text-muted-foreground">Профиль не найден</p>
@@ -142,7 +139,6 @@ export default function PatientProfile() {
             Вернуться к списку
           </Button>
         </div>
-      </DashboardLayout>
     );
   }
 
@@ -153,7 +149,7 @@ export default function PatientProfile() {
   );
 
   return (
-    <DashboardLayout>
+    
       <div className="p-6 space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/admin/patients")}>
@@ -358,6 +354,6 @@ export default function PatientProfile() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    
   );
 }

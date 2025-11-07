@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -127,7 +127,7 @@ export default function Patients() {
   };
 
   return (
-    <DashboardLayout>
+    
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Пациенты</h1>
@@ -265,6 +265,6 @@ export default function Patients() {
           onClose={() => setSelectedPatientId(null)}
         />
       </div>
-    </DashboardLayout>
+    
   );
 }
