@@ -4,11 +4,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import ReactMarkdown from "react-markdown";
+import { useChatConversations, useChatMessages } from "@/hooks/useChatConversations";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,6 +18,11 @@ interface Message {
 
 export default function HealthAssistant() {
   const { getUserId } = useViewAsUser();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const { conversations, createConversation } = useChatConversations(userId);
+  const { messages: dbMessages, saveMessage } = useChatMessages(currentConversationId);
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -28,6 +34,35 @@ export default function HealthAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Load user ID
+  useEffect(() => {
+    getUserId().then(setUserId);
+  }, [getUserId]);
+
+  // Load last conversation or create new one
+  useEffect(() => {
+    if (userId && conversations && conversations.length > 0 && !currentConversationId) {
+      setCurrentConversationId(conversations[0].id);
+    }
+  }, [userId, conversations, currentConversationId]);
+
+  // Load messages from database
+  useEffect(() => {
+    if (dbMessages && dbMessages.length > 0) {
+      const loadedMessages: Message[] = dbMessages.map((msg) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      }));
+      setMessages([
+        {
+          role: "assistant",
+          content: "Привет! 👋 Я ваш персональный AI ассистент по здоровью. Я знаю всю информацию о вас - анализы, симптомы, назначения. Задавайте любые вопросы о вашем здоровье, и я помогу разобраться! 💪",
+        },
+        ...loadedMessages,
+      ]);
+    }
+  }, [dbMessages]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -35,8 +70,8 @@ export default function HealthAssistant() {
   }, [messages]);
 
   const streamChat = async (userMessage: string) => {
-    const userId = await getUserId();
-    if (!userId) {
+    const uid = await getUserId();
+    if (!uid) {
       toast({
         title: "Ошибка",
         description: "Необходимо войти в систему",
@@ -45,10 +80,30 @@ export default function HealthAssistant() {
       return;
     }
 
+    // Create conversation if needed
+    let conversationId = currentConversationId;
+    if (!conversationId) {
+      const result = await createConversation.mutateAsync({
+        userId: uid,
+        title: userMessage.substring(0, 50),
+      });
+      conversationId = result.id;
+      setCurrentConversationId(conversationId);
+    }
+
     const newMessages: Message[] = [...messages, { role: "user", content: userMessage }];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
+
+    // Save user message
+    if (conversationId) {
+      await saveMessage.mutateAsync({
+        conversationId,
+        role: "user",
+        content: userMessage,
+      });
+    }
 
     // Add empty assistant message that will be updated
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
@@ -132,6 +187,15 @@ export default function HealthAssistant() {
           }
         }
       }
+
+      // Save assistant message
+      if (conversationId && assistantContent) {
+        await saveMessage.mutateAsync({
+          conversationId,
+          role: "assistant",
+          content: assistantContent,
+        });
+      }
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -144,6 +208,16 @@ export default function HealthAssistant() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNewChat = () => {
+    setCurrentConversationId(null);
+    setMessages([
+      {
+        role: "assistant",
+        content: "Привет! 👋 Я ваш персональный AI ассистент по здоровью. Я знаю всю информацию о вас - анализы, симптомы, назначения. Задавайте любые вопросы о вашем здоровье, и я помогу разобраться! 💪",
+      },
+    ]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -163,18 +237,24 @@ export default function HealthAssistant() {
     <DashboardLayout>
       <div className="container max-w-5xl mx-auto px-4 py-8 h-[calc(100vh-2rem)]">
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-neon-primary">
-              <Bot className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-neon-primary">
+                <Bot className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                  AI Ассистент
+                </h1>
+                <p className="text-muted-foreground">
+                  Персональный помощник по здоровью
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                AI Ассистент
-              </h1>
-              <p className="text-muted-foreground">
-                Персональный помощник по здоровью
-              </p>
-            </div>
+            <Button onClick={handleNewChat} variant="outline" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Новый чат
+            </Button>
           </div>
         </div>
 
