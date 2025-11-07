@@ -10,8 +10,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { CreateAnalysisWizard } from "@/components/admin/CreateAnalysisWizard";
+import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
-import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import {
   AlertDialog,
@@ -43,8 +43,8 @@ export default function Analyses() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [analysisToEdit, setAnalysisToEdit] = useState<Analysis | null>(null);
+  const [editAnalysisDialogOpen, setEditAnalysisDialogOpen] = useState(false);
+  const [analysisToEdit, setAnalysisToEdit] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -252,8 +252,8 @@ export default function Analyses() {
                       className="h-8 w-8 hover:bg-primary/10"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setAnalysisToEdit(analysis);
-                        setEditDialogOpen(true);
+                        setAnalysisToEdit(analysis.id);
+                        setEditAnalysisDialogOpen(true);
                       }}
                     >
                       <Edit className="h-4 w-4" />
@@ -301,12 +301,11 @@ export default function Analyses() {
         />
 
         {analysisToEdit && (
-          <EditReportDialog
-            analysisId={analysisToEdit.id}
-            analysisStatus={analysisToEdit.status}
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            onStatusChange={loadAnalyses}
+          <EditAnalysisWizard
+            analysisId={analysisToEdit}
+            open={editAnalysisDialogOpen}
+            onOpenChange={setEditAnalysisDialogOpen}
+            onSuccess={loadAnalyses}
           />
         )}
       </div>
