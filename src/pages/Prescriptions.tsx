@@ -121,18 +121,22 @@ export default function Prescriptions() {
         <TableBody>
           {prescriptions.map((prescription) => (
             <TableRow key={prescription.id} className="border-border/50">
-              <TableCell className="font-medium max-w-[400px]">
-                <div className="space-y-2">
-                  <div className="line-clamp-2">{prescription.prescription}</div>
+              <TableCell className="font-medium max-w-[500px] py-4">
+                <div className="space-y-1.5">
+                  <div>{prescription.prescription}</div>
                   {prescription.effect && (
-                    <div className="text-sm text-muted-foreground line-clamp-2 pt-1 border-t border-border/30">
-                      <span className="font-medium text-foreground/70">Эффект:</span> {prescription.effect}
+                    <div className="text-sm text-muted-foreground/80 leading-relaxed">
+                      {prescription.effect}
                     </div>
                   )}
                 </div>
               </TableCell>
-              {isSuperAdmin && <TableCell>{getStatusBadge(prescription.status)}</TableCell>}
-              <TableCell>
+              {isSuperAdmin && (
+                <TableCell className="align-top py-4">
+                  {getStatusBadge(prescription.status)}
+                </TableCell>
+              )}
+              <TableCell className="align-top py-4 whitespace-nowrap">
                 {prescription.control_date ? (
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-primary/70" />
@@ -142,11 +146,11 @@ export default function Prescriptions() {
                   <span className="text-xs text-muted-foreground/50">—</span>
                 )}
               </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
+              <TableCell className="align-top py-4 text-sm text-muted-foreground whitespace-nowrap">
                 {format(new Date(prescription.created_at), "d MMM yyyy", { locale: ru })}
               </TableCell>
               {isSuperAdmin && (
-                <TableCell>
+                <TableCell className="align-top py-4">
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
