@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User, Sparkles, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +32,7 @@ export default function HealthAssistant() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isAutoScrollEnabled = useRef(true);
   const { toast } = useToast();
 
   // Load user ID
@@ -65,10 +65,14 @@ export default function HealthAssistant() {
   }, [dbMessages]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current && isAutoScrollEnabled.current) {
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      });
     }
-  }, [messages]);
+  }, [messages.length, isLoading]);
 
   const streamChat = async (userMessage: string) => {
     const uid = await getUserId();
@@ -260,9 +264,22 @@ export default function HealthAssistant() {
         </div>
 
         <Card className="flex flex-col h-[calc(100%-120px)] bg-card/50 backdrop-blur border-border/50">
-          <ScrollArea className="flex-1 p-6" ref={scrollRef}>
+          <div 
+            ref={scrollRef}
+            className="flex-1 p-6 overflow-y-auto"
+            onScroll={(e) => {
+              const element = e.currentTarget;
+              const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+              isAutoScrollEnabled.current = isNearBottom;
+            }}
+          >
             <div className="space-y-6">
-              {messages.map((message, index) => (
+              {messages.map((message, index) => {
+                const normalizedContent = message.role === "assistant" 
+                  ? normalizeMarkdown(message.content) 
+                  : message.content;
+                
+                return (
                 <div
                   key={index}
                   className={`flex gap-3 ${
@@ -284,7 +301,7 @@ export default function HealthAssistant() {
                   >
                     {message.role === "assistant" ? (
                       <MarkdownContent
-                        content={normalizeMarkdown(message.content)}
+                        content={normalizedContent}
                         className="text-sm"
                       />
                     ) : (
@@ -300,7 +317,8 @@ export default function HealthAssistant() {
                     </div>
                   )}
                 </div>
-              ))}
+              );
+              })}
 
               {isLoading && (
                 <div className="flex gap-3">
@@ -323,7 +341,7 @@ export default function HealthAssistant() {
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
 
           {messages.length === 1 && (
             <div className="p-4 border-t border-border/30">
