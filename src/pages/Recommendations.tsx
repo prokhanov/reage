@@ -134,15 +134,6 @@ export default function Recommendations() {
   const handleDelete = async () => {
     if (!selectedReport) return;
     
-    if (isViewMode) {
-      toast({
-        title: "Действие недоступно",
-        description: "Удаление недоступно в режиме просмотра",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setDeleting(true);
     try {
       const ids = selectedReport.recommendations.map(r => r.id);

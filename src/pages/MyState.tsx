@@ -285,15 +285,6 @@ export default function MyState() {
   };
 
   const handleSubmit = async () => {
-    if (isViewMode) {
-      toast({
-        title: "Действие недоступно",
-        description: "Сохранение данных недоступно в режиме просмотра",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setIsSubmitting(true);
     
     try {
