@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FlaskConical, Sparkles, Trash2, Plus } from "lucide-react";
+import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { CreateAnalysisWizard } from "@/components/admin/CreateAnalysisWizard";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
+import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import {
   AlertDialog,
@@ -42,6 +43,8 @@ export default function Analyses() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [analysisToEdit, setAnalysisToEdit] = useState<Analysis | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -241,19 +244,35 @@ export default function Analyses() {
                     )}
                   </CardContent>
                 </div>
-                {isViewMode && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAnalysisToDelete(analysis.id);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                {isViewMode && isSuperAdmin && (
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    {analysis.health_index && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-primary/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAnalysisToEdit(analysis);
+                          setEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAnalysisToDelete(analysis.id);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 )}
               </Card>
             ))}
@@ -282,6 +301,16 @@ export default function Analyses() {
           onOpenChange={setCreateDialogOpen}
           onSuccess={loadAnalyses}
         />
+
+        {analysisToEdit && (
+          <EditReportDialog
+            analysisId={analysisToEdit.id}
+            analysisStatus={analysisToEdit.status}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onStatusChange={loadAnalyses}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

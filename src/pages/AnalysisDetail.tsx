@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,6 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
-import { EditReportDialog } from "@/components/admin/EditReportDialog";
 
 interface Biomarker {
   id: string;
@@ -48,7 +47,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0, currentCategory: "" });
   const [searchQuery, setSearchQuery] = useState("");
-  const [editReportOpen, setEditReportOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -114,27 +112,11 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     }
   };
 
-  const handlePublishToClient = async () => {
-    try {
-      const { error } = await supabase
-        .from("analyses")
-        .update({ status: "processed" })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Успешно!",
-        description: "Отчет загружен в кабинет клиента",
-      });
-
-      loadData();
-    } catch (error: any) {
-      toast({
-        title: "Ошибка",
-        description: error.message,
-        variant: "destructive",
-      });
+  const handleEditReport = () => {
+    if (isViewMode) {
+      setSimPath("/recommendations");
+    } else {
+      navigate("/recommendations");
     }
   };
 
@@ -187,13 +169,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
       loadData();
       
-      // Для superadmin в режиме просмотра - открываем редактор отчета
-      if (isSuperAdmin && isViewMode) {
-        setEditReportOpen(true);
-      } else {
-        // Для обычных пользователей - переходим на страницу рекомендаций
-        (isViewMode ? setSimPath("/recommendations") : navigate("/recommendations"));
-      }
+      // Переходим на страницу рекомендаций
+      (isViewMode ? setSimPath("/recommendations") : navigate("/recommendations"));
     } catch (error: any) {
       toast({
         title: "Ошибка анализа",
@@ -281,23 +258,15 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             </div>
           </div>
 
-          {isSuperAdmin && isViewMode && (
+          {isSuperAdmin && isViewMode && analysis?.health_index && (
             <div className="flex gap-2">
               <Button
-                onClick={() => setEditReportOpen(true)}
+                onClick={handleEditReport}
                 variant="outline"
               >
                 <Edit className="mr-2 h-4 w-4" />
-                Редактировать отчет
+                Редактировать
               </Button>
-              {analysis?.status === "on_review" && (
-                <Button
-                  onClick={handlePublishToClient}
-                >
-                  <Send className="mr-2 h-4 w-4" />
-                  Загрузить в кабинет
-                </Button>
-              )}
               <Button
                 onClick={handleAnalyze}
                 disabled={analyzing || values.length === 0}
@@ -650,17 +619,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             })}
           </TabsContent>
         </Tabs>
-
-        {/* Edit Report Dialog */}
-        {isSuperAdmin && analysis && (
-          <EditReportDialog
-            analysisId={id!}
-            analysisStatus={analysis.status}
-            open={editReportOpen}
-            onOpenChange={setEditReportOpen}
-            onStatusChange={loadData}
-          />
-        )}
       </div>
     </DashboardLayout>
   );
