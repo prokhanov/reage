@@ -39,6 +39,14 @@ interface RecommendationReport {
   analysisId: string | null;
 }
 
+interface Prescription {
+  id: string;
+  prescription: string;
+  effect: string;
+  control_date: string;
+  status: "on_review" | "confirmed";
+}
+
 type SectionType = 'patient-data' | 'summary' | string;
 
 
@@ -53,6 +61,7 @@ export default function Recommendations() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<RecommendationReport | null>(null);
+  const [selectedPrescriptions, setSelectedPrescriptions] = useState<Prescription[]>([]);
   const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -126,9 +135,34 @@ export default function Recommendations() {
     }
   };
 
-  const handleView = (report: RecommendationReport) => {
+  const handleView = async (report: RecommendationReport) => {
     setSelectedReport(report);
     setViewDialogOpen(true);
+    
+    // Загружаем назначения для этого анализа
+    if (report.analysisId) {
+      try {
+        const { data, error } = await supabase
+          .from("prescriptions")
+          .select("*")
+          .eq("analysis_id", report.analysisId)
+          .order("created_at", { ascending: true });
+        
+        if (error) throw error;
+        
+        // Фильтруем по статусу: для обычных пользователей только confirmed
+        const filtered = isSuperAdmin 
+          ? (data || [])
+          : (data || []).filter(p => p.status === "confirmed");
+        
+        setSelectedPrescriptions(filtered);
+      } catch (error) {
+        console.error("Error loading prescriptions:", error);
+        setSelectedPrescriptions([]);
+      }
+    } else {
+      setSelectedPrescriptions([]);
+    }
   };
 
   const scrollToSection = (sectionId: string, e: React.MouseEvent) => {
@@ -325,6 +359,20 @@ export default function Recommendations() {
         type !== "Общее резюме" && type !== "Данные пациента"
       );
 
+      // Загружаем назначения для PDF
+      let prescriptions: Prescription[] = [];
+      if (selectedReport.analysisId) {
+        const { data } = await supabase
+          .from("prescriptions")
+          .select("*")
+          .eq("analysis_id", selectedReport.analysisId)
+          .order("created_at", { ascending: true });
+        
+        prescriptions = isSuperAdmin 
+          ? (data || [])
+          : (data || []).filter(p => p.status === "confirmed");
+      }
+
       const sections = [
         ...(patientData ? [{ 
           id: 'patient-data', 
@@ -337,6 +385,21 @@ export default function Recommendations() {
           type: 'summary' as SectionType,
           label: 'Общее резюме', 
           content: summary.text 
+        }] : []),
+        ...(prescriptions.length > 0 ? [{
+          id: 'prescriptions',
+          type: 'prescriptions' as SectionType,
+          label: 'Назначения',
+          content: prescriptions.map((p, idx) => 
+            `**${idx + 1}. ${p.prescription}**\n\n*${p.effect}*\n\nДлительность: ${
+              (() => {
+                const start = new Date(selectedReport.date);
+                const end = new Date(p.control_date);
+                const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+                return `${months} мес.`;
+              })()
+            }, Контрольная дата: ${format(new Date(p.control_date), "dd.MM.yyyy")}`
+          ).join('\n\n---\n\n')
         }] : []),
         ...categories.flatMap(([type, recs]) => 
           recs.map((rec, idx) => ({
@@ -592,6 +655,7 @@ export default function Recommendations() {
               const sections = [
                 ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
                 ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
+                ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : []),
                 ...categories.map(([type]) => ({ id: toSlug(type), label: type }))
               ];
 
@@ -664,6 +728,48 @@ export default function Recommendations() {
                               <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
                                 <MarkdownContent content={summary.text} />
                               </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedPrescriptions.length > 0 && (
+                          <div id="section-prescriptions" className="scroll-mt-6">
+                            <div className="mb-6">
+                              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                Назначения
+                              </h2>
+                              <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                            </div>
+                            <div className="space-y-4">
+                              {selectedPrescriptions.map((prescription, idx) => (
+                                <div key={prescription.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                  <div className="flex items-start justify-between gap-4 mb-3">
+                                    <h3 className="font-semibold text-lg flex-1">
+                                      {idx + 1}. {prescription.prescription}
+                                    </h3>
+                                    <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
+                                      {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
+                                    </Badge>
+                                  </div>
+                                  {prescription.effect && (
+                                    <p className="text-sm text-muted-foreground mb-3 italic">
+                                      {prescription.effect}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <span>
+                                      Длительность: {(() => {
+                                        const start = new Date(selectedReport.date);
+                                        const end = new Date(prescription.control_date);
+                                        const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+                                        return `${months} мес.`;
+                                      })()}
+                                    </span>
+                                    <span>•</span>
+                                    <span>Контрольная дата: {format(new Date(prescription.control_date), "dd.MM.yyyy")}</span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         )}

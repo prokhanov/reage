@@ -232,6 +232,7 @@ export type Database = {
       }
       prescriptions: {
         Row: {
+          analysis_id: string | null
           control_date: string | null
           created_at: string
           created_by: string | null
@@ -244,6 +245,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analysis_id?: string | null
           control_date?: string | null
           created_at?: string
           created_by?: string | null
@@ -256,6 +258,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analysis_id?: string | null
           control_date?: string | null
           created_at?: string
           created_by?: string | null
@@ -267,7 +270,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

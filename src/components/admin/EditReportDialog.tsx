@@ -2,20 +2,31 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
 import { marked } from 'marked';
 import TurndownService from 'turndown';
+import { format } from "date-fns";
+import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
 
 interface Recommendation {
   id: string;
   type: string;
   text: string;
   originalMarkdown?: string;
+}
+
+interface Prescription {
+  id: string;
+  prescription: string;
+  effect: string;
+  control_date: string;
+  status: "on_review" | "confirmed";
 }
 
 interface EditReportDialogProps {
@@ -34,6 +45,9 @@ export function EditReportDialog({
   onStatusChange 
 }: EditReportDialogProps) {
   const [sections, setSections] = useState<Recommendation[]>([]);
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [editPrescriptionDialogOpen, setEditPrescriptionDialogOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
   const [selectedStatus, setSelectedStatus] = useState<"on_review" | "processed">(initialStatus);
   const [loading, setLoading] = useState(false);
@@ -48,8 +62,24 @@ export function EditReportDialog({
   useEffect(() => {
     if (open) {
       loadRecommendations();
+      loadPrescriptions();
     }
   }, [open, analysisId]);
+
+  const loadPrescriptions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("prescriptions")
+        .select("*")
+        .eq("analysis_id", analysisId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setPrescriptions(data || []);
+    } catch (error: any) {
+      console.error("Error loading prescriptions:", error);
+    }
+  };
 
   const loadRecommendations = async () => {
     setLoading(true);
@@ -151,103 +181,202 @@ export function EditReportDialog({
     }
   };
 
+  const handleConfirmPrescription = async (prescriptionId: string) => {
+    try {
+      const { error } = await supabase
+        .from("prescriptions")
+        .update({ status: "confirmed" })
+        .eq("id", prescriptionId);
+
+      if (error) throw error;
+
+      setPrescriptions(prev => prev.map(p => 
+        p.id === prescriptionId ? { ...p, status: "confirmed" as const } : p
+      ));
+
+      toast({
+        title: "Успешно",
+        description: "Назначение подтверждено",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditPrescription = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setEditPrescriptionDialogOpen(true);
+  };
+
 
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <style>{`
-        .quill-editor .ql-editor {
-          font-size: 15px;
-          line-height: 1.6;
-        }
-        .quill-editor .ql-editor p {
-          margin-bottom: 1em;
-        }
-        .quill-editor .ql-editor h1,
-        .quill-editor .ql-editor h2,
-        .quill-editor .ql-editor h3 {
-          margin-top: 1.5em;
-          margin-bottom: 0.75em;
-          font-weight: 600;
-        }
-        .quill-editor .ql-editor ul,
-        .quill-editor .ql-editor ol {
-          margin-bottom: 1em;
-          padding-left: 1.5em;
-        }
-        .quill-editor .ql-editor li {
-          margin-bottom: 0.5em;
-        }
-        .ql-bubble .ql-tooltip {
-          z-index: 9999;
-        }
-      `}</style>
-      <DialogContent className="max-w-6xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle>Редактирование отчета</DialogTitle>
-            <div className="flex items-center gap-3">
-              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="on_review">На проверке</SelectItem>
-                  <SelectItem value="processed">Подтвержден</SelectItem>
-                </SelectContent>
-              </Select>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <style>{`
+          .quill-editor .ql-editor {
+            font-size: 15px;
+            line-height: 1.6;
+          }
+          .quill-editor .ql-editor p {
+            margin-bottom: 1em;
+          }
+          .quill-editor .ql-editor h1,
+          .quill-editor .ql-editor h2,
+          .quill-editor .ql-editor h3 {
+            margin-top: 1.5em;
+            margin-bottom: 0.75em;
+            font-weight: 600;
+          }
+          .quill-editor .ql-editor ul,
+          .quill-editor .ql-editor ol {
+            margin-bottom: 1em;
+            padding-left: 1.5em;
+          }
+          .quill-editor .ql-editor li {
+            margin-bottom: 0.5em;
+          }
+          .ql-bubble .ql-tooltip {
+            z-index: 9999;
+          }
+        `}</style>
+        <DialogContent className="max-w-6xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle>Редактирование отчета</DialogTitle>
+              <div className="flex items-center gap-3">
+                <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="on_review">На проверке</SelectItem>
+                    <SelectItem value="processed">Подтвержден</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          <DialogDescription>
-            Проверьте и отредактируйте AI-сгенерированный отчет. Измените статус на "Подтвержден", чтобы клиент увидел отчет.
-          </DialogDescription>
-        </DialogHeader>
+            <DialogDescription>
+              Проверьте и отредактируйте AI-сгенерированный отчет. Измените статус на "Подтвержден", чтобы клиент увидел отчет.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <Tabs defaultValue={sections[0]?.type || "summary"} className="flex-1 overflow-hidden flex flex-col">
-              <TabsList className="shrink-0 grid w-full" style={{ gridTemplateColumns: `repeat(${sections.length}, minmax(0, 1fr))` }}>
-                {sections.map((section) => (
-                  <TabsTrigger key={section.id} value={section.type}>
-                    {section.type}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {sections.map((section) => (
-                <TabsContent key={section.id} value={section.type} className="flex-1 overflow-hidden mt-4">
-                  <ReactQuill
-                    theme="bubble"
-                    value={section.text}
-                    onChange={(text) => updateSection(section.id, text)}
-                    placeholder="Выделите текст для форматирования..."
-                    className="bg-background rounded-md border border-border p-6 h-full quill-editor"
-                  />
-                </TabsContent>
-              ))}
-            </Tabs>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
-          <Button
-            onClick={handleSaveChanges}
-            disabled={saving || loading}
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Сохранение...
-              </>
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
             ) : (
-              "Сохранить изменения"
+              <Tabs defaultValue={sections[0]?.type || "summary"} className="flex-1 overflow-hidden flex flex-col">
+                <TabsList className="shrink-0 grid w-full" style={{ gridTemplateColumns: `repeat(${sections.length + (prescriptions.length > 0 ? 1 : 0)}, minmax(0, 1fr))` }}>
+                  {sections.map((section) => (
+                    <TabsTrigger key={section.id} value={section.type}>
+                      {section.type}
+                    </TabsTrigger>
+                  ))}
+                  {prescriptions.length > 0 && (
+                    <TabsTrigger value="prescriptions">
+                      Назначения ({prescriptions.length})
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+                {sections.map((section) => (
+                  <TabsContent key={section.id} value={section.type} className="flex-1 overflow-hidden mt-4">
+                    <ReactQuill
+                      theme="bubble"
+                      value={section.text}
+                      onChange={(text) => updateSection(section.id, text)}
+                      placeholder="Выделите текст для форматирования..."
+                      className="bg-background rounded-md border border-border p-6 h-full quill-editor"
+                    />
+                  </TabsContent>
+                ))}
+                {prescriptions.length > 0 && (
+                  <TabsContent value="prescriptions" className="flex-1 overflow-auto mt-4">
+                    <div className="space-y-4 p-6">
+                      {prescriptions.map((prescription, idx) => (
+                        <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <h3 className="font-semibold text-base flex-1">
+                              {idx + 1}. {prescription.prescription}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
+                                {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
+                              </Badge>
+                            </div>
+                          </div>
+                          {prescription.effect && (
+                            <p className="text-sm text-muted-foreground mb-3 italic">
+                              {prescription.effect}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">
+                              Контрольная дата: {format(new Date(prescription.control_date), "dd.MM.yyyy")}
+                            </span>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditPrescription(prescription)}
+                              >
+                                Редактировать
+                              </Button>
+                              {prescription.status !== "confirmed" && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleConfirmPrescription(prescription.id)}
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Подтвердить
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
             )}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
+            <Button
+              onClick={handleSaveChanges}
+              disabled={saving || loading}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Сохранение...
+                </>
+              ) : (
+                "Сохранить изменения"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {selectedPrescription && (
+        <EditPrescriptionDialog
+          open={editPrescriptionDialogOpen}
+          onOpenChange={(open) => {
+            setEditPrescriptionDialogOpen(open);
+            if (!open) {
+              loadPrescriptions();
+            }
+          }}
+          prescription={selectedPrescription}
+        />
+      )}
+    </>
   );
 }

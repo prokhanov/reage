@@ -644,9 +644,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .replace('{keyFindings}', keyFindings)
           .replace('{abnormalBiomarkers}', abnormalBiomarkers || 'Все показатели в пределах нормы');
 
-        console.log("Calling AI for prescriptions generation...");
+        console.log("Starting prescriptions generation...");
 
-        // Вызываем AI с tool calling
+        // Вызываем AI для генерации назначений (без tool calling, только JSON)
         const prescriptionsResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -658,66 +658,44 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             messages: [
               { 
                 role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text
+                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"prescription\": \"текст\", \"effect\": \"текст\", \"duration_months\": число}]}. Никакого дополнительного текста!"
               },
               { 
                 role: "user", 
                 content: finalPrescriptionsPrompt 
               }
-            ],
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "create_prescriptions",
-                  description: "Создать список назначений для пациента на основе анализа биомаркеров",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      prescriptions: {
-                        type: "array",
-                        description: "Список назначений. Может быть пустым если назначения не требуются.",
-                        items: {
-                          type: "object",
-                          properties: {
-                            prescription: { 
-                              type: "string",
-                              description: "Четкое описание назначения с дозировкой и частотой"
-                            },
-                            effect: { 
-                              type: "string",
-                              description: "Объяснение эффекта: механизм, улучшения, сроки, важность"
-                            },
-                            duration_months: { 
-                              type: "integer",
-                              description: "Длительность курса в месяцах (1, 2, 3, 4 или 6)"
-                            }
-                          },
-                          additionalProperties: false
-                        }
-                      }
-                    },
-                    additionalProperties: false
-                  }
-                }
-              }
-            ],
-            tool_choice: { 
-              type: "function", 
-              function: { name: "create_prescriptions" } 
-            }
+            ]
           }),
         });
 
         if (prescriptionsResponse.ok) {
           const prescriptionsData = await prescriptionsResponse.json();
-          const toolCall = prescriptionsData.choices?.[0]?.message?.tool_calls?.[0];
+          const content = prescriptionsData.choices?.[0]?.message?.content || "";
+          
+          console.log(`Got model content snippet: ${content.substring(0, 200)}...`);
 
-          if (toolCall?.function?.name === "create_prescriptions") {
-            const prescriptionsResult = JSON.parse(toolCall.function.arguments);
-            const prescriptionsToCreate = prescriptionsResult.prescriptions || [];
+          try {
+            // Извлекаем JSON из ответа
+            const jsonStart = content.indexOf('{');
+            const jsonEnd = content.lastIndexOf('}') + 1;
+            if (jsonStart === -1 || jsonEnd <= jsonStart) {
+              throw new Error("No JSON found in response");
+            }
             
-            console.log(`AI generated ${prescriptionsToCreate.length} prescriptions`);
+            const jsonStr = content.substring(jsonStart, jsonEnd);
+            const parsed = JSON.parse(jsonStr);
+            let prescriptionsToCreate = parsed.prescriptions || [];
+            
+            // Валидация и очистка данных
+            prescriptionsToCreate = prescriptionsToCreate
+              .filter((p: any) => p.prescription && p.prescription.trim())
+              .map((p: any) => ({
+                prescription: p.prescription.trim().substring(0, 5000),
+                effect: (p.effect || "").trim().substring(0, 5000),
+                duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
+              }));
+            
+            console.log(`Parsed ${prescriptionsToCreate.length} valid prescriptions`);
             
             // Сохраняем назначения в БД
             if (prescriptionsToCreate.length > 0) {
@@ -725,12 +703,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               
               for (const prescription of prescriptionsToCreate) {
                 const controlDate = new Date(analysisDate);
-                controlDate.setMonth(controlDate.getMonth() + (prescription.duration_months || 3));
+                controlDate.setMonth(controlDate.getMonth() + prescription.duration_months);
                 
                 const { error: prescriptionError } = await supabase
                   .from("prescriptions")
                   .insert({
                     user_id: analysis.user_id,
+                    analysis_id: analysisId,
                     prescription: prescription.prescription,
                     effect: prescription.effect,
                     control_date: controlDate.toISOString().split('T')[0],
@@ -747,13 +726,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               }
               
               prescriptionsStatus = "success";
-              console.log(`Successfully created ${prescriptionsCreated} prescriptions`);
+              console.log(`Successfully created ${prescriptionsCreated} prescriptions in database`);
             } else {
               prescriptionsStatus = "success";
               console.log("No prescriptions were needed based on analysis");
             }
-          } else {
-            console.warn("AI did not return prescriptions in expected format");
+          } catch (parseError) {
+            console.error("Failed to parse prescriptions JSON:", parseError, "Content:", content);
             prescriptionsStatus = "error";
           }
         } else {
