@@ -68,11 +68,22 @@ export function EditReportDialog({
       
       setRecommendations(data || []);
       
-      // Combine all recommendations into one full report WITHOUT section headers
+      // Combine all recommendations into one full report with section headers
+      const groupedByType = (data || []).reduce((acc, rec) => {
+        if (!acc[rec.type]) {
+          acc[rec.type] = [];
+        }
+        acc[rec.type].push(rec);
+        return acc;
+      }, {} as Record<string, Recommendation[]>);
+      
       let combinedText = "";
-      (data || []).forEach(rec => {
-        combinedText += marked.parse(rec.text) as string;
-        combinedText += "\n\n";
+      Object.entries(groupedByType).forEach(([type, recs]) => {
+        combinedText += `<h2>${type}</h2>\n`;
+        recs.forEach(rec => {
+          combinedText += marked.parse(rec.text) as string;
+          combinedText += "\n\n";
+        });
       });
       
       setFullReportText(combinedText);
