@@ -1,8 +1,8 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -23,18 +23,24 @@ export function CreateAnalysisDialog({ open, onOpenChange, onSuccess }: CreateAn
   });
   const { toast } = useToast();
 
+  useEffect(() => {
+    console.log("CreateAnalysisDialog - viewAsUserId:", viewAsUserId);
+  }, [viewAsUserId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!viewAsUserId) {
+      console.error("CreateAnalysisDialog - no viewAsUserId available");
       toast({
         title: "Ошибка",
-        description: "Не указан пациент",
+        description: "Не указан пациент. Закройте и откройте диалог снова.",
         variant: "destructive",
       });
       return;
     }
 
+    console.log("Creating analysis for user:", viewAsUserId);
     setLoading(true);
 
     try {
@@ -48,8 +54,12 @@ export function CreateAnalysisDialog({ open, onOpenChange, onSuccess }: CreateAn
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating analysis:", error);
+        throw error;
+      }
 
+      console.log("Analysis created successfully:", data);
       toast({
         title: "Успешно!",
         description: "Анализ создан. Теперь добавьте результаты.",
@@ -59,6 +69,7 @@ export function CreateAnalysisDialog({ open, onOpenChange, onSuccess }: CreateAn
       setSimPath(`/analyses/${data.id}`);
       onSuccess?.();
     } catch (error: any) {
+      console.error("Error in handleSubmit:", error);
       toast({
         title: "Ошибка",
         description: error.message || "Не удалось создать анализ",
@@ -76,6 +87,9 @@ export function CreateAnalysisDialog({ open, onOpenChange, onSuccess }: CreateAn
           <DialogTitle className="bg-gradient-primary bg-clip-text text-transparent">
             Новый анализ для пациента
           </DialogTitle>
+          <DialogDescription>
+            Создайте новый анализ и добавьте показатели биомаркеров
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
