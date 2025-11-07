@@ -19,6 +19,7 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import html2pdf from "html2pdf.js";
+import { marked } from "marked";
 
 interface Recommendation {
   id: string;
@@ -209,19 +210,28 @@ export default function Recommendations() {
         type !== "Общее резюме" && type !== "Данные пациента"
       );
 
+      // Конвертируем markdown в HTML
       const sections = [
-        ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента', content: patientData.text }] : []),
-        ...(summary ? [{ id: 'summary', label: 'Общее резюме', content: summary.text }] : []),
+        ...(patientData ? [{ 
+          id: 'patient-data', 
+          label: 'Данные пациента', 
+          content: marked.parse(patientData.text) 
+        }] : []),
+        ...(summary ? [{ 
+          id: 'summary', 
+          label: 'Общее резюме', 
+          content: marked.parse(summary.text) 
+        }] : []),
         ...categories.flatMap(([type, recs]) => 
           recs.map((rec, idx) => ({
             id: `${toSlug(type)}-${idx}`,
             label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
-            content: rec.text
+            content: marked.parse(rec.text)
           }))
         )
       ];
 
-      // Создаем HTML для PDF с оглавлением
+      // Создаем чистый черно-белый HTML для PDF
       const pdfContent = `
         <!DOCTYPE html>
         <html>
@@ -236,110 +246,109 @@ export default function Recommendations() {
               }
               
               body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                line-height: 1.6;
-                color: #333;
+                font-family: 'Georgia', 'Times New Roman', serif;
+                line-height: 1.8;
+                color: #000;
                 background: white;
-                padding: 20px;
+                padding: 40px;
+                font-size: 12pt;
               }
               
               .header {
                 text-align: center;
-                margin-bottom: 30px;
+                margin-bottom: 40px;
                 padding-bottom: 20px;
-                border-bottom: 3px solid #8B5CF6;
+                border-bottom: 2px solid #000;
               }
               
               .header h1 {
-                font-size: 28px;
-                color: #8B5CF6;
+                font-size: 24pt;
+                color: #000;
                 margin-bottom: 10px;
+                font-weight: bold;
               }
               
               .header .date {
-                font-size: 16px;
-                color: #666;
+                font-size: 11pt;
+                color: #000;
               }
               
               .toc {
-                background: #f8f9fa;
-                padding: 20px;
+                padding: 20px 0;
                 margin-bottom: 40px;
-                border-radius: 8px;
-                border-left: 4px solid #8B5CF6;
-                page-break-inside: avoid;
+                page-break-after: always;
               }
               
               .toc h2 {
-                font-size: 20px;
-                color: #333;
-                margin-bottom: 15px;
+                font-size: 18pt;
+                color: #000;
+                margin-bottom: 20px;
+                font-weight: bold;
+                border-bottom: 1px solid #000;
+                padding-bottom: 10px;
               }
               
               .toc-list {
                 list-style: none;
+                padding-left: 0;
               }
               
               .toc-item {
-                margin: 8px 0;
+                margin: 10px 0;
               }
               
               .toc-link {
-                color: #8B5CF6;
+                color: #000;
                 text-decoration: none;
                 display: flex;
                 justify-content: space-between;
                 padding: 8px 0;
-                border-bottom: 1px dotted #ddd;
-              }
-              
-              .toc-link:hover {
-                color: #7C3AED;
+                border-bottom: 1px dotted #ccc;
               }
               
               .section {
-                margin-bottom: 40px;
+                margin-bottom: 30px;
                 page-break-inside: avoid;
               }
               
               .section-header {
-                background: #8B5CF6;
-                color: white;
-                padding: 12px 20px;
-                margin-bottom: 20px;
-                border-radius: 6px;
-                font-size: 18px;
+                color: #000;
+                padding: 10px 0;
+                margin-bottom: 15px;
+                margin-top: 20px;
+                border-bottom: 2px solid #000;
+                font-size: 16pt;
                 font-weight: bold;
               }
               
               .section-content {
-                padding: 0 10px;
-                font-size: 14px;
+                font-size: 11pt;
                 line-height: 1.8;
+                text-align: justify;
               }
               
               .section-content h1,
               .section-content h2,
               .section-content h3,
               .section-content h4 {
-                color: #333;
+                color: #000;
                 margin-top: 20px;
                 margin-bottom: 10px;
+                font-weight: bold;
               }
               
-              .section-content h1 { font-size: 22px; }
-              .section-content h2 { font-size: 18px; }
-              .section-content h3 { font-size: 16px; }
-              .section-content h4 { font-size: 14px; }
+              .section-content h1 { font-size: 16pt; }
+              .section-content h2 { font-size: 14pt; }
+              .section-content h3 { font-size: 12pt; }
+              .section-content h4 { font-size: 11pt; }
               
               .section-content p {
                 margin-bottom: 12px;
-                text-align: justify;
               }
               
               .section-content ul,
               .section-content ol {
-                margin-left: 25px;
+                margin-left: 30px;
                 margin-bottom: 15px;
               }
               
@@ -348,36 +357,47 @@ export default function Recommendations() {
               }
               
               .section-content strong {
-                color: #8B5CF6;
-                font-weight: 600;
+                color: #000;
+                font-weight: bold;
               }
               
-              .section-content code {
-                background: #f1f1f1;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: 'Courier New', monospace;
-                font-size: 13px;
-              }
-              
-              .section-content blockquote {
-                border-left: 4px solid #8B5CF6;
-                padding-left: 15px;
-                margin: 15px 0;
-                color: #555;
+              .section-content em {
                 font-style: italic;
               }
               
-              .page-break {
-                page-break-after: always;
+              .section-content code {
+                font-family: 'Courier New', monospace;
+                font-size: 10pt;
+              }
+              
+              .section-content blockquote {
+                border-left: 3px solid #000;
+                padding-left: 15px;
+                margin: 15px 0;
+                color: #000;
+                font-style: italic;
+              }
+              
+              .section-content table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+              }
+              
+              .section-content table th,
+              .section-content table td {
+                border: 1px solid #000;
+                padding: 8px;
+                text-align: left;
+              }
+              
+              .section-content table th {
+                font-weight: bold;
               }
               
               @media print {
                 body {
-                  padding: 0;
-                }
-                .toc {
-                  page-break-after: always;
+                  padding: 20px;
                 }
               }
             </style>
@@ -424,13 +444,14 @@ export default function Recommendations() {
       const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
       
       const opt = {
-        margin: [15, 15, 15, 15] as [number, number, number, number],
+        margin: [20, 20, 20, 20] as [number, number, number, number],
         filename: fileName,
-        image: { type: 'jpeg' as const, quality: 0.95 },
+        image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { 
           scale: 2,
           useCORS: true,
-          logging: false
+          logging: false,
+          backgroundColor: '#ffffff'
         },
         jsPDF: { 
           unit: 'mm', 
@@ -438,7 +459,10 @@ export default function Recommendations() {
           orientation: 'portrait' as const,
           compress: true
         },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        pagebreak: { 
+          mode: 'avoid-all',
+          before: '.section'
+        }
       };
 
       await html2pdf().set(opt).from(tempDiv).save();
