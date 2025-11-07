@@ -121,10 +121,10 @@ export default function Analyses() {
                 className="hover:shadow-neon-primary hover:border-primary/50 transition-all cursor-pointer border-primary/20 bg-gradient-to-br from-card to-primary/5 group"
                 onClick={() => {
                   if (isViewMode) {
-                    toast({ title: "Доступно только в режиме пациента", description: "Откройте профиль пациента, чтобы редактировать анализ", variant: "destructive" });
-                    return;
+                    setSimPath(`/analyses/${analysis.id}`);
+                  } else {
+                    navigate(`/analyses/${analysis.id}`);
                   }
-                  navigate(`/analyses/${analysis.id}`);
                 }}
               >
                 <CardHeader>
