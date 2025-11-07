@@ -287,7 +287,7 @@ export default function HealthAssistant() {
                       <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-4 prose-ul:my-3 prose-li:my-1 prose-strong:text-foreground prose-headings:text-foreground prose-headings:mb-3">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm, remarkBreaks]}
-                          components={{ br: () => (<><br /><br /></>) }}
+                          components={{ br: () => (<span className="block h-4" aria-hidden="true" />) }}
                         >
                           {message.content}
                         </ReactMarkdown>
