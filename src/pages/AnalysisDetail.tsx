@@ -16,6 +16,7 @@ import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
+import { EditReportDialog } from "@/components/admin/EditReportDialog";
 
 interface Biomarker {
   id: string;
@@ -50,6 +51,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [editAnalysisDialogOpen, setEditAnalysisDialogOpen] = useState(false);
+  const [showEditReport, setShowEditReport] = useState(false);
+  const [editReportAnalysisId, setEditReportAnalysisId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -164,15 +167,15 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       const successCount = Object.values(data.categories_processed).filter((s: any) => s.success).length;
       
       toast({
-        title: "Анализ завершен!",
-        description: `Обработано категорий: ${successCount}/${categories.length}. Индекс здоровья: ${data.health_index}%. Биологический возраст: ${data.biological_age} лет. Использовано ~${data.total_tokens} токенов (~${data.estimated_cost_credits} кредитов)`,
-        duration: 10000
+        title: "Отчет сгенерирован",
+        description: "Проверьте и отредактируйте отчет",
       });
 
       loadData();
       
-      // Переходим на страницу персональных отчётов
-      (isViewMode ? setSimPath("/recommendations") : navigate("/recommendations"));
+      // Открываем диалог редактирования отчета
+      setEditReportAnalysisId(id || null);
+      setShowEditReport(true);
     } catch (error: any) {
       toast({
         title: "Ошибка анализа",
@@ -623,12 +626,21 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         </Tabs>
 
         {id && (
-          <EditAnalysisWizard
-            analysisId={id}
-            open={editAnalysisDialogOpen}
-            onOpenChange={setEditAnalysisDialogOpen}
-            onSuccess={loadData}
-          />
+          <>
+            <EditAnalysisWizard
+              analysisId={id}
+              open={editAnalysisDialogOpen}
+              onOpenChange={setEditAnalysisDialogOpen}
+              onSuccess={loadData}
+            />
+            <EditReportDialog
+              analysisId={editReportAnalysisId || id}
+              analysisStatus={analysis?.status || "on_review"}
+              open={showEditReport}
+              onOpenChange={setShowEditReport}
+              onStatusChange={loadData}
+            />
+          </>
         )}
       </div>
     </DashboardLayout>
