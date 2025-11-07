@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
@@ -55,6 +53,13 @@ export default function Recommendations() {
   const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const toSlug = (s: string) =>
+    s
+      .toLowerCase()
+      .trim()
+      .replace(/[^\p{L}\p{N}]+/gu, "-")
+      .replace(/^-+|-+$/g, "");
 
   useEffect(() => {
     loadRecommendations();
@@ -126,9 +131,13 @@ export default function Recommendations() {
   const scrollToSection = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const element = document.getElementById(`section-${sectionId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const container = contentRef.current;
+    const target = document.getElementById(`section-${sectionId}`);
+    if (container && target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const offset = targetRect.top - containerRect.top + container.scrollTop - 8;
+      container.scrollTo({ top: offset, behavior: 'smooth' });
     }
   };
 
@@ -363,7 +372,7 @@ export default function Recommendations() {
               const sections = [
                 ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
                 ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
-                ...categories.map(([type]) => ({ id: type, label: type }))
+                ...categories.map(([type]) => ({ id: toSlug(type), label: type }))
               ];
 
               return (
@@ -418,7 +427,7 @@ export default function Recommendations() {
                       </Button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-8 py-6">
+                    <div className="flex-1 overflow-y-auto px-8 py-6" ref={contentRef}>
                       <div id="report-content" className="space-y-12 max-w-4xl">
                         {patientData && (
                           <div id="section-patient-data" className="scroll-mt-6">
@@ -441,7 +450,7 @@ export default function Recommendations() {
                         )}
 
                         {categories.map(([type, recs]) => (
-                          <div key={type} id={`section-${type}`} className="scroll-mt-6">
+                          <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
                             <div className="prose prose-sm max-w-none space-y-4">
                               <div className="mb-6">
                                 <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
