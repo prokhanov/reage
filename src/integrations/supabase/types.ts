@@ -47,6 +47,7 @@ export type Database = {
           id: string
           lab_name: string | null
           note: string | null
+          status: Database["public"]["Enums"]["analysis_status"]
           user_id: string
         }
         Insert: {
@@ -57,6 +58,7 @@ export type Database = {
           id?: string
           lab_name?: string | null
           note?: string | null
+          status?: Database["public"]["Enums"]["analysis_status"]
           user_id: string
         }
         Update: {
@@ -67,6 +69,7 @@ export type Database = {
           id?: string
           lab_name?: string | null
           note?: string | null
+          status?: Database["public"]["Enums"]["analysis_status"]
           user_id?: string
         }
         Relationships: []
@@ -387,6 +390,7 @@ export type Database = {
       }
     }
     Enums: {
+      analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin"
     }
     CompositeTypes: {
@@ -515,6 +519,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin"],
     },
   },

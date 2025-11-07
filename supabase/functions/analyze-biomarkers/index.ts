@@ -592,7 +592,7 @@ ${report}
       ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() - Math.round((health_index - 70) / 3)
       : null;
 
-    // Обновляем анализ
+    // Обновляем анализ (БЕЗ изменения статуса - он меняется вручную врачом)
     await supabase
       .from("analyses")
       .update({ health_index, biological_age })

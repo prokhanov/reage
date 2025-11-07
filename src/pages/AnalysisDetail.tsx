@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Progress } from "@/components/ui/progress";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
+import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
+import { EditReportDialog } from "@/components/admin/EditReportDialog";
 
 interface Biomarker {
   id: string;
@@ -37,6 +40,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const id = analysisId ?? params.id;
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
+  const { isSuperAdmin } = useSuperAdminCheck();
   const [analysis, setAnalysis] = useState<any>(null);
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
@@ -44,9 +48,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0, currentCategory: "" });
   const [searchQuery, setSearchQuery] = useState("");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingBiomarker, setEditingBiomarker] = useState<Biomarker | null>(null);
-  const [editValue, setEditValue] = useState("");
+  const [editReportOpen, setEditReportOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -112,87 +114,25 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     }
   };
 
-  const openEditDialog = (biomarker: Biomarker) => {
-    const existingValue = values.find((v) => v.biomarker_id === biomarker.id);
-    setEditingBiomarker(biomarker);
-    setEditValue(existingValue ? existingValue.value.toString() : "");
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveValue = async () => {
-    if (!editingBiomarker || !editValue) return;
-    
-    if (isViewMode) {
-      toast({
-        title: "Действие недоступно",
-        description: "Редактирование недоступно в режиме просмотра",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const userId = await getUserId();
-      if (!userId) throw new Error("Не авторизован");
-
-      const existingValue = values.find((v) => v.biomarker_id === editingBiomarker.id);
-
-      if (existingValue) {
-        // Update existing value
-        const { error } = await supabase
-          .from("analysis_values")
-          .update({ value: parseFloat(editValue) })
-          .eq("id", existingValue.id);
-
-        if (error) throw error;
-      } else {
-        // Insert new value
-        const { error } = await supabase
-          .from("analysis_values")
-          .insert({
-            analysis_id: id,
-            biomarker_id: editingBiomarker.id,
-            value: parseFloat(editValue),
-          });
-
-        if (error) throw error;
-      }
-
-      toast({
-        title: "Успешно!",
-        description: "Значение сохранено",
-      });
-
-      setEditDialogOpen(false);
-      loadData();
-    } catch (error: any) {
-      toast({
-        title: "Ошибка",
-        description: error.message || "Не удалось сохранить значение",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteValue = async (valueId: string) => {
+  const handlePublishToClient = async () => {
     try {
       const { error } = await supabase
-        .from("analysis_values")
-        .delete()
-        .eq("id", valueId);
+        .from("analyses")
+        .update({ status: "processed" })
+        .eq("id", id);
 
       if (error) throw error;
 
       toast({
-        title: "Удалено",
-        description: "Показатель удален",
+        title: "Успешно!",
+        description: "Отчет загружен в кабинет клиента",
       });
 
       loadData();
     } catch (error: any) {
       toast({
         title: "Ошибка",
-        description: "Не удалось удалить показатель",
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -318,27 +258,49 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                  {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </h2>
+                {analysis && <AnalysisStatusBadge status={analysis.status} />}
+              </div>
               {analysis?.lab_name && (
                 <p className="text-muted-foreground">Лаборатория: {analysis.lab_name}</p>
               )}
             </div>
           </div>
 
-          <Button
-            onClick={handleAnalyze}
-            disabled={analyzing || values.length === 0}
-            className="shadow-neon-accent"
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            {analyzing ? "Анализируем..." : "AI-анализ"}
-          </Button>
+          {isSuperAdmin && isViewMode && (
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setEditReportOpen(true)}
+                variant="outline"
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Редактировать отчет
+              </Button>
+              {analysis?.status === "on_review" && (
+                <Button
+                  onClick={handlePublishToClient}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Загрузить в кабинет
+                </Button>
+              )}
+              <Button
+                onClick={handleAnalyze}
+                disabled={analyzing || values.length === 0}
+                className="shadow-neon-accent"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {analyzing ? "Генерируем..." : "AI-анализ"}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Progress Dialog */}
@@ -449,24 +411,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                   <p className="text-xs text-muted-foreground font-mono">
                                     {value.biomarkers.code}
                                   </p>
-                                </div>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 hover:bg-primary/10"
-                                    onClick={() => openEditDialog(value.biomarkers)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                                    onClick={() => handleDeleteValue(value.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
                                 </div>
                               </div>
 
@@ -687,15 +631,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                 </div>
                               )}
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openEditDialog(biomarker)}
-                              className="border-primary/30 hover:bg-primary/10"
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              {existingValue ? "Редактировать" : "Добавить"}
-                            </Button>
                           </div>
                         </div>
                       );
@@ -709,52 +644,16 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           </TabsContent>
         </Tabs>
 
-        {/* Edit Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="bg-card border-primary/30">
-            <DialogHeader>
-              <DialogTitle className="bg-gradient-primary bg-clip-text text-transparent">
-                {editingBiomarker?.name}
-              </DialogTitle>
-            </DialogHeader>
-            {editingBiomarker && (
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p><span className="font-medium">Код:</span> {editingBiomarker.code}</p>
-                  <p><span className="font-medium">Единица измерения:</span> {editingBiomarker.unit}</p>
-                  {editingBiomarker.normal_min !== null && editingBiomarker.normal_max !== null && (
-                    <p>
-                      <span className="font-medium">Референсные значения:</span>{" "}
-                      {editingBiomarker.normal_min} - {editingBiomarker.normal_max}
-                    </p>
-                  )}
-                  {editingBiomarker.description && (
-                    <p className="mt-2">{editingBiomarker.description}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-value">Значение</Label>
-                  <Input
-                    id="edit-value"
-                    type="number"
-                    step="0.01"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    placeholder="Введите значение"
-                    className="text-lg"
-                  />
-                </div>
-                <Button
-                  onClick={handleSaveValue}
-                  className="w-full"
-                  disabled={!editValue}
-                >
-                  Сохранить
-                </Button>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Edit Report Dialog */}
+        {isSuperAdmin && analysis && (
+          <EditReportDialog
+            analysisId={id!}
+            analysisStatus={analysis.status}
+            open={editReportOpen}
+            onOpenChange={setEditReportOpen}
+            onStatusChange={loadData}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

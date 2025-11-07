@@ -9,7 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { CreateAnalysisDialog } from "@/components/admin/CreateAnalysisDialog";
+import { CreateAnalysisWizard } from "@/components/admin/CreateAnalysisWizard";
+import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import {
   AlertDialog,
@@ -29,6 +30,7 @@ interface Analysis {
   health_index: number | null;
   biological_age: number | null;
   biomarkers_count?: number;
+  status: "on_review" | "processed";
 }
 
 export default function Analyses() {
@@ -271,9 +273,10 @@ export default function Analyses() {
           </AlertDialogContent>
         </AlertDialog>
 
-        <CreateAnalysisDialog 
+        <CreateAnalysisWizard 
           open={createDialogOpen} 
           onOpenChange={setCreateDialogOpen}
+          onSuccess={loadAnalyses}
         />
       </div>
     </DashboardLayout>
