@@ -424,14 +424,13 @@ export default function Recommendations() {
                           Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
                         </DialogDescription>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <button
                         onClick={handleExportPDF}
+                        className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Экспорт в PDF
-                      </Button>
+                        <Download className="h-4 w-4" />
+                        Скачать PDF
+                      </button>
                     </div>
 
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-6" ref={contentRef}>
