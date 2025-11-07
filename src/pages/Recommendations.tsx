@@ -210,25 +210,25 @@ export default function Recommendations() {
         type !== "Общее резюме" && type !== "Данные пациента"
       );
 
-      // Конвертируем markdown в HTML
+      // Конвертируем markdown в HTML синхронно
       const sections = [
         ...(patientData ? [{ 
           id: 'patient-data', 
           label: 'Данные пациента', 
-          content: marked.parse(patientData.text) 
+          content: await marked.parse(patientData.text) 
         }] : []),
         ...(summary ? [{ 
           id: 'summary', 
           label: 'Общее резюме', 
-          content: marked.parse(summary.text) 
+          content: await marked.parse(summary.text) 
         }] : []),
-        ...categories.flatMap(([type, recs]) => 
-          recs.map((rec, idx) => ({
+        ...(await Promise.all(categories.flatMap(([type, recs]) => 
+          recs.map(async (rec, idx) => ({
             id: `${toSlug(type)}-${idx}`,
             label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
-            content: marked.parse(rec.text)
+            content: await marked.parse(rec.text)
           }))
-        )
+        )))
       ];
 
       // Создаем чистый черно-белый HTML для PDF
