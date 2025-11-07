@@ -18,8 +18,9 @@ import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
-import html2pdf from "html2pdf.js";
-import { marked } from "marked";
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 interface Recommendation {
   id: string;
@@ -199,6 +200,57 @@ export default function Recommendations() {
     }, {} as Record<string, Recommendation[]>);
   };
 
+  const getSectionLabel = (type: SectionType) => {
+    if (type === 'patient-data') return 'Данные пациента';
+    if (type === 'summary') return 'Общее резюме';
+    return type;
+  };
+
+  const parseMarkdownToPdfMake = (markdown: string): any[] => {
+    const content: any[] = [];
+    const lines = markdown.split('\n');
+    
+    for (let line of lines) {
+      // Заголовки
+      if (line.startsWith('### ')) {
+        content.push({ text: line.replace('### ', ''), style: 'h3', margin: [0, 6, 0, 3] });
+      } else if (line.startsWith('## ')) {
+        content.push({ text: line.replace('## ', ''), style: 'h2', margin: [0, 8, 0, 4] });
+      } else if (line.startsWith('# ')) {
+        content.push({ text: line.replace('# ', ''), style: 'h1', margin: [0, 10, 0, 5] });
+      }
+      // Списки
+      else if (line.startsWith('- ') || line.startsWith('* ')) {
+        content.push({ text: line.replace(/^[-*] /, '• '), style: 'listItem', margin: [20, 0, 0, 5] });
+      }
+      // Жирный текст
+      else if (line.includes('**')) {
+        const parts = line.split('**');
+        const textParts: any[] = [];
+        parts.forEach((part, idx) => {
+          if (idx % 2 === 1) {
+            textParts.push({ text: part, bold: true });
+          } else if (part) {
+            textParts.push({ text: part });
+          }
+        });
+        if (textParts.length > 0) {
+          content.push({ text: textParts, style: 'paragraph', margin: [0, 0, 0, 10] });
+        }
+      }
+      // Обычный текст
+      else if (line.trim()) {
+        content.push({ text: line, style: 'paragraph', margin: [0, 0, 0, 10] });
+      }
+      // Пустая строка - отступ
+      else {
+        content.push({ text: ' ', margin: [0, 5, 0, 0] });
+      }
+    }
+    
+    return content;
+  };
+
   const handleExportPDF = async () => {
     if (!selectedReport) return;
 
@@ -210,305 +262,146 @@ export default function Recommendations() {
         type !== "Общее резюме" && type !== "Данные пациента"
       );
 
-      // Конвертируем markdown в HTML синхронно
       const sections = [
         ...(patientData ? [{ 
           id: 'patient-data', 
+          type: 'patient-data' as SectionType,
           label: 'Данные пациента', 
-          content: await marked.parse(patientData.text) 
+          content: patientData.text 
         }] : []),
         ...(summary ? [{ 
           id: 'summary', 
+          type: 'summary' as SectionType,
           label: 'Общее резюме', 
-          content: await marked.parse(summary.text) 
+          content: summary.text 
         }] : []),
-        ...(await Promise.all(categories.flatMap(([type, recs]) => 
-          recs.map(async (rec, idx) => ({
+        ...categories.flatMap(([type, recs]) => 
+          recs.map((rec, idx) => ({
             id: `${toSlug(type)}-${idx}`,
+            type,
             label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
-            content: await marked.parse(rec.text)
+            content: rec.text
           }))
-        )))
+        )
       ];
 
-      // Создаем правильно отформатированный HTML для PDF с работающими якорями
-      const pdfContent = `
-        <style>
-          * { 
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-          }
-          .pdf-root {
-            width: 100%;
-            max-width: 170mm; /* уменьшаем ширину для полей */
-            background: #ffffff;
-            color: #000000;
-            font-family: Georgia, 'Times New Roman', serif;
-            line-height: 1.6;
-            font-size: 11pt;
-            margin: 0 auto;
-            padding: 0;
-          }
+      // Определяем структуру документа для pdfmake
+      const docDefinition: any = {
+        content: [
+          // Заголовок
+          {
+            text: 'Персональный отчет',
+            style: 'header',
+            alignment: 'center',
+            margin: [0, 0, 0, 10]
+          },
+          {
+            text: format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru }),
+            style: 'date',
+            alignment: 'center',
+            margin: [0, 0, 0, 30]
+          },
           
-          .pdf-root .header {
-            text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #000;
-          }
-          .pdf-root .header h1 {
-            font-size: 18pt;
-            margin-bottom: 6px;
-            font-weight: 700;
-            color: #000;
-          }
-          .pdf-root .header .date { 
-            font-size: 10pt; 
-            color: #000;
-          }
-
-          .pdf-root .toc { 
-            margin: 20px 0 25px; 
-            page-break-after: always; 
-          }
-          .pdf-root .toc h2 {
-            font-size: 13pt;
-            border-bottom: 1px solid #000;
-            padding-bottom: 6px;
-            margin-bottom: 12px;
-            font-weight: 700;
-            color: #000;
-          }
-          .pdf-root .toc-list { 
-            list-style: none; 
-            padding: 0; 
-            margin: 0; 
-          }
-          .pdf-root .toc-item { 
-            margin-bottom: 8px;
-            border-bottom: 1px dotted #999; 
-            padding: 6px 0;
-          }
-          .pdf-root .toc-link {
-            color: #000;
-            text-decoration: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-          }
-          .pdf-root .toc-link span:first-child {
-            flex: 1;
-            padding-right: 10px;
-          }
-
-          .pdf-root .section { 
-            margin-bottom: 20px;
-          }
-          .pdf-root .section-header {
-            font-size: 13pt;
-            font-weight: 700;
-            padding: 8px 0;
-            border-bottom: 2px solid #000;
-            margin: 0 0 12px 0;
-            color: #000;
-            page-break-after: avoid;
-          }
-          .pdf-root .section-content { 
-            font-size: 10.5pt;
-            line-height: 1.6;
-          }
+          // Содержание
+          {
+            text: 'Содержание',
+            style: 'tocHeader',
+            margin: [0, 0, 0, 15]
+          },
+          ...sections.map((section, idx) => ({
+            text: `${idx + 1}. ${section.label}`,
+            style: 'tocItem',
+            margin: [0, 0, 0, 8]
+          })),
           
-          .pdf-root .section-content li,
-          .pdf-root .section-content tr {
-            page-break-inside: avoid;
-          }
+          // Разрыв страницы после содержания
+          { text: '', pageBreak: 'after' },
           
-          .pdf-root .section-content p {
-            orphans: 3;
-            widows: 3;
+          // Секции с контентом
+          ...sections.flatMap((section, idx) => [
+            ...(idx > 0 ? [{ text: '', pageBreak: 'before' }] : []),
+            {
+              text: section.label,
+              style: 'sectionHeader',
+              margin: [0, 0, 0, 15]
+            },
+            ...parseMarkdownToPdfMake(section.content)
+          ])
+        ],
+        
+        // Стили
+        styles: {
+          header: {
+            fontSize: 22,
+            bold: true,
+            color: '#000000'
+          },
+          date: {
+            fontSize: 12,
+            color: '#666666'
+          },
+          tocHeader: {
+            fontSize: 16,
+            bold: true,
+            color: '#000000'
+          },
+          tocItem: {
+            fontSize: 11,
+            color: '#000000'
+          },
+          sectionHeader: {
+            fontSize: 16,
+            bold: true,
+            color: '#000000',
+            decoration: 'underline'
+          },
+          h1: {
+            fontSize: 14,
+            bold: true
+          },
+          h2: {
+            fontSize: 13,
+            bold: true
+          },
+          h3: {
+            fontSize: 12,
+            bold: true
+          },
+          paragraph: {
+            fontSize: 11,
+            lineHeight: 1.5,
+            alignment: 'justify'
+          },
+          listItem: {
+            fontSize: 11,
+            lineHeight: 1.5
           }
-
-          /* Типографика */
-          .pdf-root .section-content * {
-            max-width: 100%;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-          }
-          
-          .pdf-root .section-content p { 
-            margin: 0 0 12px 0;
-            text-align: left;
-            line-height: 1.6;
-          }
-          
-          .pdf-root .section-content h1,
-          .pdf-root .section-content h2,
-          .pdf-root .section-content h3,
-          .pdf-root .section-content h4 {
-            color: #000;
-            font-weight: 700;
-            margin: 15px 0 10px 0;
-            line-height: 1.3;
-            text-align: left;
-            page-break-after: avoid;
-          }
-          .pdf-root .section-content h1 { font-size: 13pt; }
-          .pdf-root .section-content h2 { font-size: 12pt; }
-          .pdf-root .section-content h3 { font-size: 11pt; }
-          .pdf-root .section-content h4 { font-size: 10.5pt; }
-          
-          .pdf-root .section-content ul, 
-          .pdf-root .section-content ol { 
-            margin: 0 0 12px 0;
-            padding-left: 20px;
-            text-align: left;
-          }
-          .pdf-root .section-content li { 
-            margin: 0 0 6px 0;
-            line-height: 1.6;
-            text-align: left;
-          }
-          .pdf-root .section-content li p {
-            margin: 0 0 4px 0;
-          }
-          
-          .pdf-root .section-content strong { 
-            font-weight: 700; 
-            color: #000;
-          }
-          .pdf-root .section-content em { 
-            font-style: italic; 
-          }
-          .pdf-root .section-content code {
-            font-family: 'Courier New', monospace;
-            font-size: 9.5pt;
-            background: #f5f5f5;
-            padding: 1px 3px;
-          }
-          .pdf-root .section-content pre {
-            background: #f5f5f5;
-            padding: 8px;
-            overflow-x: auto;
-            margin: 0 0 12px 0;
-            page-break-inside: avoid;
-          }
-          .pdf-root .section-content blockquote { 
-            border-left: 3px solid #000; 
-            padding-left: 12px; 
-            margin: 12px 0;
-            font-style: italic;
-            color: #333;
-          }
-
-          .pdf-root .section-content table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 12px 0;
-            page-break-inside: avoid;
-          }
-          .pdf-root .section-content th, 
-          .pdf-root .section-content td { 
-            border: 1px solid #000; 
-            padding: 5px 7px; 
-            text-align: left;
-            vertical-align: top;
-          }
-          .pdf-root .section-content th { 
-            font-weight: 700;
-            background: #f5f5f5;
-          }
-          
-          .pdf-root .section-content img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 12px 0;
-          }
-        </style>
-        <div class="pdf-root">
-          <div class="header">
-            <h1>Персональный отчет</h1>
-            <div class="date">${format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}</div>
-          </div>
-          <div class="toc">
-            <h2>Содержание</h2>
-            <ul class="toc-list">
-              ${sections.map((section, idx) => `
-                <li class="toc-item">
-                  <a href="#section-${section.id}" class="toc-link">
-                    <span>${section.label}</span>
-                    <span>${idx + 1}</span>
-                  </a>
-                </li>
-              `).join('')}
-            </ul>
-          </div>
-          ${sections.map((section) => `
-            <div class="section" id="section-${section.id}">
-              <div class="section-header">${section.label}</div>
-              <div class="section-content">${section.content}</div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-
-      // Создаем временный элемент только с изолированным содержимым
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'fixed';
-      tempDiv.style.left = '-10000px';
-      tempDiv.style.top = '0';
-      tempDiv.style.zIndex = '-1';
-      tempDiv.innerHTML = pdfContent;
-      document.body.appendChild(tempDiv);
-
-      const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
-      
-      const opt = {
-        margin: [20, 20, 25, 20] as [number, number, number, number],
-        filename: fileName,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          windowWidth: 794,
-          windowHeight: 1123,
         },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait' as const,
-          compress: true,
+        
+        // Настройки страницы
+        pageSize: 'A4',
+        pageMargins: [40, 60, 40, 60],
+        
+        // Номера страниц
+        footer: function(currentPage: number) {
+          return {
+            text: currentPage.toString(),
+            alignment: 'center',
+            fontSize: 9,
+            margin: [0, 20, 0, 0]
+          };
         },
-        pagebreak: { 
-          mode: ['css', 'legacy'],
-          avoid: ['li', 'tr', 'img', '.section-header', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol']
-        },
+        
+        // Настройки документа
+        info: {
+          title: `Отчет ${format(new Date(selectedReport.date), "dd-MM-yyyy")}`,
+          author: 'Health System',
+          subject: 'Персональный отчет',
+        }
       };
 
-      const worker = html2pdf().set(opt).from(tempDiv.querySelector('.pdf-root') as HTMLElement);
-      
-      // Генерируем PDF и добавляем номера страниц
-      const pdf = await worker.toPdf().get('pdf');
-      const totalPages = pdf.internal.pages.length - 1; // Вычитаем пустую первую страницу
-      
-      // Добавляем номера страниц в футер
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(9);
-        pdf.setTextColor(100);
-        const pageText = `${i}`;
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const textWidth = pdf.getTextWidth(pageText);
-        pdf.text(pageText, (pageWidth - textWidth) / 2, pdf.internal.pageSize.getHeight() - 10);
-      }
-      
-      pdf.save(fileName);
-      
-      // Удаляем временный элемент
-      document.body.removeChild(tempDiv);
+      const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
+      pdfMake.createPdf(docDefinition).download(fileName);
       
       toast({
         title: "Успешно",
