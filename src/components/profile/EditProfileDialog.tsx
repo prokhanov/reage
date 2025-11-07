@@ -85,9 +85,10 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       });
 
       // Small delay to ensure database is updated
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       onSuccess();
+      onOpenChange(false);
     } catch (error: any) {
       console.error("Error saving profile:", error);
       toast({
