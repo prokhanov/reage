@@ -128,7 +128,7 @@ export default function Patients() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="container max-w-7xl mx-auto p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Пациенты</h1>
           <p className="text-muted-foreground mt-1">
@@ -161,7 +161,7 @@ export default function Patients() {
             {isLoading ? (
               <div className="text-center py-12 text-muted-foreground">Загрузка...</div>
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
