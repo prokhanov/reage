@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { AnalysisStep1 } from "./AnalysisStep1";
 import { AnalysisStep2 } from "./AnalysisStep2";
@@ -41,6 +43,9 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
   const [analyzing, setAnalyzing] = useState(false);
   const [showEditReport, setShowEditReport] = useState(false);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">("on_review");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<"on_review" | "processed" | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   const { toast } = useToast();
 
   const [wizardData, setWizardData] = useState<WizardData>({
@@ -126,6 +131,46 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    setPendingStatus(newStatus as "on_review" | "processed");
+    setShowConfirmDialog(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!pendingStatus) return;
+    
+    setUpdatingStatus(true);
+    try {
+      const { error } = await supabase
+        .from("analyses")
+        .update({ status: pendingStatus })
+        .eq("id", analysisId);
+
+      if (error) throw error;
+
+      setAnalysisStatus(pendingStatus);
+      
+      toast({
+        title: "Успешно!",
+        description: pendingStatus === "processed" 
+          ? "Отчет загружен в кабинет клиента" 
+          : "Статус изменен на 'На проверке'",
+      });
+
+      onSuccess?.();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingStatus(false);
+      setShowConfirmDialog(false);
+      setPendingStatus(null);
+    }
   };
 
   const handleSave = async () => {
@@ -234,14 +279,38 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Редактирование анализа - Шаг {currentStep} из 3
-            </DialogTitle>
-            <DialogDescription>
-              {currentStep === 1 && "Укажите дату и лабораторию"}
-              {currentStep === 2 && "Добавьте биомаркеры и их значения"}
-              {currentStep === 3 && "Настройте генерацию отчета"}
-            </DialogDescription>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <DialogTitle>
+                  Редактирование анализа - Шаг {currentStep} из 3
+                </DialogTitle>
+                <DialogDescription>
+                  {currentStep === 1 && "Укажите дату и лабораторию"}
+                  {currentStep === 2 && "Добавьте биомаркеры и их значения"}
+                  {currentStep === 3 && "Настройте генерацию отчета"}
+                </DialogDescription>
+              </div>
+              {!loadingData && (
+                <div className="flex flex-col gap-1">
+                  <Select 
+                    value={analysisStatus} 
+                    onValueChange={handleStatusChange}
+                    disabled={updatingStatus}
+                  >
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="on_review">На проверке</SelectItem>
+                      <SelectItem value="processed">Подтвержден</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground text-right">
+                    {analysisStatus === "processed" ? "Виден клиенту" : "Скрыт"}
+                  </p>
+                </div>
+              )}
+            </div>
           </DialogHeader>
 
           {loadingData ? (
@@ -254,12 +323,6 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
                 <AnalysisStep1
                   data={wizardData.step1}
                   onChange={(data) => setWizardData({ ...wizardData, step1: data })}
-                  analysisId={analysisId}
-                  currentStatus={analysisStatus}
-                  onStatusChange={(newStatus) => {
-                    setAnalysisStatus(newStatus);
-                    onSuccess?.();
-                  }}
                 />
               )}
 
@@ -309,6 +372,28 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Изменить статус отчета?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStatus === "processed" 
+                ? "Отчет станет доступен клиенту в личном кабинете. Убедитесь, что все данные проверены." 
+                : "Отчет будет скрыт от клиента и помечен как находящийся на проверке."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={updatingStatus}>Отмена</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmStatusChange}
+              disabled={updatingStatus}
+            >
+              {updatingStatus ? "Изменение..." : "Подтвердить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <EditReportDialog
         analysisId={analysisId}
