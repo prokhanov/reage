@@ -79,7 +79,7 @@ export default function Onboarding() {
           </CardTitle>
           <CardDescription>
             Расскажите о своем здоровье и целях, чтобы мы могли дать вам персонализированные
-            рекомендации
+            отчёты
           </CardDescription>
         </CardHeader>
         <CardContent>

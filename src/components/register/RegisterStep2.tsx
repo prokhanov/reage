@@ -21,7 +21,7 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold mb-2">О вас</h2>
         <p className="text-muted-foreground">
-          Эта информация поможет нам персонализировать рекомендации
+          Эта информация поможет нам персонализировать отчёты
         </p>
       </div>
 

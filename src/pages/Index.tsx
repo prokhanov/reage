@@ -15,7 +15,7 @@ const Index = () => {
             Узнай свой биологический возраст и замедли старение
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8">
-            Анализы, AI-анализ и понятные рекомендации по здоровью и долголетию
+            Анализы, AI-анализ и понятные отчёты по здоровью и долголетию
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -67,7 +67,7 @@ const Index = () => {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center border border-accent/30 group-hover:shadow-neon-accent transition-all">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">3. Получите рекомендации</h3>
+            <h3 className="text-xl font-semibold mb-2">3. Получите отчёты</h3>
             <p className="text-muted-foreground">
               Персональные советы по питанию, сну, активности и добавкам
             </p>

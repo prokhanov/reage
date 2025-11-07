@@ -794,16 +794,16 @@ export default function Dashboard() {
 
           <Card className="border-border bg-card backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Ключевые рекомендации</CardTitle>
+              <CardTitle className="text-lg">Персональные отчёты</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">Рекомендации появятся после анализа</p>
+                <p className="text-sm">Отчёты появятся после анализа</p>
                 <button 
                   onClick={() => navigate("/recommendations")}
                   className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
                 >
-                  Смотреть все рекомендации →
+                  Смотреть все отчёты →
                 </button>
               </div>
             </CardContent>

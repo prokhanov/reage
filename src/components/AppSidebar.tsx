@@ -19,7 +19,7 @@ const navItems = [
   { to: "/biomarkers", label: "Маркеры", icon: Activity },
   { to: "/trends", label: "Тренды", icon: TrendingUp },
   { to: "/my-state", label: "Мое состояние", icon: Heart },
-  { to: "/recommendations", label: "Рекомендации", icon: Lightbulb },
+  { to: "/recommendations", label: "Персональные отчёты", icon: Lightbulb },
 ];
 
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {

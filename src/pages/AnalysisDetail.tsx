@@ -171,7 +171,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
       loadData();
       
-      // Переходим на страницу рекомендаций
+      // Переходим на страницу персональных отчётов
       (isViewMode ? setSimPath("/recommendations") : navigate("/recommendations"));
     } catch (error: any) {
       toast({
@@ -270,13 +270,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 Редактировать анализ
               </Button>
               <Button
-                onClick={handleEditReport}
-                variant="outline"
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Редактировать отчет
-              </Button>
-              <Button
                 onClick={handleAnalyze}
                 disabled={analyzing || values.length === 0}
                 className="shadow-neon-accent"
@@ -304,7 +297,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                   <Progress value={(analysisProgress.current / analysisProgress.total) * 100} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Это может занять 2-3 минуты. Создаем детальный отчет с персональными рекомендациями...
+                  Это может занять 2-3 минуты. Создаем детальный отчет с персональными советами...
                 </p>
               </div>
             </Card>

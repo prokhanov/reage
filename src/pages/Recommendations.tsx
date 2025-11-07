@@ -108,7 +108,7 @@ export default function Recommendations() {
       console.error("Error loading recommendations:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось загрузить рекомендации",
+        description: "Не удалось загрузить отчёты",
         variant: "destructive",
       });
     } finally {
@@ -257,10 +257,10 @@ export default function Recommendations() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Персональные рекомендации
+            Персональные отчёты
           </h2>
           <p className="text-muted-foreground">
-            AI-генерированные советы на основе ваших анализов
+            AI-генерированные отчёты на основе ваших анализов
           </p>
         </div>
 
@@ -272,11 +272,11 @@ export default function Recommendations() {
                 <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
               </div>
               <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
-                Ваши рекомендации скоро появятся здесь
+                Ваши отчёты скоро появятся здесь
               </h3>
               <p className="text-muted-foreground text-center max-w-md leading-relaxed">
                 После добавления и анализа ваших медицинских показателей, 
-                AI сгенерирует персональные рекомендации для улучшения здоровья.
+                AI сгенерирует персональные отчёты для улучшения здоровья.
               </p>
             </CardContent>
           </Card>
@@ -460,7 +460,7 @@ export default function Recommendations() {
             <AlertDialogHeader>
               <AlertDialogTitle>Удалить отчет?</AlertDialogTitle>
               <AlertDialogDescription>
-                Это действие нельзя отменить. Все рекомендации за эту дату будут удалены навсегда.
+                Это действие нельзя отменить. Все данные отчёта за эту дату будут удалены навсегда.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
