@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FlaskConical, Sparkles, Trash2 } from "lucide-react";
+import { Calendar, FlaskConical, Sparkles, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { CreateAnalysisDialog } from "@/components/admin/CreateAnalysisDialog";
+import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,10 +34,12 @@ interface Analysis {
 export default function Analyses() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
+  const { isSuperAdmin } = useSuperAdminCheck();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -132,11 +136,23 @@ export default function Analyses() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            История анализов
-          </h2>
-          <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+              История анализов
+            </h2>
+            <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
+          </div>
+          {isViewMode && isSuperAdmin && (
+            <Button
+              onClick={() => setCreateDialogOpen(true)}
+              variant="default"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить анализ
+            </Button>
+          )}
         </div>
 
         {analyses.length === 0 ? (
@@ -254,6 +270,11 @@ export default function Analyses() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <CreateAnalysisDialog 
+          open={createDialogOpen} 
+          onOpenChange={setCreateDialogOpen}
+        />
       </div>
     </DashboardLayout>
   );

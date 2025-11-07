@@ -1,10 +1,8 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, Plus } from "lucide-react";
-import { useContext, useState } from "react";
+import { X } from "lucide-react";
+import { useContext } from "react";
 import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { CreateAnalysisDialog } from "@/components/admin/CreateAnalysisDialog";
-import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
@@ -47,9 +45,6 @@ interface PatientViewDialogProps {
 }
 
 export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps) {
-  const { isSuperAdmin } = useSuperAdminCheck();
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-
   if (!patientId) return null;
 
   return (
@@ -58,18 +53,7 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
         <ViewAsPatientProvider userId={patientId}>
           <div className="h-screen w-full flex flex-col relative overflow-hidden">
             {/* Action buttons */}
-            <div className="absolute top-4 right-4 z-[100] flex gap-2">
-              {isSuperAdmin && (
-                <Button
-                  onClick={() => setCreateDialogOpen(true)}
-                  variant="secondary"
-                  size="sm"
-                  className="shadow-lg"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Добавить анализ
-                </Button>
-              )}
+            <div className="absolute top-4 right-4 z-[100]">
               <Button
                 onClick={onClose}
                 variant="default"
@@ -86,11 +70,6 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
               <SimulatedContent />
             </div>
           </div>
-
-          <CreateAnalysisDialog 
-            open={createDialogOpen} 
-            onOpenChange={setCreateDialogOpen}
-          />
         </ViewAsPatientProvider>
       </DialogContent>
     </Dialog>
