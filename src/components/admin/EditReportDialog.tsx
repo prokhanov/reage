@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import MDEditor from '@uiw/react-md-editor';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface Recommendation {
   id: string;
@@ -166,35 +168,40 @@ export function EditReportDialog({
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <Tabs defaultValue={Object.keys(groupedRecommendations)[0] || "all"} className="w-full h-full flex flex-col">
-              <TabsList className="grid w-full shrink-0" style={{ gridTemplateColumns: `repeat(${Object.keys(groupedRecommendations).length}, minmax(0, 1fr))` }}>
-                {Object.keys(groupedRecommendations).map((type) => (
-                  <TabsTrigger key={type} value={type} className="text-xs">
-                    {type}
-                  </TabsTrigger>
+            <ScrollArea className="flex-1 pr-4">
+              <div className="space-y-6 pb-4">
+                {Object.entries(groupedRecommendations).map(([type, recs]) => (
+                  <Card key={type} className="border-2">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{type}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {recs.map((rec) => (
+                        <div key={rec.id} className="space-y-2">
+                          <ReactQuill
+                            theme="snow"
+                            value={rec.text}
+                            onChange={(val) => updateRecommendation(rec.id, val)}
+                            modules={{
+                              toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'align': [] }],
+                                ['link'],
+                                ['clean']
+                              ]
+                            }}
+                            className="bg-background"
+                            style={{ minHeight: '200px' }}
+                          />
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
                 ))}
-              </TabsList>
-
-              {Object.entries(groupedRecommendations).map(([type, recs]) => (
-                <TabsContent key={type} value={type} className="flex-1 overflow-auto" data-color-mode="light">
-                  <div className="space-y-3 h-full">
-                    <h3 className="font-semibold text-base">{type}</h3>
-                    {recs.map((rec) => (
-                      <div key={rec.id} className="space-y-2 h-[calc(100%-2rem)]">
-                        <MDEditor
-                          value={rec.text}
-                          onChange={(val) => updateRecommendation(rec.id, val || "")}
-                          height="100%"
-                          preview="live"
-                          hideToolbar={false}
-                          enableScroll={true}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-              ))}
-            </Tabs>
+              </div>
+            </ScrollArea>
           )}
         </div>
 
