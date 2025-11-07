@@ -19,8 +19,8 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+(pdfMake as any).vfs = pdfFonts;
 
 interface Recommendation {
   id: string;
