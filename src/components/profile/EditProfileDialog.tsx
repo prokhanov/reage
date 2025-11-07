@@ -75,7 +75,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         })
         .eq("id", userId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

@@ -62,10 +62,12 @@ export default function Profile() {
         .from("profiles")
         .select("*")
         .eq("id", uid)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      setProfile(data);
+      if (data) {
+        setProfile(data);
+      }
     } catch (error: any) {
       console.error("Error loading profile:", error);
       toast({
