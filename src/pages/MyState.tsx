@@ -365,12 +365,7 @@ export default function MyState() {
         if (adherenceError) throw adherenceError;
       }
 
-      // Затем очищаем и сохраняем симптомы
-      await supabase
-        .from('user_symptoms')
-        .delete()
-        .eq('user_id', userId);
-
+      // Сохраняем симптомы (историческая запись)
       const symptomsData = Object.entries(answers)
         .filter(([_, severity]) => severity > 0)
         .map(([key, severity]) => {
@@ -424,21 +419,25 @@ export default function MyState() {
     }
   };
 
-  const groupedByCategory = symptoms.reduce((acc, symptom) => {
-    if (!acc[symptom.category]) {
-      acc[symptom.category] = [];
+  // Группировка по датам для истории
+  const groupedByDate = symptoms.reduce((acc, symptom) => {
+    const date = format(new Date(symptom.tracked_at), "yyyy-MM-dd");
+    if (!acc[date]) {
+      acc[date] = [];
     }
-    acc[symptom.category].push(symptom);
+    acc[date].push(symptom);
     return acc;
   }, {} as Record<string, SymptomRecord[]>);
+
+  const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
   const getSeverityConfig = (severity: number) => {
     return severityLevels[severity] || severityLevels[0];
   };
 
-  const getTotalSymptomsByLevel = () => {
+  const getTotalSymptomsByLevel = (symptomsToCount = symptoms) => {
     const counts = { mild: 0, moderate: 0, severe: 0 };
-    symptoms.forEach(s => {
+    symptomsToCount.forEach(s => {
       if (s.severity === 1) counts.mild++;
       if (s.severity === 2) counts.moderate++;
       if (s.severity === 3) counts.severe++;
@@ -446,7 +445,8 @@ export default function MyState() {
     return counts;
   };
 
-  const stats = getTotalSymptomsByLevel();
+  const latestSymptoms = sortedDates.length > 0 ? groupedByDate[sortedDates[0]] : [];
+  const stats = getTotalSymptomsByLevel(latestSymptoms);
 
   return (
     <DashboardLayout>
@@ -681,8 +681,8 @@ export default function MyState() {
                   <Card className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Всего симптомов</p>
-                        <p className="text-2xl font-bold">{symptoms.length}</p>
+                        <p className="text-sm text-muted-foreground">Последняя запись</p>
+                        <p className="text-2xl font-bold">{latestSymptoms.length}</p>
                       </div>
                       <TrendingUp className="h-8 w-8 text-primary" />
                     </div>
@@ -711,40 +711,91 @@ export default function MyState() {
                 </div>
 
                 <div className="space-y-6">
-                  {Object.entries(groupedByCategory).map(([category, categorySymptoms]) => {
-                    const emoji = categoryEmojis[category] || "📋";
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>История заполнений: {sortedDates.length}</span>
+                  </div>
+
+                  {sortedDates.map((date) => {
+                    const dateSymptoms = groupedByDate[date];
+                    const dateStats = getTotalSymptomsByLevel(dateSymptoms);
+                    const groupedByCategory = dateSymptoms.reduce((acc, symptom) => {
+                      if (!acc[symptom.category]) {
+                        acc[symptom.category] = [];
+                      }
+                      acc[symptom.category].push(symptom);
+                      return acc;
+                    }, {} as Record<string, SymptomRecord[]>);
                     
                     return (
-                      <Card key={category} className="p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="text-3xl">{emoji}</span>
-                          <div>
-                            <h2 className="text-xl font-bold">{category}</h2>
-                            <p className="text-sm text-muted-foreground">
-                              {categorySymptoms.length} {categorySymptoms.length === 1 ? 'симптом' : 'симптомов'}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {categorySymptoms.map((symptom) => {
-                            const config = getSeverityConfig(symptom.severity);
-                            
-                            return (
-                              <div
-                                key={symptom.id}
-                                className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
-                              >
-                                <span className="text-sm flex-1">{symptom.symptom}</span>
-                                <Badge 
-                                  variant={config.badgeVariant}
-                                  className={config.color}
-                                >
-                                  {config.label}
+                      <Card key={date} className="p-6 border-2">
+                        <div className="mb-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <h3 className="text-xl font-bold">
+                                {format(new Date(date), "d MMMM yyyy", { locale: ru })}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(dateSymptoms[0].tracked_at), "HH:mm", { locale: ru })}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              {dateStats.mild > 0 && (
+                                <Badge variant="outline" className="text-yellow-500">
+                                  {dateStats.mild} легких
                                 </Badge>
-                              </div>
-                            );
-                          })}
+                              )}
+                              {dateStats.moderate > 0 && (
+                                <Badge variant="outline" className="text-orange-500">
+                                  {dateStats.moderate} средних
+                                </Badge>
+                              )}
+                              {dateStats.severe > 0 && (
+                                <Badge variant="destructive">
+                                  {dateStats.severe} сильных
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            {Object.entries(groupedByCategory).map(([category, categorySymptoms]) => {
+                              const emoji = categoryEmojis[category] || "📋";
+                              
+                              return (
+                                <div key={category} className="border-l-4 border-primary/20 pl-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-2xl">{emoji}</span>
+                                    <h4 className="font-semibold">{category}</h4>
+                                    <Badge variant="secondary" className="ml-auto">
+                                      {categorySymptoms.length}
+                                    </Badge>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {categorySymptoms.map((symptom) => {
+                                      const config = getSeverityConfig(symptom.severity);
+                                      
+                                      return (
+                                        <div
+                                          key={symptom.id}
+                                          className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-border/30"
+                                        >
+                                          <span className="text-sm flex-1">{symptom.symptom}</span>
+                                          <Badge 
+                                            variant={config.badgeVariant}
+                                            className={`${config.color} text-xs`}
+                                          >
+                                            {config.label}
+                                          </Badge>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </Card>
                     );
