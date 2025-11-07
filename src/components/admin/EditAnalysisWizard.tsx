@@ -40,6 +40,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
   const [loadingData, setLoadingData] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [showEditReport, setShowEditReport] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">("on_review");
   const { toast } = useToast();
 
   const [wizardData, setWizardData] = useState<WizardData>({
@@ -81,6 +82,8 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
 
       if (valuesError) throw valuesError;
 
+      setAnalysisStatus(analysis.status || "on_review");
+      
       setWizardData({
         step1: {
           date: analysis.date,
@@ -251,6 +254,12 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
                 <AnalysisStep1
                   data={wizardData.step1}
                   onChange={(data) => setWizardData({ ...wizardData, step1: data })}
+                  analysisId={analysisId}
+                  currentStatus={analysisStatus}
+                  onStatusChange={(newStatus) => {
+                    setAnalysisStatus(newStatus);
+                    onSuccess?.();
+                  }}
                 />
               )}
 
