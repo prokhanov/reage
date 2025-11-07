@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -490,6 +490,54 @@ export default function MyState() {
     });
   };
 
+  const handleEditRecord = (date: string) => {
+    const recordSymptoms = groupedByDate[date];
+    if (recordSymptoms.length === 0) return;
+    
+    // Загружаем ответы за выбранную дату
+    const recordAnswers: Record<string, number> = {};
+    recordSymptoms.forEach(symptom => {
+      recordAnswers[`${symptom.category}|${symptom.symptom}`] = symptom.severity;
+    });
+    
+    setAnswers(recordAnswers);
+    setCanTakeSurvey(true);
+    setCurrentStep(0);
+    
+    toast({
+      title: "Режим редактирования",
+      description: `Загружены данные от ${format(new Date(date), "d MMMM yyyy", { locale: ru })}`
+    });
+  };
+
+  const handleDeleteRecord = async (date: string) => {
+    try {
+      const recordSymptoms = groupedByDate[date];
+      const symptomIds = recordSymptoms.map(s => s.id);
+      
+      const { error } = await supabase
+        .from('user_symptoms')
+        .delete()
+        .in('id', symptomIds);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Запись удалена",
+        description: `Удалены данные от ${format(new Date(date), "d MMMM yyyy", { locale: ru })}`
+      });
+      
+      await fetchSymptoms();
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      toast({
+        title: "Ошибка удаления",
+        description: "Попробуйте еще раз",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="container max-w-6xl mx-auto px-4 py-8">
@@ -819,7 +867,7 @@ export default function MyState() {
                     return (
                       <Card key={date} className="p-6 border-2">
                         <div className="mb-6">
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                             <div>
                               <h3 className="text-xl font-bold">
                                 {format(new Date(date), "d MMMM yyyy", { locale: ru })}
@@ -828,22 +876,48 @@ export default function MyState() {
                                 {format(new Date(dateSymptoms[0].tracked_at), "HH:mm", { locale: ru })}
                               </p>
                             </div>
-                            <div className="flex gap-2">
-                              {dateStats.mild > 0 && (
-                                <Badge variant="outline" className="text-yellow-500">
-                                  {dateStats.mild} легких
-                                </Badge>
-                              )}
-                              {dateStats.moderate > 0 && (
-                                <Badge variant="outline" className="text-orange-500">
-                                  {dateStats.moderate} средних
-                                </Badge>
-                              )}
-                              {dateStats.severe > 0 && (
-                                <Badge variant="destructive">
-                                  {dateStats.severe} сильных
-                                </Badge>
-                              )}
+                            
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex gap-2">
+                                {dateStats.mild > 0 && (
+                                  <Badge variant="outline" className="text-yellow-500">
+                                    {dateStats.mild} легких
+                                  </Badge>
+                                )}
+                                {dateStats.moderate > 0 && (
+                                  <Badge variant="outline" className="text-orange-500">
+                                    {dateStats.moderate} средних
+                                  </Badge>
+                                )}
+                                {dateStats.severe > 0 && (
+                                  <Badge variant="destructive">
+                                    {dateStats.severe} сильных
+                                  </Badge>
+                                )}
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditRecord(date)}
+                                  className="gap-2"
+                                  disabled={isViewMode}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                  Редактировать
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteRecord(date)}
+                                  className="gap-2 text-destructive hover:text-destructive"
+                                  disabled={isViewMode}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Удалить
+                                </Button>
+                              </div>
                             </div>
                           </div>
 
