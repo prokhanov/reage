@@ -60,7 +60,7 @@ export default function Prescriptions() {
   const userId = viewAsUserId || undefined;
 
   const { data: prescriptions = [], isLoading } = useQuery({
-    queryKey: ["prescriptions", userId],
+    queryKey: ["prescriptions", userId, isSuperAdmin],
     queryFn: async () => {
       let query = supabase
         .from("prescriptions")
@@ -69,6 +69,11 @@ export default function Prescriptions() {
 
       if (userId) {
         query = query.eq("user_id", userId);
+      }
+
+      // Обычные пользователи видят только подтвержденные назначения
+      if (!isSuperAdmin) {
+        query = query.eq("status", "confirmed");
       }
 
       const { data, error } = await query;
