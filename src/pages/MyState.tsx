@@ -7,11 +7,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CompareRecordsDialog } from "@/components/symptom-history/CompareRecordsDialog";
@@ -245,6 +245,8 @@ export default function MyState() {
   const [symptoms, setSymptoms] = useState<SymptomRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [lastTrackedDate, setLastTrackedDate] = useState<string | null>(null);
+  const [canTakeSurvey, setCanTakeSurvey] = useState(true);
+  const [daysUntilNextSurvey, setDaysUntilNextSurvey] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -297,7 +299,23 @@ export default function MyState() {
       setSymptoms(data || []);
       
       if (data && data.length > 0) {
-        setLastTrackedDate(data[0].tracked_at);
+        const lastDate = data[0].tracked_at;
+        setLastTrackedDate(lastDate);
+        
+        // Проверяем, сколько дней прошло с последнего опроса
+        const daysSinceLastSurvey = differenceInDays(new Date(), new Date(lastDate));
+        const daysLeft = 10 - daysSinceLastSurvey;
+        
+        if (daysSinceLastSurvey < 10) {
+          setCanTakeSurvey(false);
+          setDaysUntilNextSurvey(daysLeft);
+        } else {
+          setCanTakeSurvey(true);
+          setDaysUntilNextSurvey(0);
+        }
+      } else {
+        setCanTakeSurvey(true);
+        setDaysUntilNextSurvey(0);
       }
     } catch (error) {
       console.error('Error fetching symptoms:', error);
@@ -407,6 +425,11 @@ export default function MyState() {
         description: parts.join(", ")
       });
 
+      // Сбрасываем форму
+      setAnswers({});
+      setAdherenceAnswers({});
+      setCurrentStep(0);
+      
       await fetchSymptoms();
     } catch (error) {
       console.error('Error saving data:', error);
@@ -449,6 +472,24 @@ export default function MyState() {
   const latestSymptoms = sortedDates.length > 0 ? groupedByDate[sortedDates[0]] : [];
   const stats = getTotalSymptomsByLevel(latestSymptoms);
 
+  const handleEditLastSurvey = () => {
+    if (latestSymptoms.length === 0) return;
+    
+    // Загружаем последние ответы в форму
+    const lastAnswers: Record<string, number> = {};
+    latestSymptoms.forEach(symptom => {
+      lastAnswers[`${symptom.category}|${symptom.symptom}`] = symptom.severity;
+    });
+    
+    setAnswers(lastAnswers);
+    setCanTakeSurvey(true);
+    
+    toast({
+      title: "Режим редактирования",
+      description: "Вы можете изменить ответы из последнего опроса"
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="container max-w-6xl mx-auto px-4 py-8">
@@ -468,6 +509,45 @@ export default function MyState() {
           {/* Survey Tab */}
           <TabsContent value="survey" className="space-y-6">
             <div className="max-w-4xl mx-auto">
+              {!canTakeSurvey && (
+                <Card className="p-8 text-center bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-primary" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-bold">Спасибо за заполнение! ✨</h3>
+                      <p className="text-muted-foreground">
+                        Вы уже заполнили опрос. Следующий опрос будет доступен через
+                      </p>
+                      <p className="text-3xl font-bold text-primary">
+                        {daysUntilNextSurvey} {daysUntilNextSurvey === 1 ? 'день' : daysUntilNextSurvey < 5 ? 'дня' : 'дней'}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                      <Button
+                        onClick={handleEditLastSurvey}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Редактировать последний опрос
+                      </Button>
+                    </div>
+
+                    <div className="mt-6 p-4 bg-background/50 rounded-lg border">
+                      <p className="text-sm text-muted-foreground">
+                        Последнее заполнение: {lastTrackedDate && format(new Date(lastTrackedDate), "d MMMM yyyy, HH:mm", { locale: ru })}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {canTakeSurvey && (
+              <>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">
@@ -649,6 +729,8 @@ export default function MyState() {
                  </div>
               </Card>
               ) : null}
+              </>
+              )}
             </div>
           </TabsContent>
 
