@@ -209,8 +209,6 @@ export default function Recommendations() {
   const parseInlineMarkdown = (text: string): any[] => {
     const parts: any[] = [];
     let currentText = text;
-    // Убираем экранирование точки в числовых списках: "5\. Текст" -> "5. Текст"
-    currentText = currentText.replace(/\\\./g, '.');
     
     // Обрабатываем жирный текст (**text**)
     const boldRegex = /\*\*(.+?)\*\*/g;
@@ -272,74 +270,47 @@ export default function Recommendations() {
     const content: any[] = [];
     const lines = markdown.split('\n');
     
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    for (let line of lines) {
       const trimmedLine = line.trim();
-
+      
       // Пустая строка
       if (!trimmedLine) {
         content.push({ text: ' ', margin: [0, 5, 0, 0] });
         continue;
       }
-
+      
       // Заголовки
-      if (trimmedLine.startsWith('### ')) {
-        const headerText = trimmedLine.slice(4);
+      if (line.startsWith('### ')) {
+        const headerText = line.replace('### ', '');
         content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 6, 0, 3] });
-        continue;
-      }
-      if (trimmedLine.startsWith('## ')) {
-        const headerText = trimmedLine.slice(3);
+      } else if (line.startsWith('## ')) {
+        const headerText = line.replace('## ', '');
         content.push({ text: parseInlineMarkdown(headerText), style: 'h2', margin: [0, 8, 0, 4] });
-        continue;
-      }
-      if (trimmedLine.startsWith('# ')) {
-        const headerText = trimmedLine.slice(2);
+      } else if (line.startsWith('# ')) {
+        const headerText = line.replace('# ', '');
         content.push({ text: parseInlineMarkdown(headerText), style: 'h1', margin: [0, 10, 0, 5] });
-        continue;
       }
-
-      // Нумерованный список (1. , 2. , ...), поддержка экранированной точки ("1\. ")
-      if (/^\d+\.?\s/.test(trimmedLine) || /^\d+\\\.\s/.test(trimmedLine)) {
-        const items: any[] = [];
-        while (i < lines.length) {
-          const l = lines[i].trim();
-          if (/^\d+\.?\s/.test(l) || /^\d+\\\.\s/.test(l)) {
-            const itemText = l.replace(/^\d+\\?\.\s+/, '');
-            items.push({ text: parseInlineMarkdown(itemText) });
-            i++;
-          } else {
-            break;
-          }
-        }
-        i--; // компенсируем дополнительный i++ цикла while
-        content.push({ ol: items, margin: [0, 0, 0, 10] });
-        continue;
+      // Списки
+      else if (line.match(/^[-*]\s/)) {
+        const listText = line.replace(/^[-*]\s/, '');
+        const parsedText = parseInlineMarkdown(listText);
+        content.push({ 
+          text: [{ text: '• ' }, ...parsedText],
+          style: 'listItem', 
+          margin: [20, 0, 0, 5] 
+        });
       }
-
-      // Маркированный список (- , * ) — собираем подряд идущие пункты в один список
-      if (/^[-*]\s+/.test(trimmedLine)) {
-        const items: any[] = [];
-        while (i < lines.length) {
-          const l = lines[i].trim();
-          if (/^[-*]\s+/.test(l)) {
-            const itemText = l.replace(/^[-*]\s+/, '');
-            items.push({ text: parseInlineMarkdown(itemText) });
-            i++;
-          } else {
-            break;
-          }
-        }
-        i--; // компенсируем дополнительный i++ цикла while
-        content.push({ ul: items, margin: [0, 0, 0, 10] });
-        continue;
+      // Обычный текст
+      else {
+        const parsedText = parseInlineMarkdown(line);
+        content.push({ 
+          text: parsedText, 
+          style: 'paragraph', 
+          margin: [0, 0, 0, 10] 
+        });
       }
-
-      // Обычный абзац
-      const parsedText = parseInlineMarkdown(trimmedLine);
-      content.push({ text: parsedText, style: 'paragraph', margin: [0, 0, 0, 10] });
     }
-
+    
     return content;
   };
 
