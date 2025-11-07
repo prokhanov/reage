@@ -4,11 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FlaskConical, Sparkles } from "lucide-react";
+import { Calendar, FlaskConical, Sparkles, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Analysis {
   id: string;
@@ -24,6 +34,8 @@ export default function Analyses() {
   const { setSimPath } = useContext(ViewAsPatientContext);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,6 +90,36 @@ export default function Analyses() {
     }
   };
 
+  const handleDeleteAnalysis = async () => {
+    if (!analysisToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from("analyses")
+        .delete()
+        .eq("id", analysisToDelete);
+
+      if (error) throw error;
+
+      toast({
+        title: "Успешно",
+        description: "Анализ удалён",
+      });
+
+      setAnalyses(analyses.filter(a => a.id !== analysisToDelete));
+    } catch (error: any) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить анализ",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setAnalysisToDelete(null);
+    }
+  };
+
 
   if (loading && analyses.length === 0) {
     return (
@@ -118,65 +160,100 @@ export default function Analyses() {
             {analyses.map((analysis) => (
               <Card
                 key={analysis.id}
-                className="hover:shadow-neon-primary hover:border-primary/50 transition-all cursor-pointer border-primary/20 bg-gradient-to-br from-card to-primary/5 group"
-                onClick={() => {
-                  if (isViewMode) {
-                    setSimPath(`/analyses/${analysis.id}`);
-                  } else {
-                    navigate(`/analyses/${analysis.id}`);
-                  }
-                }}
+                className="hover:shadow-neon-primary hover:border-primary/50 transition-all border-primary/20 bg-gradient-to-br from-card to-primary/5 group relative"
               >
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <Calendar className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-lg">
-                      {new Date(analysis.date).toLocaleDateString("ru-RU", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </CardTitle>
-                    {analysis.biomarkers_count !== undefined && analysis.biomarkers_count > 0 && (
-                      <Badge 
-                        className="ml-auto text-xs bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 shadow-sm"
-                      >
-                        {analysis.biomarkers_count} маркеров
-                      </Badge>
-                    )}
-                  </div>
-                  {analysis.lab_name && (
-                    <p className="text-sm text-muted-foreground">{analysis.lab_name}</p>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {analysis.health_index !== null ? (
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Индекс здоровья:</span>
-                        <span className="text-2xl font-bold text-primary">
-                          {analysis.health_index}
-                        </span>
-                      </div>
-                      {analysis.biological_age !== null && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Био. возраст:</span>
-                          <span className="text-lg font-semibold text-foreground">
-                            {analysis.biological_age} лет
-                          </span>
-                        </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (isViewMode) {
+                      setSimPath(`/analyses/${analysis.id}`);
+                    } else {
+                      navigate(`/analyses/${analysis.id}`);
+                    }
+                  }}
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg">
+                        {new Date(analysis.date).toLocaleDateString("ru-RU", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </CardTitle>
+                      {analysis.biomarkers_count !== undefined && analysis.biomarkers_count > 0 && (
+                        <Badge 
+                          className="ml-auto text-xs bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 shadow-sm"
+                        >
+                          {analysis.biomarkers_count} маркеров
+                        </Badge>
                       )}
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Нажмите, чтобы добавить показатели
-                    </p>
-                  )}
-                </CardContent>
+                    {analysis.lab_name && (
+                      <p className="text-sm text-muted-foreground">{analysis.lab_name}</p>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    {analysis.health_index !== null ? (
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Индекс здоровья:</span>
+                          <span className="text-2xl font-bold text-primary">
+                            {analysis.health_index}
+                          </span>
+                        </div>
+                        {analysis.biological_age !== null && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Био. возраст:</span>
+                            <span className="text-lg font-semibold text-foreground">
+                              {analysis.biological_age} лет
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Нажмите, чтобы добавить показатели
+                      </p>
+                    )}
+                  </CardContent>
+                </div>
+                {isViewMode && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAnalysisToDelete(analysis.id);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </Card>
             ))}
           </div>
         )}
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Удалить анализ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Это действие нельзя отменить. Анализ и все связанные данные будут удалены навсегда.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteAnalysis} className="bg-destructive hover:bg-destructive/90">
+                Удалить
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
