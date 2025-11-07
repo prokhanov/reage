@@ -112,6 +112,7 @@ export default function Prescriptions() {
         <TableHeader>
           <TableRow className="hover:bg-transparent border-border/50">
             <TableHead className="font-semibold">Назначение</TableHead>
+            <TableHead className="font-semibold">Эффект</TableHead>
             {isSuperAdmin && <TableHead className="font-semibold">Статус</TableHead>}
             <TableHead className="font-semibold">Контрольная дата</TableHead>
             <TableHead className="font-semibold">Создано</TableHead>
@@ -121,22 +122,20 @@ export default function Prescriptions() {
         <TableBody>
           {prescriptions.map((prescription) => (
             <TableRow key={prescription.id} className="border-border/50">
-              <TableCell className="font-medium max-w-[500px] py-4">
-                <div className="space-y-1.5">
-                  <div>{prescription.prescription}</div>
-                  {prescription.effect && (
-                    <div className="text-sm text-muted-foreground/80 leading-relaxed">
-                      {prescription.effect}
-                    </div>
-                  )}
-                </div>
+              <TableCell className="font-medium max-w-[300px]">
+                <div className="line-clamp-2">{prescription.prescription}</div>
               </TableCell>
-              {isSuperAdmin && (
-                <TableCell className="align-top py-4">
-                  {getStatusBadge(prescription.status)}
-                </TableCell>
-              )}
-              <TableCell className="align-top py-4 whitespace-nowrap">
+              <TableCell className="max-w-[250px]">
+                {prescription.effect ? (
+                  <div className="text-sm text-muted-foreground line-clamp-2">
+                    {prescription.effect}
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground/50">—</span>
+                )}
+              </TableCell>
+              {isSuperAdmin && <TableCell>{getStatusBadge(prescription.status)}</TableCell>}
+              <TableCell>
                 {prescription.control_date ? (
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-primary/70" />
@@ -146,11 +145,11 @@ export default function Prescriptions() {
                   <span className="text-xs text-muted-foreground/50">—</span>
                 )}
               </TableCell>
-              <TableCell className="align-top py-4 text-sm text-muted-foreground whitespace-nowrap">
+              <TableCell className="text-sm text-muted-foreground">
                 {format(new Date(prescription.created_at), "d MMM yyyy", { locale: ru })}
               </TableCell>
               {isSuperAdmin && (
-                <TableCell className="align-top py-4">
+                <TableCell>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
