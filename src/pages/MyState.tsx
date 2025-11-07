@@ -470,7 +470,7 @@ export default function MyState() {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">
-                    Шаг {currentStep + 1} из {symptomCategories.length}
+                    Шаг {currentStep + 1} из {totalSteps}
                   </span>
                   <span className="text-sm font-medium">
                     {Math.round(progress)}%
@@ -479,19 +479,94 @@ export default function MyState() {
                 <Progress value={progress} className="h-2" />
               </div>
 
-              <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
-                <div className="mb-8">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-4xl">{currentCategory.emoji}</span>
-                    <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
+              {isAdherenceStep ? (
+                <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
+                  <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-4xl">📋</span>
+                      <h2 className="text-2xl font-bold">Соблюдение назначений</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Оцените, как вы следовали рекомендациям
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Отметьте все симптомы, которые вы испытываете
-                  </p>
-                </div>
 
-                <div className="space-y-6">
-                  {currentCategory.symptoms.map((symptom, index) => {
+                  <div className="space-y-6">
+                    {prescriptions.map((prescription) => (
+                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background/50">
+                        <div>
+                          <h3 className="font-semibold mb-1">{prescription.prescription}</h3>
+                          {prescription.effect && (
+                            <p className="text-sm text-muted-foreground">{prescription.effect}</p>
+                          )}
+                        </div>
+
+                        <RadioGroup
+                          value={adherenceAnswers[prescription.id]?.toString() || ""}
+                          onValueChange={(value) => handleAdherenceChange(prescription.id, parseInt(value))}
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {adherenceLevels.map((level) => (
+                              <div key={level.value}>
+                                <RadioGroupItem
+                                  value={level.value.toString()}
+                                  id={`${prescription.id}-${level.value}`}
+                                  className="peer sr-only"
+                                />
+                                <Label
+                                  htmlFor={`${prescription.id}-${level.value}`}
+                                  className={`flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all ${level.bgColor} ${
+                                    adherenceAnswers[prescription.id] === level.value
+                                      ? `${level.borderColor} ring-2 ring-offset-2`
+                                      : 'border-border hover:border-muted-foreground/50'
+                                  }`}
+                                >
+                                  <span className={`text-sm font-medium ${level.color}`}>
+                                    {level.label}
+                                  </span>
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-4 mt-8">
+                    <Button
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={currentStep === 0}
+                      className="flex-1"
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Назад
+                    </Button>
+
+                    <Button
+                      onClick={handleNext}
+                      className="flex-1"
+                    >
+                      Далее
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </Card>
+              ) : currentCategory ? (
+                <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
+                  <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-4xl">{currentCategory.emoji}</span>
+                      <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Отметьте все симптомы, которые вы испытываете
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {currentCategory.symptoms.map((symptom, index) => {
                     const key = `${currentCategory.title}|${symptom}`;
                     const currentValue = answers[key] || 0;
 
@@ -570,8 +645,9 @@ export default function MyState() {
                       <Check className="ml-2 h-4 w-4" />
                     </Button>
                   )}
-                </div>
+                 </div>
               </Card>
+              ) : null}
             </div>
           </TabsContent>
 
