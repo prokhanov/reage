@@ -303,12 +303,8 @@ export default function Recommendations() {
           }
 
           .pdf-root .section { 
-            margin-bottom: 0;
+            margin-bottom: 20px;
             page-break-inside: avoid;
-            page-break-after: always;
-          }
-          .pdf-root .section:last-child {
-            page-break-after: auto;
           }
           .pdf-root .section-header {
             font-size: 13pt;
@@ -459,7 +455,7 @@ export default function Recommendations() {
       const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
       
       const opt = {
-        margin: [15, 20, 15, 20] as [number, number, number, number],
+        margin: [20, 20, 25, 20] as [number, number, number, number],
         filename: fileName,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: {
@@ -478,11 +474,28 @@ export default function Recommendations() {
         },
         pagebreak: { 
           mode: ['css', 'legacy'],
-          avoid: ['li', 'tr', 'img']
+          avoid: ['li', 'tr', 'img', '.section-header']
         },
       };
 
-      await html2pdf().set(opt).from(tempDiv.querySelector('.pdf-root') as HTMLElement).save();
+      const worker = html2pdf().set(opt).from(tempDiv.querySelector('.pdf-root') as HTMLElement);
+      
+      // Генерируем PDF и добавляем номера страниц
+      const pdf = await worker.toPdf().get('pdf');
+      const totalPages = pdf.internal.pages.length - 1; // Вычитаем пустую первую страницу
+      
+      // Добавляем номера страниц в футер
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(9);
+        pdf.setTextColor(100);
+        const pageText = `Страница ${i} из ${totalPages}`;
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const textWidth = pdf.getTextWidth(pageText);
+        pdf.text(pageText, (pageWidth - textWidth) / 2, pdf.internal.pageSize.getHeight() - 10);
+      }
+      
+      pdf.save(fileName);
       
       // Удаляем временный элемент
       document.body.removeChild(tempDiv);
