@@ -304,7 +304,6 @@ export default function Recommendations() {
 
           .pdf-root .section { 
             margin-bottom: 20px;
-            page-break-inside: avoid;
           }
           .pdf-root .section-header {
             font-size: 13pt;
@@ -313,10 +312,21 @@ export default function Recommendations() {
             border-bottom: 2px solid #000;
             margin: 0 0 12px 0;
             color: #000;
+            page-break-after: avoid;
           }
           .pdf-root .section-content { 
             font-size: 10.5pt;
             line-height: 1.6;
+          }
+          
+          .pdf-root .section-content li,
+          .pdf-root .section-content tr {
+            page-break-inside: avoid;
+          }
+          
+          .pdf-root .section-content p {
+            orphans: 3;
+            widows: 3;
           }
 
           /* Типографика */
@@ -474,7 +484,7 @@ export default function Recommendations() {
         },
         pagebreak: { 
           mode: ['css', 'legacy'],
-          avoid: ['li', 'tr', 'img', '.section-header']
+          avoid: ['li', 'tr', 'img', '.section-header', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol']
         },
       };
 
@@ -489,7 +499,7 @@ export default function Recommendations() {
         pdf.setPage(i);
         pdf.setFontSize(9);
         pdf.setTextColor(100);
-        const pageText = `Страница ${i} из ${totalPages}`;
+        const pageText = `${i}`;
         const pageWidth = pdf.internal.pageSize.getWidth();
         const textWidth = pdf.getTextWidth(pageText);
         pdf.text(pageText, (pageWidth - textWidth) / 2, pdf.internal.pageSize.getHeight() - 10);
