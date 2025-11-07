@@ -503,7 +503,8 @@ export default function MyState() {
     const dateToEdit = format(new Date(latestSymptoms[0].tracked_at), "yyyy-MM-dd");
     setEditingDate(dateToEdit);
     setAnswers(lastAnswers);
-    setCanTakeSurvey(true);
+    setCurrentStep(0);
+    setIsEditDialogOpen(true);
     
     toast({
       title: "Режим редактирования",
@@ -523,8 +524,8 @@ export default function MyState() {
     
     setEditingDate(date);
     setAnswers(recordAnswers);
-    setCanTakeSurvey(true);
     setCurrentStep(0);
+    setIsEditDialogOpen(true);
     
     toast({
       title: "Режим редактирования",
@@ -990,6 +991,186 @@ export default function MyState() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                Редактирование опроса
+                {editingDate && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    от {format(new Date(editingDate), "d MMMM yyyy", { locale: ru })}
+                  </span>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">
+                    Шаг {currentStep + 1} из {totalSteps}
+                  </span>
+                  <span className="text-sm font-medium">
+                    {Math.round(progress)}%
+                  </span>
+                </div>
+                <Progress value={progress} className="h-2" />
+              </div>
+
+              {isAdherenceStep ? (
+                <div className="space-y-6">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-4xl">📋</span>
+                      <h2 className="text-2xl font-bold">Соблюдение назначений</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Оцените, как вы следовали рекомендациям
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {prescriptions.map((prescription) => (
+                      <div key={prescription.id} className="space-y-4 p-4 border border-border rounded-lg bg-background/50">
+                        <div>
+                          <h3 className="font-semibold mb-1">{prescription.prescription}</h3>
+                          {prescription.effect && (
+                            <p className="text-sm text-muted-foreground">{prescription.effect}</p>
+                          )}
+                        </div>
+
+                        <RadioGroup
+                          value={adherenceAnswers[prescription.id]?.toString() || ""}
+                          onValueChange={(value) => handleAdherenceChange(prescription.id, parseInt(value))}
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {adherenceLevels.map((level) => (
+                              <div key={level.value}>
+                                <RadioGroupItem
+                                  value={level.value.toString()}
+                                  id={`dialog-${prescription.id}-${level.value}`}
+                                  className="peer sr-only"
+                                />
+                                <Label
+                                  htmlFor={`dialog-${prescription.id}-${level.value}`}
+                                  className={`flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all ${level.bgColor} ${
+                                    adherenceAnswers[prescription.id] === level.value
+                                      ? `${level.borderColor} ring-2 ring-offset-2`
+                                      : 'border-border hover:border-muted-foreground/50'
+                                  }`}
+                                >
+                                  <span className={`text-sm font-medium ${level.color}`}>
+                                    {level.label}
+                                  </span>
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : currentCategory ? (
+                <div className="space-y-6">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-4xl">{currentCategory.emoji}</span>
+                      <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Отметьте все симптомы, которые вы испытываете
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {currentCategory.symptoms.map((symptom, index) => {
+                      const key = `${currentCategory.title}|${symptom}`;
+                      const currentValue = answers[key] || 0;
+
+                      return (
+                        <div 
+                          key={index}
+                          className="p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors"
+                        >
+                          <div className="mb-3">
+                            <label className="text-sm font-medium leading-relaxed">
+                              {symptom}
+                            </label>
+                          </div>
+                          
+                          <RadioGroup
+                            value={currentValue.toString()}
+                            onValueChange={(value) => handleAnswerChange(symptom, parseInt(value))}
+                            className="flex gap-2"
+                          >
+                            {severityLevels.map((level) => (
+                              <div key={level.value} className="flex-1">
+                                <Label
+                                  htmlFor={`dialog-${key}-${level.value}`}
+                                  className={`
+                                    flex flex-col items-center gap-2 p-3 rounded-md border-2 cursor-pointer
+                                    transition-all hover:border-primary/50
+                                    ${currentValue === level.value 
+                                      ? 'border-primary bg-primary/10' 
+                                      : 'border-border/50 bg-background/50'
+                                    }
+                                  `}
+                                >
+                                  <RadioGroupItem
+                                    value={level.value.toString()}
+                                    id={`dialog-${key}-${level.value}`}
+                                    className="sr-only"
+                                  />
+                                  <span className={`text-xs font-medium ${level.color}`}>
+                                    {level.label}
+                                  </span>
+                                </Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 0}
+                  className="flex-1"
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Назад
+                </Button>
+
+                {currentStep < totalSteps - 1 ? (
+                  <Button
+                    onClick={handleNext}
+                    className="flex-1"
+                  >
+                    Далее
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  >
+                    {isSubmitting ? "Сохранение..." : "Сохранить"}
+                    <Check className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
