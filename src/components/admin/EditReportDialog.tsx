@@ -176,7 +176,7 @@ export function EditReportDialog({
           z-index: 9999;
         }
       `}</style>
-      <DialogContent className="max-w-[98vw] max-h-[98vh] w-full h-full overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Редактирование отчета</DialogTitle>
