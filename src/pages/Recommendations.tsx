@@ -138,6 +138,9 @@ export default function Recommendations() {
       const targetRect = target.getBoundingClientRect();
       const offset = targetRect.top - containerRect.top + container.scrollTop - 8;
       container.scrollTo({ top: offset, behavior: 'smooth' });
+    } else if (target) {
+      // Fallback if container ref is not available
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -360,7 +363,11 @@ export default function Recommendations() {
 
         {/* View Dialog */}
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="max-w-7xl max-h-[90vh] p-0 overflow-hidden">
+          <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-0 overflow-hidden">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Персональный отчет</DialogTitle>
+              <DialogDescription>Детальный анализ здоровья</DialogDescription>
+            </DialogHeader>
             {selectedReport && (() => {
               const grouped = groupByType(selectedReport.recommendations);
               const patientData = grouped["Данные пациента"]?.[0];
@@ -376,9 +383,9 @@ export default function Recommendations() {
               ];
 
               return (
-                <div className="flex h-full">
+                <div className="flex h-full min-h-0">
                   {/* Mini Sidebar */}
-                  <div className="w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex flex-col overflow-hidden">
+                  <div className="w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex flex-col min-h-0 overflow-hidden">
                     <div className="p-6 border-b border-border flex-shrink-0">
                       <h3 className="font-semibold text-lg bg-gradient-primary bg-clip-text text-transparent">
                         Содержание
@@ -388,7 +395,7 @@ export default function Recommendations() {
                       </p>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto px-3 py-4">
+                    <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
                       <nav className="space-y-1">
                         {sections.map((section) => (
                           <button
@@ -407,7 +414,7 @@ export default function Recommendations() {
                   </div>
 
                   {/* Content Area */}
-                  <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
                     <div className="px-8 py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex items-center justify-between">
                       <div>
                         <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -427,7 +434,7 @@ export default function Recommendations() {
                       </Button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-8 py-6" ref={contentRef}>
+                    <div className="flex-1 min-h-0 overflow-y-auto px-8 py-6" ref={contentRef}>
                       <div id="report-content" className="space-y-12 max-w-4xl">
                         {patientData && (
                           <div id="section-patient-data" className="scroll-mt-6">
