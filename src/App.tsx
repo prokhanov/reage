@@ -16,6 +16,7 @@ import Analyses from "./pages/Analyses";
 import AnalysisDetail from "./pages/AnalysisDetail";
 import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
+import Prescriptions from "./pages/Prescriptions";
 import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
 import AISettings from "./pages/admin/AISettings";
@@ -89,6 +90,16 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Recommendations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/prescriptions"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Prescriptions />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />

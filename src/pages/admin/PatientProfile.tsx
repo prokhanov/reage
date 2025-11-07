@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,10 +21,12 @@ import {
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 
 export default function PatientProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
 
   const { data: profile, isLoading: loadingProfile } = useQuery({
     queryKey: ["patient-profile", userId],
@@ -149,16 +152,22 @@ export default function PatientProfile() {
   );
 
   return (
-    
+    <>
       <div className="p-6 space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/admin/patients")}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Профиль пациента</h1>
-            <p className="text-muted-foreground">Просмотр данных пациента</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/admin/patients")}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Профиль пациента</h1>
+              <p className="text-muted-foreground">Просмотр данных пациента</p>
+            </div>
           </div>
+          <Button onClick={() => setShowPrescriptionDialog(true)}>
+            <FileText className="w-4 h-4 mr-2" />
+            Добавить назначение
+          </Button>
         </div>
 
         {/* Header Card */}
@@ -354,6 +363,14 @@ export default function PatientProfile() {
           </TabsContent>
         </Tabs>
       </div>
-    
+      
+      {userId && (
+        <CreatePrescriptionDialog
+          open={showPrescriptionDialog}
+          onOpenChange={setShowPrescriptionDialog}
+          userId={userId}
+        />
+      )}
+    </>
   );
 }

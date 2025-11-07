@@ -230,6 +230,42 @@ export type Database = {
         }
         Relationships: []
       }
+      prescriptions: {
+        Row: {
+          control_date: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_archived: boolean
+          prescription: string
+          status: Database["public"]["Enums"]["prescription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          control_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          prescription: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          control_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          prescription?: string
+          status?: Database["public"]["Enums"]["prescription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           birth_date: string
@@ -392,6 +428,7 @@ export type Database = {
     Enums: {
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin"
+      prescription_status: "on_review" | "confirmed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -521,6 +558,7 @@ export const Constants = {
     Enums: {
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin"],
+      prescription_status: ["on_review", "confirmed"],
     },
   },
 } as const
