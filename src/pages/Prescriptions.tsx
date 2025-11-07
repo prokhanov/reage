@@ -129,12 +129,12 @@ export default function Prescriptions() {
             {prescriptions.map((prescription) => (
               <TableRow key={prescription.id} className="border-border/50">
                 <TableCell className="font-medium max-w-[300px]">
-                  <div className="flex items-start gap-2">
-                    <div className="line-clamp-2 flex-1">{prescription.prescription}</div>
+                  <div className="flex items-start gap-1.5">
+                    <span className="line-clamp-2">{prescription.prescription}</span>
                     {prescription.effect && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors cursor-help flex-shrink-0 mt-0.5" />
+                          <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground transition-colors cursor-help flex-shrink-0 mt-0.5" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-sm">{prescription.effect}</p>
