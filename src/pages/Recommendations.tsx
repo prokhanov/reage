@@ -123,7 +123,9 @@ export default function Recommendations() {
     setViewDialogOpen(true);
   };
 
-  const scrollToSection = (sectionId: string) => {
+  const scrollToSection = (sectionId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const element = document.getElementById(`section-${sectionId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -359,9 +361,9 @@ export default function Recommendations() {
               );
 
               const sections = [
-                ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента', icon: '👤' }] : []),
-                ...(summary ? [{ id: 'summary', label: 'Общее резюме', icon: '📋' }] : []),
-                ...categories.map(([type]) => ({ id: type, label: type, icon: '📊' }))
+                ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
+                ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
+                ...categories.map(([type]) => ({ id: type, label: type }))
               ];
 
               return (
@@ -382,10 +384,10 @@ export default function Recommendations() {
                         {sections.map((section) => (
                           <button
                             key={section.id}
-                            onClick={() => scrollToSection(section.id)}
+                            type="button"
+                            onClick={(e) => scrollToSection(section.id, e)}
                             className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group hover:bg-accent text-muted-foreground hover:text-foreground"
                           >
-                            <span className="text-xl">{section.icon}</span>
                             <span className="text-sm font-medium flex-1 line-clamp-2">
                               {section.label}
                             </span>
