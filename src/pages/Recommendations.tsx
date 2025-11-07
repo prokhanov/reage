@@ -18,6 +18,7 @@ import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
+import html2pdf from "html2pdf.js";
 
 interface Recommendation {
   id: string;
@@ -197,19 +198,8 @@ export default function Recommendations() {
     }, {} as Record<string, Recommendation[]>);
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!selectedReport) return;
-
-    // Создаем окно для печати
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось открыть окно печати. Проверьте настройки браузера.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     const element = document.getElementById('report-content');
     if (!element) {
@@ -218,53 +208,34 @@ export default function Recommendations() {
         description: "Не удалось найти контент для экспорта",
         variant: "destructive",
       });
-      printWindow.close();
       return;
     }
 
-    // Копируем стили
-    const styles = Array.from(document.styleSheets)
-      .map(styleSheet => {
-        try {
-          return Array.from(styleSheet.cssRules)
-            .map(rule => rule.cssText)
-            .join('\n');
-        } catch (e) {
-          return '';
-        }
-      })
-      .join('\n');
+    try {
+      const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
+      
+      const opt = {
+        margin: 10,
+        filename: fileName,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Отчет от ${format(new Date(selectedReport.date), "dd-MM-yyyy")}</title>
-          <style>
-            ${styles}
-            body {
-              font-family: system-ui, -apple-system, sans-serif;
-              padding: 20px;
-              max-width: 800px;
-              margin: 0 auto;
-            }
-            @media print {
-              body { padding: 0; }
-            }
-          </style>
-        </head>
-        <body>
-          ${element.innerHTML}
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    
-    // Даем время на загрузку стилей, затем печатаем
-    setTimeout(() => {
-      printWindow.print();
-    }, 500);
+      await html2pdf().set(opt).from(element).save();
+      
+      toast({
+        title: "Успешно",
+        description: "PDF файл загружен",
+      });
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось экспортировать PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -424,14 +395,13 @@ export default function Recommendations() {
                           Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
                         </DialogDescription>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <button
                         onClick={handleExportPDF}
+                        className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Экспорт в PDF
-                      </Button>
+                        <Download className="h-4 w-4" />
+                        Скачать PDF
+                      </button>
                     </div>
 
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-6" ref={contentRef}>
