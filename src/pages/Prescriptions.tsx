@@ -140,10 +140,8 @@ export default function Prescriptions() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
