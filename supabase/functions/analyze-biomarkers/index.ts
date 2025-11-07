@@ -158,6 +158,25 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(10);
 
+    // Получаем данные о соблюдении назначений
+    // @ts-ignore - Type will be available after DB types regeneration
+    const { data: prescriptionAdherence } = await supabase.from("prescription_adherence").select(`
+        *,
+        prescriptions:prescription_id (
+          prescription,
+          effect,
+          control_date
+        )
+      `).eq("user_id", analysis.user_id).order("tracked_at", { ascending: false }).limit(20);
+
+    // Получаем симптомы пациента
+    const { data: userSymptoms } = await supabase
+      .from("user_symptoms")
+      .select("*")
+      .eq("user_id", analysis.user_id)
+      .order("tracked_at", { ascending: false })
+      .limit(50);
+
     // Группируем биомаркеры по категориям
     const categorizedBiomarkers = analysis.analysis_values.reduce((acc: any, av: any) => {
       const category = av.biomarkers.category;
@@ -193,6 +212,40 @@ serve(async (req) => {
           .join("\n")
       : "  Не указана";
 
+    // Формируем текст о соблюдении назначений
+    const adherenceLabelMap: Record<number, string> = {
+      0: "Почти не придерживался(ась)",
+      1: "Иногда пропускал(а)",
+      2: "В основном да",
+      3: "Всегда"
+    };
+
+    const adherenceText = prescriptionAdherence && prescriptionAdherence.length > 0
+      ? prescriptionAdherence
+          .map((adh: any) => {
+            const label = adherenceLabelMap[adh.adherence_level] || "Не указано";
+            const date = new Date(adh.tracked_at).toLocaleDateString("ru-RU");
+            const prescription = adh.prescriptions?.prescription || "Не указано";
+            return `  • ${prescription} — Соблюдение: ${label} (${adh.adherence_level}/3), Дата: ${date}`;
+          })
+          .join("\n")
+      : "  Данные о соблюдении назначений отсутствуют";
+
+    // Группируем симптомы по категориям
+    const groupedSymptoms = (userSymptoms || []).reduce((acc: any, symptom: any) => {
+      if (!acc[symptom.category]) {
+        acc[symptom.category] = [];
+      }
+      acc[symptom.category].push(`${symptom.symptom} (${symptom.severity}/3)`);
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    const symptomsText = Object.keys(groupedSymptoms).length > 0
+      ? Object.entries(groupedSymptoms)
+          .map(([category, symptoms]) => `  ${category}:\n    - ${(symptoms as string[]).join("\n    - ")}`)
+          .join("\n")
+      : "  Симптомы не указаны";
+
     // Формируем контекст пациента
     const age = profile?.birth_date ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : null;
     
@@ -211,6 +264,12 @@ ${medicalHistoryText}
 ТЕКУЩИЕ ЖАЛОБЫ И СИМПТОМЫ:
 ${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.main_complaints || c.complaint || "Не указано"}`).join("\n") : "Не указаны"}
 
+ТЕКУЩИЕ СИМПТОМЫ (из дневника):
+${symptomsText}
+
+СОБЛЮДЕНИЕ ПРЕДЫДУЩИХ НАЗНАЧЕНИЙ:
+${adherenceText}
+
 ВАЖНО ДЛЯ ИНТЕРПРЕТАЦИИ:
 При наличии хронических заболеваний в анамнезе, учитывай их при оценке биомаркеров:
 - При диабете: не пугать лёгким повышением HbA1c, оценивать в контексте компенсации
@@ -219,6 +278,12 @@ ${complaints && complaints.length > 0 ? complaints.map((c: any) => `- ${c.main_c
 - При ожирении/избыточном весе: ожидать инсулинорезистентность, дислипидемию
 - При сердечно-сосудистых заболеваниях: более строго оценивать липидный профиль
 - При возрасте 50+: корректировать референсные интервалы с учётом возраста
+
+УЧЁТ СОБЛЮДЕНИЯ НАЗНАЧЕНИЙ И СИМПТОМОВ:
+- Учитывай соблюдение предыдущих назначений и текущие симптомы пациента при формировании новых рекомендаций
+- Если соблюдение низкое (0-1) — ожидать слабую динамику показателей, возможно нужна мотивация или упрощение схемы
+- Если соблюдение высокое (2-3), но нет эффекта — предлагать коррекции дозировок или смену препаратов
+- Симптомы из дневника должны соотноситься с биомаркерами: например, усталость + низкий B12, бессонница + высокий кортизол
 
 Всегда указывай связь показателей с имеющимися заболеваниями, например:
 "Ваш ТТГ немного повышен (5.2 мМЕ/л при норме до 4), что может быть связано с ранее указанным гипотиреозом. Это требует консультации эндокринолога для возможной коррекции терапии."

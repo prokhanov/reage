@@ -15,6 +15,21 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 
+interface Prescription {
+  id: string;
+  prescription: string;
+  effect: string | null;
+  control_date: string | null;
+  status: string;
+}
+
+const adherenceLevels = [
+  { value: 0, label: "Почти не придерживался(ась)", color: "text-red-500", bgColor: "bg-red-500/10", borderColor: "border-red-500" },
+  { value: 1, label: "Иногда пропускал(а)", color: "text-orange-500", bgColor: "bg-orange-500/10", borderColor: "border-orange-500" },
+  { value: 2, label: "В основном да", color: "text-blue-500", bgColor: "bg-blue-500/10", borderColor: "border-blue-500" },
+  { value: 3, label: "Всегда", color: "text-green-500", bgColor: "bg-green-500/10", borderColor: "border-green-500" }
+];
+
 const symptomCategories = [
   {
     emoji: "🧠",
@@ -223,6 +238,8 @@ export default function MyState() {
   const { getUserId, isViewMode } = useViewAsUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [adherenceAnswers, setAdherenceAnswers] = useState<Record<string, number>>({});
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [symptoms, setSymptoms] = useState<SymptomRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -230,12 +247,37 @@ export default function MyState() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const currentCategory = symptomCategories[currentStep];
-  const progress = ((currentStep + 1) / symptomCategories.length) * 100;
+  const hasAdherenceStep = prescriptions.length > 0;
+  const totalSteps = symptomCategories.length + (hasAdherenceStep ? 1 : 0);
+  const isAdherenceStep = hasAdherenceStep && currentStep === 0;
+  const categoryIndex = hasAdherenceStep ? currentStep - 1 : currentStep;
+  const currentCategory = !isAdherenceStep && categoryIndex >= 0 ? symptomCategories[categoryIndex] : null;
+  const progress = ((currentStep + 1) / totalSteps) * 100;
 
   useEffect(() => {
+    fetchPrescriptions();
     fetchSymptoms();
   }, []);
+
+  const fetchPrescriptions = async () => {
+    try {
+      const userId = await getUserId();
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'confirmed')
+        .eq('is_archived', false)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPrescriptions(data || []);
+    } catch (error) {
+      console.error('Error fetching prescriptions:', error);
+    }
+  };
 
   const fetchSymptoms = async () => {
     try {
@@ -264,14 +306,23 @@ export default function MyState() {
   };
 
   const handleAnswerChange = (symptom: string, severity: number) => {
-    setAnswers(prev => ({
+    if (currentCategory) {
+      setAnswers(prev => ({
+        ...prev,
+        [`${currentCategory.title}|${symptom}`]: severity
+      }));
+    }
+  };
+
+  const handleAdherenceChange = (prescriptionId: string, level: number) => {
+    setAdherenceAnswers(prev => ({
       ...prev,
-      [`${currentCategory.title}|${symptom}`]: severity
+      [prescriptionId]: level
     }));
   };
 
   const handleNext = () => {
-    if (currentStep < symptomCategories.length - 1) {
+    if (currentStep < totalSteps - 1) {
       setCurrentStep(prev => prev + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -299,6 +350,22 @@ export default function MyState() {
         return;
       }
 
+      // Сначала сохраняем соблюдение назначений
+      if (Object.keys(adherenceAnswers).length > 0) {
+        const adherenceData = Object.entries(adherenceAnswers).map(([prescriptionId, level]) => ({
+          user_id: userId,
+          prescription_id: prescriptionId,
+          adherence_level: level,
+          tracked_at: new Date().toISOString()
+        }));
+
+        // @ts-ignore - Type will be available after DB types regeneration
+        const { error: adherenceError } = await supabase.from('prescription_adherence').insert(adherenceData);
+
+        if (adherenceError) throw adherenceError;
+      }
+
+      // Затем очищаем и сохраняем симптомы
       await supabase
         .from('user_symptoms')
         .delete()
@@ -316,29 +383,37 @@ export default function MyState() {
           };
         });
 
-      if (symptomsData.length === 0) {
+      if (symptomsData.length === 0 && Object.keys(adherenceAnswers).length === 0) {
         toast({
           title: "Все отлично! 🎉",
-          description: "У вас не отмечено ни одного симптома"
+          description: "Данные сохранены"
         });
         await fetchSymptoms();
         return;
       }
 
-      const { error } = await supabase
-        .from('user_symptoms')
-        .insert(symptomsData);
+      if (symptomsData.length > 0) {
+        const { error } = await supabase
+          .from('user_symptoms')
+          .insert(symptomsData);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
+
+      const adherenceCount = Object.keys(adherenceAnswers).length;
+      const symptomsCount = symptomsData.length;
+      const parts = [];
+      if (adherenceCount > 0) parts.push(`Соблюдение: ${adherenceCount}`);
+      if (symptomsCount > 0) parts.push(`Симптомы: ${symptomsCount}`);
 
       toast({
         title: "Успешно сохранено! ✅",
-        description: `Отслеживается ${symptomsData.length} симптомов`
+        description: parts.join(", ")
       });
 
       await fetchSymptoms();
     } catch (error) {
-      console.error('Error saving symptoms:', error);
+      console.error('Error saving data:', error);
       toast({
         title: "Ошибка сохранения",
         description: "Попробуйте еще раз",
