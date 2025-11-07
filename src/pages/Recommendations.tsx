@@ -231,227 +231,120 @@ export default function Recommendations() {
         )))
       ];
 
-      // Создаем чистый черно-белый HTML для PDF
+      // Создаем чистый черно-белый HTML, строго изолированный от глобальных стилей
       const pdfContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <title>Персональный отчет</title>
-            <style>
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-              }
-              
-              body {
-                font-family: 'Georgia', 'Times New Roman', serif;
-                line-height: 1.8;
-                color: #000;
-                background: white;
-                padding: 40px;
-                font-size: 12pt;
-              }
-              
-              .header {
-                text-align: center;
-                margin-bottom: 40px;
-                padding-bottom: 20px;
-                border-bottom: 2px solid #000;
-              }
-              
-              .header h1 {
-                font-size: 24pt;
-                color: #000;
-                margin-bottom: 10px;
-                font-weight: bold;
-              }
-              
-              .header .date {
-                font-size: 11pt;
-                color: #000;
-              }
-              
-              .toc {
-                padding: 20px 0;
-                margin-bottom: 40px;
-                page-break-after: always;
-              }
-              
-              .toc h2 {
-                font-size: 18pt;
-                color: #000;
-                margin-bottom: 20px;
-                font-weight: bold;
-                border-bottom: 1px solid #000;
-                padding-bottom: 10px;
-              }
-              
-              .toc-list {
-                list-style: none;
-                padding-left: 0;
-              }
-              
-              .toc-item {
-                margin: 10px 0;
-              }
-              
-              .toc-link {
-                color: #000;
-                text-decoration: none;
-                display: flex;
-                justify-content: space-between;
-                padding: 8px 0;
-                border-bottom: 1px dotted #ccc;
-              }
-              
-              .section {
-                margin-bottom: 30px;
-                page-break-inside: avoid;
-              }
-              
-              .section-header {
-                color: #000;
-                padding: 10px 0;
-                margin-bottom: 15px;
-                margin-top: 20px;
-                border-bottom: 2px solid #000;
-                font-size: 16pt;
-                font-weight: bold;
-              }
-              
-              .section-content {
-                font-size: 11pt;
-                line-height: 1.8;
-                text-align: justify;
-              }
-              
-              .section-content h1,
-              .section-content h2,
-              .section-content h3,
-              .section-content h4 {
-                color: #000;
-                margin-top: 20px;
-                margin-bottom: 10px;
-                font-weight: bold;
-              }
-              
-              .section-content h1 { font-size: 16pt; }
-              .section-content h2 { font-size: 14pt; }
-              .section-content h3 { font-size: 12pt; }
-              .section-content h4 { font-size: 11pt; }
-              
-              .section-content p {
-                margin-bottom: 12px;
-              }
-              
-              .section-content ul,
-              .section-content ol {
-                margin-left: 30px;
-                margin-bottom: 15px;
-              }
-              
-              .section-content li {
-                margin-bottom: 8px;
-              }
-              
-              .section-content strong {
-                color: #000;
-                font-weight: bold;
-              }
-              
-              .section-content em {
-                font-style: italic;
-              }
-              
-              .section-content code {
-                font-family: 'Courier New', monospace;
-                font-size: 10pt;
-              }
-              
-              .section-content blockquote {
-                border-left: 3px solid #000;
-                padding-left: 15px;
-                margin: 15px 0;
-                color: #000;
-                font-style: italic;
-              }
-              
-              .section-content table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 15px 0;
-              }
-              
-              .section-content table th,
-              .section-content table td {
-                border: 1px solid #000;
-                padding: 8px;
-                text-align: left;
-              }
-              
-              .section-content table th {
-                font-weight: bold;
-              }
-              
-              @media print {
-                body {
-                  padding: 20px;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Персональный отчет</h1>
-              <div class="date">${format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}</div>
+        <style>
+          .pdf-root, .pdf-root * { box-sizing: border-box; }
+          .pdf-root {
+            width: 794px; /* ~A4 при 96dpi */
+            background: #ffffff; /* без фонов */
+            color: #000000;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.8;
+            font-size: 12pt;
+            margin: 0;
+            padding: 40px 32px;
+          }
+          .pdf-root a { color: #000; text-decoration: underline; }
+          .pdf-root .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #000;
+          }
+          .pdf-root .header h1 {
+            font-size: 22pt;
+            margin-bottom: 8px;
+            font-weight: 700;
+          }
+          .pdf-root .header .date { font-size: 11pt; }
+
+          .pdf-root .toc { margin: 24px 0 32px; page-break-after: always; }
+          .pdf-root .toc h2 {
+            font-size: 14pt;
+            border-bottom: 1px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-weight: 700;
+          }
+          .pdf-root .toc-list { list-style: none; padding: 0; margin: 0; }
+          .pdf-root .toc-item { display: flex; justify-content: space-between; border-bottom: 1px dotted #999; padding: 6px 0; }
+          .pdf-root .toc-link { color: #000; text-decoration: none; display: flex; justify-content: space-between; width: 100%; }
+
+          .pdf-root .section { margin-bottom: 24px; page-break-inside: avoid; }
+          .pdf-root .section + .section { page-break-before: always; }
+          .pdf-root .section-header {
+            font-size: 16pt;
+            font-weight: 700;
+            padding: 8px 0;
+            border-bottom: 2px solid #000;
+            margin: 16px 0;
+          }
+          .pdf-root .section-content { font-size: 11pt; }
+
+          /* Типографика */
+          .pdf-root p { margin: 0 0 12px; }
+          .pdf-root ul, .pdf-root ol { margin: 0 0 16px 24px; }
+          .pdf-root li { margin: 0 0 8px; }
+          .pdf-root strong { font-weight: 700; }
+          .pdf-root em { font-style: italic; }
+          .pdf-root blockquote { border-left: 3px solid #000; padding-left: 12px; margin: 12px 0; font-style: italic; }
+
+          /* Таблицы */
+          .pdf-root table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+          .pdf-root th, .pdf-root td { border: 1px solid #000; padding: 6px 8px; text-align: left; }
+          .pdf-root th { font-weight: 700; }
+        </style>
+        <div class="pdf-root">
+          <div class="header">
+            <h1>Персональный отчет</h1>
+            <div class="date">${format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}</div>
+          </div>
+          <div class="toc">
+            <h2>Содержание</h2>
+            <ul class="toc-list">
+              ${sections.map((section, idx) => `
+                <li class="toc-item">
+                  <a href="#section-${section.id}" class="toc-link">
+                    <span>${section.label}</span>
+                    <span>${idx + 1}</span>
+                  </a>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          ${sections.map((section) => `
+            <div class="section" id="section-${section.id}">
+              <div class="section-header">${section.label}</div>
+              <div class="section-content">${section.content}</div>
             </div>
-            
-            <div class="toc">
-              <h2>Содержание</h2>
-              <ul class="toc-list">
-                ${sections.map((section, idx) => `
-                  <li class="toc-item">
-                    <a href="#section-${section.id}" class="toc-link">
-                      <span>${section.label}</span>
-                      <span>${idx + 1}</span>
-                    </a>
-                  </li>
-                `).join('')}
-              </ul>
-            </div>
-            
-            ${sections.map((section) => `
-              <div class="section" id="section-${section.id}">
-                <div class="section-header">${section.label}</div>
-                <div class="section-content">
-                  ${section.content}
-                </div>
-              </div>
-            `).join('')}
-          </body>
-        </html>
+          `).join('')}
+        </div>
       `;
 
-      // Создаем временный элемент для генерации PDF
+      // Создаем временный элемент только с изолированным содержимым
       const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'fixed';
+      tempDiv.style.left = '-10000px';
+      tempDiv.style.top = '0';
+      tempDiv.style.zIndex = '-1';
       tempDiv.innerHTML = pdfContent;
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
       document.body.appendChild(tempDiv);
 
       const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
       
       const opt = {
-        margin: [20, 20, 20, 20] as [number, number, number, number],
+        margin: [10, 10, 10, 10] as [number, number, number, number],
         filename: fileName,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { 
           scale: 2,
           useCORS: true,
           logging: false,
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          letterRendering: true,
+          enableLinks: true,
+          windowWidth: 794,
         },
         jsPDF: { 
           unit: 'mm', 
@@ -459,13 +352,10 @@ export default function Recommendations() {
           orientation: 'portrait' as const,
           compress: true
         },
-        pagebreak: { 
-          mode: 'avoid-all',
-          before: '.section'
-        }
+        pagebreak: { mode: ['css', 'legacy'] }
       };
 
-      await html2pdf().set(opt).from(tempDiv).save();
+      await html2pdf().set(opt).from(tempDiv.querySelector('.pdf-root') as HTMLElement).save();
       
       // Удаляем временный элемент
       document.body.removeChild(tempDiv);
