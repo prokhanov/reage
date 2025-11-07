@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, Trash2, Brain, Download, Sparkles } from "lucide-react";
+import { Eye, Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { MarkdownContent } from "@/components/MarkdownContent";
@@ -18,6 +18,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
+import { EditReportDialog } from "@/components/admin/EditReportDialog";
+import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 
 interface Recommendation {
   id: string;
@@ -26,23 +28,27 @@ interface Recommendation {
   created_at: string;
   analysis_date: string | null;
   analysis_status: "on_review" | "processed" | null;
+  analysis_id: string | null;
 }
 
 interface RecommendationReport {
   date: string;
   recommendations: Recommendation[];
   count: number;
+  analysisId: string | null;
 }
 
 
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
+  const { isSuperAdmin } = useSuperAdminCheck();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<RecommendationReport | null>(null);
   const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
@@ -72,7 +78,8 @@ export default function Recommendations() {
       const transformedData = (data || []).map(rec => ({
         ...rec,
         analysis_date: rec.analyses?.date || null,
-        analysis_status: rec.analyses?.status || null
+        analysis_status: rec.analyses?.status || null,
+        analysis_id: rec.analysis_id || null
       }));
       
       setRecommendations(transformedData);
@@ -93,6 +100,7 @@ export default function Recommendations() {
         date,
         recommendations: recs,
         count: recs.length,
+        analysisId: recs[0]?.analysis_id || null,
       })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setReports(reportsList);
@@ -111,6 +119,11 @@ export default function Recommendations() {
   const handleView = (report: RecommendationReport) => {
     setSelectedReport(report);
     setViewDialogOpen(true);
+  };
+
+  const handleEdit = (report: RecommendationReport) => {
+    setSelectedReport(report);
+    setEditDialogOpen(true);
   };
 
   const handleDeleteClick = (report: RecommendationReport) => {
@@ -309,6 +322,15 @@ export default function Recommendations() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        {isSuperAdmin && isViewMode && report.analysisId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(report)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -399,6 +421,17 @@ export default function Recommendations() {
             })()}
           </DialogContent>
         </Dialog>
+
+        {/* Edit Report Dialog */}
+        {selectedReport?.analysisId && (
+          <EditReportDialog
+            analysisId={selectedReport.analysisId}
+            analysisStatus={selectedReport.recommendations[0]?.analysis_status || "on_review"}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onStatusChange={loadRecommendations}
+          />
+        )}
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

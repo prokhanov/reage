@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnalysisStatusBadge } from "./AnalysisStatusBadge";
 import { Loader2, Send } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Recommendation {
   id: string;
@@ -25,16 +26,21 @@ interface EditReportDialogProps {
 
 export function EditReportDialog({ 
   analysisId, 
-  analysisStatus,
+  analysisStatus: initialStatus,
   open, 
   onOpenChange,
   onStatusChange 
 }: EditReportDialogProps) {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setAnalysisStatus(initialStatus);
+  }, [initialStatus]);
 
   useEffect(() => {
     if (open) {
@@ -91,31 +97,31 @@ export function EditReportDialog({
     }
   };
 
-  const handlePublishToClient = async () => {
-    setPublishing(true);
+  const handleStatusChange = async (newStatus: "on_review" | "processed") => {
     try {
       const { error } = await supabase
         .from("analyses")
-        .update({ status: "processed" })
+        .update({ status: newStatus })
         .eq("id", analysisId);
 
       if (error) throw error;
 
+      setAnalysisStatus(newStatus);
+      
       toast({
         title: "Успешно!",
-        description: "Отчет загружен в кабинет клиента",
+        description: newStatus === "processed" 
+          ? "Отчет загружен в кабинет клиента" 
+          : "Статус изменен на 'На проверке'",
       });
 
       onStatusChange?.();
-      onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Ошибка",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setPublishing(false);
     }
   };
 
@@ -139,10 +145,20 @@ export function EditReportDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Редактирование отчета</DialogTitle>
-            <AnalysisStatusBadge status={analysisStatus} />
+            <div className="flex items-center gap-3">
+              <Select value={analysisStatus} onValueChange={handleStatusChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="on_review">На проверке</SelectItem>
+                  <SelectItem value="processed">Подтвержден</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogDescription>
-            Проверьте и отредактируйте AI-сгенерированный отчет перед загрузкой клиенту
+            Проверьте и отредактируйте AI-сгенерированный отчет. Измените статус на "Подтвержден", чтобы клиент увидел отчет.
           </DialogDescription>
         </DialogHeader>
 
@@ -151,70 +167,39 @@ export function EditReportDialog({
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="all">Все</TabsTrigger>
-              <TabsTrigger value="summary">Резюме</TabsTrigger>
-              <TabsTrigger value="categories">По категориям</TabsTrigger>
+          <Tabs defaultValue={Object.keys(groupedRecommendations)[0] || "all"} className="w-full">
+            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Object.keys(groupedRecommendations).length}, minmax(0, 1fr))` }}>
+              {Object.keys(groupedRecommendations).map((type) => (
+                <TabsTrigger key={type} value={type} className="text-xs">
+                  {type}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <TabsContent value="all" className="space-y-4">
-              {recommendations.map((rec) => (
-                <div key={rec.id} className="space-y-2">
-                  <Label className="text-sm font-semibold">{rec.type}</Label>
-                  <Textarea
-                    value={rec.text}
-                    onChange={(e) => updateRecommendation(rec.id, e.target.value)}
-                    rows={6}
-                    className="font-mono text-sm"
-                  />
+            {Object.entries(groupedRecommendations).map(([type, recs]) => (
+              <TabsContent key={type} value={type} className="space-y-4">
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-base">{type}</h3>
+                  {recs.map((rec) => (
+                    <div key={rec.id} className="space-y-2">
+                      <Textarea
+                        value={rec.text}
+                        onChange={(e) => updateRecommendation(rec.id, e.target.value)}
+                        rows={type === "Общее резюме" || type === "Полный отчет" ? 12 : 8}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="summary" className="space-y-4">
-              {groupedRecommendations["Общее резюме"]?.map((rec) => (
-                <div key={rec.id} className="space-y-2">
-                  <Label className="text-sm font-semibold">{rec.type}</Label>
-                  <Textarea
-                    value={rec.text}
-                    onChange={(e) => updateRecommendation(rec.id, e.target.value)}
-                    rows={8}
-                    className="font-mono text-sm"
-                  />
-                </div>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="categories" className="space-y-4">
-              {Object.entries(groupedRecommendations).map(([type, recs]) => {
-                if (type === "Общее резюме" || type === "Полный отчет") return null;
-                return (
-                  <div key={type} className="space-y-3">
-                    <h3 className="font-semibold text-base">{type}</h3>
-                    {recs.map((rec) => (
-                      <div key={rec.id} className="space-y-2">
-                        <Textarea
-                          value={rec.text}
-                          onChange={(e) => updateRecommendation(rec.id, e.target.value)}
-                          rows={4}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </TabsContent>
+              </TabsContent>
+            ))}
           </Tabs>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <div className="flex justify-end gap-3 pt-4">
           <Button
             onClick={handleSaveChanges}
             disabled={saving || loading}
-            variant="outline"
-            className="flex-1"
           >
             {saving ? (
               <>
@@ -225,26 +210,6 @@ export function EditReportDialog({
               "Сохранить изменения"
             )}
           </Button>
-          
-          {analysisStatus === "on_review" && (
-            <Button
-              onClick={handlePublishToClient}
-              disabled={publishing || loading}
-              className="flex-1"
-            >
-              {publishing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Загрузка...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Загрузить в кабинет клиента
-                </>
-              )}
-            </Button>
-          )}
         </div>
       </DialogContent>
     </Dialog>
