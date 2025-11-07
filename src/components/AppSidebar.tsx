@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,7 @@ const navItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { viewAsUserId, simPath, setSimPath, setViewAsUserId } = useContext(ViewAsPatientContext);
+  const { viewAsUserId, simPath, setSimPath } = useContext(ViewAsPatientContext);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
 
@@ -77,12 +77,6 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     navigate("/");
   };
 
-  const handleCloseViewMode = () => {
-    setViewAsUserId(null);
-    setSimPath("/dashboard");
-    navigate("/admin/patients");
-  };
-
   return (
     <>
       {/* Overlay for mobile */}
@@ -113,18 +107,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           {/* View Mode Badge */}
           {viewAsUserId && (
             <div className="px-4 py-3 bg-primary/10 border-b border-border/30">
-              <button
-                onClick={handleCloseViewMode}
-                className="w-full"
-              >
-                <Badge variant="default" className="w-full justify-between gap-2 cursor-pointer hover:bg-primary/90 transition-colors">
-                  <span className="flex items-center gap-2">
-                    <Eye className="h-3 w-3" />
-                    Просмотр: {patientName}
-                  </span>
-                  <X className="h-3 w-3" />
-                </Badge>
-              </button>
+              <Badge variant="default" className="w-full justify-start gap-2">
+                <Eye className="h-3 w-3" />
+                Просмотр: {patientName}
+              </Badge>
             </div>
           )}
 
