@@ -7,7 +7,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Scale } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -227,6 +228,8 @@ export default function MyState() {
   const [symptoms, setSymptoms] = useState<SymptomRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [lastTrackedDate, setLastTrackedDate] = useState<string | null>(null);
+  const [weight, setWeight] = useState<string>("");
+  const [isSavingWeight, setIsSavingWeight] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -235,7 +238,82 @@ export default function MyState() {
 
   useEffect(() => {
     fetchSymptoms();
+    fetchWeight();
   }, []);
+
+  const fetchWeight = async () => {
+    try {
+      const userId = await getUserId();
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('weight')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      if (data?.weight) {
+        setWeight(data.weight.toString());
+      }
+    } catch (error) {
+      console.error('Error fetching weight:', error);
+    }
+  };
+
+  const handleSaveWeight = async () => {
+    if (isViewMode) {
+      toast({
+        title: "Действие недоступно",
+        description: "Сохранение данных недоступно в режиме просмотра",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!weight || parseFloat(weight) <= 0) {
+      toast({
+        title: "Ошибка",
+        description: "Введите корректный вес",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSavingWeight(true);
+    try {
+      const userId = await getUserId();
+      if (!userId) {
+        toast({
+          title: "Ошибка",
+          description: "Необходимо войти в систему",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ weight: parseFloat(weight) })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Успешно сохранено! ✅",
+        description: "Вес обновлен"
+      });
+    } catch (error) {
+      console.error('Error saving weight:', error);
+      toast({
+        title: "Ошибка сохранения",
+        description: "Попробуйте еще раз",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingWeight(false);
+    }
+  };
 
   const fetchSymptoms = async () => {
     try {
@@ -391,6 +469,48 @@ export default function MyState() {
             Отслеживайте свои симптомы и следите за изменениями
           </p>
         </div>
+
+        {/* Weight Tracker */}
+        <Card className="p-6 mb-8 max-w-2xl mx-auto">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Scale className="w-6 h-6 text-primary" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold mb-1">Текущий вес</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Отслеживайте изменения веса для контроля прогресса
+              </p>
+              <div className="flex gap-3">
+                <div className="flex-1 max-w-xs">
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      placeholder="Введите вес"
+                      step="0.1"
+                      min="0"
+                      max="500"
+                      className="pr-12"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                      кг
+                    </span>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSaveWeight}
+                  disabled={isSavingWeight || !weight}
+                >
+                  {isSavingWeight ? "Сохранение..." : "Сохранить"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
 
         <Tabs defaultValue="survey" className="w-full">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
