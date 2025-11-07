@@ -20,6 +20,7 @@ import Recommendations from "./pages/Recommendations";
 import Prescriptions from "./pages/Prescriptions";
 import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
+import HealthAssistant from "./pages/HealthAssistant";
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
 import Patients from "./pages/admin/Patients";
@@ -116,6 +117,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <MyState />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/health-assistant"
+            element={
+              <ProtectedRoute>
+                <HealthAssistant />
               </ProtectedRoute>
             }
           />
