@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, Trash2, Brain, Download } from "lucide-react";
+import { Eye, Trash2, Brain, Download, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { MarkdownContent } from "@/components/MarkdownContent";
@@ -258,16 +258,19 @@ export default function Recommendations() {
         </div>
 
         {reports.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card/50">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <Brain className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold mb-2">Рекомендации появятся скоро</h3>
-              <p className="text-muted-foreground text-center mb-6">
-                Добавьте анализы, и AI сгенерирует персональные рекомендации для вас
+          <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
+            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+              <div className="relative mb-6">
+                <Brain className="h-20 w-20 text-primary/40" />
+                <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+                Ваши рекомендации скоро появятся здесь
+              </h3>
+              <p className="text-muted-foreground text-center max-w-md leading-relaxed">
+                После добавления и анализа ваших медицинских показателей, 
+                AI сгенерирует персональные рекомендации для улучшения здоровья.
               </p>
-              <Button onClick={() => (isViewMode ? setSimPath("/analyses") : navigate("/analyses"))} className="shadow-neon-primary">
-                Добавить анализ
-              </Button>
             </CardContent>
           </Card>
         ) : (

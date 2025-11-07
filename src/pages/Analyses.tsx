@@ -1,15 +1,11 @@
 import { useEffect, useState, useContext } from "react";
-import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Calendar, FlaskConical } from "lucide-react";
+import { Calendar, FlaskConical, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
@@ -28,11 +24,6 @@ export default function Analyses() {
   const { setSimPath } = useContext(ViewAsPatientContext);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    date: format(new Date(), 'yyyy-MM-dd'),
-    labName: "",
-  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -87,53 +78,6 @@ export default function Analyses() {
     }
   };
 
-  const handleCreateAnalysis = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isViewMode) {
-      toast({
-        title: "Действие недоступно",
-        description: "Создание анализа недоступно в режиме просмотра",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setLoading(true);
-
-    try {
-      const userId = await getUserId();
-      if (!userId) throw new Error("Не авторизован");
-
-      const { data, error } = await supabase
-        .from("analyses")
-        .insert({
-          user_id: userId,
-          date: formData.date,
-          lab_name: formData.labName || null,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Успешно!",
-        description: "Анализ создан. Теперь добавьте результаты.",
-      });
-
-      setDialogOpen(false);
-      navigate(`/analyses/${data.id}`);
-    } catch (error: any) {
-      toast({
-        title: "Ошибка",
-        description: error.message || "Не удалось создать анализ",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading && analyses.length === 0) {
     return (
@@ -146,68 +90,27 @@ export default function Analyses() {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-              История анализов
-            </h2>
-            <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
-          </div>
-          
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="shadow-neon-primary hover:scale-105 transition-all">
-                <Plus className="mr-2 h-4 w-4" />
-                Добавить анализ
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-card border-primary/30">
-              <DialogHeader>
-                <DialogTitle className="bg-gradient-primary bg-clip-text text-transparent">
-                  Новый анализ
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateAnalysis} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="date">Дата анализа</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="labName">Лаборатория (опционально)</Label>
-                  <Input
-                    id="labName"
-                    type="text"
-                    placeholder="Инвитро, KDL и т.д."
-                    value={formData.labName}
-                    onChange={(e) => setFormData({ ...formData, labName: e.target.value })}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Создание..." : "Создать и добавить показатели"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+            История анализов
+          </h2>
+          <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
         </div>
 
         {analyses.length === 0 ? (
-          <Card className="border-dashed border-2 border-primary/30 bg-card/50">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <FlaskConical className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold mb-2">Пока нет анализов</h3>
-              <p className="text-muted-foreground text-center mb-6">
-                Добавьте свой первый анализ, чтобы начать отслеживать показатели здоровья
+          <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
+            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+              <div className="relative mb-6">
+                <FlaskConical className="h-20 w-20 text-primary/40" />
+                <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+                Ваши анализы скоро появятся здесь
+              </h3>
+              <p className="text-muted-foreground text-center max-w-md leading-relaxed">
+                Администратор добавит результаты ваших анализов после их обработки. 
+                Вы получите уведомление, когда данные будут готовы к просмотру.
               </p>
-              <Button onClick={() => setDialogOpen(true)} className="shadow-neon-primary">
-                <Plus className="mr-2 h-4 w-4" />
-                Добавить первый анализ
-              </Button>
             </CardContent>
           </Card>
         ) : (
