@@ -16,7 +16,7 @@ import { format } from "date-fns";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { getUserId, isViewMode } = useViewAsUser();
+  const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [analysesCount, setAnalysesCount] = useState(0);
@@ -32,8 +32,23 @@ export default function Dashboard() {
   const [bodyHeatmapData, setBodyHeatmapData] = useState<any[]>([]);
 
   useEffect(() => {
+    // Reset all state when exiting view mode
+    setProfile(null);
+    setLoading(true);
+    setAnalysesCount(0);
+    setLatestBioAge(null);
+    setLatestHealthIndex(null);
+    setAgeTrend(null);
+    setAgingRate(null);
+    setRecentAnalyses([]);
+    setTrendData([]);
+    setTrendMeta(null);
+    setTrendCategories([]);
+    setSelectedCategories([]);
+    setBodyHeatmapData([]);
+    
     fetchProfile();
-  }, []);
+  }, [viewAsUserId]);
 
   useEffect(() => {
     if (profile) {
