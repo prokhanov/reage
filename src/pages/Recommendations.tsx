@@ -231,69 +231,201 @@ export default function Recommendations() {
         )))
       ];
 
-      // Создаем чистый черно-белый HTML, строго изолированный от глобальных стилей
+      // Создаем чистый черно-белый HTML с правильным форматированием
       const pdfContent = `
         <style>
-          .pdf-root, .pdf-root * { box-sizing: border-box; }
+          .pdf-root, .pdf-root * { 
+            box-sizing: border-box; 
+            max-width: 100%;
+            word-wrap: break-word;
+          }
           .pdf-root {
-            width: 794px; /* ~A4 при 96dpi */
-            background: #ffffff; /* без фонов */
+            width: 100%;
+            max-width: 210mm; /* ширина A4 */
+            background: #ffffff;
             color: #000000;
             font-family: 'Georgia', 'Times New Roman', serif;
-            line-height: 1.8;
-            font-size: 12pt;
-            margin: 0;
-            padding: 40px 32px;
+            line-height: 1.7;
+            font-size: 11pt;
+            margin: 0 auto;
+            padding: 15mm 20mm;
           }
-          .pdf-root a { color: #000; text-decoration: underline; }
+          
           .pdf-root .header {
             text-align: center;
-            margin-bottom: 32px;
-            padding-bottom: 16px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
             border-bottom: 1px solid #000;
           }
           .pdf-root .header h1 {
-            font-size: 22pt;
+            font-size: 20pt;
             margin-bottom: 8px;
             font-weight: 700;
+            color: #000;
           }
-          .pdf-root .header .date { font-size: 11pt; }
+          .pdf-root .header .date { 
+            font-size: 10pt; 
+            color: #000;
+          }
 
-          .pdf-root .toc { margin: 24px 0 32px; page-break-after: always; }
+          .pdf-root .toc { 
+            margin: 20px 0 30px; 
+            page-break-after: always; 
+          }
           .pdf-root .toc h2 {
             font-size: 14pt;
             border-bottom: 1px solid #000;
             padding-bottom: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             font-weight: 700;
+            color: #000;
           }
-          .pdf-root .toc-list { list-style: none; padding: 0; margin: 0; }
-          .pdf-root .toc-item { display: flex; justify-content: space-between; border-bottom: 1px dotted #999; padding: 6px 0; }
-          .pdf-root .toc-link { color: #000; text-decoration: none; display: flex; justify-content: space-between; width: 100%; }
-
-          .pdf-root .section { margin-bottom: 24px; page-break-inside: avoid; }
-          .pdf-root .section + .section { page-break-before: always; }
-          .pdf-root .section-header {
-            font-size: 16pt;
-            font-weight: 700;
+          .pdf-root .toc-list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+          }
+          .pdf-root .toc-item { 
+            display: flex; 
+            justify-content: space-between; 
+            border-bottom: 1px dotted #999; 
             padding: 8px 0;
-            border-bottom: 2px solid #000;
-            margin: 16px 0;
+            align-items: baseline;
           }
-          .pdf-root .section-content { font-size: 11pt; }
+          .pdf-root .toc-item span:first-child {
+            flex: 1;
+            padding-right: 10px;
+          }
+          .pdf-root .toc-item span:last-child {
+            flex-shrink: 0;
+          }
 
-          /* Типографика */
-          .pdf-root p { margin: 0 0 12px; }
-          .pdf-root ul, .pdf-root ol { margin: 0 0 16px 24px; }
-          .pdf-root li { margin: 0 0 8px; }
-          .pdf-root strong { font-weight: 700; }
-          .pdf-root em { font-style: italic; }
-          .pdf-root blockquote { border-left: 3px solid #000; padding-left: 12px; margin: 12px 0; font-style: italic; }
+          .pdf-root .section { 
+            margin-bottom: 30px; 
+            page-break-inside: avoid;
+            clear: both;
+          }
+          .pdf-root .section + .section { 
+            page-break-before: always; 
+          }
+          .pdf-root .section-header {
+            font-size: 14pt;
+            font-weight: 700;
+            padding: 10px 0 8px;
+            border-bottom: 2px solid #000;
+            margin: 20px 0 15px;
+            color: #000;
+          }
+          .pdf-root .section-content { 
+            font-size: 11pt;
+            text-align: left;
+            line-height: 1.7;
+          }
+
+          /* Типографика с единообразными отступами */
+          .pdf-root .section-content > * {
+            margin-left: 0;
+            margin-right: 0;
+          }
+          
+          .pdf-root .section-content p { 
+            margin: 0 0 14px 0;
+            text-align: left;
+            line-height: 1.7;
+          }
+          
+          .pdf-root .section-content h1,
+          .pdf-root .section-content h2,
+          .pdf-root .section-content h3,
+          .pdf-root .section-content h4,
+          .pdf-root .section-content h5,
+          .pdf-root .section-content h6 {
+            color: #000;
+            font-weight: 700;
+            margin: 18px 0 12px 0;
+            line-height: 1.4;
+            text-align: left;
+          }
+          .pdf-root .section-content h1 { font-size: 14pt; }
+          .pdf-root .section-content h2 { font-size: 13pt; }
+          .pdf-root .section-content h3 { font-size: 12pt; }
+          .pdf-root .section-content h4 { font-size: 11pt; }
+          
+          .pdf-root .section-content ul, 
+          .pdf-root .section-content ol { 
+            margin: 0 0 14px 0;
+            padding-left: 25px;
+            text-align: left;
+          }
+          .pdf-root .section-content li { 
+            margin: 0 0 8px 0;
+            line-height: 1.7;
+            text-align: left;
+          }
+          .pdf-root .section-content li p {
+            margin: 0 0 6px 0;
+          }
+          
+          .pdf-root .section-content strong { 
+            font-weight: 700; 
+            color: #000;
+          }
+          .pdf-root .section-content em { 
+            font-style: italic; 
+          }
+          .pdf-root .section-content code {
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+          }
+          .pdf-root .section-content pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 0 0 14px 0;
+          }
+          .pdf-root .section-content pre code {
+            background: none;
+            padding: 0;
+          }
+          .pdf-root .section-content blockquote { 
+            border-left: 3px solid #000; 
+            padding-left: 15px; 
+            margin: 14px 0;
+            font-style: italic;
+            color: #333;
+          }
 
           /* Таблицы */
-          .pdf-root table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-          .pdf-root th, .pdf-root td { border: 1px solid #000; padding: 6px 8px; text-align: left; }
-          .pdf-root th { font-weight: 700; }
+          .pdf-root .section-content table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 14px 0;
+            table-layout: fixed;
+          }
+          .pdf-root .section-content th, 
+          .pdf-root .section-content td { 
+            border: 1px solid #000; 
+            padding: 6px 8px; 
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word;
+          }
+          .pdf-root .section-content th { 
+            font-weight: 700;
+            background: #f5f5f5;
+          }
+          
+          /* Изображения */
+          .pdf-root .section-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 14px 0;
+          }
         </style>
         <div class="pdf-root">
           <div class="header">
@@ -305,10 +437,8 @@ export default function Recommendations() {
             <ul class="toc-list">
               ${sections.map((section, idx) => `
                 <li class="toc-item">
-                  <a href="#section-${section.id}" class="toc-link">
-                    <span>${section.label}</span>
-                    <span>${idx + 1}</span>
-                  </a>
+                  <span>${section.label}</span>
+                  <span>${idx + 1}</span>
                 </li>
               `).join('')}
             </ul>
