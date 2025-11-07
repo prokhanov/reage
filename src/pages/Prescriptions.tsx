@@ -6,13 +6,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Calendar, FileText, Plus, Pencil } from "lucide-react";
+import { Trash2, Calendar, FileText, Plus, Pencil, Info } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -107,74 +113,78 @@ export default function Prescriptions() {
   };
 
   const PrescriptionTable = ({ prescriptions }: { prescriptions: Prescription[] }) => (
-    <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent border-border/50">
-            <TableHead className="font-semibold">Назначение</TableHead>
-            <TableHead className="font-semibold">Эффект</TableHead>
-            {isSuperAdmin && <TableHead className="font-semibold">Статус</TableHead>}
-            <TableHead className="font-semibold">Контрольная дата</TableHead>
-            <TableHead className="font-semibold">Создано</TableHead>
-            {isSuperAdmin && <TableHead className="w-[100px]"></TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {prescriptions.map((prescription) => (
-            <TableRow key={prescription.id} className="border-border/50">
-              <TableCell className="font-medium max-w-[300px]">
-                <div className="line-clamp-2">{prescription.prescription}</div>
-              </TableCell>
-              <TableCell className="max-w-[250px]">
-                {prescription.effect ? (
-                  <div className="text-sm text-muted-foreground line-clamp-2">
-                    {prescription.effect}
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground/50">—</span>
-                )}
-              </TableCell>
-              {isSuperAdmin && <TableCell>{getStatusBadge(prescription.status)}</TableCell>}
-              <TableCell>
-                {prescription.control_date ? (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="w-4 h-4 text-primary/70" />
-                    {format(new Date(prescription.control_date), "d MMM yyyy", { locale: ru })}
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground/50">—</span>
-                )}
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {format(new Date(prescription.created_at), "d MMM yyyy", { locale: ru })}
-              </TableCell>
-              {isSuperAdmin && (
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditPrescription(prescription)}
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteId(prescription.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+    <TooltipProvider>
+      <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent border-border/50">
+              <TableHead className="font-semibold">Назначение</TableHead>
+              {isSuperAdmin && <TableHead className="font-semibold">Статус</TableHead>}
+              <TableHead className="font-semibold">Контрольная дата</TableHead>
+              <TableHead className="font-semibold">Создано</TableHead>
+              {isSuperAdmin && <TableHead className="w-[100px]"></TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {prescriptions.map((prescription) => (
+              <TableRow key={prescription.id} className="border-border/50">
+                <TableCell className="font-medium max-w-[300px]">
+                  <div className="flex items-start gap-2">
+                    <div className="line-clamp-2 flex-1">{prescription.prescription}</div>
+                    {prescription.effect && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors cursor-help flex-shrink-0 mt-0.5" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-sm">{prescription.effect}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
                 </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                {isSuperAdmin && <TableCell>{getStatusBadge(prescription.status)}</TableCell>}
+                <TableCell>
+                  {prescription.control_date ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="w-4 h-4 text-primary/70" />
+                      {format(new Date(prescription.control_date), "d MMM yyyy", { locale: ru })}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground/50">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {format(new Date(prescription.created_at), "d MMM yyyy", { locale: ru })}
+                </TableCell>
+                {isSuperAdmin && (
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditPrescription(prescription)}
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(prescription.id)}
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </TooltipProvider>
   );
 
   if (isLoading) {
