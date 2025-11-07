@@ -97,9 +97,7 @@ const App = () => (
             path="/prescriptions"
             element={
               <ProtectedRoute>
-                <DashboardLayout>
-                  <Prescriptions />
-                </DashboardLayout>
+                <Prescriptions />
               </ProtectedRoute>
             }
           />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -148,7 +149,7 @@ export default function Prescriptions() {
   }
 
   return (
-    <>
+    <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -235,6 +236,6 @@ export default function Prescriptions() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </DashboardLayout>
   );
 }
