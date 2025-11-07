@@ -186,7 +186,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       });
 
       loadData();
-      (isViewMode ? setSimPath("/recommendations") : navigate("/recommendations"));
+      
+      // Для superadmin в режиме просмотра - открываем редактор отчета
+      if (isSuperAdmin && isViewMode) {
+        setEditReportOpen(true);
+      } else {
+        // Для обычных пользователей - переходим на страницу рекомендаций
+        (isViewMode ? setSimPath("/recommendations") : navigate("/recommendations"));
+      }
     } catch (error: any) {
       toast({
         title: "Ошибка анализа",

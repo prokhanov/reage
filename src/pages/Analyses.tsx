@@ -56,7 +56,7 @@ export default function Analyses() {
 
       const { data, error } = await supabase
         .from("analyses")
-        .select("id, date, lab_name, health_index, biological_age")
+        .select("id, date, lab_name, health_index, biological_age, status")
         .eq("user_id", userId);
 
       if (error) throw error;
@@ -200,17 +200,21 @@ export default function Analyses() {
                           year: "numeric",
                         })}
                       </CardTitle>
+                      <AnalysisStatusBadge status={analysis.status} className="ml-auto" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {analysis.lab_name && (
+                        <p className="text-sm text-muted-foreground">{analysis.lab_name}</p>
+                      )}
                       {analysis.biomarkers_count !== undefined && analysis.biomarkers_count > 0 && (
                         <Badge 
-                          className="ml-auto text-xs bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 shadow-sm"
+                          variant="secondary"
+                          className="text-xs"
                         >
                           {analysis.biomarkers_count} маркеров
                         </Badge>
                       )}
                     </div>
-                    {analysis.lab_name && (
-                      <p className="text-sm text-muted-foreground">{analysis.lab_name}</p>
-                    )}
                   </CardHeader>
                   <CardContent>
                     {analysis.health_index !== null ? (

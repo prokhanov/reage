@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 
 interface Recommendation {
   id: string;
@@ -24,6 +25,7 @@ interface Recommendation {
   text: string;
   created_at: string;
   analysis_date: string | null;
+  analysis_status: "on_review" | "processed" | null;
 }
 
 interface RecommendationReport {
@@ -59,17 +61,18 @@ export default function Recommendations() {
         .from("recommendations")
         .select(`
           *,
-          analyses!recommendations_analysis_id_fkey(date)
+          analyses!recommendations_analysis_id_fkey(date, status)
         `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      // Преобразуем данные, добавляя analysis_date
+      // Преобразуем данные, добавляя analysis_date и status
       const transformedData = (data || []).map(rec => ({
         ...rec,
-        analysis_date: rec.analyses?.date || null
+        analysis_date: rec.analyses?.date || null,
+        analysis_status: rec.analyses?.status || null
       }));
       
       setRecommendations(transformedData);
@@ -287,7 +290,12 @@ export default function Recommendations() {
                 {reports.map((report) => (
                   <TableRow key={report.date}>
                     <TableCell className="font-medium">
-                      {format(new Date(report.date), "d MMMM yyyy", { locale: ru })}
+                      <div className="flex items-center gap-2">
+                        {format(new Date(report.date), "d MMMM yyyy", { locale: ru })}
+                        {report.recommendations[0]?.analysis_status && (
+                          <AnalysisStatusBadge status={report.recommendations[0].analysis_status} />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{report.count}</Badge>
