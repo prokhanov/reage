@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,7 @@ const navItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { viewAsUserId, simPath, setSimPath } = useContext(ViewAsPatientContext);
+  const { viewAsUserId, simPath, setSimPath, setViewAsUserId } = useContext(ViewAsPatientContext);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
 
@@ -75,6 +75,13 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     await supabase.auth.signOut();
     toast({ title: "Вы вышли из системы" });
     navigate("/");
+  };
+
+  const handleExitViewMode = () => {
+    setViewAsUserId(null);
+    setSimPath("/dashboard");
+    navigate("/admin/patients");
+    setIsOpen(false);
   };
 
   return (
@@ -231,7 +238,15 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </NavLink>
             )}
             
-            {!viewAsUserId && (
+            {viewAsUserId ? (
+              <button
+                onClick={handleExitViewMode}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-full text-left text-sm hover:bg-destructive/10 hover:text-destructive"
+              >
+                <X className="h-4 w-4" />
+                <span className="font-medium">Выйти из просмотра</span>
+              </button>
+            ) : (
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-full text-left text-sm hover:bg-destructive/10 hover:text-destructive"
