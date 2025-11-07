@@ -201,28 +201,250 @@ export default function Recommendations() {
   const handleExportPDF = async () => {
     if (!selectedReport) return;
 
-    const element = document.getElementById('report-content');
-    if (!element) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось найти контент для экспорта",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
+      const grouped = groupByType(selectedReport.recommendations);
+      const patientData = grouped["Данные пациента"]?.[0];
+      const summary = grouped["Общее резюме"]?.[0];
+      const categories = Object.entries(grouped).filter(([type]) => 
+        type !== "Общее резюме" && type !== "Данные пациента"
+      );
+
+      const sections = [
+        ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента', content: patientData.text }] : []),
+        ...(summary ? [{ id: 'summary', label: 'Общее резюме', content: summary.text }] : []),
+        ...categories.flatMap(([type, recs]) => 
+          recs.map((rec, idx) => ({
+            id: `${toSlug(type)}-${idx}`,
+            label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
+            content: rec.text
+          }))
+        )
+      ];
+
+      // Создаем HTML для PDF с оглавлением
+      const pdfContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Персональный отчет</title>
+            <style>
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: white;
+                padding: 20px;
+              }
+              
+              .header {
+                text-align: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 3px solid #8B5CF6;
+              }
+              
+              .header h1 {
+                font-size: 28px;
+                color: #8B5CF6;
+                margin-bottom: 10px;
+              }
+              
+              .header .date {
+                font-size: 16px;
+                color: #666;
+              }
+              
+              .toc {
+                background: #f8f9fa;
+                padding: 20px;
+                margin-bottom: 40px;
+                border-radius: 8px;
+                border-left: 4px solid #8B5CF6;
+                page-break-inside: avoid;
+              }
+              
+              .toc h2 {
+                font-size: 20px;
+                color: #333;
+                margin-bottom: 15px;
+              }
+              
+              .toc-list {
+                list-style: none;
+              }
+              
+              .toc-item {
+                margin: 8px 0;
+              }
+              
+              .toc-link {
+                color: #8B5CF6;
+                text-decoration: none;
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px dotted #ddd;
+              }
+              
+              .toc-link:hover {
+                color: #7C3AED;
+              }
+              
+              .section {
+                margin-bottom: 40px;
+                page-break-inside: avoid;
+              }
+              
+              .section-header {
+                background: #8B5CF6;
+                color: white;
+                padding: 12px 20px;
+                margin-bottom: 20px;
+                border-radius: 6px;
+                font-size: 18px;
+                font-weight: bold;
+              }
+              
+              .section-content {
+                padding: 0 10px;
+                font-size: 14px;
+                line-height: 1.8;
+              }
+              
+              .section-content h1,
+              .section-content h2,
+              .section-content h3,
+              .section-content h4 {
+                color: #333;
+                margin-top: 20px;
+                margin-bottom: 10px;
+              }
+              
+              .section-content h1 { font-size: 22px; }
+              .section-content h2 { font-size: 18px; }
+              .section-content h3 { font-size: 16px; }
+              .section-content h4 { font-size: 14px; }
+              
+              .section-content p {
+                margin-bottom: 12px;
+                text-align: justify;
+              }
+              
+              .section-content ul,
+              .section-content ol {
+                margin-left: 25px;
+                margin-bottom: 15px;
+              }
+              
+              .section-content li {
+                margin-bottom: 8px;
+              }
+              
+              .section-content strong {
+                color: #8B5CF6;
+                font-weight: 600;
+              }
+              
+              .section-content code {
+                background: #f1f1f1;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+              }
+              
+              .section-content blockquote {
+                border-left: 4px solid #8B5CF6;
+                padding-left: 15px;
+                margin: 15px 0;
+                color: #555;
+                font-style: italic;
+              }
+              
+              .page-break {
+                page-break-after: always;
+              }
+              
+              @media print {
+                body {
+                  padding: 0;
+                }
+                .toc {
+                  page-break-after: always;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Персональный отчет</h1>
+              <div class="date">${format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}</div>
+            </div>
+            
+            <div class="toc">
+              <h2>Содержание</h2>
+              <ul class="toc-list">
+                ${sections.map((section, idx) => `
+                  <li class="toc-item">
+                    <a href="#section-${section.id}" class="toc-link">
+                      <span>${section.label}</span>
+                      <span>${idx + 1}</span>
+                    </a>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+            
+            ${sections.map((section) => `
+              <div class="section" id="section-${section.id}">
+                <div class="section-header">${section.label}</div>
+                <div class="section-content">
+                  ${section.content}
+                </div>
+              </div>
+            `).join('')}
+          </body>
+        </html>
+      `;
+
+      // Создаем временный элемент для генерации PDF
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = pdfContent;
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      document.body.appendChild(tempDiv);
+
       const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
       
       const opt = {
-        margin: 10,
+        margin: [15, 15, 15, 15] as [number, number, number, number],
         filename: fileName,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+        image: { type: 'jpeg' as const, quality: 0.95 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: false
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' as const,
+          compress: true
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(tempDiv).save();
+      
+      // Удаляем временный элемент
+      document.body.removeChild(tempDiv);
       
       toast({
         title: "Успешно",
