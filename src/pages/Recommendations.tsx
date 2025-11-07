@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
@@ -38,6 +38,8 @@ interface RecommendationReport {
   analysisId: string | null;
 }
 
+type SectionType = 'patient-data' | 'summary' | string;
+
 
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
@@ -51,6 +53,7 @@ export default function Recommendations() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<RecommendationReport | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionType>('patient-data');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -118,6 +121,7 @@ export default function Recommendations() {
 
   const handleView = (report: RecommendationReport) => {
     setSelectedReport(report);
+    setActiveSection('patient-data');
     setViewDialogOpen(true);
   };
 
@@ -340,106 +344,125 @@ export default function Recommendations() {
 
         {/* View Dialog */}
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <span>
-                  Отчет от {selectedReport && format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportPDF}
-                  className="ml-4"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Экспорт в PDF
-                </Button>
-              </DialogTitle>
-              <DialogDescription>
-                {selectedReport?.count} {selectedReport?.count === 1 ? 'раздел' : 'разделов'}
-              </DialogDescription>
-            </DialogHeader>
-            
-            {selectedReport && (() => {
-              const grouped = groupByType(selectedReport.recommendations);
-              const patientData = grouped["Данные пациента"]?.[0];
-              const summary = grouped["Общее резюме"]?.[0];
-              const categories = Object.entries(grouped).filter(([type]) => 
-                type !== "Общее резюме" && type !== "Данные пациента"
-              );
+          <DialogContent className="max-w-7xl max-h-[90vh] p-0 overflow-hidden">
+            <div className="flex h-full">
+              {/* Mini Sidebar */}
+              {selectedReport && (() => {
+                const grouped = groupByType(selectedReport.recommendations);
+                const patientData = grouped["Данные пациента"]?.[0];
+                const summary = grouped["Общее резюме"]?.[0];
+                const categories = Object.entries(grouped).filter(([type]) => 
+                  type !== "Общее резюме" && type !== "Данные пациента"
+                );
 
-              // Динамически генерируем полный отчет из всех разделов
-              const generateFullReport = () => {
-                let fullText = "";
-                
-                // 1. Данные пациента
-                if (patientData) {
-                  fullText += `${patientData.text}\n\n---\n\n`;
-                }
-                
-                // 2. Общее резюме
-                if (summary) {
-                  fullText += `## ОБЩЕЕ РЕЗЮМЕ\n\n${summary.text}\n\n---\n\n`;
-                }
-                
-                // 3. Детальный анализ
-                fullText += `## ДЕТАЛЬНЫЙ АНАЛИЗ ПО СИСТЕМАМ\n\n`;
-                
-                categories.forEach(([type, recs]) => {
-                  fullText += `### ${type.toUpperCase()}\n\n`;
-                  recs.forEach((rec) => {
-                    fullText += `${rec.text}\n\n`;
-                  });
-                });
-                
-                return fullText;
-              };
+                const sections = [
+                  ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента', icon: '👤' }] : []),
+                  ...(summary ? [{ id: 'summary', label: 'Общее резюме', icon: '📋' }] : []),
+                  ...categories.map(([type]) => ({ id: type, label: type, icon: '📊' }))
+                ];
 
-              return (
-                <div id="report-content">
-                  <Tabs defaultValue="summary" className="mt-6">
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="summary">Общее резюме</TabsTrigger>
-                      <TabsTrigger value="categories">По категориям</TabsTrigger>
-                      <TabsTrigger value="full">Полный отчет</TabsTrigger>
-                    </TabsList>
-                    
-                  <TabsContent value="summary" className="space-y-4 mt-4">
-                    {patientData && (
-                      <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
-                        <MarkdownContent content={patientData.text} />
+                return (
+                  <>
+                    <div className="w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex flex-col">
+                      <div className="p-6 border-b border-border">
+                        <h3 className="font-semibold text-lg bg-gradient-primary bg-clip-text text-transparent">
+                          Содержание
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}
+                        </p>
                       </div>
-                    )}
-                    {summary && (
-                      <MarkdownContent content={summary.text} />
-                    )}
-                  </TabsContent>
-                    
-                    <TabsContent value="categories" className="mt-4">
-                      <Accordion type="multiple" className="space-y-2">
-                        {categories.map(([type, recs]) => (
-                          <AccordionItem key={type} value={type}>
-                            <AccordionTrigger className="text-base font-semibold">
-                              {type}
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              {recs.map((rec) => (
-                                <MarkdownContent key={rec.id} content={rec.text} />
-                              ))}
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                    </TabsContent>
-                    
-                    <TabsContent value="full" className="space-y-4 mt-4">
-                      <MarkdownContent content={generateFullReport()} />
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              );
-            })()}
+                      
+                      <ScrollArea className="flex-1 px-3 py-4">
+                        <nav className="space-y-1">
+                          {sections.map((section) => (
+                            <button
+                              key={section.id}
+                              onClick={() => setActiveSection(section.id)}
+                              className={`
+                                w-full text-left px-4 py-3 rounded-lg transition-all duration-200
+                                flex items-center gap-3 group
+                                ${activeSection === section.id 
+                                  ? 'bg-primary text-primary-foreground shadow-md' 
+                                  : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                                }
+                              `}
+                            >
+                              <span className="text-xl">{section.icon}</span>
+                              <span className="text-sm font-medium flex-1 line-clamp-2">
+                                {section.label}
+                              </span>
+                            </button>
+                          ))}
+                        </nav>
+                      </ScrollArea>
+
+                      <div className="p-4 border-t border-border">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleExportPDF}
+                          className="w-full"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Экспорт в PDF
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                      <div className="px-8 py-6 border-b border-border bg-gradient-to-r from-background to-muted/20">
+                        <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                          Персональный отчет
+                        </DialogTitle>
+                        <DialogDescription className="mt-2">
+                          Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
+                        </DialogDescription>
+                      </div>
+
+                      <ScrollArea className="flex-1 px-8 py-6">
+                        <div id="report-content" className="space-y-6 max-w-4xl">
+                          {activeSection === 'patient-data' && patientData && (
+                            <div className="prose prose-sm max-w-none animate-fade-in">
+                              <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 shadow-sm">
+                                <MarkdownContent content={patientData.text} />
+                              </div>
+                            </div>
+                          )}
+
+                          {activeSection === 'summary' && summary && (
+                            <div className="prose prose-sm max-w-none animate-fade-in">
+                              <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
+                                <MarkdownContent content={summary.text} />
+                              </div>
+                            </div>
+                          )}
+
+                          {categories.map(([type, recs]) => (
+                            activeSection === type && (
+                              <div key={type} className="prose prose-sm max-w-none animate-fade-in space-y-4">
+                                <div className="mb-6">
+                                  <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                    {type}
+                                  </h2>
+                                  <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                                </div>
+                                {recs.map((rec) => (
+                                  <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                    <MarkdownContent content={rec.text} />
+                                  </div>
+                                ))}
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </DialogContent>
         </Dialog>
 
