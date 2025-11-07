@@ -7,11 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Calendar, FileText } from "lucide-react";
+import { Trash2, Calendar, FileText, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,10 +35,11 @@ type Prescription = {
 
 export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isSuperAdmin } = useSuperAdminCheck();
-  const { viewAsUserId } = useViewAsUser();
+  const { viewAsUserId, isViewMode } = useViewAsUser();
 
   const userId = viewAsUserId || undefined;
 
@@ -156,6 +158,16 @@ export default function Prescriptions() {
               Рекомендации и назначения врача
             </p>
           </div>
+          {isViewMode && isSuperAdmin && viewAsUserId && (
+            <Button
+              onClick={() => setCreateDialogOpen(true)}
+              variant="default"
+              size="sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Добавить назначение
+            </Button>
+          )}
         </div>
 
         <Tabs defaultValue="active" className="w-full">
@@ -234,6 +246,14 @@ export default function Prescriptions() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {viewAsUserId && (
+        <CreatePrescriptionDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          userId={viewAsUserId}
+        />
+      )}
     </DashboardLayout>
   );
 }
