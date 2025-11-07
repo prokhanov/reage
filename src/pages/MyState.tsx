@@ -15,6 +15,7 @@ import { format, differenceInDays } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CompareRecordsDialog } from "@/components/symptom-history/CompareRecordsDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Prescription {
   id: string;
@@ -248,6 +249,7 @@ export default function MyState() {
   const [canTakeSurvey, setCanTakeSurvey] = useState(true);
   const [daysUntilNextSurvey, setDaysUntilNextSurvey] = useState(0);
   const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -417,6 +419,7 @@ export default function MyState() {
           description: "Данные сохранены"
         });
         setEditingDate(null);
+        setIsEditDialogOpen(false);
         await fetchSymptoms();
         return;
       }
