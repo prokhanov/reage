@@ -35,12 +35,14 @@ export function EditReportDialog({
 }: EditReportDialogProps) {
   const [sections, setSections] = useState<Recommendation[]>([]);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
+  const [selectedStatus, setSelectedStatus] = useState<"on_review" | "processed">(initialStatus);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     setAnalysisStatus(initialStatus);
+    setSelectedStatus(initialStatus);
   }, [initialStatus]);
 
   useEffect(() => {
@@ -119,9 +121,24 @@ export function EditReportDialog({
         if (error) throw error;
       }
 
+      // Сохраняем статус анализа, если он изменился
+      if (selectedStatus !== analysisStatus) {
+        const { error: statusError } = await supabase
+          .from("analyses")
+          .update({ status: selectedStatus })
+          .eq("id", analysisId);
+
+        if (statusError) throw statusError;
+
+        setAnalysisStatus(selectedStatus);
+        onStatusChange?.();
+      }
+
       toast({
         title: "Успешно!",
-        description: "Изменения сохранены",
+        description: selectedStatus !== analysisStatus 
+          ? "Изменения и статус сохранены" 
+          : "Изменения сохранены",
       });
     } catch (error: any) {
       toast({
@@ -134,33 +151,6 @@ export function EditReportDialog({
     }
   };
 
-  const handleStatusChange = async (newStatus: "on_review" | "processed") => {
-    try {
-      const { error } = await supabase
-        .from("analyses")
-        .update({ status: newStatus })
-        .eq("id", analysisId);
-
-      if (error) throw error;
-
-      setAnalysisStatus(newStatus);
-      
-      toast({
-        title: "Успешно!",
-        description: newStatus === "processed" 
-          ? "Отчет загружен в кабинет клиента" 
-          : "Статус изменен на 'На проверке'",
-      });
-
-      onStatusChange?.();
-    } catch (error: any) {
-      toast({
-        title: "Ошибка",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
 
   return (
@@ -197,7 +187,7 @@ export function EditReportDialog({
           <div className="flex items-center justify-between">
             <DialogTitle>Редактирование отчета</DialogTitle>
             <div className="flex items-center gap-3">
-              <Select value={analysisStatus} onValueChange={handleStatusChange}>
+              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
