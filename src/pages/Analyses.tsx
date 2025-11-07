@@ -246,20 +246,18 @@ export default function Analyses() {
                 </div>
                 {isViewMode && isSuperAdmin && (
                   <div className="absolute top-2 right-2 flex gap-1">
-                    {analysis.status === "processed" && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 hover:bg-primary/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAnalysisToEdit(analysis);
-                          setEditDialogOpen(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-primary/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAnalysisToEdit(analysis);
+                        setEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"

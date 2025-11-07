@@ -258,7 +258,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             </div>
           </div>
 
-          {isSuperAdmin && isViewMode && analysis?.status === "processed" && (
+          {isSuperAdmin && isViewMode && (
             <div className="flex gap-2">
               <Button
                 onClick={handleEditReport}
