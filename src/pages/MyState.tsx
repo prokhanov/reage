@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +15,9 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { SymptomTrendChart } from "@/components/symptom-history/SymptomTrendChart";
+import { CompareRecordsDialog } from "@/components/symptom-history/CompareRecordsDialog";
+import { ExportToPDF } from "@/components/symptom-history/ExportToPDF";
 
 interface Prescription {
   id: string;
@@ -244,6 +248,8 @@ export default function MyState() {
   const [symptoms, setSymptoms] = useState<SymptomRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [lastTrackedDate, setLastTrackedDate] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [profileName, setProfileName] = useState<string>("Пациент");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -257,7 +263,27 @@ export default function MyState() {
   useEffect(() => {
     fetchPrescriptions();
     fetchSymptoms();
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const userId = await getUserId();
+      if (!userId) return;
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', userId)
+        .single();
+
+      if (data?.name) {
+        setProfileName(data.name);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchPrescriptions = async () => {
     try {
@@ -711,9 +737,45 @@ export default function MyState() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>История заполнений: {sortedDates.length}</span>
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>История заполнений: {sortedDates.length}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ExportToPDF 
+                        symptoms={symptoms}
+                        groupedByDate={groupedByDate}
+                        sortedDates={sortedDates}
+                        profileName={profileName}
+                      />
+                      <CompareRecordsDialog 
+                        groupedByDate={groupedByDate}
+                        sortedDates={sortedDates}
+                      />
+                    </div>
+                  </div>
+
+                  <SymptomTrendChart 
+                    symptoms={selectedCategory === "all" ? symptoms : symptoms.filter(s => s.category === selectedCategory)}
+                    selectedCategory={selectedCategory === "all" ? undefined : selectedCategory}
+                  />
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">Фильтр по категории:</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-[250px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Все категории</SelectItem>
+                        {Array.from(new Set(symptoms.map(s => s.category))).sort().map(category => (
+                          <SelectItem key={category} value={category}>
+                            {categoryEmojis[category]} {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {sortedDates.map((date) => {
