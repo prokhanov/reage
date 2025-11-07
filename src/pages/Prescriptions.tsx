@@ -116,15 +116,15 @@ export default function Prescriptions() {
     <TooltipProvider>
       <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent border-border/50">
-              <TableHead className="font-semibold">Назначение</TableHead>
-              {isSuperAdmin && <TableHead className="font-semibold">Статус</TableHead>}
-              <TableHead className="font-semibold">Контрольная дата</TableHead>
-              <TableHead className="font-semibold">Создано</TableHead>
-              {isSuperAdmin && <TableHead className="w-[100px]"></TableHead>}
-            </TableRow>
-          </TableHeader>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-border/50">
+            <TableHead className="font-semibold">Назначение</TableHead>
+            {isSuperAdmin && <TableHead className="font-semibold">Статус</TableHead>}
+            <TableHead className="font-semibold">Контрольная дата</TableHead>
+            <TableHead className="font-semibold">Создано</TableHead>
+            {isSuperAdmin && <TableHead className="w-[100px]"></TableHead>}
+          </TableRow>
+        </TableHeader>
           <TableBody>
             {prescriptions.map((prescription) => (
               <TableRow key={prescription.id} className="border-border/50">
