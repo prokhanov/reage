@@ -8,11 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
+import { marked } from 'marked';
+import TurndownService from 'turndown';
 
 interface Recommendation {
   id: string;
   type: string;
   text: string;
+  originalMarkdown?: string;
 }
 
 interface EditReportDialogProps {
@@ -57,7 +60,14 @@ export function EditReportDialog({
 
       if (error) throw error;
       
-      setSections(data || []);
+      // Конвертируем markdown в HTML для редактора
+      const sectionsWithHtml = (data || []).map(section => ({
+        ...section,
+        originalMarkdown: section.text,
+        text: marked.parse(section.text) as string
+      }));
+      
+      setSections(sectionsWithHtml);
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -78,11 +88,19 @@ export function EditReportDialog({
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
+      // Конвертируем HTML обратно в markdown перед сохранением
+      const turndownService = new TurndownService({
+        headingStyle: 'atx',
+        codeBlockStyle: 'fenced'
+      });
+      
       // Save each section individually
       for (const section of sections) {
+        const markdownText = turndownService.turndown(section.text);
+        
         const { error } = await supabase
           .from("recommendations")
-          .update({ text: section.text })
+          .update({ text: markdownText })
           .eq("id", section.id);
 
         if (error) throw error;
