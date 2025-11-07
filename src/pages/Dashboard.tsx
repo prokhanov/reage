@@ -326,9 +326,6 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Weight Tracker */}
-        <WeightTracker />
-
         {/* Central Bio Age Circle */}
         <Card className="border-border bg-card backdrop-blur-sm">
           <CardContent className="pt-8 pb-8">
@@ -510,6 +507,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Weight Tracker */}
+        <WeightTracker />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

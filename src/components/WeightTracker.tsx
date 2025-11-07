@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Scale, Plus, TrendingDown, TrendingUp, Activity } from "lucide-react";
+import { Scale, Plus, TrendingDown, TrendingUp, Activity, History, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface WeightRecord {
   id: string;
@@ -29,6 +30,8 @@ export function WeightTracker() {
   const [height, setHeight] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -120,6 +123,32 @@ export function WeightTracker() {
     }
   };
 
+  const handleDeleteWeight = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("weight_history")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Удалено",
+        description: "Запись удалена из истории"
+      });
+
+      await fetchData();
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Error deleting weight:", error);
+      toast({
+        title: "Ошибка удаления",
+        description: "Попробуйте еще раз",
+        variant: "destructive"
+      });
+    }
+  };
+
   const calculateBMI = () => {
     if (!currentWeight || !height) return null;
     const heightInMeters = height / 100;
@@ -186,65 +215,108 @@ export function WeightTracker() {
           </div>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Добавить измерение
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Новое измерение веса</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="weight">Вес (кг)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="75.5"
-                  step="0.1"
-                  min="1"
-                  max="500"
-                />
-              </div>
-
-              {history.length > 0 && (
+        <div className="flex gap-2">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <Plus className="w-4 h-4 mr-1" />
+                Добавить
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Новое измерение веса</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Последние измерения</Label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {history.map((record) => (
-                      <div
-                        key={record.id}
-                        className="flex items-center justify-between p-2 rounded-md bg-muted/50"
-                      >
-                        <span className="text-sm">
+                  <Label htmlFor="weight">Вес (кг)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="75.5"
+                    step="0.1"
+                    min="1"
+                    max="500"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="flex-1"
+                >
+                  Отмена
+                </Button>
+                <Button onClick={handleSaveWeight} disabled={isSaving} className="flex-1">
+                  {isSaving ? "Сохранение..." : "Сохранить"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <History className="w-4 h-4 mr-1" />
+                История
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>История измерений</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2 max-h-96 overflow-y-auto py-4">
+                {history.length > 0 ? (
+                  history.map((record) => (
+                    <div
+                      key={record.id}
+                      className="flex items-center justify-between p-3 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{record.weight} кг</span>
+                        <span className="text-xs text-muted-foreground">
                           {format(new Date(record.measured_at), "d MMM yyyy, HH:mm", { locale: ru })}
                         </span>
-                        <span className="text-sm font-medium">{record.weight} кг</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                className="flex-1"
-              >
-                Отмена
-              </Button>
-              <Button onClick={handleSaveWeight} disabled={isSaving} className="flex-1">
-                {isSaving ? "Сохранение..." : "Сохранить"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteId(record.id)}
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-sm text-muted-foreground py-8">
+                    История измерений пуста
+                  </p>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Удалить запись?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Это действие нельзя будет отменить. Запись будет удалена из истории.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteId && handleDeleteWeight(deleteId)}>
+                Удалить
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </Card>
 
       {/* BMI Card */}
