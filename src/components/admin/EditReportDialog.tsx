@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill/dist/quill.bubble.css';
 import { marked } from 'marked';
 
 interface Recommendation {
@@ -149,6 +149,33 @@ export function EditReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      <style>{`
+        .quill-editor .ql-editor {
+          font-size: 15px;
+          line-height: 1.6;
+        }
+        .quill-editor .ql-editor p {
+          margin-bottom: 1em;
+        }
+        .quill-editor .ql-editor h1,
+        .quill-editor .ql-editor h2,
+        .quill-editor .ql-editor h3 {
+          margin-top: 1.5em;
+          margin-bottom: 0.75em;
+          font-weight: 600;
+        }
+        .quill-editor .ql-editor ul,
+        .quill-editor .ql-editor ol {
+          margin-bottom: 1em;
+          padding-left: 1.5em;
+        }
+        .quill-editor .ql-editor li {
+          margin-bottom: 0.5em;
+        }
+        .ql-bubble .ql-tooltip {
+          z-index: 9999;
+        }
+      `}</style>
       <DialogContent className="max-w-[98vw] max-h-[98vh] w-full h-full overflow-hidden flex flex-col">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -187,21 +214,11 @@ export function EditReportDialog({
                       {recs.map((rec) => (
                         <div key={rec.id} className="space-y-2">
                           <ReactQuill
-                            theme="snow"
+                            theme="bubble"
                             value={rec.text}
                             onChange={(val) => updateRecommendation(rec.id, val)}
-                            modules={{
-                              toolbar: [
-                                [{ 'header': [1, 2, 3, false] }],
-                                ['bold', 'italic', 'underline', 'strike'],
-                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                [{ 'align': [] }],
-                                ['link'],
-                                ['clean']
-                              ]
-                            }}
-                            className="bg-background rounded-md"
-                            style={{ minHeight: '350px' }}
+                            placeholder="Выделите текст для форматирования..."
+                            className="bg-background rounded-md border border-border p-4 min-h-[350px] quill-editor"
                           />
                         </div>
                       ))}
