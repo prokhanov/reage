@@ -247,6 +247,7 @@ export default function MyState() {
   const [lastTrackedDate, setLastTrackedDate] = useState<string | null>(null);
   const [canTakeSurvey, setCanTakeSurvey] = useState(true);
   const [daysUntilNextSurvey, setDaysUntilNextSurvey] = useState(0);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -369,6 +370,19 @@ export default function MyState() {
         return;
       }
 
+      // Если редактируем существующую запись, удаляем старые данные за эту дату
+      if (editingDate) {
+        const recordSymptoms = groupedByDate[editingDate];
+        const symptomIds = recordSymptoms.map(s => s.id);
+        
+        const { error: deleteError } = await supabase
+          .from('user_symptoms')
+          .delete()
+          .in('id', symptomIds);
+        
+        if (deleteError) throw deleteError;
+      }
+
       // Сначала сохраняем соблюдение назначений
       if (Object.keys(adherenceAnswers).length > 0) {
         const adherenceData = Object.entries(adherenceAnswers).map(([prescriptionId, level]) => ({
@@ -402,6 +416,7 @@ export default function MyState() {
           title: "Все отлично! 🎉",
           description: "Данные сохранены"
         });
+        setEditingDate(null);
         await fetchSymptoms();
         return;
       }
@@ -429,6 +444,7 @@ export default function MyState() {
       setAnswers({});
       setAdherenceAnswers({});
       setCurrentStep(0);
+      setEditingDate(null);
       
       await fetchSymptoms();
     } catch (error) {
@@ -481,6 +497,8 @@ export default function MyState() {
       lastAnswers[`${symptom.category}|${symptom.symptom}`] = symptom.severity;
     });
     
+    const dateToEdit = format(new Date(latestSymptoms[0].tracked_at), "yyyy-MM-dd");
+    setEditingDate(dateToEdit);
     setAnswers(lastAnswers);
     setCanTakeSurvey(true);
     
@@ -500,6 +518,7 @@ export default function MyState() {
       recordAnswers[`${symptom.category}|${symptom.symptom}`] = symptom.severity;
     });
     
+    setEditingDate(date);
     setAnswers(recordAnswers);
     setCanTakeSurvey(true);
     setCurrentStep(0);
