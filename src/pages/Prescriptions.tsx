@@ -53,8 +53,16 @@ export default function Prescriptions() {
         .select("*")
         .order("created_at", { ascending: false });
 
+      // Если в режиме "View As", показываем назначения выбранного пользователя
+      // Если не в режиме "View As", показываем назначения текущего пользователя
       if (userId) {
         query = query.eq("user_id", userId);
+      } else {
+        // Получаем текущего пользователя
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          query = query.eq("user_id", user.id);
+        }
       }
 
       // Обычные пользователи видят только подтвержденные назначения
