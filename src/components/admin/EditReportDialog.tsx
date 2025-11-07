@@ -17,6 +17,11 @@ interface Recommendation {
   text: string;
 }
 
+interface CombinedReport {
+  fullText: string;
+  recommendations: Recommendation[];
+}
+
 interface EditReportDialogProps {
   analysisId: string;
   analysisStatus: "on_review" | "processed";
@@ -32,6 +37,7 @@ export function EditReportDialog({
   onOpenChange,
   onStatusChange 
 }: EditReportDialogProps) {
+  const [fullReportText, setFullReportText] = useState<string>("");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
   const [loading, setLoading] = useState(false);
@@ -60,13 +66,27 @@ export function EditReportDialog({
 
       if (error) throw error;
       
-      // Convert markdown to HTML for better display in WYSIWYG editor
-      const processedData = (data || []).map(rec => ({
-        ...rec,
-        text: marked.parse(rec.text) as string
-      }));
+      setRecommendations(data || []);
       
-      setRecommendations(processedData);
+      // Combine all recommendations into one full report with section headers
+      const groupedByType = (data || []).reduce((acc, rec) => {
+        if (!acc[rec.type]) {
+          acc[rec.type] = [];
+        }
+        acc[rec.type].push(rec);
+        return acc;
+      }, {} as Record<string, Recommendation[]>);
+      
+      let combinedText = "";
+      Object.entries(groupedByType).forEach(([type, recs]) => {
+        combinedText += `<h2>${type}</h2>\n`;
+        recs.forEach(rec => {
+          combinedText += marked.parse(rec.text) as string;
+          combinedText += "\n\n";
+        });
+      });
+      
+      setFullReportText(combinedText);
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -81,10 +101,11 @@ export function EditReportDialog({
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
+      // Save the full report text to all recommendations
       for (const rec of recommendations) {
         const { error } = await supabase
           .from("recommendations")
-          .update({ text: rec.text })
+          .update({ text: fullReportText })
           .eq("id", rec.id);
 
         if (error) throw error;
@@ -133,19 +154,6 @@ export function EditReportDialog({
     }
   };
 
-  const updateRecommendation = (id: string, text: string) => {
-    setRecommendations(prev =>
-      prev.map(rec => (rec.id === id ? { ...rec, text } : rec))
-    );
-  };
-
-  const groupedRecommendations = recommendations.reduce((acc, rec) => {
-    if (!acc[rec.type]) {
-      acc[rec.type] = [];
-    }
-    acc[rec.type].push(rec);
-    return acc;
-  }, {} as Record<string, Recommendation[]>);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -203,30 +211,15 @@ export function EditReportDialog({
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <ScrollArea className="flex-1 pr-4">
-              <div className="space-y-6 pb-4">
-                {Object.entries(groupedRecommendations).map(([type, recs]) => (
-                  <Card key={type} className="border-2">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{type}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {recs.map((rec) => (
-                        <div key={rec.id} className="space-y-2">
-                          <ReactQuill
-                            theme="bubble"
-                            value={rec.text}
-                            onChange={(val) => updateRecommendation(rec.id, val)}
-                            placeholder="Выделите текст для форматирования..."
-                            className="bg-background rounded-md border border-border p-4 min-h-[350px] quill-editor"
-                          />
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </ScrollArea>
+            <div className="flex-1 overflow-hidden">
+              <ReactQuill
+                theme="bubble"
+                value={fullReportText}
+                onChange={setFullReportText}
+                placeholder="Выделите текст для форматирования..."
+                className="bg-background rounded-md border border-border p-6 h-full quill-editor"
+              />
+            </div>
           )}
         </div>
 
