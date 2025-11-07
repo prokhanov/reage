@@ -206,45 +206,108 @@ export default function Recommendations() {
     return type;
   };
 
+  const parseInlineMarkdown = (text: string): any[] => {
+    const parts: any[] = [];
+    let currentText = text;
+    
+    // Обрабатываем жирный текст (**text**)
+    const boldRegex = /\*\*(.+?)\*\*/g;
+    const italicRegex = /\*(.+?)\*/g;
+    
+    let lastIndex = 0;
+    let match;
+    
+    // Сначала находим все жирные фрагменты
+    const segments: Array<{ start: number; end: number; text: string; bold?: boolean; italic?: boolean }> = [];
+    
+    while ((match = boldRegex.exec(currentText)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({ start: lastIndex, end: match.index, text: currentText.substring(lastIndex, match.index) });
+      }
+      segments.push({ start: match.index, end: match.index + match[0].length, text: match[1], bold: true });
+      lastIndex = match.index + match[0].length;
+    }
+    
+    if (lastIndex < currentText.length) {
+      segments.push({ start: lastIndex, end: currentText.length, text: currentText.substring(lastIndex) });
+    }
+    
+    // Если нет жирного текста, проверяем курсив
+    if (segments.length === 0) {
+      lastIndex = 0;
+      while ((match = italicRegex.exec(currentText)) !== null) {
+        if (match.index > lastIndex) {
+          segments.push({ start: lastIndex, end: match.index, text: currentText.substring(lastIndex, match.index) });
+        }
+        segments.push({ start: match.index, end: match.index + match[0].length, text: match[1], italic: true });
+        lastIndex = match.index + match[0].length;
+      }
+      
+      if (lastIndex < currentText.length) {
+        segments.push({ start: lastIndex, end: currentText.length, text: currentText.substring(lastIndex) });
+      }
+    }
+    
+    // Если нет форматирования вообще, возвращаем как есть
+    if (segments.length === 0) {
+      return [{ text: currentText }];
+    }
+    
+    // Конвертируем сегменты в формат pdfmake
+    segments.forEach(segment => {
+      if (segment.text) {
+        const textObj: any = { text: segment.text };
+        if (segment.bold) textObj.bold = true;
+        if (segment.italic) textObj.italics = true;
+        parts.push(textObj);
+      }
+    });
+    
+    return parts.length > 0 ? parts : [{ text: currentText }];
+  };
+
   const parseMarkdownToPdfMake = (markdown: string): any[] => {
     const content: any[] = [];
     const lines = markdown.split('\n');
     
     for (let line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Пустая строка
+      if (!trimmedLine) {
+        content.push({ text: ' ', margin: [0, 5, 0, 0] });
+        continue;
+      }
+      
       // Заголовки
       if (line.startsWith('### ')) {
-        content.push({ text: line.replace('### ', ''), style: 'h3', margin: [0, 6, 0, 3] });
+        const headerText = line.replace('### ', '');
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 6, 0, 3] });
       } else if (line.startsWith('## ')) {
-        content.push({ text: line.replace('## ', ''), style: 'h2', margin: [0, 8, 0, 4] });
+        const headerText = line.replace('## ', '');
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h2', margin: [0, 8, 0, 4] });
       } else if (line.startsWith('# ')) {
-        content.push({ text: line.replace('# ', ''), style: 'h1', margin: [0, 10, 0, 5] });
+        const headerText = line.replace('# ', '');
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h1', margin: [0, 10, 0, 5] });
       }
       // Списки
-      else if (line.startsWith('- ') || line.startsWith('* ')) {
-        content.push({ text: line.replace(/^[-*] /, '• '), style: 'listItem', margin: [20, 0, 0, 5] });
-      }
-      // Жирный текст
-      else if (line.includes('**')) {
-        const parts = line.split('**');
-        const textParts: any[] = [];
-        parts.forEach((part, idx) => {
-          if (idx % 2 === 1) {
-            textParts.push({ text: part, bold: true });
-          } else if (part) {
-            textParts.push({ text: part });
-          }
+      else if (line.match(/^[-*]\s/)) {
+        const listText = line.replace(/^[-*]\s/, '');
+        const parsedText = parseInlineMarkdown(listText);
+        content.push({ 
+          text: [{ text: '• ' }, ...parsedText],
+          style: 'listItem', 
+          margin: [20, 0, 0, 5] 
         });
-        if (textParts.length > 0) {
-          content.push({ text: textParts, style: 'paragraph', margin: [0, 0, 0, 10] });
-        }
       }
       // Обычный текст
-      else if (line.trim()) {
-        content.push({ text: line, style: 'paragraph', margin: [0, 0, 0, 10] });
-      }
-      // Пустая строка - отступ
       else {
-        content.push({ text: ' ', margin: [0, 5, 0, 0] });
+        const parsedText = parseInlineMarkdown(line);
+        content.push({ 
+          text: parsedText, 
+          style: 'paragraph', 
+          margin: [0, 0, 0, 10] 
+        });
       }
     }
     
