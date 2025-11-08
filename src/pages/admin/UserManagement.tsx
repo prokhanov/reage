@@ -325,8 +325,10 @@ export default function UserManagement() {
                         filteredUsers.map((user) => (
                           <TableRow
                             key={user.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => setSelectedUserId(user.id)}
+                            className={user.role !== "superadmin" ? "cursor-pointer hover:bg-muted/50" : ""}
+                            onClick={() => {
+                              if (user.role !== "superadmin") setSelectedUserId(user.id);
+                            }}
                           >
                             <TableCell>
                               <div className="flex items-center gap-3">
@@ -437,24 +439,26 @@ export default function UserManagement() {
                                     </>
                                   ) : (
                                     <>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setSelectedUserId(user.id);
-                                            }}
-                                          >
-                                            <Settings className="w-4 h-4" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Настроить права</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                      {user.role !== "user" && (
+                                      {user.role !== "superadmin" && (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedUserId(user.id);
+                                              }}
+                                            >
+                                              <Settings className="w-4 h-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Настроить права</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      )}
+                                      {user.role !== "user" && user.role !== "superadmin" && (
                                         <Tooltip>
                                           <TooltipTrigger asChild>
                                             <Button
@@ -473,23 +477,25 @@ export default function UserManagement() {
                                           </TooltipContent>
                                         </Tooltip>
                                       )}
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleDeleteUser(user.id, user.name, "active");
-                                            }}
-                                          >
-                                            <Trash2 className="w-4 h-4 text-destructive" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Удалить пользователя</p>
-                                        </TooltipContent>
-                                      </Tooltip>
+                                      {user.role !== "superadmin" && (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteUser(user.id, user.name, "active");
+                                              }}
+                                            >
+                                              <Trash2 className="w-4 h-4 text-destructive" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Удалить пользователя</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      )}
                                     </>
                                   )}
                                 </div>
