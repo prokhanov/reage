@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserPermissionsDialog } from "@/components/admin/UserPermissionsDialog";
 import { RoleManagementCard } from "@/components/admin/RoleManagementCard";
 import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
+import { EditPendingUserDialog } from "@/components/admin/EditPendingUserDialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -43,6 +44,7 @@ export default function UserManagement() {
   const [selectedUserInviteToken, setSelectedUserInviteToken] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editPendingDialogOpen, setEditPendingDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: users, isLoading, refetch } = useQuery({
@@ -390,9 +392,14 @@ export default function UserManagement() {
                             className={user.role === "superadmin" ? "cursor-default" : "cursor-pointer hover:bg-muted/50"}
                             onClick={() => {
                               if (user.role !== "superadmin") {
-                                setSelectedUserId(user.id);
-                                setSelectedUserIsPending(user.type === "pending");
-                                setSelectedUserInviteToken((user as any).invite_token || null);
+                                if (user.type === "pending") {
+                                  setSelectedUserInviteToken((user as any).invite_token || null);
+                                  setEditPendingDialogOpen(true);
+                                } else {
+                                  setSelectedUserId(user.id);
+                                  setSelectedUserIsPending(false);
+                                  setSelectedUserInviteToken(null);
+                                }
                               }
                             }}
                           >
@@ -617,6 +624,17 @@ export default function UserManagement() {
           setSelectedUserInviteToken(null);
         }}
         onUpdate={() => refetch()}
+      />
+
+      <EditPendingUserDialog
+        inviteToken={selectedUserInviteToken}
+        open={editPendingDialogOpen}
+        onOpenChange={(open) => {
+          setEditPendingDialogOpen(open);
+          if (!open) {
+            setSelectedUserInviteToken(null);
+          }
+        }}
       />
     </div>
   );
