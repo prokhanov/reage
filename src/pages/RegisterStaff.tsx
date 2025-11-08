@@ -17,6 +17,8 @@ export default function RegisterStaff() {
   const [inviteToken, setInviteToken] = useState<any>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [sessionLoading, setSessionLoading] = useState(true);
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -27,12 +29,24 @@ export default function RegisterStaff() {
 
   useEffect(() => {
     const validateInvite = async () => {
+      // Сначала проверяем, залогинен ли пользователь
+      setSessionLoading(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const hasSession = !!sessionData.session;
+      setIsAuthenticated(hasSession);
+      setSessionLoading(false);
+
       const token = searchParams.get("invite");
       
-      console.info("Invite link opened", token);
+      console.info("Invite link opened", token, { hasSession });
       
       if (!token) {
         setInviteError("Отсутствует токен приглашения");
+        return;
+      }
+
+      // Если пользователь залогинен, не проверяем токен
+      if (hasSession) {
         return;
       }
 
@@ -95,6 +109,11 @@ export default function RegisterStaff() {
 
     validateInvite();
   }, [searchParams]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +219,26 @@ export default function RegisterStaff() {
           )}
         </CardHeader>
         <CardContent>
-          {inviteError ? (
+          {sessionLoading ? (
+            <div className="text-center text-muted-foreground">Загрузка...</div>
+          ) : isAuthenticated ? (
+            <div className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Вы уже авторизованы в системе. Чтобы зарегистрироваться по приглашению, выйдите из аккаунта.
+                </AlertDescription>
+              </Alert>
+              <div className="flex flex-col gap-2">
+                <Button onClick={handleSignOut} variant="default" className="w-full">
+                  Выйти и продолжить регистрацию
+                </Button>
+                <Button onClick={() => navigate("/dashboard")} variant="outline" className="w-full">
+                  Перейти на Dashboard
+                </Button>
+              </div>
+            </div>
+          ) : inviteError ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{inviteError}</AlertDescription>
