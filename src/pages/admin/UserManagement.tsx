@@ -440,6 +440,16 @@ export default function UserManagement() {
       .slice(0, 2);
   };
 
+  const getModuleName = (moduleId: string) => {
+    const moduleNames: Record<string, string> = {
+      ai_settings: "Настройки AI",
+      patients: "Пациенты",
+      user_management: "Управление пользователями",
+      data_management: "Управление данными",
+    };
+    return moduleNames[moduleId] || moduleId;
+  };
+
   const getRoleBadge = (role: string, roleDisplayName?: string) => {
     const roleConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
       superadmin: { label: "Суперадмин", variant: "destructive" },
@@ -606,7 +616,7 @@ export default function UserManagement() {
                                 <div className="flex flex-wrap gap-1">
                                   {user.permissions.map((perm: string) => (
                                     <Badge key={perm} variant="secondary" className="text-xs">
-                                      {perm}
+                                      {getModuleName(perm)}
                                     </Badge>
                                   ))}
                                 </div>
