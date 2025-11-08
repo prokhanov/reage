@@ -4,8 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Ban, Trash2 } from "lucide-react";
+import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2 } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -355,84 +361,116 @@ export default function UserManagement() {
                               {new Date(user.created_at).toLocaleDateString("ru-RU")}
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
-                                {user.type === "pending" ? (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        const registerUrl = `/register-staff?invite=${user.invite_token}`;
-                                        const fullUrl = `${window.location.origin}${registerUrl}`;
-                                        navigator.clipboard.writeText(fullUrl).catch(() => {
-                                          toast({
-                                            title: "Ссылка создана",
-                                            description: fullUrl,
-                                            duration: 10000,
-                                          });
-                                        });
-                                        toast({
-                                          title: "Ссылка скопирована",
-                                          description: "Пригласительная ссылка скопирована в буфер обмена",
-                                        });
-                                      }}
-                                    >
-                                      <Copy className="w-4 h-4 mr-2" />
-                                      Скопировать
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteUser(user.id, user.name, "pending", user.invite_token);
-                                      }}
-                                    >
-                                      <Trash2 className="w-4 h-4 mr-2 text-destructive" />
-                                      Удалить
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedUserId(user.id);
-                                      }}
-                                    >
-                                      <Settings className="w-4 h-4 mr-2" />
-                                      Настроить
-                                    </Button>
-                                    {user.role !== "user" && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleSuspendUser(user.id, user.name);
-                                        }}
-                                      >
-                                        <Ban className="w-4 h-4 mr-2 text-orange-500" />
-                                        Приостановить
-                                      </Button>
-                                    )}
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteUser(user.id, user.name, "active");
-                                      }}
-                                    >
-                                      <Trash2 className="w-4 h-4 mr-2 text-destructive" />
-                                      Удалить
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
+                              <TooltipProvider>
+                                <div className="flex gap-1">
+                                  {user.type === "pending" ? (
+                                    <>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              const registerUrl = `/register-staff?invite=${user.invite_token}`;
+                                              const fullUrl = `${window.location.origin}${registerUrl}`;
+                                              navigator.clipboard.writeText(fullUrl).catch(() => {
+                                                toast({
+                                                  title: "Ссылка создана",
+                                                  description: fullUrl,
+                                                  duration: 10000,
+                                                });
+                                              });
+                                              toast({
+                                                title: "Ссылка скопирована",
+                                                description: "Пригласительная ссылка скопирована в буфер обмена",
+                                              });
+                                            }}
+                                          >
+                                            <Copy className="w-4 h-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Скопировать ссылку</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteUser(user.id, user.name, "pending", user.invite_token);
+                                            }}
+                                          >
+                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Удалить приглашение</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSelectedUserId(user.id);
+                                            }}
+                                          >
+                                            <Settings className="w-4 h-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Настроить права</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      {user.role !== "user" && (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleSuspendUser(user.id, user.name);
+                                              }}
+                                            >
+                                              <Pause className="w-4 h-4 text-orange-500" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Приостановить доступ</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      )}
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteUser(user.id, user.name, "active");
+                                            }}
+                                          >
+                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Удалить пользователя</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </>
+                                  )}
+                                </div>
+                              </TooltipProvider>
                             </TableCell>
                           </TableRow>
                         ))
