@@ -38,7 +38,8 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
         .order("display_name");
       
       if (error) throw error;
-      return data;
+      // Фильтруем роль "user" (Пациент) - она не для административного персонала
+      return data?.filter(role => role.name !== "user") || [];
     },
   });
 
