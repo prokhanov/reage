@@ -71,6 +71,9 @@ export default function UserManagement() {
         acc[role.user_id] = {
           role: role.role,
           custom_role: role.custom_roles,
+          role_id: role.role_id,
+          hasCustomRole: !!role.role_id,
+          custom_role_name: role.custom_roles?.name,
         };
         return acc;
       }, {});
@@ -115,12 +118,13 @@ export default function UserManagement() {
       });
 
       const activeUsers = (profiles || []).map((profile) => {
-        const userRoleData = rolesMap[profile.id] || { role: "user", custom_role: null };
+        const userRoleData = rolesMap[profile.id] || { role: "user", custom_role: null, hasCustomRole: false };
 
         return {
           ...profile,
           role: userRoleData.role,
           custom_role: userRoleData.custom_role,
+          hasCustomRole: userRoleData.hasCustomRole,
           permissions: permissionsMap[profile.id] || [],
           status: "active" as const,
           type: "active" as const,
@@ -173,10 +177,11 @@ export default function UserManagement() {
       const allUsers = [...activeUsers, ...pendingUsers];
       
       // Фильтруем: показываем весь административный персонал
-      // Исключаем только тех, у кого базовая роль "user" И НЕТ кастомной роли (кроме роли "user")
+      // Исключаем только тех, у кого базовая роль "user" И НЕТ кастомной роли
       return allUsers.filter(u => {
         if (u.role !== "user") return true; // superadmin, admin, doctor
-        if (u.custom_role && u.custom_role.name !== "user") return true; // кастомные роли (manager и т.д.)
+        if ((u as any).hasCustomRole) return true; // связанная кастомная роль через role_id
+        if ((u as any).custom_role && (u as any).custom_role.name !== "user") return true; // кастомные роли (manager и т.д.)
         return false; // обычные пациенты
       });
     },
