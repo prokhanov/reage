@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InviteTokenManager } from "@/components/admin/InviteTokenManager";
 import { UserPermissionsDialog } from "@/components/admin/UserPermissionsDialog";
-import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
+import { RoleManagementCard } from "@/components/admin/RoleManagementCard";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -31,7 +31,6 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [createUserOpen, setCreateUserOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: users, isLoading, refetch } = useQuery({
@@ -46,13 +45,13 @@ export default function UserManagement() {
 
       const { data: allRoles } = await supabase
         .from("user_roles")
-        .select("user_id, role");
+        .select("user_id, role, role_id, custom_roles(*)");
 
       const rolesMap = (allRoles || []).reduce((acc: any, role: any) => {
-        if (!acc[role.user_id]) {
-          acc[role.user_id] = [];
-        }
-        acc[role.user_id].push(role.role);
+        acc[role.user_id] = {
+          role: role.role,
+          custom_role: role.custom_roles,
+        };
         return acc;
       }, {});
 
@@ -71,19 +70,12 @@ export default function UserManagement() {
       }, {});
 
       const usersWithRoles = (profiles || []).map((profile) => {
-        const userRoles = rolesMap[profile.id] || ["user"];
-        const primaryRole = userRoles.includes("superadmin")
-          ? "superadmin"
-          : userRoles.includes("admin")
-          ? "admin"
-          : userRoles.includes("doctor")
-          ? "doctor"
-          : "user";
+        const userRoleData = rolesMap[profile.id] || { role: "user", custom_role: null };
 
         return {
           ...profile,
-          role: primaryRole,
-          allRoles: userRoles,
+          role: userRoleData.role,
+          custom_role: userRoleData.custom_role,
           permissions: permissionsMap[profile.id] || [],
         };
       });
@@ -133,21 +125,17 @@ export default function UserManagement() {
         </p>
       </div>
 
+      <RoleManagementCard />
+
       <InviteTokenManager onInviteCreated={() => refetch()} />
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Все пользователи ({filteredUsers?.length || 0})</CardTitle>
-              <CardDescription>
-                Нажмите на пользователя, чтобы настроить его права доступа
-              </CardDescription>
-            </div>
-            <Button onClick={() => setCreateUserOpen(true)}>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Добавить пользователя
-            </Button>
+          <div>
+            <CardTitle>Все пользователи ({filteredUsers?.length || 0})</CardTitle>
+            <CardDescription>
+              Нажмите на пользователя, чтобы настроить его права доступа
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -211,7 +199,15 @@ export default function UserManagement() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{getRoleBadge(user.role)}</TableCell>
+                        <TableCell>
+                          {user.custom_role ? (
+                            <Badge variant={user.role === "superadmin" ? "destructive" : "default"}>
+                              {user.custom_role.display_name}
+                            </Badge>
+                          ) : (
+                            getRoleBadge(user.role)
+                          )}
+                        </TableCell>
                         <TableCell>
                           {user.role === "superadmin" ? (
                             <Badge variant="outline" className="text-xs">
@@ -265,12 +261,6 @@ export default function UserManagement() {
         userId={selectedUserId}
         onClose={() => setSelectedUserId(null)}
         onUpdate={() => refetch()}
-      />
-
-      <CreateUserDialog
-        open={createUserOpen}
-        onClose={() => setCreateUserOpen(false)}
-        onSuccess={() => refetch()}
       />
     </div>
   );

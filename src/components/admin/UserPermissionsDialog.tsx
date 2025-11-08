@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Shield, Settings, Users, Database } from "lucide-react";
+import { Shield } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface UserPermissionsDialogProps {
   userId: string | null;
@@ -25,16 +26,28 @@ interface UserPermissionsDialogProps {
 }
 
 const ADMIN_MODULES = [
-  { value: "ai_settings", label: "Настройки AI", icon: Settings },
-  { value: "data_management", label: "Управление данными", icon: Database },
-  { value: "patients", label: "Пациенты", icon: Users },
-  { value: "user_management", label: "Управление пользователями", icon: Shield },
+  { value: "ai_settings", label: "Настройки AI" },
+  { value: "data_management", label: "Управление данными" },
+  { value: "patients", label: "Пациенты" },
+  { value: "user_management", label: "Управление пользователями" },
 ];
 
 export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermissionsDialogProps) {
-  const [selectedRole, setSelectedRole] = useState<"user" | "doctor" | "admin" | "superadmin">("user");
+  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const { toast } = useToast();
+
+  const { data: customRoles } = useQuery({
+    queryKey: ["custom-roles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_roles")
+        .select("*")
+        .order("display_name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["user-permissions", userId],
@@ -49,19 +62,11 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
 
       if (profileError) throw profileError;
 
-      const { data: roles } = await supabase
+      const { data: userRole } = await supabase
         .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
-
-      const userRoles = (roles || []).map((r) => r.role);
-      const primaryRole = userRoles.includes("superadmin")
-        ? "superadmin"
-        : userRoles.includes("admin")
-        ? "admin"
-        : userRoles.includes("doctor")
-        ? "doctor"
-        : "user";
+        .select("role, role_id, custom_roles(*)")
+        .eq("user_id", userId)
+        .single();
 
       const { data: permissions } = await supabase
         .from("admin_permissions")
@@ -74,7 +79,9 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
 
       return {
         ...profile,
-        role: primaryRole,
+        role: userRole?.role || "user",
+        role_id: userRole?.role_id || null,
+        custom_role: userRole?.custom_roles,
         modules: enabledModules,
       };
     },
@@ -83,34 +90,34 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
 
   useEffect(() => {
     if (user) {
-      setSelectedRole(user.role as "user" | "admin" | "superadmin");
+      setSelectedRoleId(user.role_id || "");
       setSelectedModules(user.modules || []);
     }
   }, [user]);
 
+  const isSuperadmin = user?.role === "superadmin";
+  const selectedRole = customRoles?.find((r) => r.id === selectedRoleId);
+
   const updatePermissionsMutation = useMutation({
     mutationFn: async () => {
-      if (!userId) return;
+      if (!userId || !selectedRoleId) return;
 
-      // Update role
-      const { data: existingRole } = await supabase
+      const selectedRoleData = customRoles?.find((r) => r.id === selectedRoleId);
+      if (!selectedRoleData) throw new Error("Роль не найдена");
+
+      // Delete old role
+      await supabase.from("user_roles").delete().eq("user_id", userId);
+
+      // Insert new role
+      const { error: roleError } = await supabase
         .from("user_roles")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("role", selectedRole)
-        .maybeSingle();
+        .insert({ 
+          user_id: userId, 
+          role: selectedRoleData.name as "user" | "doctor" | "admin" | "superadmin",
+          role_id: selectedRoleId
+        });
 
-      if (!existingRole) {
-        // Delete old roles
-        await supabase.from("user_roles").delete().eq("user_id", userId);
-        
-        // Insert new role
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({ user_id: userId, role: selectedRole });
-
-        if (roleError) throw roleError;
-      }
+      if (roleError) throw roleError;
 
       // Update permissions
       // First, get all existing permissions
@@ -212,6 +219,15 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
           <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
         ) : user ? (
           <div className="space-y-6">
+            {isSuperadmin && (
+              <Alert className="mb-4">
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  Суперадмин не может быть изменен. Эта роль имеет полный доступ ко всем функциям системы.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
               <Avatar className="h-16 w-16">
                 <AvatarFallback className="bg-primary/10 text-primary text-lg">
@@ -230,48 +246,29 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
                   Роль пользователя
                 </Label>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Определяет базовые права доступа
+                  Определяет права доступа и модули
                 </p>
                 <Select 
-                  value={selectedRole} 
-                  onValueChange={(v) => setSelectedRole(v as "user" | "admin" | "superadmin")}
+                  value={selectedRoleId} 
+                  onValueChange={setSelectedRoleId}
+                  disabled={isSuperadmin}
                 >
                   <SelectTrigger id="role">
-                    <SelectValue />
+                    <SelectValue placeholder="Выберите роль" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">Пациент</Badge>
-                        <span className="text-xs text-muted-foreground">
-                          - Только личный кабинет
-                        </span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="doctor">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="default">Врач</Badge>
-                        <span className="text-xs text-muted-foreground">
-                          - Доступ к пациентам
-                        </span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="admin">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="default">Админ</Badge>
-                        <span className="text-xs text-muted-foreground">
-                          - Доступ к выбранным модулям
-                        </span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="superadmin">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="destructive">Суперадмин</Badge>
-                        <span className="text-xs text-muted-foreground">
-                          - Полный доступ
-                        </span>
-                      </div>
-                    </SelectItem>
+                    {customRoles?.filter((role) => role.name !== "user").map((role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{role.display_name}</span>
+                          {role.description && (
+                            <span className="text-xs text-muted-foreground">
+                              - {role.description}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -279,32 +276,22 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
               <Separator />
 
               <div>
-                <Label className="text-base font-semibold">Доступ к модулям админки</Label>
+                <Label className="text-base font-semibold">Дополнительные доступы к модулям</Label>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {selectedRole === "superadmin"
+                  {isSuperadmin
                     ? "Суперадмин имеет доступ ко всем модулям автоматически"
-                    : selectedRole === "doctor"
-                    ? "Врач автоматически имеет доступ к модулю Пациенты"
-                    : selectedRole === "user"
-                    ? "Пациент не имеет доступа к административным модулям"
-                    : "Выберите модули, к которым будет доступ"}
+                    : "Дополнительные модули сверх роли"}
                 </p>
 
                 <div className="space-y-3">
                   {ADMIN_MODULES.map((module) => {
-                    const Icon = module.icon;
-                    const isDisabled = selectedRole === "superadmin" || selectedRole === "user" || 
-                      (selectedRole === "doctor" && module.value === "patients");
-                    const isChecked =
-                      selectedRole === "superadmin" || 
-                      (selectedRole === "doctor" && module.value === "patients") ||
-                      selectedModules.includes(module.value);
+                    const isChecked = selectedModules.includes(module.value);
 
                     return (
                       <div
                         key={module.value}
                         className={`flex items-center gap-3 p-3 rounded-lg border ${
-                          isDisabled ? "opacity-50" : "hover:bg-muted/50"
+                          isSuperadmin ? "opacity-50" : "hover:bg-muted/50"
                         }`}
                       >
                         <Checkbox
@@ -313,12 +300,11 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
                           onCheckedChange={(checked) =>
                             handleModuleToggle(module.value, checked as boolean)
                           }
-                          disabled={isDisabled}
+                          disabled={isSuperadmin}
                         />
-                        <Icon className="w-5 h-5 text-muted-foreground" />
                         <Label
                           htmlFor={module.value}
-                          className={`flex-1 ${isDisabled ? "" : "cursor-pointer"}`}
+                          className={`flex-1 ${isSuperadmin ? "" : "cursor-pointer"}`}
                         >
                           {module.label}
                         </Label>
@@ -337,7 +323,7 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
           </Button>
           <Button
             onClick={() => updatePermissionsMutation.mutate()}
-            disabled={updatePermissionsMutation.isPending}
+            disabled={updatePermissionsMutation.isPending || isSuperadmin}
           >
             Сохранить изменения
           </Button>
