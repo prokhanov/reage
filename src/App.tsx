@@ -26,8 +26,7 @@ import DataManagement from "./pages/admin/DataManagement";
 import Patients from "./pages/admin/Patients";
 import PatientProfile from "./pages/admin/PatientProfile";
 import UserManagement from "./pages/admin/UserManagement";
-import Employees from "./pages/admin/Employees";
-import RegisterDoctor from "./pages/RegisterDoctor";
+import RegisterStaff from "./pages/RegisterStaff";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,7 +42,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/register-doctor" element={<RegisterDoctor />} />
+          <Route path="/register-staff" element={<RegisterStaff />} />
           <Route
             path="/onboarding"
             element={
@@ -187,18 +186,6 @@ const App = () => (
                 <SuperAdminRoute>
                   <DashboardLayout>
                     <UserManagement />
-                  </DashboardLayout>
-                </SuperAdminRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/employees"
-            element={
-              <ProtectedRoute>
-                <SuperAdminRoute>
-                  <DashboardLayout>
-                    <Employees />
                   </DashboardLayout>
                 </SuperAdminRoute>
               </ProtectedRoute>

@@ -147,8 +147,9 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
     },
   });
 
-  const copyToClipboard = (token: string) => {
-    const inviteUrl = `${window.location.origin}/register?invite=${token}`;
+  const copyToClipboard = (token: string, role: string) => {
+    const registerPath = role === 'user' ? '/register' : '/register-staff';
+    const inviteUrl = `${window.location.origin}${registerPath}?invite=${token}`;
     navigator.clipboard.writeText(inviteUrl);
     setCopiedToken(token);
     toast({
@@ -254,7 +255,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => copyToClipboard(token.token)}
+                              onClick={() => copyToClipboard(token.token, token.role)}
                               disabled={token.used_at !== null || (token.expires_at && new Date(token.expires_at) < new Date())}
                             >
                               {copiedToken === token.token ? (

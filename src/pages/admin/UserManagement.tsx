@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Shield, Settings, UserPlus, Copy, Check } from "lucide-react";
+import { Search, Shield, Settings, UserPlus, Copy, Check, Plus } from "lucide-react";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InviteTokenManager } from "@/components/admin/InviteTokenManager";
 import { UserPermissionsDialog } from "@/components/admin/UserPermissionsDialog";
 import { RoleManagementCard } from "@/components/admin/RoleManagementCard";
+import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -32,6 +34,7 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: users, isLoading, refetch } = useQuery({
@@ -136,11 +139,25 @@ export default function UserManagement() {
         <TabsContent value="users" className="space-y-4 mt-6">
           <Card>
             <CardHeader>
-              <div>
-                <CardTitle>Все пользователи ({filteredUsers?.length || 0})</CardTitle>
-                <CardDescription>
-                  Нажмите на пользователя, чтобы настроить его права доступа
-                </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Все пользователи ({filteredUsers?.length || 0})</CardTitle>
+                  <CardDescription>
+                    Нажмите на пользователя, чтобы настроить его права доступа
+                  </CardDescription>
+                </div>
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Добавить пользователя
+                    </Button>
+                  </DialogTrigger>
+                  <CreateUserDialog 
+                    open={createDialogOpen} 
+                    onOpenChange={setCreateDialogOpen}
+                  />
+                </Dialog>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
