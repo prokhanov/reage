@@ -302,6 +302,7 @@ export type Database = {
           expires_at: string | null
           id: string
           invited_email: string | null
+          metadata: Json | null
           role: string
           token: string
           used_at: string | null
@@ -313,6 +314,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           invited_email?: string | null
+          metadata?: Json | null
           role?: string
           token: string
           used_at?: string | null
@@ -324,6 +326,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           invited_email?: string | null
+          metadata?: Json | null
           role?: string
           token?: string
           used_at?: string | null

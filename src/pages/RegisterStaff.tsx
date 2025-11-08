@@ -38,6 +38,7 @@ export default function RegisterStaff() {
         .from("invite_tokens")
         .select(`
           *,
+          metadata,
           custom_roles!invite_tokens_role_fkey (
             display_name
           )
@@ -57,7 +58,18 @@ export default function RegisterStaff() {
       }
 
       setInviteToken(data);
-      if (data.invited_email) {
+      
+      // Предзаполнить данные из metadata
+      if (data.metadata && typeof data.metadata === 'object') {
+        const metadata = data.metadata as any;
+        const nameParts = (metadata.name || "").split(" ");
+        setFormData(prev => ({
+          ...prev,
+          firstName: nameParts[1] || "",
+          lastName: nameParts[0] || "",
+          email: data.invited_email || prev.email,
+        }));
+      } else if (data.invited_email) {
         setFormData(prev => ({ ...prev, email: data.invited_email }));
       }
     };
@@ -98,23 +110,29 @@ export default function RegisterStaff() {
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error("Не удалось создать пользователя");
 
+      const metadata = inviteToken.metadata as any;
+      
       const { error: profileError } = await supabase
         .from("profiles")
         .insert({
           id: authData.user.id,
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
-          gender: "male",
-          birth_date: new Date().toISOString().split('T')[0],
+          name: metadata?.name || `${formData.firstName} ${formData.lastName}`.trim(),
+          gender: metadata?.gender || "male",
+          birth_date: metadata?.birth_date || new Date().toISOString().split('T')[0],
         });
 
       if (profileError) throw profileError;
 
+      // Применить все роли из metadata или одну роль из invite
+      const rolesToInsert = metadata?.roles || [inviteToken.role];
+      const roleInserts = rolesToInsert.map((role: string) => ({
+        user_id: authData.user.id,
+        role: role,
+      }));
+
       const { error: roleError } = await supabase
         .from("user_roles")
-        .insert({
-          user_id: authData.user.id,
-          role: inviteToken.role,
-        });
+        .insert(roleInserts);
 
       if (roleError) throw roleError;
 

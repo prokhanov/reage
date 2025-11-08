@@ -40,6 +40,7 @@ export default function UserManagement() {
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
+      // 1. Активные пользователи из profiles
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -73,7 +74,7 @@ export default function UserManagement() {
         return acc;
       }, {});
 
-      const usersWithRoles = (profiles || []).map((profile) => {
+      const activeUsers = (profiles || []).map((profile) => {
         const userRoleData = rolesMap[profile.id] || { role: "user", custom_role: null };
 
         return {
@@ -81,11 +82,38 @@ export default function UserManagement() {
           role: userRoleData.role,
           custom_role: userRoleData.custom_role,
           permissions: permissionsMap[profile.id] || [],
+          status: "active" as const,
+          type: "active" as const,
         };
       });
 
-      // Filter out regular users (patients)
-      return usersWithRoles.filter(u => u.role !== "user");
+      // 2. Pending пользователи из invite_tokens
+      const { data: pendingInvites, error: invitesError } = await supabase
+        .from("invite_tokens")
+        .select("*, custom_roles(*)")
+        .is("used_by", null)
+        .order("created_at", { ascending: false });
+
+      if (invitesError) throw invitesError;
+
+      const pendingUsers = (pendingInvites || []).map((invite: any) => ({
+        id: invite.token,
+        name: invite.metadata?.name || "—",
+        email: invite.invited_email,
+        role: invite.role,
+        custom_role: invite.custom_roles,
+        permissions: [],
+        created_at: invite.created_at,
+        status: "pending" as const,
+        type: "pending" as const,
+        invite_token: invite.token,
+      }));
+
+      // 3. Объединить и отфильтровать
+      const allUsers = [...activeUsers, ...pendingUsers];
+      
+      // Фильтруем пациентов (role === "user")
+      return allUsers.filter(u => u.role !== "user");
     },
   });
 
@@ -193,9 +221,10 @@ export default function UserManagement() {
                       <TableRow>
                         <TableHead>Пользователь</TableHead>
                         <TableHead>Роль</TableHead>
+                        <TableHead>Статус</TableHead>
                         <TableHead>Доступы к модулям</TableHead>
-                        <TableHead>Дата регистрации</TableHead>
-                        <TableHead className="w-[100px]">Действия</TableHead>
+                        <TableHead>Дата создания</TableHead>
+                        <TableHead className="w-[120px]">Действия</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -231,6 +260,17 @@ export default function UserManagement() {
                               )}
                             </TableCell>
                             <TableCell>
+                              {user.status === "active" ? (
+                                <Badge variant="default" className="bg-green-600">
+                                  Активен
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary">
+                                  Ссылка отправлена
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
                               {user.role === "superadmin" ? (
                                 <Badge variant="outline" className="text-xs">
                                   Полный доступ
@@ -251,23 +291,43 @@ export default function UserManagement() {
                               {new Date(user.created_at).toLocaleDateString("ru-RU")}
                             </TableCell>
                             <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedUserId(user.id);
-                                }}
-                              >
-                                <Settings className="w-4 h-4 mr-2" />
-                                Настроить
-                              </Button>
+                              {user.type === "pending" ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const registerUrl = `/register-staff?invite=${user.invite_token}`;
+                                    const fullUrl = `${window.location.origin}${registerUrl}`;
+                                    navigator.clipboard.writeText(fullUrl);
+                                    toast({
+                                      title: "Ссылка скопирована",
+                                      description: "Пригласительная ссылка скопирована в буфер обмена",
+                                    });
+                                  }}
+                                >
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Скопировать
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedUserId(user.id);
+                                  }}
+                                >
+                                  <Settings className="w-4 h-4 mr-2" />
+                                  Настроить
+                                </Button>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                             Пользователи не найдены
                           </TableCell>
                         </TableRow>

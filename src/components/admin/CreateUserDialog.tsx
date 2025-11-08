@@ -63,60 +63,48 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast({
-        title: "Ошибка",
-        description: "Пароль должен содержать минимум 6 символов",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        email_confirm: true,
-        user_metadata: {
-          name: formData.name
-        }
-      });
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (!currentUser.user) throw new Error("Не авторизован");
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Не удалось создать пользователя");
+      const token = crypto.randomUUID();
+      const registerUrl = `/register-staff?invite=${token}`;
+      const fullUrl = `${window.location.origin}${registerUrl}`;
 
-      const { error: profileError } = await supabase
-        .from("profiles")
+      const metadata = {
+        name: formData.name,
+        gender: formData.gender,
+        birth_date: formData.birthDate.toISOString().split('T')[0],
+        roles: formData.selectedRoles,
+      };
+
+      // Создать приглашение с metadata
+      const { error: inviteError } = await supabase
+        .from("invite_tokens")
         .insert({
-          id: authData.user.id,
-          name: formData.name,
-          gender: formData.gender,
-          birth_date: formData.birthDate.toISOString().split('T')[0],
+          token,
+          role: formData.selectedRoles[0],
+          invited_email: formData.email,
+          created_by: currentUser.user.id,
+          metadata,
         });
 
-      if (profileError) throw profileError;
+      if (inviteError) throw inviteError;
 
-      const roleInserts = formData.selectedRoles.map(role => ({
-        user_id: authData.user.id,
-        role: role as any,
-      }));
-
-      const { error: rolesError } = await supabase
-        .from("user_roles")
-        .insert(roleInserts);
-
-      if (rolesError) throw rolesError;
+      // Скопировать ссылку в буфер
+      await navigator.clipboard.writeText(fullUrl);
 
       toast({
-        title: "Успешно",
-        description: "Пользователь создан",
+        title: "Приглашение создано",
+        description: "Ссылка скопирована в буфер обмена",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["invite-tokens"] });
       onOpenChange(false);
-      
+
       setFormData({
         email: "",
         password: "",
@@ -126,10 +114,10 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
         selectedRoles: [],
       });
     } catch (error: any) {
-      console.error("Create user error:", error);
+      console.error("Create invite error:", error);
       toast({
         title: "Ошибка",
-        description: error.message || "Не удалось создать пользователя",
+        description: error.message || "Не удалось создать приглашение",
         variant: "destructive",
       });
     } finally {
@@ -151,7 +139,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
       <DialogHeader>
         <DialogTitle>Добавить пользователя</DialogTitle>
         <DialogDescription>
-          Создайте нового пользователя с полным доступом
+          Введите данные пользователя. Ссылка для регистрации будет скопирована в буфер обмена.
         </DialogDescription>
       </DialogHeader>
 
@@ -164,19 +152,6 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">Пароль *</Label>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required
-            minLength={6}
-            placeholder="Минимум 6 символов"
           />
         </div>
 
@@ -246,7 +221,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
             Отмена
           </Button>
           <Button type="submit" disabled={isSubmitting} className="flex-1">
-            {isSubmitting ? "Создание..." : "Создать"}
+            {isSubmitting ? "Создание..." : "Создать приглашение"}
           </Button>
         </div>
       </form>
