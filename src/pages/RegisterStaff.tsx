@@ -36,18 +36,18 @@ export default function RegisterStaff() {
 
       const { data, error } = await supabase
         .from("invite_tokens")
-        .select(`
-          *,
-          metadata,
-          custom_roles!invite_tokens_role_fkey (
-            display_name
-          )
-        `)
+        .select("*")
         .eq("token", token)
         .is("used_by", null)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        console.error("Invite validation error:", error);
+        setInviteError("Ошибка при проверке приглашения");
+        return;
+      }
+
+      if (!data) {
         setInviteError("Недействительное или использованное приглашение");
         return;
       }
@@ -57,7 +57,17 @@ export default function RegisterStaff() {
         return;
       }
 
-      setInviteToken(data);
+      // Получить display_name для роли
+      const { data: roleData } = await supabase
+        .from("custom_roles")
+        .select("display_name")
+        .eq("name", data.role)
+        .maybeSingle();
+
+      setInviteToken({
+        ...data,
+        role_display_name: roleData?.display_name || data.role
+      });
       
       // Предзаполнить данные из metadata
       if (data.metadata && typeof data.metadata === 'object') {
@@ -173,7 +183,7 @@ export default function RegisterStaff() {
             <CardDescription className="text-base mt-4">
               Вас пригласили присоединиться как{" "}
               <span className="font-semibold text-foreground">
-                {inviteToken.custom_roles?.display_name || inviteToken.role}
+                {inviteToken.role_display_name || inviteToken.role}
               </span>
               .<br />
               Пожалуйста, создайте аккаунт, чтобы принять приглашение.
