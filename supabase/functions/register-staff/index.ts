@@ -109,7 +109,7 @@ serve(async (req) => {
         id: userId,
         name: `${firstName} ${lastName}`,
         birth_date: '1990-01-01', // Default value
-        gender: 'не указан', // Default value
+        gender: 'other', // Default value
       });
 
     if (profileError) {
