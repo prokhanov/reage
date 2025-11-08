@@ -52,6 +52,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
       const { data, error } = await supabase
         .from("custom_roles")
         .select("*")
+        .eq("is_system", false)
         .order("display_name");
 
       if (error) throw error;
