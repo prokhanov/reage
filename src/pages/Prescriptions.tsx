@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trash2, Calendar, FileText, Plus, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
+import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
@@ -40,13 +40,13 @@ export default function Prescriptions() {
   const [editPrescription, setEditPrescription] = useState<Prescription | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isSuperAdmin } = useSuperAdminCheck();
+  const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
   const { viewAsUserId, isViewMode } = useViewAsUser();
 
   const userId = viewAsUserId || undefined;
 
   const { data: prescriptions = [], isLoading } = useQuery({
-    queryKey: ["prescriptions", userId, isSuperAdmin],
+    queryKey: ["prescriptions", userId, hasPatientAccess],
     queryFn: async () => {
       let query = supabase
         .from("prescriptions")
@@ -66,7 +66,7 @@ export default function Prescriptions() {
       }
 
       // Обычные пользователи видят только подтвержденные назначения
-      if (!isSuperAdmin) {
+      if (!hasPatientAccess) {
         query = query.eq("status", "confirmed");
       }
 
@@ -133,7 +133,7 @@ export default function Prescriptions() {
           {/* Метаданные и действия */}
           <div className="flex items-center justify-between pt-4 border-t border-border/30">
             <div className="flex items-center gap-6 flex-wrap">
-              {isSuperAdmin && (
+              {hasPatientAccess && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">Статус:</span>
                   {getStatusBadge(prescription.status)}
@@ -155,7 +155,7 @@ export default function Prescriptions() {
               </div>
             </div>
 
-            {isSuperAdmin && (
+            {hasPatientAccess && (
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
@@ -201,7 +201,7 @@ export default function Prescriptions() {
               Рекомендации и назначения врача
             </p>
           </div>
-          {isViewMode && isSuperAdmin && viewAsUserId && (
+          {isViewMode && hasPatientAccess && viewAsUserId && (
             <Button
               onClick={() => setCreateDialogOpen(true)}
               variant="default"

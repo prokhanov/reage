@@ -17,7 +17,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
-import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
+import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;
@@ -53,7 +53,7 @@ type SectionType = 'patient-data' | 'summary' | string;
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
-  const { isSuperAdmin } = useSuperAdminCheck();
+  const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +151,7 @@ export default function Recommendations() {
         if (error) throw error;
         
         // Фильтруем по статусу: для обычных пользователей только confirmed
-        const filtered = isSuperAdmin 
+        const filtered = hasPatientAccess 
           ? (data || [])
           : (data || []).filter(p => p.status === "confirmed");
         
@@ -368,7 +368,7 @@ export default function Recommendations() {
           .eq("analysis_id", selectedReport.analysisId)
           .order("created_at", { ascending: true });
         
-        prescriptions = isSuperAdmin 
+        prescriptions = hasPatientAccess 
           ? (data || [])
           : (data || []).filter(p => p.status === "confirmed");
       }
@@ -612,7 +612,7 @@ export default function Recommendations() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {isSuperAdmin && isViewMode && report.analysisId && (
+                        {hasPatientAccess && isViewMode && report.analysisId && (
                           <Button
                             variant="ghost"
                             size="icon"

@@ -12,7 +12,7 @@ import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { CreateAnalysisWizard } from "@/components/admin/CreateAnalysisWizard";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
-import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
+import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +37,7 @@ interface Analysis {
 export default function Analyses() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
-  const { isSuperAdmin } = useSuperAdminCheck();
+  const { hasPatientAccess } = usePatientModuleAccess();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -148,7 +148,7 @@ export default function Analyses() {
             </h2>
             <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
           </div>
-          {isViewMode && isSuperAdmin && (
+          {isViewMode && hasPatientAccess && (
             <Button
               onClick={() => setCreateDialogOpen(true)}
               variant="default"
@@ -244,7 +244,7 @@ export default function Analyses() {
                     )}
                   </CardContent>
                 </div>
-                {isViewMode && isSuperAdmin && (
+                {isViewMode && hasPatientAccess && (
                   <div className="absolute top-2 right-2 flex gap-1">
                     <Button
                       variant="ghost"

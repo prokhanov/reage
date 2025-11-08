@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Progress } from "@/components/ui/progress";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
+import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
@@ -41,7 +41,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const id = analysisId ?? params.id;
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
-  const { isSuperAdmin } = useSuperAdminCheck();
+  const { hasPatientAccess } = usePatientModuleAccess();
   const [analysis, setAnalysis] = useState<any>(null);
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
@@ -263,7 +263,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             </div>
           </div>
 
-          {isSuperAdmin && isViewMode && (
+          {hasPatientAccess && isViewMode && (
             <div className="flex gap-2">
               <Button
                 onClick={() => setEditAnalysisDialogOpen(true)}
