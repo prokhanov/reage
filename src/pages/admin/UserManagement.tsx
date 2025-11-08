@@ -199,35 +199,27 @@ export default function UserManagement() {
 
         if (error) throw error;
       } else {
-        // Сначала удалить использованные токены этого пользователя
-        const { error: tokenError } = await supabase
-          .from("invite_tokens")
-          .delete()
-          .eq("used_by", userId);
-
-        if (tokenError) {
-          console.warn("Не удалось удалить токены пользователя:", tokenError);
-          // Продолжаем удаление профиля даже если токены не удалены
-        }
-
-        // Удалить профиль (каскадно удалятся связанные данные)
-        const { error } = await supabase
-          .from("profiles")
-          .delete()
-          .eq("id", userId);
+        // Для активного пользователя вызываем Edge Function для полного удаления
+        const { data, error } = await supabase.functions.invoke('delete-user', {
+          body: { userId }
+        });
 
         if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
+        console.log('User deleted successfully:', data);
       }
 
       toast({
         title: "Пользователь удален",
-        description: `${userName} был успешно удален`,
+        description: `${userName} был успешно удален из системы`,
       });
 
       refetch();
     } catch (error: any) {
+      console.error('Delete user error:', error);
       toast({
-        title: "Ошибка",
+        title: "Ошибка удаления",
         description: error.message,
         variant: "destructive",
       });
