@@ -199,6 +199,17 @@ export default function UserManagement() {
 
         if (error) throw error;
       } else {
+        // Сначала удалить использованные токены этого пользователя
+        const { error: tokenError } = await supabase
+          .from("invite_tokens")
+          .delete()
+          .eq("used_by", userId);
+
+        if (tokenError) {
+          console.warn("Не удалось удалить токены пользователя:", tokenError);
+          // Продолжаем удаление профиля даже если токены не удалены
+        }
+
         // Удалить профиль (каскадно удалятся связанные данные)
         const { error } = await supabase
           .from("profiles")
