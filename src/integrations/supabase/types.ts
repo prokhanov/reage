@@ -684,7 +684,7 @@ export type Database = {
         | "patients"
         | "user_management"
       analysis_status: "on_review" | "processed"
-      app_role: "user" | "admin" | "superadmin" | "doctor"
+      app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
       prescription_status: "on_review" | "confirmed"
     }
     CompositeTypes: {
@@ -820,7 +820,7 @@ export const Constants = {
         "user_management",
       ],
       analysis_status: ["on_review", "processed"],
-      app_role: ["user", "admin", "superadmin", "doctor"],
+      app_role: ["user", "admin", "superadmin", "doctor", "patient"],
       prescription_status: ["on_review", "confirmed"],
     },
   },

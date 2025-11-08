@@ -191,17 +191,8 @@ export default function UserManagement() {
       // 3. Объединить и отфильтровать
       const allUsers = [...activeUsers, ...pendingUsers];
       
-      // Фильтруем: показываем весь административный персонал
-      // Исключаем только тех, у кого базовая роль "user" И нет привилегированной кастомной роли
-      return allUsers.filter(u => {
-        if (u.role !== "user") return true; // superadmin, admin, doctor
-        
-        // Проверяем кастомную роль: если есть и она не "user", то это админперсонал
-        if ((u as any).custom_role && (u as any).custom_role.name !== "user") return true;
-        
-        // Если кастомная роль = "user" или её нет, то это обычный пациент
-        return false;
-      });
+      // Фильтруем: показываем весь административный персонал (исключаем пациентов)
+      return allUsers.filter(u => u.role !== "patient");
     },
   });
 
@@ -215,12 +206,12 @@ export default function UserManagement() {
     if (!confirm(`Приостановить доступ для ${userName}?`)) return;
 
     try {
-      // Удаляем все роли пользователя (кроме user)
+      // Удаляем все роли пользователя (кроме patient)
       const { error } = await supabase
         .from("user_roles")
         .delete()
         .eq("user_id", userId)
-        .neq("role", "user");
+        .neq("role", "patient");
 
       if (error) throw error;
 
@@ -455,7 +446,8 @@ export default function UserManagement() {
       superadmin: { label: "Суперадмин", variant: "destructive" },
       admin: { label: "Админ", variant: "default" },
       doctor: { label: "Врач", variant: "default" },
-      user: { label: "Пациент", variant: "secondary" },
+      user: { label: "Пользователь", variant: "secondary" },
+      patient: { label: "Пациент", variant: "secondary" },
     };
     
     // Если есть display_name для кастомной роли - используем его
@@ -774,7 +766,7 @@ export default function UserManagement() {
                                           </TooltipContent>
                                         </Tooltip>
                                       )}
-                                      {user.role !== "user" && user.role !== "superadmin" && (
+                                      {user.role !== "patient" && user.role !== "superadmin" && (
                                         <Tooltip>
                                           <TooltipTrigger asChild>
                                             <Button

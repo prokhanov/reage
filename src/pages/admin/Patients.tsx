@@ -98,16 +98,9 @@ export default function Patients() {
         })
       );
 
-      // Фильтруем: показываем только пациентов (исключаем административный персонал)
+      // Фильтруем: показываем только пациентов
       return profilesWithStats.filter(p => {
-        // Исключаем суперадминов, админов, докторов
-        if (p.role !== "user") return false;
-        
-        // Исключаем пользователей с кастомными ролями (кроме "user")
-        if (p.customRole && p.customRole.name !== "user") return false;
-        
-        // Это пациент
-        return true;
+        return p.role === "patient";
       });
     },
   });
@@ -145,9 +138,10 @@ export default function Patients() {
       superadmin: { label: "Суперадмин", variant: "destructive" },
       admin: { label: "Админ", variant: "default" },
       doctor: { label: "Врач", variant: "default" },
-      user: { label: "Пациент", variant: "secondary" },
+      user: { label: "Пользователь", variant: "secondary" },
+      patient: { label: "Пациент", variant: "secondary" },
     };
-    const config = roleConfig[role] || roleConfig.user;
+    const config = roleConfig[role] || roleConfig.patient;
     return (
       <Badge variant={config.variant} className="text-xs">
         {config.label}

@@ -183,7 +183,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
   });
 
   const copyToClipboard = async (token: string, role: string) => {
-    const registerPath = role === 'user' ? '/register' : '/register-staff';
+    const registerPath = role === 'patient' ? '/register' : '/register-staff';
     const inviteUrl = `${window.location.origin}${registerPath}?invite=${token}`;
     
     try {
