@@ -39,7 +39,7 @@ interface InviteTokenManagerProps {
 }
 
 export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps) {
-  const [selectedRole, setSelectedRole] = useState<"user" | "doctor" | "admin" | "superadmin">("doctor");
+  const [selectedRole, setSelectedRole] = useState<string>("doctor");
   const [invitedEmail, setInvitedEmail] = useState("");
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deleteTokenId, setDeleteTokenId] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
       const { data, error } = await supabase
         .from("custom_roles")
         .select("*")
-        .eq("is_system", false)
+        .order("is_system", { ascending: false })
         .order("display_name");
 
       if (error) throw error;
@@ -74,19 +74,8 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
   });
 
   const getRoleDisplay = (roleValue: string) => {
-    const systemRoles: Record<string, string> = {
-      superadmin: "Суперадмин",
-      admin: "Админ",
-      doctor: "Врач",
-      user: "Пациент"
-    };
-
-    if (systemRoles[roleValue]) {
-      return systemRoles[roleValue];
-    }
-
-    const customRole = customRoles?.find(r => r.name === roleValue);
-    return customRole?.display_name || roleValue;
+    const role = customRoles?.find(r => r.name === roleValue);
+    return role?.display_name || roleValue;
   };
 
   const createTokenMutation = useMutation({
@@ -212,21 +201,12 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="doctor">Врач</SelectItem>
-                  <SelectItem value="admin">Админ</SelectItem>
-                  <SelectItem value="superadmin">Суперадмин</SelectItem>
-                  {customRoles && customRoles.length > 0 && (
-                    <>
-                      <SelectItem value="separator" disabled className="text-xs text-muted-foreground">
-                        ─── Пользовательские роли ───
-                      </SelectItem>
-                      {customRoles.map((role) => (
-                        <SelectItem key={role.id} value={role.name}>
-                          {role.display_name}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
+                  {customRoles?.map((role) => (
+                    <SelectItem key={role.id} value={role.name}>
+                      {role.display_name}
+                      {role.is_system && " (системная)"}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
