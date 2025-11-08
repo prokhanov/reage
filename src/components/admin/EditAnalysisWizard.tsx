@@ -188,46 +188,28 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
 
       if (analysisError) throw analysisError;
 
-      // Get current values to determine what to delete
-      const { data: currentValues, error: currentValuesError } = await supabase
+      // Delete all existing values for this analysis
+      const { error: deleteError } = await supabase
         .from("analysis_values")
-        .select("biomarker_id")
+        .delete()
         .eq("analysis_id", analysisId);
 
-      if (currentValuesError) throw currentValuesError;
+      if (deleteError) throw deleteError;
 
-      const newBiomarkerIds = wizardData.step2.values.map(v => v.biomarkerId);
-      const currentBiomarkerIds = (currentValues || []).map(v => v.biomarker_id);
+      // Insert new values only if there are any
+      if (wizardData.step2.values.length > 0) {
+        const valuesToInsert = wizardData.step2.values.map((v) => ({
+          analysis_id: analysisId,
+          biomarker_id: v.biomarkerId,
+          value: parseFloat(v.value),
+          unit_override: v.unitOverride || null,
+        }));
 
-      // Delete values that are no longer needed
-      const idsToDelete = currentBiomarkerIds.filter(id => !newBiomarkerIds.includes(id));
-      if (idsToDelete.length > 0) {
-        const { error: deleteError } = await supabase
+        const { error: insertError } = await supabase
           .from("analysis_values")
-          .delete()
-          .eq("analysis_id", analysisId)
-          .in("biomarker_id", idsToDelete);
+          .insert(valuesToInsert);
 
-        if (deleteError) throw deleteError;
-      }
-
-      // Upsert new/updated values
-      const valuesToUpsert = wizardData.step2.values.map((v) => ({
-        analysis_id: analysisId,
-        biomarker_id: v.biomarkerId,
-        value: parseFloat(v.value),
-        unit_override: v.unitOverride || null,
-      }));
-
-      if (valuesToUpsert.length > 0) {
-        const { error: upsertError } = await supabase
-          .from("analysis_values")
-          .upsert(valuesToUpsert, {
-            onConflict: "analysis_id,biomarker_id",
-            ignoreDuplicates: false,
-          });
-
-        if (upsertError) throw upsertError;
+        if (insertError) throw insertError;
       }
 
       toast({
