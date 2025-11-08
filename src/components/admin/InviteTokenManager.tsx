@@ -46,6 +46,19 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const { data: customRoles } = useQuery({
+    queryKey: ["custom-roles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_roles")
+        .select("*")
+        .order("display_name");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: inviteTokens, refetch } = useQuery({
     queryKey: ["invite-tokens"],
     queryFn: async () => {
@@ -58,6 +71,22 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
       return data;
     },
   });
+
+  const getRoleDisplay = (roleValue: string) => {
+    const systemRoles: Record<string, string> = {
+      superadmin: "Суперадмин",
+      admin: "Админ",
+      doctor: "Врач",
+      user: "Пациент"
+    };
+
+    if (systemRoles[roleValue]) {
+      return systemRoles[roleValue];
+    }
+
+    const customRole = customRoles?.find(r => r.name === roleValue);
+    return customRole?.display_name || roleValue;
+  };
 
   const createTokenMutation = useMutation({
     mutationFn: async () => {
@@ -185,6 +214,18 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                   <SelectItem value="doctor">Врач</SelectItem>
                   <SelectItem value="admin">Админ</SelectItem>
                   <SelectItem value="superadmin">Суперадмин</SelectItem>
+                  {customRoles && customRoles.length > 0 && (
+                    <>
+                      <SelectItem value="separator" disabled className="text-xs text-muted-foreground">
+                        ─── Пользовательские роли ───
+                      </SelectItem>
+                      {customRoles.map((role) => (
+                        <SelectItem key={role.id} value={role.name}>
+                          {role.display_name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -221,7 +262,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                         <TableCell className="font-medium">{token.invited_email}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="capitalize">
-                            {token.role === "superadmin" ? "Суперадмин" : token.role === "admin" ? "Админ" : token.role === "doctor" ? "Врач" : "Пациент"}
+                            {getRoleDisplay(token.role)}
                           </Badge>
                         </TableCell>
                         <TableCell>{getStatusBadge(token)}</TableCell>
