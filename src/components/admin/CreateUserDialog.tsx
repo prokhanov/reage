@@ -93,13 +93,21 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
 
       if (inviteError) throw inviteError;
 
-      // Скопировать ссылку в буфер
+    // Скопировать ссылку в буфер (с fallback для старых браузеров)
+    try {
       await navigator.clipboard.writeText(fullUrl);
-
       toast({
         title: "Приглашение создано",
         description: "Ссылка скопирована в буфер обмена",
       });
+    } catch (clipboardError) {
+      // Fallback: показать ссылку для ручного копирования
+      toast({
+        title: "Приглашение создано",
+        description: fullUrl,
+        duration: 10000,
+      });
+    }
 
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["invite-tokens"] });

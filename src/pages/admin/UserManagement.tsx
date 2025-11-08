@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Shield, Settings, UserPlus, Copy, Check, Plus } from "lucide-react";
+import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Ban, Trash2 } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Table,
@@ -122,6 +122,71 @@ export default function UserManagement() {
     const matchesRole = roleFilter === "all" || u.role === roleFilter;
     return matchesSearch && matchesRole;
   });
+
+  const handleSuspendUser = async (userId: string, userName: string) => {
+    if (!confirm(`Приостановить доступ для ${userName}?`)) return;
+
+    try {
+      // Удаляем все роли пользователя (кроме user)
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .neq("role", "user");
+
+      if (error) throw error;
+
+      toast({
+        title: "Доступ приостановлен",
+        description: `Пользователь ${userName} больше не имеет административных прав`,
+      });
+
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string, type: "active" | "pending", inviteToken?: string) => {
+    if (!confirm(`Удалить пользователя ${userName}? Это действие нельзя отменить.`)) return;
+
+    try {
+      if (type === "pending") {
+        // Удалить приглашение
+        const { error } = await supabase
+          .from("invite_tokens")
+          .delete()
+          .eq("token", inviteToken);
+
+        if (error) throw error;
+      } else {
+        // Удалить профиль (каскадно удалятся связанные данные)
+        const { error } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", userId);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Пользователь удален",
+        description: `${userName} был успешно удален`,
+      });
+
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const getInitials = (name: string) => {
     if (!name) return "??";
@@ -291,37 +356,84 @@ export default function UserManagement() {
                               {new Date(user.created_at).toLocaleDateString("ru-RU")}
                             </TableCell>
                             <TableCell>
-                              {user.type === "pending" ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const registerUrl = `/register-staff?invite=${user.invite_token}`;
-                                    const fullUrl = `${window.location.origin}${registerUrl}`;
-                                    navigator.clipboard.writeText(fullUrl);
-                                    toast({
-                                      title: "Ссылка скопирована",
-                                      description: "Пригласительная ссылка скопирована в буфер обмена",
-                                    });
-                                  }}
-                                >
-                                  <Copy className="w-4 h-4 mr-2" />
-                                  Скопировать
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedUserId(user.id);
-                                  }}
-                                >
-                                  <Settings className="w-4 h-4 mr-2" />
-                                  Настроить
-                                </Button>
-                              )}
+                              <div className="flex gap-2">
+                                {user.type === "pending" ? (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const registerUrl = `/register-staff?invite=${user.invite_token}`;
+                                        const fullUrl = `${window.location.origin}${registerUrl}`;
+                                        navigator.clipboard.writeText(fullUrl).catch(() => {
+                                          toast({
+                                            title: "Ссылка создана",
+                                            description: fullUrl,
+                                            duration: 10000,
+                                          });
+                                        });
+                                        toast({
+                                          title: "Ссылка скопирована",
+                                          description: "Пригласительная ссылка скопирована в буфер обмена",
+                                        });
+                                      }}
+                                    >
+                                      <Copy className="w-4 h-4 mr-2" />
+                                      Скопировать
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteUser(user.id, user.name, "pending", user.invite_token);
+                                      }}
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-2 text-destructive" />
+                                      Удалить
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedUserId(user.id);
+                                      }}
+                                    >
+                                      <Settings className="w-4 h-4 mr-2" />
+                                      Настроить
+                                    </Button>
+                                    {user.role !== "user" && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSuspendUser(user.id, user.name);
+                                        }}
+                                      >
+                                        <Ban className="w-4 h-4 mr-2 text-orange-500" />
+                                        Приостановить
+                                      </Button>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteUser(user.id, user.name, "active");
+                                      }}
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-2 text-destructive" />
+                                      Удалить
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
