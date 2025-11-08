@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -194,6 +194,19 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               >
                 <Eye className="h-4 w-4" />
                 <span className="font-medium">Управление пользователями</span>
+              </NavLink>
+              <NavLink
+                to="/admin/employees"
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                    "hover:bg-primary/10 hover:text-primary",
+                    isActive && "bg-primary/15 text-primary border border-primary/20"
+                  )
+                }
+              >
+                <Briefcase className="h-4 w-4" />
+                <span className="font-medium">Сотрудники</span>
               </NavLink>
               <NavLink
                 to="/admin/ai-settings"

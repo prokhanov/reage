@@ -26,6 +26,7 @@ import DataManagement from "./pages/admin/DataManagement";
 import Patients from "./pages/admin/Patients";
 import PatientProfile from "./pages/admin/PatientProfile";
 import UserManagement from "./pages/admin/UserManagement";
+import Employees from "./pages/admin/Employees";
 import RegisterDoctor from "./pages/RegisterDoctor";
 import NotFound from "./pages/NotFound";
 
@@ -186,6 +187,18 @@ const App = () => (
                 <SuperAdminRoute>
                   <DashboardLayout>
                     <UserManagement />
+                  </DashboardLayout>
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/employees"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <DashboardLayout>
+                    <Employees />
                   </DashboardLayout>
                 </SuperAdminRoute>
               </ProtectedRoute>
