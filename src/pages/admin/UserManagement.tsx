@@ -98,10 +98,10 @@ export default function UserManagement() {
         .from("admin_permissions")
         .select("user_id, module, enabled");
 
-      // Получаем разрешения из ролей
+      // Получаем разрешения из ролей через role_id
       const { data: rolePermissionsData } = await supabase
         .from("user_roles")
-        .select("user_id, role_permissions(module, enabled)");
+        .select("user_id, role_id, custom_roles!inner(role_permissions(module, enabled))");
 
       const permissionsMap = (allPermissions || []).reduce((acc: any, perm: any) => {
         if (!acc[perm.user_id]) {
@@ -118,8 +118,8 @@ export default function UserManagement() {
         if (!permissionsMap[userRole.user_id]) {
           permissionsMap[userRole.user_id] = new Set();
         }
-        if (userRole.role_permissions) {
-          userRole.role_permissions.forEach((rp: any) => {
+        if (userRole.custom_roles?.role_permissions) {
+          userRole.custom_roles.role_permissions.forEach((rp: any) => {
             if (rp.enabled) {
               permissionsMap[userRole.user_id].add(rp.module);
             }
