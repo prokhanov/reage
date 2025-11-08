@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { InviteTokenManager } from "@/components/admin/InviteTokenManager";
 import { UserPermissionsDialog } from "@/components/admin/UserPermissionsDialog";
+import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -30,6 +31,7 @@ export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [createUserOpen, setCreateUserOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: users, isLoading, refetch } = useQuery({
@@ -142,6 +144,10 @@ export default function UserManagement() {
                 Нажмите на пользователя, чтобы настроить его права доступа
               </CardDescription>
             </div>
+            <Button onClick={() => setCreateUserOpen(true)}>
+              <UserPlus className="w-4 h-4 mr-2" />
+              Добавить пользователя
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -259,6 +265,12 @@ export default function UserManagement() {
         userId={selectedUserId}
         onClose={() => setSelectedUserId(null)}
         onUpdate={() => refetch()}
+      />
+
+      <CreateUserDialog
+        open={createUserOpen}
+        onClose={() => setCreateUserOpen(false)}
+        onSuccess={() => refetch()}
       />
     </div>
   );
