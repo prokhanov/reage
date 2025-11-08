@@ -30,10 +30,11 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { toast } = useToast();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId } = useContext(ViewAsPatientContext);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
 
   useEffect(() => {
-    checkSuperAdminRole();
+    checkAdminAccess();
   }, []);
 
   useEffect(() => {
@@ -56,21 +57,43 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     }
   };
 
-  const checkSuperAdminRole = async () => {
+  const checkAdminAccess = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      // Проверяем роль superadmin
+      const { data: superAdminData } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "superadmin")
         .single();
 
-      setIsSuperAdmin(!!data);
+      setIsSuperAdmin(!!superAdminData);
+
+      // Проверяем доступ к любому админскому модулю через role_permissions
+      const { data: userRoles } = await supabase
+        .from("user_roles")
+        .select("role_id")
+        .eq("user_id", user.id);
+
+      if (userRoles && userRoles.length > 0) {
+        const roleIds = userRoles.map(r => r.role_id).filter(Boolean);
+        
+        if (roleIds.length > 0) {
+          const { data: permissions } = await supabase
+            .from("role_permissions")
+            .select("module")
+            .in("role_id", roleIds)
+            .eq("enabled", true);
+
+          setHasAdminAccess(!!(permissions && permissions.length > 0));
+        }
+      }
     } catch (error) {
       setIsSuperAdmin(false);
+      setHasAdminAccess(false);
     }
   };
 
@@ -167,7 +190,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* Admin Section */}
-          {isSuperAdmin && !viewAsUserId && (
+          {(isSuperAdmin || hasAdminAccess) && !viewAsUserId && (
             <div className="p-4 border-t border-border/30 space-y-1">
               <NavLink
                 to="/admin/patients"

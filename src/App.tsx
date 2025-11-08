@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SuperAdminRoute } from "@/components/SuperAdminRoute";
+import { AdminModuleRoute } from "@/components/AdminModuleRoute";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -135,11 +136,11 @@ const App = () => (
             path="/admin/ai-settings"
             element={
               <ProtectedRoute>
-                <SuperAdminRoute>
+                <AdminModuleRoute module="ai_settings">
                   <DashboardLayout>
                     <AISettings />
                   </DashboardLayout>
-                </SuperAdminRoute>
+                </AdminModuleRoute>
               </ProtectedRoute>
             }
           />
@@ -147,11 +148,11 @@ const App = () => (
             path="/admin/data-management"
             element={
               <ProtectedRoute>
-                <SuperAdminRoute>
+                <AdminModuleRoute module="data_management">
                   <DashboardLayout>
                     <DataManagement />
                   </DashboardLayout>
-                </SuperAdminRoute>
+                </AdminModuleRoute>
               </ProtectedRoute>
             }
           />
@@ -159,11 +160,11 @@ const App = () => (
             path="/admin/patients"
             element={
               <ProtectedRoute>
-                <SuperAdminRoute>
+                <AdminModuleRoute module="patients">
                   <DashboardLayout>
                     <Patients />
                   </DashboardLayout>
-                </SuperAdminRoute>
+                </AdminModuleRoute>
               </ProtectedRoute>
             }
           />
@@ -171,11 +172,11 @@ const App = () => (
             path="/admin/patients/:userId"
             element={
               <ProtectedRoute>
-                <SuperAdminRoute>
+                <AdminModuleRoute module="patients">
                   <DashboardLayout>
                     <PatientProfile />
                   </DashboardLayout>
-                </SuperAdminRoute>
+                </AdminModuleRoute>
               </ProtectedRoute>
             }
           />
@@ -183,11 +184,11 @@ const App = () => (
             path="/admin/user-management"
             element={
               <ProtectedRoute>
-                <SuperAdminRoute>
+                <AdminModuleRoute module="user_management">
                   <DashboardLayout>
                     <UserManagement />
                   </DashboardLayout>
-                </SuperAdminRoute>
+                </AdminModuleRoute>
               </ProtectedRoute>
             }
           />
