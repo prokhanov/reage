@@ -187,8 +187,6 @@ export default function UserManagement() {
   };
 
   const handleDeleteUser = async (userId: string, userName: string, type: "active" | "pending", inviteToken?: string) => {
-    if (!confirm(`Удалить пользователя ${userName}? Это действие нельзя отменить.`)) return;
-
     try {
       if (type === "pending") {
         // Удалить приглашение
