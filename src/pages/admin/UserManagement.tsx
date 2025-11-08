@@ -325,8 +325,16 @@ export default function UserManagement() {
                         filteredUsers.map((user) => (
                           <TableRow
                             key={user.id}
-                            className={user.role !== "superadmin" ? "cursor-pointer hover:bg-muted/50" : ""}
+                            className={user.role === "superadmin" || user.type === "pending" ? "cursor-default" : "cursor-pointer hover:bg-muted/50"}
                             onClick={() => {
+                              if (user.type === "pending") {
+                                toast({
+                                  title: "Недоступно",
+                                  description: "Невозможно редактировать права pending пользователя. Дождитесь регистрации.",
+                                  variant: "default",
+                                });
+                                return;
+                              }
                               if (user.role !== "superadmin") setSelectedUserId(user.id);
                             }}
                           >
