@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2 } from "lucide-react";
+import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2, RefreshCw } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -208,6 +208,66 @@ export default function UserManagement() {
       });
     }
   };
+
+  const regenerateInviteTokenMutation = useMutation({
+    mutationFn: async (oldToken: string) => {
+      // Получить данные старого токена
+      const { data: oldInvite, error: fetchError } = await supabase
+        .from("invite_tokens")
+        .select("*")
+        .eq("token", oldToken)
+        .single();
+
+      if (fetchError) throw fetchError;
+      
+      const newToken = crypto.randomUUID();
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not authenticated");
+
+      // Создать новую запись с новым токеном
+      const { error: insertError } = await supabase
+        .from("invite_tokens")
+        .insert({
+          token: newToken,
+          role: oldInvite.role,
+          invited_email: oldInvite.invited_email,
+          metadata: oldInvite.metadata,
+          created_by: user.user.id,
+        });
+
+      if (insertError) throw insertError;
+
+      // Удалить старую запись
+      const { error: deleteError } = await supabase
+        .from("invite_tokens")
+        .delete()
+        .eq("token", oldToken);
+
+      if (deleteError) throw deleteError;
+      
+      return { token: newToken, role: oldInvite.role };
+    },
+    onSuccess: (data) => {
+      // Автоматически копировать новую ссылку
+      const registerUrl = `/register-staff?invite=${data.token}`;
+      const fullUrl = `${window.location.origin}${registerUrl}`;
+      navigator.clipboard.writeText(fullUrl);
+      
+      toast({
+        title: "Ссылка перегенерирована",
+        description: "Новая пригласительная ссылка скопирована в буфер обмена",
+      });
+      
+      refetch();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось перегенерировать ссылку: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const getInitials = (name: string) => {
     if (!name) return "??";
@@ -423,6 +483,24 @@ export default function UserManagement() {
                                         </TooltipTrigger>
                                         <TooltipContent>
                                           <p>Скопировать ссылку</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              regenerateInviteTokenMutation.mutate(user.invite_token);
+                                            }}
+                                            disabled={regenerateInviteTokenMutation.isPending}
+                                          >
+                                            <RefreshCw className="w-4 h-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Перегенерировать ссылку</p>
                                         </TooltipContent>
                                       </Tooltip>
                                       <Tooltip>
