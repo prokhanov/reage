@@ -77,9 +77,9 @@ export default function UserManagement() {
         };
         const existing = acc[r.user_id];
 
-        // Приоритизируем привилегированные роли (не 'user' или с кастомной ролью)
-        const isPrivileged = r.role !== 'user' || !!r.role_id;
-        const existingPrivileged = existing && (existing.role !== 'user' || existing.hasCustomRole);
+        // Приоритизируем привилегированные роли (не 'user' ИЛИ кастомная роль не 'user')
+        const isPrivileged = r.role !== 'user' || (!!r.role_id && r.custom_roles?.name !== 'user');
+        const existingPrivileged = existing && (existing.role !== 'user' || (existing.hasCustomRole && existing.custom_role?.name !== 'user'));
 
         if (!existing) {
           acc[r.user_id] = next;
