@@ -23,6 +23,8 @@ interface UserPermissionsDialogProps {
   userId: string | null;
   onClose: () => void;
   onUpdate: () => void;
+  isPending?: boolean;
+  inviteToken?: string;
 }
 
 const ADMIN_MODULES = [
@@ -32,7 +34,7 @@ const ADMIN_MODULES = [
   { value: "user_management", label: "Управление пользователями" },
 ];
 
-export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermissionsDialogProps) {
+export function UserPermissionsDialog({ userId, onClose, onUpdate, isPending = false, inviteToken }: UserPermissionsDialogProps) {
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const { toast } = useToast();
@@ -50,10 +52,35 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
   });
 
   const { data: user, isLoading } = useQuery({
-    queryKey: ["user-permissions", userId],
+    queryKey: ["user-permissions", userId, isPending],
     queryFn: async () => {
       if (!userId) return null;
 
+      // Для pending пользователей загружаем данные из invite_tokens
+      if (isPending && inviteToken) {
+        const { data: invite, error: inviteError } = await supabase
+          .from("invite_tokens")
+          .select("*")
+          .eq("token", inviteToken)
+          .single();
+
+        if (inviteError) throw inviteError;
+
+        const metadata = invite.metadata as any || {};
+        
+        return {
+          id: invite.token, // используем token как id
+          name: metadata.name || invite.invited_email || "Без имени",
+          role: invite.role,
+          role_id: null,
+          custom_role: null,
+          modules: [],
+          isPending: true,
+          invited_email: invite.invited_email,
+        };
+      }
+
+      // Для активных пользователей загружаем из profiles
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -83,17 +110,24 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
         role_id: userRole?.role_id || null,
         custom_role: userRole?.custom_roles,
         modules: enabledModules,
+        isPending: false,
       };
     },
     enabled: !!userId,
   });
 
   useEffect(() => {
-    if (user) {
-      setSelectedRoleId(user.role_id || "");
+    if (user && customRoles) {
+      // Для pending пользователей находим role_id по имени роли
+      if (isPending) {
+        const roleData = customRoles.find((r) => r.name === user.role);
+        setSelectedRoleId(roleData?.id || "");
+      } else {
+        setSelectedRoleId(user.role_id || "");
+      }
       setSelectedModules(user.modules || []);
     }
-  }, [user]);
+  }, [user, customRoles, isPending]);
 
   const isSuperadmin = user?.role === "superadmin";
   const selectedRole = customRoles?.find((r) => r.id === selectedRoleId);
@@ -105,6 +139,20 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
       const selectedRoleData = customRoles?.find((r) => r.id === selectedRoleId);
       if (!selectedRoleData) throw new Error("Роль не найдена");
 
+      // Для pending пользователей обновляем invite_token
+      if (isPending && inviteToken) {
+        const { error } = await supabase
+          .from("invite_tokens")
+          .update({
+            role: selectedRoleData.name,
+          })
+          .eq("token", inviteToken);
+
+        if (error) throw error;
+        return;
+      }
+
+      // Для активных пользователей обновляем role и permissions
       // Delete old role
       await supabase.from("user_roles").delete().eq("user_id", userId);
 
@@ -173,7 +221,9 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
     onSuccess: () => {
       toast({
         title: "Права обновлены",
-        description: "Права доступа пользователя успешно обновлены",
+        description: isPending 
+          ? "Роль инвайта успешно обновлена" 
+          : "Права доступа пользователя успешно обновлены",
       });
       onUpdate();
       onClose();
@@ -219,6 +269,15 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
           <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
         ) : user ? (
           <div className="space-y-6">
+            {isPending && (
+              <Alert className="mb-4">
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  Пользователь еще не зарегистрировался. Изменения роли будут применены после регистрации. Доступы к модулям можно настроить только после регистрации.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {isSuperadmin && (
               <Alert className="mb-4">
                 <Shield className="h-4 w-4" />
@@ -236,7 +295,12 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
               </Avatar>
               <div className="flex-1">
                 <h3 className="font-semibold text-lg">{user.name}</h3>
-                <p className="text-sm text-muted-foreground">ID: {user.id}</p>
+                {isPending && (user as any).invited_email && (
+                  <p className="text-sm text-muted-foreground">{(user as any).invited_email}</p>
+                )}
+                {!isPending && (
+                  <p className="text-sm text-muted-foreground">ID: {user.id}</p>
+                )}
               </div>
             </div>
 
@@ -246,7 +310,9 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
                   Роль пользователя
                 </Label>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Определяет права доступа и модули
+                  {isPending 
+                    ? "Роль будет присвоена после регистрации"
+                    : "Определяет права доступа и модули"}
                 </p>
                 <Select 
                   value={selectedRoleId} 
@@ -273,46 +339,50 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
                 </Select>
               </div>
 
-              <Separator />
+              {!isPending && (
+                <>
+                  <Separator />
 
-              <div>
-                <Label className="text-base font-semibold">Дополнительные доступы к модулям</Label>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {isSuperadmin
-                    ? "Суперадмин имеет доступ ко всем модулям автоматически"
-                    : "Дополнительные модули сверх роли"}
-                </p>
+                  <div>
+                    <Label className="text-base font-semibold">Дополнительные доступы к модулям</Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {isSuperadmin
+                        ? "Суперадмин имеет доступ ко всем модулям автоматически"
+                        : "Дополнительные модули сверх роли"}
+                    </p>
 
-                <div className="space-y-3">
-                  {ADMIN_MODULES.map((module) => {
-                    const isChecked = selectedModules.includes(module.value);
+                    <div className="space-y-3">
+                      {ADMIN_MODULES.map((module) => {
+                        const isChecked = selectedModules.includes(module.value);
 
-                    return (
-                      <div
-                        key={module.value}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${
-                          isSuperadmin ? "opacity-50" : "hover:bg-muted/50"
-                        }`}
-                      >
-                        <Checkbox
-                          id={module.value}
-                          checked={isChecked}
-                          onCheckedChange={(checked) =>
-                            handleModuleToggle(module.value, checked as boolean)
-                          }
-                          disabled={isSuperadmin}
-                        />
-                        <Label
-                          htmlFor={module.value}
-                          className={`flex-1 ${isSuperadmin ? "" : "cursor-pointer"}`}
-                        >
-                          {module.label}
-                        </Label>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                        return (
+                          <div
+                            key={module.value}
+                            className={`flex items-center gap-3 p-3 rounded-lg border ${
+                              isSuperadmin ? "opacity-50" : "hover:bg-muted/50"
+                            }`}
+                          >
+                            <Checkbox
+                              id={module.value}
+                              checked={isChecked}
+                              onCheckedChange={(checked) =>
+                                handleModuleToggle(module.value, checked as boolean)
+                              }
+                              disabled={isSuperadmin}
+                            />
+                            <Label
+                              htmlFor={module.value}
+                              className={`flex-1 ${isSuperadmin ? "" : "cursor-pointer"}`}
+                            >
+                              {module.label}
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ) : null}

@@ -39,6 +39,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserIsPending, setSelectedUserIsPending] = useState(false);
+  const [selectedUserInviteToken, setSelectedUserInviteToken] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -325,17 +327,13 @@ export default function UserManagement() {
                         filteredUsers.map((user) => (
                           <TableRow
                             key={user.id}
-                            className={user.role === "superadmin" || user.type === "pending" ? "cursor-default" : "cursor-pointer hover:bg-muted/50"}
+                            className={user.role === "superadmin" ? "cursor-default" : "cursor-pointer hover:bg-muted/50"}
                             onClick={() => {
-                              if (user.type === "pending") {
-                                toast({
-                                  title: "Недоступно",
-                                  description: "Невозможно редактировать права pending пользователя. Дождитесь регистрации.",
-                                  variant: "default",
-                                });
-                                return;
+                              if (user.role !== "superadmin") {
+                                setSelectedUserId(user.id);
+                                setSelectedUserIsPending(user.type === "pending");
+                                setSelectedUserInviteToken((user as any).invite_token || null);
                               }
-                              if (user.role !== "superadmin") setSelectedUserId(user.id);
                             }}
                           >
                             <TableCell>
@@ -533,7 +531,13 @@ export default function UserManagement() {
 
       <UserPermissionsDialog
         userId={selectedUserId}
-        onClose={() => setSelectedUserId(null)}
+        isPending={selectedUserIsPending}
+        inviteToken={selectedUserInviteToken || undefined}
+        onClose={() => {
+          setSelectedUserId(null);
+          setSelectedUserIsPending(false);
+          setSelectedUserInviteToken(null);
+        }}
         onUpdate={() => refetch()}
       />
     </div>
