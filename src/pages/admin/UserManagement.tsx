@@ -213,44 +213,22 @@ export default function UserManagement() {
 
   const regenerateInviteTokenMutation = useMutation({
     mutationFn: async (oldToken: string) => {
-      // Получить данные старого токена
-      const { data: oldInvite, error: fetchError } = await supabase
+      const newToken = crypto.randomUUID();
+      
+      const { data: updated, error } = await supabase
         .from("invite_tokens")
-        .select("*")
+        .update({ 
+          token: newToken, 
+          created_at: new Date().toISOString() 
+        })
         .eq("token", oldToken)
+        .select("token, role")
         .single();
 
-      if (fetchError) throw fetchError;
-      
-      const newToken = crypto.randomUUID();
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("User not authenticated");
-
-      // Создать новую запись с новым токеном
-      const { error: insertError } = await supabase
-        .from("invite_tokens")
-        .insert({
-          token: newToken,
-          role: oldInvite.role,
-          invited_email: oldInvite.invited_email,
-          metadata: oldInvite.metadata,
-          created_by: user.user.id,
-        });
-
-      if (insertError) throw insertError;
-
-      // Удалить старую запись
-      const { error: deleteError } = await supabase
-        .from("invite_tokens")
-        .delete()
-        .eq("token", oldToken);
-
-      if (deleteError) throw deleteError;
-      
-      return { token: newToken, role: oldInvite.role };
+      if (error) throw error;
+      return updated;
     },
     onSuccess: (data) => {
-      // Автоматически копировать новую ссылку
       const registerUrl = `/register-staff?invite=${data.token}`;
       const fullUrl = `${window.location.origin}${registerUrl}`;
       navigator.clipboard.writeText(fullUrl);
@@ -270,6 +248,34 @@ export default function UserManagement() {
       });
     },
   });
+
+  const handleCopyInviteLink = async (token: string) => {
+    // Проверяем, существует ли токен
+    const { data, error } = await supabase
+      .from("invite_tokens")
+      .select("token")
+      .eq("token", token)
+      .maybeSingle();
+
+    if (!data) {
+      // Токен не найден - автоматически регенерируем
+      toast({
+        title: "Обновление ссылки",
+        description: "Приглашение не найдено, создаю новую ссылку...",
+      });
+      regenerateInviteTokenMutation.mutate(token);
+      return;
+    }
+
+    // Токен валиден - копируем
+    const registerUrl = `/register-staff?invite=${data.token}`;
+    const fullUrl = `${window.location.origin}${registerUrl}`;
+    navigator.clipboard.writeText(fullUrl);
+    toast({
+      title: "Ссылка скопирована",
+      description: "Пригласительная ссылка скопирована в буфер обмена",
+    });
+  };
 
   const getInitials = (name: string) => {
     if (!name) return "??";
@@ -470,19 +476,7 @@ export default function UserManagement() {
                                             size="icon"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              const registerUrl = `/register-staff?invite=${user.invite_token}`;
-                                              const fullUrl = `${window.location.origin}${registerUrl}`;
-                                              navigator.clipboard.writeText(fullUrl).catch(() => {
-                                                toast({
-                                                  title: "Ссылка создана",
-                                                  description: fullUrl,
-                                                  duration: 10000,
-                                                });
-                                              });
-                                              toast({
-                                                title: "Ссылка скопирована",
-                                                description: "Пригласительная ссылка скопирована в буфер обмена",
-                                              });
+                                              handleCopyInviteLink(user.invite_token);
                                             }}
                                           >
                                             <Copy className="w-4 h-4" />

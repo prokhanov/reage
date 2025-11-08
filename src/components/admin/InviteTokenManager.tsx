@@ -150,30 +150,19 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
   const regenerateTokenMutation = useMutation({
     mutationFn: async (oldToken: any) => {
       const newToken = crypto.randomUUID();
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("User not authenticated");
-
-      // Create new token
-      const { error: insertError } = await supabase
-        .from("invite_tokens")
-        .insert({
-          token: newToken,
-          role: oldToken.role,
-          invited_email: oldToken.invited_email,
-          created_by: user.user.id,
-        });
-
-      if (insertError) throw insertError;
-
-      // Delete old token
-      const { error: deleteError } = await supabase
-        .from("invite_tokens")
-        .delete()
-        .eq("id", oldToken.id);
-
-      if (deleteError) throw deleteError;
       
-      return { token: newToken, role: oldToken.role };
+      const { data, error } = await supabase
+        .from("invite_tokens")
+        .update({ 
+          token: newToken, 
+          created_at: new Date().toISOString() 
+        })
+        .eq("id", oldToken.id)
+        .select("token, role")
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
       toast({

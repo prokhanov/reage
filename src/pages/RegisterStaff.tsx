@@ -40,18 +40,22 @@ export default function RegisterStaff() {
         .eq("token", token)
         .maybeSingle();
 
+      console.log("Token validation:", { token, data, error });
+
       if (error) {
         console.error("Invite validation error:", error);
-        setInviteError("Ошибка при проверке приглашения");
+        setInviteError("Ошибка проверки приглашения");
         return;
       }
 
       if (!data) {
-        setInviteError("Недействительное или использованное приглашение");
+        console.warn("Token not found:", token);
+        setInviteError("Недействительное приглашение. Попросите администратора обновить ссылку.");
         return;
       }
 
       if (data.used_by) {
+        console.warn("Token already used:", token);
         setInviteError("Приглашение уже использовано");
         return;
       }
