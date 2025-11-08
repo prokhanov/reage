@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { InviteTokenManager } from "@/components/admin/InviteTokenManager";
+
 import { UserPermissionsDialog } from "@/components/admin/UserPermissionsDialog";
 import { RoleManagementCard } from "@/components/admin/RoleManagementCard";
 import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
@@ -223,10 +223,9 @@ export default function UserManagement() {
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="users">Пользователи</TabsTrigger>
           <TabsTrigger value="roles">Роли</TabsTrigger>
-          <TabsTrigger value="invites">Приглашения</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4 mt-6">
@@ -454,10 +453,6 @@ export default function UserManagement() {
 
         <TabsContent value="roles" className="mt-6">
           <RoleManagementCard />
-        </TabsContent>
-
-        <TabsContent value="invites" className="mt-6">
-          <InviteTokenManager onInviteCreated={() => refetch()} />
         </TabsContent>
       </Tabs>
 
