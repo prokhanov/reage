@@ -68,6 +68,33 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
     setIsSubmitting(true);
 
     try {
+      // Проверить, существует ли email в базе
+      const { data: emailCheck, error: checkError } = await supabase.functions.invoke(
+        'check-email-exists',
+        { body: { email: formData.email } }
+      );
+
+      if (checkError) {
+        console.error('Email check error:', checkError);
+        toast({
+          title: "Ошибка проверки",
+          description: "Не удалось проверить email. Попробуйте снова.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (emailCheck?.exists) {
+        toast({
+          title: "Email уже используется",
+          description: emailCheck.message || "Этот email уже зарегистрирован в системе",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const { data: currentUser } = await supabase.auth.getUser();
       if (!currentUser.user) throw new Error("Не авторизован");
 
