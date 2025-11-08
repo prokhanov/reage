@@ -63,11 +63,13 @@ export default function Patients() {
             .maybeSingle();
 
           const userRoles = rolesMap[profile.id] || ["user"];
-          // Priority: superadmin > admin > user
+          // Priority: superadmin > admin > doctor > user
           const primaryRole = userRoles.includes("superadmin")
             ? "superadmin"
             : userRoles.includes("admin")
             ? "admin"
+            : userRoles.includes("doctor")
+            ? "doctor"
             : "user";
 
           return {
@@ -116,6 +118,7 @@ export default function Patients() {
     const roleConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
       superadmin: { label: "Суперадмин", variant: "destructive" },
       admin: { label: "Админ", variant: "default" },
+      doctor: { label: "Врач", variant: "default" },
       user: { label: "Пациент", variant: "secondary" },
     };
     const config = roleConfig[role] || roleConfig.user;

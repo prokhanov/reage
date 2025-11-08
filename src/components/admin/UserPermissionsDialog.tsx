@@ -32,7 +32,7 @@ const ADMIN_MODULES = [
 ];
 
 export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermissionsDialogProps) {
-  const [selectedRole, setSelectedRole] = useState<"user" | "admin" | "superadmin">("user");
+  const [selectedRole, setSelectedRole] = useState<"user" | "doctor" | "admin" | "superadmin">("user");
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -59,6 +59,8 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
         ? "superadmin"
         : userRoles.includes("admin")
         ? "admin"
+        : userRoles.includes("doctor")
+        ? "doctor"
         : "user";
 
       const { data: permissions } = await supabase
@@ -240,9 +242,17 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
                   <SelectContent>
                     <SelectItem value="user">
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary">Пользователь</Badge>
+                        <Badge variant="secondary">Пациент</Badge>
                         <span className="text-xs text-muted-foreground">
                           - Только личный кабинет
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="doctor">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="default">Врач</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          - Доступ к пациентам
                         </span>
                       </div>
                     </SelectItem>
@@ -273,15 +283,22 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate }: UserPermiss
                 <p className="text-sm text-muted-foreground mb-4">
                   {selectedRole === "superadmin"
                     ? "Суперадмин имеет доступ ко всем модулям автоматически"
+                    : selectedRole === "doctor"
+                    ? "Врач автоматически имеет доступ к модулю Пациенты"
+                    : selectedRole === "user"
+                    ? "Пациент не имеет доступа к административным модулям"
                     : "Выберите модули, к которым будет доступ"}
                 </p>
 
                 <div className="space-y-3">
                   {ADMIN_MODULES.map((module) => {
                     const Icon = module.icon;
-                    const isDisabled = selectedRole === "superadmin" || selectedRole === "user";
+                    const isDisabled = selectedRole === "superadmin" || selectedRole === "user" || 
+                      (selectedRole === "doctor" && module.value === "patients");
                     const isChecked =
-                      selectedRole === "superadmin" || selectedModules.includes(module.value);
+                      selectedRole === "superadmin" || 
+                      (selectedRole === "doctor" && module.value === "patients") ||
+                      selectedModules.includes(module.value);
 
                     return (
                       <div

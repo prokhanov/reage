@@ -68,12 +68,14 @@ export default function UserManagement() {
         return acc;
       }, {});
 
-      return (profiles || []).map((profile) => {
+      const usersWithRoles = (profiles || []).map((profile) => {
         const userRoles = rolesMap[profile.id] || ["user"];
         const primaryRole = userRoles.includes("superadmin")
           ? "superadmin"
           : userRoles.includes("admin")
           ? "admin"
+          : userRoles.includes("doctor")
+          ? "doctor"
           : "user";
 
         return {
@@ -83,6 +85,9 @@ export default function UserManagement() {
           permissions: permissionsMap[profile.id] || [],
         };
       });
+
+      // Filter out regular users (patients)
+      return usersWithRoles.filter(u => u.role !== "user");
     },
   });
 
@@ -106,7 +111,8 @@ export default function UserManagement() {
     const roleConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
       superadmin: { label: "Суперадмин", variant: "destructive" },
       admin: { label: "Админ", variant: "default" },
-      user: { label: "Пользователь", variant: "secondary" },
+      doctor: { label: "Врач", variant: "default" },
+      user: { label: "Пациент", variant: "secondary" },
     };
     const config = roleConfig[role] || roleConfig.user;
     return (
@@ -157,7 +163,7 @@ export default function UserManagement() {
                 <SelectItem value="all">Все роли</SelectItem>
                 <SelectItem value="superadmin">Суперадмин</SelectItem>
                 <SelectItem value="admin">Админ</SelectItem>
-                <SelectItem value="user">Пользователь</SelectItem>
+                <SelectItem value="doctor">Врач</SelectItem>
               </SelectContent>
             </Select>
           </div>

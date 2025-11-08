@@ -26,6 +26,7 @@ import DataManagement from "./pages/admin/DataManagement";
 import Patients from "./pages/admin/Patients";
 import PatientProfile from "./pages/admin/PatientProfile";
 import UserManagement from "./pages/admin/UserManagement";
+import RegisterDoctor from "./pages/RegisterDoctor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/register-doctor" element={<RegisterDoctor />} />
           <Route
             path="/onboarding"
             element={

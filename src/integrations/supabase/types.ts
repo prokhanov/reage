@@ -269,8 +269,9 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
-          expires_at: string
+          expires_at: string | null
           id: string
+          invited_email: string | null
           role: Database["public"]["Enums"]["app_role"]
           token: string
           used_at: string | null
@@ -279,8 +280,9 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
-          expires_at: string
+          expires_at?: string | null
           id?: string
+          invited_email?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           token: string
           used_at?: string | null
@@ -289,8 +291,9 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
-          expires_at?: string
+          expires_at?: string | null
           id?: string
+          invited_email?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           token?: string
           used_at?: string | null
@@ -604,7 +607,7 @@ export type Database = {
         | "patients"
         | "user_management"
       analysis_status: "on_review" | "processed"
-      app_role: "user" | "admin" | "superadmin"
+      app_role: "user" | "admin" | "superadmin" | "doctor"
       prescription_status: "on_review" | "confirmed"
     }
     CompositeTypes: {
@@ -740,7 +743,7 @@ export const Constants = {
         "user_management",
       ],
       analysis_status: ["on_review", "processed"],
-      app_role: ["user", "admin", "superadmin"],
+      app_role: ["user", "admin", "superadmin", "doctor"],
       prescription_status: ["on_review", "confirmed"],
     },
   },

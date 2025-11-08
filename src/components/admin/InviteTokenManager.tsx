@@ -39,8 +39,8 @@ interface InviteTokenManagerProps {
 }
 
 export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps) {
-  const [selectedRole, setSelectedRole] = useState<"user" | "admin" | "superadmin">("user");
-  const [expiryDays, setExpiryDays] = useState("7");
+  const [selectedRole, setSelectedRole] = useState<"user" | "doctor" | "admin" | "superadmin">("doctor");
+  const [invitedEmail, setInvitedEmail] = useState("");
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [deleteTokenId, setDeleteTokenId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -61,9 +61,11 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
 
   const createTokenMutation = useMutation({
     mutationFn: async () => {
+      if (!invitedEmail) {
+        throw new Error("Email обязателен");
+      }
+
       const token = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + parseInt(expiryDays));
 
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("User not authenticated");
@@ -73,7 +75,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
         .insert({
           token,
           role: selectedRole,
-          expires_at: expiresAt.toISOString(),
+          invited_email: invitedEmail,
           created_by: user.user.id,
         })
         .select()
@@ -87,6 +89,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
         title: "Инвайт создан",
         description: "Пригласительная ссылка успешно создана",
       });
+      setInvitedEmail("");
       refetch();
       onInviteCreated?.();
     },
@@ -140,7 +143,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
     if (token.used_at) {
       return <Badge variant="secondary">Использован</Badge>;
     }
-    if (new Date(token.expires_at) < new Date()) {
+    if (token.expires_at && new Date(token.expires_at) < new Date()) {
       return <Badge variant="destructive">Истёк</Badge>;
     }
     return <Badge variant="default">Активен</Badge>;
@@ -161,35 +164,35 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
             <div className="space-y-2">
+              <Label htmlFor="email">Email приглашаемого *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="doctor@example.com"
+                value={invitedEmail}
+                onChange={(e) => setInvitedEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="role">Роль</Label>
               <Select value={selectedRole} onValueChange={(v: any) => setSelectedRole(v)}>
                 <SelectTrigger id="role">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">Пользователь</SelectItem>
+                  <SelectItem value="doctor">Врач</SelectItem>
                   <SelectItem value="admin">Админ</SelectItem>
                   <SelectItem value="superadmin">Суперадмин</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="expiry">Срок действия (дней)</Label>
-              <Input
-                id="expiry"
-                type="number"
-                min="1"
-                max="365"
-                value={expiryDays}
-                onChange={(e) => setExpiryDays(e.target.value)}
-              />
-            </div>
-
             <div className="flex items-end">
               <Button
                 onClick={() => createTokenMutation.mutate()}
-                disabled={createTokenMutation.isPending}
+                disabled={createTokenMutation.isPending || !invitedEmail}
                 className="w-full"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
@@ -205,9 +208,9 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Email</TableHead>
                       <TableHead>Роль</TableHead>
                       <TableHead>Статус</TableHead>
-                      <TableHead>Истекает</TableHead>
                       <TableHead>Создан</TableHead>
                       <TableHead className="w-[100px]">Действия</TableHead>
                     </TableRow>
@@ -215,18 +218,13 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                   <TableBody>
                     {inviteTokens.map((token) => (
                       <TableRow key={token.id}>
+                        <TableCell className="font-medium">{token.invited_email}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="capitalize">
-                            {token.role === "superadmin" ? "Суперадмин" : token.role === "admin" ? "Админ" : "Пользователь"}
+                            {token.role === "superadmin" ? "Суперадмин" : token.role === "admin" ? "Админ" : token.role === "doctor" ? "Врач" : "Пациент"}
                           </Badge>
                         </TableCell>
                         <TableCell>{getStatusBadge(token)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            {new Date(token.expires_at).toLocaleDateString("ru-RU")}
-                          </div>
-                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(token.created_at).toLocaleDateString("ru-RU")}
                         </TableCell>
@@ -236,7 +234,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                               variant="ghost"
                               size="sm"
                               onClick={() => copyToClipboard(token.token)}
-                              disabled={token.used_at !== null || new Date(token.expires_at) < new Date()}
+                              disabled={token.used_at !== null || (token.expires_at && new Date(token.expires_at) < new Date())}
                             >
                               {copiedToken === token.token ? (
                                 <Check className="w-4 h-4" />

@@ -93,8 +93,14 @@ export default function Register() {
         return;
       }
 
-      if (new Date(data.expires_at) < new Date()) {
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
         setInviteError("Срок действия пригласительной ссылки истек");
+        return;
+      }
+
+      // Redirect to doctor registration if role is doctor, admin, or superadmin
+      if (data.role === "doctor" || data.role === "admin" || data.role === "superadmin") {
+        navigate(`/register-doctor?invite=${inviteParam}`, { replace: true });
         return;
       }
 
@@ -103,7 +109,7 @@ export default function Register() {
     };
 
     validateInviteToken();
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   const progress = (currentStep / steps.length) * 100;
 
