@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_permissions: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          module: Database["public"]["Enums"]["admin_module"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module: Database["public"]["Enums"]["admin_module"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          module?: Database["public"]["Enums"]["admin_module"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_prompt_settings: {
         Row: {
           description: string | null
@@ -235,6 +262,39 @@ export type Database = {
           lifestyle?: string | null
           main_complaints?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      invite_tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          token: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
         }
         Relationships: []
       }
@@ -522,6 +582,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_admin_permission: {
+        Args: {
+          _module: Database["public"]["Enums"]["admin_module"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -531,6 +598,11 @@ export type Database = {
       }
     }
     Enums: {
+      admin_module:
+        | "ai_settings"
+        | "data_management"
+        | "patients"
+        | "user_management"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin"
       prescription_status: "on_review" | "confirmed"
@@ -661,6 +733,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_module: [
+        "ai_settings",
+        "data_management",
+        "patients",
+        "user_management",
+      ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin"],
       prescription_status: ["on_review", "confirmed"],

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
   Heart, User, Calendar, Weight, Ruler, 
-  ChevronLeft, ChevronRight, Check, Mail, Lock
+  ChevronLeft, ChevronRight, Check, Mail, Lock, AlertCircle
 } from "lucide-react";
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export interface RegisterFormData {
   email: string;
@@ -49,6 +50,9 @@ const steps = [
 export default function Register() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inviteToken, setInviteToken] = useState<any>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState<RegisterFormData>({
     email: "",
     password: "",
@@ -62,6 +66,44 @@ export default function Register() {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Validate invite token on mount
+  useEffect(() => {
+    const validateInviteToken = async () => {
+      const inviteParam = searchParams.get('invite');
+      
+      if (!inviteParam) {
+        setInviteError("Регистрация возможна только по пригласительной ссылке");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("invite_tokens")
+        .select("*")
+        .eq("token", inviteParam)
+        .maybeSingle();
+
+      if (error || !data) {
+        setInviteError("Недействительная пригласительная ссылка");
+        return;
+      }
+
+      if (data.used_at) {
+        setInviteError("Эта пригласительная ссылка уже была использована");
+        return;
+      }
+
+      if (new Date(data.expires_at) < new Date()) {
+        setInviteError("Срок действия пригласительной ссылки истек");
+        return;
+      }
+
+      setInviteToken(data);
+      setInviteError(null);
+    };
+
+    validateInviteToken();
+  }, [searchParams]);
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -84,6 +126,15 @@ export default function Register() {
   };
 
   const handleSubmit = async () => {
+    if (!inviteToken) {
+      toast({
+        title: "Ошибка",
+        description: "Регистрация возможна только по пригласительной ссылке",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -116,7 +167,28 @@ export default function Register() {
 
       if (profileError) throw profileError;
 
-      // 3. Save medical history
+      // 3. Assign role from invite token
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: authData.user.id,
+          role: inviteToken.role
+        });
+
+      if (roleError) throw roleError;
+
+      // 4. Mark invite token as used
+      const { error: tokenError } = await supabase
+        .from('invite_tokens')
+        .update({
+          used_at: new Date().toISOString(),
+          used_by: authData.user.id
+        })
+        .eq('id', inviteToken.id);
+
+      if (tokenError) console.error('Failed to mark token as used:', tokenError);
+
+      // 5. Save medical history
       if (formData.medicalHistory.length > 0) {
         const medicalData = formData.medicalHistory.map(condition => {
           const [category, conditionName] = condition.split('|');
@@ -136,7 +208,7 @@ export default function Register() {
 
       toast({
         title: "Регистрация успешна! 🎉",
-        description: "Проверьте почту для подтверждения"
+        description: "Добро пожаловать в ReAge"
       });
 
       navigate('/dashboard');
@@ -161,78 +233,91 @@ export default function Register() {
           <p className="text-muted-foreground">Создайте ваш аккаунт</p>
         </div>
 
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = currentStep === step.id;
-              const isCompleted = currentStep > step.id;
+        {/* Invite Error Alert */}
+        {inviteError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Ошибка приглашения</AlertTitle>
+            <AlertDescription>{inviteError}</AlertDescription>
+          </Alert>
+        )}
 
-              return (
-                <div key={step.id} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center flex-1">
-                    <div 
-                      className={`
-                        w-12 h-12 rounded-full flex items-center justify-center transition-all
-                        ${isActive ? 'bg-primary text-primary-foreground scale-110' : ''}
-                        ${isCompleted ? 'bg-primary/20 text-primary' : ''}
-                        ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
-                      `}
-                    >
-                      {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-                    </div>
-                    <div className="text-center mt-2 hidden sm:block">
-                      <p className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {step.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground hidden md:block">
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div 
-                      className={`
-                        h-1 flex-1 mx-2 rounded transition-all
-                        ${isCompleted ? 'bg-primary' : 'bg-muted'}
-                      `}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
+        {!inviteError && (
+          <>
+            {/* Progress */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                {steps.map((step, index) => {
+                  const Icon = step.icon;
+                  const isActive = currentStep === step.id;
+                  const isCompleted = currentStep > step.id;
 
-        {/* Steps Content */}
-        <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
-          {currentStep === 1 && (
-            <RegisterStep1 
-              formData={formData} 
-              updateFormData={updateFormData}
-              onNext={handleNext}
-            />
-          )}
-          {currentStep === 2 && (
-            <RegisterStep2 
-              formData={formData} 
-              updateFormData={updateFormData}
-              onNext={handleNext}
-              onBack={handlePrevious}
-            />
-          )}
-          {currentStep === 3 && (
-            <RegisterStep3 
-              formData={formData} 
-              updateFormData={updateFormData}
-              onSubmit={handleSubmit}
-              onBack={handlePrevious}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </Card>
+                  return (
+                    <div key={step.id} className="flex items-center flex-1">
+                      <div className="flex flex-col items-center flex-1">
+                        <div 
+                          className={`
+                            w-12 h-12 rounded-full flex items-center justify-center transition-all
+                            ${isActive ? 'bg-primary text-primary-foreground scale-110' : ''}
+                            ${isCompleted ? 'bg-primary/20 text-primary' : ''}
+                            ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
+                          `}
+                        >
+                          {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                        </div>
+                        <div className="text-center mt-2 hidden sm:block">
+                          <p className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                            {step.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground hidden md:block">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                      {index < steps.length - 1 && (
+                        <div 
+                          className={`
+                            h-1 flex-1 mx-2 rounded transition-all
+                            ${isCompleted ? 'bg-primary' : 'bg-muted'}
+                          `}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+
+            {/* Steps Content */}
+            <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
+              {currentStep === 1 && (
+                <RegisterStep1 
+                  formData={formData} 
+                  updateFormData={updateFormData}
+                  onNext={handleNext}
+                />
+              )}
+              {currentStep === 2 && (
+                <RegisterStep2 
+                  formData={formData} 
+                  updateFormData={updateFormData}
+                  onNext={handleNext}
+                  onBack={handlePrevious}
+                />
+              )}
+              {currentStep === 3 && (
+                <RegisterStep3 
+                  formData={formData} 
+                  updateFormData={updateFormData}
+                  onSubmit={handleSubmit}
+                  onBack={handlePrevious}
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </Card>
+          </>
+        )}
 
         {/* Login Link */}
         <div className="text-center mt-6">

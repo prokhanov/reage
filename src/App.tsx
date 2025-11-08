@@ -25,6 +25,7 @@ import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
 import Patients from "./pages/admin/Patients";
 import PatientProfile from "./pages/admin/PatientProfile";
+import UserManagement from "./pages/admin/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -171,6 +172,18 @@ const App = () => (
                 <SuperAdminRoute>
                   <DashboardLayout>
                     <PatientProfile />
+                  </DashboardLayout>
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/user-management"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <DashboardLayout>
+                    <UserManagement />
                   </DashboardLayout>
                 </SuperAdminRoute>
               </ProtectedRoute>
