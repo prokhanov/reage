@@ -188,27 +188,47 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
 
       if (analysisError) throw analysisError;
 
-      // Delete old values
-      const { error: deleteError } = await supabase
+      // Get current values to determine what to delete
+      const { data: currentValues, error: currentValuesError } = await supabase
         .from("analysis_values")
-        .delete()
+        .select("biomarker_id")
         .eq("analysis_id", analysisId);
 
-      if (deleteError) throw deleteError;
+      if (currentValuesError) throw currentValuesError;
 
-      // Insert new values
-      const valuesToInsert = wizardData.step2.values.map((v) => ({
+      const newBiomarkerIds = wizardData.step2.values.map(v => v.biomarkerId);
+      const currentBiomarkerIds = (currentValues || []).map(v => v.biomarker_id);
+
+      // Delete values that are no longer needed
+      const idsToDelete = currentBiomarkerIds.filter(id => !newBiomarkerIds.includes(id));
+      if (idsToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("analysis_values")
+          .delete()
+          .eq("analysis_id", analysisId)
+          .in("biomarker_id", idsToDelete);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Upsert new/updated values
+      const valuesToUpsert = wizardData.step2.values.map((v) => ({
         analysis_id: analysisId,
         biomarker_id: v.biomarkerId,
         value: parseFloat(v.value),
         unit_override: v.unitOverride || null,
       }));
 
-      const { error: valuesError } = await supabase
-        .from("analysis_values")
-        .insert(valuesToInsert);
+      if (valuesToUpsert.length > 0) {
+        const { error: upsertError } = await supabase
+          .from("analysis_values")
+          .upsert(valuesToUpsert, {
+            onConflict: "analysis_id,biomarker_id",
+            ignoreDuplicates: false,
+          });
 
-      if (valuesError) throw valuesError;
+        if (upsertError) throw upsertError;
+      }
 
       toast({
         title: "Успешно!",
