@@ -161,16 +161,22 @@ serve(async (req) => {
       );
     }
 
-    // 7. Insert user roles - use 'user' as base enum value and store custom role in role_id
-    const userRolesToInsert = customRoles.map(role => ({
-      user_id: userId,
-      role: 'user', // Base enum value to avoid enum violation
-      role_id: role.id
-    }));
+    // 7. Upsert user role mapping to avoid duplicate (user_id, role) conflicts
+    const primaryRole = customRoles[0];
+    if (customRoles.length > 1) {
+      console.warn('Multiple custom roles provided. Using the first one:', customRoles.map(r => r.name).join(', '));
+    }
 
     const { error: userRolesError } = await supabaseAdmin
       .from('user_roles')
-      .insert(userRolesToInsert);
+      .upsert(
+        {
+          user_id: userId,
+          role: 'user', // Base enum value; link custom role via role_id
+          role_id: primaryRole.id,
+        },
+        { onConflict: 'user_id,role' }
+      );
 
     if (userRolesError) {
       console.error('Failed to assign roles:', userRolesError);
@@ -182,7 +188,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Roles assigned successfully:', customRoles.map(r => r.name).join(', '));
+    console.log('Role assigned successfully:', (primaryRole?.name ?? 'unknown'));
 
     // 8. Update invite token as used
     const { error: updateTokenError } = await supabaseAdmin
