@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -125,137 +126,151 @@ export default function UserManagement() {
         </p>
       </div>
 
-      <RoleManagementCard />
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="users">Пользователи</TabsTrigger>
+          <TabsTrigger value="roles">Роли</TabsTrigger>
+          <TabsTrigger value="invites">Приглашения</TabsTrigger>
+        </TabsList>
 
-      <InviteTokenManager onInviteCreated={() => refetch()} />
+        <TabsContent value="users" className="space-y-4 mt-6">
+          <Card>
+            <CardHeader>
+              <div>
+                <CardTitle>Все пользователи ({filteredUsers?.length || 0})</CardTitle>
+                <CardDescription>
+                  Нажмите на пользователя, чтобы настроить его права доступа
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Поиск по имени..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Фильтр по роли" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все роли</SelectItem>
+                    <SelectItem value="superadmin">Суперадмин</SelectItem>
+                    <SelectItem value="admin">Админ</SelectItem>
+                    <SelectItem value="doctor">Врач</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <Card>
-        <CardHeader>
-          <div>
-            <CardTitle>Все пользователи ({filteredUsers?.length || 0})</CardTitle>
-            <CardDescription>
-              Нажмите на пользователя, чтобы настроить его права доступа
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Поиск по имени..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Фильтр по роли" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все роли</SelectItem>
-                <SelectItem value="superadmin">Суперадмин</SelectItem>
-                <SelectItem value="admin">Админ</SelectItem>
-                <SelectItem value="doctor">Врач</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Загрузка...</div>
-          ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Пользователь</TableHead>
-                    <TableHead>Роль</TableHead>
-                    <TableHead>Доступы к модулям</TableHead>
-                    <TableHead>Дата регистрации</TableHead>
-                    <TableHead className="w-[100px]">Действия</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredUsers && filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <TableRow
-                        key={user.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => setSelectedUserId(user.id)}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-primary/10 text-primary">
-                                {getInitials(user.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{user.name || "Без имени"}</p>
-                              <p className="text-xs text-muted-foreground">
-                                ID: {user.id.slice(0, 8)}...
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {user.custom_role ? (
-                            <Badge variant={user.role === "superadmin" ? "destructive" : "default"}>
-                              {user.custom_role.display_name}
-                            </Badge>
-                          ) : (
-                            getRoleBadge(user.role)
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {user.role === "superadmin" ? (
-                            <Badge variant="outline" className="text-xs">
-                              Полный доступ
-                            </Badge>
-                          ) : user.permissions.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {user.permissions.map((perm: string) => (
-                                <Badge key={perm} variant="secondary" className="text-xs">
-                                  {perm}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">Нет доступа</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(user.created_at).toLocaleDateString("ru-RU")}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedUserId(user.id);
-                            }}
-                          >
-                            <Settings className="w-4 h-4 mr-2" />
-                            Настроить
-                          </Button>
-                        </TableCell>
+              {isLoading ? (
+                <div className="text-center py-12 text-muted-foreground">Загрузка...</div>
+              ) : (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Пользователь</TableHead>
+                        <TableHead>Роль</TableHead>
+                        <TableHead>Доступы к модулям</TableHead>
+                        <TableHead>Дата регистрации</TableHead>
+                        <TableHead className="w-[100px]">Действия</TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        Пользователи не найдены
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers && filteredUsers.length > 0 ? (
+                        filteredUsers.map((user) => (
+                          <TableRow
+                            key={user.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() => setSelectedUserId(user.id)}
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarFallback className="bg-primary/10 text-primary">
+                                    {getInitials(user.name)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium">{user.name || "Без имени"}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    ID: {user.id.slice(0, 8)}...
+                                  </p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {user.custom_role ? (
+                                <Badge variant={user.role === "superadmin" ? "destructive" : "default"}>
+                                  {user.custom_role.display_name}
+                                </Badge>
+                              ) : (
+                                getRoleBadge(user.role)
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {user.role === "superadmin" ? (
+                                <Badge variant="outline" className="text-xs">
+                                  Полный доступ
+                                </Badge>
+                              ) : user.permissions.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {user.permissions.map((perm: string) => (
+                                    <Badge key={perm} variant="secondary" className="text-xs">
+                                      {perm}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">Нет доступа</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(user.created_at).toLocaleDateString("ru-RU")}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedUserId(user.id);
+                                }}
+                              >
+                                <Settings className="w-4 h-4 mr-2" />
+                                Настроить
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                            Пользователи не найдены
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="roles" className="mt-6">
+          <RoleManagementCard />
+        </TabsContent>
+
+        <TabsContent value="invites" className="mt-6">
+          <InviteTokenManager onInviteCreated={() => refetch()} />
+        </TabsContent>
+      </Tabs>
 
       <UserPermissionsDialog
         userId={selectedUserId}
