@@ -675,6 +675,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_patient: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       admin_module:
