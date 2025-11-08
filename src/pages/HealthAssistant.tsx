@@ -10,6 +10,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useChatConversations, useChatMessages } from "@/hooks/useChatConversations";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { normalizeMarkdown } from "@/lib/markdown";
+import { ChatHistoryDropdown } from "@/components/ChatHistoryDropdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,7 +21,7 @@ export default function HealthAssistant() {
   const { getUserId } = useViewAsUser();
   const [userId, setUserId] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const { conversations, createConversation } = useChatConversations(userId);
+  const { conversations, createConversation, deleteConversation } = useChatConversations(userId);
   const { messages: dbMessages, saveMessage } = useChatMessages(currentConversationId);
   
   const [messages, setMessages] = useState<Message[]>([
@@ -40,10 +41,20 @@ export default function HealthAssistant() {
     getUserId().then(setUserId);
   }, [getUserId]);
 
-  // Load last conversation or create new one
+  // Load last conversation or create new one (check 24h rule)
   useEffect(() => {
     if (userId && conversations && conversations.length > 0 && !currentConversationId) {
-      setCurrentConversationId(conversations[0].id);
+      const lastConversation = conversations[0]; // Already sorted by updated_at desc
+      const lastUpdateTime = new Date(lastConversation.updated_at);
+      const now = new Date();
+      const hoursDiff = (now.getTime() - lastUpdateTime.getTime()) / (1000 * 60 * 60);
+      
+      // If more than 24 hours passed - don't set conversation, new one will be created on first message
+      if (hoursDiff > 24) {
+        // Leave currentConversationId as null
+      } else {
+        setCurrentConversationId(lastConversation.id);
+      }
     }
   }, [userId, conversations, currentConversationId]);
 
@@ -225,6 +236,10 @@ export default function HealthAssistant() {
     ]);
   };
 
+  const handleSwitchConversation = (conversationId: string) => {
+    setCurrentConversationId(conversationId);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -256,10 +271,13 @@ export default function HealthAssistant() {
                 </p>
               </div>
             </div>
-            <Button onClick={handleNewChat} variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Новый чат
-            </Button>
+            <ChatHistoryDropdown
+              conversations={conversations || []}
+              currentConversationId={currentConversationId}
+              onSelectConversation={handleSwitchConversation}
+              onNewChat={handleNewChat}
+              onDeleteConversation={(id) => deleteConversation.mutate(id)}
+            />
           </div>
         </div>
 
