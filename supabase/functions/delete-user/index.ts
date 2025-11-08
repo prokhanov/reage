@@ -12,17 +12,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { userId } = await req.json();
+    const { userId, email } = await req.json();
 
-    if (!userId) {
-      console.error('Missing userId parameter');
+    if (!userId && !email) {
+      console.error('Missing userId or email parameter');
       return new Response(
-        JSON.stringify({ error: 'userId is required' }),
+        JSON.stringify({ error: 'userId or email is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Deleting user:', userId);
+    console.log('Deleting user by:', userId ? `userId: ${userId}` : `email: ${email}`);
 
     // Create admin client with service_role_key
     const supabaseAdmin = createClient(
@@ -36,21 +36,65 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Step 1: Delete invite tokens associated with this user
-    const { error: tokenError } = await supabaseAdmin
-      .from('invite_tokens')
-      .delete()
-      .eq('used_by', userId);
+    let userIdToDelete = userId;
+    let emailToClean = email;
 
-    if (tokenError) {
-      console.warn('Failed to delete invite tokens:', tokenError);
-      // Continue with deletion even if tokens cleanup fails
-    } else {
-      console.log('Successfully deleted invite tokens');
+    // If email provided, find the user ID
+    if (!userIdToDelete && email) {
+      console.log('Looking up user by email:', email);
+      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+      
+      if (listError) {
+        console.error('Failed to list users:', listError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to lookup user by email' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const user = users.find(u => u.email === email);
+      if (!user) {
+        console.log('User not found by email:', email);
+        return new Response(
+          JSON.stringify({ error: 'User not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      userIdToDelete = user.id;
+      emailToClean = user.email;
+      console.log('Found user:', userIdToDelete);
     }
 
+    // Step 1: Delete invite tokens associated with this user (by used_by and invited_email)
+    console.log('Cleaning invite tokens...');
+    
+    const deletePromises = [];
+    
+    if (userIdToDelete) {
+      deletePromises.push(
+        supabaseAdmin.from('invite_tokens').delete().eq('used_by', userIdToDelete)
+      );
+    }
+    
+    if (emailToClean) {
+      deletePromises.push(
+        supabaseAdmin.from('invite_tokens').delete().eq('invited_email', emailToClean)
+      );
+    }
+
+    const results = await Promise.allSettled(deletePromises);
+    results.forEach((result, idx) => {
+      if (result.status === 'rejected' || (result.status === 'fulfilled' && result.value.error)) {
+        console.warn(`Failed to delete invite tokens (${idx}):`, result.status === 'fulfilled' ? result.value.error : result.reason);
+      } else {
+        console.log(`Successfully deleted invite tokens (${idx})`);
+      }
+    });
+
     // Step 2: Delete the user from auth.users using Admin API
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    console.log('Deleting user from auth.users:', userIdToDelete);
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userIdToDelete);
 
     if (authError) {
       console.error('Failed to delete auth user:', authError);

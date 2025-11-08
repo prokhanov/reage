@@ -59,6 +59,15 @@ serve(async (req) => {
       );
     }
 
+    // Validate email matches invited_email if specified
+    if (tokenData.invited_email && tokenData.invited_email !== email) {
+      console.error('Email mismatch:', email, 'vs', tokenData.invited_email);
+      return new Response(
+        JSON.stringify({ error: 'Email не совпадает с приглашением' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // 2. Check if email already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const emailExists = existingUsers?.users.some(u => u.email === email);
@@ -119,37 +128,56 @@ serve(async (req) => {
     const roles = tokenData.metadata?.roles || [tokenData.role];
     console.log('Roles to assign:', roles);
 
-    // 6. Insert custom roles into user_roles
-    for (const roleName of roles) {
-      // First get the custom role ID
-      const { data: customRole, error: roleError } = await supabaseAdmin
-        .from('custom_roles')
-        .select('id')
-        .eq('name', roleName)
-        .single();
+    // 6. Get all custom role IDs at once
+    const { data: customRoles, error: rolesError } = await supabaseAdmin
+      .from('custom_roles')
+      .select('id, name')
+      .in('name', roles);
 
-      if (roleError || !customRole) {
-        console.error(`Role ${roleName} not found:`, roleError);
-        continue;
-      }
-
-      // Insert into user_roles with both role enum and role_id
-      const { error: userRoleError } = await supabaseAdmin
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: roleName,
-          role_id: customRole.id,
-        });
-
-      if (userRoleError) {
-        console.error(`Error assigning role ${roleName}:`, userRoleError);
-      } else {
-        console.log(`Role ${roleName} assigned`);
-      }
+    if (rolesError) {
+      console.error('Failed to fetch custom roles:', rolesError);
+      // Rollback: delete user and profile
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      return new Response(
+        JSON.stringify({ error: 'Ошибка получения ролей' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // 7. Update invite token as used
+    if (!customRoles || customRoles.length === 0) {
+      console.error('No custom roles found for:', roles);
+      // Rollback: delete user and profile
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      return new Response(
+        JSON.stringify({ error: 'Роли не найдены' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 7. Insert user roles - use 'user' as base enum value and store custom role in role_id
+    const userRolesToInsert = customRoles.map(role => ({
+      user_id: userId,
+      role: 'user', // Base enum value to avoid enum violation
+      role_id: role.id
+    }));
+
+    const { error: userRolesError } = await supabaseAdmin
+      .from('user_roles')
+      .insert(userRolesToInsert);
+
+    if (userRolesError) {
+      console.error('Failed to assign roles:', userRolesError);
+      // Rollback: delete user and profile
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      return new Response(
+        JSON.stringify({ error: 'Ошибка назначения ролей: ' + userRolesError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Roles assigned successfully:', customRoles.map(r => r.name).join(', '));
+
+    // 8. Update invite token as used
     const { error: updateTokenError } = await supabaseAdmin
       .from('invite_tokens')
       .update({
