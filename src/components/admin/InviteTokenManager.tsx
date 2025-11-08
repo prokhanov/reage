@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, Check, Trash2, UserPlus, Calendar } from "lucide-react";
+import { Copy, Check, Trash2, UserPlus, Calendar, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -147,6 +147,52 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
     },
   });
 
+  const regenerateTokenMutation = useMutation({
+    mutationFn: async (oldToken: any) => {
+      const newToken = crypto.randomUUID();
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("User not authenticated");
+
+      // Create new token
+      const { error: insertError } = await supabase
+        .from("invite_tokens")
+        .insert({
+          token: newToken,
+          role: oldToken.role,
+          invited_email: oldToken.invited_email,
+          created_by: user.user.id,
+        });
+
+      if (insertError) throw insertError;
+
+      // Delete old token
+      const { error: deleteError } = await supabase
+        .from("invite_tokens")
+        .delete()
+        .eq("id", oldToken.id);
+
+      if (deleteError) throw deleteError;
+      
+      return { token: newToken, role: oldToken.role };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Ссылка перегенерирована",
+        description: "Новая пригласительная ссылка создана",
+      });
+      refetch();
+      // Auto-copy new link
+      copyToClipboard(data.token, data.role);
+    },
+    onError: (error) => {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось перегенерировать ссылку: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const copyToClipboard = (token: string, role: string) => {
     const registerPath = role === 'user' ? '/register' : '/register-staff';
     const inviteUrl = `${window.location.origin}${registerPath}?invite=${token}`;
@@ -263,6 +309,14 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                               ) : (
                                 <Copy className="w-4 h-4" />
                               )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => regenerateTokenMutation.mutate(token)}
+                              disabled={token.used_at !== null || (token.expires_at && new Date(token.expires_at) < new Date()) || regenerateTokenMutation.isPending}
+                            >
+                              <RefreshCw className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
