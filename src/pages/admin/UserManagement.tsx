@@ -75,19 +75,44 @@ export default function UserManagement() {
         return acc;
       }, {});
 
+      // Получаем персональные разрешения
       const { data: allPermissions } = await supabase
         .from("admin_permissions")
         .select("user_id, module, enabled");
 
+      // Получаем разрешения из ролей
+      const { data: rolePermissionsData } = await supabase
+        .from("user_roles")
+        .select("user_id, role_permissions(module, enabled)");
+
       const permissionsMap = (allPermissions || []).reduce((acc: any, perm: any) => {
         if (!acc[perm.user_id]) {
-          acc[perm.user_id] = [];
+          acc[perm.user_id] = new Set();
         }
         if (perm.enabled) {
-          acc[perm.user_id].push(perm.module);
+          acc[perm.user_id].add(perm.module);
         }
         return acc;
       }, {});
+
+      // Добавляем разрешения из ролей
+      (rolePermissionsData || []).forEach((userRole: any) => {
+        if (!permissionsMap[userRole.user_id]) {
+          permissionsMap[userRole.user_id] = new Set();
+        }
+        if (userRole.role_permissions) {
+          userRole.role_permissions.forEach((rp: any) => {
+            if (rp.enabled) {
+              permissionsMap[userRole.user_id].add(rp.module);
+            }
+          });
+        }
+      });
+
+      // Преобразуем Set в массивы
+      Object.keys(permissionsMap).forEach(userId => {
+        permissionsMap[userId] = Array.from(permissionsMap[userId]);
+      });
 
       const activeUsers = (profiles || []).map((profile) => {
         const userRoleData = rolesMap[profile.id] || { role: "user", custom_role: null };
