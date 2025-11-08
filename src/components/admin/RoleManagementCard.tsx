@@ -59,6 +59,7 @@ export function RoleManagementCard() {
       const { data, error } = await supabase
         .from("custom_roles")
         .select("*")
+        .neq("name", "user") // Исключаем роль "Пациент" из управления
         .order("is_system", { ascending: false })
         .order("display_name");
 
