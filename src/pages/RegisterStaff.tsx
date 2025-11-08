@@ -29,6 +29,8 @@ export default function RegisterStaff() {
     const validateInvite = async () => {
       const token = searchParams.get("invite");
       
+      console.info("Invite link opened", token);
+      
       if (!token) {
         setInviteError("Отсутствует токен приглашения");
         return;

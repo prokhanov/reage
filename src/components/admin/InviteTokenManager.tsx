@@ -164,14 +164,14 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: "Ссылка перегенерирована",
         description: "Новая пригласительная ссылка создана",
       });
       refetch();
       // Auto-copy new link
-      copyToClipboard(data.token, data.role);
+      await copyToClipboard(data.token, data.role);
     },
     onError: (error) => {
       toast({
@@ -182,16 +182,47 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
     },
   });
 
-  const copyToClipboard = (token: string, role: string) => {
+  const copyToClipboard = async (token: string, role: string) => {
     const registerPath = role === 'user' ? '/register' : '/register-staff';
     const inviteUrl = `${window.location.origin}${registerPath}?invite=${token}`;
-    navigator.clipboard.writeText(inviteUrl);
-    setCopiedToken(token);
-    toast({
-      title: "Скопировано",
-      description: "Пригласительная ссылка скопирована в буфер обмена",
-    });
-    setTimeout(() => setCopiedToken(null), 2000);
+    
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopiedToken(token);
+      toast({
+        title: "Скопировано",
+        description: "Пригласительная ссылка скопирована в буфер обмена",
+      });
+      setTimeout(() => setCopiedToken(null), 2000);
+    } catch (error) {
+      console.error("Clipboard write failed:", error);
+      toast({
+        title: "Ссылка для приглашения",
+        description: inviteUrl,
+        duration: 15000,
+        action: (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                navigator.clipboard.writeText(inviteUrl).then(() => {
+                  toast({ title: "Скопировано!", duration: 2000 });
+                });
+              }}
+            >
+              Скопировать ещё раз
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => window.open(inviteUrl, "_blank")}
+            >
+              Открыть ссылку
+            </Button>
+          </div>
+        ),
+      });
+    }
   };
 
   const getStatusBadge = (token: any) => {

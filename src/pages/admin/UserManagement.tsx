@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2, RefreshCw } from "lucide-react";
+import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2, RefreshCw, CheckCircle, Eye } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -36,6 +36,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -270,10 +275,97 @@ export default function UserManagement() {
     // Токен валиден - копируем
     const registerUrl = `/register-staff?invite=${data.token}`;
     const fullUrl = `${window.location.origin}${registerUrl}`;
-    navigator.clipboard.writeText(fullUrl);
+    
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      toast({
+        title: "Ссылка скопирована",
+        description: "Пригласительная ссылка скопирована в буфер обмена",
+      });
+    } catch (clipboardError) {
+      console.error("Clipboard write failed:", clipboardError);
+      toast({
+        title: "Ссылка для приглашения",
+        description: fullUrl,
+        duration: 15000,
+        action: (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                navigator.clipboard.writeText(fullUrl).then(() => {
+                  toast({ title: "Скопировано!", duration: 2000 });
+                });
+              }}
+            >
+              Скопировать ещё раз
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => window.open(fullUrl, "_blank")}
+            >
+              Открыть ссылку
+            </Button>
+          </div>
+        ),
+      });
+    }
+  };
+
+  const handleCheckInviteToken = async (token: string) => {
+    const { data, error } = await supabase
+      .from("invite_tokens")
+      .select("*")
+      .eq("token", token)
+      .maybeSingle();
+
+    if (!data) {
+      toast({
+        title: "Приглашение не найдено",
+        description: "Хотите перегенерировать ссылку?",
+        action: (
+          <Button
+            size="sm"
+            onClick={() => regenerateInviteTokenMutation.mutate(token)}
+          >
+            Перегенерировать
+          </Button>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data.used_by) {
+      toast({
+        title: "Приглашение использовано",
+        description: "Эта ссылка уже была использована",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      toast({
+        title: "Приглашение истекло",
+        description: "Хотите перегенерировать ссылку?",
+        action: (
+          <Button
+            size="sm"
+            onClick={() => regenerateInviteTokenMutation.mutate(token)}
+          >
+            Перегенерировать
+          </Button>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
-      title: "Ссылка скопирована",
-      description: "Пригласительная ссылка скопирована в буфер обмена",
+      title: "✓ Ссылка валидна",
+      description: "Приглашение активно и готово к использованию",
     });
   };
 
@@ -469,6 +561,50 @@ export default function UserManagement() {
                                 <div className="flex gap-1">
                                   {user.type === "pending" ? (
                                     <>
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <Eye className="w-4 h-4" />
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80" onClick={(e) => e.stopPropagation()}>
+                                          <div className="space-y-3">
+                                            <h4 className="font-medium text-sm">Пригласительная ссылка</h4>
+                                            <p className="text-xs text-muted-foreground break-all">
+                                              {`${window.location.origin}/register-staff?invite=${user.invite_token}`}
+                                            </p>
+                                            <div className="flex gap-2">
+                                              <Button
+                                                size="sm"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleCopyInviteLink(user.invite_token);
+                                                }}
+                                                className="flex-1"
+                                              >
+                                                <Copy className="h-3 w-3 mr-1" />
+                                                Копировать
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  window.open(`/register-staff?invite=${user.invite_token}`, "_blank");
+                                                }}
+                                                className="flex-1"
+                                              >
+                                                Открыть
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </PopoverContent>
+                                      </Popover>
+
                                       <Tooltip>
                                         <TooltipTrigger asChild>
                                           <Button
@@ -483,9 +619,33 @@ export default function UserManagement() {
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                          <p>Скопировать ссылку</p>
+                                          <div className="space-y-1">
+                                            <p>Скопировать ссылку</p>
+                                            <p className="text-xs text-muted-foreground max-w-xs break-all">
+                                              {`${window.location.origin}/register-staff?invite=${user.invite_token}`}
+                                            </p>
+                                          </div>
                                         </TooltipContent>
                                       </Tooltip>
+
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCheckInviteToken(user.invite_token);
+                                            }}
+                                          >
+                                            <CheckCircle className="w-4 h-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Проверить ссылку</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+
                                       <Tooltip>
                                         <TooltipTrigger asChild>
                                           <Button
