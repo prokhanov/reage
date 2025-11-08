@@ -67,14 +67,29 @@ export default function UserManagement() {
         .from("user_roles")
         .select("user_id, role, role_id, custom_roles(*)");
 
-      const rolesMap = (allRoles || []).reduce((acc: any, role: any) => {
-        acc[role.user_id] = {
-          role: role.role,
-          custom_role: role.custom_roles,
-          role_id: role.role_id,
-          hasCustomRole: !!role.role_id,
-          custom_role_name: role.custom_roles?.name,
+      const rolesMap = (allRoles || []).reduce((acc: any, r: any) => {
+        const next = {
+          role: r.role,
+          custom_role: r.custom_roles,
+          role_id: r.role_id,
+          hasCustomRole: !!r.role_id,
+          custom_role_name: r.custom_roles?.name,
         };
+        const existing = acc[r.user_id];
+
+        // Приоритизируем привилегированные роли (не 'user' или с кастомной ролью)
+        const isPrivileged = r.role !== 'user' || !!r.role_id;
+        const existingPrivileged = existing && (existing.role !== 'user' || existing.hasCustomRole);
+
+        if (!existing) {
+          acc[r.user_id] = next;
+        } else if (!existingPrivileged && isPrivileged) {
+          // Заменяем непривилегированную запись на привилегированную
+          acc[r.user_id] = next;
+        } else if (existing.role === 'user' && r.role !== 'user') {
+          // Приоритет non-user ролям над user
+          acc[r.user_id] = next;
+        }
         return acc;
       }, {});
 
