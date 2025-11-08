@@ -163,16 +163,29 @@ export default function RegisterStaff() {
 
       // Применить все роли из metadata или одну роль из invite
       const rolesToInsert = metadata?.roles || [inviteToken.role];
-      const roleInserts = rolesToInsert.map((role: string) => ({
+      
+      // Получить ID кастомных ролей
+      const { data: customRoles, error: rolesLookupError } = await supabase
+        .from("custom_roles")
+        .select("id, name")
+        .in("name", rolesToInsert);
+
+      if (rolesLookupError) throw rolesLookupError;
+
+      // Создать записи в user_roles с правильными role_id и базовым enum значением
+      const roleInserts = (customRoles || []).map((customRole) => ({
         user_id: authData.user.id,
-        role: role,
+        role: "user" as const, // Базовое значение enum для всех кастомных ролей
+        role_id: customRole.id,
       }));
 
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert(roleInserts);
+      if (roleInserts.length > 0) {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert(roleInserts);
 
-      if (roleError) throw roleError;
+        if (roleError) throw roleError;
+      }
 
       const { error: updateError } = await supabase
         .from("invite_tokens")
