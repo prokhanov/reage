@@ -90,7 +90,7 @@ export default function UserManagement() {
       // 2. Pending пользователи из invite_tokens
       const { data: pendingInvites, error: invitesError } = await supabase
         .from("invite_tokens")
-        .select("*, custom_roles(*)")
+        .select("*")
         .is("used_by", null)
         .order("created_at", { ascending: false });
 
@@ -101,7 +101,7 @@ export default function UserManagement() {
         name: invite.metadata?.name || "—",
         email: invite.invited_email,
         role: invite.role,
-        custom_role: invite.custom_roles,
+        custom_role: null,
         permissions: [],
         created_at: invite.created_at,
         status: "pending" as const,
