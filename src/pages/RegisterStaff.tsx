@@ -82,11 +82,10 @@ export default function RegisterStaff() {
       // Предзаполнить данные из metadata
       if (data.metadata && typeof data.metadata === 'object') {
         const metadata = data.metadata as any;
-        const nameParts = (metadata.name || "").split(" ");
         setFormData(prev => ({
           ...prev,
-          firstName: nameParts[1] || "",
-          lastName: nameParts[0] || "",
+          firstName: metadata.firstName || "",
+          lastName: metadata.lastName || "",
           email: data.invited_email || prev.email,
         }));
       } else if (data.invited_email) {
@@ -136,7 +135,7 @@ export default function RegisterStaff() {
         .from("profiles")
         .insert({
           id: authData.user.id,
-          name: metadata?.name || `${formData.firstName} ${formData.lastName}`.trim(),
+          name: `${formData.lastName} ${formData.firstName}`.trim(),
           gender: metadata?.gender || "male",
           birth_date: metadata?.birth_date || new Date().toISOString().split('T')[0],
         });

@@ -23,7 +23,8 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    name: "",
+    firstName: "",
+    lastName: "",
     gender: "male",
     birthDate: undefined as Date | undefined,
     selectedRoles: [] as string[],
@@ -75,7 +76,8 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
       const fullUrl = `${window.location.origin}${registerUrl}`;
 
       const metadata = {
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         gender: formData.gender,
         birth_date: formData.birthDate.toISOString().split('T')[0],
         roles: formData.selectedRoles,
@@ -117,7 +119,8 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
       setFormData({
         email: "",
         password: "",
-        name: "",
+        firstName: "",
+        lastName: "",
         gender: "male",
         birthDate: undefined,
         selectedRoles: [],
@@ -165,12 +168,23 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="name">ФИО *</Label>
+          <Label htmlFor="firstName">Имя *</Label>
           <Input
-            id="name"
+            id="firstName"
             type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            value={formData.firstName}
+            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Фамилия *</Label>
+          <Input
+            id="lastName"
+            type="text"
+            value={formData.lastName}
+            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
             required
           />
         </div>

@@ -123,19 +123,26 @@ export default function UserManagement() {
         return acc;
       }, {});
 
-      const pendingUsers = (pendingInvites || []).map((invite: any) => ({
-        id: invite.token,
-        name: invite.metadata?.name || "—",
-        email: invite.invited_email,
-        role: invite.role,
-        role_display_name: rolesDisplayMap[invite.role] || invite.role,
-        custom_role: null,
-        permissions: [],
-        created_at: invite.created_at,
-        status: "pending" as const,
-        type: "pending" as const,
-        invite_token: invite.token,
-      }));
+      const pendingUsers = (pendingInvites || []).map((invite: any) => {
+        const metadata = invite.metadata || {};
+        const displayName = metadata.firstName && metadata.lastName 
+          ? `${metadata.lastName} ${metadata.firstName}`.trim()
+          : metadata.name || "—";
+        
+        return {
+          id: invite.token,
+          name: displayName,
+          email: invite.invited_email,
+          role: invite.role,
+          role_display_name: rolesDisplayMap[invite.role] || invite.role,
+          custom_role: null,
+          permissions: [],
+          created_at: invite.created_at,
+          status: "pending" as const,
+          type: "pending" as const,
+          invite_token: invite.token,
+        };
+      });
 
       // 3. Объединить и отфильтровать
       const allUsers = [...activeUsers, ...pendingUsers];

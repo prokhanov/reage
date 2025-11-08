@@ -22,7 +22,8 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
   
   const [formData, setFormData] = useState({
     email: "",
-    name: "",
+    firstName: "",
+    lastName: "",
     gender: "male",
     birthDate: undefined as Date | undefined,
     selectedRoles: [] as string[],
@@ -66,7 +67,8 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
       const metadata = (inviteData.metadata || {}) as Record<string, any>;
       setFormData({
         email: inviteData.invited_email || "",
-        name: (metadata.name as string) || "",
+        firstName: (metadata.firstName as string) || "",
+        lastName: (metadata.lastName as string) || "",
         gender: (metadata.gender as string) || "male",
         birthDate: metadata.birth_date ? new Date(metadata.birth_date as string) : undefined,
         selectedRoles: (metadata.roles as string[]) || [inviteData.role],
@@ -81,7 +83,8 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
       }
 
       const metadata = {
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         gender: formData.gender,
         birth_date: formData.birthDate.toISOString().split('T')[0],
         roles: formData.selectedRoles,
@@ -175,12 +178,23 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">ФИО *</Label>
+              <Label htmlFor="firstName">Имя *</Label>
               <Input
-                id="name"
+                id="firstName"
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Фамилия *</Label>
+              <Input
+                id="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 required
               />
             </div>
