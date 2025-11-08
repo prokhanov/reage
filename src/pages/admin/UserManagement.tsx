@@ -172,8 +172,13 @@ export default function UserManagement() {
       // 3. Объединить и отфильтровать
       const allUsers = [...activeUsers, ...pendingUsers];
       
-      // Фильтруем: показываем весь административный персонал (исключаем только обычных пациентов)
-      return allUsers.filter(u => u.role !== "user");
+      // Фильтруем: показываем весь административный персонал
+      // Исключаем только тех, у кого базовая роль "user" И НЕТ кастомной роли (кроме роли "user")
+      return allUsers.filter(u => {
+        if (u.role !== "user") return true; // superadmin, admin, doctor
+        if (u.custom_role && u.custom_role.name !== "user") return true; // кастомные роли (manager и т.д.)
+        return false; // обычные пациенты
+      });
     },
   });
 
