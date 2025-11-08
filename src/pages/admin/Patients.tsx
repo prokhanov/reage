@@ -33,16 +33,26 @@ export default function Patients() {
 
       if (error) throw error;
 
-      // Get user roles separately
+      // Get user roles separately with custom roles
       const { data: allRoles } = await supabase
         .from("user_roles")
-        .select("user_id, role");
+        .select("user_id, role, role_id, custom_roles(name, display_name)");
 
       const rolesMap = (allRoles || []).reduce((acc: any, role: any) => {
         if (!acc[role.user_id]) {
-          acc[role.user_id] = [];
+          acc[role.user_id] = {
+            baseRole: role.role,
+            customRole: role.custom_roles,
+            allRoles: [role.role]
+          };
+        } else {
+          acc[role.user_id].allRoles.push(role.role);
+          // Приоритизируем привилегированные роли
+          if (role.role !== 'user' || (role.custom_roles && role.custom_roles.name !== 'user')) {
+            acc[role.user_id].baseRole = role.role;
+            acc[role.user_id].customRole = role.custom_roles;
+          }
         }
-        acc[role.user_id].push(role.role);
         return acc;
       }, {});
 
@@ -62,13 +72,18 @@ export default function Patients() {
             .limit(1)
             .maybeSingle();
 
-          const userRoles = rolesMap[profile.id] || ["user"];
+          const userRoleData = rolesMap[profile.id] || { 
+            baseRole: "user", 
+            customRole: null, 
+            allRoles: ["user"] 
+          };
+          
           // Priority: superadmin > admin > doctor > user
-          const primaryRole = userRoles.includes("superadmin")
+          const primaryRole = userRoleData.allRoles.includes("superadmin")
             ? "superadmin"
-            : userRoles.includes("admin")
+            : userRoleData.allRoles.includes("admin")
             ? "admin"
-            : userRoles.includes("doctor")
+            : userRoleData.allRoles.includes("doctor")
             ? "doctor"
             : "user";
 
@@ -77,12 +92,23 @@ export default function Patients() {
             analysisCount: analysisCount || 0,
             latestAnalysisDate: latestAnalysis?.date,
             role: primaryRole,
-            allRoles: userRoles,
+            allRoles: userRoleData.allRoles,
+            customRole: userRoleData.customRole,
           };
         })
       );
 
-      return profilesWithStats;
+      // Фильтруем: показываем только пациентов (исключаем административный персонал)
+      return profilesWithStats.filter(p => {
+        // Исключаем суперадминов, админов, докторов
+        if (p.role !== "user") return false;
+        
+        // Исключаем пользователей с кастомными ролями (кроме "user")
+        if (p.customRole && p.customRole.name !== "user") return false;
+        
+        // Это пациент
+        return true;
+      });
     },
   });
 
