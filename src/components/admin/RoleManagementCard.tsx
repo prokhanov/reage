@@ -173,8 +173,31 @@ export function RoleManagementCard() {
     },
   });
 
+  const { data: usersCount } = useQuery({
+    queryKey: ["users-by-role"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role_id");
+      
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach((ur) => {
+        if (ur.role_id) {
+          counts[ur.role_id] = (counts[ur.role_id] || 0) + 1;
+        }
+      });
+      return counts;
+    },
+  });
+
   const deleteRoleMutation = useMutation({
     mutationFn: async (roleId: string) => {
+      const userCount = usersCount?.[roleId] || 0;
+      if (userCount > 0) {
+        throw new Error(`Невозможно удалить роль: её используют ${userCount} пользователей`);
+      }
       const { error } = await supabase.from("custom_roles").delete().eq("id", roleId);
       if (error) throw error;
     },
@@ -299,7 +322,20 @@ export function RoleManagementCard() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => deleteRoleMutation.mutate(role.id)}
+                              onClick={() => {
+                                const userCount = usersCount?.[role.id] || 0;
+                                if (userCount > 0) {
+                                  toast({
+                                    title: "Невозможно удалить",
+                                    description: `Эту роль используют ${userCount} пользователей. Сначала измените их роли.`,
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                                if (window.confirm(`Удалить роль "${role.display_name}"?`)) {
+                                  deleteRoleMutation.mutate(role.id);
+                                }
+                              }}
                               disabled={deleteRoleMutation.isPending}
                             >
                               <Trash2 className="w-4 h-4" />
