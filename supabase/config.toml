@@ -2,3 +2,6 @@ project_id = "ilxgodhosirhhkffqryw"
 
 [functions.health-assistant]
 verify_jwt = true
+
+[functions.register-staff]
+verify_jwt = false

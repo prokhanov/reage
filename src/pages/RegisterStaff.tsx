@@ -132,70 +132,27 @@ export default function RegisterStaff() {
     setIsSubmitting(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
-
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name: `${formData.firstName} ${formData.lastName}`.trim()
-          }
+      // Call Edge Function to register staff
+      const { data, error } = await supabase.functions.invoke('register-staff', {
+        body: {
+          inviteToken: inviteToken.token,
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName
         }
       });
 
-      if (signUpError) throw signUpError;
-      if (!authData.user) throw new Error("Не удалось создать пользователя");
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      const metadata = inviteToken.metadata as any;
-      
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert({
-          id: authData.user.id,
-          name: `${formData.lastName} ${formData.firstName}`.trim(),
-          gender: metadata?.gender || "male",
-          birth_date: metadata?.birth_date || new Date().toISOString().split('T')[0],
-        });
+      // Sign in the user after successful registration
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      if (profileError) throw profileError;
-
-      // Применить все роли из metadata или одну роль из invite
-      const rolesToInsert = metadata?.roles || [inviteToken.role];
-      
-      // Получить ID кастомных ролей
-      const { data: customRoles, error: rolesLookupError } = await supabase
-        .from("custom_roles")
-        .select("id, name")
-        .in("name", rolesToInsert);
-
-      if (rolesLookupError) throw rolesLookupError;
-
-      // Создать записи в user_roles с правильными role_id и базовым enum значением
-      const roleInserts = (customRoles || []).map((customRole) => ({
-        user_id: authData.user.id,
-        role: "user" as const, // Базовое значение enum для всех кастомных ролей
-        role_id: customRole.id,
-      }));
-
-      if (roleInserts.length > 0) {
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert(roleInserts);
-
-        if (roleError) throw roleError;
-      }
-
-      const { error: updateError } = await supabase
-        .from("invite_tokens")
-        .update({
-          used_by: authData.user.id,
-          used_at: new Date().toISOString(),
-        })
-        .eq("id", inviteToken.id);
-
-      if (updateError) throw updateError;
+      if (signInError) throw signInError;
 
       toast({
         title: "Регистрация успешна",
