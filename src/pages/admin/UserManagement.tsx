@@ -118,8 +118,8 @@ export default function UserManagement() {
       // 3. Объединить и отфильтровать
       const allUsers = [...activeUsers, ...pendingUsers];
       
-      // Фильтруем: показываем только superadmin, admin, doctor
-      return allUsers.filter(u => ['superadmin', 'admin', 'doctor'].includes(u.role));
+      // Фильтруем: показываем весь административный персонал (исключаем только обычных пациентов)
+      return allUsers.filter(u => u.role !== "user");
     },
   });
 
