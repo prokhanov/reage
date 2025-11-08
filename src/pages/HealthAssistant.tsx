@@ -240,8 +240,8 @@ export default function HealthAssistant() {
 
   return (
     <DashboardLayout>
-      <div className="container max-w-5xl mx-auto px-4 py-8 h-[calc(100vh-2rem)]">
-        <div className="mb-6">
+      <div className="container max-w-5xl mx-auto px-4 pt-6 h-screen flex flex-col">
+        <div className="mb-4 flex-shrink-0">
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-neon-primary">
@@ -263,7 +263,7 @@ export default function HealthAssistant() {
           </div>
         </div>
 
-        <Card className="flex flex-col h-[calc(100%-120px)] bg-card/50 backdrop-blur border-border/50">
+        <Card className="flex flex-col flex-1 min-h-0 bg-card/50 backdrop-blur border-border/50">
           <div 
             ref={scrollRef}
             className="flex-1 p-6 overflow-y-auto"
