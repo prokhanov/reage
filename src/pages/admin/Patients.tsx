@@ -48,7 +48,7 @@ export default function Patients() {
         } else {
           acc[role.user_id].allRoles.push(role.role);
           // Приоритизируем привилегированные роли
-          if (role.role !== 'user' || (role.custom_roles && role.custom_roles.name !== 'user')) {
+          if ((role.role !== 'user' && role.role !== 'patient') || (role.custom_roles && role.custom_roles.name !== 'user')) {
             acc[role.user_id].baseRole = role.role;
             acc[role.user_id].customRole = role.custom_roles;
           }
@@ -79,13 +79,15 @@ export default function Patients() {
           };
           
           // Priority: superadmin > admin > doctor > user
-          const primaryRole = userRoleData.allRoles.includes("superadmin")
-            ? "superadmin"
-            : userRoleData.allRoles.includes("admin")
-            ? "admin"
-            : userRoleData.allRoles.includes("doctor")
-            ? "doctor"
-            : "user";
+        const primaryRole = userRoleData.allRoles.includes("superadmin")
+          ? "superadmin"
+          : userRoleData.allRoles.includes("admin")
+          ? "admin"
+          : userRoleData.allRoles.includes("doctor")
+          ? "doctor"
+          : userRoleData.allRoles.includes("patient")
+          ? "patient"
+          : "user";
 
           return {
             ...profile,

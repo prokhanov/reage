@@ -78,7 +78,7 @@ export default function UserManagement() {
         const existing = acc[r.user_id];
 
         // Приоритизируем привилегированные роли (не 'user' ИЛИ кастомная роль не 'user')
-        const isPrivileged = r.role !== 'user' || (!!r.role_id && r.custom_roles?.name !== 'user');
+        const isPrivileged = (r.role !== 'user' && r.role !== 'patient') || (!!r.role_id && r.custom_roles?.name !== 'user');
         const existingPrivileged = existing && (existing.role !== 'user' || (existing.hasCustomRole && existing.custom_role?.name !== 'user'));
 
         if (!existing) {
@@ -86,7 +86,7 @@ export default function UserManagement() {
         } else if (!existingPrivileged && isPrivileged) {
           // Заменяем непривилегированную запись на привилегированную
           acc[r.user_id] = next;
-        } else if (existing.role === 'user' && r.role !== 'user') {
+        } else if (existing.role === 'user' && r.role !== 'user' && r.role !== 'patient') {
           // Приоритет non-user ролям над user
           acc[r.user_id] = next;
         }
