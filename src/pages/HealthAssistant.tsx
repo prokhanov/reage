@@ -41,20 +41,22 @@ export default function HealthAssistant() {
     getUserId().then(setUserId);
   }, [getUserId]);
 
-  // Load last conversation or create new one (check 24h rule)
+  // Load last conversation or create new one (check 24h rule) - only on initial load
+  const hasLoadedInitialConversation = useRef(false);
+  
   useEffect(() => {
-    if (userId && conversations && conversations.length > 0 && !currentConversationId) {
+    if (userId && conversations && conversations.length > 0 && !currentConversationId && !hasLoadedInitialConversation.current) {
       const lastConversation = conversations[0]; // Already sorted by updated_at desc
       const lastUpdateTime = new Date(lastConversation.updated_at);
       const now = new Date();
       const hoursDiff = (now.getTime() - lastUpdateTime.getTime()) / (1000 * 60 * 60);
       
       // If more than 24 hours passed - don't set conversation, new one will be created on first message
-      if (hoursDiff > 24) {
-        // Leave currentConversationId as null
-      } else {
+      if (hoursDiff <= 24) {
         setCurrentConversationId(lastConversation.id);
       }
+      
+      hasLoadedInitialConversation.current = true;
     }
   }, [userId, conversations, currentConversationId]);
 
