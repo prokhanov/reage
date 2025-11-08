@@ -102,14 +102,21 @@ serve(async (req) => {
     const userId = newUser.user.id;
     console.log('User created:', userId);
 
-    // 4. Insert profile
+    // 4. Get gender and birth_date from token metadata
+    const metadata = tokenData.metadata || {};
+    const gender = metadata.gender || 'other';
+    const birthDate = metadata.birth_date || '1990-01-01';
+
+    console.log('Using metadata:', { gender, birthDate });
+
+    // 5. Insert profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .insert({
         id: userId,
         name: `${firstName} ${lastName}`,
-        birth_date: '1990-01-01', // Default value
-        gender: 'other', // Default value
+        birth_date: birthDate,
+        gender: gender,
       });
 
     if (profileError) {
