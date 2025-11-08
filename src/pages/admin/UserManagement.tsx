@@ -192,12 +192,15 @@ export default function UserManagement() {
       const allUsers = [...activeUsers, ...pendingUsers];
       
       // Фильтруем: показываем весь административный персонал
-      // Исключаем только тех, у кого базовая роль "user" И НЕТ кастомной роли
+      // Исключаем только тех, у кого базовая роль "user" И нет привилегированной кастомной роли
       return allUsers.filter(u => {
         if (u.role !== "user") return true; // superadmin, admin, doctor
-        if ((u as any).hasCustomRole) return true; // связанная кастомная роль через role_id
-        if ((u as any).custom_role && (u as any).custom_role.name !== "user") return true; // кастомные роли (manager и т.д.)
-        return false; // обычные пациенты
+        
+        // Проверяем кастомную роль: если есть и она не "user", то это админперсонал
+        if ((u as any).custom_role && (u as any).custom_role.name !== "user") return true;
+        
+        // Если кастомная роль = "user" или её нет, то это обычный пациент
+        return false;
       });
     },
   });
