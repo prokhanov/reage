@@ -38,7 +38,6 @@ export default function RegisterStaff() {
         .from("invite_tokens")
         .select("*")
         .eq("token", token)
-        .is("used_by", null)
         .maybeSingle();
 
       if (error) {
@@ -49,6 +48,11 @@ export default function RegisterStaff() {
 
       if (!data) {
         setInviteError("Недействительное или использованное приглашение");
+        return;
+      }
+
+      if (data.used_by) {
+        setInviteError("Приглашение уже использовано");
         return;
       }
 
