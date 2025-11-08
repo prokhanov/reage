@@ -102,11 +102,24 @@ export default function UserManagement() {
 
       if (invitesError) throw invitesError;
 
+      // Получить display_name для кастомных ролей pending пользователей
+      const pendingRoles = [...new Set((pendingInvites || []).map(i => i.role))];
+      const { data: customRolesData } = await supabase
+        .from("custom_roles")
+        .select("name, display_name")
+        .in("name", pendingRoles);
+
+      const rolesDisplayMap = (customRolesData || []).reduce((acc: any, r: any) => {
+        acc[r.name] = r.display_name;
+        return acc;
+      }, {});
+
       const pendingUsers = (pendingInvites || []).map((invite: any) => ({
         id: invite.token,
         name: invite.metadata?.name || "—",
         email: invite.invited_email,
         role: invite.role,
+        role_display_name: rolesDisplayMap[invite.role] || invite.role,
         custom_role: null,
         permissions: [],
         created_at: invite.created_at,
@@ -204,13 +217,23 @@ export default function UserManagement() {
       .slice(0, 2);
   };
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (role: string, roleDisplayName?: string) => {
     const roleConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
       superadmin: { label: "Суперадмин", variant: "destructive" },
       admin: { label: "Админ", variant: "default" },
       doctor: { label: "Врач", variant: "default" },
       user: { label: "Пациент", variant: "secondary" },
     };
+    
+    // Если есть display_name для кастомной роли - используем его
+    if (roleDisplayName && !roleConfig[role]) {
+      return (
+        <Badge variant="default" className="text-xs">
+          {roleDisplayName}
+        </Badge>
+      );
+    }
+    
     const config = roleConfig[role] || roleConfig.user;
     return (
       <Badge variant={config.variant} className="text-xs">
@@ -326,7 +349,7 @@ export default function UserManagement() {
                                   {user.custom_role.display_name}
                                 </Badge>
                               ) : (
-                                getRoleBadge(user.role)
+                                getRoleBadge(user.role, (user as any).role_display_name)
                               )}
                             </TableCell>
                             <TableCell>
