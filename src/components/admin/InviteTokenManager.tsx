@@ -204,7 +204,6 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                   {customRoles?.map((role) => (
                     <SelectItem key={role.id} value={role.name}>
                       {role.display_name}
-                      {role.is_system && " (системная)"}
                     </SelectItem>
                   ))}
                 </SelectContent>
