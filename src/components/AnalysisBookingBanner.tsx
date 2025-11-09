@@ -63,11 +63,11 @@ export function AnalysisBookingBanner() {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      // Show banner if no bookings, not_scheduled, or scheduled
+      // Show banner if no bookings, not_scheduled, scheduled, or received
       if (!bookings || bookings.length === 0) {
         setShowBanner(true);
         setBookingInfo(null);
-      } else if (bookings[0].status === 'not_scheduled' || bookings[0].status === 'scheduled') {
+      } else if (bookings[0].status === 'not_scheduled' || bookings[0].status === 'scheduled' || bookings[0].status === 'received') {
         setShowBanner(true);
         setBookingInfo(bookings[0] as BookingInfo);
       }
@@ -96,6 +96,7 @@ export function AnalysisBookingBanner() {
   if (isLoading || !userRoleData?.isPatient || !showBanner) return null;
 
   const isScheduled = bookingInfo?.status === 'scheduled';
+  const isReceived = bookingInfo?.status === 'received';
 
   return (
     <>
@@ -117,7 +118,16 @@ export function AnalysisBookingBanner() {
                 <Calendar className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                {isScheduled ? (
+                {isReceived ? (
+                  <>
+                    <p className="font-medium text-sm sm:text-base">
+                      Ваши анализы получены!
+                    </p>
+                    <p className="text-xs sm:text-sm text-white/90">
+                      Скоро результаты появятся. Обычно это занимает 5 дней
+                    </p>
+                  </>
+                ) : isScheduled ? (
                   <>
                     <p className="font-medium text-sm sm:text-base">
                       Ожидайте визита специалиста
@@ -141,13 +151,15 @@ export function AnalysisBookingBanner() {
                 )}
               </div>
             </div>
-            <Button
-              onClick={handleSchedule}
-              size="sm"
-              className="bg-white text-primary hover:bg-white/90 shadow-lg"
-            >
-              {isScheduled ? 'Изменить' : 'Назначить дату'}
-            </Button>
+            {!isReceived && (
+              <Button
+                onClick={handleSchedule}
+                size="sm"
+                className="bg-white text-primary hover:bg-white/90 shadow-lg"
+              >
+                {isScheduled ? 'Изменить' : 'Назначить дату'}
+              </Button>
+            )}
           </div>
         </div>
       </div>
