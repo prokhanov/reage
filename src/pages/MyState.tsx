@@ -16,6 +16,7 @@ import { ru } from "date-fns/locale";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CompareRecordsDialog } from "@/components/symptom-history/CompareRecordsDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MyStateSkeleton } from "@/components/skeletons/MyStateSkeleton";
 
 interface Prescription {
   id: string;
@@ -473,6 +474,10 @@ export default function MyState() {
   }, {} as Record<string, SymptomRecord[]>);
 
   const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+
+  if (loadingHistory) {
+    return <MyStateSkeleton />;
+  }
 
   const getSeverityConfig = (severity: number) => {
     return severityLevels[severity] || severityLevels[0];

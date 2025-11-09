@@ -11,6 +11,7 @@ import { useChatConversations, useChatMessages } from "@/hooks/useChatConversati
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { normalizeMarkdown } from "@/lib/markdown";
 import { ChatHistoryDropdown } from "@/components/ChatHistoryDropdown";
+import { HealthAssistantSkeleton } from "@/components/skeletons/HealthAssistantSkeleton";
 
 interface Message {
   role: "user" | "assistant";
@@ -23,6 +24,7 @@ export default function HealthAssistant() {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const { conversations, createConversation, deleteConversation } = useChatConversations(userId);
   const { messages: dbMessages, saveMessage } = useChatMessages(currentConversationId);
+  const [initialLoading, setInitialLoading] = useState(true);
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -38,7 +40,10 @@ export default function HealthAssistant() {
 
   // Load user ID
   useEffect(() => {
-    getUserId().then(setUserId);
+    getUserId().then((id) => {
+      setUserId(id);
+      setInitialLoading(false);
+    });
   }, [getUserId]);
 
   // Load last conversation or create new one (check 24h rule) - only on initial load
@@ -254,6 +259,10 @@ export default function HealthAssistant() {
     "Как улучшить мои показатели?",
     "Что нужно изменить в образе жизни?",
   ];
+
+  if (initialLoading) {
+    return <HealthAssistantSkeleton />;
+  }
 
   return (
     <div className="container max-w-5xl mx-auto px-4 pt-6 h-screen flex flex-col">

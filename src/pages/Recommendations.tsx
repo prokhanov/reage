@@ -18,6 +18,7 @@ import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
+import { RecommendationsSkeleton } from "@/components/skeletons/RecommendationsSkeleton";
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;
@@ -544,11 +545,7 @@ export default function Recommendations() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+    return <RecommendationsSkeleton />;
   }
 
   return (
