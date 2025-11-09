@@ -28,10 +28,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
+import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
+  const [selectedPatientForInfo, setSelectedPatientForInfo] = useState<any | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -301,7 +303,7 @@ export default function Patients() {
                         <TableRow
                           key={patient.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => setSelectedPatientId(patient.id)}
+                          onClick={() => setSelectedPatientForInfo(patient)}
                         >
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -363,7 +365,7 @@ export default function Patients() {
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedPatientId(patient.id);
+                                  setSelectedPatientForInfo(patient);
                                 }}
                               >
                                 <User className="w-4 h-4 mr-2" />
@@ -418,6 +420,15 @@ export default function Patients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PatientInfoDialog
+        patient={selectedPatientForInfo}
+        onClose={() => setSelectedPatientForInfo(null)}
+        onOpenView={(patientId) => {
+          setSelectedPatientForInfo(null);
+          setSelectedPatientId(patientId);
+        }}
+      />
 
       <PatientViewDialog 
         patientId={selectedPatientId} 
