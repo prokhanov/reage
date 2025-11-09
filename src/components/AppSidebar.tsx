@@ -11,6 +11,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
+import { useMyAssignmentsCount } from "@/hooks/useMyAssignmentsCount";
 import reAgeLogo from "@/assets/reage-logo.png";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -47,6 +48,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
   const { data: scheduledCount = 0 } = useScheduledBookingsCount();
+  const { data: myAssignmentsCount = 0 } = useMyAssignmentsCount();
   const [patientName, setPatientName] = useState<string>("");
   const [patientEmail, setPatientEmail] = useState<string>("");
 
@@ -190,7 +192,11 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем админские разделы */}
                 {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems.map((item) => {
                   const isBookingsPage = item.to === "/admin/analysis-bookings";
+                  const isMyAssignmentsPage = item.to === "/admin/my-assignments";
                   const hasScheduled = isBookingsPage && scheduledCount > 0;
+                  const hasMyAssignments = isMyAssignmentsPage && myAssignmentsCount > 0;
+                  const showCount = hasScheduled || hasMyAssignments;
+                  const count = isBookingsPage ? scheduledCount : myAssignmentsCount;
                   
                   return (
                     <NavLink
@@ -206,10 +212,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                       }
                     >
                       <item.icon className="h-4 w-4" />
-                      <span className={cn("font-medium", hasScheduled && "font-bold")}>
+                      <span className={cn("font-medium", showCount && "font-bold")}>
                         {item.label}
-                        {hasScheduled && (
-                          <span className="ml-1 text-primary">({scheduledCount})</span>
+                        {showCount && (
+                          <span className="ml-1 text-primary">({count})</span>
                         )}
                       </span>
                     </NavLink>
