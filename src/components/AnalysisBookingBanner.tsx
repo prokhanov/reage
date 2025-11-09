@@ -61,25 +61,28 @@ export function AnalysisBookingBanner() {
         .from('analysis_bookings')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .order('booking_date', { ascending: false });
 
-      // Show banner if no bookings, not_scheduled, scheduled, received, or collected
+      // Show banner if no bookings
       if (!bookings || bookings.length === 0) {
         setShowBanner(true);
         setBookingInfo(null);
+        return;
+      }
+
+      // Prioritize active statuses: collected > received > scheduled > not_scheduled
+      const collectedBooking = bookings.find(b => b.status === 'collected');
+      const receivedBooking = bookings.find(b => b.status === 'received');
+      const scheduledBooking = bookings.find(b => b.status === 'scheduled');
+      const notScheduledBooking = bookings.find(b => b.status === 'not_scheduled');
+
+      const activeBooking = collectedBooking || receivedBooking || scheduledBooking || notScheduledBooking;
+
+      if (activeBooking) {
+        setShowBanner(true);
+        setBookingInfo(activeBooking as BookingInfo);
       } else {
-        const latestBooking = bookings[0];
-        // Show banner for active statuses
-        if (latestBooking.status === 'not_scheduled' || 
-            latestBooking.status === 'scheduled' || 
-            latestBooking.status === 'received' || 
-            latestBooking.status === 'collected') {
-          setShowBanner(true);
-          setBookingInfo(latestBooking as BookingInfo);
-        } else {
-          setShowBanner(false);
-        }
+        setShowBanner(false);
       }
     } catch (error) {
       console.error('Error checking booking status:', error);
