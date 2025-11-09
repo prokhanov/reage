@@ -135,6 +135,44 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
+  const handleCancel = async () => {
+    if (!existingBookingId) return;
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('analysis_bookings')
+        .update({ status: 'not_scheduled' } as any)
+        .eq('id', existingBookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Запись отменена",
+        description: "Вы можете записаться на новую дату",
+      });
+
+      // Reset form and close dialog
+      setBookingDate(undefined);
+      setBookingTime("");
+      setBookingAddress("");
+      setExistingBookingId(null);
+      onOpenChange(false);
+      
+      // Call success callback to refresh banner
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error canceling booking:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось отменить запись. Попробуйте еще раз.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -235,8 +273,19 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             className="flex-1 h-12"
             disabled={isSubmitting}
           >
-            Отмена
+            Закрыть
           </Button>
+          {existingBookingId && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleCancel}
+              className="flex-1 h-12"
+              disabled={isSubmitting}
+            >
+              Отменить запись
+            </Button>
+          )}
           <Button
             onClick={handleSubmit}
             disabled={!isValid || isSubmitting}
