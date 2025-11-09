@@ -286,7 +286,9 @@ export default function DataManagement() {
                 </div>
 
                 {loadingBiomarkers ? (
-                  <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+                  <div className="flex items-center justify-center py-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  </div>
                 ) : (
                   <div className="space-y-6">
                     {Object.entries(groupedBiomarkers || {}).map(([category, items]: [string, any]) => (
@@ -385,7 +387,9 @@ export default function DataManagement() {
                 </div>
 
                 {loadingConditions ? (
-                  <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+                  <div className="flex items-center justify-center py-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  </div>
                 ) : (
                   <div className="space-y-6">
                     {Object.entries(groupedConditions || {}).map(([category, items]: [string, any]) => (

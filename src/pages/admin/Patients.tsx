@@ -184,7 +184,9 @@ export default function Patients() {
             </div>
 
             {isLoading ? (
-              <div className="text-center py-12 text-muted-foreground">Загрузка...</div>
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              </div>
             ) : (
               <div className="rounded-md border overflow-x-auto">
                 <Table>
