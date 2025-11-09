@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { AnalysisBookingDialog } from "./AnalysisBookingDialog";
 
 export function AnalysisBookingBanner() {
   const [showBanner, setShowBanner] = useState(false);
-  const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { data: userRoleData } = useUserRole();
 
   useEffect(() => {
@@ -36,14 +36,20 @@ export function AnalysisBookingBanner() {
   };
 
   const handleSchedule = () => {
-    navigate('/dashboard'); // TODO: navigate to booking page when created
+    setDialogOpen(true);
   };
 
   // Only show banner for patients
   if (!showBanner || !userRoleData?.isPatient) return null;
 
   return (
-    <div className="bg-gradient-primary text-white shadow-neon-primary animate-fade-in">
+    <>
+      <AnalysisBookingDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen}
+        onSuccess={checkBookingStatus}
+      />
+      <div className="bg-gradient-primary text-white shadow-neon-primary animate-fade-in">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1">
@@ -69,5 +75,6 @@ export function AnalysisBookingBanner() {
         </div>
       </div>
     </div>
+    </>
   );
 }
