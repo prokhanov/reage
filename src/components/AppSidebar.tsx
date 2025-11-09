@@ -41,9 +41,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { viewAsUserId, simPath, setSimPath, setViewAsUserId } = useContext(ViewAsPatientContext);
+  const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
   const [patientName, setPatientName] = useState<string>("");
+  const [patientEmail, setPatientEmail] = useState<string>("");
 
   // Извлекаем данные из React Query
   const isSuperAdmin = roleData?.isSuperAdmin ?? false;
@@ -54,21 +55,22 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
   useEffect(() => {
     if (viewAsUserId) {
-      loadPatientName();
+      loadPatientData();
     }
   }, [viewAsUserId]);
 
-  const loadPatientName = async () => {
+  const loadPatientData = async () => {
     if (!viewAsUserId) return;
     try {
       const { data } = await supabase
         .from("profiles")
-        .select("name")
+        .select("name, email")
         .eq("id", viewAsUserId)
         .single();
       setPatientName(data?.name || "");
+      setPatientEmail(data?.email || "");
     } catch (error) {
-      console.error("Error loading patient name:", error);
+      console.error("Error loading patient data:", error);
     }
   };
 
@@ -83,8 +85,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const handleExitViewMode = () => {
     setViewAsUserId(null);
     setSimPath("/dashboard");
-    navigate("/admin/patients");
     setIsOpen(false);
+    if (onExitView) {
+      onExitView();
+    }
   };
 
   return (
@@ -109,8 +113,12 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           {/* Logo */}
           <div className="p-6 border-b border-border/30">
             <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto mb-3" />
-            <p className="text-xs text-muted-foreground mt-1 truncate">{userEmail}</p>
-            <p className="text-xs text-primary/70 font-medium mt-0.5">{userRole}</p>
+            <p className="text-xs text-muted-foreground mt-1 truncate">
+              {viewAsUserId ? patientEmail : userEmail}
+            </p>
+            <p className="text-xs text-primary/70 font-medium mt-0.5">
+              {viewAsUserId ? "Пациент" : userRole}
+            </p>
           </div>
 
           {/* View Mode Badge */}

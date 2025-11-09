@@ -56,7 +56,7 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
         className="max-w-full w-screen h-screen p-0 gap-0"
         hideCloseButton
       >
-        <ViewAsPatientProvider userId={patientId}>
+        <ViewAsPatientProvider userId={patientId} onExitView={onClose}>
           <DashboardLayout>
             <SimulatedContent />
           </DashboardLayout>
