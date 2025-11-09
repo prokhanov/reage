@@ -75,66 +75,44 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       // Устанавливаем email
       setUserEmail(user.email || "");
 
-      // Получаем все роли пользователя
+      // Делаем один запрос для получения всех ролей с permissions
       const { data: allRoles } = await supabase
         .from("user_roles")
-        .select("role")
+        .select("role, role_id")
         .eq("user_id", user.id);
 
-      // Проверяем роль superadmin
-      const { data: superAdminData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "superadmin")
-        .single();
+      if (!allRoles || allRoles.length === 0) return;
 
-      setIsSuperAdmin(!!superAdminData);
-
-      // Проверяем роль пациента
-      const { data: patientData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "patient")
-        .single();
-
-      setIsPatient(!!patientData);
+      const roles = allRoles.map(r => r.role);
+      
+      // Устанавливаем флаги на основе одного запроса
+      setIsSuperAdmin(roles.includes("superadmin"));
+      setIsPatient(roles.includes("patient"));
 
       // Определяем приоритетную роль для отображения
-      if (allRoles && allRoles.length > 0) {
-        const roles = allRoles.map(r => r.role);
-        if (roles.includes("superadmin")) {
-          setUserRole("Суперадмин");
-        } else if (roles.includes("admin")) {
-          setUserRole("Администратор");
-        } else if (roles.includes("doctor")) {
-          setUserRole("Врач");
-        } else if (roles.includes("patient")) {
-          setUserRole("Пациент");
-        } else {
-          setUserRole("Пользователь");
-        }
+      if (roles.includes("superadmin")) {
+        setUserRole("Суперадмин");
+      } else if (roles.includes("admin")) {
+        setUserRole("Администратор");
+      } else if (roles.includes("doctor")) {
+        setUserRole("Врач");
+      } else if (roles.includes("patient")) {
+        setUserRole("Пациент");
+      } else {
+        setUserRole("Пользователь");
       }
 
-      // Проверяем доступ к любому админскому модулю через role_permissions
-      const { data: userRoles } = await supabase
-        .from("user_roles")
-        .select("role_id")
-        .eq("user_id", user.id);
+      // Проверяем доступ к админским модулям
+      const roleIds = allRoles.map(r => r.role_id).filter(Boolean);
+      
+      if (roleIds.length > 0) {
+        const { data: permissions } = await supabase
+          .from("role_permissions")
+          .select("module")
+          .in("role_id", roleIds)
+          .eq("enabled", true);
 
-      if (userRoles && userRoles.length > 0) {
-        const roleIds = userRoles.map(r => r.role_id).filter(Boolean);
-        
-        if (roleIds.length > 0) {
-          const { data: permissions } = await supabase
-            .from("role_permissions")
-            .select("module")
-            .in("role_id", roleIds)
-            .eq("enabled", true);
-
-          setHasAdminAccess(!!(permissions && permissions.length > 0));
-        }
+        setHasAdminAccess(!!(permissions && permissions.length > 0));
       }
     } catch (error) {
       setIsSuperAdmin(false);
