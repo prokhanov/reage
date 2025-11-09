@@ -265,41 +265,43 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="flex-1 h-12"
-            disabled={isSubmitting}
-          >
-            Закрыть
-          </Button>
-          {existingBookingId && (
+        <div className="space-y-3 pt-4">
+          <div className="flex gap-3">
             <Button
               type="button"
-              variant="destructive"
-              onClick={handleCancel}
+              variant="outline"
+              onClick={() => onOpenChange(false)}
               className="flex-1 h-12"
               disabled={isSubmitting}
             >
-              Отменить запись
+              Закрыть
             </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!isValid || isSubmitting}
+              className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
+            >
+              {isSubmitting ? (
+                "Сохранение..."
+              ) : (
+                <>
+                  <Check className="mr-2 h-5 w-5" />
+                  {existingBookingId ? 'Сохранить изменения' : 'Записаться'}
+                </>
+              )}
+            </Button>
+          </div>
+          
+          {existingBookingId && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+              className="w-full text-center text-sm text-destructive hover:text-destructive/80 transition-colors disabled:opacity-50"
+            >
+              Отменить запись
+            </button>
           )}
-          <Button
-            onClick={handleSubmit}
-            disabled={!isValid || isSubmitting}
-            className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
-          >
-            {isSubmitting ? (
-              "Сохранение..."
-            ) : (
-              <>
-                <Check className="mr-2 h-5 w-5" />
-                {existingBookingId ? 'Сохранить изменения' : 'Записаться'}
-              </>
-            )}
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
