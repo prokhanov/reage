@@ -45,27 +45,38 @@ export default function Patients() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
-        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["patients"] });
+        }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'analyses' },
-        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["patients"] });
+        }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'subscriptions' },
-        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["patients"] });
+        }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'analysis_bookings' },
-        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+        () => {
+          console.log('Analysis booking changed, refreshing patient list');
+          queryClient.invalidateQueries({ queryKey: ["patients"] });
+        }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'user_roles' },
-        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["patients"] });
+        }
       )
       .subscribe();
 
