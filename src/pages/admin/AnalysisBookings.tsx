@@ -34,6 +34,7 @@ import { ru } from "date-fns/locale";
 import AnalysisBookingsSkeleton from "@/components/skeletons/AnalysisBookingsSkeleton";
 import AssignStaffDialog from "@/components/admin/AssignStaffDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
+import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -85,6 +86,12 @@ export default function AnalysisBookings() {
   const [selectedBookingForStaff, setSelectedBookingForStaff] = useState<string | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
+  const [editingBooking, setEditingBooking] = useState<{
+    id: string;
+    date: string;
+    time: string;
+    address: string;
+  } | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -372,15 +379,35 @@ export default function AnalysisBookings() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">
-                        {format(new Date(booking.booking_date), "d MMMM yyyy", { locale: ru })}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {booking.booking_time}
-                      </div>
+                      <button
+                        onClick={() => setEditingBooking({
+                          id: booking.id,
+                          date: booking.booking_date,
+                          time: booking.booking_time,
+                          address: booking.address
+                        })}
+                        className="text-left border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
+                      >
+                        <div className="font-medium">
+                          {format(new Date(booking.booking_date), "d MMMM yyyy", { locale: ru })}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {booking.booking_time}
+                        </div>
+                      </button>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {booking.address}
+                    <TableCell className="max-w-[200px]">
+                      <button
+                        onClick={() => setEditingBooking({
+                          id: booking.id,
+                          date: booking.booking_date,
+                          time: booking.booking_time,
+                          address: booking.address
+                        })}
+                        className="truncate border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer block max-w-full"
+                      >
+                        {booking.address}
+                      </button>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -468,6 +495,16 @@ export default function AnalysisBookings() {
           patientId={selectedPatientId}
           onClose={() => setSelectedPatientId(null)}
           onOpenView={() => {}}
+        />
+      )}
+
+      {editingBooking && (
+        <EditBookingDialog
+          bookingId={editingBooking.id}
+          currentDate={editingBooking.date}
+          currentTime={editingBooking.time}
+          currentAddress={editingBooking.address}
+          onClose={() => setEditingBooking(null)}
         />
       )}
 
