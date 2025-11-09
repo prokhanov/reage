@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, User, Calendar, Activity } from "lucide-react";
+import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -73,6 +73,24 @@ export default function Patients() {
             .limit(1)
             .maybeSingle();
 
+          // Get subscription status
+          const { data: subscription } = await supabase
+            .from("subscriptions")
+            .select("status")
+            .eq("user_id", profile.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          // Get analysis booking status
+          const { data: booking } = await supabase
+            .from("analysis_bookings")
+            .select("status")
+            .eq("user_id", profile.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
           const userRoleData = rolesMap[profile.id] || { 
             baseRole: "user", 
             customRole: null, 
@@ -94,6 +112,8 @@ export default function Patients() {
             ...profile,
             analysisCount: analysisCount || 0,
             latestAnalysisDate: latestAnalysis?.date,
+            subscriptionStatus: subscription?.status || 'pending',
+            bookingStatus: booking?.status || 'not_scheduled',
             role: primaryRole,
             allRoles: userRoleData.allRoles,
             customRole: userRoleData.customRole,
@@ -152,6 +172,38 @@ export default function Patients() {
     );
   };
 
+  const getSubscriptionBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      active: { label: "Активна", variant: "default" },
+      pending: { label: "Ожидает оплаты", variant: "secondary" },
+      expired: { label: "Истекла", variant: "destructive" },
+      cancelled: { label: "Отменена", variant: "outline" },
+    };
+    const config = statusConfig[status] || statusConfig.pending;
+    return (
+      <Badge variant={config.variant} className="text-xs">
+        <CreditCard className="w-3 h-3 mr-1" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const getBookingBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      not_scheduled: { label: "Не назначен", variant: "secondary" },
+      scheduled: { label: "Назначен", variant: "outline" },
+      collected: { label: "Получен", variant: "default" },
+      uploaded: { label: "Загружен", variant: "default" },
+    };
+    const config = statusConfig[status] || statusConfig.not_scheduled;
+    return (
+      <Badge variant={config.variant} className="text-xs">
+        <Syringe className="w-3 h-3 mr-1" />
+        {config.label}
+      </Badge>
+    );
+  };
+
   if (isLoading) {
     return <PatientsListSkeleton />;
   }
@@ -192,11 +244,12 @@ export default function Patients() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Пациент</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Возраст</TableHead>
                       <TableHead>Пол</TableHead>
-                      <TableHead>Роль</TableHead>
+                      <TableHead>Подписка</TableHead>
+                      <TableHead>Статус анализа</TableHead>
                       <TableHead>Анализов</TableHead>
-                      <TableHead>Последний анализ</TableHead>
                       <TableHead className="w-[100px]">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -225,6 +278,16 @@ export default function Patients() {
                             </div>
                           </TableCell>
                           <TableCell>
+                            {patient.email ? (
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{patient.email}</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             {patient.birth_date ? (
                               <div className="flex items-center gap-2">
                                 <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -243,19 +306,13 @@ export default function Patients() {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
-                          <TableCell>{getRoleBadge(patient.role)}</TableCell>
+                          <TableCell>{getSubscriptionBadge(patient.subscriptionStatus)}</TableCell>
+                          <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Activity className="w-4 h-4 text-muted-foreground" />
                               {patient.analysisCount}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            {patient.latestAnalysisDate ? (
-                              new Date(patient.latestAnalysisDate).toLocaleDateString("ru-RU")
-                            ) : (
-                              <span className="text-muted-foreground">Нет анализов</span>
-                            )}
                           </TableCell>
                           <TableCell>
                             <Button
@@ -274,7 +331,7 @@ export default function Patients() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           Пациенты не найдены
                         </TableCell>
                       </TableRow>
