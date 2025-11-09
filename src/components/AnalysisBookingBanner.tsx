@@ -46,9 +46,7 @@ export function AnalysisBookingBanner() {
         .limit(1)
         .maybeSingle();
 
-      setHasActiveSubscription(
-        subscription?.status === 'active' || subscription?.status === 'pending'
-      );
+      setHasActiveSubscription(subscription?.status === 'active');
     } catch (error) {
       console.error('Error checking subscription status:', error);
     }
