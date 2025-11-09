@@ -13,6 +13,7 @@ import { CreateAnalysisWizard } from "@/components/admin/CreateAnalysisWizard";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
+import { AnalysisCardSkeleton } from "@/components/skeletons/AnalysisCardSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -132,13 +133,10 @@ export default function Analyses() {
 
   return (
     <DashboardLayout>
-      {loading && analyses.length === 0 ? (
-        <div className="flex min-h-full items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      ) : (
-      <>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
+      {(!loading || analyses.length > 0) && (
+        <>
         <div className="mb-8 flex justify-between items-start">
           <div>
             <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
@@ -274,40 +272,40 @@ export default function Analyses() {
             ))}
           </div>
         )}
+        </>
+      )}
       </div>
 
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Удалить анализ?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Это действие нельзя отменить. Анализ и все связанные данные будут удалены навсегда.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAnalysis} className="bg-destructive hover:bg-destructive/90">
-                Удалить
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить анализ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Анализ и все связанные данные будут удалены навсегда.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAnalysis} className="bg-destructive hover:bg-destructive/90">
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        <CreateAnalysisWizard 
-          open={createDialogOpen} 
-          onOpenChange={setCreateDialogOpen}
+      <CreateAnalysisWizard 
+        open={createDialogOpen} 
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={loadAnalyses}
+      />
+
+      {analysisToEdit && (
+        <EditAnalysisWizard
+          analysisId={analysisToEdit}
+          open={editAnalysisDialogOpen}
+          onOpenChange={setEditAnalysisDialogOpen}
           onSuccess={loadAnalyses}
         />
-
-        {analysisToEdit && (
-          <EditAnalysisWizard
-            analysisId={analysisToEdit}
-            open={editAnalysisDialogOpen}
-            onOpenChange={setEditAnalysisDialogOpen}
-            onSuccess={loadAnalyses}
-          />
-        )}
-      </>
       )}
     </DashboardLayout>
   );

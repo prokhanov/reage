@@ -13,6 +13,7 @@ import { BodyHeatmap } from "@/components/BodyHeatmap";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { WeightTracker } from "@/components/WeightTracker";
 import { format } from "date-fns";
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -314,8 +315,8 @@ export default function Dashboard() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="p-4 md:p-8">
+          <DashboardSkeleton />
         </div>
       </DashboardLayout>
     );

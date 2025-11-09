@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
 
 interface BiomarkerData {
   id: string;
@@ -163,14 +164,11 @@ export default function Biomarkers() {
 
   return (
     <DashboardLayout>
-      {loading ? (
-        <div className="flex min-h-full items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      ) : (
-      <>
       <TooltipProvider delayDuration={0}>
         <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {loading && <BiomarkerTableSkeleton />}
+        {!loading && (
+        <>
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
             Биомаркеры
@@ -378,11 +376,11 @@ export default function Biomarkers() {
               </AccordionItem>
             ))}
         </Accordion>
+          )}
+        </>
         )}
-      </div>
+        </div>
       </TooltipProvider>
-      </>
-      )}
     </DashboardLayout>
   );
 }

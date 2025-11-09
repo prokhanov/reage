@@ -10,6 +10,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { format } from "date-fns";
+import { TrendChartSkeleton } from "@/components/skeletons/TrendChartSkeleton";
 
 interface Biomarker {
   id: string;
@@ -143,12 +144,10 @@ export default function Trends() {
 
   return (
     <DashboardLayout>
-      {loading ? (
-        <div className="flex min-h-full items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      ) : (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {loading && <TrendChartSkeleton />}
+      {!loading && (
+      <>
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
             Динамика показателей
@@ -308,8 +307,9 @@ export default function Trends() {
             )}
           </div>
         )}
-      </div>
+      </>
       )}
+      </div>
     </DashboardLayout>
   );
 }

@@ -13,6 +13,7 @@ import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
+import { PrescriptionListSkeleton } from "@/components/skeletons/PrescriptionListSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -185,13 +186,10 @@ export default function Prescriptions() {
 
   return (
     <DashboardLayout>
-      {isLoading ? (
-        <div className="flex min-h-full items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      ) : (
-      <>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      {isLoading && <PrescriptionListSkeleton />}
+      {!isLoading && (
+        <>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Назначения</h1>
@@ -253,6 +251,8 @@ export default function Prescriptions() {
             )}
           </TabsContent>
         </Tabs>
+        </>
+      )}
       </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -293,8 +293,6 @@ export default function Prescriptions() {
         onOpenChange={(open) => !open && setEditPrescription(null)}
         prescription={editPrescription}
       />
-      </>
-      )}
     </DashboardLayout>
   );
 }
