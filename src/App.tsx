@@ -30,6 +30,7 @@ import DataManagement from "./pages/admin/DataManagement";
 import Patients from "./pages/admin/Patients";
 import PatientProfile from "./pages/admin/PatientProfile";
 import UserManagement from "./pages/admin/UserManagement";
+import AnalysisBookings from "./pages/admin/AnalysisBookings";
 import RegisterStaff from "./pages/RegisterStaff";
 import NotFound from "./pages/NotFound";
 
@@ -137,6 +138,16 @@ const App = () => (
                   <StaffRoute>
                     <AdminModuleRoute module="user_management">
                       <UserManagement />
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/analysis-bookings" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="analysis_bookings">
+                      <AnalysisBookings />
                     </AdminModuleRoute>
                   </StaffRoute>
                 } 

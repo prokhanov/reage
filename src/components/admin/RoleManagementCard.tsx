@@ -32,6 +32,7 @@ const ADMIN_MODULES = [
   { value: "data_management", label: "Управление данными" },
   { value: "patients", label: "Пациенты" },
   { value: "user_management", label: "Управление пользователями" },
+  { value: "analysis_bookings", label: "Записи на анализы" },
 ];
 
 interface Role {

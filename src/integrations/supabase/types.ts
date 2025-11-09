@@ -104,6 +104,7 @@ export type Database = {
       analysis_bookings: {
         Row: {
           address: string
+          assigned_staff_id: string | null
           booking_date: string
           booking_time: string
           created_at: string
@@ -114,6 +115,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          assigned_staff_id?: string | null
           booking_date: string
           booking_time: string
           created_at?: string
@@ -124,6 +126,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          assigned_staff_id?: string | null
           booking_date?: string
           booking_time?: string
           created_at?: string
@@ -132,7 +135,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "analysis_bookings_assigned_staff_id_fkey"
+            columns: ["assigned_staff_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       analysis_values: {
         Row: {
@@ -764,6 +775,7 @@ export type Database = {
         | "data_management"
         | "patients"
         | "user_management"
+        | "analysis_bookings"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
       prescription_status: "on_review" | "confirmed"
@@ -899,6 +911,7 @@ export const Constants = {
         "data_management",
         "patients",
         "user_management",
+        "analysis_bookings",
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],
