@@ -92,8 +92,8 @@ export function AnalysisBookingBanner() {
     }, 300);
   };
 
-  // Don't render while loading or if not a patient
-  if (isLoading || !userRoleData?.isPatient || !showBanner) return null;
+  // Don't render while loading or if banner should not be shown
+  if (isLoading || !showBanner) return null;
 
   const isScheduled = bookingInfo?.status === 'scheduled';
   const isReceived = bookingInfo?.status === 'received';
