@@ -63,14 +63,16 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
         .limit(1)
         .maybeSingle();
 
-      // Бронирование анализа
-      const { data: booking } = await supabase
+      // Бронирование анализа - берем запись с датой следующего анализа или последнюю не not_scheduled
+      const { data: bookings } = await supabase
         .from("analysis_bookings")
         .select("*")
         .eq("user_id", patientId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .neq("status", "not_scheduled")
+        .order("booking_date", { ascending: false })
+        .limit(1);
+      
+      const booking = bookings?.[0] || null;
 
       // Жалобы и цели
       const { data: complaints } = await supabase
