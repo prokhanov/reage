@@ -13,6 +13,7 @@ import Recommendations from "@/pages/Recommendations";
 import Prescriptions from "@/pages/Prescriptions";
 import Trends from "@/pages/Trends";
 import MyState from "@/pages/MyState";
+import Subscription from "@/pages/Subscription";
 import { useState } from "react";
 
 function SimulatedContent() {
@@ -40,6 +41,8 @@ function SimulatedContent() {
       return <Trends />;
     case "/my-state":
       return <MyState />;
+    case "/subscription":
+      return <Subscription />;
     default:
       return <Dashboard />;
   }
