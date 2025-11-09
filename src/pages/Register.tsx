@@ -13,7 +13,6 @@ import {
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
-import { RegisterStep4 } from "@/components/register/RegisterStep4";
 import { RegisterStep5 } from "@/components/register/RegisterStep5";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import confetti from "canvas-confetti";
@@ -32,9 +31,6 @@ export interface RegisterFormData {
   weight: string;
   height: string;
   medicalHistory: string[];
-  bookingDate: Date | undefined;
-  bookingTime: string;
-  bookingAddress: string;
 }
 
 const steps = [
@@ -58,12 +54,6 @@ const steps = [
   },
   { 
     id: 4, 
-    title: "Анализы", 
-    description: "Запись на визит",
-    icon: Calendar 
-  },
-  { 
-    id: 5, 
     title: "Подписка", 
     description: "Оформление",
     icon: Lock 
@@ -82,10 +72,7 @@ export default function Register() {
     birth_date: undefined,
     weight: "",
     height: "",
-    medicalHistory: [],
-    bookingDate: undefined,
-    bookingTime: "",
-    bookingAddress: ""
+    medicalHistory: []
   });
   
   const navigate = useNavigate();
@@ -167,22 +154,7 @@ export default function Register() {
         if (medicalError) throw medicalError;
       }
 
-      // 5. Save analysis booking if provided
-      if (formData.bookingDate && formData.bookingTime && formData.bookingAddress) {
-        const { error: bookingError } = await supabase
-          .from('analysis_bookings')
-          .insert({
-            user_id: authData.user.id,
-            booking_date: format(formData.bookingDate, 'yyyy-MM-dd'),
-            booking_time: formData.bookingTime,
-            address: formData.bookingAddress,
-            status: 'pending'
-          });
-
-        if (bookingError) throw bookingError;
-      }
-
-      // 6. Save subscription
+      // 4. Save subscription
       const subscriptionStatus = paymentData.skipPayment ? 'pending' : 'active';
       const { error: subscriptionError } = await supabase
         .from('subscriptions')
@@ -343,22 +315,6 @@ export default function Register() {
               
               <div className={`transition-all duration-500 ${currentStep === 4 ? 'animate-fade-in' : 'hidden'}`}>
                 {currentStep === 4 && (
-                  <RegisterStep4 
-                    bookingDate={formData.bookingDate}
-                    bookingTime={formData.bookingTime}
-                    bookingAddress={formData.bookingAddress}
-                    onDateChange={(date) => updateFormData({ bookingDate: date })}
-                    onTimeChange={(time) => updateFormData({ bookingTime: time })}
-                    onAddressChange={(address) => updateFormData({ bookingAddress: address })}
-                    onNext={handleNext}
-                    onSkip={handleNext}
-                    onBack={handlePrevious}
-                  />
-                )}
-              </div>
-              
-              <div className={`transition-all duration-500 ${currentStep === 5 ? 'animate-fade-in' : 'hidden'}`}>
-                {currentStep === 5 && (
                   <RegisterStep5 
                     onSubmit={handleFinalSubmit}
                     onBack={handlePrevious}

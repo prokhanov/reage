@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Button } from "./ui/button";
 import { Menu } from "lucide-react";
 import reAgeLogo from "@/assets/reage-logo.png";
+import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="w-10" />
         </div>
       </header>
+
+      {/* Analysis Booking Banner */}
+      <div className="lg:ml-64 pt-16 lg:pt-0">
+        <AnalysisBookingBanner />
+      </div>
 
       {/* Main content */}
       <main className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
