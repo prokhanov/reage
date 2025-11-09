@@ -11,6 +11,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
 import reAgeLogo from "@/assets/reage-logo.png";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ const adminNavItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
   const [patientName, setPatientName] = useState<string>("");
@@ -71,6 +73,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
 
   const handleLogout = async () => {
+    queryClient.invalidateQueries({ queryKey: ["userRole"] });
     await supabase.auth.signOut();
     toast({ title: "Вы вышли из системы" });
     navigate("/");

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Функция для определения посадочной страницы по ролям
 const getDefaultRouteForUser = async (userId: string): Promise<string> => {
@@ -48,6 +49,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Set up auth state listener
@@ -55,6 +57,9 @@ export default function Auth() {
       (event, session) => {
         setSession(session);
         if (session) {
+          // Инвалидируем кеш ролей при логине
+          queryClient.invalidateQueries({ queryKey: ["userRole"] });
+          
           // Определяем посадочную страницу после входа
           setTimeout(async () => {
             const from = (location.state as any)?.from?.pathname;
