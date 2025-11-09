@@ -105,7 +105,8 @@ export function AnalysisBookingBanner() {
   };
 
   // Don't render while loading or if banner should not be shown
-  if (isLoading || !showBanner) return null;
+  // Only show banner for patients, not for admins viewing patient profiles
+  if (isLoading || !showBanner || !userRoleData?.isPatient) return null;
 
   const isScheduled = bookingInfo?.status === 'scheduled';
   const isReceived = bookingInfo?.status === 'received';
