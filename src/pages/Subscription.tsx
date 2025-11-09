@@ -115,6 +115,37 @@ export default function Subscription() {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!subscription) return;
+    
+    setCreating(true);
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('id', subscription.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Подписка отменена",
+        description: "Ваша подписка успешно отменена.",
+      });
+
+      // Reload subscription data
+      await loadSubscription();
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось отменить подписку. Попробуйте позже.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (loading) {
     return <SubscriptionSkeleton />;
   }
@@ -331,13 +362,23 @@ export default function Subscription() {
               </Button>
             )}
             {isActive && (
-              <Button 
-                variant="outline"
-                className="flex-1"
-                size="lg"
-              >
-                Управление подпиской
-              </Button>
+              <>
+                <Button 
+                  variant="outline"
+                  className="flex-1"
+                  size="lg"
+                >
+                  Управление подпиской
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleCancelSubscription}
+                  disabled={creating}
+                  size="lg"
+                >
+                  {creating ? "Отменяем..." : "Отменить подписку"}
+                </Button>
+              </>
             )}
           </div>
         </CardContent>
