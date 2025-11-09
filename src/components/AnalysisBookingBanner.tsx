@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, X } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,6 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 export function AnalysisBookingBanner() {
   const [showBanner, setShowBanner] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
   const navigate = useNavigate();
   const { data: userRoleData } = useUserRole();
 
@@ -36,17 +35,12 @@ export function AnalysisBookingBanner() {
     }
   };
 
-  const handleDismiss = () => {
-    setIsDismissed(true);
-    setTimeout(() => setShowBanner(false), 300);
-  };
-
   const handleSchedule = () => {
     navigate('/dashboard'); // TODO: navigate to booking page when created
   };
 
   // Only show banner for patients
-  if (!showBanner || isDismissed || !userRoleData?.isPatient) return null;
+  if (!showBanner || !userRoleData?.isPatient) return null;
 
   return (
     <div className="bg-gradient-primary text-white shadow-neon-primary animate-fade-in">
@@ -65,23 +59,13 @@ export function AnalysisBookingBanner() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleSchedule}
-              size="sm"
-              className="bg-white text-primary hover:bg-white/90 shadow-lg"
-            >
-              Назначить дату
-            </Button>
-            <Button
-              onClick={handleDismiss}
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-white hover:bg-white/20"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            onClick={handleSchedule}
+            size="sm"
+            className="bg-white text-primary hover:bg-white/90 shadow-lg"
+          >
+            Назначить дату
+          </Button>
         </div>
       </div>
     </div>
