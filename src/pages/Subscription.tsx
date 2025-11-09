@@ -7,8 +7,9 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { SubscriptionSkeleton } from "@/components/skeletons/SubscriptionSkeleton";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { Check, Calendar, CreditCard, Sparkles } from "lucide-react";
-import { format } from "date-fns";
+import { format, addYears } from "date-fns";
 import { ru } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 interface Subscription {
   id: string;
@@ -36,6 +37,8 @@ export default function Subscription() {
   const { getUserId } = useViewAsUser();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadSubscription();
@@ -67,6 +70,48 @@ export default function Subscription() {
       console.error('Error loading subscription:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateSubscription = async () => {
+    setCreating(true);
+    try {
+      const userId = await getUserId();
+      if (!userId) return;
+
+      const startDate = new Date();
+      const endDate = addYears(startDate, 1);
+
+      const { error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: userId,
+          plan_type: 'annual',
+          amount: 120000,
+          status: 'active',
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
+          payment_method: 'test'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Подписка активирована!",
+        description: "Ваша годовая подписка успешно оформлена.",
+      });
+
+      // Reload subscription data
+      await loadSubscription();
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось оформить подписку. Попробуйте позже.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -123,9 +168,11 @@ export default function Subscription() {
             <Button 
               className="w-full h-14 text-lg bg-gradient-primary shadow-neon-primary"
               size="lg"
+              onClick={handleCreateSubscription}
+              disabled={creating}
             >
               <CreditCard className="mr-2 h-5 w-5" />
-              Оформить подписку
+              {creating ? "Оформляем..." : "Оформить подписку"}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
