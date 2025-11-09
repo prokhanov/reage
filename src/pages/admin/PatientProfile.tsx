@@ -18,15 +18,20 @@ import {
   FileText,
   TrendingUp,
   AlertCircle,
+  Edit,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
+import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 export default function PatientProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
+  const [showNextAnalysisDialog, setShowNextAnalysisDialog] = useState(false);
 
   const { data: profile, isLoading: loadingProfile } = useQuery({
     queryKey: ["patient-profile", userId],
@@ -81,6 +86,23 @@ export default function PatientProfile() {
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+
+  const { data: latestBooking, refetch: refetchBooking } = useQuery({
+    queryKey: ["patient-latest-booking", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("analysis_bookings")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -218,6 +240,33 @@ export default function PatientProfile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Next Analysis Date Card */}
+        {latestBooking && latestBooking.status === 'collected' && latestBooking.next_analysis_date && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Следующий анализ</p>
+                    <p className="text-lg font-semibold">
+                      {format(new Date(latestBooking.next_analysis_date), "PPP", { locale: ru })}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowNextAnalysisDialog(true)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Изменить
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="medical-history" className="space-y-4">
           <TabsList>
@@ -365,11 +414,22 @@ export default function PatientProfile() {
       </div>
       
       {userId && (
-        <CreatePrescriptionDialog
-          open={showPrescriptionDialog}
-          onOpenChange={setShowPrescriptionDialog}
-          userId={userId}
-        />
+        <>
+          <CreatePrescriptionDialog
+            open={showPrescriptionDialog}
+            onOpenChange={setShowPrescriptionDialog}
+            userId={userId}
+          />
+          {latestBooking && (
+            <EditNextAnalysisDialog
+              open={showNextAnalysisDialog}
+              onOpenChange={setShowNextAnalysisDialog}
+              bookingId={latestBooking.id}
+              currentDate={latestBooking.next_analysis_date}
+              userId={userId}
+            />
+          )}
+        </>
       )}
     </>
   );

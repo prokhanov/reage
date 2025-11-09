@@ -40,12 +40,14 @@ export default function Profile() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editMedicalOpen, setEditMedicalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [nextAnalysisDate, setNextAnalysisDate] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadProfile();
     loadMedicalHistory();
+    loadNextAnalysisDate();
   }, []);
 
   const loadProfile = async () => {
@@ -95,6 +97,29 @@ export default function Profile() {
       setMedicalHistory(data || []);
     } catch (error) {
       console.error("Error loading medical history:", error);
+    }
+  };
+
+  const loadNextAnalysisDate = async () => {
+    try {
+      const userId = await getUserId();
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from("analysis_bookings")
+        .select("next_analysis_date, status")
+        .eq("user_id", userId)
+        .eq("status", "collected")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data?.next_analysis_date) {
+        setNextAnalysisDate(data.next_analysis_date);
+      }
+    } catch (error) {
+      console.error("Error loading next analysis date:", error);
     }
   };
 
@@ -228,6 +253,23 @@ export default function Profile() {
               </div>
             </div>
           </Card>
+
+          {/* Next Analysis Date Card */}
+          {nextAnalysisDate && (
+            <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold">Следующий анализ</h2>
+                  <p className="text-lg font-medium text-muted-foreground mt-1">
+                    {format(new Date(nextAnalysisDate), "PPP", { locale: ru })}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
 
           {/* Medical History Card */}
           <Card className="p-6 bg-card/50 backdrop-blur border-border/50">

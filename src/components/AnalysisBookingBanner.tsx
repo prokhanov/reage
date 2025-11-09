@@ -11,6 +11,7 @@ interface BookingInfo {
   booking_time: string;
   address: string;
   status: string;
+  next_analysis_date?: string;
 }
 
 interface Subscription {
@@ -67,9 +68,18 @@ export function AnalysisBookingBanner() {
       if (!bookings || bookings.length === 0) {
         setShowBanner(true);
         setBookingInfo(null);
-      } else if (bookings[0].status === 'not_scheduled' || bookings[0].status === 'scheduled' || bookings[0].status === 'received' || bookings[0].status === 'collected') {
-        setShowBanner(true);
-        setBookingInfo(bookings[0] as BookingInfo);
+      } else {
+        const latestBooking = bookings[0];
+        // Show banner for active statuses
+        if (latestBooking.status === 'not_scheduled' || 
+            latestBooking.status === 'scheduled' || 
+            latestBooking.status === 'received' || 
+            latestBooking.status === 'collected') {
+          setShowBanner(true);
+          setBookingInfo(latestBooking as BookingInfo);
+        } else {
+          setShowBanner(false);
+        }
       }
     } catch (error) {
       console.error('Error checking booking status:', error);

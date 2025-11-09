@@ -109,6 +109,7 @@ export type Database = {
           booking_time: string
           created_at: string
           id: string
+          next_analysis_date: string | null
           status: string
           updated_at: string
           user_id: string
@@ -120,6 +121,7 @@ export type Database = {
           booking_time: string
           created_at?: string
           id?: string
+          next_analysis_date?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -131,6 +133,7 @@ export type Database = {
           booking_time?: string
           created_at?: string
           id?: string
+          next_analysis_date?: string | null
           status?: string
           updated_at?: string
           user_id?: string
