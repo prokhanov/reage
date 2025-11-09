@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useContext } from "react";
 import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -61,15 +61,17 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
         className="max-w-full w-screen h-screen p-0 gap-0"
         hideCloseButton
       >
+        <DialogTitle className="sr-only">Просмотр пациента</DialogTitle>
+        <DialogDescription className="sr-only">Режим просмотра пациентского интерфейса</DialogDescription>
         <ViewAsPatientProvider userId={patientId} onExitView={onClose}>
           <div className="flex h-full w-full bg-gradient-dark">
             <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
             
-            <ScrollArea className="flex-1 lg:ml-64">
+            <ScrollArea className="flex-1 lg:ml-64 h-screen">
               <div className="pt-16 lg:pt-0">
                 <AnalysisBookingBanner />
               </div>
-              <main className="min-h-screen">
+              <main className="pb-10">
                 <SimulatedContent />
               </main>
             </ScrollArea>
