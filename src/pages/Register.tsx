@@ -23,7 +23,8 @@ import registerHealth from "@/assets/register-health.png";
 export interface RegisterFormData {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   gender: string;
   birth_date: Date | undefined;
   weight: string;
@@ -58,7 +59,8 @@ export default function Register() {
   const [formData, setFormData] = useState<RegisterFormData>({
     email: "",
     password: "",
-    name: "",
+    firstName: "",
+    lastName: "",
     gender: "",
     birth_date: undefined,
     weight: "",
@@ -100,7 +102,8 @@ export default function Register() {
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            name: formData.name
+            first_name: formData.firstName,
+            last_name: formData.lastName
           }
         }
       });
@@ -113,7 +116,9 @@ export default function Register() {
         .from('profiles')
         .insert({
           id: authData.user.id,
-          name: formData.name,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
           gender: formData.gender,
           birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : undefined,
           weight: formData.weight ? parseFloat(formData.weight) : null,

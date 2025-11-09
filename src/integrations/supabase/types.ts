@@ -471,9 +471,11 @@ export type Database = {
         Row: {
           birth_date: string
           created_at: string
+          first_name: string
           gender: string
           height: number | null
           id: string
+          last_name: string | null
           name: string
           telegram_id: string | null
           updated_at: string
@@ -482,9 +484,11 @@ export type Database = {
         Insert: {
           birth_date: string
           created_at?: string
+          first_name: string
           gender: string
           height?: number | null
           id: string
+          last_name?: string | null
           name: string
           telegram_id?: string | null
           updated_at?: string
@@ -493,9 +497,11 @@ export type Database = {
         Update: {
           birth_date?: string
           created_at?: string
+          first_name?: string
           gender?: string
           height?: number | null
           id?: string
+          last_name?: string | null
           name?: string
           telegram_id?: string | null
           updated_at?: string
