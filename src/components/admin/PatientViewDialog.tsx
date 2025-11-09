@@ -53,7 +53,7 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
   return (
     <Dialog open={!!patientId} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-full w-screen h-screen p-0 gap-0"
+        className="max-w-full w-screen h-screen p-0 gap-0 overflow-auto"
         hideCloseButton
       >
         <ViewAsPatientProvider userId={patientId} onExitView={onClose}>
