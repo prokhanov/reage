@@ -122,16 +122,6 @@ const App = () => (
                 } 
               />
               <Route 
-                path="/admin/patients/:userId" 
-                element={
-                  <StaffRoute>
-                    <AdminModuleRoute module="patients">
-                      <PatientProfile />
-                    </AdminModuleRoute>
-                  </StaffRoute>
-                } 
-              />
-              <Route 
                 path="/admin/user-management" 
                 element={
                   <StaffRoute>
@@ -142,6 +132,20 @@ const App = () => (
                 } 
               />
             </Route>
+
+            {/* Full screen patient profile route without sidebar */}
+            <Route 
+              path="/admin/patients/:userId" 
+              element={
+                <ProtectedRoute>
+                  <StaffRoute>
+                    <AdminModuleRoute module="patients">
+                      <PatientProfile />
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                </ProtectedRoute>
+              } 
+            />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
