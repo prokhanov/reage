@@ -26,7 +26,7 @@ export function AnalysisBookingBanner() {
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const { data: userRoleData, isLoading } = useUserRole();
-  const { getUserId } = useViewAsUser();
+  const { getUserId, isViewMode } = useViewAsUser();
 
   useEffect(() => {
     checkBookingStatus();
@@ -106,6 +106,9 @@ export function AnalysisBookingBanner() {
 
   // Don't render while loading or if banner should not be shown
   if (isLoading || !showBanner) return null;
+
+  // Don't show banner to admins in their own account (only in view mode)
+  if (!userRoleData?.isPatient && !isViewMode) return null;
 
   const isScheduled = bookingInfo?.status === 'scheduled';
   const isReceived = bookingInfo?.status === 'received';
