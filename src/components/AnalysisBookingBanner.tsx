@@ -63,11 +63,11 @@ export function AnalysisBookingBanner() {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      // Show banner if no bookings, not_scheduled, scheduled, or received
+      // Show banner if no bookings, not_scheduled, scheduled, received, or collected
       if (!bookings || bookings.length === 0) {
         setShowBanner(true);
         setBookingInfo(null);
-      } else if (bookings[0].status === 'not_scheduled' || bookings[0].status === 'scheduled' || bookings[0].status === 'received') {
+      } else if (bookings[0].status === 'not_scheduled' || bookings[0].status === 'scheduled' || bookings[0].status === 'received' || bookings[0].status === 'collected') {
         setShowBanner(true);
         setBookingInfo(bookings[0] as BookingInfo);
       }
@@ -97,6 +97,7 @@ export function AnalysisBookingBanner() {
 
   const isScheduled = bookingInfo?.status === 'scheduled';
   const isReceived = bookingInfo?.status === 'received';
+  const isCollected = bookingInfo?.status === 'collected';
 
   return (
     <>
@@ -118,7 +119,16 @@ export function AnalysisBookingBanner() {
                 <Calendar className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                {isReceived ? (
+                {isCollected ? (
+                  <>
+                    <p className="font-medium text-sm sm:text-base">
+                      Анализы обрабатываются
+                    </p>
+                    <p className="text-xs sm:text-sm text-white/90">
+                      Результаты скоро появятся в вашем профиле
+                    </p>
+                  </>
+                ) : isReceived ? (
                   <>
                     <p className="font-medium text-sm sm:text-base">
                       Ваши анализы получены!
@@ -151,7 +161,7 @@ export function AnalysisBookingBanner() {
                 )}
               </div>
             </div>
-            {!isReceived && (
+            {!isReceived && !isCollected && (
               <Button
                 onClick={handleSchedule}
                 size="sm"
