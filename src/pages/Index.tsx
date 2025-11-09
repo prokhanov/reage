@@ -1,9 +1,61 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Activity, BarChart3, Brain, TrendingUp, Shield, Zap } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuthAndRedirect();
+  }, []);
+
+  const checkAuthAndRedirect = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Получаем роли пользователя
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+
+        if (roles && roles.length > 0) {
+          const roleList = roles.map(r => r.role);
+          
+          // Staff пользователи идут на административную панель
+          if (roleList.includes("superadmin") || roleList.includes("admin") || roleList.includes("doctor")) {
+            navigate("/admin/patients", { replace: true });
+            return;
+          }
+          
+          // Пациенты идут на дашборд
+          if (roleList.includes("patient")) {
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+        }
+        
+        // Дефолт для пользователей без роли
+        navigate("/dashboard", { replace: true });
+      }
+    } catch (error) {
+      console.error("Error checking auth:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
