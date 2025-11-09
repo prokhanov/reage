@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Clock, MapPin, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,43 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [bookingTime, setBookingTime] = useState("");
   const [bookingAddress, setBookingAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
+
+  // Load existing booking when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadExistingBooking();
+    }
+  }, [open]);
+
+  const loadExistingBooking = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: bookings } = await supabase
+        .from('analysis_bookings')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (bookings && bookings.length > 0 && bookings[0].status === 'scheduled') {
+        const booking = bookings[0];
+        setExistingBookingId(booking.id);
+        setBookingDate(new Date(booking.booking_date));
+        setBookingTime(booking.booking_time);
+        setBookingAddress(booking.address);
+      } else {
+        setExistingBookingId(null);
+        setBookingDate(undefined);
+        setBookingTime("");
+        setBookingAddress("");
+      }
+    } catch (error) {
+      console.error('Error loading existing booking:', error);
+    }
+  };
 
   const isValid = bookingDate && bookingTime && bookingAddress.trim().length > 0;
 
@@ -39,36 +76,58 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const { error } = await supabase
-        .from('analysis_bookings')
-        .insert({
-          user_id: user.id,
-          booking_date: format(bookingDate, 'yyyy-MM-dd'),
-          booking_time: bookingTime,
-          address: bookingAddress,
-          status: 'scheduled'
-        } as any);
+      if (existingBookingId) {
+        // Update existing booking
+        const { error } = await supabase
+          .from('analysis_bookings')
+          .update({
+            booking_date: format(bookingDate, 'yyyy-MM-dd'),
+            booking_time: bookingTime,
+            address: bookingAddress,
+            status: 'scheduled'
+          } as any)
+          .eq('id', existingBookingId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Запись создана",
-        description: "Медсестра приедет к вам в назначенное время",
-      });
+        toast({
+          title: "Запись обновлена",
+          description: "Изменения сохранены",
+        });
+      } else {
+        // Create new booking
+        const { error } = await supabase
+          .from('analysis_bookings')
+          .insert({
+            user_id: user.id,
+            booking_date: format(bookingDate, 'yyyy-MM-dd'),
+            booking_time: bookingTime,
+            address: bookingAddress,
+            status: 'scheduled'
+          } as any);
+
+        if (error) throw error;
+
+        toast({
+          title: "Запись создана",
+          description: "Медсестра приедет к вам в назначенное время",
+        });
+      }
 
       // Reset form and close dialog
       setBookingDate(undefined);
       setBookingTime("");
       setBookingAddress("");
+      setExistingBookingId(null);
       onOpenChange(false);
       
       // Call success callback to refresh banner
       onSuccess?.();
     } catch (error) {
-      console.error('Error creating booking:', error);
+      console.error('Error saving booking:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось создать запись. Попробуйте еще раз.",
+        description: "Не удалось сохранить запись. Попробуйте еще раз.",
         variant: "destructive",
       });
     } finally {
@@ -188,7 +247,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             ) : (
               <>
                 <Check className="mr-2 h-5 w-5" />
-                Записаться
+                {existingBookingId ? 'Сохранить изменения' : 'Записаться'}
               </>
             )}
           </Button>
