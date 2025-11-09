@@ -30,7 +30,7 @@ export function PatientRoute({ children }: PatientRouteProps) {
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "patient")
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         toast({
