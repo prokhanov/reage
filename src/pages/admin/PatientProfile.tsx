@@ -126,22 +126,22 @@ export default function PatientProfile() {
 
   if (loadingProfile) {
     return (
-      <div className="min-h-screen bg-gradient-dark flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
+        <div className="flex items-center justify-center py-24">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-dark flex flex-col items-center justify-center gap-4">
-        <AlertCircle className="w-12 h-12 text-muted-foreground" />
-        <p className="text-muted-foreground">Профиль не найден</p>
-        <Button onClick={() => navigate("/admin/patients")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Вернуться к списку
-        </Button>
-      </div>
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
+          <AlertCircle className="w-12 h-12 text-muted-foreground" />
+          <p className="text-muted-foreground">Профиль не найден</p>
+          <Button onClick={() => navigate("/admin/patients")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Вернуться к списку
+          </Button>
+        </div>
     );
   }
 
@@ -152,7 +152,7 @@ export default function PatientProfile() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-dark">
+    <>
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -362,15 +362,15 @@ export default function PatientProfile() {
             </Card>
           </TabsContent>
         </Tabs>
-        
-        {userId && (
-          <CreatePrescriptionDialog
-            open={showPrescriptionDialog}
-            onOpenChange={setShowPrescriptionDialog}
-            userId={userId}
-          />
-        )}
       </div>
-    </div>
+      
+      {userId && (
+        <CreatePrescriptionDialog
+          open={showPrescriptionDialog}
+          onOpenChange={setShowPrescriptionDialog}
+          userId={userId}
+        />
+      )}
+    </>
   );
 }
