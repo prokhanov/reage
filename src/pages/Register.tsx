@@ -147,17 +147,9 @@ export default function Register() {
 
       if (profileError) throw profileError;
 
-      // 3. Assign 'user' role for patient
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: 'patient'
-        });
+      // Note: user_roles is automatically created by trigger on auth.users
 
-      if (roleError) throw roleError;
-
-      // 4. Save medical history
+      // 3. Save medical history
       if (formData.medicalHistory.length > 0) {
         const medicalData = formData.medicalHistory.map(condition => {
           const [category, conditionName] = condition.split('|');
