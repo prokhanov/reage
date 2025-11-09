@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe, Trash2 } from "lucide-react";
+import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe, Trash2, RefreshCw } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -38,7 +38,7 @@ export default function Patients() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: patients, isLoading } = useQuery({
+  const { data: patients, isLoading, refetch } = useQuery({
     queryKey: ["patients"],
     queryFn: async () => {
       // Get all profiles first
@@ -270,6 +270,15 @@ export default function Patients() {
                   Нажмите на пациента, чтобы посмотреть его профиль
                 </CardDescription>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                disabled={isLoading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Обновить
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
