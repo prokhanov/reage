@@ -3,11 +3,13 @@ import { Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export function AnalysisBookingBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const navigate = useNavigate();
+  const { data: userRoleData } = useUserRole();
 
   useEffect(() => {
     checkBookingStatus();
@@ -43,7 +45,8 @@ export function AnalysisBookingBanner() {
     navigate('/dashboard'); // TODO: navigate to booking page when created
   };
 
-  if (!showBanner || isDismissed) return null;
+  // Only show banner for patients
+  if (!showBanner || isDismissed || !userRoleData?.isPatient) return null;
 
   return (
     <div className="bg-gradient-primary text-white shadow-neon-primary animate-fade-in">
