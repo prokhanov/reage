@@ -34,7 +34,6 @@ import { ru } from "date-fns/locale";
 import AnalysisBookingsSkeleton from "@/components/skeletons/AnalysisBookingsSkeleton";
 import AssignStaffDialog from "@/components/admin/AssignStaffDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
-import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,11 +85,6 @@ export default function AnalysisBookings() {
   const [selectedBookingForStaff, setSelectedBookingForStaff] = useState<string | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
-  const [editNextAnalysisBooking, setEditNextAnalysisBooking] = useState<{
-    id: string;
-    userId: string;
-    currentDate: string | null;
-  } | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -230,24 +224,12 @@ export default function AnalysisBookings() {
         .eq("id", bookingId);
       if (error) throw error;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
       toast({
         title: "Статус обновлен",
         description: "Статус записи успешно изменен",
       });
-      
-      // If status changed to "collected", open date picker for next analysis
-      if (variables.newStatus === "collected") {
-        const booking = bookings?.find(b => b.id === variables.bookingId);
-        if (booking) {
-          setEditNextAnalysisBooking({
-            id: booking.id,
-            userId: booking.user_id,
-            currentDate: null,
-          });
-        }
-      }
     },
     onError: () => {
       toast({
@@ -486,16 +468,6 @@ export default function AnalysisBookings() {
           patientId={selectedPatientId}
           onClose={() => setSelectedPatientId(null)}
           onOpenView={() => {}}
-        />
-      )}
-
-      {editNextAnalysisBooking && (
-        <EditNextAnalysisDialog
-          open={true}
-          onOpenChange={(open) => !open && setEditNextAnalysisBooking(null)}
-          bookingId={editNextAnalysisBooking.id}
-          currentDate={editNextAnalysisBooking.currentDate}
-          userId={editNextAnalysisBooking.userId}
         />
       )}
 
