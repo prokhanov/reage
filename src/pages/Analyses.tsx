@@ -130,16 +130,14 @@ export default function Analyses() {
   };
 
 
-  if (loading && analyses.length === 0) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <DashboardLayout>
+      {loading && analyses.length === 0 ? (
+        <div className="flex min-h-full items-center justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : (
+      <>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8 flex justify-between items-start">
           <div>
@@ -276,6 +274,7 @@ export default function Analyses() {
             ))}
           </div>
         )}
+      </div>
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
@@ -308,7 +307,8 @@ export default function Analyses() {
             onSuccess={loadAnalyses}
           />
         )}
-      </div>
+      </>
+      )}
     </DashboardLayout>
   );
 }

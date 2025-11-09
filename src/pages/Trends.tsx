@@ -141,16 +141,13 @@ export default function Trends() {
 
   const trend = trendData.length >= 2 ? calculateTrend() : "neutral";
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <DashboardLayout>
+      {loading ? (
+        <div className="flex min-h-full items-center justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
@@ -312,6 +309,7 @@ export default function Trends() {
           </div>
         )}
       </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -32,7 +32,17 @@ import UserManagement from "./pages/admin/UserManagement";
 import RegisterStaff from "./pages/RegisterStaff";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30 * 1000, // 30 секунд - данные свежие
+      gcTime: 5 * 60 * 1000, // 5 минут в кеше (вместо устаревшего cacheTime)
+      refetchOnWindowFocus: false, // не перезапрашивать при фокусе окна
+      refetchOnMount: false, // не перезапрашивать при каждом монтировании
+      retry: 1, // одна попытка повтора при ошибке
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

@@ -183,16 +183,14 @@ export default function Prescriptions() {
     </div>
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <DashboardLayout>
+      {isLoading ? (
+        <div className="flex min-h-full items-center justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : (
+      <>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -295,6 +293,8 @@ export default function Prescriptions() {
         onOpenChange={(open) => !open && setEditPrescription(null)}
         prescription={editPrescription}
       />
+      </>
+      )}
     </DashboardLayout>
   );
 }

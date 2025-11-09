@@ -161,16 +161,14 @@ export default function Biomarkers() {
     return true;
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <DashboardLayout>
+      {loading ? (
+        <div className="flex min-h-full items-center justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : (
+      <>
       <TooltipProvider delayDuration={0}>
         <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
@@ -375,7 +373,7 @@ export default function Biomarkers() {
                         })}
                       </TableBody>
                     </Table>
-                  </div>
+                   </div>
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -383,6 +381,8 @@ export default function Biomarkers() {
         )}
       </div>
       </TooltipProvider>
+      </>
+      )}
     </DashboardLayout>
   );
 }
