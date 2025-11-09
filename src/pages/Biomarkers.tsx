@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Activity, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -163,12 +163,11 @@ export default function Biomarkers() {
   };
 
   return (
-    <DashboardLayout>
-      <TooltipProvider delayDuration={0}>
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {loading && <BiomarkerTableSkeleton />}
-        {!loading && (
-        <>
+    <TooltipProvider delayDuration={0}>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {loading && <BiomarkerTableSkeleton />}
+      {!loading && (
+      <>
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
             Биомаркеры
@@ -381,6 +380,5 @@ export default function Biomarkers() {
         )}
         </div>
       </TooltipProvider>
-    </DashboardLayout>
   );
 }

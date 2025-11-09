@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { format } from "date-fns";
@@ -143,11 +143,10 @@ export default function Trends() {
   const trend = trendData.length >= 2 ? calculateTrend() : "neutral";
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {loading && <TrendChartSkeleton />}
-      {!loading && (
-      <>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    {loading && <TrendChartSkeleton />}
+    {!loading && (
+    <>
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
             Динамика показателей
@@ -310,6 +309,5 @@ export default function Trends() {
       </>
       )}
       </div>
-    </DashboardLayout>
   );
 }

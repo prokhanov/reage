@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -256,13 +256,12 @@ export default function HealthAssistant() {
   ];
 
   return (
-    <DashboardLayout>
-      <div className="container max-w-5xl mx-auto px-4 pt-6 h-screen flex flex-col">
-        <div className="mb-4 flex-shrink-0">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-neon-primary">
-                <Bot className="w-6 h-6 text-primary-foreground" />
+    <div className="container max-w-5xl mx-auto px-4 pt-6 h-screen flex flex-col">
+      <div className="mb-4 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-neon-primary">
+              <Bot className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -416,6 +415,5 @@ export default function HealthAssistant() {
           </form>
         </Card>
       </div>
-    </DashboardLayout>
   );
 }

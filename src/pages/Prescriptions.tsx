@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -185,12 +185,12 @@ export default function Prescriptions() {
   );
 
   return (
-    <DashboardLayout>
+    <>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-      {isLoading && <PrescriptionListSkeleton />}
-      {!isLoading && (
-        <>
-        <div className="flex items-center justify-between">
+        {isLoading && <PrescriptionListSkeleton />}
+        {!isLoading && (
+          <>
+            <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Назначения</h1>
             <p className="text-muted-foreground">
@@ -293,6 +293,9 @@ export default function Prescriptions() {
         onOpenChange={(open) => !open && setEditPrescription(null)}
         prescription={editPrescription}
       />
-    </DashboardLayout>
+      </>
+    )}
+    </div>
+  </>
   );
 }

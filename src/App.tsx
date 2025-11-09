@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SuperAdminRoute } from "@/components/SuperAdminRoute";
@@ -51,190 +51,99 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register-staff" element={<RegisterStaff />} />
-          <Route
-            path="/onboarding"
-            element={
-              <ProtectedRoute>
-                <Onboarding />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <Dashboard />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analyses"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <Analyses />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analyses/:id"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <AnalysisDetail />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/biomarkers"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <Biomarkers />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/recommendations"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <Recommendations />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/prescriptions"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <Prescriptions />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/trends"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <Trends />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-state"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <MyState />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/health-assistant"
-            element={
-              <ProtectedRoute>
-                <PatientRoute>
-                  <HealthAssistant />
-                </PatientRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/ai-settings"
-            element={
-              <ProtectedRoute>
-                <StaffRoute>
-                  <AdminModuleRoute module="ai_settings">
-                    <DashboardLayout>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/register-staff" element={<RegisterStaff />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected routes with persistent DashboardLayout */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Outlet />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            >
+              {/* Patient routes */}
+              <Route path="/dashboard" element={<PatientRoute><Dashboard /></PatientRoute>} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/analyses" element={<PatientRoute><Analyses /></PatientRoute>} />
+              <Route path="/analyses/:id" element={<PatientRoute><AnalysisDetail /></PatientRoute>} />
+              <Route path="/biomarkers" element={<PatientRoute><Biomarkers /></PatientRoute>} />
+              <Route path="/recommendations" element={<PatientRoute><Recommendations /></PatientRoute>} />
+              <Route path="/prescriptions" element={<PatientRoute><Prescriptions /></PatientRoute>} />
+              <Route path="/trends" element={<PatientRoute><Trends /></PatientRoute>} />
+              <Route path="/my-state" element={<PatientRoute><MyState /></PatientRoute>} />
+              <Route path="/health-assistant" element={<PatientRoute><HealthAssistant /></PatientRoute>} />
+
+              {/* Admin routes */}
+              <Route 
+                path="/admin/ai-settings" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="ai_settings">
                       <AISettings />
-                    </DashboardLayout>
-                  </AdminModuleRoute>
-                </StaffRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/data-management"
-            element={
-              <ProtectedRoute>
-                <StaffRoute>
-                  <AdminModuleRoute module="data_management">
-                    <DashboardLayout>
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/data-management" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="data_management">
                       <DataManagement />
-                    </DashboardLayout>
-                  </AdminModuleRoute>
-                </StaffRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/patients"
-            element={
-              <ProtectedRoute>
-                <StaffRoute>
-                  <AdminModuleRoute module="patients">
-                    <DashboardLayout>
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/patients" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="patients">
                       <Patients />
-                    </DashboardLayout>
-                  </AdminModuleRoute>
-                </StaffRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/patients/:userId"
-            element={
-              <ProtectedRoute>
-                <StaffRoute>
-                  <AdminModuleRoute module="patients">
-                    <DashboardLayout>
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/patients/:userId" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="patients">
                       <PatientProfile />
-                    </DashboardLayout>
-                  </AdminModuleRoute>
-                </StaffRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/user-management"
-            element={
-              <ProtectedRoute>
-                <StaffRoute>
-                  <AdminModuleRoute module="user_management">
-                    <DashboardLayout>
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/user-management" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="user_management">
                       <UserManagement />
-                    </DashboardLayout>
-                  </AdminModuleRoute>
-                </StaffRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
     </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>

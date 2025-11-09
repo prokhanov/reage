@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { CreateAnalysisWizard } from "@/components/admin/CreateAnalysisWizard";
@@ -132,12 +132,12 @@ export default function Analyses() {
 
 
   return (
-    <DashboardLayout>
+    <>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
-      {(!loading || analyses.length > 0) && (
-        <>
-        <div className="mb-8 flex justify-between items-start">
+        {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
+        {(!loading || analyses.length > 0) && (
+          <>
+            <div className="mb-8 flex justify-between items-start">
           <div>
             <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
               История анализов
@@ -307,6 +307,9 @@ export default function Analyses() {
           onSuccess={loadAnalyses}
         />
       )}
-    </DashboardLayout>
+      </>
+    )}
+    </div>
+  </>
   );
 }

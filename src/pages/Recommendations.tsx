@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Eye, Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -552,16 +552,15 @@ export default function Recommendations() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Персональные отчёты
-          </h2>
-          <p className="text-muted-foreground">
-            AI-генерированные отчёты на основе ваших анализов
-          </p>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+          Персональные отчёты
+        </h2>
+        <p className="text-muted-foreground">
+          AI-генерированные отчёты на основе ваших анализов
+        </p>
+      </div>
 
         {reports.length === 0 ? (
           <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
@@ -833,6 +832,5 @@ export default function Recommendations() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </DashboardLayout>
   );
 }

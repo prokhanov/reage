@@ -1,4 +1,4 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -314,11 +314,9 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="p-4 md:p-8">
-          <DashboardSkeleton />
-        </div>
-      </DashboardLayout>
+      <div className="p-4 md:p-8">
+        <DashboardSkeleton />
+      </div>
     );
   }
 
@@ -327,9 +325,7 @@ export default function Dashboard() {
   const circleProgress = latestHealthIndex ? latestHealthIndex : 0;
 
   return (
-    <DashboardLayout>
-      <div className="p-4 md:p-8 space-y-6">
-        {/* Header */}
+    <div className="p-4 md:p-8 space-y-6">{/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Добро пожаловать, {profile?.name}
@@ -808,6 +804,5 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
   );
 }

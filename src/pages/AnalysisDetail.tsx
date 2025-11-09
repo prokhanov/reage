@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
@@ -233,10 +233,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Header */}
+      <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -643,6 +642,5 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           </>
         )}
       </div>
-    </DashboardLayout>
   );
 }

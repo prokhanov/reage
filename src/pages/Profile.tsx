@@ -10,7 +10,7 @@ import {
   Shield, Activity
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
@@ -129,11 +129,9 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="p-4 md:p-8">
-          <ProfileSkeleton />
-        </div>
-      </DashboardLayout>
+      <div className="p-4 md:p-8">
+        <ProfileSkeleton />
+      </div>
     );
   }
 
@@ -141,15 +139,14 @@ export default function Profile() {
   const age = getAge();
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>
-          <p className="text-muted-foreground">
-            Управляйте своими персональными данными
-          </p>
-        </div>
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>
+        <p className="text-muted-foreground">
+          Управляйте своими персональными данными
+        </p>
+      </div>
 
         <div className="space-y-6">
           {/* Personal Info Card */}
@@ -332,6 +329,5 @@ export default function Profile() {
           }}
         />
       </div>
-    </DashboardLayout>
   );
 }

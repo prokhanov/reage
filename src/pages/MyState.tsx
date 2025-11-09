@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -562,17 +562,16 @@ export default function MyState() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Мое состояние</h1>
-          <p className="text-muted-foreground">
-            Отслеживайте свои симптомы и следите за изменениями
-          </p>
-        </div>
+    <div className="container max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Мое состояние</h1>
+        <p className="text-muted-foreground">
+          Отслеживайте свои симптомы и следите за изменениями
+        </p>
+      </div>
 
-        <Tabs defaultValue="survey" className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+      <Tabs defaultValue="survey" className="w-full">
+        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
             <TabsTrigger value="survey">Опросник</TabsTrigger>
             <TabsTrigger value="history">История</TabsTrigger>
           </TabsList>
@@ -1172,6 +1171,5 @@ export default function MyState() {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
   );
 }
