@@ -40,6 +40,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
   const [isPatient, setIsPatient] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
     checkAdminAccess();
@@ -70,6 +72,15 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Устанавливаем email
+      setUserEmail(user.email || "");
+
+      // Получаем все роли пользователя
+      const { data: allRoles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+
       // Проверяем роль superadmin
       const { data: superAdminData } = await supabase
         .from("user_roles")
@@ -89,6 +100,22 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
         .single();
 
       setIsPatient(!!patientData);
+
+      // Определяем приоритетную роль для отображения
+      if (allRoles && allRoles.length > 0) {
+        const roles = allRoles.map(r => r.role);
+        if (roles.includes("superadmin")) {
+          setUserRole("Суперадмин");
+        } else if (roles.includes("admin")) {
+          setUserRole("Администратор");
+        } else if (roles.includes("doctor")) {
+          setUserRole("Врач");
+        } else if (roles.includes("patient")) {
+          setUserRole("Пациент");
+        } else {
+          setUserRole("Пользователь");
+        }
+      }
 
       // Проверяем доступ к любому админскому модулю через role_permissions
       const { data: userRoles } = await supabase
@@ -152,7 +179,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             <h1 className="text-2xl font-bold text-primary">
               ReAge
             </h1>
-            <p className="text-xs text-muted-foreground mt-1">Биологический возраст</p>
+            <p className="text-xs text-muted-foreground mt-1 truncate">{userEmail}</p>
+            <p className="text-xs text-primary/70 font-medium mt-0.5">{userRole}</p>
           </div>
 
           {/* View Mode Badge */}
