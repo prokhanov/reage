@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { AnalysisBookingDialog } from "./AnalysisBookingDialog";
+import { SubscriptionRequiredDialog } from "./SubscriptionRequiredDialog";
 
 interface BookingInfo {
   booking_date: string;
@@ -12,15 +13,43 @@ interface BookingInfo {
   status: string;
 }
 
+interface Subscription {
+  status: string;
+}
+
 export function AnalysisBookingBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const { data: userRoleData, isLoading } = useUserRole();
 
   useEffect(() => {
     checkBookingStatus();
+    checkSubscriptionStatus();
   }, []);
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setHasActiveSubscription(
+        subscription?.status === 'active' || subscription?.status === 'pending'
+      );
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+    }
+  };
 
   const checkBookingStatus = async () => {
     try {
@@ -48,7 +77,19 @@ export function AnalysisBookingBanner() {
   };
 
   const handleSchedule = () => {
-    setDialogOpen(true);
+    if (!hasActiveSubscription) {
+      setSubscriptionDialogOpen(true);
+    } else {
+      setDialogOpen(true);
+    }
+  };
+
+  const handleSubscriptionSuccess = () => {
+    checkSubscriptionStatus();
+    // Delay opening booking dialog slightly to let subscription dialog close
+    setTimeout(() => {
+      setDialogOpen(true);
+    }, 300);
   };
 
   // Don't render while loading or if not a patient
@@ -58,6 +99,11 @@ export function AnalysisBookingBanner() {
 
   return (
     <>
+      <SubscriptionRequiredDialog
+        open={subscriptionDialogOpen}
+        onOpenChange={setSubscriptionDialogOpen}
+        onSuccess={handleSubscriptionSuccess}
+      />
       <AnalysisBookingDialog 
         open={dialogOpen} 
         onOpenChange={setDialogOpen}
