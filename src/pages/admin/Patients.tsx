@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,42 @@ export default function Patients() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Setup real-time subscriptions
+  useEffect(() => {
+    const channel = supabase
+      .channel('patients-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'analyses' },
+        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'subscriptions' },
+        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'analysis_bookings' },
+        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_roles' },
+        () => queryClient.invalidateQueries({ queryKey: ["patients"] })
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const { data: patients, isLoading, refetch } = useQuery({
     queryKey: ["patients"],

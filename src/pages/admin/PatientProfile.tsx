@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,8 +31,72 @@ import { ru } from "date-fns/locale";
 export default function PatientProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [showNextAnalysisDialog, setShowNextAnalysisDialog] = useState(false);
+
+  // Setup real-time subscriptions for this specific patient
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`patient-${userId}-changes`)
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'profiles',
+          filter: `id=eq.${userId}`
+        },
+        () => queryClient.invalidateQueries({ queryKey: ["patient-profile", userId] })
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'medical_history',
+          filter: `user_id=eq.${userId}`
+        },
+        () => queryClient.invalidateQueries({ queryKey: ["patient-medical-history", userId] })
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'analyses',
+          filter: `user_id=eq.${userId}`
+        },
+        () => queryClient.invalidateQueries({ queryKey: ["patient-analyses", userId] })
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'complaints',
+          filter: `user_id=eq.${userId}`
+        },
+        () => queryClient.invalidateQueries({ queryKey: ["patient-complaints", userId] })
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'analysis_bookings',
+          filter: `user_id=eq.${userId}`
+        },
+        () => queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] })
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, queryClient]);
 
   const { data: profile, isLoading: loadingProfile } = useQuery({
     queryKey: ["patient-profile", userId],

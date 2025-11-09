@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -88,6 +88,30 @@ export default function AnalysisBookings() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Setup real-time subscriptions
+  useEffect(() => {
+    const channel = supabase
+      .channel('analysis-bookings-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'analysis_bookings' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
+          queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] })
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["analysis-bookings", statusFilter, staffFilter, searchQuery],
