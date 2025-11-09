@@ -144,14 +144,15 @@ export default function Patients() {
             .limit(1)
             .maybeSingle();
 
-          // Get analysis booking status
-          const { data: booking } = await supabase
+          // Get analysis booking status (prefer latest meaningful status)
+          const { data: bookings } = await supabase
             .from("analysis_bookings")
-            .select("status")
+            .select("status, booking_date, created_at, updated_at")
             .eq("user_id", profile.id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .order("updated_at", { ascending: false })
+            .limit(3);
+
+          const effectiveBookingStatus = (bookings?.find(b => b.status !== 'not_scheduled')?.status) || bookings?.[0]?.status;
 
           const userRoleData = rolesMap[profile.id] || { 
             baseRole: "user", 
@@ -175,7 +176,7 @@ export default function Patients() {
             analysisCount: analysisCount || 0,
             latestAnalysisDate: latestAnalysis?.date,
             subscriptionStatus: subscription?.status || 'pending',
-            bookingStatus: booking?.status || 'not_scheduled',
+            bookingStatus: effectiveBookingStatus || 'not_scheduled',
             role: primaryRole,
             allRoles: userRoleData.allRoles,
             customRole: userRoleData.customRole,
