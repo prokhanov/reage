@@ -33,6 +33,7 @@ const ADMIN_MODULES = [
   { value: "patients", label: "Пациенты" },
   { value: "user_management", label: "Управление пользователями" },
   { value: "analysis_bookings", label: "Записи на анализы" },
+  { value: "my_assignments", label: "Назначены мне" },
 ];
 
 interface Role {

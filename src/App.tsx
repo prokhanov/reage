@@ -31,6 +31,7 @@ import Patients from "./pages/admin/Patients";
 import PatientProfile from "./pages/admin/PatientProfile";
 import UserManagement from "./pages/admin/UserManagement";
 import AnalysisBookings from "./pages/admin/AnalysisBookings";
+import MyAssignments from "./pages/admin/MyAssignments";
 import RegisterStaff from "./pages/RegisterStaff";
 import NotFound from "./pages/NotFound";
 
@@ -148,6 +149,16 @@ const App = () => (
                   <StaffRoute>
                     <AdminModuleRoute module="analysis_bookings">
                       <AnalysisBookings />
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/my-assignments" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="my_assignments">
+                      <MyAssignments />
                     </AdminModuleRoute>
                   </StaffRoute>
                 } 
