@@ -12,6 +12,7 @@ import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ const timeSlots = [
 ];
 
 export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: AnalysisBookingDialogProps) {
+  const queryClient = useQueryClient();
   const [bookingDate, setBookingDate] = useState<Date>();
   const [bookingTime, setBookingTime] = useState("");
   const [bookingAddress, setBookingAddress] = useState("");
@@ -116,6 +118,10 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         });
       }
 
+      // Invalidate queries to refresh admin views
+      await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["patient-info", user.id] });
+      
       // Reset form and close dialog
       setBookingDate(undefined);
       setBookingTime("");
@@ -158,6 +164,13 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         title: "Запись отменена",
         description: "Вы можете записаться на новую дату",
       });
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Invalidate queries to refresh admin views
+        await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", user.id] });
+        await queryClient.invalidateQueries({ queryKey: ["patient-info", user.id] });
+      }
 
       // Reset form and close dialog
       setBookingDate(undefined);
