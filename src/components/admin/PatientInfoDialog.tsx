@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,32 @@ interface PatientInfoDialogProps {
 
 export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInfoDialogProps) {
   const [isEditDateOpen, setIsEditDateOpen] = useState(false);
+  const queryClient = useQueryClient();
+  
+  // Real-time subscription for analysis bookings updates
+  useEffect(() => {
+    if (!patientId) return;
+
+    const channel = supabase
+      .channel('patient-info-bookings-changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'analysis_bookings',
+          filter: `user_id=eq.${patientId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [patientId, queryClient]);
   
   const { data: patientData, isLoading } = useQuery({
     queryKey: ["patient-info", patientId],
