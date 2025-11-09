@@ -32,7 +32,7 @@ export default function AssignStaffDialog({
   onClose,
 }: AssignStaffDialogProps) {
   const [selectedStaffId, setSelectedStaffId] = useState<string>(
-    currentStaffId || ""
+    currentStaffId || "unassigned"
   );
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -60,11 +60,13 @@ export default function AssignStaffDialog({
   });
 
   const assignStaffMutation = useMutation({
-    mutationFn: async (staffId: string | null) => {
+    mutationFn: async (staffId: string) => {
+      const actualStaffId = staffId === "unassigned" ? null : staffId;
+      
       const { error } = await supabase
         .from("analysis_bookings")
         .update({
-          assigned_staff_id: staffId,
+          assigned_staff_id: actualStaffId,
           updated_at: new Date().toISOString(),
         })
         .eq("id", bookingId);
@@ -89,7 +91,7 @@ export default function AssignStaffDialog({
   });
 
   const handleAssign = () => {
-    assignStaffMutation.mutate(selectedStaffId || null);
+    assignStaffMutation.mutate(selectedStaffId);
   };
 
   return (
@@ -116,7 +118,7 @@ export default function AssignStaffDialog({
                 <SelectValue placeholder="Выберите сотрудника" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Не назначен</SelectItem>
+                <SelectItem value="unassigned">Не назначен</SelectItem>
                 {staffMembers?.map((staff) => (
                   <SelectItem key={staff.id} value={staff.id}>
                     {staff.name}
