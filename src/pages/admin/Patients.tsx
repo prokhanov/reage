@@ -337,6 +337,7 @@ export default function Patients() {
                       <TableHead>Возраст</TableHead>
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
+                      <TableHead>Статус анализа</TableHead>
                       <TableHead>Анализов</TableHead>
                       <TableHead className="w-[100px]">Действия</TableHead>
                     </TableRow>
@@ -395,6 +396,7 @@ export default function Patients() {
                             )}
                           </TableCell>
                           <TableCell>{getSubscriptionBadge(patient.subscriptionStatus)}</TableCell>
+                          <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Activity className="w-4 h-4 text-muted-foreground" />
