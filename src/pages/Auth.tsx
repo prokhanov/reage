@@ -8,6 +8,36 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 
+// Функция для определения посадочной страницы по ролям
+const getDefaultRouteForUser = async (userId: string): Promise<string> => {
+  try {
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    if (!roles || roles.length === 0) {
+      return "/dashboard"; // Дефолт для пользователей без роли
+    }
+
+    const roleList = roles.map(r => r.role);
+
+    // Проверяем роли в порядке приоритета
+    if (roleList.includes("superadmin") || roleList.includes("admin") || roleList.includes("doctor")) {
+      return "/admin/patients"; // Стафф идет на страницу пациентов
+    }
+    
+    if (roleList.includes("patient")) {
+      return "/dashboard"; // Пациенты идут на дашборд
+    }
+
+    return "/dashboard"; // Дефолт
+  } catch (error) {
+    console.error("Error getting user role:", error);
+    return "/dashboard";
+  }
+};
+
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
@@ -25,18 +55,31 @@ export default function Auth() {
       (event, session) => {
         setSession(session);
         if (session) {
-          const from = (location.state as any)?.from?.pathname || "/dashboard";
-          navigate(from, { replace: true });
+          // Определяем посадочную страницу после входа
+          setTimeout(async () => {
+            const from = (location.state as any)?.from?.pathname;
+            if (from && from !== "/auth") {
+              navigate(from, { replace: true });
+            } else {
+              const defaultRoute = await getDefaultRouteForUser(session.user.id);
+              navigate(defaultRoute, { replace: true });
+            }
+          }, 0);
         }
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session) {
-        const from = (location.state as any)?.from?.pathname || "/dashboard";
-        navigate(from, { replace: true });
+        const from = (location.state as any)?.from?.pathname;
+        if (from && from !== "/auth") {
+          navigate(from, { replace: true });
+        } else {
+          const defaultRoute = await getDefaultRouteForUser(session.user.id);
+          navigate(defaultRoute, { replace: true });
+        }
       }
     });
 
