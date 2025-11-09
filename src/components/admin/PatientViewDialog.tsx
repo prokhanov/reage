@@ -1,7 +1,9 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useContext } from "react";
 import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { AppSidebar } from "@/components/AppSidebar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
@@ -11,6 +13,7 @@ import Recommendations from "@/pages/Recommendations";
 import Prescriptions from "@/pages/Prescriptions";
 import Trends from "@/pages/Trends";
 import MyState from "@/pages/MyState";
+import { useState } from "react";
 
 function SimulatedContent() {
   const { simPath } = useContext(ViewAsPatientContext);
@@ -48,18 +51,29 @@ interface PatientViewDialogProps {
 }
 
 export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   if (!patientId) return null;
 
   return (
     <Dialog open={!!patientId} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-full w-screen h-screen p-0 gap-0 overflow-auto"
+        className="max-w-full w-screen h-screen p-0 gap-0"
         hideCloseButton
       >
         <ViewAsPatientProvider userId={patientId} onExitView={onClose}>
-          <DashboardLayout>
-            <SimulatedContent />
-          </DashboardLayout>
+          <div className="flex h-full w-full bg-gradient-dark">
+            <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+            
+            <ScrollArea className="flex-1 lg:ml-64">
+              <div className="pt-16 lg:pt-0">
+                <AnalysisBookingBanner />
+              </div>
+              <main className="min-h-screen">
+                <SimulatedContent />
+              </main>
+            </ScrollArea>
+          </div>
         </ViewAsPatientProvider>
       </DialogContent>
     </Dialog>
