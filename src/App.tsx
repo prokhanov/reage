@@ -7,6 +7,8 @@ import { ThemeProvider } from "next-themes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SuperAdminRoute } from "@/components/SuperAdminRoute";
 import { AdminModuleRoute } from "@/components/AdminModuleRoute";
+import { PatientRoute } from "@/components/PatientRoute";
+import { StaffRoute } from "@/components/StaffRoute";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -56,7 +58,9 @@ const App = () => (
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <PatientRoute>
+                  <Dashboard />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -72,7 +76,9 @@ const App = () => (
             path="/analyses"
             element={
               <ProtectedRoute>
-                <Analyses />
+                <PatientRoute>
+                  <Analyses />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -80,7 +86,9 @@ const App = () => (
             path="/analyses/:id"
             element={
               <ProtectedRoute>
-                <AnalysisDetail />
+                <PatientRoute>
+                  <AnalysisDetail />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -88,7 +96,9 @@ const App = () => (
             path="/biomarkers"
             element={
               <ProtectedRoute>
-                <Biomarkers />
+                <PatientRoute>
+                  <Biomarkers />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -96,7 +106,9 @@ const App = () => (
             path="/recommendations"
             element={
               <ProtectedRoute>
-                <Recommendations />
+                <PatientRoute>
+                  <Recommendations />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -104,7 +116,9 @@ const App = () => (
             path="/prescriptions"
             element={
               <ProtectedRoute>
-                <Prescriptions />
+                <PatientRoute>
+                  <Prescriptions />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -112,7 +126,9 @@ const App = () => (
             path="/trends"
             element={
               <ProtectedRoute>
-                <Trends />
+                <PatientRoute>
+                  <Trends />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -120,7 +136,9 @@ const App = () => (
             path="/my-state"
             element={
               <ProtectedRoute>
-                <MyState />
+                <PatientRoute>
+                  <MyState />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -128,7 +146,9 @@ const App = () => (
             path="/health-assistant"
             element={
               <ProtectedRoute>
-                <HealthAssistant />
+                <PatientRoute>
+                  <HealthAssistant />
+                </PatientRoute>
               </ProtectedRoute>
             }
           />
@@ -136,11 +156,13 @@ const App = () => (
             path="/admin/ai-settings"
             element={
               <ProtectedRoute>
-                <AdminModuleRoute module="ai_settings">
-                  <DashboardLayout>
-                    <AISettings />
-                  </DashboardLayout>
-                </AdminModuleRoute>
+                <StaffRoute>
+                  <AdminModuleRoute module="ai_settings">
+                    <DashboardLayout>
+                      <AISettings />
+                    </DashboardLayout>
+                  </AdminModuleRoute>
+                </StaffRoute>
               </ProtectedRoute>
             }
           />
@@ -148,11 +170,13 @@ const App = () => (
             path="/admin/data-management"
             element={
               <ProtectedRoute>
-                <AdminModuleRoute module="data_management">
-                  <DashboardLayout>
-                    <DataManagement />
-                  </DashboardLayout>
-                </AdminModuleRoute>
+                <StaffRoute>
+                  <AdminModuleRoute module="data_management">
+                    <DashboardLayout>
+                      <DataManagement />
+                    </DashboardLayout>
+                  </AdminModuleRoute>
+                </StaffRoute>
               </ProtectedRoute>
             }
           />
@@ -160,11 +184,13 @@ const App = () => (
             path="/admin/patients"
             element={
               <ProtectedRoute>
-                <AdminModuleRoute module="patients">
-                  <DashboardLayout>
-                    <Patients />
-                  </DashboardLayout>
-                </AdminModuleRoute>
+                <StaffRoute>
+                  <AdminModuleRoute module="patients">
+                    <DashboardLayout>
+                      <Patients />
+                    </DashboardLayout>
+                  </AdminModuleRoute>
+                </StaffRoute>
               </ProtectedRoute>
             }
           />
@@ -172,11 +198,13 @@ const App = () => (
             path="/admin/patients/:userId"
             element={
               <ProtectedRoute>
-                <AdminModuleRoute module="patients">
-                  <DashboardLayout>
-                    <PatientProfile />
-                  </DashboardLayout>
-                </AdminModuleRoute>
+                <StaffRoute>
+                  <AdminModuleRoute module="patients">
+                    <DashboardLayout>
+                      <PatientProfile />
+                    </DashboardLayout>
+                  </AdminModuleRoute>
+                </StaffRoute>
               </ProtectedRoute>
             }
           />
@@ -184,11 +212,13 @@ const App = () => (
             path="/admin/user-management"
             element={
               <ProtectedRoute>
-                <AdminModuleRoute module="user_management">
-                  <DashboardLayout>
-                    <UserManagement />
-                  </DashboardLayout>
-                </AdminModuleRoute>
+                <StaffRoute>
+                  <AdminModuleRoute module="user_management">
+                    <DashboardLayout>
+                      <UserManagement />
+                    </DashboardLayout>
+                  </AdminModuleRoute>
+                </StaffRoute>
               </ProtectedRoute>
             }
           />

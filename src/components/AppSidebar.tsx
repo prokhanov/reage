@@ -25,6 +25,13 @@ const navItems = [
   { to: "/prescriptions", label: "Назначения", icon: FileText },
 ];
 
+const adminNavItems = [
+  { to: "/admin/patients", label: "Пациенты", icon: Users },
+  { to: "/admin/user-management", label: "Управление пользователями", icon: Briefcase },
+  { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings },
+  { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical },
+];
+
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -32,6 +39,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [patientName, setPatientName] = useState<string>("");
+  const [isPatient, setIsPatient] = useState(false);
 
   useEffect(() => {
     checkAdminAccess();
@@ -71,6 +79,16 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
         .single();
 
       setIsSuperAdmin(!!superAdminData);
+
+      // Проверяем роль пациента
+      const { data: patientData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "patient")
+        .single();
+
+      setIsPatient(!!patientData);
 
       // Проверяем доступ к любому админскому модулю через role_permissions
       const { data: userRoles } = await supabase
@@ -149,7 +167,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
-            {navItems.map((item) => {
+            {/* Для пациентов или режима просмотра - показываем пациентские разделы */}
+            {(isPatient || viewAsUserId) && navItems.map((item) => {
               const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
               const baseClasses = cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
@@ -174,6 +193,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 <NavLink
                   key={item.to}
                   to={item.to}
+                  onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
                     cn(
                       "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
@@ -187,13 +207,13 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 </NavLink>
               );
             })}
-          </nav>
 
-          {/* Admin Section */}
-          {(isSuperAdmin || hasAdminAccess) && !viewAsUserId && (
-            <div className="p-4 border-t border-border/30 space-y-1">
+            {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем админские разделы */}
+            {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems.map((item) => (
               <NavLink
-                to="/admin/patients"
+                key={item.to}
+                to={item.to}
+                onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
@@ -202,50 +222,11 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   )
                 }
               >
-                <Users className="h-4 w-4" />
-                <span className="font-medium">Пациенты</span>
+                <item.icon className="h-4 w-4" />
+                <span className="font-medium">{item.label}</span>
               </NavLink>
-              <NavLink
-                to="/admin/user-management"
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
-                    "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20"
-                  )
-                }
-              >
-                <Eye className="h-4 w-4" />
-                <span className="font-medium">Управление пользователями</span>
-              </NavLink>
-              <NavLink
-                to="/admin/ai-settings"
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
-                    "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20"
-                  )
-                }
-              >
-                <Settings className="h-4 w-4" />
-                <span className="font-medium">Настройки AI</span>
-              </NavLink>
-              <NavLink
-                to="/admin/data-management"
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
-                    "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20"
-                  )
-                }
-              >
-                <FlaskConical className="h-4 w-4" />
-                <span className="font-medium">Управление данными</span>
-              </NavLink>
-            </div>
-          )}
+            ))}
+          </nav>
 
           {/* Theme Toggle */}
           <div className="p-4 border-t border-border/30">
