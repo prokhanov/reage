@@ -8,12 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
   Heart, User, Calendar, Weight, Ruler, 
-  ChevronLeft, ChevronRight, Check, Mail, Lock, AlertCircle
+  ChevronLeft, ChevronRight, Check, Mail, Lock
 } from "lucide-react";
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import reAgeLogo from "@/assets/reage-logo.png";
 
 export interface RegisterFormData {
@@ -51,9 +50,6 @@ const steps = [
 export default function Register() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [inviteToken, setInviteToken] = useState<any>(null);
-  const [inviteError, setInviteError] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState<RegisterFormData>({
     email: "",
     password: "",
@@ -67,50 +63,6 @@ export default function Register() {
   
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Validate invite token on mount
-  useEffect(() => {
-    const validateInviteToken = async () => {
-      const inviteParam = searchParams.get('invite');
-      
-      if (!inviteParam) {
-        setInviteError("Регистрация возможна только по пригласительной ссылке");
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("invite_tokens")
-        .select("*")
-        .eq("token", inviteParam)
-        .maybeSingle();
-
-      if (error || !data) {
-        setInviteError("Недействительная пригласительная ссылка");
-        return;
-      }
-
-      if (data.used_at) {
-        setInviteError("Эта пригласительная ссылка уже была использована");
-        return;
-      }
-
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        setInviteError("Срок действия пригласительной ссылки истек");
-        return;
-      }
-
-      // Redirect to doctor registration if role is doctor, admin, or superadmin
-      if (data.role === "doctor" || data.role === "admin" || data.role === "superadmin") {
-        navigate(`/register-doctor?invite=${inviteParam}`, { replace: true });
-        return;
-      }
-
-      setInviteToken(data);
-      setInviteError(null);
-    };
-
-    validateInviteToken();
-  }, [searchParams, navigate]);
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -133,15 +85,6 @@ export default function Register() {
   };
 
   const handleSubmit = async () => {
-    if (!inviteToken) {
-      toast({
-        title: "Ошибка",
-        description: "Регистрация возможна только по пригласительной ссылке",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -174,28 +117,17 @@ export default function Register() {
 
       if (profileError) throw profileError;
 
-      // 3. Assign role from invite token
+      // 3. Assign 'user' role for patient
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
           user_id: authData.user.id,
-          role: inviteToken.role
+          role: 'user'
         });
 
       if (roleError) throw roleError;
 
-      // 4. Mark invite token as used
-      const { error: tokenError } = await supabase
-        .from('invite_tokens')
-        .update({
-          used_at: new Date().toISOString(),
-          used_by: authData.user.id
-        })
-        .eq('id', inviteToken.id);
-
-      if (tokenError) console.error('Failed to mark token as used:', tokenError);
-
-      // 5. Save medical history
+      // 4. Save medical history
       if (formData.medicalHistory.length > 0) {
         const medicalData = formData.medicalHistory.map(condition => {
           const [category, conditionName] = condition.split('|');
@@ -240,18 +172,7 @@ export default function Register() {
           <p className="text-lg text-muted-foreground">Создайте ваш аккаунт</p>
         </div>
 
-        {/* Invite Error Alert */}
-        {inviteError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Ошибка приглашения</AlertTitle>
-            <AlertDescription>{inviteError}</AlertDescription>
-          </Alert>
-        )}
-
-        {!inviteError && (
-          <>
-            {/* Progress */}
+        {/* Progress */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 {steps.map((step, index) => {
@@ -323,8 +244,6 @@ export default function Register() {
                 />
               )}
             </Card>
-          </>
-        )}
 
         {/* Login Link */}
         <div className="text-center mt-6">
