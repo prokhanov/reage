@@ -101,6 +101,39 @@ export type Database = {
         }
         Relationships: []
       }
+      analysis_bookings: {
+        Row: {
+          address: string
+          booking_date: string
+          booking_time: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          booking_date: string
+          booking_time: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          booking_date?: string
+          booking_time?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analysis_values: {
         Row: {
           analysis_id: string
@@ -575,6 +608,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          created_at: string
+          end_date: string | null
+          id: string
+          payment_method: string | null
+          plan_type: string
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          payment_method?: string | null
+          plan_type?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          payment_method?: string | null
+          plan_type?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

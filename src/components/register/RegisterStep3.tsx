@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, ArrowLeft, Heart, Brain, Utensils, Activity, Bone, Shield, Flower2, Droplet, Baby, BabyIcon, Eye, Pill } from "lucide-react";
+import { Check, ArrowLeft, Heart, Brain, Utensils, Activity, Bone, Shield, Flower2, Droplet, Baby, BabyIcon, Eye, Pill, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 interface RegisterStep3Props {
   formData: RegisterFormData;
   updateFormData: (data: Partial<RegisterFormData>) => void;
-  onSubmit: () => void;
+  onNext: () => void;
   onBack: () => void;
-  isSubmitting: boolean;
 }
 
 const medicalCategories = [
@@ -144,7 +143,7 @@ const medicalCategories = [
   }
 ];
 
-export function RegisterStep3({ formData, updateFormData, onSubmit, onBack, isSubmitting }: RegisterStep3Props) {
+export function RegisterStep3({ formData, updateFormData, onNext, onBack }: RegisterStep3Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [openCategories, setOpenCategories] = useState<string[]>([]);
   const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
@@ -356,19 +355,17 @@ export function RegisterStep3({ formData, updateFormData, onSubmit, onBack, isSu
           onClick={onBack}
           className="flex-1"
           size="lg"
-          disabled={isSubmitting}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Назад
         </Button>
         <Button 
-          onClick={onSubmit}
-          disabled={isSubmitting}
+          onClick={onNext}
           className="flex-1"
           size="lg"
         >
-          {isSubmitting ? "Создание..." : "Создать аккаунт"}
-          <Check className="ml-2 h-4 w-4" />
+          Продолжить
+          <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </div>
