@@ -286,12 +286,12 @@ export default function MyAssignments() {
                           time: booking.booking_time,
                           address: booking.address
                         })}
-                        className="text-left border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
+                        className="text-left hover:text-primary transition-colors cursor-pointer"
                       >
-                        <div className="font-medium">
+                        <div className="font-medium border-b border-current">
                           {format(new Date(booking.booking_date), "d MMMM yyyy", { locale: ru })}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground border-b border-current">
                           {booking.booking_time}
                         </div>
                       </button>
@@ -304,7 +304,7 @@ export default function MyAssignments() {
                           time: booking.booking_time,
                           address: booking.address
                         })}
-                        className="truncate border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer block max-w-full"
+                        className="truncate border-b border-current hover:text-primary transition-colors cursor-pointer block max-w-full"
                       >
                         {booking.address}
                       </button>
