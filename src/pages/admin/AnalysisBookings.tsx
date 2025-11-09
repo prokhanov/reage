@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -81,13 +81,10 @@ export default function AnalysisBookings() {
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["analysis-bookings", statusFilter, staffFilter, searchQuery],
     queryFn: async () => {
+      // First get bookings
       let query = supabase
         .from("analysis_bookings")
-        .select(`
-          *,
-          patient:profiles!analysis_bookings_user_id_fkey(name, email, birth_date),
-          assigned_staff:profiles!analysis_bookings_assigned_staff_id_fkey(name)
-        `)
+        .select("*")
         .neq("status", "not_scheduled")
         .order("booking_date", { ascending: false })
         .order("booking_time", { ascending: false });
@@ -104,13 +101,61 @@ export default function AnalysisBookings() {
         }
       }
 
-      if (searchQuery) {
-        query = query.ilike("patient.name", `%${searchQuery}%`);
+      const { data: bookingsData, error: bookingsError } = await query;
+      if (bookingsError) throw bookingsError;
+
+      if (!bookingsData || bookingsData.length === 0) {
+        return [];
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as unknown as BookingData[];
+      // Get all unique user IDs
+      const userIds = [...new Set(bookingsData.map(b => b.user_id))];
+      const staffIds = [...new Set(bookingsData.map(b => b.assigned_staff_id).filter(Boolean))];
+
+      // Fetch patient profiles
+      const { data: patientProfiles, error: patientError } = await supabase
+        .from("profiles")
+        .select("id, name, email, birth_date")
+        .in("id", userIds);
+
+      if (patientError) throw patientError;
+
+      // Fetch staff profiles if any
+      let staffProfiles: any[] = [];
+      if (staffIds.length > 0) {
+        const { data: staffData, error: staffError } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", staffIds);
+
+        if (staffError) throw staffError;
+        staffProfiles = staffData || [];
+      }
+
+      // Combine data
+      const result = bookingsData.map(booking => {
+        const patient = patientProfiles?.find(p => p.id === booking.user_id);
+        const staff = staffProfiles?.find(s => s.id === booking.assigned_staff_id);
+
+        return {
+          ...booking,
+          patient: patient ? {
+            name: patient.name,
+            email: patient.email,
+            birth_date: patient.birth_date
+          } : null,
+          assigned_staff: staff ? { name: staff.name } : null
+        };
+      });
+
+      // Apply search filter
+      if (searchQuery) {
+        return result.filter(r => 
+          r.patient?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+
+      return result as BookingData[];
     },
   });
 
@@ -174,7 +219,7 @@ export default function AnalysisBookings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Записи на анализы</h1>
         <p className="text-muted-foreground mt-2">
@@ -182,8 +227,9 @@ export default function AnalysisBookings() {
         </p>
       </div>
 
-      <Card className="p-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -220,8 +266,10 @@ export default function AnalysisBookings() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-
+          </div>
+        </CardHeader>
+        
+        <CardContent>
         {!bookings || bookings.length === 0 ? (
           <div className="text-center py-12">
             <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -341,6 +389,7 @@ export default function AnalysisBookings() {
             </Table>
           </div>
         )}
+        </CardContent>
       </Card>
 
       {selectedBookingForStaff && (
