@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
 import { PatientsListSkeleton } from "@/components/skeletons/PatientsListSkeleton";
 import {
   AlertDialog,
@@ -32,8 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -302,7 +301,7 @@ export default function Patients() {
                         <TableRow
                           key={patient.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => setSelectedPatientId(patient.id)}
+                          onClick={() => navigate(`/admin/patients/${patient.id}/view`)}
                         >
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -364,7 +363,7 @@ export default function Patients() {
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedPatientId(patient.id);
+                                  navigate(`/admin/patients/${patient.id}/view`);
                                 }}
                               >
                                 <User className="w-4 h-4 mr-2" />
@@ -397,11 +396,6 @@ export default function Patients() {
               </div>
           </CardContent>
         </Card>
-
-      <PatientViewDialog
-        patientId={selectedPatientId}
-        onClose={() => setSelectedPatientId(null)}
-      />
 
       <AlertDialog open={!!deletePatientId} onOpenChange={(open) => !open && setDeletePatientId(null)}>
         <AlertDialogContent>

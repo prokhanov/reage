@@ -29,6 +29,7 @@ import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
 import Patients from "./pages/admin/Patients";
 import PatientProfile from "./pages/admin/PatientProfile";
+import PatientViewPage from "./pages/admin/PatientViewPage";
 import UserManagement from "./pages/admin/UserManagement";
 import RegisterStaff from "./pages/RegisterStaff";
 import NotFound from "./pages/NotFound";
@@ -127,6 +128,16 @@ const App = () => (
                   <StaffRoute>
                     <AdminModuleRoute module="patients">
                       <PatientProfile />
+                    </AdminModuleRoute>
+                  </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/patients/:userId/view" 
+                element={
+                  <StaffRoute>
+                    <AdminModuleRoute module="patients">
+                      <PatientViewPage />
                     </AdminModuleRoute>
                   </StaffRoute>
                 } 
