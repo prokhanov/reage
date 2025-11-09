@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
+import { PatientsListSkeleton } from "@/components/skeletons/PatientsListSkeleton";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -151,6 +152,10 @@ export default function Patients() {
     );
   };
 
+  if (isLoading) {
+    return <PatientsListSkeleton />;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
       <div>
@@ -182,12 +187,7 @@ export default function Patients() {
               />
             </div>
 
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-              </div>
-            ) : (
-              <div className="rounded-md border overflow-x-auto">
+            <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -282,7 +282,6 @@ export default function Patients() {
                   </TableBody>
                 </Table>
               </div>
-            )}
           </CardContent>
         </Card>
 

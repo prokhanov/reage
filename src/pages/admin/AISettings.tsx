@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AISettingsSkeleton } from "@/components/skeletons/AISettingsSkeleton";
 
 interface PromptFormData {
   key: string;
@@ -115,11 +116,7 @@ export default function AISettings() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+    return <AISettingsSkeleton />;
   }
 
   return (

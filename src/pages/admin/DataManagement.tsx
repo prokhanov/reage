@@ -33,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { DataManagementSkeleton } from "@/components/skeletons/DataManagementSkeleton";
 
 const BIOMARKER_CATEGORIES = [
   "Липиды",
@@ -231,6 +232,10 @@ export default function DataManagement() {
     saveCondition.mutate(condition);
   };
 
+  if (loadingBiomarkers || loadingConditions) {
+    return <DataManagementSkeleton />;
+  }
+
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
@@ -285,12 +290,7 @@ export default function DataManagement() {
                   />
                 </div>
 
-                {loadingBiomarkers ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                  </div>
-                ) : (
-                  <div className="space-y-6">
+                <div className="space-y-6">
                     {Object.entries(groupedBiomarkers || {}).map(([category, items]: [string, any]) => (
                       <div key={category} className="space-y-2">
                         <h3 className="font-semibold text-lg">{category}</h3>
@@ -349,7 +349,6 @@ export default function DataManagement() {
                       </div>
                     ))}
                   </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -386,12 +385,7 @@ export default function DataManagement() {
                   />
                 </div>
 
-                {loadingConditions ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                  </div>
-                ) : (
-                  <div className="space-y-6">
+                <div className="space-y-6">
                     {Object.entries(groupedConditions || {}).map(([category, items]: [string, any]) => (
                       <div key={category} className="space-y-2">
                         <h3 className="font-semibold text-lg">{category}</h3>
@@ -442,7 +436,6 @@ export default function DataManagement() {
                       </div>
                     ))}
                   </div>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
