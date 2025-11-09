@@ -293,9 +293,6 @@ export default function Prescriptions() {
         onOpenChange={(open) => !open && setEditPrescription(null)}
         prescription={editPrescription}
       />
-      </>
-    )}
-    </div>
   </>
   );
 }

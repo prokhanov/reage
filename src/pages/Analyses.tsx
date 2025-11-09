@@ -307,9 +307,6 @@ export default function Analyses() {
           onSuccess={loadAnalyses}
         />
       )}
-      </>
-    )}
-    </div>
   </>
   );
 }
