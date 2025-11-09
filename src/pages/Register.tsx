@@ -176,163 +176,137 @@ export default function Register() {
     }
   };
 
-  const stepImages = [registerHero, registerProfile, registerHealth];
-
   return (
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
       <ParticleBackground />
       
-      {/* Gradient Orbs */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      {/* Gradient Orbs - медленные переливы */}
+      <div className="absolute top-20 left-10 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/15 rounded-full blur-3xl animate-float-delayed" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-secondary-glow/10 rounded-full blur-3xl animate-float-slow" />
+      <div className="absolute top-40 right-20 w-72 h-72 bg-primary-glow/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+      <div className="absolute bottom-40 left-20 w-80 h-80 bg-accent-glow/10 rounded-full blur-3xl animate-float-delayed" style={{ animationDelay: "3s" }} />
       
-      <div className="w-full max-w-6xl relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          {/* Left Side - Hero Image */}
-          <div className="hidden lg:flex flex-col items-center justify-center">
-            <div className="relative w-full max-w-md animate-fade-in">
-              <div className="absolute inset-0 bg-gradient-primary rounded-3xl blur-2xl opacity-30 animate-pulse" />
-              <img 
-                src={stepImages[currentStep - 1]} 
-                alt="Registration step illustration" 
-                className="relative w-full h-auto rounded-3xl shadow-2xl transform transition-all duration-700 hover:scale-105"
-                style={{
-                  filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.5))"
-                }}
-              />
+      <div className="w-full max-w-2xl relative z-10">
+        <div className="w-full">
+          {/* Header */}
+          <div className="text-center mb-8 animate-fade-in">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <img src={reAgeLogo} alt="ReAge" className="h-16 w-auto" />
+              <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
-              <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                {steps[currentStep - 1].title}
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                {steps[currentStep - 1].description}
-              </p>
+            <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
+            <p className="text-muted-foreground text-lg">Начните ваше путешествие к здоровью</p>
+          </div>
+
+          {/* Progress */}
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <div className="flex items-center justify-between mb-6">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = currentStep === step.id;
+                const isCompleted = currentStep > step.id;
+
+                return (
+                  <div key={step.id} className="flex items-center flex-1">
+                    <div className="flex flex-col items-center flex-1">
+                      <div 
+                        className={`
+                          w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500
+                          ${isActive ? 'bg-gradient-primary text-white scale-110 shadow-neon-primary' : ''}
+                          ${isCompleted ? 'bg-primary/20 text-primary scale-105' : ''}
+                          ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
+                        `}
+                      >
+                        {isCompleted ? (
+                          <Check className="h-7 w-7" />
+                        ) : (
+                          <Icon className="h-7 w-7" />
+                        )}
+                      </div>
+                      <div className="text-center mt-3 hidden sm:block">
+                        <p className={`text-sm font-medium transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {step.title}
+                        </p>
+                      </div>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div className="h-1 flex-1 mx-4 rounded-full bg-muted overflow-hidden">
+                        <div 
+                          className={`
+                            h-full bg-gradient-primary transition-all duration-700 ease-out
+                            ${isCompleted ? 'w-full' : 'w-0'}
+                          `}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="relative">
+              <Progress value={progress} className="h-3 shadow-lg" />
+              <div 
+                className="absolute top-0 left-0 h-3 bg-gradient-primary rounded-full transition-all duration-700 shadow-neon-primary"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
 
-          {/* Right Side - Form */}
-          <div className="w-full">
-            {/* Header */}
-            <div className="text-center mb-8 animate-fade-in">
-              <div className="inline-flex items-center gap-2 mb-4">
-                <img src={reAgeLogo} alt="ReAge" className="h-14 w-auto" />
-                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+          {/* Steps Content */}
+          <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            {/* Card Glow Effect */}
+            <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+            
+            <div className="relative z-10">
+              <div className={`transition-all duration-500 ${currentStep === 1 ? 'animate-fade-in' : 'hidden'}`}>
+                {currentStep === 1 && (
+                  <RegisterStep1 
+                    formData={formData} 
+                    updateFormData={updateFormData}
+                    onNext={handleNext}
+                  />
+                )}
               </div>
-              <h1 className="text-2xl font-bold mb-2">Добро пожаловать в ReAge</h1>
-              <p className="text-muted-foreground">Начните ваше путешествие к здоровью</p>
-            </div>
-
-            {/* Progress */}
-            <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-              <div className="flex items-center justify-between mb-6">
-                {steps.map((step, index) => {
-                  const Icon = step.icon;
-                  const isActive = currentStep === step.id;
-                  const isCompleted = currentStep > step.id;
-
-                  return (
-                    <div key={step.id} className="flex items-center flex-1">
-                      <div className="flex flex-col items-center flex-1">
-                        <div 
-                          className={`
-                            w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300
-                            ${isActive ? 'bg-gradient-primary text-white scale-110 shadow-neon-primary' : ''}
-                            ${isCompleted ? 'bg-primary/20 text-primary scale-105' : ''}
-                            ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
-                            ${isActive ? 'animate-pulse' : ''}
-                          `}
-                        >
-                          {isCompleted ? (
-                            <Check className="h-6 w-6 animate-scale-in" />
-                          ) : (
-                            <Icon className={`h-6 w-6 ${isActive ? 'animate-bounce' : ''}`} />
-                          )}
-                        </div>
-                        <div className="text-center mt-3 hidden sm:block">
-                          <p className={`text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                            {step.title}
-                          </p>
-                        </div>
-                      </div>
-                      {index < steps.length - 1 && (
-                        <div className="h-1 flex-1 mx-3 rounded-full bg-muted overflow-hidden">
-                          <div 
-                            className={`
-                              h-full bg-gradient-primary transition-all duration-500 ease-out
-                              ${isCompleted ? 'w-full' : 'w-0'}
-                            `}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="relative">
-                <Progress value={progress} className="h-3 shadow-lg" />
-                <div 
-                  className="absolute top-0 left-0 h-3 bg-gradient-primary rounded-full transition-all duration-500 shadow-neon-primary"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Steps Content */}
-            <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              {/* Card Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
               
-              <div className="relative z-10">
-                <div className={`transition-all duration-500 ${currentStep === 1 ? 'animate-fade-in' : 'hidden'}`}>
-                  {currentStep === 1 && (
-                    <RegisterStep1 
-                      formData={formData} 
-                      updateFormData={updateFormData}
-                      onNext={handleNext}
-                    />
-                  )}
-                </div>
-                
-                <div className={`transition-all duration-500 ${currentStep === 2 ? 'animate-fade-in' : 'hidden'}`}>
-                  {currentStep === 2 && (
-                    <RegisterStep2 
-                      formData={formData} 
-                      updateFormData={updateFormData}
-                      onNext={handleNext}
-                      onBack={handlePrevious}
-                    />
-                  )}
-                </div>
-                
-                <div className={`transition-all duration-500 ${currentStep === 3 ? 'animate-fade-in' : 'hidden'}`}>
-                  {currentStep === 3 && (
-                    <RegisterStep3 
-                      formData={formData} 
-                      updateFormData={updateFormData}
-                      onSubmit={handleSubmit}
-                      onBack={handlePrevious}
-                      isSubmitting={isSubmitting}
-                    />
-                  )}
-                </div>
+              <div className={`transition-all duration-500 ${currentStep === 2 ? 'animate-fade-in' : 'hidden'}`}>
+                {currentStep === 2 && (
+                  <RegisterStep2 
+                    formData={formData} 
+                    updateFormData={updateFormData}
+                    onNext={handleNext}
+                    onBack={handlePrevious}
+                  />
+                )}
               </div>
-            </Card>
-
-            {/* Login Link */}
-            <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-              <p className="text-sm text-muted-foreground">
-                Уже есть аккаунт?{" "}
-                <button 
-                  onClick={() => navigate('/auth')}
-                  className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
-                >
-                  Войти
-                </button>
-              </p>
+              
+              <div className={`transition-all duration-500 ${currentStep === 3 ? 'animate-fade-in' : 'hidden'}`}>
+                {currentStep === 3 && (
+                  <RegisterStep3 
+                    formData={formData} 
+                    updateFormData={updateFormData}
+                    onSubmit={handleSubmit}
+                    onBack={handlePrevious}
+                    isSubmitting={isSubmitting}
+                  />
+                )}
+              </div>
             </div>
+          </Card>
+
+          {/* Login Link */}
+          <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+            <p className="text-sm text-muted-foreground">
+              Уже есть аккаунт?{" "}
+              <button 
+                onClick={() => navigate('/auth')}
+                className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
+              >
+                Войти
+              </button>
+            </p>
           </div>
         </div>
       </div>
