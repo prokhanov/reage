@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Search, UserCog, Eye, MoreVertical } from "lucide-react";
+import { Calendar, Search, Eye, MoreVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -330,26 +330,18 @@ export default function AnalysisBookings() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {booking.assigned_staff ? (
-                        <span className="font-medium">{booking.assigned_staff.name}</span>
-                      ) : (
-                        <span className="text-muted-foreground">Не назначен</span>
-                      )}
+                      <button
+                        onClick={() => setSelectedBookingForStaff(booking.id)}
+                        className="font-medium border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
+                      >
+                        {booking.assigned_staff ? booking.assigned_staff.name : "Не назначен"}
+                      </button>
                     </TableCell>
                     <TableCell>
                       {format(new Date(booking.created_at), "d MMM yyyy", { locale: ru })}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedBookingForStaff(booking.id)}
-                        >
-                          <UserCog className="h-4 w-4 mr-1" />
-                          Назначить
-                        </Button>
-                        
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
