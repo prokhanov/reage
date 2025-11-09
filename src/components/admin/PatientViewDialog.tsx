@@ -1,6 +1,8 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useContext } from "react";
 import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
@@ -49,17 +51,31 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
   if (!patientId) return null;
 
   return (
-    <Dialog open={!!patientId} onOpenChange={onClose}>
-      <DialogContent hideCloseButton className="max-w-none h-screen w-screen p-0 m-0 border-0 rounded-none overflow-hidden">
+    <Sheet open={!!patientId} onOpenChange={onClose}>
+      <SheetContent 
+        side="right" 
+        className="w-full sm:max-w-4xl p-0 overflow-hidden flex flex-col"
+      >
+        <SheetHeader className="px-6 py-4 border-b">
+          <div className="flex items-center justify-between">
+            <SheetTitle>Просмотр профиля пациента</SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </SheetHeader>
+        
         <ViewAsPatientProvider userId={patientId}>
-          <div className="h-screen w-full flex flex-col relative overflow-hidden">
-            {/* Patient view content with scroll */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <SimulatedContent />
-            </div>
+          <div className="flex-1 overflow-y-auto">
+            <SimulatedContent />
           </div>
         </ViewAsPatientProvider>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
