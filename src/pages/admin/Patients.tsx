@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,11 +27,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -301,7 +301,7 @@ export default function Patients() {
                         <TableRow
                           key={patient.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => navigate(`/admin/patients/${patient.id}/view`)}
+                          onClick={() => setSelectedPatientId(patient.id)}
                         >
                           <TableCell>
                             <div className="flex items-center gap-3">
@@ -363,7 +363,7 @@ export default function Patients() {
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(`/admin/patients/${patient.id}/view`);
+                                  setSelectedPatientId(patient.id);
                                 }}
                               >
                                 <User className="w-4 h-4 mr-2" />
@@ -418,6 +418,11 @@ export default function Patients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PatientViewDialog 
+        patientId={selectedPatientId} 
+        onClose={() => setSelectedPatientId(null)} 
+      />
     </div>
   );
 }
