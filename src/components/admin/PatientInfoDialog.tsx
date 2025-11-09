@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ import {
   Weight,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
@@ -36,6 +38,8 @@ interface PatientInfoDialogProps {
 }
 
 export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInfoDialogProps) {
+  const [isEditDateOpen, setIsEditDateOpen] = useState(false);
+  
   const { data: patientData, isLoading } = useQuery({
     queryKey: ["patient-info", patientId],
     queryFn: async () => {
@@ -362,6 +366,18 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                       )}
                     </>
                   )}
+                  <Separator />
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Дата следующего анализа:</span>
+                    <button
+                      onClick={() => setIsEditDateOpen(true)}
+                      className="font-medium border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
+                    >
+                      {patientData.booking?.next_analysis_date
+                        ? new Date(patientData.booking.next_analysis_date).toLocaleDateString("ru-RU")
+                        : "Не назначена"}
+                    </button>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -434,6 +450,17 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
             </div>
           </div>
         ) : null}
+
+        {/* Диалог редактирования даты следующего анализа */}
+        {patientData?.booking && (
+          <EditNextAnalysisDialog
+            open={isEditDateOpen}
+            onOpenChange={setIsEditDateOpen}
+            bookingId={patientData.booking.id}
+            currentDate={patientData.booking.next_analysis_date}
+            userId={patientId}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

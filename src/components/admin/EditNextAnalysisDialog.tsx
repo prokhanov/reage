@@ -52,7 +52,9 @@ export function EditNextAnalysisDialog({
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });
+      queryClient.invalidateQueries({ queryKey: ["patient-info", userId] });
+      queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-assignments"] });
       toast({
         title: "Дата обновлена",
         description: "Дата следующего анализа успешно изменена",
