@@ -3,6 +3,7 @@ import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { AnalysisBookingDialog } from "./AnalysisBookingDialog";
 import { SubscriptionRequiredDialog } from "./SubscriptionRequiredDialog";
 
@@ -25,6 +26,7 @@ export function AnalysisBookingBanner() {
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const { data: userRoleData, isLoading } = useUserRole();
+  const { getUserId } = useViewAsUser();
 
   useEffect(() => {
     checkBookingStatus();
@@ -33,13 +35,13 @@ export function AnalysisBookingBanner() {
 
   const checkSubscriptionStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getUserId();
+      if (!userId) return;
 
       const { data: subscription } = await supabase
         .from('subscriptions')
         .select('status')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -54,13 +56,13 @@ export function AnalysisBookingBanner() {
 
   const checkBookingStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getUserId();
+      if (!userId) return;
 
       const { data: bookings } = await supabase
         .from('analysis_bookings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1);
 
