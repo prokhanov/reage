@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
 import reAgeLogo from "@/assets/reage-logo.png";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -44,6 +45,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const queryClient = useQueryClient();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
+  const { data: scheduledCount = 0 } = useScheduledBookingsCount();
   const [patientName, setPatientName] = useState<string>("");
   const [patientEmail, setPatientEmail] = useState<string>("");
 
@@ -185,23 +187,33 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             })}
 
                 {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем админские разделы */}
-                {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
-                        "hover:bg-primary/10 hover:text-primary",
-                        isActive && "bg-primary/15 text-primary border border-primary/20"
-                      )
-                    }
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span className="font-medium">{item.label}</span>
-                  </NavLink>
-                ))}
+                {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems.map((item) => {
+                  const isBookingsPage = item.to === "/admin/analysis-bookings";
+                  const hasScheduled = isBookingsPage && scheduledCount > 0;
+                  
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                          "hover:bg-primary/10 hover:text-primary",
+                          isActive && "bg-primary/15 text-primary border border-primary/20"
+                        )
+                      }
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span className={cn("font-medium", hasScheduled && "font-bold")}>
+                        {item.label}
+                        {hasScheduled && (
+                          <span className="ml-1 text-primary">({scheduledCount})</span>
+                        )}
+                      </span>
+                    </NavLink>
+                  );
+                })}
               </>
             )}
           </nav>
