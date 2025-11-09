@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, User, AlertCircle } from "lucide-react";
+import reAgeLogo from "@/assets/reage-logo.png";
 
 export default function RegisterStaff() {
   const [searchParams] = useSearchParams();
@@ -173,14 +174,14 @@ export default function RegisterStaff() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">ReAge</CardTitle>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-dark p-4">
+      <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
+        <CardHeader className="text-center space-y-4">
+          <img src={reAgeLogo} alt="ReAge" className="h-14 w-auto mx-auto" />
           {inviteToken && (
-            <CardDescription className="text-base mt-4">
+            <CardDescription className="text-base">
               Вас пригласили присоединиться как{" "}
-              <span className="font-semibold text-foreground">
+              <span className="font-semibold text-primary">
                 {inviteToken.role_display_name || inviteToken.role}
               </span>
               .<br />

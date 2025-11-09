@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "./ui/button";
 import { Menu } from "lucide-react";
+import reAgeLogo from "@/assets/reage-logo.png";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -24,9 +25,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-primary">
-            ReAge
-          </h1>
+          <img src={reAgeLogo} alt="ReAge" className="h-8 w-auto" />
           <div className="w-10" />
         </div>
       </header>

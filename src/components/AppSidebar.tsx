@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
+import reAgeLogo from "@/assets/reage-logo.png";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -103,9 +104,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-border/30">
-            <h1 className="text-2xl font-bold text-primary">
-              ReAge
-            </h1>
+            <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto mb-3" />
             <p className="text-xs text-muted-foreground mt-1 truncate">{userEmail}</p>
             <p className="text-xs text-primary/70 font-medium mt-0.5">{userRole}</p>
           </div>

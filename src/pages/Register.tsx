@@ -14,6 +14,7 @@ import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import reAgeLogo from "@/assets/reage-logo.png";
 
 export interface RegisterFormData {
   email: string;
@@ -235,8 +236,8 @@ export default function Register() {
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-2">ReAge</h1>
-          <p className="text-muted-foreground">Создайте ваш аккаунт</p>
+          <img src={reAgeLogo} alt="ReAge" className="h-16 w-auto mx-auto mb-4" />
+          <p className="text-lg text-muted-foreground">Создайте ваш аккаунт</p>
         </div>
 
         {/* Invite Error Alert */}
