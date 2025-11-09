@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [bookingAddress, setBookingAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Load existing booking when dialog opens
   useEffect(() => {
@@ -135,9 +137,14 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
-  const handleCancel = async () => {
+  const handleCancelClick = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const handleCancelConfirm = async () => {
     if (!existingBookingId) return;
 
+    setShowCancelConfirm(false);
     setIsSubmitting(true);
     try {
       const { error } = await supabase
@@ -295,7 +302,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           {existingBookingId && (
             <button
               type="button"
-              onClick={handleCancel}
+              onClick={handleCancelClick}
               disabled={isSubmitting}
               className="w-full text-center text-sm text-destructive hover:text-destructive/80 transition-colors disabled:opacity-50"
             >
@@ -304,6 +311,23 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           )}
         </div>
       </DialogContent>
+
+      <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Отменить запись?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите отменить запись на визит медсестры? Вы сможете записаться на новую дату.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Не отменять</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelConfirm} className="bg-destructive hover:bg-destructive/90">
+              Да, отменить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
