@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ const timeSlots = [
 
 export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: AnalysisBookingDialogProps) {
   const queryClient = useQueryClient();
+  const { getUserId } = useViewAsUser();
   const [bookingDate, setBookingDate] = useState<Date>();
   const [bookingTime, setBookingTime] = useState("");
   const [bookingAddress, setBookingAddress] = useState("");
@@ -43,13 +45,13 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
   const loadExistingBooking = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const userId = await getUserId();
+      if (!userId) return;
 
       const { data: bookings } = await supabase
         .from('analysis_bookings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -77,8 +79,8 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      const userId = await getUserId();
+      if (!userId) throw new Error("User not authenticated");
 
       if (existingBookingId) {
         // Update existing booking
@@ -103,7 +105,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         const { error } = await supabase
           .from('analysis_bookings')
           .insert({
-            user_id: user.id,
+            user_id: userId,
             booking_date: format(bookingDate, 'yyyy-MM-dd'),
             booking_time: bookingTime,
             address: bookingAddress,
@@ -119,8 +121,9 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
       }
 
       // Invalidate queries to refresh admin views
-      await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["patient-info", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });
+      await queryClient.invalidateQueries({ queryKey: ["patient-info", userId] });
+      await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
       
       // Reset form and close dialog
       setBookingDate(undefined);
@@ -165,11 +168,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         description: "Вы можете записаться на новую дату",
       });
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      const userId = await getUserId();
+      if (userId) {
         // Invalidate queries to refresh admin views
-        await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", user.id] });
-        await queryClient.invalidateQueries({ queryKey: ["patient-info", user.id] });
+        await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["patient-info", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
       }
 
       // Reset form and close dialog
