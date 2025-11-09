@@ -27,13 +27,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Search, Eye, MoreVertical } from "lucide-react";
+import { Calendar, Search, Eye, MoreVertical, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import AnalysisBookingsSkeleton from "@/components/skeletons/AnalysisBookingsSkeleton";
 import AssignStaffDialog from "@/components/admin/AssignStaffDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type BookingStatus = "scheduled" | "collected" | "uploaded";
 
@@ -74,6 +84,7 @@ export default function AnalysisBookings() {
   const [staffFilter, setStaffFilter] = useState<string>("all");
   const [selectedBookingForStaff, setSelectedBookingForStaff] = useState<string | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -200,6 +211,32 @@ export default function AnalysisBookings() {
       toast({
         title: "Ошибка",
         description: "Не удалось обновить статус",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteBookingMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { error } = await supabase
+        .from("analysis_bookings")
+        .delete()
+        .eq("id", bookingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
+      toast({
+        title: "Запись удалена",
+        description: "Запись на анализ успешно удалена",
+      });
+      setBookingToDelete(null);
+    },
+    onError: () => {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось удалить запись",
         variant: "destructive",
       });
     },
@@ -363,6 +400,13 @@ export default function AnalysisBookings() {
                                 {label}
                               </DropdownMenuItem>
                             ))}
+                            <DropdownMenuItem
+                              onClick={() => setBookingToDelete(booking.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Удалить
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
 
@@ -402,6 +446,26 @@ export default function AnalysisBookings() {
           onOpenView={() => {}}
         />
       )}
+
+      <AlertDialog open={!!bookingToDelete} onOpenChange={(open) => !open && setBookingToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить запись на анализ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Запись на анализ будет удалена безвозвратно.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => bookingToDelete && deleteBookingMutation.mutate(bookingToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
