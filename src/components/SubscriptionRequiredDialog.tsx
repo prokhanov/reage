@@ -81,12 +81,15 @@ export function SubscriptionRequiredDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="subscription-description">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl">
             Для записи на анализы требуется подписка
           </DialogTitle>
         </DialogHeader>
+        <p id="subscription-description" className="sr-only">
+          Диалог оформления подписки для доступа к записи на анализы
+        </p>
 
         <div className="space-y-6">
           <div className="text-center">

@@ -126,7 +126,7 @@ export default function PatientProfile() {
 
   if (loadingProfile) {
     return (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center py-24">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
     );
@@ -134,7 +134,7 @@ export default function PatientProfile() {
 
   if (!profile) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="flex flex-col items-center justify-center py-24 gap-4">
           <AlertCircle className="w-12 h-12 text-muted-foreground" />
           <p className="text-muted-foreground">Профиль не найден</p>
           <Button onClick={() => navigate("/admin/patients")}>
