@@ -8,6 +8,8 @@ import { useEffect, useState, useContext } from "react";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -36,16 +38,15 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId } = useContext(ViewAsPatientContext);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
   const [patientName, setPatientName] = useState<string>("");
-  const [isPatient, setIsPatient] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [userRole, setUserRole] = useState<string>("");
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
+  // Извлекаем данные из React Query
+  const isSuperAdmin = roleData?.isSuperAdmin ?? false;
+  const hasAdminAccess = roleData?.hasAdminAccess ?? false;
+  const isPatient = roleData?.isPatient ?? false;
+  const userEmail = roleData?.userEmail ?? "";
+  const userRole = roleData?.userRole ?? "";
 
   useEffect(() => {
     if (viewAsUserId) {
@@ -67,58 +68,6 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     }
   };
 
-  const checkAdminAccess = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Устанавливаем email
-      setUserEmail(user.email || "");
-
-      // Делаем один запрос для получения всех ролей с permissions
-      const { data: allRoles } = await supabase
-        .from("user_roles")
-        .select("role, role_id")
-        .eq("user_id", user.id);
-
-      if (!allRoles || allRoles.length === 0) return;
-
-      const roles = allRoles.map(r => r.role);
-      
-      // Устанавливаем флаги на основе одного запроса
-      setIsSuperAdmin(roles.includes("superadmin"));
-      setIsPatient(roles.includes("patient"));
-
-      // Определяем приоритетную роль для отображения
-      if (roles.includes("superadmin")) {
-        setUserRole("Суперадмин");
-      } else if (roles.includes("admin")) {
-        setUserRole("Администратор");
-      } else if (roles.includes("doctor")) {
-        setUserRole("Врач");
-      } else if (roles.includes("patient")) {
-        setUserRole("Пациент");
-      } else {
-        setUserRole("Пользователь");
-      }
-
-      // Проверяем доступ к админским модулям
-      const roleIds = allRoles.map(r => r.role_id).filter(Boolean);
-      
-      if (roleIds.length > 0) {
-        const { data: permissions } = await supabase
-          .from("role_permissions")
-          .select("module")
-          .in("role_id", roleIds)
-          .eq("enabled", true);
-
-        setHasAdminAccess(!!(permissions && permissions.length > 0));
-      }
-    } catch (error) {
-      setIsSuperAdmin(false);
-      setHasAdminAccess(false);
-    }
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -173,8 +122,17 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
-            {/* Для пациентов или режима просмотра - показываем пациентские разделы */}
-            {(isPatient || viewAsUserId) && navItems.map((item) => {
+            {isLoadingRoles ? (
+              // Скелетон навигации
+              <>
+                {[...Array(8)].map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full rounded-lg" />
+                ))}
+              </>
+            ) : (
+              <>
+                {/* Для пациентов или режима просмотра - показываем пациентские разделы */}
+                {(isPatient || viewAsUserId) && navItems.map((item) => {
               const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
               const baseClasses = cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
@@ -214,24 +172,26 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               );
             })}
 
-            {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем админские разделы */}
-            {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setIsOpen(false)}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
-                    "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20"
-                  )
-                }
-              >
-                <item.icon className="h-4 w-4" />
-                <span className="font-medium">{item.label}</span>
-              </NavLink>
-            ))}
+                {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем админские разделы */}
+                {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                        "hover:bg-primary/10 hover:text-primary",
+                        isActive && "bg-primary/15 text-primary border border-primary/20"
+                      )
+                    }
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="font-medium">{item.label}</span>
+                  </NavLink>
+                ))}
+              </>
+            )}
           </nav>
 
           {/* Theme Toggle */}
