@@ -8,12 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
   Heart, User, Calendar, Weight, Ruler, 
-  ChevronLeft, ChevronRight, Check, Mail, Lock
+  ChevronLeft, ChevronRight, Check, Mail, Lock, Sparkles
 } from "lucide-react";
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
+import { ParticleBackground } from "@/components/ParticleBackground";
+import confetti from "canvas-confetti";
 import reAgeLogo from "@/assets/reage-logo.png";
+import registerHero from "@/assets/register-hero.png";
+import registerProfile from "@/assets/register-profile.png";
+import registerHealth from "@/assets/register-health.png";
 
 export interface RegisterFormData {
   email: string;
@@ -145,12 +150,20 @@ export default function Register() {
         if (medicalError) throw medicalError;
       }
 
+      // Celebrate with confetti!
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#a855f7', '#ec4899', '#93c5fd', '#c4b5fd']
+      });
+
       toast({
         title: "Регистрация успешна! 🎉",
         description: "Добро пожаловать в ReAge"
       });
 
-      navigate('/dashboard');
+      setTimeout(() => navigate('/dashboard'), 1000);
     } catch (error: any) {
       console.error('Registration error:', error);
       toast({
@@ -163,18 +176,56 @@ export default function Register() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <img src={reAgeLogo} alt="ReAge" className="h-16 w-auto mx-auto mb-4" />
-          <p className="text-lg text-muted-foreground">Создайте ваш аккаунт</p>
-        </div>
+  const stepImages = [registerHero, registerProfile, registerHealth];
 
-        {/* Progress */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-4">
+  return (
+    <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
+      <ParticleBackground />
+      
+      {/* Gradient Orbs */}
+      <div className="absolute top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      
+      <div className="w-full max-w-6xl relative z-10">
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
+          {/* Left Side - Hero Image */}
+          <div className="hidden lg:flex flex-col items-center justify-center">
+            <div className="relative w-full max-w-md animate-fade-in">
+              <div className="absolute inset-0 bg-gradient-primary rounded-3xl blur-2xl opacity-30 animate-pulse" />
+              <img 
+                src={stepImages[currentStep - 1]} 
+                alt="Registration step illustration" 
+                className="relative w-full h-auto rounded-3xl shadow-2xl transform transition-all duration-700 hover:scale-105"
+                style={{
+                  filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.5))"
+                }}
+              />
+            </div>
+            <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                {steps[currentStep - 1].title}
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                {steps[currentStep - 1].description}
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side - Form */}
+          <div className="w-full">
+            {/* Header */}
+            <div className="text-center mb-8 animate-fade-in">
+              <div className="inline-flex items-center gap-2 mb-4">
+                <img src={reAgeLogo} alt="ReAge" className="h-14 w-auto" />
+                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+              </div>
+              <h1 className="text-2xl font-bold mb-2">Добро пожаловать в ReAge</h1>
+              <p className="text-muted-foreground">Начните ваше путешествие к здоровью</p>
+            </div>
+
+            {/* Progress */}
+            <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              <div className="flex items-center justify-between mb-6">
                 {steps.map((step, index) => {
                   const Icon = step.icon;
                   const isActive = currentStep === step.id;
@@ -185,77 +236,104 @@ export default function Register() {
                       <div className="flex flex-col items-center flex-1">
                         <div 
                           className={`
-                            w-12 h-12 rounded-full flex items-center justify-center transition-all
-                            ${isActive ? 'bg-primary text-primary-foreground scale-110' : ''}
-                            ${isCompleted ? 'bg-primary/20 text-primary' : ''}
+                            w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300
+                            ${isActive ? 'bg-gradient-primary text-white scale-110 shadow-neon-primary' : ''}
+                            ${isCompleted ? 'bg-primary/20 text-primary scale-105' : ''}
                             ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
+                            ${isActive ? 'animate-pulse' : ''}
                           `}
                         >
-                          {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                          {isCompleted ? (
+                            <Check className="h-6 w-6 animate-scale-in" />
+                          ) : (
+                            <Icon className={`h-6 w-6 ${isActive ? 'animate-bounce' : ''}`} />
+                          )}
                         </div>
-                        <div className="text-center mt-2 hidden sm:block">
-                          <p className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <div className="text-center mt-3 hidden sm:block">
+                          <p className={`text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                             {step.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground hidden md:block">
-                            {step.description}
                           </p>
                         </div>
                       </div>
                       {index < steps.length - 1 && (
-                        <div 
-                          className={`
-                            h-1 flex-1 mx-2 rounded transition-all
-                            ${isCompleted ? 'bg-primary' : 'bg-muted'}
-                          `}
-                        />
+                        <div className="h-1 flex-1 mx-3 rounded-full bg-muted overflow-hidden">
+                          <div 
+                            className={`
+                              h-full bg-gradient-primary transition-all duration-500 ease-out
+                              ${isCompleted ? 'w-full' : 'w-0'}
+                            `}
+                          />
+                        </div>
                       )}
                     </div>
                   );
                 })}
               </div>
-              <Progress value={progress} className="h-2" />
+              <div className="relative">
+                <Progress value={progress} className="h-3 shadow-lg" />
+                <div 
+                  className="absolute top-0 left-0 h-3 bg-gradient-primary rounded-full transition-all duration-500 shadow-neon-primary"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
 
             {/* Steps Content */}
-            <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
-              {currentStep === 1 && (
-                <RegisterStep1 
-                  formData={formData} 
-                  updateFormData={updateFormData}
-                  onNext={handleNext}
-                />
-              )}
-              {currentStep === 2 && (
-                <RegisterStep2 
-                  formData={formData} 
-                  updateFormData={updateFormData}
-                  onNext={handleNext}
-                  onBack={handlePrevious}
-                />
-              )}
-              {currentStep === 3 && (
-                <RegisterStep3 
-                  formData={formData} 
-                  updateFormData={updateFormData}
-                  onSubmit={handleSubmit}
-                  onBack={handlePrevious}
-                  isSubmitting={isSubmitting}
-                />
-              )}
+            <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              {/* Card Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+              
+              <div className="relative z-10">
+                <div className={`transition-all duration-500 ${currentStep === 1 ? 'animate-fade-in' : 'hidden'}`}>
+                  {currentStep === 1 && (
+                    <RegisterStep1 
+                      formData={formData} 
+                      updateFormData={updateFormData}
+                      onNext={handleNext}
+                    />
+                  )}
+                </div>
+                
+                <div className={`transition-all duration-500 ${currentStep === 2 ? 'animate-fade-in' : 'hidden'}`}>
+                  {currentStep === 2 && (
+                    <RegisterStep2 
+                      formData={formData} 
+                      updateFormData={updateFormData}
+                      onNext={handleNext}
+                      onBack={handlePrevious}
+                    />
+                  )}
+                </div>
+                
+                <div className={`transition-all duration-500 ${currentStep === 3 ? 'animate-fade-in' : 'hidden'}`}>
+                  {currentStep === 3 && (
+                    <RegisterStep3 
+                      formData={formData} 
+                      updateFormData={updateFormData}
+                      onSubmit={handleSubmit}
+                      onBack={handlePrevious}
+                      isSubmitting={isSubmitting}
+                    />
+                  )}
+                </div>
+              </div>
             </Card>
 
-        {/* Login Link */}
-        <div className="text-center mt-6">
-          <p className="text-sm text-muted-foreground">
-            Уже есть аккаунт?{" "}
-            <button 
-              onClick={() => navigate('/auth')}
-              className="text-primary hover:underline font-medium"
-            >
-              Войти
-            </button>
-          </p>
+            {/* Login Link */}
+            <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+              <p className="text-sm text-muted-foreground">
+                Уже есть аккаунт?{" "}
+                <button 
+                  onClick={() => navigate('/auth')}
+                  className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
+                >
+                  Войти
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
