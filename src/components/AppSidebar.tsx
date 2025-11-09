@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +27,7 @@ const navItems = [
   { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
   { to: "/recommendations", label: "Персональные отчёты", icon: Lightbulb },
   { to: "/prescriptions", label: "Назначения", icon: FileText },
+  { to: "/subscription", label: "Подписка", icon: CreditCard },
 ];
 
 const adminNavItems = [
