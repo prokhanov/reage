@@ -93,7 +93,8 @@ export const useUserRole = () => {
     queryKey: ["userRole", userId],
     queryFn,
     enabled: !!userId,
-    staleTime: 0,
+    staleTime: 30 * 1000, // 30 секунд - данные свежие
+    gcTime: 5 * 60 * 1000, // 5 минут в кеше
     retry: 1,
   });
 };

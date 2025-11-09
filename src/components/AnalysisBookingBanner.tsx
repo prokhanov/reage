@@ -16,7 +16,7 @@ export function AnalysisBookingBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { data: userRoleData } = useUserRole();
+  const { data: userRoleData, isLoading } = useUserRole();
 
   useEffect(() => {
     checkBookingStatus();
@@ -51,8 +51,8 @@ export function AnalysisBookingBanner() {
     setDialogOpen(true);
   };
 
-  // Only show banner for patients
-  if (!showBanner || !userRoleData?.isPatient) return null;
+  // Don't render while loading or if not a patient
+  if (isLoading || !userRoleData?.isPatient || !showBanner) return null;
 
   const isScheduled = bookingInfo?.status === 'scheduled';
 
