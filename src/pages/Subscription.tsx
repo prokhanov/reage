@@ -60,8 +60,8 @@ export default function Subscription() {
 
       if (error) throw error;
       
-      // Only set subscription if status is 'active' or 'pending'
-      if (data && (data.status === 'active' || data.status === 'pending')) {
+      // Only set subscription if status is 'active'
+      if (data && data.status === 'active') {
         setSubscription(data);
       } else {
         setSubscription(null);
@@ -250,7 +250,6 @@ export default function Subscription() {
 
   // Has subscription - show subscription info
   const isActive = subscription.status === 'active';
-  const isPending = subscription.status === 'pending';
 
   return (
     <div className="container mx-auto p-6 max-w-4xl animate-fade-in">
@@ -267,8 +266,8 @@ export default function Subscription() {
             <div>
               <CardTitle className="text-2xl flex items-center gap-3">
                 Годовая подписка
-                <Badge variant={isActive ? "default" : "secondary"} className="text-sm">
-                  {isActive ? 'Активна' : 'Ожидает оплаты'}
+                <Badge variant="default" className="text-sm">
+                  Активна
                 </Badge>
               </CardTitle>
               <CardDescription className="text-lg mt-1">
@@ -329,77 +328,52 @@ export default function Subscription() {
             </div>
           </div>
 
-          {isPending && (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-              <p className="text-sm text-yellow-700 dark:text-yellow-500">
-                <strong>Ожидается оплата:</strong> Ваша подписка будет активирована после подтверждения оплаты.
-              </p>
+          <div className="space-y-3">
+            <h3 className="font-semibold">Ваши преимущества:</h3>
+            <div className="grid md:grid-cols-2 gap-3">
+              {benefits.slice(0, 6).map((benefit, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">{benefit}</span>
+                </div>
+              ))}
             </div>
-          )}
-
-          {isActive && (
-            <div className="space-y-3">
-              <h3 className="font-semibold">Ваши преимущества:</h3>
-              <div className="grid md:grid-cols-2 gap-3">
-                {benefits.slice(0, 6).map((benefit, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-muted-foreground">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
 
           <div className="flex gap-3 pt-4">
-            {isPending && (
-              <Button 
-                className="flex-1 bg-gradient-primary shadow-neon-primary"
-                size="lg"
-              >
-                <CreditCard className="mr-2 h-5 w-5" />
-                Оплатить сейчас
-              </Button>
-            )}
-            {isActive && (
-              <>
-                <Button 
-                  variant="outline"
-                  className="flex-1"
-                  size="lg"
-                >
-                  Управление подпиской
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={handleCancelSubscription}
-                  disabled={creating}
-                  size="lg"
-                >
-                  {creating ? "Отменяем..." : "Отменить подписку"}
-                </Button>
-              </>
-            )}
+            <Button 
+              variant="outline"
+              className="flex-1"
+              size="lg"
+            >
+              Управление подпиской
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleCancelSubscription}
+              disabled={creating}
+              size="lg"
+            >
+              {creating ? "Отменяем..." : "Отменить подписку"}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {isActive && (
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle>Автоматическое продление</CardTitle>
-            <CardDescription>
-              Ваша подписка будет автоматически продлена в конце периода
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Вы можете отменить автоматическое продление в любое время. 
-              После отмены подписка останется активной до окончания оплаченного периода.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle>Автоматическое продление</CardTitle>
+          <CardDescription>
+            Ваша подписка будет автоматически продлена в конце периода
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Вы можете отменить автоматическое продление в любое время. 
+            После отмены подписка останется активной до окончания оплаченного периода.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
