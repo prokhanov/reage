@@ -75,6 +75,9 @@ export default function AssignStaffDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["myAssignmentsCount"] });
+      queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
       toast({
         title: "Сотрудник назначен",
         description: "Сотрудник успешно назначен на запись",
