@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe } from "lucide-react";
+import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,10 +18,24 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
 import { PatientsListSkeleton } from "@/components/skeletons/PatientsListSkeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: patients, isLoading } = useQuery({
     queryKey: ["patients"],
@@ -126,6 +140,35 @@ export default function Patients() {
         return p.role === "patient";
       });
     },
+  });
+
+  const deletePatientMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No session");
+
+      const response = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+
+      if (response.error) throw response.error;
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      toast({
+        title: "Пациент удален",
+        description: "Пациент и все его данные успешно удалены"
+      });
+      setDeletePatientId(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ошибка удаления",
+        description: error.message || "Не удалось удалить пациента",
+        variant: "destructive"
+      });
+    }
   });
 
   const filteredPatients = patients?.filter(
@@ -315,17 +358,30 @@ export default function Patients() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPatientId(patient.id);
-                              }}
-                            >
-                              <User className="w-4 h-4 mr-2" />
-                              Открыть
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPatientId(patient.id);
+                                }}
+                              >
+                                <User className="w-4 h-4 mr-2" />
+                                Открыть
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeletePatientId(patient.id);
+                                }}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -346,6 +402,28 @@ export default function Patients() {
         patientId={selectedPatientId}
         onClose={() => setSelectedPatientId(null)}
       />
+
+      <AlertDialog open={!!deletePatientId} onOpenChange={(open) => !open && setDeletePatientId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить пациента?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Будут удалены все данные пациента:
+              профиль, анализы, назначения, история симптомов и все связанные записи.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletePatientId && deletePatientMutation.mutate(deletePatientId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletePatientMutation.isPending}
+            >
+              {deletePatientMutation.isPending ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
