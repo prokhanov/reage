@@ -8,6 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
+import { ParticleBackground } from "@/components/ParticleBackground";
+import { Sparkles, Mail, Lock } from "lucide-react";
+import reAgeLogo from "@/assets/reage-logo.png";
 
 // Функция для определения посадочной страницы по ролям
 const getDefaultRouteForUser = async (userId: string): Promise<string> => {
@@ -123,56 +126,100 @@ export default function Auth() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md shadow-neon-primary border-primary/30 bg-gradient-to-br from-card to-card/50">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-            Вход
-          </CardTitle>
-          <CardDescription>
-            Войдите в свой аккаунт ReAge
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Пароль</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Загрузка..." : "Войти"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
+    <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
+      <ParticleBackground />
+      
+      {/* Gradient Orbs - медленные переливы */}
+      <div className="absolute top-20 left-10 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/15 rounded-full blur-3xl animate-float-delayed" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-secondary-glow/10 rounded-full blur-3xl animate-float-slow" />
+      <div className="absolute top-40 right-20 w-72 h-72 bg-primary-glow/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+      <div className="absolute bottom-40 left-20 w-80 h-80 bg-accent-glow/10 rounded-full blur-3xl animate-float-delayed" style={{ animationDelay: "3s" }} />
+      
+      <div className="w-full max-w-md relative z-10">
+        {/* Header with Logo */}
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <img src={reAgeLogo} alt="ReAge" className="h-16 w-auto" />
+            <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
+            Добро пожаловать
+          </h1>
+          <p className="text-muted-foreground text-lg">Войдите в свой аккаунт ReAge</p>
+        </div>
+
+        {/* Login Card */}
+        <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          {/* Card Glow Effect */}
+          <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+          
+          <div className="relative z-10">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-primary" />
+                  Пароль
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Загрузка...
+                  </span>
+                ) : (
+                  "Войти"
+                )}
+              </Button>
+            </form>
+          </div>
+        </Card>
+
+        {/* Register Link */}
+        <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <p className="text-sm text-muted-foreground">
             Нет аккаунта?{" "}
             <button
               type="button"
               onClick={() => navigate('/register')}
-              className="text-primary hover:underline font-medium"
+              className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
             >
               Зарегистрируйтесь
             </button>
-          </div>
-        </CardContent>
-      </Card>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
