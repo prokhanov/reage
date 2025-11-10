@@ -1,8 +1,7 @@
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Calendar, Target, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
+import { Zap, Calendar, Target, TrendingUp, Clock } from "lucide-react";
 
 interface Prediction {
   effect: string;
@@ -15,7 +14,6 @@ interface Task {
   id: string;
   action: string;
   reason: string;
-  progress: number;
   level: "immediate" | "medium_term" | "long_term";
   timeline: string;
   prediction: Prediction;
@@ -32,7 +30,6 @@ interface WeeklyFocus {
   title: string;
   category: string;
   description: string;
-  overall_progress: number;
   predicted_improvements: PredictedImprovement[];
 }
 
@@ -87,22 +84,6 @@ export function SmartPriorities({ weeklyFocus, tasks }: SmartPrioritiesProps) {
                 {weeklyFocus.description}
               </p>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">
-                Общий прогресс
-              </span>
-              <span className="text-sm font-bold text-primary">
-                {weeklyFocus.overall_progress}%
-              </span>
-            </div>
-            <Progress 
-              value={weeklyFocus.overall_progress} 
-              className="h-3"
-              indicatorClassName="bg-gradient-to-r from-primary to-primary/80"
-            />
           </div>
 
           {weeklyFocus.predicted_improvements.length > 0 && (
@@ -204,25 +185,11 @@ function TaskCard({ task }: { task: Task }) {
   return (
     <Card className={`p-4 border ${config.border} ${config.bg}`}>
       <div className="space-y-3">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
           <div className="flex-1 space-y-1">
             <h4 className="font-medium text-foreground">{task.action}</h4>
             <p className="text-sm text-muted-foreground">{task.reason}</p>
           </div>
-          {task.progress === 100 && (
-            <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Прогресс</span>
-            <span className="font-medium text-foreground">{task.progress}%</span>
-          </div>
-          <Progress 
-            value={task.progress} 
-            className="h-2"
-          />
         </div>
 
         <div className={`p-3 rounded-lg bg-background/50 space-y-2`}>

@@ -525,6 +525,7 @@ export type Database = {
           id: string
           last_name: string | null
           name: string
+          needs_risk_refresh: boolean | null
           telegram_id: string | null
           updated_at: string
           weight: number | null
@@ -539,6 +540,7 @@ export type Database = {
           id: string
           last_name?: string | null
           name: string
+          needs_risk_refresh?: boolean | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null
@@ -553,6 +555,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           name?: string
+          needs_risk_refresh?: boolean | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null

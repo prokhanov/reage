@@ -215,7 +215,6 @@ serve(async (req) => {
               title: { type: "string" },
               category: { type: "string" },
               description: { type: "string" },
-              overall_progress: { type: "number" },
               predicted_improvements: {
                 type: "array",
                 items: {
@@ -230,7 +229,7 @@ serve(async (req) => {
                 }
               }
             },
-            required: ["title", "category", "description", "overall_progress", "predicted_improvements"]
+            required: ["title", "category", "description", "predicted_improvements"]
           },
           tasks: {
             type: "array",
@@ -240,7 +239,6 @@ serve(async (req) => {
                 id: { type: "string" },
                 action: { type: "string" },
                 reason: { type: "string" },
-                progress: { type: "number" },
                 level: { type: "string", enum: ["immediate", "medium_term", "long_term"] },
                 timeline: { type: "string" },
                 prediction: {
@@ -254,7 +252,7 @@ serve(async (req) => {
                   required: ["effect", "metric", "confidence", "improvement"]
                 }
               },
-              required: ["id", "action", "reason", "progress", "level", "timeline", "prediction"]
+              required: ["id", "action", "reason", "level", "timeline", "prediction"]
             }
           }
         },

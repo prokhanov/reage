@@ -6,6 +6,7 @@ import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
 import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
 import { RiskZonesSkeleton } from "@/components/skeletons/RiskZonesSkeleton";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -14,6 +15,7 @@ export default function RiskZones() {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [riskData, setRiskData] = useState<any>(null);
+  const [needsRefresh, setNeedsRefresh] = useState(false);
 
   useEffect(() => {
     fetchRiskZones();
@@ -24,6 +26,15 @@ export default function RiskZones() {
       setLoading(true);
       const userId = await getUserId();
       if (!userId) return;
+
+      // Check if profile needs refresh
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("needs_risk_refresh")
+        .eq("id", userId)
+        .single();
+
+      setNeedsRefresh(profile?.needs_risk_refresh || false);
 
       // Check for existing analysis (last 24 hours)
       const { data: existingAnalysis } = await supabase
@@ -87,6 +98,14 @@ export default function RiskZones() {
         ...data,
         last_updated: new Date().toISOString(),
       });
+
+      // Reset needs_refresh flag
+      await supabase
+        .from("profiles")
+        .update({ needs_risk_refresh: false })
+        .eq("id", userId);
+
+      setNeedsRefresh(false);
       
       toast({
         title: "Анализ завершен",
@@ -137,7 +156,7 @@ export default function RiskZones() {
             Зоны риска
           </h1>
           <p className="text-sm text-muted-foreground">
-            Комплексная оценка состояния здоровья и потенциальных рисков
+            Стратегическая карта здоровья: прогноз, приоритизация и анализ рисков
           </p>
           {riskData?.last_updated && (
             <p className="text-xs text-muted-foreground">
@@ -154,12 +173,13 @@ export default function RiskZones() {
         <Button
           onClick={generateAnalysis}
           disabled={analyzing}
-          variant="outline"
+          variant={needsRefresh ? "default" : "outline"}
           size="sm"
           className="gap-2"
         >
           <RefreshCw className={`h-4 w-4 ${analyzing ? "animate-spin" : ""}`} />
-          {analyzing ? "Анализ..." : "Обновить"}
+          {analyzing ? "Анализ..." : needsRefresh ? "Обновить (новые данные)" : "Обновить"}
+          {needsRefresh && !analyzing && <Badge variant="secondary" className="ml-1">!</Badge>}
         </Button>
       </div>
 
