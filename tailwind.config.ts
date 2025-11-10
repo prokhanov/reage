@@ -121,56 +121,71 @@ export default {
         "float": {
           "0%, 100%": {
             transform: "translate(0, 0) scale(1)",
+            opacity: "0.2",
           },
           "25%": {
-            transform: "translate(60px, -40px) scale(1.15)",
+            transform: "translate(100px, -80px) scale(1.3)",
+            opacity: "0.25",
           },
           "50%": {
-            transform: "translate(-40px, 50px) scale(0.95)",
+            transform: "translate(-70px, 90px) scale(0.85)",
+            opacity: "0.18",
           },
           "75%": {
-            transform: "translate(50px, 30px) scale(1.05)",
+            transform: "translate(80px, 60px) scale(1.15)",
+            opacity: "0.22",
           },
         },
         "float-delayed": {
           "0%, 100%": {
             transform: "translate(0, 0) scale(1)",
+            opacity: "0.25",
           },
           "25%": {
-            transform: "translate(-50px, 60px) scale(0.9)",
+            transform: "translate(-90px, 100px) scale(0.8)",
+            opacity: "0.2",
           },
           "50%": {
-            transform: "translate(70px, -30px) scale(1.2)",
+            transform: "translate(110px, -60px) scale(1.35)",
+            opacity: "0.28",
           },
           "75%": {
-            transform: "translate(-30px, -50px) scale(1.05)",
+            transform: "translate(-60px, -80px) scale(1.1)",
+            opacity: "0.23",
           },
         },
         "float-slow": {
           "0%, 100%": {
-            transform: "translate(0, 0) scale(1) rotate(0deg)",
+            transform: "translate(0, 0) scale(1)",
+            opacity: "0.15",
           },
           "33%": {
-            transform: "translate(40px, 40px) scale(1.1) rotate(5deg)",
+            transform: "translate(70px, 70px) scale(1.25)",
+            opacity: "0.18",
           },
           "66%": {
-            transform: "translate(-30px, -20px) scale(0.95) rotate(-5deg)",
+            transform: "translate(-50px, -40px) scale(0.9)",
+            opacity: "0.12",
           },
         },
         "float-x": {
           "0%, 100%": {
             transform: "translateX(0) scale(1)",
+            opacity: "0.18",
           },
           "50%": {
-            transform: "translateX(80px) scale(1.15)",
+            transform: "translateX(120px) scale(1.3)",
+            opacity: "0.22",
           },
         },
         "float-y": {
           "0%, 100%": {
             transform: "translateY(0) scale(1)",
+            opacity: "0.15",
           },
           "50%": {
-            transform: "translateY(-70px) scale(1.1)",
+            transform: "translateY(-100px) scale(1.2)",
+            opacity: "0.2",
           },
         },
       },
