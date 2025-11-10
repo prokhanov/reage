@@ -119,11 +119,8 @@ export default {
           },
         },
         "float": {
-          "0%": {
+          "0%, 100%": {
             transform: "translate(0, 0) scale(1)",
-            opacity: "0",
-          },
-          "5%": {
             opacity: "0.2",
           },
           "25%": {
@@ -138,17 +135,10 @@ export default {
             transform: "translate(130px, 100px) scale(1.2)",
             opacity: "0.22",
           },
-          "100%": {
-            transform: "translate(0, 0) scale(1)",
-            opacity: "0.2",
-          },
         },
         "float-delayed": {
-          "0%": {
+          "0%, 100%": {
             transform: "translate(0, 0) scale(1)",
-            opacity: "0",
-          },
-          "5%": {
             opacity: "0.25",
           },
           "25%": {
@@ -163,17 +153,10 @@ export default {
             transform: "translate(-100px, -120px) scale(1.15)",
             opacity: "0.23",
           },
-          "100%": {
-            transform: "translate(0, 0) scale(1)",
-            opacity: "0.25",
-          },
         },
         "float-slow": {
-          "0%": {
+          "0%, 100%": {
             transform: "translate(0, 0) scale(1)",
-            opacity: "0",
-          },
-          "5%": {
             opacity: "0.15",
           },
           "33%": {
@@ -184,43 +167,25 @@ export default {
             transform: "translate(-90px, -80px) scale(0.85)",
             opacity: "0.12",
           },
-          "100%": {
-            transform: "translate(0, 0) scale(1)",
-            opacity: "0.15",
-          },
         },
         "float-x": {
-          "0%": {
+          "0%, 100%": {
             transform: "translateX(0) scale(1)",
-            opacity: "0",
-          },
-          "5%": {
             opacity: "0.18",
           },
           "50%": {
             transform: "translateX(180px) scale(1.4)",
             opacity: "0.22",
           },
-          "100%": {
-            transform: "translateX(0) scale(1)",
-            opacity: "0.18",
-          },
         },
         "float-y": {
-          "0%": {
+          "0%, 100%": {
             transform: "translateY(0) scale(1)",
-            opacity: "0",
-          },
-          "5%": {
             opacity: "0.15",
           },
           "50%": {
             transform: "translateY(-150px) scale(1.3)",
             opacity: "0.2",
-          },
-          "100%": {
-            transform: "translateY(0) scale(1)",
-            opacity: "0.15",
           },
         },
       },
