@@ -123,13 +123,13 @@ export default {
             transform: "translate(0, 0) scale(1)",
           },
           "25%": {
-            transform: "translate(150px, -120px) scale(1.08)",
+            transform: "translate(450px, -380px) scale(1.15)",
           },
           "50%": {
-            transform: "translate(-110px, 140px) scale(0.96)",
+            transform: "translate(-420px, 350px) scale(0.88)",
           },
           "75%": {
-            transform: "translate(130px, 100px) scale(1.04)",
+            transform: "translate(380px, 280px) scale(1.08)",
           },
         },
         "float-delayed": {
@@ -137,13 +137,13 @@ export default {
             transform: "translate(0, 0) scale(1)",
           },
           "25%": {
-            transform: "translate(-140px, 150px) scale(0.95)",
+            transform: "translate(-380px, 420px) scale(0.92)",
           },
           "50%": {
-            transform: "translate(170px, -100px) scale(1.12)",
+            transform: "translate(460px, -340px) scale(1.18)",
           },
           "75%": {
-            transform: "translate(-100px, -120px) scale(1.06)",
+            transform: "translate(-320px, -360px) scale(1.05)",
           },
         },
         "float-slow": {
@@ -151,10 +151,10 @@ export default {
             transform: "translate(0, 0) scale(1)",
           },
           "33%": {
-            transform: "translate(120px, 120px) scale(1.1)",
+            transform: "translate(400px, 390px) scale(1.12)",
           },
           "66%": {
-            transform: "translate(-90px, -80px) scale(0.92)",
+            transform: "translate(-350px, -320px) scale(0.85)",
           },
         },
         "float-x": {
@@ -162,7 +162,7 @@ export default {
             transform: "translateX(0) scale(1)",
           },
           "50%": {
-            transform: "translateX(180px) scale(1.08)",
+            transform: "translateX(520px) scale(1.14)",
           },
         },
         "float-y": {
@@ -170,7 +170,7 @@ export default {
             transform: "translateY(0) scale(1)",
           },
           "50%": {
-            transform: "translateY(-150px) scale(1.1)",
+            transform: "translateY(-480px) scale(1.16)",
           },
         },
       },
