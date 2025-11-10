@@ -184,11 +184,8 @@ export default function RiskZones() {
       </div>
 
       {/* Smart Priorities */}
-      {riskData.smart_priorities?.weekly_focus && riskData.smart_priorities?.tasks && (
-        <SmartPriorities 
-          weeklyFocus={riskData.smart_priorities.weekly_focus}
-          tasks={riskData.smart_priorities.tasks}
-        />
+      {riskData?.smart_priorities && (
+        <SmartPriorities data={riskData.smart_priorities} />
       )}
 
       {/* Risk Map */}

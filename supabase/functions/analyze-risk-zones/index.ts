@@ -209,54 +209,158 @@ serve(async (req) => {
       {
         type: "object",
         properties: {
-          weekly_focus: {
+          immediate: {
             type: "object",
             properties: {
-              title: { type: "string" },
-              category: { type: "string" },
-              description: { type: "string" },
-              predicted_improvements: {
+              focus: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  predicted_improvements: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        metric: { type: "string" },
+                        change: { type: "string" },
+                        timeline_days: { type: "number" },
+                        confidence: { type: "number" }
+                      },
+                      required: ["metric", "change", "timeline_days", "confidence"]
+                    }
+                  }
+                },
+                required: ["title", "description", "predicted_improvements"]
+              },
+              tasks: {
                 type: "array",
                 items: {
                   type: "object",
                   properties: {
-                    metric: { type: "string" },
-                    change: { type: "string" },
-                    timeline_days: { type: "number" },
-                    confidence: { type: "number" }
+                    id: { type: "string" },
+                    action: { type: "string" },
+                    reason: { type: "string" },
+                    timeline: { type: "string" },
+                    prediction: {
+                      type: "object",
+                      properties: {
+                        effect: { type: "string" },
+                        metric: { type: "string" },
+                        confidence: { type: "number" },
+                        improvement: { type: "string" }
+                      },
+                      required: ["effect", "metric", "confidence", "improvement"]
+                    }
                   },
-                  required: ["metric", "change", "timeline_days", "confidence"]
+                  required: ["id", "action", "reason", "timeline", "prediction"]
                 }
               }
             },
-            required: ["title", "category", "description", "predicted_improvements"]
+            required: ["focus", "tasks"]
           },
-          tasks: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                id: { type: "string" },
-                action: { type: "string" },
-                reason: { type: "string" },
-                level: { type: "string", enum: ["immediate", "medium_term", "long_term"] },
-                timeline: { type: "string" },
-                prediction: {
+          medium_term: {
+            type: "object",
+            properties: {
+              focus: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  predicted_improvements: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        metric: { type: "string" },
+                        change: { type: "string" },
+                        timeline_days: { type: "number" },
+                        confidence: { type: "number" }
+                      },
+                      required: ["metric", "change", "timeline_days", "confidence"]
+                    }
+                  }
+                },
+                required: ["title", "description", "predicted_improvements"]
+              },
+              tasks: {
+                type: "array",
+                items: {
                   type: "object",
                   properties: {
-                    effect: { type: "string" },
-                    metric: { type: "string" },
-                    confidence: { type: "number" },
-                    improvement: { type: "string" }
+                    id: { type: "string" },
+                    action: { type: "string" },
+                    reason: { type: "string" },
+                    timeline: { type: "string" },
+                    prediction: {
+                      type: "object",
+                      properties: {
+                        effect: { type: "string" },
+                        metric: { type: "string" },
+                        confidence: { type: "number" },
+                        improvement: { type: "string" }
+                      },
+                      required: ["effect", "metric", "confidence", "improvement"]
+                    }
                   },
-                  required: ["effect", "metric", "confidence", "improvement"]
+                  required: ["id", "action", "reason", "timeline", "prediction"]
                 }
+              }
+            },
+            required: ["focus", "tasks"]
+          },
+          long_term: {
+            type: "object",
+            properties: {
+              focus: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  predicted_improvements: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        metric: { type: "string" },
+                        change: { type: "string" },
+                        timeline_days: { type: "number" },
+                        confidence: { type: "number" }
+                      },
+                      required: ["metric", "change", "timeline_days", "confidence"]
+                    }
+                  }
+                },
+                required: ["title", "description", "predicted_improvements"]
               },
-              required: ["id", "action", "reason", "level", "timeline", "prediction"]
-            }
+              tasks: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    action: { type: "string" },
+                    reason: { type: "string" },
+                    timeline: { type: "string" },
+                    prediction: {
+                      type: "object",
+                      properties: {
+                        effect: { type: "string" },
+                        metric: { type: "string" },
+                        confidence: { type: "number" },
+                        improvement: { type: "string" }
+                      },
+                      required: ["effect", "metric", "confidence", "improvement"]
+                    }
+                  },
+                  required: ["id", "action", "reason", "timeline", "prediction"]
+                }
+              }
+            },
+            required: ["focus", "tasks"]
           }
         },
-        required: ["weekly_focus", "tasks"]
+        required: ["immediate", "medium_term", "long_term"]
       }
     );
 
