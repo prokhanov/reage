@@ -44,6 +44,7 @@ export default function RiskZones() {
             risk_map: existingAnalysis.risk_map,
             priority_tasks: existingAnalysis.priority_tasks,
             aging_blockers: existingAnalysis.aging_blockers,
+            last_updated: existingAnalysis.created_at,
           });
           setLoading(false);
           return;
@@ -82,7 +83,10 @@ export default function RiskZones() {
 
       if (error) throw error;
 
-      setRiskData(data);
+      setRiskData({
+        ...data,
+        last_updated: new Date().toISOString(),
+      });
       
       toast({
         title: "Анализ завершен",
@@ -135,6 +139,17 @@ export default function RiskZones() {
           <p className="text-sm text-muted-foreground">
             Комплексная оценка состояния здоровья и потенциальных рисков
           </p>
+          {riskData?.last_updated && (
+            <p className="text-xs text-muted-foreground">
+              Последнее обновление: {new Date(riskData.last_updated).toLocaleString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          )}
         </div>
         <Button
           onClick={generateAnalysis}
