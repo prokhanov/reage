@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
-import { PriorityTasks } from "@/components/risk-zones/PriorityTasks";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
 import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
 import { RiskZonesSkeleton } from "@/components/skeletons/RiskZonesSkeleton";
@@ -43,7 +42,6 @@ export default function RiskZones() {
           // Use cached analysis
           setRiskData({
             risk_map: existingAnalysis.risk_map,
-            priority_tasks: existingAnalysis.priority_tasks,
             aging_blockers: existingAnalysis.aging_blockers,
             smart_priorities: existingAnalysis.smart_priorities,
             last_updated: existingAnalysis.created_at,
@@ -166,16 +164,11 @@ export default function RiskZones() {
       </div>
 
       {/* Smart Priorities */}
-      {riskData.smart_priorities?.weekly_focus && riskData.smart_priorities?.tasks ? (
+      {riskData.smart_priorities?.weekly_focus && riskData.smart_priorities?.tasks && (
         <SmartPriorities 
           weeklyFocus={riskData.smart_priorities.weekly_focus}
           tasks={riskData.smart_priorities.tasks}
         />
-      ) : (
-        /* Fallback to old Priority Tasks if smart_priorities not available */
-        riskData.priority_tasks?.tasks && (
-          <PriorityTasks tasks={riskData.priority_tasks.tasks} />
-        )
       )}
 
       {/* Risk Map */}

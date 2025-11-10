@@ -601,7 +601,6 @@ export type Database = {
           correlation_insights: Json | null
           created_at: string
           id: string
-          priority_tasks: Json
           risk_map: Json
           smart_priorities: Json | null
           user_id: string
@@ -612,7 +611,6 @@ export type Database = {
           correlation_insights?: Json | null
           created_at?: string
           id?: string
-          priority_tasks: Json
           risk_map: Json
           smart_priorities?: Json | null
           user_id: string
@@ -623,7 +621,6 @@ export type Database = {
           correlation_insights?: Json | null
           created_at?: string
           id?: string
-          priority_tasks?: Json
           risk_map?: Json
           smart_priorities?: Json | null
           user_id?: string

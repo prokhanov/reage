@@ -51,7 +51,7 @@ serve(async (req) => {
     const { data: prompts } = await supabase
       .from("ai_prompt_settings")
       .select("key, prompt_text")
-      .in("key", ["risk_zones_risk_map", "risk_zones_priority_tasks", "risk_zones_aging_blockers", "risk_zones_smart_priorities"]);
+      .in("key", ["risk_zones_risk_map", "risk_zones_aging_blockers", "risk_zones_smart_priorities"]);
 
     const promptMap = new Map(prompts?.map(p => [p.key, p.prompt_text]) || []);
 
@@ -177,31 +177,6 @@ serve(async (req) => {
       }
     );
 
-    const priorityTasksData = await callAI(
-      promptMap.get("risk_zones_priority_tasks") || "",
-      userContext,
-      "analyze_priority_tasks",
-      {
-        type: "object",
-        properties: {
-          tasks: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                action: { type: "string" },
-                reason: { type: "string" },
-                expected_outcome: { type: "string" },
-                priority: { type: "string", enum: ["critical", "important", "recommended"] }
-              },
-              required: ["action", "reason", "expected_outcome", "priority"]
-            }
-          }
-        },
-        required: ["tasks"]
-      }
-    );
-
     const agingBlockersData = await callAI(
       promptMap.get("risk_zones_aging_blockers") || "",
       userContext,
@@ -293,7 +268,6 @@ serve(async (req) => {
       .insert({
         user_id: targetUserId,
         risk_map: riskMapData,
-        priority_tasks: priorityTasksData,
         aging_blockers: agingBlockersData,
         smart_priorities: smartPrioritiesData,
       })
@@ -307,7 +281,6 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         risk_map: riskMapData,
-        priority_tasks: priorityTasksData,
         aging_blockers: agingBlockersData,
         smart_priorities: smartPrioritiesData,
       }),
