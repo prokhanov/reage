@@ -1,0 +1,115 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { AlertCircle, Ban } from "lucide-react";
+
+interface AgingBlocker {
+  name: string;
+  impact_score: number;
+  evidence: string[];
+  recommendation: string;
+}
+
+interface AgingBlockersProps {
+  blockers: AgingBlocker[];
+}
+
+export function AgingBlockers({ blockers }: AgingBlockersProps) {
+  const getImpactColor = (score: number) => {
+    if (score >= 8) return "hsl(var(--status-danger))";
+    if (score >= 5) return "hsl(var(--status-warning))";
+    return "hsl(var(--status-good))";
+  };
+
+  // Sort by impact score (highest first)
+  const sortedBlockers = [...blockers].sort((a, b) => b.impact_score - a.impact_score);
+
+  return (
+    <Card className="border-border bg-card backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Ban className="h-5 w-5 text-status-danger" />
+          Что мешает молодеть
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Факторы, тормозящие anti-aging прогресс
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {sortedBlockers.map((blocker, idx) => {
+          const impactColor = getImpactColor(blocker.impact_score);
+
+          return (
+            <div
+              key={idx}
+              className="p-4 rounded-lg border border-border bg-background/50 backdrop-blur-sm animate-fade-in hover:shadow-md transition-all duration-300"
+              style={{ animationDelay: `${idx * 100}ms` }}
+            >
+              <div className="space-y-3">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-1">
+                    <AlertCircle 
+                      className="h-5 w-5 flex-shrink-0" 
+                      style={{ color: impactColor }} 
+                    />
+                    <h4 className="font-semibold text-foreground">
+                      {blocker.name}
+                    </h4>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm text-muted-foreground">Влияние:</span>
+                    <span 
+                      className="text-xl font-bold"
+                      style={{ color: impactColor }}
+                    >
+                      {blocker.impact_score}
+                    </span>
+                    <span className="text-sm text-muted-foreground">/10</span>
+                  </div>
+                </div>
+
+                {/* Impact Progress */}
+                <Progress 
+                  value={blocker.impact_score * 10} 
+                  className="h-2"
+                  style={{
+                    backgroundColor: "hsl(var(--muted))",
+                  }}
+                  indicatorStyle={{
+                    backgroundColor: impactColor,
+                  }}
+                />
+
+                {/* Evidence */}
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Доказательства:
+                  </span>
+                  <ul className="space-y-1">
+                    {blocker.evidence.map((item, evidenceIdx) => (
+                      <li 
+                        key={evidenceIdx}
+                        className="text-sm text-muted-foreground flex items-start gap-2"
+                      >
+                        <span className="text-primary mt-0.5">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Recommendation */}
+                <div className="pt-2 border-t border-border">
+                  <p className="text-sm text-foreground">
+                    <span className="font-medium text-primary">Рекомендация: </span>
+                    {blocker.recommendation}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}

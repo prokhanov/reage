@@ -594,6 +594,39 @@ export type Database = {
           },
         ]
       }
+      risk_zone_analyses: {
+        Row: {
+          aging_blockers: Json
+          analysis_date: string
+          correlation_insights: Json | null
+          created_at: string
+          id: string
+          priority_tasks: Json
+          risk_map: Json
+          user_id: string
+        }
+        Insert: {
+          aging_blockers: Json
+          analysis_date?: string
+          correlation_insights?: Json | null
+          created_at?: string
+          id?: string
+          priority_tasks: Json
+          risk_map: Json
+          user_id: string
+        }
+        Update: {
+          aging_blockers?: Json
+          analysis_date?: string
+          correlation_insights?: Json | null
+          created_at?: string
+          id?: string
+          priority_tasks?: Json
+          risk_map?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           created_at: string

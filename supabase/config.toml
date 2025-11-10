@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.register-staff]
 verify_jwt = false
+
+[functions.analyze-risk-zones]
+verify_jwt = true
