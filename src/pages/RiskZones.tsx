@@ -184,15 +184,8 @@ export default function RiskZones() {
       </div>
 
       {/* Smart Priorities */}
-      {riskData?.smart_priorities?.immediate && (
+      {riskData?.smart_priorities && (
         <SmartPriorities data={riskData.smart_priorities} />
-      )}
-      {riskData?.smart_priorities && !riskData?.smart_priorities?.immediate && (
-        <div className="p-4 bg-secondary/50 rounded-lg text-center space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Обнаружена устаревшая структура данных. Нажмите "Обновить", чтобы сгенерировать анализ с новой трёхуровневой структурой.
-          </p>
-        </div>
       )}
 
       {/* Risk Map */}
