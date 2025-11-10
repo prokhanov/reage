@@ -603,6 +603,7 @@ export type Database = {
           id: string
           priority_tasks: Json
           risk_map: Json
+          smart_priorities: Json | null
           user_id: string
         }
         Insert: {
@@ -613,6 +614,7 @@ export type Database = {
           id?: string
           priority_tasks: Json
           risk_map: Json
+          smart_priorities?: Json | null
           user_id: string
         }
         Update: {
@@ -623,6 +625,7 @@ export type Database = {
           id?: string
           priority_tasks?: Json
           risk_map?: Json
+          smart_priorities?: Json | null
           user_id?: string
         }
         Relationships: []
@@ -694,6 +697,33 @@ export type Database = {
           start_date?: string | null
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      task_completions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          id: string
+          notes: string | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          task_id?: string
           user_id?: string
         }
         Relationships: []

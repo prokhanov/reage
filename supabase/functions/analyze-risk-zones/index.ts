@@ -51,7 +51,7 @@ serve(async (req) => {
     const { data: prompts } = await supabase
       .from("ai_prompt_settings")
       .select("key, prompt_text")
-      .in("key", ["risk_zones_risk_map", "risk_zones_priority_tasks", "risk_zones_aging_blockers"]);
+      .in("key", ["risk_zones_risk_map", "risk_zones_priority_tasks", "risk_zones_aging_blockers", "risk_zones_smart_priorities"]);
 
     const promptMap = new Map(prompts?.map(p => [p.key, p.prompt_text]) || []);
 
@@ -227,6 +227,66 @@ serve(async (req) => {
       }
     );
 
+    const smartPrioritiesData = await callAI(
+      promptMap.get("risk_zones_smart_priorities") || "",
+      userContext,
+      "generate_smart_priorities",
+      {
+        type: "object",
+        properties: {
+          weekly_focus: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              category: { type: "string" },
+              description: { type: "string" },
+              overall_progress: { type: "number" },
+              predicted_improvements: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    metric: { type: "string" },
+                    change: { type: "string" },
+                    timeline_days: { type: "number" },
+                    confidence: { type: "number" }
+                  },
+                  required: ["metric", "change", "timeline_days", "confidence"]
+                }
+              }
+            },
+            required: ["title", "category", "description", "overall_progress", "predicted_improvements"]
+          },
+          tasks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                action: { type: "string" },
+                reason: { type: "string" },
+                progress: { type: "number" },
+                level: { type: "string", enum: ["immediate", "medium_term", "long_term"] },
+                timeline: { type: "string" },
+                prediction: {
+                  type: "object",
+                  properties: {
+                    effect: { type: "string" },
+                    metric: { type: "string" },
+                    confidence: { type: "number" },
+                    improvement: { type: "string" }
+                  },
+                  required: ["effect", "metric", "confidence", "improvement"]
+                }
+              },
+              required: ["id", "action", "reason", "progress", "level", "timeline", "prediction"]
+            }
+          }
+        },
+        required: ["weekly_focus", "tasks"]
+      }
+    );
+
     // Save to database
     const { data: savedAnalysis, error: saveError } = await supabase
       .from("risk_zone_analyses")
@@ -235,6 +295,7 @@ serve(async (req) => {
         risk_map: riskMapData,
         priority_tasks: priorityTasksData,
         aging_blockers: agingBlockersData,
+        smart_priorities: smartPrioritiesData,
       })
       .select()
       .single();
@@ -248,6 +309,7 @@ serve(async (req) => {
         risk_map: riskMapData,
         priority_tasks: priorityTasksData,
         aging_blockers: agingBlockersData,
+        smart_priorities: smartPrioritiesData,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
