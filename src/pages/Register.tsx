@@ -14,7 +14,7 @@ import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { RegisterStep5 } from "@/components/register/RegisterStep5";
-import { ParticleBackground } from "@/components/ParticleBackground";
+import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
 import reAgeLogo from "@/assets/reage-logo.png";
 import registerHero from "@/assets/register-hero.png";
@@ -199,14 +199,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
-      <ParticleBackground />
-      
-      {/* Gradient Orbs - медленные переливы */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/15 rounded-full blur-3xl animate-float-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-secondary-glow/10 rounded-full blur-3xl animate-float-slow" />
-      <div className="absolute top-40 right-20 w-72 h-72 bg-primary-glow/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
-      <div className="absolute bottom-40 left-20 w-80 h-80 bg-accent-glow/10 rounded-full blur-3xl animate-float-delayed" style={{ animationDelay: "3s" }} />
+      <AuthBackground />
       
       <div className="w-full max-w-2xl relative z-10">
         <div className="w-full">

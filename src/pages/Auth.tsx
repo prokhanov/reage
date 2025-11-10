@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
-import { ParticleBackground } from "@/components/ParticleBackground";
+import { AuthBackground } from "@/components/AuthBackground";
 import { Sparkles, Mail, Lock } from "lucide-react";
 import reAgeLogo from "@/assets/reage-logo.png";
 
@@ -127,14 +127,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
-      <ParticleBackground />
-      
-      {/* Gradient Orbs - медленные переливы */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/15 rounded-full blur-3xl animate-float-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-secondary-glow/10 rounded-full blur-3xl animate-float-slow" />
-      <div className="absolute top-40 right-20 w-72 h-72 bg-primary-glow/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
-      <div className="absolute bottom-40 left-20 w-80 h-80 bg-accent-glow/10 rounded-full blur-3xl animate-float-delayed" style={{ animationDelay: "3s" }} />
+      <AuthBackground />
       
       <div className="w-full max-w-md relative z-10">
         {/* Header with Logo */}
