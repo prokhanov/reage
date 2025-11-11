@@ -21,11 +21,10 @@ interface AppSidebarProps {
 }
 
 const navItems = [
-  { to: "/dashboard", label: "Дашборд", icon: Home },
+  { to: "/dashboard", label: "Моё здоровье", icon: Home },
   { to: "/analyses", label: "Анализы", icon: FlaskConical },
   { to: "/biomarkers", label: "Маркеры", icon: Activity },
   { to: "/trends", label: "Тренды", icon: TrendingUp },
-  { to: "/risk-zones", label: "Зоны риска", icon: AlertTriangle },
   { to: "/my-state", label: "Мое состояние", icon: Heart },
   { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
   { to: "/recommendations", label: "Персональные отчёты", icon: Lightbulb },

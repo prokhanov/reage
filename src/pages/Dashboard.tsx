@@ -3,12 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Filter } from "lucide-react";
+import { RiskMap } from "@/components/risk-zones/RiskMap";
+import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
+import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BodyHeatmap } from "@/components/BodyHeatmap";
@@ -30,11 +29,10 @@ export default function Dashboard() {
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
   const [agingRate, setAgingRate] = useState<number | null>(null);
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
-  const [trendData, setTrendData] = useState<any[]>([]);
-  const [trendMeta, setTrendMeta] = useState<{ name: string; unit: string } | null>(null);
-  const [trendCategories, setTrendCategories] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [bodyHeatmapData, setBodyHeatmapData] = useState<any[]>([]);
+  const [riskData, setRiskData] = useState<any>(null);
+  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     // Reset all state when exiting view mode
@@ -47,11 +45,10 @@ export default function Dashboard() {
     setAgeTrend(null);
     setAgingRate(null);
     setRecentAnalyses([]);
-    setTrendData([]);
-    setTrendMeta(null);
-    setTrendCategories([]);
-    setSelectedCategories([]);
     setBodyHeatmapData([]);
+    setRiskData(null);
+    setNeedsRefresh(false);
+    setAnalyzing(false);
     
     fetchProfile();
   }, [viewAsUserId]);
@@ -59,8 +56,8 @@ export default function Dashboard() {
   useEffect(() => {
     if (profile) {
       fetchAnalysesStats();
-      fetchBiomarkerTrend();
       fetchBodyHeatmapData();
+      fetchRiskZones();
     }
   }, [profile]);
 
@@ -142,120 +139,84 @@ export default function Dashboard() {
     }
   };
 
-  const fetchBiomarkerTrend = async () => {
+  const fetchRiskZones = async () => {
     try {
       const userId = await getUserId();
       if (!userId) return;
 
-      // Load category order from database
-      const { data: categoriesData } = await supabase
-        .from("biomarker_categories")
-        .select("name, display_order")
-        .order("display_order");
+      // Check if profile needs refresh
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("needs_risk_refresh")
+        .eq("id", userId)
+        .single();
 
-      const categoryOrderMap = new Map(
-        (categoriesData || []).map((cat) => [cat.name, cat.display_order])
-      );
+      setNeedsRefresh(profile?.needs_risk_refresh || false);
 
-      const monthsAgo = new Date();
-      monthsAgo.setMonth(monthsAgo.getMonth() - 6);
+      // Check for existing analysis (last 24 hours)
+      const { data: existingAnalysis } = await supabase
+        .from("risk_zone_analyses")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
 
-      const { data, error } = await supabase
-        .from("analysis_values")
-        .select(`
-          value,
-          biomarker_id,
-          biomarkers (name, unit, category, normal_min, normal_max),
-          analyses!inner (
-            date,
-            user_id
-          )
-        `)
-        .eq("analyses.user_id", userId)
-        .gte("analyses.date", format(monthsAgo, 'yyyy-MM-dd'))
-        .order("analyses(date)", { ascending: true });
+      if (existingAnalysis) {
+        const analysisAge = Date.now() - new Date(existingAnalysis.created_at).getTime();
+        const hoursOld = analysisAge / (1000 * 60 * 60);
+
+        if (hoursOld < 24) {
+          // Use cached analysis
+          setRiskData({
+            risk_map: existingAnalysis.risk_map,
+            aging_blockers: existingAnalysis.aging_blockers,
+            smart_priorities: existingAnalysis.smart_priorities,
+            analysis_date: existingAnalysis.created_at,
+            has_biomarkers: true
+          });
+          return;
+        }
+      }
+
+      // Generate new analysis if no recent one exists
+      await generateAnalysis();
+    } catch (error) {
+      console.error("Error fetching risk zones:", error);
+    }
+  };
+
+  const generateAnalysis = async () => {
+    try {
+      setAnalyzing(true);
+      const userId = await getUserId();
+      if (!userId) return;
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No session");
+
+      const { data, error } = await supabase.functions.invoke("analyze-risk-zones", {
+        body: { userId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
       if (error) throw error;
 
-      if (!data || data.length === 0) {
-        setTrendData([]);
-        setTrendMeta(null);
-        return;
-      }
+      setRiskData(data);
 
-      // Группируем по датам и категориям
-      const dateMap: Record<string, Record<string, { sum: number; count: number }>> = {};
-      
-      data.forEach((item: any) => {
-        const date = new Date(item.analyses.date).toLocaleDateString("ru-RU", { 
-          day: "numeric", 
-          month: "short" 
-        });
-        const category = item.biomarkers?.category || "Прочее";
-        
-        if (!dateMap[date]) dateMap[date] = {};
-        if (!dateMap[date][category]) dateMap[date][category] = { sum: 0, count: 0 };
-        
-        // Просто суммируем значения без нормализации
-        dateMap[date][category].sum += item.value;
-        dateMap[date][category].count += 1;
-      });
+      // Reset needs_refresh flag
+      await supabase
+        .from("profiles")
+        .update({ needs_risk_refresh: false })
+        .eq("id", userId);
 
-      // Определяем все категории с данными и сортируем по display_order
-      const categoryStats: Record<string, number> = {};
-      Object.values(dateMap).forEach(dateData => {
-        Object.entries(dateData).forEach(([cat, stats]) => {
-          categoryStats[cat] = (categoryStats[cat] || 0) + stats.count;
-        });
-      });
-      
-      const allCategories = Object.keys(categoryStats).sort((a, b) => {
-        const orderA = categoryOrderMap.get(a) ?? 999;
-        const orderB = categoryOrderMap.get(b) ?? 999;
-        return orderA - orderB;
-      });
-
-      // Формируем данные для графика с усреднением
-      const categoryAverages: Record<string, number[]> = {};
-      allCategories.forEach(cat => {
-        categoryAverages[cat] = [];
-      });
-
-      Object.entries(dateMap).forEach(([date, categories]) => {
-        allCategories.forEach(cat => {
-          if (categories[cat]) {
-            const avg = categories[cat].sum / categories[cat].count;
-            categoryAverages[cat].push(avg);
-          } else {
-            categoryAverages[cat].push(NaN);
-          }
-        });
-      });
-
-      // Нормализуем относительно первого значения (индексация: первое = 100)
-      const formatted = Object.keys(dateMap).map((date, idx) => {
-        const point: any = { date };
-        allCategories.forEach(cat => {
-          const values = categoryAverages[cat];
-          const firstValue = values.find(v => !isNaN(v));
-          const currentValue = values[idx];
-          
-          if (firstValue && !isNaN(currentValue)) {
-            point[cat] = Math.round((currentValue / firstValue) * 100);
-          }
-        });
-        return point;
-      });
-
-      setTrendData(formatted);
-      setTrendMeta({ 
-        name: allCategories.join(", "),
-        unit: "индекс (первое = 100%)" 
-      });
-      setTrendCategories(allCategories);
-      setSelectedCategories(allCategories); // Select all by default
-    } catch (error) {
-      console.error("Error fetching biomarker trend:", error);
+      setNeedsRefresh(false);
+    } catch (error: any) {
+      console.error("Error generating analysis:", error);
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -293,21 +254,6 @@ export default function Dashboard() {
     return age;
   };
 
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-  };
-
-  const selectAllCategories = () => {
-    setSelectedCategories(trendCategories);
-  };
-
-  const deselectAllCategories = () => {
-    setSelectedCategories([]);
-  };
 
   const fetchBodyHeatmapData = async () => {
     try {
@@ -769,293 +715,107 @@ export default function Dashboard() {
         {/* Weight Tracker */}
         <WeightTracker />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Large Chart - Biomarkers Over Time */}
-          <Card className="lg:col-span-2 border-border bg-card backdrop-blur-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Динамика биомаркеров</CardTitle>
-                {trendCategories.length > 0 && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Filter className="h-4 w-4" />
-                        Категории ({selectedCategories.length}/{trendCategories.length})
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-72 bg-card border-border z-50" align="end">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-semibold text-sm">Выберите категории</h4>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={selectAllCategories}
-                              className="h-7 text-xs"
-                            >
-                              Все
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={deselectAllCategories}
-                              className="h-7 text-xs"
-                            >
-                              Сброс
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="space-y-3 max-h-64 overflow-y-auto">
-                          {trendCategories.map((category, index) => {
-                            const colors = [
-                              "hsl(var(--primary))",
-                              "hsl(var(--accent))",
-                              "hsl(var(--secondary))",
-                              "#10b981",
-                              "#f59e0b",
-                              "#8b5cf6",
-                              "#ec4899",
-                              "#06b6d4",
-                            ];
-                            const color = colors[index % colors.length];
-                            
-                            return (
-                              <div key={category} className="flex items-center space-x-3">
-                                <Checkbox
-                                  id={category}
-                                  checked={selectedCategories.includes(category)}
-                                  onCheckedChange={() => toggleCategory(category)}
-                                />
-                                <label
-                                  htmlFor={category}
-                                  className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                >
-                                  <div 
-                                    className="w-3 h-3 rounded-full" 
-                                    style={{ backgroundColor: color }}
-                                  />
-                                  {category}
-                                </label>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
+        {/* Body Heatmap */}
+        <Card className="border-border bg-card backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">Карта тела</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {bodyHeatmapData.length > 0 ? (
+              <BodyHeatmap 
+                biomarkerData={bodyHeatmapData} 
+                patientAge={chronologicalAge} 
+                patientGender={profile?.gender as 'male' | 'female' | undefined}
+              />
+            ) : (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                  <p className="text-sm">Нет данных для отображения</p>
+                  <p className="text-xs mt-2">Добавьте анализ для просмотра карты тела</p>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              {trendData.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between px-2">
-                    <span className="text-sm text-muted-foreground">
-                      Все категории (индекс изменений: базовое = 100%)
-                    </span>
-                  </div>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="hsl(var(--foreground))" 
-                        style={{ fontSize: '12px' }} 
-                      />
-                      <YAxis 
-                        stroke="hsl(var(--foreground))" 
-                        style={{ fontSize: '12px' }} 
-                      />
-                      <ChartTooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                          color: "hsl(var(--foreground))",
-                        }}
-                      />
-                      {trendCategories
-                        .filter(category => selectedCategories.includes(category))
-                        .map((category, index) => {
-                        const colors = [
-                          "hsl(var(--primary))",
-                          "hsl(var(--accent))",
-                          "hsl(var(--secondary))",
-                          "#10b981", // green
-                          "#f59e0b", // amber
-                          "#8b5cf6", // violet
-                          "#ec4899", // pink
-                          "#06b6d4", // cyan
-                        ];
-                        const color = colors[trendCategories.indexOf(category) % colors.length];
-                        return (
-                          <Line
-                            key={category}
-                            type="monotone"
-                            dataKey={category}
-                            stroke={color}
-                            strokeWidth={2}
-                            dot={{ fill: color, r: 4 }}
-                            name={category}
-                          />
-                        );
-                      })}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                    <p className="text-sm">Нет данных для отображения</p>
-                    <p className="text-xs mt-2">Добавьте анализы для просмотра трендов</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Circular Progress - Health Score */}
-          <Card className="border-border bg-card backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Карта тела</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {bodyHeatmapData.length > 0 ? (
-                <BodyHeatmap 
-                  biomarkerData={bodyHeatmapData} 
-                  patientAge={chronologicalAge} 
-                  patientGender={profile?.gender as 'male' | 'female' | undefined}
-                />
-              ) : (
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                    <p className="text-sm">Нет данных для отображения</p>
-                    <p className="text-xs mt-2">Добавьте анализ для просмотра карты тела</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {/* Divider - Strategy Section */}
+        <div className="relative py-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border/50"></div>
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
+              СТРАТЕГИЯ ЗДОРОВЬЯ
+            </span>
+          </div>
         </div>
 
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Health Score */}
-          <Card className="border-border bg-card backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Общая оценка</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[280px] flex items-center justify-center">
-                  <div className="relative w-44 h-44">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle
-                        cx="88"
-                        cy="88"
-                        r="76"
-                        stroke="hsl(var(--border))"
-                        strokeWidth="12"
-                        fill="none"
-                      />
-                      {latestHealthIndex && (
-                        <circle
-                          cx="88"
-                          cy="88"
-                          r="76"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth="12"
-                          fill="none"
-                          strokeDasharray="477.52"
-                          strokeDashoffset={477.52 - (477.52 * latestHealthIndex) / 100}
-                          className="transition-all duration-1000"
-                          style={{ filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.5))' }}
-                        />
-                      )}
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-4xl font-bold text-primary">
-                        {latestHealthIndex || "—"}
-                      </span>
-                      <span className="text-xs text-muted-foreground mt-1">
-                        {latestHealthIndex ? "из 100" : "Нет данных"}
-                      </span>
-                    </div>
-                  </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border bg-card backdrop-blur-sm lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-lg">Недавние анализы</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentAnalyses.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p className="text-sm">Анализы отсутствуют</p>
-                    <button 
-                      onClick={() => navigate("/analyses")}
-                      className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
-                    >
-                      Добавить первый анализ →
-                    </button>
-                  </div>
-                ) : (
-                  recentAnalyses.map((analysis) => (
-                    <div
-                      key={analysis.id}
-                      onClick={() => navigate(`/analyses/${analysis.id}`)}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer transition-all border border-border/30 hover:border-primary/30"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">
-                          {new Date(analysis.date).toLocaleDateString("ru-RU", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </p>
-                        {analysis.lab_name && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{analysis.lab_name}</p>
-                        )}
-                      </div>
-                      {analysis.biological_age && (
-                        <div className="text-right">
-                          <p className="text-sm font-semibold text-primary">
-                            {analysis.biological_age} лет
-                          </p>
-                          <p className="text-xs text-muted-foreground">био. возраст</p>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border bg-card backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Персональные отчёты</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="text-sm">Отчёты появятся после анализа</p>
-                <button 
-                  onClick={() => navigate("/recommendations")}
-                  className="mt-4 text-primary hover:text-primary-hover text-sm font-medium transition-colors"
-                >
-                  Смотреть все отчёты →
-                </button>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Update Strategy Button */}
+        <div className="flex justify-end">
+          <Button
+            onClick={generateAnalysis}
+            disabled={analyzing}
+            variant={needsRefresh ? "default" : "outline"}
+          >
+            {analyzing ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Анализируем...
+              </>
+            ) : needsRefresh ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Доступно обновление
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Обновить стратегию
+              </>
+            )}
+          </Button>
         </div>
+
+        {/* Alert if no biomarkers in risk analysis */}
+        {riskData && !riskData.has_biomarkers && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Предварительные рекомендации</AlertTitle>
+            <AlertDescription>
+              Для точной оценки стратегии и формирования персональной карты риска необходимы лабораторные данные. 
+              Сдайте анализы крови для получения полноценной аналитики.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Risk Zones Components */}
+        {riskData?.smart_priorities && (
+          <SmartPriorities data={riskData.smart_priorities} />
+        )}
+
+        {riskData?.risk_map?.categories && (
+          <RiskMap categories={riskData.risk_map.categories} />
+        )}
+
+        {riskData?.aging_blockers?.blockers && (
+          <AgingBlockers blockers={riskData.aging_blockers.blockers} />
+        )}
+
+        {/* Message if no strategy data */}
+        {!riskData && analysesCount > 0 && (
+          <Card className="border-dashed">
+            <CardContent className="py-12 text-center">
+              <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                Стратегия здоровья не сформирована
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Нажмите "Обновить стратегию" для формирования персональной карты здоровья
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
   );
 }
