@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
-import { useAISettings, useCreateAISetting, useUpdateAISetting, useDeleteAISetting } from "@/hooks/useAISettings";
+import { Edit, Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAISettings, useUpdateAISetting } from "@/hooks/useAISettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,47 +13,69 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AISettingsSkeleton } from "@/components/skeletons/AISettingsSkeleton";
+import { getCategoryKey } from "@/lib/categoryKeyMap";
+import type { Tables } from "@/integrations/supabase/types";
 
 interface PromptFormData {
-  key: string;
   description: string;
   prompt_text: string;
 }
 
+type BiomarkerCategory = Tables<"biomarker_categories">;
+
 export default function AISettings() {
+  const { toast } = useToast();
   const { data: settings, isLoading } = useAISettings();
-  const createMutation = useCreateAISetting();
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ["biomarker-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("biomarker_categories")
+        .select("*")
+        .order("display_order");
+      
+      if (error) throw error;
+      return data as BiomarkerCategory[];
+    },
+  });
+  
   const updateMutation = useUpdateAISetting();
-  const deleteMutation = useDeleteAISetting();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [formData, setFormData] = useState<PromptFormData>({
-    key: "",
     description: "",
     prompt_text: "",
   });
   const [formErrors, setFormErrors] = useState<Partial<PromptFormData>>({});
 
-  const filteredSettings = settings?.filter(
-    (setting) =>
-      setting.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      setting.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Группируем промпты по категориям
+  const categoryPrompts = categories?.map(category => {
+    const key = getCategoryKey(category.name);
+    const systemPrompt = settings?.find(s => s.key === `category_${key}_system`);
+    const userPrompt = settings?.find(s => s.key === `category_${key}_user`);
+    
+    return {
+      category,
+      systemPrompt,
+      userPrompt
+    };
+  });
 
-  const validateForm = (isCreate: boolean = false): boolean => {
+  // Фильтруем только если есть поисковый запрос
+  const filteredCategoryPrompts = searchQuery 
+    ? categoryPrompts?.filter(cp => 
+        cp.category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cp.systemPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cp.userPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : categoryPrompts;
+
+  const validateForm = (): boolean => {
     const errors: Partial<PromptFormData> = {};
-
-    if (isCreate && !formData.key.trim()) {
-      errors.key = "Key обязателен";
-    } else if (isCreate && !/^[a-z0-9_]+$/.test(formData.key)) {
-      errors.key = "Key должен содержать только латинские буквы, цифры и подчеркивания";
-    }
 
     if (!formData.description.trim()) {
       errors.description = "Описание обязательно";
@@ -67,7 +92,6 @@ export default function AISettings() {
   const handleEdit = (prompt: any) => {
     setSelectedPrompt(prompt);
     setFormData({
-      key: prompt.key,
       description: prompt.description || "",
       prompt_text: prompt.prompt_text,
     });
@@ -75,19 +99,8 @@ export default function AISettings() {
     setEditDialogOpen(true);
   };
 
-  const handleCreate = () => {
-    setFormData({ key: "", description: "", prompt_text: "" });
-    setFormErrors({});
-    setCreateDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = (prompt: any) => {
-    setSelectedPrompt(prompt);
-    setDeleteDialogOpen(true);
-  };
-
   const handleSaveEdit = async () => {
-    if (!validateForm(false)) return;
+    if (!validateForm()) return;
 
     await updateMutation.mutateAsync({
       id: selectedPrompt.id,
@@ -98,24 +111,7 @@ export default function AISettings() {
     setEditDialogOpen(false);
   };
 
-  const handleSaveCreate = async () => {
-    if (!validateForm(true)) return;
-
-    await createMutation.mutateAsync({
-      key: formData.key,
-      description: formData.description,
-      prompt_text: formData.prompt_text,
-    });
-
-    setCreateDialogOpen(false);
-  };
-
-  const handleDelete = async () => {
-    await deleteMutation.mutateAsync(selectedPrompt.id);
-    setDeleteDialogOpen(false);
-  };
-
-  if (isLoading) {
+  if (isLoading || categoriesLoading) {
     return <AISettingsSkeleton />;
   }
 
@@ -124,59 +120,141 @@ export default function AISettings() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Настройки AI промптов</h1>
         <p className="text-muted-foreground">
-          Управление промптами для AI анализа биомаркеров
+          Управление промптами для AI анализа биомаркеров по категориям
         </p>
       </div>
 
-      <div className="flex gap-4 mb-6">
-        <div className="relative flex-1">
+      <div className="mb-6">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск по key или описанию..."
+            placeholder="Поиск по названию категории или описанию..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Добавить промпт
-        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredSettings?.map((setting) => (
-          <Card key={setting.id} className="flex flex-col">
-            <CardHeader>
-              <div className="flex items-start justify-between gap-2">
-                <Badge variant="outline" className="mb-2">
-                  {setting.key}
-                </Badge>
-              </div>
-              <CardTitle className="text-lg">{setting.description}</CardTitle>
-              <CardDescription>
-                {setting.prompt_text.length} символов
-                {setting.updated_at && (
-                  <>
-                    <br />
-                    Обновлено: {format(new Date(setting.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}
-                  </>
-                )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-end">
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleEdit(setting)} className="flex-1">
-                  <Pencil className="h-3 w-3 mr-1" />
-                  Редактировать
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDeleteConfirm(setting)}>
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Промпты категорий биомаркеров</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Каждая категория биомаркеров имеет два промпта: System (роль эксперта) и User (шаблон анализа)
+          </p>
+          <Accordion type="multiple" className="space-y-4">
+            {filteredCategoryPrompts?.map((cp) => (
+              <AccordionItem 
+                key={cp.category.id} 
+                value={cp.category.id}
+                className="border rounded-lg"
+              >
+                <AccordionTrigger className="px-6 hover:no-underline">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{(cp.category as any).emoji || '📊'}</span>
+                    <div className="text-left">
+                      <div className="font-semibold">{cp.category.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Категория #{cp.category.display_order} • {cp.systemPrompt && cp.userPrompt ? '2 промпта' : 'промпты не настроены'}
+                      </div>
+                    </div>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-6">
+                  <div className="space-y-4 mt-4">
+                    {/* System Prompt */}
+                    {cp.systemPrompt && (
+                      <Card>
+                        <CardHeader>
+                          <div className="flex items-start justify-between gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              System Prompt
+                            </Badge>
+                            <Badge variant="outline" className="text-xs font-mono">
+                              {cp.systemPrompt.key}
+                            </Badge>
+                          </div>
+                          <CardTitle className="text-base">
+                            {cp.systemPrompt.description || "System промпт"}
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            Определяет роль и специализацию AI эксперта для этой категории
+                            {cp.systemPrompt.updated_at && (
+                              <>
+                                <br />
+                                Обновлено: {format(new Date(cp.systemPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                              </>
+                            )}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                            <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                              {cp.systemPrompt.prompt_text}
+                            </p>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="w-full"
+                            onClick={() => handleEdit(cp.systemPrompt)}
+                          >
+                            <Edit className="w-3 h-3 mr-2" />
+                            Редактировать
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* User Prompt */}
+                    {cp.userPrompt && (
+                      <Card>
+                        <CardHeader>
+                          <div className="flex items-start justify-between gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              User Prompt
+                            </Badge>
+                            <Badge variant="outline" className="text-xs font-mono">
+                              {cp.userPrompt.key}
+                            </Badge>
+                          </div>
+                          <CardTitle className="text-base">
+                            {cp.userPrompt.description || "User промпт"}
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            Шаблон запроса для анализа биомаркеров категории
+                            {cp.userPrompt.updated_at && (
+                              <>
+                                <br />
+                                Обновлено: {format(new Date(cp.userPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                              </>
+                            )}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                            <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                              {cp.userPrompt.prompt_text}
+                            </p>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="w-full"
+                            onClick={() => handleEdit(cp.userPrompt)}
+                          >
+                            <Edit className="w-3 h-3 mr-2" />
+                            Редактировать
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </div>
 
       {/* Edit Dialog */}
@@ -184,16 +262,18 @@ export default function AISettings() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Редактировать промпт</DialogTitle>
-            <DialogDescription>Изменение существующего AI промпта</DialogDescription>
+            <DialogDescription>
+              Изменение AI промпта для категории биомаркеров
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label htmlFor="edit-key">Key</Label>
               <Input
                 id="edit-key"
-                value={formData.key}
+                value={selectedPrompt?.key || ""}
                 disabled
-                className="bg-muted"
+                className="bg-muted font-mono text-sm"
               />
             </div>
             <div>
@@ -214,8 +294,9 @@ export default function AISettings() {
                 id="edit-prompt"
                 value={formData.prompt_text}
                 onChange={(e) => setFormData({ ...formData, prompt_text: e.target.value })}
-                rows={12}
+                rows={16}
                 placeholder="Введите текст промпта для AI..."
+                className="font-mono text-sm"
               />
               <p className="text-sm text-muted-foreground mt-1">
                 {formData.prompt_text.length} символов
@@ -235,87 +316,6 @@ export default function AISettings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Create Dialog */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Добавить промпт</DialogTitle>
-            <DialogDescription>Создание нового AI промпта</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="create-key">Key *</Label>
-              <Input
-                id="create-key"
-                value={formData.key}
-                onChange={(e) => setFormData({ ...formData, key: e.target.value.toLowerCase() })}
-                placeholder="analysis_summary_prompt"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Только латинские буквы, цифры и подчеркивания
-              </p>
-              {formErrors.key && (
-                <p className="text-sm text-destructive mt-1">{formErrors.key}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="create-description">Описание *</Label>
-              <Input
-                id="create-description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Краткое описание назначения промпта"
-              />
-              {formErrors.description && (
-                <p className="text-sm text-destructive mt-1">{formErrors.description}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="create-prompt">Текст промпта *</Label>
-              <Textarea
-                id="create-prompt"
-                value={formData.prompt_text}
-                onChange={(e) => setFormData({ ...formData, prompt_text: e.target.value })}
-                rows={12}
-                placeholder="Введите текст промпта для AI..."
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                {formData.prompt_text.length} символов
-              </p>
-              {formErrors.prompt_text && (
-                <p className="text-sm text-destructive mt-1">{formErrors.prompt_text}</p>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleSaveCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Создание..." : "Создать"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Вы действительно хотите удалить промпт "{selectedPrompt?.key}"? Это действие нельзя отменить.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleteMutation.isPending ? "Удаление..." : "Удалить"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
