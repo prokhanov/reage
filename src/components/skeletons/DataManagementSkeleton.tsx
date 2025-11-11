@@ -20,7 +20,7 @@ export function DataManagementSkeleton() {
       </div>
 
       <Tabs defaultValue="biomarkers" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-3xl grid-cols-4">
           <TabsTrigger value="biomarkers">
             <Activity className="w-4 h-4 mr-2" />
             Биомаркеры
@@ -28,6 +28,14 @@ export function DataManagementSkeleton() {
           <TabsTrigger value="conditions">
             <FileText className="w-4 h-4 mr-2" />
             Медицинские состояния
+          </TabsTrigger>
+          <TabsTrigger value="symptoms">
+            <Activity className="w-4 h-4 mr-2" />
+            Симптомы
+          </TabsTrigger>
+          <TabsTrigger value="categories">
+            <Activity className="w-4 h-4 mr-2" />
+            Категории
           </TabsTrigger>
         </TabsList>
 

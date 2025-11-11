@@ -41,10 +41,13 @@ export default function DataManagement() {
   const queryClient = useQueryClient();
   const [searchBiomarkers, setSearchBiomarkers] = useState("");
   const [searchConditions, setSearchConditions] = useState("");
+  const [searchSymptoms, setSearchSymptoms] = useState("");
   const [biomarkerDialog, setBiomarkerDialog] = useState(false);
   const [conditionDialog, setConditionDialog] = useState(false);
+  const [symptomDialog, setSymptomDialog] = useState(false);
   const [editingBiomarker, setEditingBiomarker] = useState<any>(null);
   const [editingCondition, setEditingCondition] = useState<any>(null);
+  const [editingSymptom, setEditingSymptom] = useState<any>(null);
   
   // Categories state
   const [categoryDialog, setCategoryDialog] = useState<{
@@ -214,6 +217,50 @@ export default function DataManagement() {
     },
   });
 
+  // Symptom template mutations
+  const saveSymptom = useMutation({
+    mutationFn: async (symptom: any) => {
+      if (symptom.id) {
+        const { error } = await supabase
+          .from("symptom_templates")
+          .update(symptom)
+          .eq("id", symptom.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("symptom_templates")
+          .insert(symptom);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["symptom-templates"] });
+      toast.success(editingSymptom?.id ? "Симптом обновлён" : "Симптом добавлен");
+      setSymptomDialog(false);
+      setEditingSymptom(null);
+    },
+    onError: (error: any) => {
+      toast.error("Ошибка: " + error.message);
+    },
+  });
+
+  const deleteSymptom = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("symptom_templates")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["symptom-templates"] });
+      toast.success("Симптом удалён");
+    },
+    onError: (error: any) => {
+      toast.error("Ошибка: " + error.message);
+    },
+  });
+
   const filteredBiomarkers = biomarkers?.filter(
     (b) =>
       b.name.toLowerCase().includes(searchBiomarkers.toLowerCase()) ||
@@ -227,6 +274,12 @@ export default function DataManagement() {
       c.category.toLowerCase().includes(searchConditions.toLowerCase())
   );
 
+  const filteredSymptoms = symptomTemplates?.filter(
+    (s) =>
+      s.symptom.toLowerCase().includes(searchSymptoms.toLowerCase()) ||
+      s.category.toLowerCase().includes(searchSymptoms.toLowerCase())
+  );
+
   const groupedBiomarkers = filteredBiomarkers?.reduce((acc: any, b: any) => {
     if (!acc[b.category]) acc[b.category] = [];
     acc[b.category].push(b);
@@ -238,6 +291,17 @@ export default function DataManagement() {
     acc[c.category].push(c);
     return acc;
   }, {});
+
+  const groupedSymptoms = filteredSymptoms?.reduce((acc: any, s: any) => {
+    if (!acc[s.category]) acc[s.category] = [];
+    acc[s.category].push(s);
+    return acc;
+  }, {});
+
+  // Create category order maps
+  const symptomCategoryOrder = new Map(
+    (symptomCategories || []).map((cat) => [cat.name, cat.display_order || 0])
+  );
 
   const handleSaveBiomarker = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -266,6 +330,18 @@ export default function DataManagement() {
     saveCondition.mutate(condition);
   };
 
+  const handleSaveSymptom = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const symptom = {
+      id: editingSymptom?.id,
+      category: formData.get("category") as string,
+      symptom: formData.get("symptom") as string,
+      display_order: formData.get("display_order") ? Number(formData.get("display_order")) : 0,
+    };
+    saveSymptom.mutate(symptom);
+  };
+
   if (loadingBiomarkers || loadingConditions) {
     return <DataManagementSkeleton />;
   }
@@ -281,7 +357,7 @@ export default function DataManagement() {
         </div>
 
         <Tabs defaultValue="biomarkers" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="grid w-full max-w-3xl grid-cols-4">
             <TabsTrigger value="biomarkers">
               <Activity className="w-4 h-4 mr-2" />
               Биомаркеры
@@ -289,6 +365,10 @@ export default function DataManagement() {
             <TabsTrigger value="conditions">
               <FileText className="w-4 h-4 mr-2" />
               Медицинские состояния
+            </TabsTrigger>
+            <TabsTrigger value="symptoms">
+              <Activity className="w-4 h-4 mr-2" />
+              Симптомы
             </TabsTrigger>
             <TabsTrigger value="categories">
               <Activity className="w-4 h-4 mr-2" />
@@ -474,6 +554,107 @@ export default function DataManagement() {
                       </div>
                      ))}
                   </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="symptoms" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Шаблоны симптомов ({symptomTemplates?.length || 0})</CardTitle>
+                    <CardDescription>
+                      Список шаблонов симптомов для раздела "Моё состояние"
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setEditingSymptom(null);
+                      setSymptomDialog(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Добавить симптом
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Поиск по названию или категории..."
+                    value={searchSymptoms}
+                    onChange={(e) => setSearchSymptoms(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
+                <div className="space-y-6">
+                  {Object.entries(groupedSymptoms || {})
+                    .sort(([catA], [catB]) => 
+                      (symptomCategoryOrder.get(catA) || 999) - (symptomCategoryOrder.get(catB) || 999)
+                    )
+                    .map(([category, items]: [string, any]) => {
+                      const categoryData = symptomCategories?.find(c => c.name === category);
+                      return (
+                        <div key={category} className="space-y-2">
+                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                            {categoryData?.emoji && <span className="text-xl">{categoryData.emoji}</span>}
+                            {category}
+                          </h3>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Симптом</TableHead>
+                                <TableHead className="w-[150px]">Порядок</TableHead>
+                                <TableHead className="w-[100px]">Действия</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {items
+                                .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+                                .map((symptom: any) => (
+                                  <TableRow key={symptom.id}>
+                                    <TableCell>{symptom.symptom}</TableCell>
+                                    <TableCell>{symptom.display_order || 0}</TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => {
+                                            setEditingSymptom(symptom);
+                                            setSymptomDialog(true);
+                                          }}
+                                        >
+                                          <Edit2 className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => {
+                                            if (
+                                              confirm(
+                                                `Удалить симптом "${symptom.symptom}"?`
+                                              )
+                                            ) {
+                                              deleteSymptom.mutate(symptom.id);
+                                            }
+                                          }}
+                                        >
+                                          <Trash2 className="w-4 h-4 text-destructive" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      );
+                    })}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -792,6 +973,75 @@ export default function DataManagement() {
               </Button>
               <Button type="submit" disabled={saveCondition.isPending}>
                 {saveCondition.isPending ? "Сохранение..." : "Сохранить"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Symptom Template Dialog */}
+      <Dialog open={symptomDialog} onOpenChange={setSymptomDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingSymptom ? "Редактировать симптом" : "Добавить симптом"}
+            </DialogTitle>
+            <DialogDescription>
+              Заполните информацию о шаблоне симптома
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveSymptom} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="symptom-category">Категория *</Label>
+              <Select
+                name="category"
+                defaultValue={editingSymptom?.category}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите категорию" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(symptomCategories || []).map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      <span className="flex items-center gap-2">
+                        <span>{cat.emoji}</span>
+                        <span>{cat.name}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="symptom">Симптом *</Label>
+              <Input
+                id="symptom"
+                name="symptom"
+                required
+                defaultValue={editingSymptom?.symptom}
+                placeholder="Название симптома"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="symptom-order">Порядок отображения</Label>
+              <Input
+                id="symptom-order"
+                name="display_order"
+                type="number"
+                defaultValue={editingSymptom?.display_order || 0}
+                placeholder="0"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setSymptomDialog(false)}>
+                Отмена
+              </Button>
+              <Button type="submit" disabled={saveSymptom.isPending}>
+                {saveSymptom.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
           </form>
