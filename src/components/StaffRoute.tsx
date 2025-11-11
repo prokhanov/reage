@@ -59,7 +59,7 @@ export function StaffRoute({ children }: StaffRouteProps) {
   }
 
   if (!isStaff) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/profile" replace />;
   }
 
   return <>{children}</>;

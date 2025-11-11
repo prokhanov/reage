@@ -59,7 +59,7 @@ export function PatientRoute({ children }: PatientRouteProps) {
   }
 
   if (!isPatient) {
-    return <Navigate to="/admin/patients" replace />;
+    return <Navigate to="/profile" replace />;
   }
 
   return <>{children}</>;

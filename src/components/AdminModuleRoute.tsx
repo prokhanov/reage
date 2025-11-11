@@ -106,7 +106,7 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
   }
 
   if (!hasAccess) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/profile" replace />;
   }
 
   return <>{children}</>;
