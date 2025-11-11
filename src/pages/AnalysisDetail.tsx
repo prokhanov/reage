@@ -73,6 +73,16 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       if (!userId) throw new Error("Не авторизован");
       if (!id) throw new Error("Некорректный идентификатор анализа");
 
+      // Load category order from database
+      const { data: categoriesData } = await supabase
+        .from("biomarker_categories")
+        .select("name, display_order")
+        .order("display_order");
+
+      const categoryOrderMap = new Map(
+        (categoriesData || []).map((cat) => [cat.name, cat.display_order])
+      );
+
       // Load analysis
       const { data: analysisData, error: analysisError } = await supabase
         .from("analyses")
@@ -96,15 +106,23 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       if (valuesError) throw valuesError;
       setValues(valuesData || []);
 
-      // Load all biomarkers
+      // Load all biomarkers and sort by category order
       const { data: biomarkersData, error: biomarkersError } = await supabase
         .from("biomarkers")
         .select("*")
-        .order("category")
         .order("name");
 
       if (biomarkersError) throw biomarkersError;
-      setBiomarkers(biomarkersData || []);
+      
+      // Sort biomarkers by category display_order
+      const sortedBiomarkers = (biomarkersData || []).sort((a, b) => {
+        const orderA = categoryOrderMap.get(a.category) ?? 999;
+        const orderB = categoryOrderMap.get(b.category) ?? 999;
+        if (orderA !== orderB) return orderA - orderB;
+        return a.name.localeCompare(b.name);
+      });
+      
+      setBiomarkers(sortedBiomarkers);
     } catch (error: any) {
       console.error("Error loading data:", error);
       toast({

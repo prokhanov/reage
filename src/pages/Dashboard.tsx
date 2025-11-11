@@ -114,6 +114,16 @@ export default function Dashboard() {
       const userId = await getUserId();
       if (!userId) return;
 
+      // Load category order from database
+      const { data: categoriesData } = await supabase
+        .from("biomarker_categories")
+        .select("name, display_order")
+        .order("display_order");
+
+      const categoryOrderMap = new Map(
+        (categoriesData || []).map((cat) => [cat.name, cat.display_order])
+      );
+
       const monthsAgo = new Date();
       monthsAgo.setMonth(monthsAgo.getMonth() - 6);
 
@@ -158,7 +168,7 @@ export default function Dashboard() {
         dateMap[date][category].count += 1;
       });
 
-      // Определяем все категории с данными
+      // Определяем все категории с данными и сортируем по display_order
       const categoryStats: Record<string, number> = {};
       Object.values(dateMap).forEach(dateData => {
         Object.entries(dateData).forEach(([cat, stats]) => {
@@ -166,9 +176,11 @@ export default function Dashboard() {
         });
       });
       
-      const allCategories = Object.entries(categoryStats)
-        .sort((a, b) => b[1] - a[1])
-        .map(([cat]) => cat);
+      const allCategories = Object.keys(categoryStats).sort((a, b) => {
+        const orderA = categoryOrderMap.get(a) ?? 999;
+        const orderB = categoryOrderMap.get(b) ?? 999;
+        return orderA - orderB;
+      });
 
       // Формируем данные для графика с усреднением
       const categoryAverages: Record<string, number[]> = {};

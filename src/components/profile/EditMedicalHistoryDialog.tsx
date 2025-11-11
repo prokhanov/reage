@@ -28,98 +28,6 @@ interface EditMedicalHistoryDialogProps {
   onSuccess: () => void;
 }
 
-const medicalCategories = [
-  {
-    title: "Сердечно-сосудистая система",
-    icon: Heart,
-    conditions: [
-      "Гипертония (повышенное давление)",
-      "Гипотония (пониженное давление)",
-      "Ишемическая болезнь сердца (ИБС)",
-      "Аритмия",
-      "Инфаркт миокарда в прошлом",
-      "Инсульт",
-      "Повышенный холестерин / атеросклероз",
-      "Варикозная болезнь",
-      "Тромбоз / тромбофлебит"
-    ]
-  },
-  {
-    title: "Нервная система и психоэмоциональное состояние",
-    icon: Brain,
-    conditions: [
-      "Хронический стресс",
-      "Бессонница",
-      "Тревожное расстройство",
-      "Депрессия",
-      "Панические атаки",
-      "Мигрени",
-      "Невроз",
-      "Эпилепсия"
-    ]
-  },
-  {
-    title: "Пищеварительная система",
-    icon: Utensils,
-    conditions: [
-      "Гастрит",
-      "Язва желудка или двенадцатиперстной кишки",
-      "ГЭРБ (рефлюкс, изжога)",
-      "Синдром раздражённого кишечника (СРК)",
-      "Непереносимость лактозы",
-      "Целиакия",
-      "Хронический панкреатит"
-    ]
-  },
-  {
-    title: "Метаболические нарушения",
-    icon: Droplet,
-    conditions: [
-      "Избыточный вес / ожирение",
-      "Сахарный диабет 1 или 2 типа",
-      "Инсулинорезистентность",
-      "Метаболический синдром",
-      "Подагра (высокая мочевая кислота)"
-    ]
-  },
-  {
-    title: "Гормональные и эндокринные нарушения",
-    icon: Activity,
-    conditions: [
-      "Заболевания щитовидной железы",
-      "Повышенный ТТГ",
-      "Снижение тестостерона",
-      "Снижение эстрогенов / климакс",
-      "СПКЯ",
-      "Повышенный пролактин"
-    ]
-  },
-  {
-    title: "Опорно-двигательная система",
-    icon: Bone,
-    conditions: [
-      "Артрит / артроз",
-      "Остеохондроз",
-      "Грыжа позвоночника",
-      "Сколиоз",
-      "Остеопороз",
-      "Хронические боли в спине"
-    ]
-  },
-  {
-    title: "Иммунная система / воспалительные заболевания",
-    icon: Shield,
-    conditions: [
-      "Частые простуды (более 4 раз в год)",
-      "Аутоиммунные болезни",
-      "Хронические воспаления",
-      "Повышенный CRP",
-      "Аллергии",
-      "Астма"
-    ]
-  }
-];
-
 export function EditMedicalHistoryDialog({ 
   open, 
   onOpenChange, 
@@ -146,26 +54,32 @@ export function EditMedicalHistoryDialog({
 
   const loadMedicalConditions = async () => {
     try {
-      const { data } = await supabase
+      // Load categories with display_order
+      const { data: categories } = await supabase
+        .from("medical_condition_categories")
+        .select("*")
+        .order("display_order");
+
+      // Load condition templates
+      const { data: conditions } = await supabase
         .from("medical_conditions_templates")
         .select("*")
-        .order("category", { ascending: true })
         .order("condition", { ascending: true });
 
-      if (data && data.length > 0) {
-        const grouped = data.reduce((acc: any, item) => {
-          const existing = acc.find((cat: any) => cat.title === item.category);
-          if (existing) {
-            existing.conditions.push(item.condition);
-          } else {
-            acc.push({
-              title: item.category,
-              icon: getCategoryIcon(item.category),
-              conditions: [item.condition]
-            });
-          }
-          return acc;
-        }, []);
+      if (categories && categories.length > 0) {
+        // Group conditions by category, preserving category order
+        const grouped = categories.map(cat => {
+          const categoryConditions = (conditions || [])
+            .filter(c => c.category === cat.name)
+            .map(c => c.condition);
+          
+          return {
+            title: cat.name,
+            icon: getCategoryIcon(cat.name),
+            conditions: categoryConditions
+          };
+        }).filter(cat => cat.conditions.length > 0);
+        
         setDynamicCategories(grouped);
       }
     } catch (error) {
@@ -261,7 +175,7 @@ export function EditMedicalHistoryDialog({
     }
   };
 
-  const categoriesToUse = dynamicCategories.length > 0 ? dynamicCategories : medicalCategories;
+  const categoriesToUse = dynamicCategories;
 
   const filteredCategories = categoriesToUse.map(category => ({
     ...category,

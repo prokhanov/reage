@@ -45,11 +45,20 @@ export default function Biomarkers() {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
 
+      // Load category order from database
+      const { data: categoriesData } = await supabase
+        .from("biomarker_categories")
+        .select("name, display_order")
+        .order("display_order");
+
+      const categoryOrderMap = new Map(
+        (categoriesData || []).map((cat) => [cat.name, cat.display_order])
+      );
+
       // Получаем все биомаркеры
       const { data: biomarkersData, error: biomarkersError } = await supabase
         .from("biomarkers")
         .select("*")
-        .order("category", { ascending: true })
         .order("name", { ascending: true });
 
       if (biomarkersError) throw biomarkersError;
@@ -117,7 +126,19 @@ export default function Biomarkers() {
         return acc;
       }, {} as GroupedBiomarkers);
 
-      setBiomarkers(grouped);
+      // Sort categories by display_order
+      const sortedGrouped: GroupedBiomarkers = {};
+      Object.keys(grouped)
+        .sort((a, b) => {
+          const orderA = categoryOrderMap.get(a) ?? 999;
+          const orderB = categoryOrderMap.get(b) ?? 999;
+          return orderA - orderB;
+        })
+        .forEach(cat => {
+          sortedGrouped[cat] = grouped[cat];
+        });
+
+      setBiomarkers(sortedGrouped);
     } catch (error: any) {
       console.error("Error loading biomarkers:", error);
       toast({

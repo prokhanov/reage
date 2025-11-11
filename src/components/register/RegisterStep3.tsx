@@ -15,134 +15,6 @@ interface RegisterStep3Props {
   onBack: () => void;
 }
 
-const medicalCategories = [
-  {
-    emoji: "🫀",
-    title: "Сердечно-сосудистая система",
-    icon: Heart,
-    conditions: [
-      "Гипертония (повышенное давление)",
-      "Гипотония (пониженное давление)",
-      "Ишемическая болезнь сердца (ИБС)",
-      "Аритмия",
-      "Инфаркт миокарда в прошлом",
-      "Инсульт",
-      "Повышенный холестерин / атеросклероз",
-      "Варикозная болезнь",
-      "Тромбоз / тромбофлебит",
-      "Перикардит / миокардит"
-    ]
-  },
-  {
-    emoji: "🧠",
-    title: "Нервная система и психоэмоциональное состояние",
-    icon: Brain,
-    conditions: [
-      "Хронический стресс",
-      "Бессонница",
-      "Тревожное расстройство",
-      "Депрессия",
-      "Панические атаки",
-      "Мигрени",
-      "Невроз",
-      "Эпилепсия",
-      "Синдром хронической усталости",
-      "Тремор / болезнь Паркинсона"
-    ]
-  },
-  {
-    emoji: "🍽",
-    title: "Пищеварительная система",
-    icon: Utensils,
-    conditions: [
-      "Гастрит",
-      "Язва желудка или двенадцатиперстной кишки",
-      "ГЭРБ (рефлюкс, изжога)",
-      "Синдром раздражённого кишечника (СРК)",
-      "Непереносимость лактозы",
-      "Целиакия",
-      "Хронический панкреатит",
-      "Холецистит / камни в желчном пузыре",
-      "Гепатит (A, B, C, неуточнённый)",
-      "Жировой гепатоз печени",
-      "Повышенные ферменты АЛТ/АСТ",
-      "Проблемы с микробиотой (дисбиоз, вздутие, частые запоры/поносы)"
-    ]
-  },
-  {
-    emoji: "🩸",
-    title: "Метаболические нарушения",
-    icon: Droplet,
-    conditions: [
-      "Избыточный вес / ожирение",
-      "Сахарный диабет 1 или 2 типа",
-      "Инсулинорезистентность",
-      "Метаболический синдром",
-      "Подагра (высокая мочевая кислота)",
-      "Дислипидемия",
-      "Повышенные триглицериды"
-    ]
-  },
-  {
-    emoji: "🧘‍♀️",
-    title: "Гормональные и эндокринные нарушения",
-    icon: Activity,
-    conditions: [
-      "Заболевания щитовидной железы (гипо-, гипертиреоз, аутоиммунный тиреоидит)",
-      "Повышенный ТТГ",
-      "Снижение тестостерона",
-      "Снижение эстрогенов / климакс",
-      "СПКЯ (синдром поликистозных яичников)",
-      "Повышенный пролактин",
-      "Надпочечниковая недостаточность",
-      "Болезнь Кушинга",
-      "Проблемы с кортизолом (низкий/высокий)"
-    ]
-  },
-  {
-    emoji: "💪",
-    title: "Опорно-двигательная система",
-    icon: Bone,
-    conditions: [
-      "Артрит / артроз",
-      "Остеохондроз",
-      "Грыжа позвоночника",
-      "Сколиоз",
-      "Остеопороз",
-      "Хронические боли в спине",
-      "Подагра"
-    ]
-  },
-  {
-    emoji: "🦠",
-    title: "Иммунная система / воспалительные заболевания",
-    icon: Shield,
-    conditions: [
-      "Частые простуды (более 4 раз в год)",
-      "Аутоиммунные болезни (СЛЕ, ревматоидный артрит и др.)",
-      "Хронические воспаления (гайморит, тонзиллит, цистит, простатит)",
-      "Повышенный CRP",
-      "Аллергии (пищевая, пыльцевая, кожная)",
-      "Атопический дерматит",
-      "Астма"
-    ]
-  },
-  {
-    emoji: "💊",
-    title: "Инфекционные заболевания в прошлом",
-    icon: Pill,
-    conditions: [
-      "COVID-19 (особенно если тяжело перенесён)",
-      "Мононуклеоз (EBV)",
-      "Цитомегаловирус",
-      "Герпес-вирусы (HSV-1/2)",
-      "ВПЧ",
-      "Хронический кандидоз",
-      "Паразитарные инфекции (лямблии, гельминты)"
-    ]
-  }
-];
-
 export function RegisterStep3({ formData, updateFormData, onNext, onBack }: RegisterStep3Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [openCategories, setOpenCategories] = useState<string[]>([]);
@@ -155,28 +27,33 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
 
   const loadMedicalConditions = async () => {
     try {
-      const { data } = await supabase
+      // Load categories with display_order
+      const { data: categories } = await supabase
+        .from("medical_condition_categories")
+        .select("*")
+        .order("display_order");
+
+      // Load condition templates
+      const { data: conditions } = await supabase
         .from("medical_conditions_templates")
         .select("*")
-        .order("category", { ascending: true })
         .order("condition", { ascending: true });
 
-      if (data && data.length > 0) {
-        // Group by category
-        const grouped = data.reduce((acc: any, item) => {
-          const existing = acc.find((cat: any) => cat.title === item.category);
-          if (existing) {
-            existing.conditions.push(item.condition);
-          } else {
-            acc.push({
-              emoji: getCategoryEmoji(item.category),
-              title: item.category,
-              icon: getCategoryIcon(item.category),
-              conditions: [item.condition]
-            });
-          }
-          return acc;
-        }, []);
+      if (categories && categories.length > 0) {
+        // Group conditions by category, preserving category order
+        const grouped = categories.map(cat => {
+          const categoryConditions = (conditions || [])
+            .filter(c => c.category === cat.name)
+            .map(c => c.condition);
+          
+          return {
+            emoji: getCategoryEmoji(cat.name),
+            title: cat.name,
+            icon: getCategoryIcon(cat.name),
+            conditions: categoryConditions
+          };
+        }).filter(cat => cat.conditions.length > 0);
+        
         setDynamicCategories(grouped);
       }
     } catch (error) {
@@ -239,8 +116,8 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
     );
   };
 
-  // Use dynamic categories if loaded, otherwise fallback to static
-  const categoriesToUse = dynamicCategories.length > 0 ? dynamicCategories : medicalCategories;
+  // Use dynamic categories loaded from DB
+  const categoriesToUse = dynamicCategories;
 
   const filteredCategories = categoriesToUse.map(category => ({
     ...category,
