@@ -8,45 +8,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Категории и их специализации
-const CATEGORY_EXPERTS = {
-  "Липиды": {
-    role: "эксперт по кардиоваскулярному здоровью и липидному профилю",
-    specialization: "атеросклерозе, холестерине, триглицеридах и сердечно-сосудистых рисках"
-  },
-  "Гормоны": {
-    role: "эндокринолог с 20-летним опытом",
-    specialization: "гормональном балансе, щитовидной железе, половых гормонах и надпочечниках"
-  },
-  "Метаболизм": {
-    role: "эксперт по обмену веществ",
-    specialization: "углеводном и белковом обмене, инсулинорезистентности и метаболическом синдроме"
-  },
-  "Старение": {
-    role: "геронтолог и специалист по антиэйджингу",
-    specialization: "биомаркерах старения, теломерах и стратегиях долголетия"
-  },
-  "Воспаление": {
-    role: "иммунолог, специалист по воспалительным процессам",
-    specialization: "хроническом воспалении, цитокинах и иммунной регуляции"
-  },
-  "Иммунитет": {
-    role: "иммунолог, специалист по иммунной системе",
-    specialization: "врожденном и адаптивном иммунитете, иммунодефицитах и аутоиммунных процессах"
-  },
-  "Витамины": {
-    role: "нутрициолог, специалист по микронутриентам",
-    specialization: "витаминном статусе, дефицитах и оптимальных дозировках"
-  },
-  "Микроэлементы": {
-    role: "нутрициолог, специалист по минеральному балансу",
-    specialization: "микроэлементах, их взаимодействии и влиянии на здоровье"
-  },
-  "Антиоксиданты": {
-    role: "специалист по оксидативному стрессу и клеточной защите",
-    specialization: "свободных радикалах, антиоксидантной защите и митохондриальном здоровье"
-  }
-};
+// Hardcoded CATEGORY_EXPERTS removed - now loaded from database
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -69,6 +31,23 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Load biomarker categories from database
+    const { data: biomarkerCategoriesData } = await supabase
+      .from("biomarker_categories")
+      .select("*")
+      .order("display_order");
+
+    // Build category experts object from database
+    const CATEGORY_EXPERTS = (biomarkerCategoriesData || []).reduce((acc, cat) => {
+      acc[cat.name] = {
+        role: cat.expert_role,
+        specialization: cat.expert_specialization
+      };
+      return acc;
+    }, {} as Record<string, { role: string; specialization: string }>);
+
+    console.log(`Loaded ${Object.keys(CATEGORY_EXPERTS).length} category experts from database`);
 
     // Загружаем промпты из БД
     const { data: promptSettings } = await supabase

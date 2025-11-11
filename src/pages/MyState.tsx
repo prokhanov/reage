@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +16,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CompareRecordsDialog } from "@/components/symptom-history/CompareRecordsDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MyStateSkeleton } from "@/components/skeletons/MyStateSkeleton";
+import { useSymptomCategories } from "@/hooks/useSymptomCategories";
 
 interface Prescription {
   id: string;
@@ -254,11 +254,14 @@ export default function MyState() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Load symptom categories from DB
+  const { data: symptomCategories, isLoading: loadingCategories } = useSymptomCategories();
+
   const hasAdherenceStep = prescriptions.length > 0;
-  const totalSteps = symptomCategories.length + (hasAdherenceStep ? 1 : 0);
+  const totalSteps = (symptomCategories?.length || 0) + (hasAdherenceStep ? 1 : 0);
   const isAdherenceStep = hasAdherenceStep && currentStep === 0;
   const categoryIndex = hasAdherenceStep ? currentStep - 1 : currentStep;
-  const currentCategory = !isAdherenceStep && categoryIndex >= 0 ? symptomCategories[categoryIndex] : null;
+  const currentCategory = !isAdherenceStep && categoryIndex >= 0 && symptomCategories ? symptomCategories[categoryIndex] : null;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   useEffect(() => {
@@ -475,7 +478,7 @@ export default function MyState() {
 
   const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
-  if (loadingHistory) {
+  if (loadingHistory || loadingCategories || !symptomCategories) {
     return <MyStateSkeleton />;
   }
 

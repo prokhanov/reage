@@ -35,30 +35,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DataManagementSkeleton } from "@/components/skeletons/DataManagementSkeleton";
 
-const BIOMARKER_CATEGORIES = [
-  "Липиды",
-  "Гормоны",
-  "Метаболизм",
-  "Старение",
-  "Воспаление",
-  "Иммунитет",
-  "Витамины",
-  "Микроэлементы",
-  "Антиоксиданты",
-];
-
-const MEDICAL_CATEGORIES = [
-  "🫀 Сердечно-сосудистая система",
-  "🧠 Нервная система",
-  "🍽 Пищеварительная система",
-  "🩸 Метаболические нарушения",
-  "🧘‍♀️ Гормональные нарушения",
-  "💪 Опорно-двигательная система",
-  "🦠 Иммунная система",
-  "🩸 Кроветворная система",
-  "💊 Инфекционные заболевания",
-  "🧬 Онкология",
-];
+// Categories will be loaded from DB
 
 export default function DataManagement() {
   const queryClient = useQueryClient();
@@ -68,6 +45,13 @@ export default function DataManagement() {
   const [conditionDialog, setConditionDialog] = useState(false);
   const [editingBiomarker, setEditingBiomarker] = useState<any>(null);
   const [editingCondition, setEditingCondition] = useState<any>(null);
+  
+  // Categories state
+  const [categoryDialog, setCategoryDialog] = useState<{
+    open: boolean;
+    type: 'biomarker' | 'medical' | 'symptom' | null;
+    editing: any | null;
+  }>({ open: false, type: null, editing: null });
 
   // Biomarkers queries
   const { data: biomarkers, isLoading: loadingBiomarkers } = useQuery({
@@ -92,6 +76,56 @@ export default function DataManagement() {
         .select("*")
         .order("category", { ascending: true })
         .order("condition", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Category queries
+  const { data: biomarkerCategories } = useQuery({
+    queryKey: ["biomarker-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("biomarker_categories")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: medicalCategories } = useQuery({
+    queryKey: ["medical-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("medical_condition_categories")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: symptomCategories } = useQuery({
+    queryKey: ["symptom-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("symptom_categories")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: symptomTemplates } = useQuery({
+    queryKey: ["symptom-templates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("symptom_templates")
+        .select("*")
+        .order("category", { ascending: true })
+        .order("display_order", { ascending: true });
       if (error) throw error;
       return data;
     },
@@ -247,7 +281,7 @@ export default function DataManagement() {
         </div>
 
         <Tabs defaultValue="biomarkers" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="biomarkers">
               <Activity className="w-4 h-4 mr-2" />
               Биомаркеры
@@ -255,6 +289,10 @@ export default function DataManagement() {
             <TabsTrigger value="conditions">
               <FileText className="w-4 h-4 mr-2" />
               Медицинские состояния
+            </TabsTrigger>
+            <TabsTrigger value="categories">
+              <Activity className="w-4 h-4 mr-2" />
+              Категории
             </TabsTrigger>
           </TabsList>
 
@@ -434,8 +472,160 @@ export default function DataManagement() {
                           </TableBody>
                         </Table>
                       </div>
+                     ))}
+                  </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="categories" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Управление категориями</CardTitle>
+                <CardDescription>
+                  Категории для биомаркеров, медицинских состояний и симптомов
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Biomarker Categories */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-lg">Категории биомаркеров</h3>
+                    <Button size="sm" onClick={() => setCategoryDialog({ open: true, type: 'biomarker', editing: null })}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Добавить
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {(biomarkerCategories || []).map((cat) => (
+                      <div key={cat.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{cat.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Эксперт: {cat.expert_role}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setCategoryDialog({ open: true, type: 'biomarker', editing: cat })}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={async () => {
+                              if (confirm(`Удалить категорию "${cat.name}"?`)) {
+                                try {
+                                  await supabase.from("biomarker_categories").delete().eq("id", cat.id);
+                                  queryClient.invalidateQueries({ queryKey: ["biomarker-categories"] });
+                                  toast.success("Категория удалена");
+                                } catch (error: any) {
+                                  toast.error("Ошибка: " + error.message);
+                                }
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Medical Condition Categories */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-lg">Категории медицинских состояний</h3>
+                    <Button size="sm" onClick={() => setCategoryDialog({ open: true, type: 'medical', editing: null })}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Добавить
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {(medicalCategories || []).map((cat) => (
+                      <div key={cat.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <p className="font-medium">{cat.name}</p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setCategoryDialog({ open: true, type: 'medical', editing: cat })}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={async () => {
+                              if (confirm(`Удалить категорию "${cat.name}"?`)) {
+                                try {
+                                  await supabase.from("medical_condition_categories").delete().eq("id", cat.id);
+                                  queryClient.invalidateQueries({ queryKey: ["medical-categories"] });
+                                  toast.success("Категория удалена");
+                                } catch (error: any) {
+                                  toast.error("Ошибка: " + error.message);
+                                }
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Symptom Categories */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-lg">Категории симптомов</h3>
+                    <Button size="sm" onClick={() => setCategoryDialog({ open: true, type: 'symptom', editing: null })}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Добавить
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {(symptomCategories || []).map((cat) => (
+                      <div key={cat.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{cat.emoji}</span>
+                          <p className="font-medium">{cat.name}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setCategoryDialog({ open: true, type: 'symptom', editing: cat })}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={async () => {
+                              if (confirm(`Удалить категорию "${cat.name}"?`)) {
+                                try {
+                                  await supabase.from("symptom_categories").delete().eq("id", cat.id);
+                                  queryClient.invalidateQueries({ queryKey: ["symptom-categories"] });
+                                  toast.success("Категория удалена");
+                                } catch (error: any) {
+                                  toast.error("Ошибка: " + error.message);
+                                }
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -495,9 +685,9 @@ export default function DataManagement() {
                     <SelectValue placeholder="Выберите категорию" />
                   </SelectTrigger>
                   <SelectContent>
-                    {BIOMARKER_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {(biomarkerCategories || []).map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -576,9 +766,9 @@ export default function DataManagement() {
                   <SelectValue placeholder="Выберите категорию" />
                 </SelectTrigger>
                 <SelectContent>
-                  {MEDICAL_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
+                  {(medicalCategories || []).map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -602,6 +792,149 @@ export default function DataManagement() {
               </Button>
               <Button type="submit" disabled={saveCondition.isPending}>
                 {saveCondition.isPending ? "Сохранение..." : "Сохранить"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Management Dialog */}
+      <Dialog open={categoryDialog.open} onOpenChange={(open) => setCategoryDialog({ ...categoryDialog, open })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {categoryDialog.editing ? "Редактировать категорию" : "Добавить категорию"}
+            </DialogTitle>
+            <DialogDescription>
+              {categoryDialog.type === 'biomarker' && "Категория для биомаркеров с экспертом AI"}
+              {categoryDialog.type === 'medical' && "Категория для медицинских состояний"}
+              {categoryDialog.type === 'symptom' && "Категория для симптомов"}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              try {
+                if (categoryDialog.type === 'biomarker') {
+                  const data = {
+                    name: formData.get("name") as string,
+                    expert_role: formData.get("expert_role") as string,
+                    expert_specialization: formData.get("expert_specialization") as string,
+                    display_order: Number(formData.get("display_order")) || 0
+                  };
+                  if (categoryDialog.editing) {
+                    await supabase.from("biomarker_categories").update(data).eq("id", categoryDialog.editing.id);
+                  } else {
+                    await supabase.from("biomarker_categories").insert(data);
+                  }
+                  queryClient.invalidateQueries({ queryKey: ["biomarker-categories"] });
+                } else if (categoryDialog.type === 'medical') {
+                  const data = {
+                    name: formData.get("name") as string,
+                    display_order: Number(formData.get("display_order")) || 0
+                  };
+                  if (categoryDialog.editing) {
+                    await supabase.from("medical_condition_categories").update(data).eq("id", categoryDialog.editing.id);
+                  } else {
+                    await supabase.from("medical_condition_categories").insert(data);
+                  }
+                  queryClient.invalidateQueries({ queryKey: ["medical-categories"] });
+                } else if (categoryDialog.type === 'symptom') {
+                  const data = {
+                    name: formData.get("name") as string,
+                    emoji: formData.get("emoji") as string,
+                    display_order: Number(formData.get("display_order")) || 0
+                  };
+                  if (categoryDialog.editing) {
+                    await supabase.from("symptom_categories").update(data).eq("id", categoryDialog.editing.id);
+                  } else {
+                    await supabase.from("symptom_categories").insert(data);
+                  }
+                  queryClient.invalidateQueries({ queryKey: ["symptom-categories"] });
+                }
+                toast.success(categoryDialog.editing ? "Категория обновлена" : "Категория добавлена");
+                setCategoryDialog({ open: false, type: null, editing: null });
+              } catch (error: any) {
+                toast.error("Ошибка: " + error.message);
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="cat-name">Название *</Label>
+              <Input
+                id="cat-name"
+                name="name"
+                required
+                defaultValue={categoryDialog.editing?.name}
+                placeholder={
+                  categoryDialog.type === 'medical' 
+                    ? "🫀 Сердечно-сосудистая система" 
+                    : categoryDialog.type === 'symptom'
+                    ? "Энергия и фокус"
+                    : "Липиды"
+                }
+              />
+            </div>
+
+            {categoryDialog.type === 'symptom' && (
+              <div className="space-y-2">
+                <Label htmlFor="cat-emoji">Эмодзи *</Label>
+                <Input
+                  id="cat-emoji"
+                  name="emoji"
+                  required
+                  defaultValue={categoryDialog.editing?.emoji}
+                  placeholder="🧠"
+                  maxLength={2}
+                />
+              </div>
+            )}
+
+            {categoryDialog.type === 'biomarker' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="expert-role">Роль AI-эксперта *</Label>
+                  <Input
+                    id="expert-role"
+                    name="expert_role"
+                    required
+                    defaultValue={categoryDialog.editing?.expert_role}
+                    placeholder="кардиолог с 20-летним опытом"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expert-spec">Специализация эксперта *</Label>
+                  <Textarea
+                    id="expert-spec"
+                    name="expert_specialization"
+                    required
+                    defaultValue={categoryDialog.editing?.expert_specialization}
+                    placeholder="сердечно-сосудистых заболеваниях и метаболизме липидов"
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="cat-order">Порядок отображения</Label>
+              <Input
+                id="cat-order"
+                name="display_order"
+                type="number"
+                defaultValue={categoryDialog.editing?.display_order || 0}
+                placeholder="0"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCategoryDialog({ open: false, type: null, editing: null })}>
+                Отмена
+              </Button>
+              <Button type="submit">
+                Сохранить
               </Button>
             </DialogFooter>
           </form>
