@@ -874,7 +874,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       // Не блокируем основной анализ при ошибке генерации назначений
     }
 
-    // Вычисляем индекс здоровья и биологический возраст
+    // ============== AI-POWERED BIOLOGICAL AGE CALCULATION ==============
+    
     // Define patient age and gender for age-dependent norm calculations
     const patientAge = age;
     const patientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
@@ -893,19 +894,20 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     let biomarkers_metadata = null;
     
     if (totalValues > 0) {
-      biomarkers_metadata = compositeBiomarkers.metadata;
-
-      const normalValues = compositeBiomarkers.values.filter((av: any) => {
-        if (av.biomarkers.normal_min === null || av.biomarkers.normal_max === null) return true;
-        
-        // Use age-dependent norms
+      console.log("Starting AI-powered biological age calculation...");
+      
+      // Подготавливаем данные для AI
+      const biomarkersForAI = compositeBiomarkers.values.map((av: any) => {
+        // Определяем норму с учетом возраста и пола
         let normalMin = av.biomarkers.normal_min;
         let normalMax = av.biomarkers.normal_max;
         
         if (av.biomarkers.age_ranges && patientGender && patientAge !== null) {
           const ageRanges = av.biomarkers.age_ranges[patientGender];
           if (ageRanges) {
-            const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
+            const ageRange = ageRanges.find((r: any) => 
+              patientAge >= r.age_from && patientAge <= r.age_to
+            );
             if (ageRange) {
               normalMin = ageRange.min;
               normalMax = ageRange.max;
@@ -913,7 +915,6 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           }
         }
         
-        // Fallback to gender-specific
         if (patientGender === 'male' && av.biomarkers.normal_min_male !== null) {
           normalMin = av.biomarkers.normal_min_male;
           normalMax = av.biomarkers.normal_max_male;
@@ -922,15 +923,237 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           normalMax = av.biomarkers.normal_max_female;
         }
         
-        return av.value >= normalMin && av.value <= normalMax;
-      }).length;
-      
-      health_index = Math.round((normalValues / totalValues) * 100);
-      
-      // Calculate biological age only if health_index is valid
-      if (profile?.birth_date) {
-        const chronologicalAge = new Date().getFullYear() - new Date(profile.birth_date).getFullYear();
-        biological_age = chronologicalAge - Math.round((health_index - 70) / 3);
+        return {
+          name: av.biomarkers.name,
+          code: av.biomarkers.code,
+          category: av.biomarkers.category,
+          value: av.value,
+          unit: av.unit_override || av.biomarkers.unit,
+          normal_min: normalMin,
+          normal_max: normalMax,
+          source: av.source,
+          analysis_date: av.analysis_date
+        };
+      });
+
+      // Подготавливаем данные о предыдущих анализах для динамики
+      const previousAnalysesForAI = (previousAnalyses || []).slice(0, 3).map(pa => ({
+        date: pa.date,
+        biological_age: pa.biological_age,
+        health_index: pa.health_index,
+        biomarkers_count: pa.analysis_values?.length || 0
+      }));
+
+      // Подготавливаем данные о симптомах
+      const symptomsForAI = (userSymptoms || []).slice(0, 10).map(s => ({
+        category: s.category,
+        symptom: s.symptom,
+        severity: s.severity
+      }));
+
+      const biomarkersData = JSON.stringify(biomarkersForAI, null, 2);
+      const previousAnalysesData = previousAnalysesForAI.length > 0 
+        ? JSON.stringify(previousAnalysesForAI, null, 2) 
+        : "Нет предыдущих анализов";
+      const symptomsData = symptomsForAI.length > 0
+        ? JSON.stringify(symptomsForAI, null, 2)
+        : "Симптомы не указаны";
+
+      // Build dynamic categories list with emojis
+      const categoriesList = (biomarkerCategoriesData || [])
+        .map(cat => `${cat.emoji} ${cat.name}`)
+        .join("\n");
+
+      const systemPrompt = prompts['biological_age_system'] || 
+        "Ты эксперт по биомаркерам старения. Рассчитай биологический возраст с учетом веса биомаркеров.";
+
+      const userPrompt = (prompts['biological_age_user'] || 
+        `Рассчитай биологический возраст для пациента {chronologicalAge} лет, пол {gender}.
+Биомаркеры: {biomarkersData}`)
+        .replace(/{chronologicalAge}/g, String(patientAge || age))
+        .replace(/{gender}/g, patientGender === 'male' ? 'мужской' : 'женский')
+        .replace(/{biomarkersData}/g, biomarkersData)
+        .replace(/{previousAnalysesData}/g, previousAnalysesData)
+        .replace(/{symptomsData}/g, symptomsData)
+        .replace(/{categoriesList}/g, categoriesList);
+
+      try {
+        // Build dynamic category_scores schema
+        const categoryScoresProperties = (biomarkerCategoriesData || []).reduce((acc, cat) => {
+          acc[cat.name] = {
+            type: "object",
+            properties: {
+              score: { type: "integer", description: "Оценка 0-100" },
+              impact: { type: "string", enum: ["low", "moderate", "high"], description: "Влияние на старение" },
+              key_markers: { type: "array", items: { type: "string" }, description: "Ключевые маркеры" }
+            }
+          };
+          return acc;
+        }, {} as Record<string, any>);
+
+        const categoryScoresRequired = (biomarkerCategoriesData || []).map(cat => cat.name);
+
+        // Используем tool calling для структурированного ответа
+        const bioAgeResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${lovableApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt }
+            ],
+            tools: [{
+              type: "function",
+              function: {
+                name: "calculate_biological_age",
+                description: "Рассчитать биологический возраст на основе анализа биомаркеров",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    biological_age: {
+                      type: "number",
+                      description: "Рассчитанный биологический возраст в годах (может быть с десятичной частью)"
+                    },
+                    confidence_score: {
+                      type: "integer",
+                      description: "Уверенность в расчете от 0 до 100 (%)"
+                    },
+                    aging_rate: {
+                      type: "number",
+                      description: "Скорость старения (1.0 = норма, >1 = ускоренное, <1 = замедленное)"
+                    },
+                    health_index: {
+                      type: "integer",
+                      description: "Общий индекс здоровья от 0 до 100"
+                    },
+                    category_scores: {
+                      type: "object",
+                      description: "Оценки по категориям биомаркеров",
+                      properties: categoryScoresProperties,
+                      required: categoryScoresRequired
+                    },
+                    key_aging_markers: {
+                      type: "array",
+                      description: "Топ-5 маркеров старения с максимальным влиянием",
+                      items: {
+                        type: "object",
+                        properties: {
+                          name: { type: "string", description: "Название биомаркера" },
+                          value: { type: "number", description: "Текущее значение" },
+                          normal_max: { type: "number", description: "Верхняя граница нормы" },
+                          deviation: { type: "string", description: "Отклонение в процентах (например '+15%')" },
+                          impact: { type: "string", enum: ["low", "moderate", "high"], description: "Влияние на старение" },
+                          reason: { type: "string", description: "Краткое объяснение почему этот маркер критичен (1-2 предложения)" }
+                        },
+                        required: ["name", "value", "impact", "reason"]
+                      }
+                    },
+                    missing_critical_markers: {
+                      type: "array",
+                      items: { type: "string" },
+                      description: "Список критически важных маркеров, которых не хватает для более точной оценки"
+                    },
+                    explanation: {
+                      type: "string",
+                      description: "Краткое объяснение расчета биологического возраста (2-3 предложения)"
+                    }
+                  },
+                  required: ["biological_age", "confidence_score", "health_index", "category_scores", "key_aging_markers", "explanation"],
+                  additionalProperties: false
+                }
+              }
+            }],
+            tool_choice: { type: "function", function: { name: "calculate_biological_age" } }
+          }),
+        });
+
+        if (!bioAgeResponse.ok) {
+          console.error("AI biological age calculation failed:", bioAgeResponse.status);
+          throw new Error("Failed to calculate biological age via AI");
+        }
+
+        const bioAgeData = await bioAgeResponse.json();
+        const toolCall = bioAgeData.choices?.[0]?.message?.tool_calls?.[0];
+        
+        if (toolCall?.function?.arguments) {
+          const aiResult = JSON.parse(toolCall.function.arguments);
+          
+          // Извлекаем результаты AI-анализа
+          biological_age = Math.round(aiResult.biological_age * 10) / 10;
+          health_index = aiResult.health_index;
+          
+          // Сохраняем полный AI-анализ в metadata
+          biomarkers_metadata = {
+            ...compositeBiomarkers.metadata,
+            ai_analysis: {
+              confidence_score: aiResult.confidence_score,
+              aging_rate: aiResult.aging_rate,
+              category_scores: aiResult.category_scores,
+              key_aging_markers: aiResult.key_aging_markers,
+              missing_critical_markers: aiResult.missing_critical_markers,
+              explanation: aiResult.explanation,
+              calculated_at: new Date().toISOString()
+            }
+          };
+
+          console.log(`AI biological age calculated: ${biological_age} years (confidence: ${aiResult.confidence_score}%)`);
+          console.log(`Health index: ${health_index}/100, Aging rate: ${aiResult.aging_rate}`);
+        } else {
+          throw new Error("AI did not return structured biological age data");
+        }
+
+      } catch (error) {
+        console.error("Error in AI biological age calculation:", error);
+        
+        // Fallback к простой формуле если AI не сработал
+        console.log("Falling back to simple formula...");
+        
+        const normalValues = compositeBiomarkers.values.filter((av: any) => {
+          if (av.biomarkers.normal_min === null || av.biomarkers.normal_max === null) return true;
+          
+          let normalMin = av.biomarkers.normal_min;
+          let normalMax = av.biomarkers.normal_max;
+          
+          if (av.biomarkers.age_ranges && patientGender && patientAge !== null) {
+            const ageRanges = av.biomarkers.age_ranges[patientGender];
+            if (ageRanges) {
+              const ageRange = ageRanges.find((r: any) => 
+                patientAge >= r.age_from && patientAge <= r.age_to
+              );
+              if (ageRange) {
+                normalMin = ageRange.min;
+                normalMax = ageRange.max;
+              }
+            }
+          }
+          
+          if (patientGender === 'male' && av.biomarkers.normal_min_male !== null) {
+            normalMin = av.biomarkers.normal_min_male;
+            normalMax = av.biomarkers.normal_max_male;
+          } else if (patientGender === 'female' && av.biomarkers.normal_min_female !== null) {
+            normalMin = av.biomarkers.normal_min_female;
+            normalMax = av.biomarkers.normal_max_female;
+          }
+          
+          return av.value >= normalMin && av.value <= normalMax;
+        }).length;
+        
+        health_index = Math.round((normalValues / totalValues) * 100);
+        
+        if (profile?.birth_date) {
+          const chronologicalAge = new Date().getFullYear() - new Date(profile.birth_date).getFullYear();
+          biological_age = chronologicalAge - Math.round((health_index - 70) / 3);
+        }
+        
+        biomarkers_metadata = {
+          ...compositeBiomarkers.metadata,
+          calculation_method: 'fallback_formula',
+          error: String(error)
+        };
       }
     }
 

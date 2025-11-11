@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -468,26 +469,133 @@ export default function Dashboard() {
                     Биологический возраст
                   </div>
                   {latestBiomarkersMetadata && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1 mt-1 cursor-help">
-                            <Info className="h-3 w-3" />
-                            {latestBiomarkersMetadata.current_count} свежих + {latestBiomarkersMetadata.historical_count} исторических
+                    <div className="space-y-2">
+                      {/* Базовая информация о биомаркерах */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1 mt-1 cursor-help">
+                              <Info className="h-3 w-3" />
+                              {latestBiomarkersMetadata.current_count} свежих + {latestBiomarkersMetadata.historical_count} исторических
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="font-medium mb-1">Расчет основан на {latestBiomarkersMetadata.total_count} биомаркерах:</p>
+                            <p className="text-sm">• {latestBiomarkersMetadata.current_count} из текущего анализа</p>
+                            <p className="text-sm">• {latestBiomarkersMetadata.historical_count} из предыдущих анализов (за 4 месяца)</p>
+                            {latestBiomarkersMetadata.oldest_historical_date && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Самые старые данные: {new Date(latestBiomarkersMetadata.oldest_historical_date).toLocaleDateString('ru-RU')}
+                              </p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      {/* AI-анализ если есть */}
+                      {latestBiomarkersMetadata.ai_analysis && (
+                        <div className="space-y-3 mt-4">
+                          {/* Уверенность и скорость старения */}
+                          <div className="flex items-center justify-center gap-3 text-xs">
+                            <Badge variant={
+                              latestBiomarkersMetadata.ai_analysis.confidence_score >= 80 ? "default" :
+                              latestBiomarkersMetadata.ai_analysis.confidence_score >= 60 ? "secondary" : "outline"
+                            }>
+                              Уверенность: {latestBiomarkersMetadata.ai_analysis.confidence_score}%
+                            </Badge>
+                            <Badge variant={
+                              latestBiomarkersMetadata.ai_analysis.aging_rate < 1 ? "default" :
+                              latestBiomarkersMetadata.ai_analysis.aging_rate === 1 ? "secondary" : "destructive"
+                            }>
+                              Скорость старения: {latestBiomarkersMetadata.ai_analysis.aging_rate.toFixed(2)}x
+                            </Badge>
                           </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p className="font-medium mb-1">Расчет основан на {latestBiomarkersMetadata.total_count} биомаркерах:</p>
-                          <p className="text-sm">• {latestBiomarkersMetadata.current_count} из текущего анализа</p>
-                          <p className="text-sm">• {latestBiomarkersMetadata.historical_count} из предыдущих анализов (за 4 месяца)</p>
-                          {latestBiomarkersMetadata.oldest_historical_date && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Самые старые данные: {new Date(latestBiomarkersMetadata.oldest_historical_date).toLocaleDateString('ru-RU')}
-                            </p>
+
+                          {/* Объяснение AI */}
+                          <Alert className="text-left">
+                            <Sparkles className="h-4 w-4" />
+                            <AlertDescription className="text-xs">
+                              {latestBiomarkersMetadata.ai_analysis.explanation}
+                            </AlertDescription>
+                          </Alert>
+
+                          {/* Топ-3 ключевых маркера старения */}
+                          {latestBiomarkersMetadata.ai_analysis.key_aging_markers?.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-xs font-semibold text-muted-foreground">Ключевые маркеры старения:</p>
+                              {latestBiomarkersMetadata.ai_analysis.key_aging_markers.slice(0, 3).map((marker: any, idx: number) => (
+                                <TooltipProvider key={idx}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center gap-2 text-xs cursor-help">
+                                        <Badge variant={marker.impact === 'high' ? 'destructive' : marker.impact === 'moderate' ? 'secondary' : 'outline'}>
+                                          {marker.name}
+                                        </Badge>
+                                        <span className="text-muted-foreground">{marker.deviation}</span>
+                                        <Info className="h-3 w-3" />
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="max-w-xs">{marker.reason}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ))}
+                            </div>
                           )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+
+                          {/* Недостающие критичные маркеры */}
+                          {latestBiomarkersMetadata.ai_analysis.missing_critical_markers?.length > 0 && (
+                            <Alert variant="destructive" className="text-left">
+                              <AlertTriangle className="h-4 w-4" />
+                              <AlertDescription className="text-xs">
+                                Для более точной оценки рекомендуем сдать: {latestBiomarkersMetadata.ai_analysis.missing_critical_markers.join(", ")}
+                              </AlertDescription>
+                            </Alert>
+                          )}
+
+                          {/* Оценки по категориям */}
+                          {latestBiomarkersMetadata.ai_analysis.category_scores && (
+                            <div className="grid grid-cols-5 gap-2 mt-4">
+                              {Object.entries(latestBiomarkersMetadata.ai_analysis.category_scores).map(([category, data]: [string, any]) => (
+                                <TooltipProvider key={category}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="text-center p-2 rounded-lg border cursor-help">
+                                        <div className="text-2xl mb-1">
+                                          {category.includes("Энергия") && "⚡"}
+                                          {category.includes("Сердечно-сосудистая") && "❤️"}
+                                          {category.includes("Воспалительная") && "🛡️"}
+                                          {category.includes("Эндокринная") && "🧬"}
+                                          {category.includes("Обмен веществ") && "🔄"}
+                                        </div>
+                                        <div className={`text-sm font-semibold ${
+                                          data.score >= 70 ? 'text-green-600' : 
+                                          data.score >= 50 ? 'text-yellow-600' : 'text-red-600'
+                                        }`}>
+                                          {data.score}
+                                        </div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="font-semibold">{category}</p>
+                                      <p className="text-xs">Оценка: {data.score}/100</p>
+                                      <p className="text-xs">Влияние: {
+                                        data.impact === 'high' ? 'Высокое' :
+                                        data.impact === 'moderate' ? 'Среднее' : 'Низкое'
+                                      }</p>
+                                      {data.key_markers?.length > 0 && (
+                                        <p className="text-xs mt-1">Ключевые: {data.key_markers.join(", ")}</p>
+                                      )}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
