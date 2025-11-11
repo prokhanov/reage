@@ -357,6 +357,35 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* Data Status Alerts */}
+        {analysesCount === 0 && (
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="flex items-start gap-3">
+              <Activity className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div className="space-y-1">
+                <h3 className="font-medium text-foreground">Нет анализов</h3>
+                <p className="text-sm text-muted-foreground">
+                  Добавьте первый анализ для оценки вашего биологического возраста и индекса здоровья
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {analysesCount > 0 && latestBioAge === null && (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+            <div className="flex items-start gap-3">
+              <Activity className="h-5 w-5 text-amber-500 mt-0.5" />
+              <div className="space-y-1">
+                <h3 className="font-medium text-foreground">Анализ без биомаркеров</h3>
+                <p className="text-sm text-muted-foreground">
+                  Для точной оценки биологического возраста необходимо добавить биомаркеры в ваш анализ
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Central Bio Age Circle */}
         <Card className="border-border bg-card backdrop-blur-sm">
           <CardContent className="pt-8 pb-8">

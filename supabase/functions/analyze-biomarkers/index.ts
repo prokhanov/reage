@@ -814,16 +814,54 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     }
 
     // Вычисляем индекс здоровья и биологический возраст
+    // Define patient age and gender for age-dependent norm calculations
+    const patientAge = age;
+    const patientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
+    
     const totalValues = analysis.analysis_values.length;
-    const normalValues = analysis.analysis_values.filter((av: any) => {
-      if (av.biomarkers.normal_min === null || av.biomarkers.normal_max === null) return true;
-      return av.value >= av.biomarkers.normal_min && av.value <= av.biomarkers.normal_max;
-    }).length;
-
-    const health_index = Math.round((normalValues / totalValues) * 100);
-    const biological_age = profile?.birth_date 
-      ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() - Math.round((health_index - 70) / 3)
-      : null;
+    
+    let health_index = null;
+    let biological_age = null;
+    
+    if (totalValues > 0) {
+      const normalValues = analysis.analysis_values.filter((av: any) => {
+        if (av.biomarkers.normal_min === null || av.biomarkers.normal_max === null) return true;
+        
+        // Use age-dependent norms
+        let normalMin = av.biomarkers.normal_min;
+        let normalMax = av.biomarkers.normal_max;
+        
+        if (av.biomarkers.age_ranges && patientGender && patientAge !== null) {
+          const ageRanges = av.biomarkers.age_ranges[patientGender];
+          if (ageRanges) {
+            const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
+            if (ageRange) {
+              normalMin = ageRange.min;
+              normalMax = ageRange.max;
+            }
+          }
+        }
+        
+        // Fallback to gender-specific
+        if (patientGender === 'male' && av.biomarkers.normal_min_male !== null) {
+          normalMin = av.biomarkers.normal_min_male;
+          normalMax = av.biomarkers.normal_max_male;
+        } else if (patientGender === 'female' && av.biomarkers.normal_min_female !== null) {
+          normalMin = av.biomarkers.normal_min_female;
+          normalMax = av.biomarkers.normal_max_female;
+        }
+        
+        return av.value >= normalMin && av.value <= normalMax;
+      }).length;
+      
+      health_index = Math.round((normalValues / totalValues) * 100);
+      
+      // Calculate biological age only if health_index is valid
+      if (profile?.birth_date) {
+        const chronologicalAge = new Date().getFullYear() - new Date(profile.birth_date).getFullYear();
+        biological_age = chronologicalAge - Math.round((health_index - 70) / 3);
+      }
+    }
 
     // Обновляем анализ (БЕЗ изменения статуса - он меняется вручную врачом)
     await supabase

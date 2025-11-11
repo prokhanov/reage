@@ -140,7 +140,7 @@ export default function RiskZones() {
             Нет данных для анализа
           </h2>
           <p className="text-muted-foreground text-center max-w-md">
-            Добавьте хотя бы один анализ, чтобы получить оценку зон риска
+            Добавьте анализ с биомаркерами, чтобы получить полноценную оценку зон риска
           </p>
         </div>
       </div>

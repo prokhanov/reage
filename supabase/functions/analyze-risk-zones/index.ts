@@ -127,6 +127,15 @@ serve(async (req) => {
           });
         }
       });
+    } else {
+      // Warn AI that there are no biomarkers
+      userContext += `\n⚠️ ВНИМАНИЕ: У пациента нет лабораторных данных биомаркеров.\n`;
+    }
+
+    // Check if patient has any biomarkers at all across all analyses
+    const hasBiomarkers = analyses.some((a: any) => a.analysis_values && a.analysis_values.length > 0);
+    if (!hasBiomarkers) {
+      userContext += `\n⚠️ КРИТИЧНО: У пациента не было ни одного анализа с биомаркерами. Анализ основан только на симптомах, профиле и медицинском анамнезе. Для полноценной оценки зон риска необходимы результаты анализов крови.\n\n`;
     }
 
     if (symptoms.length > 0) {
