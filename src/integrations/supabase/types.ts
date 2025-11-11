@@ -234,7 +234,11 @@ export type Database = {
           id: string
           name: string
           normal_max: number | null
+          normal_max_female: number | null
+          normal_max_male: number | null
           normal_min: number | null
+          normal_min_female: number | null
+          normal_min_male: number | null
           unit: string
           updated_at: string
         }
@@ -248,7 +252,11 @@ export type Database = {
           id?: string
           name: string
           normal_max?: number | null
+          normal_max_female?: number | null
+          normal_max_male?: number | null
           normal_min?: number | null
+          normal_min_female?: number | null
+          normal_min_male?: number | null
           unit: string
           updated_at?: string
         }
@@ -262,7 +270,11 @@ export type Database = {
           id?: string
           name?: string
           normal_max?: number | null
+          normal_max_female?: number | null
+          normal_max_male?: number | null
           normal_min?: number | null
+          normal_min_female?: number | null
+          normal_min_male?: number | null
           unit?: string
           updated_at?: string
         }
