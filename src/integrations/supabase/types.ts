@@ -194,6 +194,7 @@ export type Database = {
         Row: {
           created_at: string
           display_order: number
+          emoji: string
           expert_role: string
           expert_specialization: string
           id: string
@@ -203,6 +204,7 @@ export type Database = {
         Insert: {
           created_at?: string
           display_order?: number
+          emoji?: string
           expert_role: string
           expert_specialization: string
           id?: string
@@ -212,6 +214,7 @@ export type Database = {
         Update: {
           created_at?: string
           display_order?: number
+          emoji?: string
           expert_role?: string
           expert_specialization?: string
           id?: string
