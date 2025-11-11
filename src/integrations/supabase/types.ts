@@ -226,6 +226,7 @@ export type Database = {
           code: string
           created_at: string
           description: string | null
+          display_order: number
           id: string
           name: string
           normal_max: number | null
@@ -238,6 +239,7 @@ export type Database = {
           code: string
           created_at?: string
           description?: string | null
+          display_order?: number
           id?: string
           name: string
           normal_max?: number | null
@@ -250,6 +252,7 @@ export type Database = {
           code?: string
           created_at?: string
           description?: string | null
+          display_order?: number
           id?: string
           name?: string
           normal_max?: number | null
@@ -440,6 +443,7 @@ export type Database = {
           category: string
           condition: string
           created_at: string
+          display_order: number
           id: string
           updated_at: string
         }
@@ -447,6 +451,7 @@ export type Database = {
           category: string
           condition: string
           created_at?: string
+          display_order?: number
           id?: string
           updated_at?: string
         }
@@ -454,6 +459,7 @@ export type Database = {
           category?: string
           condition?: string
           created_at?: string
+          display_order?: number
           id?: string
           updated_at?: string
         }

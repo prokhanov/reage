@@ -1,4 +1,22 @@
 import { useState } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +55,62 @@ import { DataManagementSkeleton } from "@/components/skeletons/DataManagementSke
 
 // Categories will be loaded from DB
 
+// Sortable Row Component
+function SortableTableRow({ id, children }: { id: string; children: React.ReactNode }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-[40px] cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </TableCell>
+      {children}
+    </TableRow>
+  );
+}
+
+// Sortable Category Item Component
+function SortableCategoryItem({ id, children }: { id: string; children: React.ReactNode }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center justify-between p-3 border rounded-lg">
+      <div className="flex items-center gap-3 flex-1">
+        <div className="cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function DataManagement() {
   const queryClient = useQueryClient();
   const [searchBiomarkers, setSearchBiomarkers] = useState("");
@@ -56,6 +130,14 @@ export default function DataManagement() {
     editing: any | null;
   }>({ open: false, type: null, editing: null });
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   // Biomarkers queries
   const { data: biomarkers, isLoading: loadingBiomarkers } = useQuery({
     queryKey: ["biomarkers"],
@@ -64,6 +146,7 @@ export default function DataManagement() {
         .from("biomarkers")
         .select("*")
         .order("category", { ascending: true })
+        .order("display_order", { ascending: true })
         .order("name", { ascending: true });
       if (error) throw error;
       return data;
@@ -78,6 +161,7 @@ export default function DataManagement() {
         .from("medical_conditions_templates")
         .select("*")
         .order("category", { ascending: true })
+        .order("display_order", { ascending: true })
         .order("condition", { ascending: true });
       if (error) throw error;
       return data;
@@ -342,6 +426,146 @@ export default function DataManagement() {
     saveSymptom.mutate(symptom);
   };
 
+  // Drag and Drop handlers
+  const handleDragEndBiomarkerCategories = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categories = biomarkerCategories || [];
+    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+    const newIndex = categories.findIndex((cat) => cat.id === over.id);
+    
+    const reordered = arrayMove(categories, oldIndex, newIndex);
+    
+    // Update display_order for all affected items
+    const updates = reordered.map((cat, index) => 
+      supabase.from("biomarker_categories").update({ display_order: index }).eq("id", cat.id)
+    );
+    
+    try {
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["biomarker-categories"] });
+      toast.success("Порядок обновлён");
+    } catch (error: any) {
+      toast.error("Ошибка: " + error.message);
+    }
+  };
+
+  const handleDragEndMedicalCategories = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categories = medicalCategories || [];
+    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+    const newIndex = categories.findIndex((cat) => cat.id === over.id);
+    
+    const reordered = arrayMove(categories, oldIndex, newIndex);
+    
+    const updates = reordered.map((cat, index) => 
+      supabase.from("medical_condition_categories").update({ display_order: index }).eq("id", cat.id)
+    );
+    
+    try {
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["medical-categories"] });
+      toast.success("Порядок обновлён");
+    } catch (error: any) {
+      toast.error("Ошибка: " + error.message);
+    }
+  };
+
+  const handleDragEndSymptomCategories = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categories = symptomCategories || [];
+    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+    const newIndex = categories.findIndex((cat) => cat.id === over.id);
+    
+    const reordered = arrayMove(categories, oldIndex, newIndex);
+    
+    const updates = reordered.map((cat, index) => 
+      supabase.from("symptom_categories").update({ display_order: index }).eq("id", cat.id)
+    );
+    
+    try {
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["symptom-categories"] });
+      toast.success("Порядок обновлён");
+    } catch (error: any) {
+      toast.error("Ошибка: " + error.message);
+    }
+  };
+
+  const handleDragEndSymptoms = async (event: DragEndEvent, category: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categorySymptoms = (symptomTemplates || []).filter(s => s.category === category);
+    const oldIndex = categorySymptoms.findIndex((s) => s.id === active.id);
+    const newIndex = categorySymptoms.findIndex((s) => s.id === over.id);
+    
+    const reordered = arrayMove(categorySymptoms, oldIndex, newIndex);
+    
+    const updates = reordered.map((symptom, index) => 
+      supabase.from("symptom_templates").update({ display_order: index }).eq("id", symptom.id)
+    );
+    
+    try {
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["symptom-templates"] });
+      toast.success("Порядок обновлён");
+    } catch (error: any) {
+      toast.error("Ошибка: " + error.message);
+    }
+  };
+
+  const handleDragEndBiomarkers = async (event: DragEndEvent, category: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categoryBiomarkers = (biomarkers || []).filter(b => b.category === category);
+    const oldIndex = categoryBiomarkers.findIndex((b) => b.id === active.id);
+    const newIndex = categoryBiomarkers.findIndex((b) => b.id === over.id);
+    
+    const reordered = arrayMove(categoryBiomarkers, oldIndex, newIndex);
+    
+    const updates = reordered.map((biomarker, index) => 
+      supabase.from("biomarkers").update({ display_order: index }).eq("id", biomarker.id)
+    );
+    
+    try {
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["biomarkers"] });
+      toast.success("Порядок обновлён");
+    } catch (error: any) {
+      toast.error("Ошибка: " + error.message);
+    }
+  };
+
+  const handleDragEndConditions = async (event: DragEndEvent, category: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const categoryConditions = (conditions || []).filter(c => c.category === category);
+    const oldIndex = categoryConditions.findIndex((c) => c.id === active.id);
+    const newIndex = categoryConditions.findIndex((c) => c.id === over.id);
+    
+    const reordered = arrayMove(categoryConditions, oldIndex, newIndex);
+    
+    const updates = reordered.map((condition, index) => 
+      supabase.from("medical_conditions_templates").update({ display_order: index }).eq("id", condition.id)
+    );
+    
+    try {
+      await Promise.all(updates);
+      queryClient.invalidateQueries({ queryKey: ["medical-conditions"] });
+      toast.success("Порядок обновлён");
+    } catch (error: any) {
+      toast.error("Ошибка: " + error.message);
+    }
+  };
+
   if (loadingBiomarkers || loadingConditions) {
     return <DataManagementSkeleton />;
   }
@@ -409,63 +633,76 @@ export default function DataManagement() {
                 </div>
 
                 <div className="space-y-6">
-                    {Object.entries(groupedBiomarkers || {}).map(([category, items]: [string, any]) => (
-                      <div key={category} className="space-y-2">
-                        <h3 className="font-semibold text-lg">{category}</h3>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Название</TableHead>
-                              <TableHead>Код</TableHead>
-                              <TableHead>Единица</TableHead>
-                              <TableHead>Норма</TableHead>
-                              <TableHead className="w-[100px]">Действия</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {items.map((biomarker: any) => (
-                              <TableRow key={biomarker.id}>
-                                <TableCell className="font-medium">{biomarker.name}</TableCell>
-                                <TableCell>{biomarker.code}</TableCell>
-                                <TableCell>{biomarker.unit}</TableCell>
-                                <TableCell>
-                                  {biomarker.normal_min || "?"} - {biomarker.normal_max || "?"}
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => {
-                                        setEditingBiomarker(biomarker);
-                                        setBiomarkerDialog(true);
-                                      }}
-                                    >
-                                      <Edit2 className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => {
-                                        if (
-                                          confirm(
-                                            `Удалить биомаркер "${biomarker.name}"?`
-                                          )
-                                        ) {
-                                          deleteBiomarker.mutate(biomarker.id);
-                                        }
-                                      }}
-                                    >
-                                      <Trash2 className="w-4 h-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    ))}
+                    {Object.entries(groupedBiomarkers || {}).map(([category, items]: [string, any]) => {
+                      const sortedItems = [...items].sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+                      
+                      return (
+                        <div key={category} className="space-y-2">
+                          <h3 className="font-semibold text-lg">{category}</h3>
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleDragEndBiomarkers(event, category)}
+                          >
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="w-[40px]"></TableHead>
+                                  <TableHead>Название</TableHead>
+                                  <TableHead>Код</TableHead>
+                                  <TableHead>Единица</TableHead>
+                                  <TableHead>Норма</TableHead>
+                                  <TableHead className="w-[100px]">Действия</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                <SortableContext items={sortedItems.map((b: any) => b.id)} strategy={verticalListSortingStrategy}>
+                                  {sortedItems.map((biomarker: any) => (
+                                    <SortableTableRow key={biomarker.id} id={biomarker.id}>
+                                      <TableCell className="font-medium">{biomarker.name}</TableCell>
+                                      <TableCell>{biomarker.code}</TableCell>
+                                      <TableCell>{biomarker.unit}</TableCell>
+                                      <TableCell>
+                                        {biomarker.normal_min || "?"} - {biomarker.normal_max || "?"}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              setEditingBiomarker(biomarker);
+                                              setBiomarkerDialog(true);
+                                            }}
+                                          >
+                                            <Edit2 className="w-4 h-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              if (
+                                                confirm(
+                                                  `Удалить биомаркер "${biomarker.name}"?`
+                                                )
+                                              ) {
+                                                deleteBiomarker.mutate(biomarker.id);
+                                              }
+                                            }}
+                                          >
+                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </SortableTableRow>
+                                  ))}
+                                </SortableContext>
+                              </TableBody>
+                            </Table>
+                          </DndContext>
+                        </div>
+                      );
+                    })}
                   </div>
               </CardContent>
             </Card>
@@ -504,55 +741,68 @@ export default function DataManagement() {
                 </div>
 
                 <div className="space-y-6">
-                    {Object.entries(groupedConditions || {}).map(([category, items]: [string, any]) => (
-                      <div key={category} className="space-y-2">
-                        <h3 className="font-semibold text-lg">{category}</h3>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Состояние</TableHead>
-                              <TableHead className="w-[100px]">Действия</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {items.map((condition: any) => (
-                              <TableRow key={condition.id}>
-                                <TableCell>{condition.condition}</TableCell>
-                                <TableCell>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => {
-                                        setEditingCondition(condition);
-                                        setConditionDialog(true);
-                                      }}
-                                    >
-                                      <Edit2 className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => {
-                                        if (
-                                          confirm(
-                                            `Удалить состояние "${condition.condition}"?`
-                                          )
-                                        ) {
-                                          deleteCondition.mutate(condition.id);
-                                        }
-                                      }}
-                                    >
-                                      <Trash2 className="w-4 h-4 text-destructive" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                     ))}
+                    {Object.entries(groupedConditions || {}).map(([category, items]: [string, any]) => {
+                      const sortedItems = [...items].sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+                      
+                      return (
+                        <div key={category} className="space-y-2">
+                          <h3 className="font-semibold text-lg">{category}</h3>
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleDragEndConditions(event, category)}
+                          >
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="w-[40px]"></TableHead>
+                                  <TableHead>Состояние</TableHead>
+                                  <TableHead className="w-[100px]">Действия</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                <SortableContext items={sortedItems.map((c: any) => c.id)} strategy={verticalListSortingStrategy}>
+                                  {sortedItems.map((condition: any) => (
+                                    <SortableTableRow key={condition.id} id={condition.id}>
+                                      <TableCell>{condition.condition}</TableCell>
+                                      <TableCell>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              setEditingCondition(condition);
+                                              setConditionDialog(true);
+                                            }}
+                                          >
+                                            <Edit2 className="w-4 h-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              if (
+                                                confirm(
+                                                  `Удалить состояние "${condition.condition}"?`
+                                                )
+                                              ) {
+                                                deleteCondition.mutate(condition.id);
+                                              }
+                                            }}
+                                          >
+                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </SortableTableRow>
+                                  ))}
+                                </SortableContext>
+                              </TableBody>
+                            </Table>
+                          </DndContext>
+                        </div>
+                      );
+                    })}
                   </div>
               </CardContent>
             </Card>
@@ -597,60 +847,69 @@ export default function DataManagement() {
                     )
                     .map(([category, items]: [string, any]) => {
                       const categoryData = symptomCategories?.find(c => c.name === category);
+                      const sortedItems = [...items].sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+                      
                       return (
                         <div key={category} className="space-y-2">
                           <h3 className="font-semibold text-lg flex items-center gap-2">
                             {categoryData?.emoji && <span className="text-xl">{categoryData.emoji}</span>}
                             {category}
                           </h3>
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Симптом</TableHead>
-                                <TableHead className="w-[150px]">Порядок</TableHead>
-                                <TableHead className="w-[100px]">Действия</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {items
-                                .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
-                                .map((symptom: any) => (
-                                  <TableRow key={symptom.id}>
-                                    <TableCell>{symptom.symptom}</TableCell>
-                                    <TableCell>{symptom.display_order || 0}</TableCell>
-                                    <TableCell>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => {
-                                            setEditingSymptom(symptom);
-                                            setSymptomDialog(true);
-                                          }}
-                                        >
-                                          <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => {
-                                            if (
-                                              confirm(
-                                                `Удалить симптом "${symptom.symptom}"?`
-                                              )
-                                            ) {
-                                              deleteSymptom.mutate(symptom.id);
-                                            }
-                                          }}
-                                        >
-                                          <Trash2 className="w-4 h-4 text-destructive" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                            </TableBody>
-                          </Table>
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(event) => handleDragEndSymptoms(event, category)}
+                          >
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="w-[40px]"></TableHead>
+                                  <TableHead>Симптом</TableHead>
+                                  <TableHead className="w-[150px]">Порядок</TableHead>
+                                  <TableHead className="w-[100px]">Действия</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                <SortableContext items={sortedItems.map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
+                                  {sortedItems.map((symptom: any) => (
+                                    <SortableTableRow key={symptom.id} id={symptom.id}>
+                                      <TableCell>{symptom.symptom}</TableCell>
+                                      <TableCell>{symptom.display_order || 0}</TableCell>
+                                      <TableCell>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              setEditingSymptom(symptom);
+                                              setSymptomDialog(true);
+                                            }}
+                                          >
+                                            <Edit2 className="w-4 h-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                              if (
+                                                confirm(
+                                                  `Удалить симптом "${symptom.symptom}"?`
+                                                )
+                                              ) {
+                                                deleteSymptom.mutate(symptom.id);
+                                              }
+                                            }}
+                                          >
+                                            <Trash2 className="w-4 h-4 text-destructive" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                    </SortableTableRow>
+                                  ))}
+                                </SortableContext>
+                              </TableBody>
+                            </Table>
+                          </DndContext>
                         </div>
                       );
                     })}
@@ -677,44 +936,52 @@ export default function DataManagement() {
                       Добавить
                     </Button>
                   </div>
-                  <div className="space-y-2">
-                    {(biomarkerCategories || []).map((cat) => (
-                      <div key={cat.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{cat.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Эксперт: {cat.expert_role}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setCategoryDialog({ open: true, type: 'biomarker', editing: cat })}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={async () => {
-                              if (confirm(`Удалить категорию "${cat.name}"?`)) {
-                                try {
-                                  await supabase.from("biomarker_categories").delete().eq("id", cat.id);
-                                  queryClient.invalidateQueries({ queryKey: ["biomarker-categories"] });
-                                  toast.success("Категория удалена");
-                                } catch (error: any) {
-                                  toast.error("Ошибка: " + error.message);
-                                }
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEndBiomarkerCategories}
+                  >
+                    <div className="space-y-2">
+                      <SortableContext items={(biomarkerCategories || []).map(c => c.id)} strategy={verticalListSortingStrategy}>
+                        {(biomarkerCategories || []).map((cat) => (
+                          <SortableCategoryItem key={cat.id} id={cat.id}>
+                            <div>
+                              <p className="font-medium">{cat.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Эксперт: {cat.expert_role}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setCategoryDialog({ open: true, type: 'biomarker', editing: cat })}
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={async () => {
+                                  if (confirm(`Удалить категорию "${cat.name}"?`)) {
+                                    try {
+                                      await supabase.from("biomarker_categories").delete().eq("id", cat.id);
+                                      queryClient.invalidateQueries({ queryKey: ["biomarker-categories"] });
+                                      toast.success("Категория удалена");
+                                    } catch (error: any) {
+                                      toast.error("Ошибка: " + error.message);
+                                    }
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </SortableCategoryItem>
+                        ))}
+                      </SortableContext>
+                    </div>
+                  </DndContext>
                 </div>
 
                 {/* Medical Condition Categories */}
@@ -726,39 +993,47 @@ export default function DataManagement() {
                       Добавить
                     </Button>
                   </div>
-                  <div className="space-y-2">
-                    {(medicalCategories || []).map((cat) => (
-                      <div key={cat.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <p className="font-medium">{cat.name}</p>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setCategoryDialog({ open: true, type: 'medical', editing: cat })}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={async () => {
-                              if (confirm(`Удалить категорию "${cat.name}"?`)) {
-                                try {
-                                  await supabase.from("medical_condition_categories").delete().eq("id", cat.id);
-                                  queryClient.invalidateQueries({ queryKey: ["medical-categories"] });
-                                  toast.success("Категория удалена");
-                                } catch (error: any) {
-                                  toast.error("Ошибка: " + error.message);
-                                }
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEndMedicalCategories}
+                  >
+                    <div className="space-y-2">
+                      <SortableContext items={(medicalCategories || []).map(c => c.id)} strategy={verticalListSortingStrategy}>
+                        {(medicalCategories || []).map((cat) => (
+                          <SortableCategoryItem key={cat.id} id={cat.id}>
+                            <p className="font-medium">{cat.name}</p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setCategoryDialog({ open: true, type: 'medical', editing: cat })}
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={async () => {
+                                  if (confirm(`Удалить категорию "${cat.name}"?`)) {
+                                    try {
+                                      await supabase.from("medical_condition_categories").delete().eq("id", cat.id);
+                                      queryClient.invalidateQueries({ queryKey: ["medical-categories"] });
+                                      toast.success("Категория удалена");
+                                    } catch (error: any) {
+                                      toast.error("Ошибка: " + error.message);
+                                    }
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </SortableCategoryItem>
+                        ))}
+                      </SortableContext>
+                    </div>
+                  </DndContext>
                 </div>
 
                 {/* Symptom Categories */}
@@ -770,42 +1045,50 @@ export default function DataManagement() {
                       Добавить
                     </Button>
                   </div>
-                  <div className="space-y-2">
-                    {(symptomCategories || []).map((cat) => (
-                      <div key={cat.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{cat.emoji}</span>
-                          <p className="font-medium">{cat.name}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setCategoryDialog({ open: true, type: 'symptom', editing: cat })}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={async () => {
-                              if (confirm(`Удалить категорию "${cat.name}"?`)) {
-                                try {
-                                  await supabase.from("symptom_categories").delete().eq("id", cat.id);
-                                  queryClient.invalidateQueries({ queryKey: ["symptom-categories"] });
-                                  toast.success("Категория удалена");
-                                } catch (error: any) {
-                                  toast.error("Ошибка: " + error.message);
-                                }
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEndSymptomCategories}
+                  >
+                    <div className="space-y-2">
+                      <SortableContext items={(symptomCategories || []).map(c => c.id)} strategy={verticalListSortingStrategy}>
+                        {(symptomCategories || []).map((cat) => (
+                          <SortableCategoryItem key={cat.id} id={cat.id}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">{cat.emoji}</span>
+                              <p className="font-medium">{cat.name}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setCategoryDialog({ open: true, type: 'symptom', editing: cat })}
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={async () => {
+                                  if (confirm(`Удалить категорию "${cat.name}"?`)) {
+                                    try {
+                                      await supabase.from("symptom_categories").delete().eq("id", cat.id);
+                                      queryClient.invalidateQueries({ queryKey: ["symptom-categories"] });
+                                      toast.success("Категория удалена");
+                                    } catch (error: any) {
+                                      toast.error("Ошибка: " + error.message);
+                                    }
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </SortableCategoryItem>
+                        ))}
+                      </SortableContext>
+                    </div>
+                  </DndContext>
                 </div>
               </CardContent>
             </Card>
