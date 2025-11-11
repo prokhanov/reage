@@ -1,8 +1,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, AlertCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -60,48 +61,72 @@ export default function Dashboard() {
   }, [profile]);
 
   const fetchAnalysesStats = async () => {
+    if (!viewAsUserId) return;
+
     try {
-      const userId = await getUserId();
-      if (!userId) return;
+      // Get total count
+      const { count: totalCount } = await supabase
+        .from('analyses')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', viewAsUserId);
 
-      // Получаем все анализы пользователя
-      const { data: analyses, error: analysesError } = await supabase
-        .from("analyses")
-        .select("*")
-        .eq("user_id", userId)
-        .order("date", { ascending: false });
+      setAnalysesCount(totalCount || 0);
 
-      if (analysesError) throw analysesError;
+      // Get latest analysis for biological age
+      const { data: latestAnalysis } = await supabase
+        .from('analyses')
+        .select('id, biological_age, health_index, date')
+        .eq('user_id', viewAsUserId)
+        .order('date', { ascending: false })
+        .limit(1)
+        .single();
 
-      // Получаем последний анализ с показателями
-      if (analyses && analyses.length > 0) {
-        const latestAnalysis = analyses[0];
-        
-        // Получаем количество биомаркеров в последнем анализе
-        const { data: valuesCount } = await supabase
-          .from("analysis_values")
-          .select("id", { count: "exact" })
-          .eq("analysis_id", latestAnalysis.id);
+      if (latestAnalysis) {
+        // Validate that this analysis has biomarkers
+        const { count: biomarkerCount } = await supabase
+          .from('analysis_values')
+          .select('*', { count: 'exact', head: true })
+          .eq('analysis_id', latestAnalysis.id);
 
-        setAnalysesCount(analyses.length);
-        setLatestBioAge(latestAnalysis.biological_age);
-        setLatestHealthIndex(latestAnalysis.health_index);
-        setRecentAnalyses(analyses.slice(0, 3)); // Последние 3 анализа
-        
-        // Рассчитываем скорость старения
-        if (latestAnalysis.biological_age && profile?.birth_date) {
-          const chronologicalAge = calculateAge(profile.birth_date);
-          const rate = latestAnalysis.biological_age / chronologicalAge;
-          setAgingRate(rate);
-        }
-        
-        // Рассчитываем тренд если есть предыдущий анализ
-        if (analyses.length > 1) {
-          const prevAnalysis = analyses[1];
-          if (latestAnalysis.biological_age && prevAnalysis.biological_age) {
-            const trend = prevAnalysis.biological_age - latestAnalysis.biological_age;
-            setAgeTrend(trend > 0 ? `−${trend}` : trend < 0 ? `+${Math.abs(trend)}` : "0");
+        // Only use biological_age and health_index if biomarkers exist
+        if (biomarkerCount && biomarkerCount > 0) {
+          if (latestAnalysis.biological_age) {
+            setLatestBioAge(latestAnalysis.biological_age);
           }
+          if (latestAnalysis.health_index !== null && latestAnalysis.health_index !== undefined) {
+            setLatestHealthIndex(latestAnalysis.health_index);
+          }
+          
+          // Calculate aging rate
+          if (latestAnalysis.biological_age && profile?.birth_date) {
+            const chronologicalAge = calculateAge(profile.birth_date);
+            const rate = latestAnalysis.biological_age / chronologicalAge;
+            setAgingRate(rate);
+          }
+        } else {
+          // No biomarkers - clear the values to show warning
+          setLatestBioAge(null);
+          setLatestHealthIndex(null);
+          setAgingRate(null);
+        }
+      }
+
+      // Get recent analyses
+      const { data: analyses } = await supabase
+        .from('analyses')
+        .select('*')
+        .eq('user_id', viewAsUserId)
+        .order('date', { ascending: false })
+        .limit(3);
+
+      setRecentAnalyses(analyses || []);
+
+      // Calculate trend if there are multiple analyses
+      if (analyses && analyses.length > 1 && latestAnalysis?.biological_age) {
+        const prevAnalysis = analyses[1];
+        if (prevAnalysis.biological_age) {
+          const trend = prevAnalysis.biological_age - latestAnalysis.biological_age;
+          setAgeTrend(trend > 0 ? `−${trend}` : trend < 0 ? `+${Math.abs(trend)}` : "0");
         }
       }
     } catch (error) {

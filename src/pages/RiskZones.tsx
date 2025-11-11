@@ -7,8 +7,12 @@ import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
 import { RiskZonesSkeleton } from "@/components/skeletons/RiskZonesSkeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RefreshCw, AlertTriangle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 export default function RiskZones() {
   const { getUserId } = useViewAsUser();
@@ -55,7 +59,8 @@ export default function RiskZones() {
             risk_map: existingAnalysis.risk_map,
             aging_blockers: existingAnalysis.aging_blockers,
             smart_priorities: existingAnalysis.smart_priorities,
-            last_updated: existingAnalysis.created_at,
+            analysis_date: existingAnalysis.created_at,
+            has_biomarkers: true // Assume true if saved in DB
           });
           setLoading(false);
           return;
@@ -94,10 +99,7 @@ export default function RiskZones() {
 
       if (error) throw error;
 
-      setRiskData({
-        ...data,
-        last_updated: new Date().toISOString(),
-      });
+      setRiskData(data);
 
       // Reset needs_refresh flag
       await supabase
@@ -125,48 +127,52 @@ export default function RiskZones() {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-8">
-        <RiskZonesSkeleton />
-      </div>
+      <DashboardLayout>
+        <div className="container py-8">
+          <RiskZonesSkeleton />
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (!riskData) {
     return (
-      <div className="p-4 md:p-8">
-        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <AlertTriangle className="h-16 w-16 text-muted-foreground" />
-          <h2 className="text-2xl font-semibold text-foreground">
-            Нет данных для анализа
-          </h2>
-          <p className="text-muted-foreground text-center max-w-md">
-            Добавьте анализ с биомаркерами, чтобы получить полноценную оценку зон риска
-          </p>
+      <DashboardLayout>
+        <div className="container py-8">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+            <AlertTriangle className="h-16 w-16 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold text-foreground">
+              Нет данных для анализа
+            </h2>
+            <p className="text-muted-foreground text-center max-w-md">
+              Добавьте анализ с биомаркерами, чтобы получить полноценную оценку зон риска
+            </p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="p-4 md:p-8 space-y-8">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Зоны риска
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Стратегическая карта здоровья: прогноз, приоритизация и анализ рисков
-          </p>
-          {riskData?.last_updated && (
-            <p className="text-xs text-muted-foreground">
-              Последнее обновление: {new Date(riskData.last_updated).toLocaleString('ru-RU', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+    <DashboardLayout>
+      <div className="container py-8 space-y-8">
+        {riskData && !riskData.has_biomarkers && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Предварительные рекомендации</AlertTitle>
+            <AlertDescription>
+              Для точной оценки зон риска и формирования персональной стратегии необходимы лабораторные данные. 
+              Сдайте анализы крови для получения полноценной аналитики.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Стратегическая карта здоровья</h1>
+          {riskData && riskData.analysis_date && (
+            <p className="text-sm text-muted-foreground">
+              Последнее обновление: {format(new Date(riskData.analysis_date), 'dd MMMM yyyy, HH:mm', { locale: ru })}
             </p>
           )}
         </div>
@@ -174,34 +180,38 @@ export default function RiskZones() {
           onClick={generateAnalysis}
           disabled={analyzing}
           variant={needsRefresh ? "default" : "outline"}
-          size="sm"
-          className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${analyzing ? "animate-spin" : ""}`} />
-          {analyzing ? "Анализ..." : needsRefresh ? "Обновить (новые данные)" : "Обновить"}
-          {needsRefresh && !analyzing && <Badge variant="secondary" className="ml-1">!</Badge>}
+          {analyzing ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Анализируем...
+            </>
+          ) : needsRefresh ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Доступно обновление
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Обновить анализ
+            </>
+          )}
         </Button>
       </div>
 
-      {/* Smart Priorities */}
-      {riskData?.smart_priorities && (
-        <SmartPriorities data={riskData.smart_priorities} />
-      )}
+        {riskData?.smart_priorities && (
+          <SmartPriorities data={riskData.smart_priorities} />
+        )}
 
-      {/* Risk Map */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">
-          Карта рисков
-        </h2>
         {riskData.risk_map?.categories && (
           <RiskMap categories={riskData.risk_map.categories} />
         )}
-      </div>
 
-      {/* Aging Blockers */}
-      {riskData.aging_blockers?.blockers && (
-        <AgingBlockers blockers={riskData.aging_blockers.blockers} />
-      )}
-    </div>
+        {riskData.aging_blockers?.blockers && (
+          <AgingBlockers blockers={riskData.aging_blockers.blockers} />
+        )}
+      </div>
+    </DashboardLayout>
   );
 }

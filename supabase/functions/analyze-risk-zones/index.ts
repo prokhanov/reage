@@ -134,9 +134,102 @@ serve(async (req) => {
 
     // Check if patient has any biomarkers at all across all analyses
     const hasBiomarkers = analyses.some((a: any) => a.analysis_values && a.analysis_values.length > 0);
+    
+    // If no biomarkers, return preliminary report without saving
     if (!hasBiomarkers) {
-      userContext += `\n⚠️ КРИТИЧНО: У пациента не было ни одного анализа с биомаркерами. Анализ основан только на симптомах, профиле и медицинском анамнезе. Для полноценной оценки зон риска необходимы результаты анализов крови.\n\n`;
+      console.log('No biomarkers found - returning preliminary report without saving');
+      
+      return new Response(
+        JSON.stringify({
+          risk_map: {
+            categories: [
+              {
+                name: "Предварительная оценка",
+                risk_score: 50,
+                trend: "stable",
+                insight: "Для точной оценки зон риска необходимы лабораторные данные. Сдайте базовый анализ крови."
+              }
+            ]
+          },
+          aging_blockers: {
+            blockers: [
+              {
+                name: "Сдайте базовый анализ крови",
+                impact_score: 90,
+                evidence: ["Лабораторные данные необходимы для объективной оценки здоровья"],
+                recommendation: "Начните с общего и биохимического анализа крови для получения полной картины состояния здоровья"
+              }
+            ]
+          },
+          smart_priorities: {
+            immediate: {
+              focus: {
+                title: "Получение базовых данных о здоровье",
+                description: "Сдайте анализы для полноценной оценки",
+                predicted_improvements: [
+                  {
+                    metric: "Объективная оценка здоровья",
+                    change: "Получение данных",
+                    timeline_days: 7,
+                    confidence: 100
+                  }
+                ]
+              },
+              tasks: [
+                { 
+                  id: "book_analysis",
+                  action: "Записаться на сдачу анализов", 
+                  reason: "Необходимы лабораторные данные",
+                  timeline: "1-2 дня",
+                  prediction: {
+                    effect: "Получение базовых данных",
+                    metric: "Объективная оценка",
+                    confidence: 100,
+                    improvement: "Возможность точной диагностики"
+                  }
+                },
+                { 
+                  id: "prepare_analysis",
+                  action: "Подготовиться к сдаче крови (натощак)", 
+                  reason: "Правильная подготовка обеспечит точность результатов",
+                  timeline: "1 день",
+                  prediction: {
+                    effect: "Точные результаты",
+                    metric: "Качество данных",
+                    confidence: 100,
+                    improvement: "Корректная диагностика"
+                  }
+                }
+              ]
+            },
+            medium_term: { 
+              focus: {
+                title: "Ожидание результатов",
+                description: "После получения результатов анализов вы сможете получить полноценную оценку",
+                predicted_improvements: []
+              },
+              tasks: [] 
+            },
+            long_term: { 
+              focus: {
+                title: "Долгосрочная стратегия",
+                description: "Будет сформирована после получения лабораторных данных",
+                predicted_improvements: []
+              },
+              tasks: [] 
+            }
+          },
+          has_biomarkers: false,
+          analysis_date: new Date().toISOString()
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
     }
+
+    userContext += `\n\nЛабораторные данные: Доступны результаты анализов с биомаркерами.\n`;
 
     if (symptoms.length > 0) {
       userContext += `\n\nСИМПТОМЫ (последние ${symptoms.length}):\n`;
@@ -401,7 +494,7 @@ serve(async (req) => {
       }
     );
 
-    // Save to database
+    // Save to database (only if we have biomarkers)
     const { data: savedAnalysis, error: saveError } = await supabase
       .from("risk_zone_analyses")
       .insert({
@@ -417,11 +510,25 @@ serve(async (req) => {
       console.error("Error saving analysis:", saveError);
     }
 
+    // Reset the needs_risk_refresh flag
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ needs_risk_refresh: false })
+      .eq('id', targetUserId);
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+    }
+
+    console.log('Risk zone analysis completed successfully');
+
     return new Response(
       JSON.stringify({
         risk_map: riskMapData,
         aging_blockers: agingBlockersData,
         smart_priorities: smartPrioritiesData,
+        has_biomarkers: true,
+        analysis_date: new Date().toISOString()
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
