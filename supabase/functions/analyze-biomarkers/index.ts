@@ -124,6 +124,67 @@ serve(async (req) => {
       .order("date", { ascending: false })
       .limit(5);
 
+    // Функция для создания композитного набора биомаркеров (накопительный подход)
+    function buildCompositeBiomarkers(
+      currentAnalysis: any,
+      previousAnalyses: any[],
+      windowMonths: number = 4
+    ) {
+      const currentDate = new Date(currentAnalysis.date);
+      const windowStartDate = new Date(currentDate);
+      windowStartDate.setMonth(windowStartDate.getMonth() - windowMonths);
+
+      // Карта: biomarker_id -> {value, date, unit, source}
+      const biomarkerMap = new Map();
+
+      // 1. Сначала добавляем биомаркеры из текущего анализа (высший приоритет)
+      currentAnalysis.analysis_values.forEach((av: any) => {
+        biomarkerMap.set(av.biomarker_id, {
+          ...av,
+          source: 'current',
+          analysis_date: currentAnalysis.date
+        });
+      });
+
+      // 2. Затем добавляем биомаркеры из предыдущих анализов (если их нет в текущем)
+      const relevantPreviousAnalyses = previousAnalyses
+        .filter(a => new Date(a.date) >= windowStartDate && new Date(a.date) < currentDate)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // От новых к старым
+
+      relevantPreviousAnalyses.forEach(prevAnalysis => {
+        prevAnalysis.analysis_values?.forEach((av: any) => {
+          // Добавляем только если этого биомаркера нет в текущем анализе
+          if (!biomarkerMap.has(av.biomarker_id)) {
+            biomarkerMap.set(av.biomarker_id, {
+              ...av,
+              source: 'historical',
+              analysis_date: prevAnalysis.date
+            });
+          }
+        });
+      });
+
+      const compositeValues = Array.from(biomarkerMap.values());
+      const currentCount = compositeValues.filter(v => v.source === 'current').length;
+      const historicalCount = compositeValues.filter(v => v.source === 'historical').length;
+      const oldestDate = historicalCount > 0 
+        ? compositeValues
+            .filter(v => v.source === 'historical')
+            .sort((a, b) => new Date(a.analysis_date).getTime() - new Date(b.analysis_date).getTime())[0]?.analysis_date
+        : null;
+
+      return {
+        values: compositeValues,
+        metadata: {
+          total_count: compositeValues.length,
+          current_count: currentCount,
+          historical_count: historicalCount,
+          oldest_historical_date: oldestDate,
+          window_months: windowMonths
+        }
+      };
+    }
+
     // Получаем предыдущие рекомендации (исключая текущий анализ)
     const { data: previousRecommendations } = await supabase
       .from("recommendations")
@@ -818,13 +879,23 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     const patientAge = age;
     const patientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
     
-    const totalValues = analysis.analysis_values.length;
+    // Строим композитный набор биомаркеров (окно 4 месяца)
+    const compositeBiomarkers = buildCompositeBiomarkers(
+      analysis,
+      previousAnalyses || [],
+      4 // окно 4 месяца
+    );
+
+    const totalValues = compositeBiomarkers.values.length;
     
     let health_index = null;
     let biological_age = null;
+    let biomarkers_metadata = null;
     
     if (totalValues > 0) {
-      const normalValues = analysis.analysis_values.filter((av: any) => {
+      biomarkers_metadata = compositeBiomarkers.metadata;
+
+      const normalValues = compositeBiomarkers.values.filter((av: any) => {
         if (av.biomarkers.normal_min === null || av.biomarkers.normal_max === null) return true;
         
         // Use age-dependent norms
@@ -863,10 +934,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       }
     }
 
+    console.log(`Composite biomarkers calculation: ${totalValues} total (${compositeBiomarkers.metadata.current_count} current + ${compositeBiomarkers.metadata.historical_count} historical)`);
+
     // Обновляем анализ (БЕЗ изменения статуса - он меняется вручную врачом)
     await supabase
       .from("analyses")
-      .update({ health_index, biological_age })
+      .update({ health_index, biological_age, biomarkers_metadata })
       .eq("id", analysisId);
 
     const estimatedCostCredits = (totalTokens / 50000).toFixed(2);

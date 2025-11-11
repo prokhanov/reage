@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart, AlertCircle } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Filter } from "lucide-react";
@@ -15,6 +15,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { WeightTracker } from "@/components/WeightTracker";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const [analysesCount, setAnalysesCount] = useState(0);
   const [latestBioAge, setLatestBioAge] = useState<number | null>(null);
   const [latestHealthIndex, setLatestHealthIndex] = useState<number | null>(null);
+  const [latestBiomarkersMetadata, setLatestBiomarkersMetadata] = useState<any>(null);
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
   const [agingRate, setAgingRate] = useState<number | null>(null);
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
@@ -40,6 +42,7 @@ export default function Dashboard() {
     setAnalysesCount(0);
     setLatestBioAge(null);
     setLatestHealthIndex(null);
+    setLatestBiomarkersMetadata(null);
     setAgeTrend(null);
     setAgingRate(null);
     setRecentAnalyses([]);
@@ -75,7 +78,7 @@ export default function Dashboard() {
       // Get latest analysis for biological age
       const { data: latestAnalysis } = await supabase
         .from('analyses')
-        .select('id, biological_age, health_index, date')
+        .select('id, biological_age, health_index, biomarkers_metadata, date')
         .eq('user_id', viewAsUserId)
         .order('date', { ascending: false })
         .limit(1)
@@ -96,6 +99,9 @@ export default function Dashboard() {
           if (latestAnalysis.health_index !== null && latestAnalysis.health_index !== undefined) {
             setLatestHealthIndex(latestAnalysis.health_index);
           }
+          if (latestAnalysis.biomarkers_metadata) {
+            setLatestBiomarkersMetadata(latestAnalysis.biomarkers_metadata);
+          }
           
           // Calculate aging rate
           if (latestAnalysis.biological_age && profile?.birth_date) {
@@ -107,6 +113,7 @@ export default function Dashboard() {
           // No biomarkers - clear the values to show warning
           setLatestBioAge(null);
           setLatestHealthIndex(null);
+          setLatestBiomarkersMetadata(null);
           setAgingRate(null);
         }
       }
@@ -460,6 +467,28 @@ export default function Dashboard() {
                   <div className="text-xs text-muted-foreground mt-1 px-4">
                     Биологический возраст
                   </div>
+                  {latestBiomarkersMetadata && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1 mt-1 cursor-help">
+                            <Info className="h-3 w-3" />
+                            {latestBiomarkersMetadata.current_count} свежих + {latestBiomarkersMetadata.historical_count} исторических
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-medium mb-1">Расчет основан на {latestBiomarkersMetadata.total_count} биомаркерах:</p>
+                          <p className="text-sm">• {latestBiomarkersMetadata.current_count} из текущего анализа</p>
+                          <p className="text-sm">• {latestBiomarkersMetadata.historical_count} из предыдущих анализов (за 4 месяца)</p>
+                          {latestBiomarkersMetadata.oldest_historical_date && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Самые старые данные: {new Date(latestBiomarkersMetadata.oldest_historical_date).toLocaleDateString('ru-RU')}
+                            </p>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </div>
               </div>
 
@@ -695,7 +724,7 @@ export default function Dashboard() {
                         stroke="hsl(var(--foreground))" 
                         style={{ fontSize: '12px' }} 
                       />
-                      <Tooltip
+                      <ChartTooltip
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",

@@ -68,13 +68,14 @@ Deno.serve(async (req) => {
         .select('*', { count: 'exact', head: true })
         .eq('analysis_id', analysis.id);
 
-      // If no biomarkers, set biological_age and health_index to null
+      // If no biomarkers, set biological_age, health_index, and biomarkers_metadata to null
       if (count === 0 && (analysis.biological_age !== null || analysis.health_index !== null)) {
         const { error: updateError } = await supabaseAdmin
           .from('analyses')
           .update({
             biological_age: null,
-            health_index: null
+            health_index: null,
+            biomarkers_metadata: null
           })
           .eq('id', analysis.id);
 
