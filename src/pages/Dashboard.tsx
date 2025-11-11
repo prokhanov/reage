@@ -630,13 +630,49 @@ export default function Dashboard() {
                 </div>
 
                 {/* Health Index */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2 justify-center lg:justify-start">
                     <Heart className="h-5 w-5 text-accent" />
                     <span className="text-sm text-muted-foreground">Индекс здоровья:</span>
                     <span className="text-2xl font-bold text-foreground">{latestHealthIndex || "—"}</span>
                     <span className="text-sm text-muted-foreground">/100</span>
                   </div>
+                  
+                  {/* Интерпретация значения */}
+                  {latestHealthIndex !== null && (
+                    <div className="flex justify-center lg:justify-start">
+                      {latestHealthIndex >= 85 && (
+                        <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                          Отличное здоровье
+                        </Badge>
+                      )}
+                      {latestHealthIndex >= 70 && latestHealthIndex < 85 && (
+                        <Badge variant="secondary">
+                          Хорошее здоровье
+                        </Badge>
+                      )}
+                      {latestHealthIndex >= 50 && latestHealthIndex < 70 && (
+                        <Badge variant="outline" className="border-yellow-500/50 text-yellow-700 dark:text-yellow-400">
+                          Умеренные отклонения
+                        </Badge>
+                      )}
+                      {latestHealthIndex < 50 && (
+                        <Badge variant="destructive">
+                          Требуется внимание
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Расшифровка расчета если есть AI */}
+                  {latestHealthIndex !== null && latestBiomarkersMetadata?.ai_analysis?.explanation && (
+                    <Alert className="bg-card/50 border-border/50">
+                      <Info className="h-4 w-4" />
+                      <AlertDescription className="text-xs text-muted-foreground">
+                        Индекс рассчитан с учетом веса биомаркеров, степени отклонения и взаимосвязей.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {/* Quick Stats */}
