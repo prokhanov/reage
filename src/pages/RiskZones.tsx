@@ -6,13 +6,12 @@ import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
 import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
 import { RiskZonesSkeleton } from "@/components/skeletons/RiskZonesSkeleton";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RefreshCw, AlertTriangle, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 
 export default function RiskZones() {
   const { getUserId } = useViewAsUser();
@@ -127,47 +126,42 @@ export default function RiskZones() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="container py-8">
-          <RiskZonesSkeleton />
-        </div>
-      </DashboardLayout>
+      <div className="container py-8">
+        <RiskZonesSkeleton />
+      </div>
     );
   }
 
   if (!riskData) {
     return (
-      <DashboardLayout>
-        <div className="container py-8">
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-            <AlertTriangle className="h-16 w-16 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold text-foreground">
-              Нет данных для анализа
-            </h2>
-            <p className="text-muted-foreground text-center max-w-md">
-              Добавьте анализ с биомаркерами, чтобы получить полноценную оценку зон риска
-            </p>
-          </div>
+      <div className="container py-8">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+          <AlertTriangle className="h-16 w-16 text-muted-foreground" />
+          <h2 className="text-2xl font-semibold text-foreground">
+            Нет данных для анализа
+          </h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            Добавьте анализ с биомаркерами, чтобы получить полноценную оценку зон риска
+          </p>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="container py-8 space-y-8">
-        {riskData && !riskData.has_biomarkers && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Предварительные рекомендации</AlertTitle>
-            <AlertDescription>
-              Для точной оценки зон риска и формирования персональной стратегии необходимы лабораторные данные. 
-              Сдайте анализы крови для получения полноценной аналитики.
-            </AlertDescription>
-          </Alert>
-        )}
+    <div className="container py-8 space-y-8">
+      {riskData && !riskData.has_biomarkers && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Предварительные рекомендации</AlertTitle>
+          <AlertDescription>
+            Для точной оценки зон риска и формирования персональной стратегии необходимы лабораторные данные. 
+            Сдайте анализы крови для получения полноценной аналитики.
+          </AlertDescription>
+        </Alert>
+      )}
 
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">Стратегическая карта здоровья</h1>
           {riskData && riskData.analysis_date && (
@@ -200,18 +194,17 @@ export default function RiskZones() {
         </Button>
       </div>
 
-        {riskData?.smart_priorities && (
-          <SmartPriorities data={riskData.smart_priorities} />
-        )}
+      {riskData?.smart_priorities && (
+        <SmartPriorities data={riskData.smart_priorities} />
+      )}
 
-        {riskData.risk_map?.categories && (
-          <RiskMap categories={riskData.risk_map.categories} />
-        )}
+      {riskData.risk_map?.categories && (
+        <RiskMap categories={riskData.risk_map.categories} />
+      )}
 
-        {riskData.aging_blockers?.blockers && (
-          <AgingBlockers blockers={riskData.aging_blockers.blockers} />
-        )}
-      </div>
-    </DashboardLayout>
+      {riskData.aging_blockers?.blockers && (
+        <AgingBlockers blockers={riskData.aging_blockers.blockers} />
+      )}
+    </div>
   );
 }
