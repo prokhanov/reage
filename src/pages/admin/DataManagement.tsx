@@ -655,8 +655,8 @@ export default function DataManagement() {
                                   <TableHead>Название</TableHead>
                                   <TableHead>Код</TableHead>
                                   <TableHead>Единица</TableHead>
-                                  <TableHead>Норма</TableHead>
-                                  <TableHead>Пол</TableHead>
+                                  <TableHead>Норма (М)</TableHead>
+                                  <TableHead>Норма (Ж)</TableHead>
                                   <TableHead className="w-[100px]">Действия</TableHead>
                                 </TableRow>
                               </TableHeader>
@@ -668,33 +668,24 @@ export default function DataManagement() {
                                       <TableCell>{biomarker.code}</TableCell>
                                       <TableCell>{biomarker.unit || '—'}</TableCell>
                                       <TableCell>
-                                        {(
-                                          (biomarker.normal_min_male != null || biomarker.normal_max_male != null) ||
-                                          (biomarker.normal_min_female != null || biomarker.normal_max_female != null)
-                                        ) ? (
-                                          <div className="space-y-0.5">
-                                            {(biomarker.normal_min_male != null || biomarker.normal_max_male != null) && (
-                                              <div><span className="text-xs text-muted-foreground mr-1">М:</span>{biomarker.normal_min_male ?? '—'} – {biomarker.normal_max_male ?? '—'}</div>
-                                            )}
-                                            {(biomarker.normal_min_female != null || biomarker.normal_max_female != null) && (
-                                              <div><span className="text-xs text-muted-foreground mr-1">Ж:</span>{biomarker.normal_min_female ?? '—'} – {biomarker.normal_max_female ?? '—'}</div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <span>{(biomarker.normal_min ?? '—')} – {(biomarker.normal_max ?? '—')}</span>
-                                        )}
+                                        {biomarker.normal_min_male != null || biomarker.normal_max_male != null
+                                          ? <span>{biomarker.normal_min_male ?? '—'} – {biomarker.normal_max_male ?? '—'}</span>
+                                          : (
+                                            biomarker.normal_min != null || biomarker.normal_max != null
+                                              ? <span>{biomarker.normal_min ?? '—'} – {biomarker.normal_max ?? '—'}</span>
+                                              : <span>—</span>
+                                            )
+                                        }
                                       </TableCell>
                                       <TableCell>
-                                        {(
-                                          (biomarker.normal_min_male != null || biomarker.normal_max_male != null) &&
-                                          (biomarker.normal_min_female != null || biomarker.normal_max_female != null)
-                                        ) ? 'М/Ж' : (
-                                          (biomarker.normal_min_male != null || biomarker.normal_max_male != null) ? 'М' : (
-                                            (biomarker.normal_min_female != null || biomarker.normal_max_female != null) ? 'Ж' : (
-                                              (biomarker.normal_min != null || biomarker.normal_max != null) ? 'Общая' : '—'
+                                        {biomarker.normal_min_female != null || biomarker.normal_max_female != null
+                                          ? <span>{biomarker.normal_min_female ?? '—'} – {biomarker.normal_max_female ?? '—'}</span>
+                                          : (
+                                            biomarker.normal_min != null || biomarker.normal_max != null
+                                              ? <span>{biomarker.normal_min ?? '—'} – {biomarker.normal_max ?? '—'}</span>
+                                              : <span>—</span>
                                             )
-                                          )
-                                        )}
+                                        }
                                       </TableCell>
                                       <TableCell>
                                         <div className="flex gap-2">
