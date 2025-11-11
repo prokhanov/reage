@@ -27,6 +27,10 @@ interface Biomarker {
   description: string | null;
   normal_min: number | null;
   normal_max: number | null;
+  normal_min_male: number | null;
+  normal_max_male: number | null;
+  normal_min_female: number | null;
+  normal_max_female: number | null;
 }
 
 interface AnalysisValue {
@@ -46,6 +50,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [loading, setLoading] = useState(true);
+  const [patientGender, setPatientGender] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0, currentCategory: "" });
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,6 +77,15 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
       if (!id) throw new Error("Некорректный идентификатор анализа");
+
+      // Load patient gender
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("gender")
+        .eq("id", userId)
+        .single();
+      
+      setPatientGender(profile?.gender || null);
 
       // Load category order from database
       const { data: categoriesData } = await supabase
@@ -104,7 +118,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         .eq("analysis_id", id);
 
       if (valuesError) throw valuesError;
-      setValues(valuesData || []);
+      setValues(valuesData as any || []);
 
       // Load all biomarkers and sort by category order
       const { data: biomarkersData, error: biomarkersError } = await supabase
@@ -122,7 +136,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         return a.name.localeCompare(b.name);
       });
       
-      setBiomarkers(sortedBiomarkers);
+      setBiomarkers(sortedBiomarkers as any);
     } catch (error: any) {
       console.error("Error loading data:", error);
       toast({
@@ -205,20 +219,31 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     }
   };
 
+  const getNormalRange = (biomarker: Biomarker) => {
+    if (patientGender === 'male' && biomarker.normal_min_male !== null && biomarker.normal_max_male !== null) {
+      return { min: biomarker.normal_min_male, max: biomarker.normal_max_male };
+    } else if (patientGender === 'female' && biomarker.normal_min_female !== null && biomarker.normal_max_female !== null) {
+      return { min: biomarker.normal_min_female, max: biomarker.normal_max_female };
+    }
+    return { min: biomarker.normal_min, max: biomarker.normal_max };
+  };
+
   const getGaugeAngle = (value: number, biomarker: Biomarker) => {
-    if (biomarker.normal_min === null || biomarker.normal_max === null) return 90;
-    const range = biomarker.normal_max - biomarker.normal_min;
-    const extendedMin = biomarker.normal_min - range * 0.5;
-    const extendedMax = biomarker.normal_max + range * 0.5;
+    const { min, max } = getNormalRange(biomarker);
+    if (min === null || max === null) return 90;
+    const range = max - min;
+    const extendedMin = min - range * 0.5;
+    const extendedMax = max + range * 0.5;
     const extendedRange = extendedMax - extendedMin;
     const position = ((value - extendedMin) / extendedRange) * 180;
     return Math.max(0, Math.min(180, position));
   };
 
   const getGaugeColor = (value: number, biomarker: Biomarker) => {
-    if (biomarker.normal_min === null || biomarker.normal_max === null) return "text-muted";
-    if (value < biomarker.normal_min) return "text-status-danger";
-    if (value > biomarker.normal_max) return "text-status-warning";
+    const { min, max } = getNormalRange(biomarker);
+    if (min === null || max === null) return "text-muted";
+    if (value < min) return "text-status-danger";
+    if (value > max) return "text-status-warning";
     return "text-status-good";
   };
 
@@ -390,8 +415,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                       {categoryValues.map((value) => {
                         const angle = getGaugeAngle(value.value, value.biomarkers);
                         const color = getGaugeColor(value.value, value.biomarkers);
-                        const isLow = value.biomarkers.normal_min !== null && value.value < value.biomarkers.normal_min;
-                        const isHigh = value.biomarkers.normal_max !== null && value.value > value.biomarkers.normal_max;
+                        const { min, max } = getNormalRange(value.biomarkers);
+                        const isLow = min !== null && value.value < min;
+                        const isHigh = max !== null && value.value > max;
                         const isNormal = !isLow && !isHigh;
 
                         return (
@@ -502,7 +528,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                               </div>
 
                               {/* Status Badge */}
-                              {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
+                              {min !== null && max !== null && (
                                 <div className="flex justify-center mb-4">
                                   {isLow && (
                                     <div className="px-3 py-1 rounded-full bg-status-danger/20 text-status-danger text-sm font-medium border border-status-danger/30">
@@ -523,13 +549,13 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                               )}
 
                               {/* Reference Range */}
-                              {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null && (
+                              {min !== null && max !== null && (
                                 <div className="text-center mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
                                   <div className="text-xs text-muted-foreground mb-1">
                                     Референсные значения
                                   </div>
                                   <div className="text-sm font-semibold text-status-good">
-                                    {value.biomarkers.normal_min} - {value.biomarkers.normal_max} {value.biomarkers.unit}
+                                    {min} - {max} {value.biomarkers.unit}
                                   </div>
                                 </div>
                               )}

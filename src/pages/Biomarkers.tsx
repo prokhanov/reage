@@ -20,6 +20,10 @@ interface BiomarkerData {
   description: string | null;
   normal_min: number | null;
   normal_max: number | null;
+  normal_min_male: number | null;
+  normal_max_male: number | null;
+  normal_min_female: number | null;
+  normal_max_female: number | null;
   latest_value: number | null;
   latest_date: string | null;
   previous_value: number | null;
@@ -34,6 +38,7 @@ export default function Biomarkers() {
   const { getUserId } = useViewAsUser();
   const [biomarkers, setBiomarkers] = useState<GroupedBiomarkers>({});
   const [loading, setLoading] = useState(true);
+  const [patientGender, setPatientGender] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,6 +49,15 @@ export default function Biomarkers() {
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
+
+      // Load patient gender
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("gender")
+        .eq("id", userId)
+        .single();
+      
+      setPatientGender(profile?.gender || null);
 
       // Load category order from database
       const { data: categoriesData } = await supabase
@@ -65,7 +79,7 @@ export default function Biomarkers() {
 
       // Для каждого биомаркера получаем последние 2 значения
       const biomarkersWithData = await Promise.all(
-        (biomarkersData || []).map(async (biomarker) => {
+        (biomarkersData || []).map(async (biomarker: any) => {
           // Получаем последние 2 значения этого биомаркера
           const { data: valuesData } = await supabase
             .from("analysis_values")
@@ -138,7 +152,7 @@ export default function Biomarkers() {
           sortedGrouped[cat] = grouped[cat];
         });
 
-      setBiomarkers(sortedGrouped);
+      setBiomarkers(sortedGrouped as any);
     } catch (error: any) {
       console.error("Error loading biomarkers:", error);
       toast({
@@ -175,8 +189,18 @@ export default function Biomarkers() {
     }
   };
 
-  const isInNormalRange = (value: number | null, min: number | null, max: number | null) => {
+  const getNormalRange = (biomarker: BiomarkerData) => {
+    if (patientGender === 'male' && biomarker.normal_min_male !== null && biomarker.normal_max_male !== null) {
+      return { min: biomarker.normal_min_male, max: biomarker.normal_max_male };
+    } else if (patientGender === 'female' && biomarker.normal_min_female !== null && biomarker.normal_max_female !== null) {
+      return { min: biomarker.normal_min_female, max: biomarker.normal_max_female };
+    }
+    return { min: biomarker.normal_min, max: biomarker.normal_max };
+  };
+
+  const isInNormalRange = (value: number | null, biomarker: BiomarkerData) => {
     if (value === null) return null;
+    const { min, max } = getNormalRange(biomarker);
     if (min === null && max === null) return null;
     if (min !== null && value < min) return false;
     if (max !== null && value > max) return false;
@@ -238,11 +262,8 @@ export default function Biomarkers() {
                       </TableHeader>
                       <TableBody>
                         {categoryBiomarkers.map((biomarker) => {
-                          const inRange = isInNormalRange(
-                            biomarker.latest_value,
-                            biomarker.normal_min,
-                            biomarker.normal_max
-                          );
+                          const inRange = isInNormalRange(biomarker.latest_value, biomarker);
+                          const { min, max } = getNormalRange(biomarker);
 
                           return (
                             <TableRow 
@@ -268,15 +289,15 @@ export default function Biomarkers() {
                                     className="text-lg font-bold"
                                     style={{
                                       color: (() => {
-                                        if (biomarker.normal_min === null && biomarker.normal_max === null) {
+                                        if (min === null && max === null) {
                                           return "hsl(var(--primary))";
                                         }
                                         
-                                        const min = biomarker.normal_min ?? 0;
-                                        const max = biomarker.normal_max ?? biomarker.latest_value * 2;
+                                        const minVal = min ?? 0;
+                                        const maxVal = max ?? biomarker.latest_value * 2;
                                         const value = biomarker.latest_value;
                                         
-                                        let position = (value - min) / (max - min);
+                                        let position = (value - minVal) / (maxVal - minVal);
                                         position = Math.max(0, Math.min(1, position));
                                         
                                         let hue: number;
@@ -319,25 +340,25 @@ export default function Biomarkers() {
                               </TableCell>
                               
                               <TableCell className="min-w-[200px]">
-                                {biomarker.normal_min !== null || biomarker.normal_max !== null ? (
+                                {min !== null || max !== null ? (
                                   biomarker.latest_value !== null ? (
                                     <div className="space-y-1">
                                       <div className="flex items-center gap-2">
                                         <div className="flex-1 h-3 bg-secondary rounded-full relative overflow-hidden">
                                           <div className="absolute inset-0 bg-gradient-to-r from-destructive/70 via-green-500/70 to-destructive/70" />
                                           {(() => {
-                                            const min = biomarker.normal_min ?? 0;
-                                            const max = biomarker.normal_max ?? biomarker.latest_value * 2;
-                                            const range = max - min;
+                                            const minVal = min ?? 0;
+                                            const maxVal = max ?? biomarker.latest_value * 2;
+                                            const range = maxVal - minVal;
                                             const value = biomarker.latest_value;
                                             
-                                            let position = ((value - min) / range) * 100;
+                                            let position = ((value - minVal) / range) * 100;
                                             position = Math.max(2, Math.min(98, position));
                                             
                                             let markerColor = "bg-green-500";
-                                            if (biomarker.normal_min !== null && value < biomarker.normal_min) {
+                                            if (min !== null && value < min) {
                                               markerColor = "bg-destructive";
-                                            } else if (biomarker.normal_max !== null && value > biomarker.normal_max) {
+                                            } else if (max !== null && value > max) {
                                               markerColor = "bg-destructive";
                                             }
                                             
@@ -351,20 +372,20 @@ export default function Biomarkers() {
                                         </div>
                                       </div>
                                       <span className="text-xs text-muted-foreground">
-                                        {biomarker.normal_min !== null && biomarker.normal_max !== null
-                                          ? `${biomarker.normal_min}-${biomarker.normal_max} ${biomarker.unit}`
-                                          : biomarker.normal_min !== null
-                                          ? `> ${biomarker.normal_min} ${biomarker.unit}`
-                                          : `< ${biomarker.normal_max} ${biomarker.unit}`}
+                                        {min !== null && max !== null
+                                          ? `${min}-${max} ${biomarker.unit}`
+                                          : min !== null
+                                          ? `> ${min} ${biomarker.unit}`
+                                          : `< ${max} ${biomarker.unit}`}
                                       </span>
                                     </div>
                                   ) : (
                                     <span className="text-xs text-muted-foreground">
-                                      {biomarker.normal_min !== null && biomarker.normal_max !== null
-                                        ? `${biomarker.normal_min}-${biomarker.normal_max} ${biomarker.unit}`
-                                        : biomarker.normal_min !== null
-                                        ? `> ${biomarker.normal_min} ${biomarker.unit}`
-                                        : `< ${biomarker.normal_max} ${biomarker.unit}`}
+                                      {min !== null && max !== null
+                                        ? `${min}-${max} ${biomarker.unit}`
+                                        : min !== null
+                                        ? `> ${min} ${biomarker.unit}`
+                                        : `< ${max} ${biomarker.unit}`}
                                     </span>
                                   )
                                 ) : (

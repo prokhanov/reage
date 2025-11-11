@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 
 interface Biomarker {
   id: string;
@@ -15,6 +16,10 @@ interface Biomarker {
   unit: string;
   normal_min: number | null;
   normal_max: number | null;
+  normal_min_male: number | null;
+  normal_max_male: number | null;
+  normal_min_female: number | null;
+  normal_max_female: number | null;
 }
 
 interface BiomarkerValue {
@@ -31,14 +36,33 @@ interface AnalysisStep2Props {
 }
 
 export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
+  const { viewAsUserId } = useContext(ViewAsPatientContext);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [patientGender, setPatientGender] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    loadPatientGender();
     loadBiomarkers();
-  }, []);
+  }, [viewAsUserId]);
+
+  const loadPatientGender = async () => {
+    if (!viewAsUserId) return;
+    
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("gender")
+        .eq("id", viewAsUserId)
+        .single();
+      
+      setPatientGender(profile?.gender || null);
+    } catch (error) {
+      console.error("Error loading patient gender:", error);
+    }
+  };
 
   const loadBiomarkers = async () => {
     try {
@@ -67,7 +91,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
         return a.name.localeCompare(b.name);
       });
       
-      setBiomarkers(sortedBiomarkers);
+      setBiomarkers(sortedBiomarkers as any);
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -95,6 +119,18 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
 
   const getValue = (biomarkerId: string) => {
     return data.values.find((v) => v.biomarkerId === biomarkerId);
+  };
+
+  const getNormalRange = (biomarker: Biomarker) => {
+    // Use gender-specific ranges if available
+    if (patientGender === 'male' && biomarker.normal_min_male !== null && biomarker.normal_max_male !== null) {
+      return `${biomarker.normal_min_male} - ${biomarker.normal_max_male} ${biomarker.unit}`;
+    } else if (patientGender === 'female' && biomarker.normal_min_female !== null && biomarker.normal_max_female !== null) {
+      return `${biomarker.normal_min_female} - ${biomarker.normal_max_female} ${biomarker.unit}`;
+    } else if (biomarker.normal_min !== null && biomarker.normal_max !== null) {
+      return `${biomarker.normal_min} - ${biomarker.normal_max} ${biomarker.unit}`;
+    }
+    return "не указана";
   };
 
   const updateValue = (biomarkerId: string, value: string, unitOverride?: string) => {
@@ -174,10 +210,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {biomarker.code} • Норма:{" "}
-                            {biomarker.normal_min && biomarker.normal_max
-                              ? `${biomarker.normal_min} - ${biomarker.normal_max} ${biomarker.unit}`
-                              : "не указана"}
+                            {biomarker.code} • Норма: {getNormalRange(biomarker)}
                           </p>
                           <div className="flex gap-2">
                             <Input

@@ -64,15 +64,11 @@ serve(async (req) => {
 
     // Маппинг русских названий категорий на английские ключи
     const CATEGORY_KEY_MAP: Record<string, string> = {
-      "Липиды": "lipids",
-      "Гормоны": "hormones",
-      "Метаболизм": "metabolism",
-      "Старение": "aging",
-      "Воспаление": "inflammation",
-      "Иммунитет": "immunity",
-      "Витамины": "vitamins",
-      "Микроэлементы": "minerals",
-      "Антиоксиданты": "antioxidants"
+      "Энергия и восстановление": "energy",
+      "Сердечно-сосудистая система": "cardiovascular",
+      "Воспалительная и иммунная система": "inflammation",
+      "Эндокринная и стрессовая система": "endocrine",
+      "Обмен веществ и детоксикация": "metabolism"
     };
 
     // Получаем анализ с биомаркерами
@@ -365,15 +361,29 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
         }
 
         // Формируем детальный промпт для категории
+        const patientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
+        
         const biomarkersText = (biomarkers as any[]).map((bm: any) => {
-          const isLow = bm.biomarkers.normal_min !== null && bm.value < bm.biomarkers.normal_min;
-          const isHigh = bm.biomarkers.normal_max !== null && bm.value > bm.biomarkers.normal_max;
+          // Determine correct normal range based on gender
+          let normalMin = bm.biomarkers.normal_min;
+          let normalMax = bm.biomarkers.normal_max;
+          
+          if (patientGender === 'male' && bm.biomarkers.normal_min_male !== null && bm.biomarkers.normal_max_male !== null) {
+            normalMin = bm.biomarkers.normal_min_male;
+            normalMax = bm.biomarkers.normal_max_male;
+          } else if (patientGender === 'female' && bm.biomarkers.normal_min_female !== null && bm.biomarkers.normal_max_female !== null) {
+            normalMin = bm.biomarkers.normal_min_female;
+            normalMax = bm.biomarkers.normal_max_female;
+          }
+          
+          const isLow = normalMin !== null && bm.value < normalMin;
+          const isHigh = normalMax !== null && bm.value > normalMax;
           const status = isLow ? "⬇️ НИЗКИЙ" : isHigh ? "⬆️ ВЫСОКИЙ" : "✅ НОРМА";
           
           return `
 ${bm.biomarkers.name} (${bm.biomarkers.code}):
   Значение: ${bm.value} ${bm.biomarkers.unit}
-  Норма: ${bm.biomarkers.normal_min || "?"} - ${bm.biomarkers.normal_max || "?"} ${bm.biomarkers.unit}
+  Норма: ${normalMin || "?"} - ${normalMax || "?"} ${bm.biomarkers.unit}
   Статус: ${status}
   ${bm.biomarkers.description ? `Описание: ${bm.biomarkers.description}` : ""}
           `.trim();
