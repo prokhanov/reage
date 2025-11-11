@@ -399,6 +399,10 @@ export default function DataManagement() {
       description: formData.get("description") as string,
       normal_min: formData.get("normal_min") ? Number(formData.get("normal_min")) : null,
       normal_max: formData.get("normal_max") ? Number(formData.get("normal_max")) : null,
+      normal_min_male: formData.get("normal_min_male") ? Number(formData.get("normal_min_male")) : null,
+      normal_max_male: formData.get("normal_max_male") ? Number(formData.get("normal_max_male")) : null,
+      normal_min_female: formData.get("normal_min_female") ? Number(formData.get("normal_min_female")) : null,
+      normal_max_female: formData.get("normal_max_female") ? Number(formData.get("normal_max_female")) : null,
     };
     saveBiomarker.mutate(biomarker);
   };
@@ -1161,7 +1165,7 @@ export default function DataManagement() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="normal_min">Норма минимум</Label>
+                <Label htmlFor="normal_min">Норма минимум (общая)</Label>
                 <Input
                   id="normal_min"
                   name="normal_min"
@@ -1172,7 +1176,7 @@ export default function DataManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="normal_max">Норма максимум</Label>
+                <Label htmlFor="normal_max">Норма максимум (общая)</Label>
                 <Input
                   id="normal_max"
                   name="normal_max"
@@ -1181,6 +1185,68 @@ export default function DataManagement() {
                   defaultValue={editingBiomarker?.normal_max}
                   placeholder="5.2"
                 />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Гендер-специфичные нормы</Label>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="normal_min_male" className="text-xs text-muted-foreground">
+                    Мужчины: минимум
+                  </Label>
+                  <Input
+                    id="normal_min_male"
+                    name="normal_min_male"
+                    type="number"
+                    step="any"
+                    defaultValue={editingBiomarker?.normal_min_male}
+                    placeholder="М min"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="normal_max_male" className="text-xs text-muted-foreground">
+                    Мужчины: максимум
+                  </Label>
+                  <Input
+                    id="normal_max_male"
+                    name="normal_max_male"
+                    type="number"
+                    step="any"
+                    defaultValue={editingBiomarker?.normal_max_male}
+                    placeholder="М max"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="normal_min_female" className="text-xs text-muted-foreground">
+                    Женщины: минимум
+                  </Label>
+                  <Input
+                    id="normal_min_female"
+                    name="normal_min_female"
+                    type="number"
+                    step="any"
+                    defaultValue={editingBiomarker?.normal_min_female}
+                    placeholder="Ж min"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="normal_max_female" className="text-xs text-muted-foreground">
+                    Женщины: максимум
+                  </Label>
+                  <Input
+                    id="normal_max_female"
+                    name="normal_max_female"
+                    type="number"
+                    step="any"
+                    defaultValue={editingBiomarker?.normal_max_female}
+                    placeholder="Ж max"
+                  />
+                </div>
               </div>
             </div>
 
