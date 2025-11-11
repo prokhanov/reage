@@ -17,6 +17,7 @@ import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
+import { getNormalRangeForAge, calculateAge, AgeRanges } from "@/lib/biomarkerNorms";
 
 interface Biomarker {
   id: string;
@@ -31,6 +32,7 @@ interface Biomarker {
   normal_max_male: number | null;
   normal_min_female: number | null;
   normal_max_female: number | null;
+  age_ranges?: AgeRanges | null;
 }
 
 interface AnalysisValue {
@@ -51,6 +53,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [loading, setLoading] = useState(true);
   const [patientGender, setPatientGender] = useState<string | null>(null);
+  const [patientAge, setPatientAge] = useState<number | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0, currentCategory: "" });
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,14 +81,17 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       if (!userId) throw new Error("Не авторизован");
       if (!id) throw new Error("Некорректный идентификатор анализа");
 
-      // Load patient gender
+      // Load patient gender and birth_date
       const { data: profile } = await supabase
         .from("profiles")
-        .select("gender")
+        .select("gender, birth_date")
         .eq("id", userId)
         .single();
       
       setPatientGender(profile?.gender || null);
+      if (profile?.birth_date) {
+        setPatientAge(calculateAge(profile.birth_date));
+      }
 
       // Load category order from database
       const { data: categoriesData } = await supabase
@@ -220,6 +226,10 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   };
 
   const getNormalRange = (biomarker: Biomarker) => {
+    if (patientAge !== null && patientGender && (patientGender === 'male' || patientGender === 'female')) {
+      return getNormalRangeForAge(biomarker, patientAge, patientGender);
+    }
+    // Fallback to gender-specific or general norms
     if (patientGender === 'male' && biomarker.normal_min_male !== null && biomarker.normal_max_male !== null) {
       return { min: biomarker.normal_min_male, max: biomarker.normal_max_male };
     } else if (patientGender === 'female' && biomarker.normal_min_female !== null && biomarker.normal_max_female !== null) {

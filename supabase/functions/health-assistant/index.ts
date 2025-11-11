@@ -96,29 +96,28 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
+    // Calculate age for age-dependent context
+    const patientAge = profile?.birth_date ? calculateAge(profile.birth_date) : null;
+    const patientGender = profile?.gender as 'male' | 'female' | null;
+
     // Get latest analyses
     const { data: analyses } = await supabase
       .from("analyses")
-      .select("*")
+      .select("*, analysis_values(*, biomarkers(*))")
       .eq("user_id", user.id)
-      .order("analysis_date", { ascending: false })
-      .limit(5);
+      .order("date", { ascending: false })
+      .limit(3);
 
-    // Get latest biomarker results
-    const { data: biomarkers } = await supabase
-      .from("biomarker_results")
-      .select(`
-        *,
-        biomarkers (
-          name,
-          unit,
-          optimal_min,
-          optimal_max
-        )
-      `)
+    // Get latest biomarker results with age-dependent processing
+    const { data: latestAnalysis } = await supabase
+      .from("analyses")
+      .select("id, analysis_values(*, biomarkers(*))")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20);
+      .order("date", { ascending: false })
+      .limit(1)
+      .single();
+
+    const biomarkers = latestAnalysis?.analysis_values || [];
 
     // Get latest symptoms
     const { data: symptoms } = await supabase
@@ -136,50 +135,78 @@ serve(async (req) => {
       .eq("status", "confirmed")
       .eq("is_archived", false);
 
-    // Get latest reports
-    const { data: reports } = await supabase
-      .from("reports")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(3);
-
     // Build context
     const userContext = `
 ИНФОРМАЦИЯ О ПАЦИЕНТЕ:
 
 Личные данные:
 - Имя: ${profile?.name || "Не указано"}
-- Пол: ${profile?.gender || "Не указано"}
-- Дата рождения: ${profile?.date_of_birth || "Не указана"}
-- Группа крови: ${profile?.blood_group || "Не указана"}
+- Пол: ${profile?.gender === 'male' ? 'мужской' : 'женский'}
+- Возраст: ${patientAge || "Не указан"} лет
 - Рост: ${profile?.height || "Не указан"} см
 - Вес: ${profile?.weight || "Не указан"} кг
 
 ${biomarkers && biomarkers.length > 0 ? `
-Последние показатели биомаркеров:
-${biomarkers.map(b => `- ${b.biomarkers?.name}: ${b.value} ${b.biomarkers?.unit} (норма: ${b.biomarkers?.optimal_min}-${b.biomarkers?.optimal_max})`).join("\n")}
+Последние показатели биомаркеров (с учетом возраста):
+${biomarkers.map((b: any) => {
+  const biomarker = b.biomarkers;
+  if (!biomarker) return '';
+  
+  // Calculate age-dependent norms
+  let normalMin = biomarker.normal_min;
+  let normalMax = biomarker.normal_max;
+  
+  if (patientAge && patientGender && biomarker.age_ranges) {
+    const ageRanges = biomarker.age_ranges[patientGender];
+    if (ageRanges) {
+      const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
+      if (ageRange) {
+        normalMin = ageRange.min;
+        normalMax = ageRange.max;
+      }
+    }
+  }
+  
+  // Fallback to gender-specific
+  if (patientGender === 'male' && biomarker.normal_min_male !== null) {
+    normalMin = biomarker.normal_min_male;
+    normalMax = biomarker.normal_max_male;
+  } else if (patientGender === 'female' && biomarker.normal_min_female !== null) {
+    normalMin = biomarker.normal_min_female;
+    normalMax = biomarker.normal_max_female;
+  }
+  
+  return `- ${biomarker.name}: ${b.value} ${biomarker.unit} (норма для вашего возраста: ${normalMin}-${normalMax})`;
+}).join("\n")}
 ` : ""}
 
 ${symptoms && symptoms.length > 0 ? `
 Последние симптомы:
-${symptoms.slice(0, 10).map(s => `- ${s.symptom} (${s.category}): степень ${s.severity}`).join("\n")}
+${symptoms.slice(0, 10).map((s: any) => `- ${s.symptom} (${s.category}): степень ${s.severity}`).join("\n")}
 ` : ""}
 
 ${prescriptions && prescriptions.length > 0 ? `
 Активные назначения:
-${prescriptions.map(p => `- ${p.prescription}${p.effect ? ` (${p.effect})` : ""}`).join("\n")}
-` : ""}
-
-${reports && reports.length > 0 ? `
-Последние отчеты (${reports.length}):
-${reports.map(r => `- ${r.title}: ${r.content?.substring(0, 200)}...`).join("\n")}
+${prescriptions.map((p: any) => `- ${p.prescription}${p.effect ? ` (${p.effect})` : ""}`).join("\n")}
 ` : ""}
 
 ${analyses && analyses.length > 0 ? `
 История анализов: ${analyses.length} записей
+Последний анализ: биологический возраст ${analyses[0]?.biological_age || 'н/д'}, индекс здоровья ${analyses[0]?.health_index || 'н/д'}
 ` : ""}
 `;
+
+    // Helper function to calculate age
+    function calculateAge(birthDate: string): number {
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      return age;
+    }
 
     const systemPrompt = `${basePrompt}
 

@@ -74,7 +74,8 @@ serve(async (req) => {
 
     // Build user context
     let userContext = `ДАННЫЕ ПАЦИЕНТА:\n\n`;
-    userContext += `Профиль:\n- Возраст: ${calculateAge(profile?.birth_date)} лет\n- Пол: ${profile?.gender}\n- Рост: ${profile?.height || "не указан"}\n- Вес: ${profile?.weight || "не указан"}\n\n`;
+    const patientAge = calculateAge(profile?.birth_date);
+    userContext += `Профиль:\n- Возраст: ${patientAge} лет\n- Пол: ${profile?.gender === 'male' ? 'мужской' : 'женский'}\n- Рост: ${profile?.height || "не указан"}\n- Вес: ${profile?.weight || "не указан"}\n\n`;
 
     if (analyses.length > 0) {
       userContext += `ПОСЛЕДНИЕ АНАЛИЗЫ (${analyses.length}):\n`;
@@ -89,11 +90,38 @@ serve(async (req) => {
           analysis.analysis_values.forEach((val: any) => {
             const biomarker = val.biomarkers;
             if (biomarker) {
-              const deviation = calculateDeviation(val.value, biomarker.normal_min, biomarker.normal_max);
+              // Use age-dependent norms for deviation calculation
+              const patientGender = profile?.gender as 'male' | 'female';
+              let normalMin = biomarker.normal_min;
+              let normalMax = biomarker.normal_max;
+              
+              // Try to get age-dependent norms
+              if (biomarker.age_ranges && patientGender) {
+                const ageRanges = biomarker.age_ranges[patientGender];
+                if (ageRanges) {
+                  const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
+                  if (ageRange) {
+                    normalMin = ageRange.min;
+                    normalMax = ageRange.max;
+                  }
+                }
+              }
+              
+              // Fallback to gender-specific norms
+              if (patientGender === 'male' && biomarker.normal_min_male !== null) {
+                normalMin = biomarker.normal_min_male;
+                normalMax = biomarker.normal_max_male;
+              } else if (patientGender === 'female' && biomarker.normal_min_female !== null) {
+                normalMin = biomarker.normal_min_female;
+                normalMax = biomarker.normal_max_female;
+              }
+              
+              const deviation = calculateDeviation(val.value, normalMin, normalMax);
               userContext += `  * ${biomarker.name} (${biomarker.category}): ${val.value} ${val.unit_override || biomarker.unit}`;
               if (deviation) {
                 userContext += ` ${deviation}`;
               }
+              userContext += ` [норма для возраста ${patientAge}: ${normalMin}-${normalMax}]`;
               userContext += `\n`;
             }
           });

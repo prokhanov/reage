@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from "recharts";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { format } from "date-fns";
 import { TrendChartSkeleton } from "@/components/skeletons/TrendChartSkeleton";
+import { getNormalRangeForAge, calculateAge, AgeRanges } from "@/lib/biomarkerNorms";
 
 interface Biomarker {
   id: string;
@@ -19,6 +20,11 @@ interface Biomarker {
   unit: string;
   normal_min: number | null;
   normal_max: number | null;
+  normal_min_male: number | null;
+  normal_max_male: number | null;
+  normal_min_female: number | null;
+  normal_max_female: number | null;
+  age_ranges?: AgeRanges | null;
 }
 
 interface AnalysisValue {
@@ -36,6 +42,8 @@ export default function Trends() {
   const [trendData, setTrendData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<"3" | "6" | "12">("6");
+  const [patientGender, setPatientGender] = useState<'male' | 'female' | null>(null);
+  const [patientBirthDate, setPatientBirthDate] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -54,12 +62,28 @@ export default function Trends() {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
 
-      // Get biomarkers that have values
+      // Load patient profile for age-dependent norms
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("gender, birth_date")
+        .eq("id", userId)
+        .single();
+      
+      setPatientGender(profile?.gender as 'male' | 'female' || null);
+      setPatientBirthDate(profile?.birth_date || null);
+
+      // Get biomarkers that have values (with age_ranges)
       const { data: valuesData, error: valuesError } = await supabase
         .from("analysis_values")
         .select(`
           biomarker_id,
-          biomarkers (id, name, code, unit, normal_min, normal_max)
+          biomarkers (
+            id, name, code, unit, 
+            normal_min, normal_max,
+            normal_min_male, normal_max_male,
+            normal_min_female, normal_max_female,
+            age_ranges
+          )
         `)
         .limit(1000);
 
@@ -114,13 +138,40 @@ export default function Trends() {
 
       if (error) throw error;
 
-      const formattedData = data.map((item: any) => ({
-        date: new Date(item.analyses.date).toLocaleDateString("ru-RU", {
-          day: "numeric",
-          month: "short",
-        }),
-        value: item.value,
-      }));
+      const formattedData = data.map((item: any) => {
+        // Calculate age at time of analysis for age-dependent reference lines
+        let ageAtAnalysis = null;
+        if (patientBirthDate) {
+          const analysisDate = new Date(item.analyses.date);
+          const birthDate = new Date(patientBirthDate);
+          let age = analysisDate.getFullYear() - birthDate.getFullYear();
+          const monthDiff = analysisDate.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && analysisDate.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          ageAtAnalysis = age;
+        }
+
+        // Get age-dependent norms for this data point
+        let refMin = null;
+        let refMax = null;
+        if (ageAtAnalysis !== null && patientGender && selectedBiomarkerData) {
+          const range = getNormalRangeForAge(selectedBiomarkerData, ageAtAnalysis, patientGender);
+          refMin = range.min;
+          refMax = range.max;
+        }
+
+        return {
+          date: new Date(item.analyses.date).toLocaleDateString("ru-RU", {
+            day: "numeric",
+            month: "short",
+          }),
+          value: item.value,
+          refMin,
+          refMax,
+          age: ageAtAnalysis,
+        };
+      });
 
       setTrendData(formattedData);
     } catch (error: any) {
@@ -252,8 +303,45 @@ export default function Trends() {
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "8px",
                           }}
+                          formatter={(value: any, name: string, props: any) => {
+                            const { payload } = props;
+                            if (name === "value" && payload.age) {
+                              return [
+                                <>
+                                  <div>{value}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Возраст: {payload.age} лет
+                                  </div>
+                                  {payload.refMin && payload.refMax && (
+                                    <div className="text-xs text-muted-foreground">
+                                      Норма: {payload.refMin} - {payload.refMax}
+                                    </div>
+                                  )}
+                                </>,
+                                name
+                              ];
+                            }
+                            return [value, name];
+                          }}
                         />
                         <Legend />
+                        {/* Dynamic reference lines based on age */}
+                        {trendData.length > 0 && trendData[0].refMin && trendData[0].refMax && (
+                          <>
+                            <ReferenceLine 
+                              y={trendData[0].refMin} 
+                              stroke="hsl(var(--status-good))" 
+                              strokeDasharray="3 3"
+                              label={{ value: "Мин (первый)", position: "insideBottomLeft", fill: "hsl(var(--status-good))", fontSize: 10 }}
+                            />
+                            <ReferenceLine 
+                              y={trendData[0].refMax} 
+                              stroke="hsl(var(--status-good))" 
+                              strokeDasharray="3 3"
+                              label={{ value: "Макс (первый)", position: "insideTopLeft", fill: "hsl(var(--status-good))", fontSize: 10 }}
+                            />
+                          </>
+                        )}
                         <Line
                           type="monotone"
                           dataKey="value"
@@ -266,15 +354,20 @@ export default function Trends() {
                       </LineChart>
                     </ResponsiveContainer>
 
-                    {selectedBiomarkerData?.normal_min !== null &&
-                      selectedBiomarkerData?.normal_max !== null && (
-                        <div className="mt-4 p-4 rounded-lg bg-muted/30 border border-border">
-                          <p className="text-sm text-muted-foreground">
-                            Референсные значения: {selectedBiomarkerData.normal_min} -{" "}
-                            {selectedBiomarkerData.normal_max} {selectedBiomarkerData.unit}
-                          </p>
-                        </div>
+                    <div className="mt-4 p-4 rounded-lg bg-muted/30 border border-border space-y-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Возрастные нормы учитываются 💡
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        График показывает динамику с учетом вашего возраста на момент каждого анализа. 
+                        Референсные линии показывают норму для возраста первого анализа.
+                      </p>
+                      {patientBirthDate && (
+                        <p className="text-xs text-muted-foreground">
+                          Ваш текущий возраст: {calculateAge(patientBirthDate)} лет
+                        </p>
                       )}
+                    </div>
                   </CardContent>
                 </Card>
 

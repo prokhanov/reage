@@ -291,7 +291,7 @@ export default function Dashboard() {
 
       if (!analyses || analyses.length === 0) return;
 
-      // Получаем биомаркеры последнего анализа с их нормами
+      // Получаем биомаркеры последнего анализа с их нормами (включая age_ranges)
       const { data: biomarkerValues, error } = await supabase
         .from("analysis_values")
         .select(`
@@ -300,7 +300,12 @@ export default function Dashboard() {
             name,
             category,
             normal_min,
-            normal_max
+            normal_max,
+            normal_min_male,
+            normal_max_male,
+            normal_min_female,
+            normal_max_female,
+            age_ranges
           )
         `)
         .eq("analysis_id", analyses[0].id);
@@ -312,7 +317,12 @@ export default function Dashboard() {
         name: item.biomarkers.name,
         value: item.value,
         normal_min: item.biomarkers.normal_min,
-        normal_max: item.biomarkers.normal_max
+        normal_max: item.biomarkers.normal_max,
+        normal_min_male: item.biomarkers.normal_min_male,
+        normal_max_male: item.biomarkers.normal_max_male,
+        normal_min_female: item.biomarkers.normal_min_female,
+        normal_max_female: item.biomarkers.normal_max_female,
+        age_ranges: item.biomarkers.age_ranges
       })) || [];
 
       // Удаляем возможные дубликаты по названию биомаркера
@@ -687,7 +697,11 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               {bodyHeatmapData.length > 0 ? (
-                <BodyHeatmap biomarkerData={bodyHeatmapData} />
+                <BodyHeatmap 
+                  biomarkerData={bodyHeatmapData} 
+                  patientAge={chronologicalAge} 
+                  patientGender={profile?.gender as 'male' | 'female' | undefined}
+                />
               ) : (
                 <div className="h-[300px] flex items-center justify-center">
                   <div className="text-center text-muted-foreground">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { getNormalRangeForAge, AgeRanges } from "@/lib/biomarkerNorms";
 
 interface BodyArea {
   id: string;
@@ -17,7 +18,14 @@ interface BodyHeatmapProps {
     value: number;
     normal_min?: number;
     normal_max?: number;
+    normal_min_male?: number;
+    normal_max_male?: number;
+    normal_min_female?: number;
+    normal_max_female?: number;
+    age_ranges?: AgeRanges | null;
   }>;
+  patientAge?: number | null;
+  patientGender?: 'male' | 'female';
 }
 
 const BODY_AREAS: Record<string, BodyArea> = {
@@ -79,7 +87,7 @@ const BODY_AREAS: Record<string, BodyArea> = {
   }
 };
 
-export function BodyHeatmap({ biomarkerData }: BodyHeatmapProps) {
+export function BodyHeatmap({ biomarkerData, patientAge, patientGender }: BodyHeatmapProps) {
   const [hoveredArea, setHoveredArea] = useState<string | null>(null);
 
   // Анализируем биомаркеры и определяем проблемные области
@@ -99,9 +107,19 @@ export function BodyHeatmap({ biomarkerData }: BodyHeatmapProps) {
       if (processedBiomarkers.has(biomarker.name)) return;
       processedBiomarkers.add(biomarker.name);
 
+      // Get age-dependent norms if available
+      let normalMin = biomarker.normal_min;
+      let normalMax = biomarker.normal_max;
+      
+      if (patientAge !== null && patientAge !== undefined && patientGender) {
+        const ageDependent = getNormalRangeForAge(biomarker as any, patientAge, patientGender);
+        normalMin = ageDependent.min;
+        normalMax = ageDependent.max;
+      }
+
       const isAbnormal =
-        (biomarker.normal_min !== undefined && biomarker.value < biomarker.normal_min) ||
-        (biomarker.normal_max !== undefined && biomarker.value > biomarker.normal_max);
+        (normalMin !== null && normalMin !== undefined && biomarker.value < normalMin) ||
+        (normalMax !== null && normalMax !== undefined && biomarker.value > normalMax);
 
       if (isAbnormal) {
         Object.keys(areas).forEach((areaId) => {
