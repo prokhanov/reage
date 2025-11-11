@@ -25,23 +25,23 @@ export function PatientRoute({ children }: PatientRouteProps) {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "patient")
-        .maybeSingle();
+        .eq("user_id", user.id);
 
-      if (error || !data) {
+      const isPatient = data?.some(r => r.role === "patient");
+      const hasOtherRole = data?.some(r => r.role !== "patient");
+
+      if (!isPatient && !hasOtherRole) {
         toast({
           title: "Доступ запрещён",
           description: "Эта страница доступна только пациентам",
           variant: "destructive",
         });
-        setIsPatient(false);
-      } else {
-        setIsPatient(true);
       }
+      
+      setIsPatient(!!isPatient);
     } catch (error) {
       console.error("Error checking patient role:", error);
       setIsPatient(false);

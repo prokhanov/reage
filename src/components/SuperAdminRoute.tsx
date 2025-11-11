@@ -25,23 +25,23 @@ export function SuperAdminRoute({ children }: SuperAdminRouteProps) {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "superadmin")
-        .single();
+        .eq("user_id", user.id);
 
-      if (error || !data) {
+      const isSuperAdmin = data?.some(r => r.role === "superadmin");
+      const hasOtherRole = data?.some(r => r.role !== "superadmin");
+
+      if (!isSuperAdmin && !hasOtherRole) {
         toast({
           title: "Доступ запрещен",
           description: "У вас нет прав для доступа к этой странице",
           variant: "destructive",
         });
-        setIsSuperAdmin(false);
-      } else {
-        setIsSuperAdmin(true);
       }
+      
+      setIsSuperAdmin(!!isSuperAdmin);
     } catch (error) {
       console.error("Error checking superadmin role:", error);
       setIsSuperAdmin(false);

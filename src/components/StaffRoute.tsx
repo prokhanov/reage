@@ -25,23 +25,23 @@ export function StaffRoute({ children }: StaffRouteProps) {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
-        .neq("role", "patient")
-        .single();
+        .eq("user_id", user.id);
 
-      if (error || !data) {
+      const hasStaffRole = data?.some(r => r.role !== "patient");
+      const isOnlyPatient = data?.length === 1 && data[0].role === "patient";
+
+      if (!hasStaffRole && isOnlyPatient) {
         toast({
           title: "Доступ запрещён",
           description: "Эта страница доступна только сотрудникам",
           variant: "destructive",
         });
-        setIsStaff(false);
-      } else {
-        setIsStaff(true);
       }
+      
+      setIsStaff(!!hasStaffRole);
     } catch (error) {
       console.error("Error checking staff role:", error);
       setIsStaff(false);
