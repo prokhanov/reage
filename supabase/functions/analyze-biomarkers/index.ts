@@ -364,14 +364,26 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
         const patientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
         
         const biomarkersText = (biomarkers as any[]).map((bm: any) => {
-          // Determine correct normal range based on gender
+          // Determine correct normal range based on age and gender
           let normalMin = bm.biomarkers.normal_min;
           let normalMax = bm.biomarkers.normal_max;
           
-          if (patientGender === 'male' && bm.biomarkers.normal_min_male !== null && bm.biomarkers.normal_max_male !== null) {
+          // Check age_ranges first if available
+          if (age && patientGender && bm.biomarkers.age_ranges && bm.biomarkers.age_ranges[patientGender]) {
+            const ageRange = bm.biomarkers.age_ranges[patientGender].find(
+              (range: any) => age >= range.age_from && age <= range.age_to
+            );
+            if (ageRange) {
+              normalMin = ageRange.min;
+              normalMax = ageRange.max;
+            }
+          }
+          
+          // Fallback to gender-specific ranges if no age range found
+          if ((normalMin === null || normalMax === null) && patientGender === 'male' && bm.biomarkers.normal_min_male !== null && bm.biomarkers.normal_max_male !== null) {
             normalMin = bm.biomarkers.normal_min_male;
             normalMax = bm.biomarkers.normal_max_male;
-          } else if (patientGender === 'female' && bm.biomarkers.normal_min_female !== null && bm.biomarkers.normal_max_female !== null) {
+          } else if ((normalMin === null || normalMax === null) && patientGender === 'female' && bm.biomarkers.normal_min_female !== null && bm.biomarkers.normal_max_female !== null) {
             normalMin = bm.biomarkers.normal_min_female;
             normalMax = bm.biomarkers.normal_max_female;
           }

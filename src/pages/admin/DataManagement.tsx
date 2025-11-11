@@ -122,6 +122,7 @@ export default function DataManagement() {
   const [editingBiomarker, setEditingBiomarker] = useState<any>(null);
   const [editingCondition, setEditingCondition] = useState<any>(null);
   const [editingSymptom, setEditingSymptom] = useState<any>(null);
+  const [ageRanges, setAgeRanges] = useState<any>({ male: [], female: [] });
   
   // Categories state
   const [categoryDialog, setCategoryDialog] = useState<{
@@ -390,6 +391,13 @@ export default function DataManagement() {
   const handleSaveBiomarker = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    // Filter out empty age ranges
+    const filteredAgeRanges = {
+      male: ageRanges.male.filter((r: any) => r.age_from !== '' && r.age_to !== '' && r.min !== '' && r.max !== ''),
+      female: ageRanges.female.filter((r: any) => r.age_from !== '' && r.age_to !== '' && r.min !== '' && r.max !== '')
+    };
+    
     const biomarker = {
       id: editingBiomarker?.id,
       name: formData.get("name") as string,
@@ -403,6 +411,7 @@ export default function DataManagement() {
       normal_max_male: formData.get("normal_max_male") ? Number(formData.get("normal_max_male")) : null,
       normal_min_female: formData.get("normal_min_female") ? Number(formData.get("normal_min_female")) : null,
       normal_max_female: formData.get("normal_max_female") ? Number(formData.get("normal_max_female")) : null,
+      age_ranges: (filteredAgeRanges.male.length > 0 || filteredAgeRanges.female.length > 0) ? filteredAgeRanges : null,
     };
     saveBiomarker.mutate(biomarker);
   };
@@ -617,6 +626,7 @@ export default function DataManagement() {
                   <Button
                     onClick={() => {
                       setEditingBiomarker(null);
+                      setAgeRanges({ male: [], female: [] });
                       setBiomarkerDialog(true);
                     }}
                   >
@@ -689,14 +699,15 @@ export default function DataManagement() {
                                       </TableCell>
                                       <TableCell>
                                         <div className="flex gap-2">
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => {
-                                              setEditingBiomarker(biomarker);
-                                              setBiomarkerDialog(true);
-                                            }}
-                                          >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setEditingBiomarker(biomarker);
+                              setAgeRanges(biomarker.age_ranges || { male: [], female: [] });
+                              setBiomarkerDialog(true);
+                            }}
+                          >
                                             <Edit2 className="w-4 h-4" />
                                           </Button>
                                           <Button
@@ -1277,6 +1288,192 @@ export default function DataManagement() {
                 placeholder="Описание биомаркера..."
                 rows={3}
               />
+            </div>
+
+            {/* Age-dependent ranges */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Возрастные диапазоны (опционально)</Label>
+              <p className="text-xs text-muted-foreground">Укажите нормы для разных возрастных групп</p>
+              
+              {/* Male age ranges */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Мужчины</Label>
+                {ageRanges.male.map((range: any, index: number) => (
+                  <div key={index} className="grid grid-cols-5 gap-2 items-end">
+                    <div className="space-y-1">
+                      <Label className="text-xs">От (лет)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={range.age_from}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.male];
+                          newRanges[index].age_from = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, male: newRanges });
+                        }}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">До (лет)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={range.age_to}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.male];
+                          newRanges[index].age_to = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, male: newRanges });
+                        }}
+                        placeholder="18"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Min</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={range.min}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.male];
+                          newRanges[index].min = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, male: newRanges });
+                        }}
+                        placeholder="Min"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Max</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={range.max}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.male];
+                          newRanges[index].max = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, male: newRanges });
+                        }}
+                        placeholder="Max"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        const newRanges = ageRanges.male.filter((_: any, i: number) => i !== index);
+                        setAgeRanges({ ...ageRanges, male: newRanges });
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAgeRanges({
+                      ...ageRanges,
+                      male: [...ageRanges.male, { age_from: '', age_to: '', min: '', max: '' }]
+                    });
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Добавить диапазон
+                </Button>
+              </div>
+
+              {/* Female age ranges */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Женщины</Label>
+                {ageRanges.female.map((range: any, index: number) => (
+                  <div key={index} className="grid grid-cols-5 gap-2 items-end">
+                    <div className="space-y-1">
+                      <Label className="text-xs">От (лет)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={range.age_from}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.female];
+                          newRanges[index].age_from = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, female: newRanges });
+                        }}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">До (лет)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={range.age_to}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.female];
+                          newRanges[index].age_to = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, female: newRanges });
+                        }}
+                        placeholder="18"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Min</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={range.min}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.female];
+                          newRanges[index].min = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, female: newRanges });
+                        }}
+                        placeholder="Min"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Max</Label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={range.max}
+                        onChange={(e) => {
+                          const newRanges = [...ageRanges.female];
+                          newRanges[index].max = Number(e.target.value);
+                          setAgeRanges({ ...ageRanges, female: newRanges });
+                        }}
+                        placeholder="Max"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        const newRanges = ageRanges.female.filter((_: any, i: number) => i !== index);
+                        setAgeRanges({ ...ageRanges, female: newRanges });
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAgeRanges({
+                      ...ageRanges,
+                      female: [...ageRanges.female, { age_from: '', age_to: '', min: '', max: '' }]
+                    });
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Добавить диапазон
+                </Button>
+              </div>
             </div>
 
             <DialogFooter>

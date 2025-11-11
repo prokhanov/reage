@@ -4,12 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Activity, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
+import { calculateAge, getNormalRangeForAge } from "@/lib/biomarkerNorms";
 
 interface BiomarkerData {
   id: string;
@@ -39,6 +39,7 @@ export default function Biomarkers() {
   const [biomarkers, setBiomarkers] = useState<GroupedBiomarkers>({});
   const [loading, setLoading] = useState(true);
   const [patientGender, setPatientGender] = useState<string | null>(null);
+  const [patientAge, setPatientAge] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,14 +51,17 @@ export default function Biomarkers() {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
 
-      // Load patient gender
+      // Load patient data
       const { data: profile } = await supabase
         .from("profiles")
-        .select("gender")
+        .select("gender, birth_date")
         .eq("id", userId)
         .single();
       
       setPatientGender(profile?.gender || null);
+      if (profile?.birth_date) {
+        setPatientAge(calculateAge(profile.birth_date));
+      }
 
       // Load category order from database
       const { data: categoriesData } = await supabase
@@ -190,10 +194,9 @@ export default function Biomarkers() {
   };
 
   const getNormalRange = (biomarker: BiomarkerData) => {
-    if (patientGender === 'male' && biomarker.normal_min_male !== null && biomarker.normal_max_male !== null) {
-      return { min: biomarker.normal_min_male, max: biomarker.normal_max_male };
-    } else if (patientGender === 'female' && biomarker.normal_min_female !== null && biomarker.normal_max_female !== null) {
-      return { min: biomarker.normal_min_female, max: biomarker.normal_max_female };
+    if (patientGender && patientAge !== null) {
+      const gender = patientGender === 'male' || patientGender === 'female' ? patientGender : 'male';
+      return getNormalRangeForAge(biomarker, patientAge, gender);
     }
     return { min: biomarker.normal_min, max: biomarker.normal_max };
   };

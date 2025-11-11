@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { calculateAge, getNormalRangeForAge, formatNormalRange } from "@/lib/biomarkerNorms";
 
 interface Biomarker {
   id: string;
@@ -41,6 +42,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [patientGender, setPatientGender] = useState<string | null>(null);
+  const [patientAge, setPatientAge] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,13 +56,16 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("gender")
+        .select("gender, birth_date")
         .eq("id", viewAsUserId)
         .single();
       
       setPatientGender(profile?.gender || null);
+      if (profile?.birth_date) {
+        setPatientAge(calculateAge(profile.birth_date));
+      }
     } catch (error) {
-      console.error("Error loading patient gender:", error);
+      console.error("Error loading patient data:", error);
     }
   };
 
@@ -122,13 +127,10 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
   };
 
   const getNormalRange = (biomarker: Biomarker) => {
-    // Use gender-specific ranges if available
-    if (patientGender === 'male' && biomarker.normal_min_male !== null && biomarker.normal_max_male !== null) {
-      return `${biomarker.normal_min_male} - ${biomarker.normal_max_male} ${biomarker.unit}`;
-    } else if (patientGender === 'female' && biomarker.normal_min_female !== null && biomarker.normal_max_female !== null) {
-      return `${biomarker.normal_min_female} - ${biomarker.normal_max_female} ${biomarker.unit}`;
-    } else if (biomarker.normal_min !== null && biomarker.normal_max !== null) {
-      return `${biomarker.normal_min} - ${biomarker.normal_max} ${biomarker.unit}`;
+    if (patientGender && patientAge !== null) {
+      const gender = patientGender === 'male' || patientGender === 'female' ? patientGender : 'male';
+      const { min, max } = getNormalRangeForAge(biomarker, patientAge, gender);
+      return `${formatNormalRange(min, max)} ${biomarker.unit}`;
     }
     return "не указана";
   };
