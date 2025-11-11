@@ -656,6 +656,7 @@ export default function DataManagement() {
                                   <TableHead>Код</TableHead>
                                   <TableHead>Единица</TableHead>
                                   <TableHead>Норма</TableHead>
+                                  <TableHead>Пол</TableHead>
                                   <TableHead className="w-[100px]">Действия</TableHead>
                                 </TableRow>
                               </TableHeader>
@@ -665,9 +666,35 @@ export default function DataManagement() {
                                     <SortableTableRow key={biomarker.id} id={biomarker.id}>
                                       <TableCell className="font-medium">{biomarker.name}</TableCell>
                                       <TableCell>{biomarker.code}</TableCell>
-                                      <TableCell>{biomarker.unit}</TableCell>
+                                      <TableCell>{biomarker.unit || '—'}</TableCell>
                                       <TableCell>
-                                        {biomarker.normal_min || "?"} - {biomarker.normal_max || "?"}
+                                        {(
+                                          (biomarker.normal_min_male != null || biomarker.normal_max_male != null) ||
+                                          (biomarker.normal_min_female != null || biomarker.normal_max_female != null)
+                                        ) ? (
+                                          <div className="space-y-0.5">
+                                            {(biomarker.normal_min_male != null || biomarker.normal_max_male != null) && (
+                                              <div><span className="text-xs text-muted-foreground mr-1">М:</span>{biomarker.normal_min_male ?? '—'} – {biomarker.normal_max_male ?? '—'}</div>
+                                            )}
+                                            {(biomarker.normal_min_female != null || biomarker.normal_max_female != null) && (
+                                              <div><span className="text-xs text-muted-foreground mr-1">Ж:</span>{biomarker.normal_min_female ?? '—'} – {biomarker.normal_max_female ?? '—'}</div>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <span>{(biomarker.normal_min ?? '—')} – {(biomarker.normal_max ?? '—')}</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        {(
+                                          (biomarker.normal_min_male != null || biomarker.normal_max_male != null) &&
+                                          (biomarker.normal_min_female != null || biomarker.normal_max_female != null)
+                                        ) ? 'М/Ж' : (
+                                          (biomarker.normal_min_male != null || biomarker.normal_max_male != null) ? 'М' : (
+                                            (biomarker.normal_min_female != null || biomarker.normal_max_female != null) ? 'Ж' : (
+                                              (biomarker.normal_min != null || biomarker.normal_max != null) ? 'Общая' : '—'
+                                            )
+                                          )
+                                        )}
                                       </TableCell>
                                       <TableCell>
                                         <div className="flex gap-2">
