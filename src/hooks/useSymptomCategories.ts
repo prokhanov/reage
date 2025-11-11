@@ -10,6 +10,8 @@ export interface SymptomCategory {
 export function useSymptomCategories() {
   return useQuery({
     queryKey: ["symptom-categories-with-templates"],
+    refetchOnMount: true,
+    staleTime: 0,
     queryFn: async () => {
       // Load categories
       const { data: categories, error: catError } = await supabase
