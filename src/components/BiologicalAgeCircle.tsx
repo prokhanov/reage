@@ -47,13 +47,13 @@ export function BiologicalAgeCircle({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const size = 280;
+    const size = 320;
     canvas.width = size;
     canvas.height = size;
 
     const centerX = size / 2;
     const centerY = size / 2;
-    const radius = 120;
+    const radius = 130;
 
     const particles: Particle[] = [];
     const particleCount = 40;
@@ -180,7 +180,7 @@ export function BiologicalAgeCircle({
   }, [color.hue, color.sat, color.light]);
 
   return (
-    <div className="relative flex items-center justify-center">
+    <div className="relative flex items-center justify-center w-[320px] h-[320px]">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 pointer-events-none"
@@ -191,7 +191,7 @@ export function BiologicalAgeCircle({
       />
       
       {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10 px-4">
         <div 
           className="text-6xl font-bold animate-scale-in transition-colors duration-1000"
           style={{ 
@@ -204,11 +204,11 @@ export function BiologicalAgeCircle({
         <div className="text-sm text-muted-foreground mt-2">
           лет
         </div>
-        <div className="text-xs text-muted-foreground mt-1 px-4">
+        <div className="text-xs text-muted-foreground mt-1">
           Биологический возраст
         </div>
         {biomarkersMetadata && (
-          <div className="space-y-2 mt-2">
+          <div className="space-y-2 mt-3">
             {/* Базовая информация о биомаркерах */}
             <TooltipProvider>
               <Tooltip>

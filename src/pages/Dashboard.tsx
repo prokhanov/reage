@@ -408,57 +408,66 @@ export default function Dashboard() {
 
         {/* Central Bio Age Circle */}
         <Card className="border-border bg-card backdrop-blur-sm">
-          <CardContent className="pt-8 pb-8">
-            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
-              {/* Animated Biological Age Circle */}
-              <BiologicalAgeCircle
-                biologicalAge={displayBioAge}
-                chronologicalAge={chronologicalAge}
-                healthIndex={displayHealthIndex}
-                biomarkersMetadata={displayBiomarkersMetadata}
-              />
+          <CardContent className="pt-8 pb-12">
+            {/* Title */}
+            <h2 className="text-2xl font-bold text-center text-foreground mb-8">
+              Ваш биологический возраст
+            </h2>
 
-              {/* Age Comparison */}
-              <div className="flex flex-col gap-4 text-center lg:text-left">
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    Ваш биологический возраст
-                  </h3>
+            <div className="flex flex-col lg:flex-row items-start justify-center gap-12 lg:gap-20">
+              {/* Left side - Circle and age comparison */}
+              <div className="flex flex-col items-center gap-6 flex-shrink-0">
+                {/* Animated Biological Age Circle */}
+                <BiologicalAgeCircle
+                  biologicalAge={displayBioAge}
+                  chronologicalAge={chronologicalAge}
+                  healthIndex={displayHealthIndex}
+                  biomarkersMetadata={displayBiomarkersMetadata}
+                />
+
+                {/* Age Comparison Text Below Circle */}
+                <div className="text-center max-w-md">
                   {displayBioAge && chronologicalAge && ageDifference !== null ? (
                     <>
-                    {ageDifference > 0 ? (
-                      <p className="text-lg text-status-good animate-fade-in">
-                        Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе, чем ваш паспортный возраст! 🎉
-                      </p>
-                    ) : ageDifference < 0 ? (
-                      <p className="text-lg text-status-danger animate-fade-in">
-                        Это на <span className="font-bold text-2xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше вашего паспортного возраста
-                      </p>
+                      {ageDifference > 0 ? (
+                        <p className="text-base text-status-good animate-fade-in">
+                          Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе, чем ваш паспортный возраст! 🎉
+                        </p>
+                      ) : ageDifference < 0 ? (
+                        <p className="text-base text-status-danger animate-fade-in">
+                          Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше вашего паспортного возраста
+                        </p>
                       ) : (
-                        <p className="text-lg text-muted-foreground animate-fade-in">
+                        <p className="text-base text-muted-foreground animate-fade-in">
                           Это соответствует вашему паспортному возрасту
                         </p>
                       )}
                     </>
                   ) : (
-                    <p className="text-lg text-muted-foreground">
+                    <p className="text-base text-muted-foreground">
                       Добавьте анализ, чтобы узнать свой биологический возраст
                     </p>
                   )}
                 </div>
+              </div>
 
+              {/* Right side - Stats */}
+              <div className="flex flex-col gap-6 w-full lg:w-auto lg:min-w-[300px]">
                 {/* Health Index */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 justify-center lg:justify-start">
-                    <Heart className="h-5 w-5 text-accent" />
-                    <span className="text-sm text-muted-foreground">Индекс здоровья:</span>
-                    <span className="text-2xl font-bold text-foreground">{displayHealthIndex || "—"}</span>
-                    <span className="text-sm text-muted-foreground">/100</span>
+                <div className="space-y-3 p-6 rounded-lg border border-border bg-background/50">
+                  <div className="flex items-center gap-3">
+                    <Heart className="h-6 w-6 text-accent flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-sm text-muted-foreground mb-1">Индекс здоровья</div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-foreground">{displayHealthIndex || "—"}</span>
+                        <span className="text-sm text-muted-foreground">/100</span>
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Интерпретация значения */}
                   {displayHealthIndex !== null && (
-                    <div className="flex justify-center lg:justify-start">
+                    <div className="flex justify-start">
                       {displayHealthIndex >= 85 && (
                         <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
                           Отличное здоровье
@@ -481,33 +490,26 @@ export default function Dashboard() {
                       )}
                     </div>
                   )}
-
-                  {/* Расшифровка расчета если есть AI */}
-                  {displayHealthIndex !== null && displayBiomarkersMetadata?.ai_analysis?.explanation && (
-                    <Alert className="bg-card/50 border-border/50">
-                      <Info className="h-4 w-4" />
-                      <AlertDescription className="text-xs text-muted-foreground">
-                        Индекс рассчитан с учетом веса биомаркеров, степени отклонения и взаимосвязей.
-                      </AlertDescription>
-                    </Alert>
-                  )}
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="flex flex-col items-center lg:items-start gap-1">
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-primary" />
-                      <span className="text-sm text-muted-foreground">Анализов</span>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
+                    <Activity className="h-5 w-5 text-primary flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-sm text-muted-foreground">Анализов</div>
+                      <div className="text-2xl font-bold text-foreground">{displayAnalysesCount}</div>
                     </div>
-                    <span className="text-xl font-bold text-foreground">{displayAnalysesCount}</span>
                   </div>
-                  <div className="flex flex-col items-center lg:items-start gap-1">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-status-good" />
-                      <span className="text-sm text-muted-foreground">Скорость</span>
+
+                  <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
+                    <TrendingUp className="h-5 w-5 text-status-good flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="text-sm text-muted-foreground">Скорость старения</div>
+                      <div className="text-2xl font-bold text-foreground">
+                        {displayAgingRate ? `${displayAgingRate.toFixed(2)}x` : "—"}
+                      </div>
                     </div>
-                    <span className="text-xl font-bold text-foreground">{displayAgingRate ? displayAgingRate.toFixed(2) : "—"}</span>
                   </div>
                 </div>
               </div>
