@@ -57,16 +57,18 @@ export default function Prescriptions() {
         if (!demoData) {
           return [];
         }
-        const latestAnalysis = demoData.analyses[demoData.analyses.length - 1];
-        return demoData.prescriptions.map((p: any, idx: number) => ({
-          id: `demo-${idx}`,
-          prescription: p.prescription,
-          effect: p.effect,
-          control_date: p.control_date,
-          status: p.status || "confirmed",
-          is_archived: false,
-          created_at: latestAnalysis.analysis_date
-        } as Prescription));
+        return demoData.prescriptions.map((p: any, idx: number) => {
+          const analysis = demoData.analyses[p.analysis_index];
+          return {
+            id: `demo-${idx}`,
+            prescription: p.prescription,
+            effect: p.effect,
+            control_date: p.control_date,
+            status: p.status || "confirmed",
+            is_archived: p.is_archived || false,
+            created_at: analysis?.date || demoData.analyses[0].date
+          } as Prescription;
+        });
       }
 
       let query = supabase
