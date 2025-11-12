@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
+import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -136,8 +137,12 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           (b: any) => (b.analysis_index || 0) === analysisIndex
         );
         
-        // Get unique codes from demo biomarkers
-        const uniqueCodes = [...new Set(analysisBiomarkers.map((b: any) => b.code))];
+        // Get unique codes from demo biomarkers and convert to database codes
+        const uniqueCodes = [...new Set(
+          analysisBiomarkers
+            .map((b: any) => DEMO_TO_DB_CODE[b.code] || b.code)
+            .filter(Boolean)
+        )];
         
         // Fetch biomarker metadata from database
         const { data: biomarkersMetadata } = await supabase
@@ -153,9 +158,10 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         // Transform demo biomarkers to analysis values format with full metadata
         const demoValues: AnalysisValue[] = analysisBiomarkers
           .map((b: any) => {
-            const metadata = metadataMap.get(b.code);
+            const dbCode = DEMO_TO_DB_CODE[b.code] || b.code;
+            const metadata = metadataMap.get(dbCode);
             if (!metadata) {
-              console.warn(`No metadata found for biomarker code: ${b.code}`);
+              console.warn(`No metadata found for biomarker code: ${b.code} (DB code: ${dbCode})`);
               return null;
             }
             
