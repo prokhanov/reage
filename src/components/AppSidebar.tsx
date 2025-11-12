@@ -110,33 +110,48 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-secondary/80 border-r border-border/30 backdrop-blur-xl transition-transform duration-300 ease-in-out w-64",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed top-0 left-0 z-50 h-screen bg-secondary/80 border-r border-border/30 backdrop-blur-xl transition-all duration-300 ease-in-out",
+          isOpen ? "w-64" : "w-16",
+          "lg:translate-x-0",
+          !isOpen && "lg:w-16",
+          !isOpen && "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo with collapse button */}
-          <div className="p-6 border-b border-border/30">
-            <div className="flex items-start justify-between mb-3">
-              <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto" />
+          <div className="p-4 border-b border-border/30">
+            {isOpen ? (
+              <>
+                <div className="flex items-start justify-between mb-3">
+                  <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto" />
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                    title="Свернуть боковую панель"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 truncate">
+                  {viewAsUserId ? patientEmail : userEmail}
+                </p>
+                <p className="text-xs text-primary/70 font-medium mt-0.5">
+                  {viewAsUserId ? "Пациент" : userRole}
+                </p>
+              </>
+            ) : (
               <button
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors lg:flex hidden"
-                title="Скрыть боковую панель"
+                onClick={() => setIsOpen(true)}
+                className="w-full flex justify-center p-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                title="Развернуть боковую панель"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <img src={reAgeLogo} alt="ReAge" className="h-8 w-8 object-contain" />
               </button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 truncate">
-              {viewAsUserId ? patientEmail : userEmail}
-            </p>
-            <p className="text-xs text-primary/70 font-medium mt-0.5">
-              {viewAsUserId ? "Пациент" : userRole}
-            </p>
+            )}
           </div>
 
           {/* View Mode Badge */}
-          {viewAsUserId && (
+          {viewAsUserId && isOpen && (
             <div className="px-4 py-3 bg-primary/10 border-b border-border/30">
               <Badge variant="default" className="w-full justify-start gap-2">
                 <Eye className="h-3 w-3" />
@@ -144,9 +159,14 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </Badge>
             </div>
           )}
+          {viewAsUserId && !isOpen && (
+            <div className="flex justify-center py-2 bg-primary/10 border-b border-border/30" title="Режим просмотра пациента">
+              <Eye className="h-4 w-4 text-primary" />
+            </div>
+          )}
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
             {isLoadingRoles ? (
               // Скелетон навигации
               <>
@@ -160,9 +180,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {(isPatient || viewAsUserId) && navItems.map((item) => {
               const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
               const baseClasses = cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                 "hover:bg-primary/10 hover:text-primary",
-                activeInSim && "bg-primary/15 text-primary border border-primary/20"
+                activeInSim && "bg-primary/15 text-primary border border-primary/20",
+                isOpen ? "px-3" : "px-0 justify-center"
               );
 
               if (viewAsUserId) {
@@ -171,9 +192,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     key={item.to}
                     onClick={() => { setSimPath(item.to); setIsOpen(false); }}
                     className={baseClasses}
+                    title={!isOpen ? item.label : undefined}
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {isOpen && <span className="font-medium">{item.label}</span>}
                   </button>
                 );
               }
@@ -185,14 +207,16 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                      "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                       "hover:bg-primary/10 hover:text-primary",
-                      isActive && "bg-primary/15 text-primary border border-primary/20"
+                      isActive && "bg-primary/15 text-primary border border-primary/20",
+                      isOpen ? "px-3" : "px-0 justify-center"
                     )
                   }
+                  title={!isOpen ? item.label : undefined}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span className="font-medium">{item.label}</span>
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  {isOpen && <span className="font-medium">{item.label}</span>}
                 </NavLink>
               );
             })}
@@ -207,26 +231,34 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   const count = isBookingsPage ? scheduledCount : myAssignmentsCount;
                   
                   return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setIsOpen(false)}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
-                          "hover:bg-primary/10 hover:text-primary",
-                          isActive && "bg-primary/15 text-primary border border-primary/20"
-                        )
-                      }
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span className={cn("font-medium", showCount && "font-bold")}>
-                        {item.label}
-                        {showCount && (
-                          <span className="ml-1 text-primary">({count})</span>
+                    <div key={item.to} className="relative">
+                      <NavLink
+                        to={item.to}
+                        onClick={() => setIsOpen(false)}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                            "hover:bg-primary/10 hover:text-primary",
+                            isActive && "bg-primary/15 text-primary border border-primary/20",
+                            isOpen ? "px-3" : "px-0 justify-center"
+                          )
+                        }
+                        title={!isOpen ? item.label : undefined}
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {isOpen && (
+                          <span className={cn("font-medium", showCount && "font-bold")}>
+                            {item.label}
+                            {showCount && (
+                              <span className="ml-1 text-primary">({count})</span>
+                            )}
+                          </span>
                         )}
-                      </span>
-                    </NavLink>
+                        {!isOpen && showCount && (
+                          <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+                        )}
+                      </NavLink>
+                    </div>
                   );
                 })}
               </>
@@ -234,55 +266,77 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* Theme Toggle */}
-          <div className="p-4 border-t border-border/30">
-            <ThemeToggle />
+          <div className="p-2 border-t border-border/30">
+            {isOpen ? (
+              <div className="px-2">
+                <ThemeToggle />
+              </div>
+            ) : (
+              <div className="flex justify-center py-2">
+                <ThemeToggle />
+              </div>
+            )}
           </div>
 
           {/* User Profile & Logout */}
-          <div className="p-4 border-t border-border/30 space-y-1">
+          <div className="p-2 border-t border-border/30 space-y-1">
             {viewAsUserId ? (
               <button
                 onClick={() => { setSimPath("/profile"); setIsOpen(false); }}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                  "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                   "hover:bg-primary/10 hover:text-primary",
-                  simPath === "/profile" && "bg-primary/15 text-primary border border-primary/20"
+                  simPath === "/profile" && "bg-primary/15 text-primary border border-primary/20",
+                  isOpen ? "px-3" : "px-0 justify-center"
                 )}
+                title={!isOpen ? "Профиль" : undefined}
               >
-                <User className="h-4 w-4" />
-                <span className="font-medium">Профиль</span>
+                <User className="h-5 w-5 flex-shrink-0" />
+                {isOpen && <span className="font-medium">Профиль</span>}
               </button>
             ) : (
               <NavLink
                 to="/profile"
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm",
+                    "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                     "hover:bg-primary/10 hover:text-primary",
-                    isActive && "bg-primary/15 text-primary border border-primary/20"
+                    isActive && "bg-primary/15 text-primary border border-primary/20",
+                    isOpen ? "px-3" : "px-0 justify-center"
                   )
                 }
+                title={!isOpen ? "Профиль" : undefined}
               >
-                <User className="h-4 w-4" />
-                <span className="font-medium">Профиль</span>
+                <User className="h-5 w-5 flex-shrink-0" />
+                {isOpen && <span className="font-medium">Профиль</span>}
               </NavLink>
             )}
             
             {viewAsUserId ? (
               <button
                 onClick={handleExitViewMode}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-full text-left text-sm hover:bg-destructive/10 hover:text-destructive"
+                className={cn(
+                  "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 w-full text-sm",
+                  "hover:bg-destructive/10 hover:text-destructive",
+                  isOpen ? "px-3 text-left" : "px-0 justify-center"
+                )}
+                title={!isOpen ? "Выйти из просмотра" : undefined}
               >
-                <X className="h-4 w-4" />
-                <span className="font-medium">Выйти из просмотра</span>
+                <X className="h-5 w-5 flex-shrink-0" />
+                {isOpen && <span className="font-medium">Выйти из просмотра</span>}
               </button>
             ) : (
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-full text-left text-sm hover:bg-destructive/10 hover:text-destructive"
+                className={cn(
+                  "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 w-full text-sm",
+                  "hover:bg-destructive/10 hover:text-destructive",
+                  isOpen ? "px-3 text-left" : "px-0 justify-center"
+                )}
+                title={!isOpen ? "Выход" : undefined}
               >
-                <LogOut className="h-4 w-4" />
-                <span className="font-medium">Выход</span>
+                <LogOut className="h-5 w-5 flex-shrink-0" />
+                {isOpen && <span className="font-medium">Выход</span>}
               </button>
             )}
           </div>
