@@ -18,7 +18,7 @@ export const DemoBanner = ({ onDismiss }: DemoBannerProps) => {
   };
 
   return (
-    <Alert className="mb-4 border-primary/50 bg-primary/5 sticky top-0 z-50">
+    <Alert className="mb-4 border-primary/50 bg-background/80 backdrop-blur-md sticky top-4 z-50">
       <Sparkles className="h-4 w-4 text-primary" />
       <AlertDescription className="flex items-center justify-between gap-4">
         <span className="text-sm">
