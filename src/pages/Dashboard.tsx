@@ -22,6 +22,8 @@ import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
+import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
+import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -709,6 +711,19 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Health Metrics History - Trend Charts */}
+        {displayAllAnalyses.length >= 2 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <BioAgeTrendChart 
+              analyses={displayAllAnalyses}
+              birthDate={profile?.birth_date}
+            />
+            <HealthIndexTrendChart 
+              analyses={displayAllAnalyses}
+            />
+          </div>
+        )}
 
         {/* System Health + Body Heatmap Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
