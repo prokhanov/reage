@@ -51,7 +51,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess } = usePatientModuleAccess();
-  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [analysis, setAnalysis] = useState<any>(null);
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
@@ -424,7 +424,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {isDemoAnalysis && demoMode && <DemoBanner />}
+      {isDemoAnalysis && demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-3">

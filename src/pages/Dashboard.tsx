@@ -26,7 +26,7 @@ import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
-  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [analysesCount, setAnalysesCount] = useState(0);
@@ -438,7 +438,7 @@ export default function Dashboard() {
   return (
     <div className="p-4 md:p-8 space-y-6">
       {/* Demo Banner */}
-      {demoMode && <DemoBanner />}
+      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
 
       {/* Header */}
         <div className="space-y-1">

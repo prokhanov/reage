@@ -40,7 +40,7 @@ interface AnalysisValue {
 export default function Trends() {
   const { getUserId } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
-  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
   const [trendData, setTrendData] = useState<any[]>([]);
@@ -301,7 +301,7 @@ export default function Trends() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-    {demoMode && <DemoBanner />}
+    {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
     {loading && <TrendChartSkeleton />}
     {!loading && (
     <>

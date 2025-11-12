@@ -41,7 +41,7 @@ export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editPrescription, setEditPrescription] = useState<Prescription | null>(null);
-  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
@@ -211,7 +211,7 @@ export default function Prescriptions() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
-        {demoMode && <DemoBanner />}
+        {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
         {isLoading && <PrescriptionListSkeleton />}
         {!isLoading && (
           <>

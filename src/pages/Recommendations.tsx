@@ -57,7 +57,7 @@ export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
-  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -641,7 +641,7 @@ export default function Recommendations() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {demoMode && <DemoBanner />}
+      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
           Персональные отчёты

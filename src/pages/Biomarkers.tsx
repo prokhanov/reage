@@ -38,7 +38,7 @@ interface GroupedBiomarkers {
 
 export default function Biomarkers() {
   const { getUserId } = useViewAsUser();
-  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<GroupedBiomarkers>({});
   const [loading, setLoading] = useState(true);
   const [patientGender, setPatientGender] = useState<string | null>(null);
@@ -249,7 +249,7 @@ export default function Biomarkers() {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {demoMode && <DemoBanner />}
+      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {loading && <BiomarkerTableSkeleton />}
       {!loading && (
       <>

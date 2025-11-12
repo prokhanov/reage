@@ -41,7 +41,7 @@ export default function Analyses() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess } = usePatientModuleAccess();
-  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -157,7 +157,7 @@ export default function Analyses() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {demoMode && <DemoBanner />}
+        {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
         {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
         {(!loading || analyses.length > 0) && (
           <>

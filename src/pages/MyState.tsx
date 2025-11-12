@@ -241,7 +241,7 @@ const categoryEmojis: Record<string, string> = {
 
 export default function MyState() {
   const { getUserId, isViewMode } = useViewAsUser();
-  const { demoMode, demoData } = useDemoMode();
+  const { demoMode, demoData, toggleDemoMode } = useDemoMode();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [adherenceAnswers, setAdherenceAnswers] = useState<Record<string, number>>({});
@@ -592,7 +592,7 @@ export default function MyState() {
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-8">
-      {demoMode && <DemoBanner />}
+      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Мое состояние</h1>
         <p className="text-muted-foreground">
