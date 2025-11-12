@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { calculateAge } from "@/lib/biomarkerNorms";
+import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 interface DemoData {
   profile: {
@@ -196,18 +197,27 @@ export const transformDemoBiomarkersToDisplay = async (
     (categoriesData || []).map((cat) => [cat.name, cat.display_order])
   );
 
+  // Normalize demo codes to database codes
+  const normalizedCodes = demoBiomarkers.map(b => DEMO_TO_DB_CODE[b.code] ?? b.code);
+  
   // Load biomarker metadata from database to get normal ranges, units, etc.
   const { data: biomarkersMetadata } = await supabase
     .from('biomarkers')
     .select('code, name, unit, description, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, age_ranges')
-    .in('code', demoBiomarkers.map(b => b.code));
+    .in('code', normalizedCodes);
 
   const metadataMap = new Map(
     (biomarkersMetadata || []).map(bm => [bm.code, bm])
   );
 
   const biomarkersWithMeta = demoBiomarkers.map((b: any) => {
-    const meta = metadataMap.get(b.code);
+    const lookupCode = DEMO_TO_DB_CODE[b.code] ?? b.code;
+    const meta = metadataMap.get(lookupCode);
+    
+    if (!meta) {
+      console.warn(`No metadata found for demo code '${b.code}' -> lookup '${lookupCode}'`);
+    }
+    
     return {
       id: b.code,
       name: meta?.name || b.code,
