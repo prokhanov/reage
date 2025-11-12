@@ -341,7 +341,7 @@ export default function Dashboard() {
   const displayHealthIndex = latestDemoAnalysis ? latestDemoAnalysis.health_index : latestHealthIndex;
   const displayAnalysesCount = demoMode && demoData ? demoData.analyses.length : analysesCount;
   const displayAgingRate = latestDemoAnalysis?.ai_analysis?.aging_rate || agingRate;
-  const displayBiomarkersMetadata = latestDemoAnalysis ? { ai_analysis: latestDemoAnalysis.ai_analysis } : latestBiomarkersMetadata;
+  const displayBiomarkersMetadata = latestDemoAnalysis?.biomarkers_metadata || latestBiomarkersMetadata;
   
   // For body heatmap in demo mode, use latest analysis biomarkers
   const latestAnalysisIndex = demoMode && demoData ? demoData.analyses.length - 1 : -1;
@@ -462,16 +462,16 @@ export default function Dashboard() {
                           <TooltipTrigger asChild>
                             <div className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1 mt-1 cursor-help">
                               <Info className="h-3 w-3" />
-                              {latestBiomarkersMetadata.current_count} свежих + {latestBiomarkersMetadata.historical_count} исторических
+                              {displayBiomarkersMetadata.current_count} свежих + {displayBiomarkersMetadata.historical_count} исторических
                             </div>
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
-                            <p className="font-medium mb-1">Расчет основан на {latestBiomarkersMetadata.total_count} биомаркерах:</p>
-                            <p className="text-sm">• {latestBiomarkersMetadata.current_count} из текущего анализа</p>
-                            <p className="text-sm">• {latestBiomarkersMetadata.historical_count} из предыдущих анализов (за 4 месяца)</p>
-                            {latestBiomarkersMetadata.oldest_historical_date && (
+                            <p className="font-medium mb-1">Расчет основан на {displayBiomarkersMetadata.total_count} биомаркерах:</p>
+                            <p className="text-sm">• {displayBiomarkersMetadata.current_count} из текущего анализа</p>
+                            <p className="text-sm">• {displayBiomarkersMetadata.historical_count} из предыдущих анализов (за 4 месяца)</p>
+                            {displayBiomarkersMetadata.oldest_historical_date && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                Самые старые данные: {new Date(latestBiomarkersMetadata.oldest_historical_date).toLocaleDateString('ru-RU')}
+                                Самые старые данные: {new Date(displayBiomarkersMetadata.oldest_historical_date).toLocaleDateString('ru-RU')}
                               </p>
                             )}
                           </TooltipContent>
@@ -479,21 +479,21 @@ export default function Dashboard() {
                       </TooltipProvider>
 
                       {/* AI-анализ если есть */}
-                      {latestBiomarkersMetadata.ai_analysis && (
+                      {displayBiomarkersMetadata.ai_analysis && (
                         <div className="space-y-3 mt-4">
                           {/* Уверенность и скорость старения */}
                           <div className="flex items-center justify-center gap-3 text-xs">
                             <Badge variant={
-                              latestBiomarkersMetadata.ai_analysis.confidence_score >= 80 ? "default" :
-                              latestBiomarkersMetadata.ai_analysis.confidence_score >= 60 ? "secondary" : "outline"
+                              displayBiomarkersMetadata.ai_analysis.confidence_score >= 80 ? "default" :
+                              displayBiomarkersMetadata.ai_analysis.confidence_score >= 60 ? "secondary" : "outline"
                             }>
-                              Уверенность: {latestBiomarkersMetadata.ai_analysis.confidence_score}%
+                              Уверенность: {displayBiomarkersMetadata.ai_analysis.confidence_score}%
                             </Badge>
                             <Badge variant={
-                              latestBiomarkersMetadata.ai_analysis.aging_rate < 1 ? "default" :
-                              latestBiomarkersMetadata.ai_analysis.aging_rate === 1 ? "secondary" : "destructive"
+                              displayBiomarkersMetadata.ai_analysis.aging_rate < 1 ? "default" :
+                              displayBiomarkersMetadata.ai_analysis.aging_rate === 1 ? "secondary" : "destructive"
                             }>
-                              Скорость старения: {latestBiomarkersMetadata.ai_analysis.aging_rate.toFixed(2)}x
+                              Скорость старения: {displayBiomarkersMetadata.ai_analysis.aging_rate.toFixed(2)}x
                             </Badge>
                           </div>
 
@@ -501,15 +501,15 @@ export default function Dashboard() {
                           <Alert className="text-left">
                             <Sparkles className="h-4 w-4" />
                             <AlertDescription className="text-xs">
-                              {latestBiomarkersMetadata.ai_analysis.explanation}
+                              {displayBiomarkersMetadata.ai_analysis.explanation}
                             </AlertDescription>
                           </Alert>
 
                           {/* Топ-3 ключевых маркера старения */}
-                          {latestBiomarkersMetadata.ai_analysis.key_aging_markers?.length > 0 && (
+                          {displayBiomarkersMetadata.ai_analysis.key_aging_markers?.length > 0 && (
                             <div className="space-y-1">
                               <p className="text-xs font-semibold text-muted-foreground">Ключевые маркеры старения:</p>
-                              {latestBiomarkersMetadata.ai_analysis.key_aging_markers.slice(0, 3).map((marker: any, idx: number) => (
+                              {displayBiomarkersMetadata.ai_analysis.key_aging_markers.slice(0, 3).map((marker: any, idx: number) => (
                                 <TooltipProvider key={idx}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -531,19 +531,19 @@ export default function Dashboard() {
                           )}
 
                           {/* Недостающие критичные маркеры */}
-                          {latestBiomarkersMetadata.ai_analysis.missing_critical_markers?.length > 0 && (
+                          {displayBiomarkersMetadata.ai_analysis.missing_critical_markers?.length > 0 && (
                             <Alert variant="destructive" className="text-left">
                               <AlertTriangle className="h-4 w-4" />
                               <AlertDescription className="text-xs">
-                                Для более точной оценки рекомендуем сдать: {latestBiomarkersMetadata.ai_analysis.missing_critical_markers.join(", ")}
+                                Для более точной оценки рекомендуем сдать: {displayBiomarkersMetadata.ai_analysis.missing_critical_markers.join(", ")}
                               </AlertDescription>
                             </Alert>
                           )}
 
                           {/* Оценки по категориям */}
-                          {latestBiomarkersMetadata.ai_analysis.category_scores && (
+                          {displayBiomarkersMetadata.ai_analysis.category_scores && (
                             <div className="grid grid-cols-5 gap-2 mt-4">
-                              {Object.entries(latestBiomarkersMetadata.ai_analysis.category_scores).map(([category, data]: [string, any]) => (
+                              {Object.entries(displayBiomarkersMetadata.ai_analysis.category_scores).map(([category, data]: [string, any]) => (
                                 <TooltipProvider key={category}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
