@@ -187,7 +187,7 @@ export const useDemoMode = () => {
 };
 
 // Helper function exported for reuse
-export const transformDemoBiomarkersToDisplay = (
+export const transformDemoBiomarkersToDisplay = async (
   demoBiomarkers: any[],
   demoProfile: any,
   categoriesData: any[]
@@ -196,24 +196,38 @@ export const transformDemoBiomarkersToDisplay = (
     (categoriesData || []).map((cat) => [cat.name, cat.display_order])
   );
 
-  const biomarkersWithMeta = demoBiomarkers.map((b: any) => ({
-    id: b.code,
-    name: b.name || b.code,
-    code: b.code,
-    category: b.category,
-    unit: b.unit || "",
-    description: b.description ?? null,
-    normal_min: b.normal_min ?? null,
-    normal_max: b.normal_max ?? null,
-    normal_min_male: b.normal_min_male ?? null,
-    normal_max_male: b.normal_max_male ?? null,
-    normal_min_female: b.normal_min_female ?? null,
-    normal_max_female: b.normal_max_female ?? null,
-    latest_value: b.value,
-    latest_date: demoProfile.analysis_date || new Date().toISOString(),
-    previous_value: b.value * 0.95, // Demo previous value
-    trend: b.value > (b.value * 0.95) ? "up" : "stable",
-  }));
+  // Load biomarker metadata from database to get normal ranges, units, etc.
+  const { data: biomarkersMetadata } = await supabase
+    .from('biomarkers')
+    .select('code, name, unit, description, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, age_ranges')
+    .in('code', demoBiomarkers.map(b => b.code));
+
+  const metadataMap = new Map(
+    (biomarkersMetadata || []).map(bm => [bm.code, bm])
+  );
+
+  const biomarkersWithMeta = demoBiomarkers.map((b: any) => {
+    const meta = metadataMap.get(b.code);
+    return {
+      id: b.code,
+      name: meta?.name || b.code,
+      code: b.code,
+      category: b.category,
+      unit: meta?.unit || "",
+      description: meta?.description ?? null,
+      normal_min: meta?.normal_min ?? null,
+      normal_max: meta?.normal_max ?? null,
+      normal_min_male: meta?.normal_min_male ?? null,
+      normal_max_male: meta?.normal_max_male ?? null,
+      normal_min_female: meta?.normal_min_female ?? null,
+      normal_max_female: meta?.normal_max_female ?? null,
+      age_ranges: meta?.age_ranges ?? null,
+      latest_value: b.value,
+      latest_date: demoProfile.analysis_date || new Date().toISOString(),
+      previous_value: b.value * 0.95, // Demo previous value
+      trend: b.value > (b.value * 0.95) ? "up" : "stable",
+    };
+  });
 
   const grouped = biomarkersWithMeta.reduce((acc: any, biomarker: any) => {
     const category = biomarker.category;

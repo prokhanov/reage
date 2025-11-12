@@ -66,7 +66,7 @@ export default function Biomarkers() {
           .select("name, display_order")
           .order("display_order");
 
-        const transformed = transformDemoBiomarkersToDisplay(
+        const transformed = await transformDemoBiomarkersToDisplay(
           demoData.biomarkers,
           demoData.analysis,
           categoriesData || []
