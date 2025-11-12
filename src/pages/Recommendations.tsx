@@ -92,27 +92,54 @@ export default function Recommendations() {
         return;
       }
       
-      const latestAnalysis = demoData.analyses[demoData.analyses.length - 1];
-      const demoRecommendations = demoData.recommendations.map((r: any, idx: number) => ({
-        id: `demo-rec-${idx}`,
-        type: r.type,
-        text: r.text,
-        created_at: latestAnalysis.analysis_date,
-        analysis_date: latestAnalysis.analysis_date,
-        analysis_status: "processed" as const,
-        analysis_id: `demo-analysis-${demoData.analyses.length - 1}`
-      }));
+      // Group recommendations by analysis_index
+      const groupedByAnalysis = demoData.recommendations.reduce((acc: any, r: any) => {
+        const analysisIndex = r.analysis_index ?? 0;
+        if (!acc[analysisIndex]) {
+          acc[analysisIndex] = [];
+        }
+        acc[analysisIndex].push(r);
+        return acc;
+      }, {});
       
-      setRecommendations(demoRecommendations);
+      // Create separate reports for each analysis
+      const demoReports = Object.entries(groupedByAnalysis)
+        .map(([analysisIndexStr, recs]: [string, any]) => {
+          const analysisIndex = parseInt(analysisIndexStr);
+          const analysis = demoData.analyses[analysisIndex];
+          
+          if (!analysis) {
+            console.warn(`Analysis not found for index ${analysisIndex}`);
+            return null;
+          }
+          
+          const recommendations = recs.map((r: any, idx: number) => ({
+            id: `demo-rec-${analysisIndex}-${idx}`,
+            type: r.type,
+            text: r.text,
+            created_at: analysis.analysis_date,
+            analysis_date: analysis.analysis_date,
+            analysis_status: "processed" as const,
+            analysis_id: `demo-analysis-${analysisIndex}`
+          }));
+          
+          return {
+            date: analysis.analysis_date,
+            recommendations,
+            count: recommendations.length,
+            analysisId: `demo-analysis-${analysisIndex}`
+          };
+        })
+        .filter(Boolean) as RecommendationReport[];
       
-      const demoReport: RecommendationReport = {
-        date: latestAnalysis.analysis_date,
-        recommendations: demoRecommendations,
-        count: demoRecommendations.length,
-        analysisId: `demo-analysis-${demoData.analyses.length - 1}`
-      };
+      // Sort by date descending (newest first)
+      demoReports.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      setReports([demoReport]);
+      // Flatten all recommendations for the recommendations state
+      const allDemoRecommendations = demoReports.flatMap(report => report.recommendations);
+      
+      setRecommendations(allDemoRecommendations);
+      setReports(demoReports);
       setLoading(false);
       return;
     }
@@ -180,14 +207,21 @@ export default function Recommendations() {
     
     // Загружаем назначения для этого анализа
     if (demoMode && demoData?.prescriptions) {
-      // В демо-режиме используем данные из demoData
-      setSelectedPrescriptions(demoData.prescriptions.map((p: any, idx: number) => ({
-        id: `demo-presc-${idx}`,
-        prescription: p.prescription,
-        effect: p.effect,
-        control_date: p.control_date,
-        status: "confirmed" as const
-      })));
+      // Extract analysis index from analysisId (format: "demo-analysis-{index}")
+      const analysisIndex = report.analysisId ? parseInt(report.analysisId.split('-')[2]) : 0;
+      
+      // Filter prescriptions for this specific analysis
+      const filteredPrescriptions = demoData.prescriptions
+        .filter((p: any) => (p.analysis_index ?? 0) === analysisIndex)
+        .map((p: any, idx: number) => ({
+          id: `demo-presc-${analysisIndex}-${idx}`,
+          prescription: p.prescription,
+          effect: p.effect,
+          control_date: p.control_date,
+          status: "confirmed" as const
+        }));
+      
+      setSelectedPrescriptions(filteredPrescriptions);
     } else if (report.analysisId) {
       try {
         const { data, error } = await supabase
