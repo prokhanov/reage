@@ -65,11 +65,11 @@ export function BiologicalAgeCircle({
       particles.push({
         x: centerX + Math.cos(angle) * distance,
         y: centerY + Math.sin(angle) * distance,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        radius: Math.random() * 2.5 + 1,
-        opacity: Math.random() * 0.6 + 0.3,
-        hue: color.hue + (Math.random() - 0.5) * 30,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        radius: Math.random() * 1.5 + 0.8,
+        opacity: Math.random() * 0.25 + 0.15,
+        hue: color.hue + (Math.random() - 0.5) * 20,
       });
     }
 
@@ -89,54 +89,36 @@ export function BiologicalAgeCircle({
         const dy = particle.y - centerY;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Bounce particles within circle
-        if (distance > radius - 10) {
+        // Bounce particles within circle smoothly
+        if (distance > radius - 20) {
           const angle = Math.atan2(dy, dx);
-          particle.x = centerX + Math.cos(angle) * (radius - 10);
-          particle.y = centerY + Math.sin(angle) * (radius - 10);
-          particle.vx *= -0.8;
-          particle.vy *= -0.8;
+          particle.x = centerX + Math.cos(angle) * (radius - 20);
+          particle.y = centerY + Math.sin(angle) * (radius - 20);
+          particle.vx *= -0.5;
+          particle.vy *= -0.5;
         }
 
-        // Gentle pulsing effect
-        const pulse = Math.sin(time + particle.x * 0.01) * 0.3 + 1;
+        // Very gentle pulsing effect
+        const pulse = Math.sin(time * 0.5 + particle.x * 0.005) * 0.15 + 1;
 
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.radius * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particle.hue}, ${color.sat}%, ${color.light}%, ${particle.opacity})`;
+        ctx.fillStyle = `hsla(${particle.hue}, ${color.sat - 10}%, ${color.light}%, ${particle.opacity})`;
         ctx.fill();
 
-        // Add glow to particles
+        // Soft glow to particles
         const particleGlow = ctx.createRadialGradient(
           particle.x,
           particle.y,
           0,
           particle.x,
           particle.y,
-          particle.radius * pulse * 3
+          particle.radius * pulse * 4
         );
-        particleGlow.addColorStop(0, `hsla(${particle.hue}, ${color.sat}%, ${color.light + 10}%, ${particle.opacity * 0.4})`);
-        particleGlow.addColorStop(1, `hsla(${particle.hue}, ${color.sat}%, ${color.light}%, 0)`);
+        particleGlow.addColorStop(0, `hsla(${particle.hue}, ${color.sat - 10}%, ${color.light + 5}%, ${particle.opacity * 0.3})`);
+        particleGlow.addColorStop(1, `hsla(${particle.hue}, ${color.sat - 10}%, ${color.light}%, 0)`);
         ctx.fillStyle = particleGlow;
         ctx.fill();
-      });
-
-      // Draw connections between nearby particles
-      particles.forEach((p1, i) => {
-        particles.slice(i + 1).forEach((p2) => {
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 60) {
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `hsla(${color.hue}, ${color.sat}%, ${color.light}%, ${(1 - distance / 60) * 0.2})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
       });
 
       // Draw main circle border with gradient
