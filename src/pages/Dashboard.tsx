@@ -457,9 +457,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Central Bio Age Circle */}
+        {/* Central Bio Age Circle - Combined Card */}
         <Card className="border-border bg-card backdrop-blur-sm">
-          <CardContent className="pt-8 pb-12">
+          <CardContent className="pt-8 pb-6">
             {/* Title */}
             <h2 className="text-2xl font-bold text-center text-foreground mb-8">
               Ваш биологический возраст
@@ -604,17 +604,22 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Bottom Section - Next Analysis + Health Percentile */}
+            <div className="mt-8 pt-8 border-t border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Next Analysis - Inline */}
+                <NextAnalysisCard userId={profile?.id} />
+                
+                {/* Health Percentile - Inline */}
+                <HealthPercentileCard 
+                  biologicalAge={displayBiologicalAge}
+                  chronologicalAge={chronologicalAge}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
-
-        {/* Quick Stats Grid - 3 columns on desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <NextAnalysisCard userId={profile?.id} />
-          <HealthPercentileCard 
-            biologicalAge={displayBiologicalAge}
-            chronologicalAge={chronologicalAge}
-          />
-        </div>
 
         {/* System Health Grid - 2/3 + 1/3 layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
