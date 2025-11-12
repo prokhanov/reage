@@ -5,17 +5,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
   User, Mail, Calendar, Ruler, Heart, Edit2, LogOut, 
-  Shield, Activity
+  Shield, Activity, AlertCircle, Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { useDemoMode } from "@/hooks/useDemoMode";
 
 interface Profile {
   name: string;
@@ -33,6 +36,7 @@ interface MedicalCondition {
 
 export default function Profile() {
   const { getUserId, isViewMode } = useViewAsUser();
+  const { demoMode, toggleDemoMode } = useDemoMode();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState("");
   const [medicalHistory, setMedicalHistory] = useState<MedicalCondition[]>([]);
@@ -41,6 +45,7 @@ export default function Profile() {
   const [editMedicalOpen, setEditMedicalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [nextAnalysisDate, setNextAnalysisDate] = useState<string | null>(null);
+  const [hasAnalyses, setHasAnalyses] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,7 +53,24 @@ export default function Profile() {
     loadProfile();
     loadMedicalHistory();
     loadNextAnalysisDate();
+    checkHasAnalyses();
   }, []);
+
+  const checkHasAnalyses = async () => {
+    try {
+      const uid = await getUserId();
+      if (!uid) return;
+
+      const { count } = await supabase
+        .from('analyses')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', uid);
+
+      setHasAnalyses(count ? count > 0 : false);
+    } catch (error) {
+      console.error('Error checking analyses:', error);
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -321,6 +343,58 @@ export default function Profile() {
                 ))}
               </div>
             )}
+          </Card>
+
+          {/* Demo Mode Card */}
+          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Демо-режим</h2>
+                <p className="text-sm text-muted-foreground">
+                  Показывать примерные данные вместо реальных
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-lg bg-background/50 border border-border/50">
+                <Label htmlFor="demo-mode" className="cursor-pointer">
+                  <div className="space-y-1">
+                    <div className="font-medium">Демо-режим</div>
+                    <div className="text-sm text-muted-foreground">
+                      Автоматически отключается при добавлении первого анализа
+                    </div>
+                  </div>
+                </Label>
+                <Switch
+                  id="demo-mode"
+                  checked={demoMode}
+                  onCheckedChange={toggleDemoMode}
+                  disabled={hasAnalyses}
+                />
+              </div>
+
+              {hasAnalyses && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Демо-режим недоступен, так как у вас уже есть реальные анализы.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {!hasAnalyses && !demoMode && (
+                <Alert className="bg-primary/5 border-primary/20">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <AlertDescription>
+                    Включите демо-режим, чтобы увидеть, как будет выглядеть приложение с вашими данными.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
           </Card>
 
           {/* Security Card */}

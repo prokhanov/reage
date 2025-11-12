@@ -16,10 +16,13 @@ import { WeightTracker } from "@/components/WeightTracker";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [analysesCount, setAnalysesCount] = useState(0);
@@ -57,9 +60,18 @@ export default function Dashboard() {
     if (profile) {
       fetchAnalysesStats();
       fetchBodyHeatmapData();
-      fetchRiskZones();
+      if (!demoMode) {
+        fetchRiskZones();
+      }
     }
-  }, [profile]);
+  }, [profile, demoMode]);
+
+  useEffect(() => {
+    if (demoMode && demoData) {
+      setRiskData(demoData.risk_zones);
+      setNeedsRefresh(false);
+    }
+  }, [demoMode, demoData]);
 
   const fetchAnalysesStats = async () => {
     if (!viewAsUserId) return;
@@ -313,7 +325,7 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) {
+  if (loading || demoLoading) {
     return (
       <div className="p-4 md:p-8">
         <DashboardSkeleton />
@@ -321,12 +333,30 @@ export default function Dashboard() {
     );
   }
 
-  const chronologicalAge = profile?.birth_date ? calculateAge(profile.birth_date) : null;
-  const ageDifference = latestBioAge && chronologicalAge ? chronologicalAge - latestBioAge : null;
-  const circleProgress = latestHealthIndex ? latestHealthIndex : 0;
+  // Use demo data if demo mode is active
+  const displayBioAge = demoMode && demoData ? demoData.analysis.biological_age : latestBioAge;
+  const displayHealthIndex = demoMode && demoData ? demoData.analysis.health_index : latestHealthIndex;
+  const displayAnalysesCount = demoMode && demoData ? 1 : analysesCount;
+  const displayAgingRate = demoMode && demoData ? demoData.analysis.ai_analysis.aging_rate : agingRate;
+  const displayBiomarkersMetadata = demoMode && demoData ? { ai_analysis: demoData.analysis.ai_analysis } : latestBiomarkersMetadata;
+  const displayBodyHeatmap = demoMode && demoData ? demoData.biomarkers.map((b: any) => ({
+    name: b.code,
+    category: b.category,
+    value: b.value,
+    normal_min: null,
+    normal_max: null
+  })) : bodyHeatmapData;
+
+  const chronologicalAge = profile?.birth_date ? calculateAge(profile.birth_date) : (demoMode && demoData ? demoData.profile.chronological_age : null);
+  const ageDifference = displayBioAge && chronologicalAge ? chronologicalAge - displayBioAge : null;
+  const circleProgress = displayHealthIndex ? displayHealthIndex : 0;
 
   return (
-    <div className="p-4 md:p-8 space-y-6">{/* Header */}
+    <div className="p-4 md:p-8 space-y-6">
+      {/* Demo Banner */}
+      {demoMode && <DemoBanner />}
+
+      {/* Header */}
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Добро пожаловать, {profile?.name}
@@ -337,7 +367,7 @@ export default function Dashboard() {
         </div>
 
         {/* Data Status Alerts */}
-        {analysesCount === 0 && (
+        {!demoMode && displayAnalysesCount === 0 && (
           <div className="rounded-lg border border-border bg-card p-4">
             <div className="flex items-start gap-3">
               <Activity className="h-5 w-5 text-muted-foreground mt-0.5" />
@@ -351,7 +381,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {analysesCount > 0 && latestBioAge === null && (
+        {!demoMode && displayAnalysesCount > 0 && displayBioAge === null && (
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
             <div className="flex items-start gap-3">
               <Activity className="h-5 w-5 text-amber-500 mt-0.5" />
@@ -552,7 +582,7 @@ export default function Dashboard() {
                   <h3 className="text-xl font-semibold text-foreground">
                     Ваш биологический возраст
                   </h3>
-                  {latestBioAge && chronologicalAge && ageDifference !== null ? (
+                  {displayBioAge && chronologicalAge && ageDifference !== null ? (
                     <>
                     {ageDifference > 0 ? (
                       <p className="text-lg text-status-good animate-fade-in">
@@ -580,29 +610,29 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 justify-center lg:justify-start">
                     <Heart className="h-5 w-5 text-accent" />
                     <span className="text-sm text-muted-foreground">Индекс здоровья:</span>
-                    <span className="text-2xl font-bold text-foreground">{latestHealthIndex || "—"}</span>
+                    <span className="text-2xl font-bold text-foreground">{displayHealthIndex || "—"}</span>
                     <span className="text-sm text-muted-foreground">/100</span>
                   </div>
                   
                   {/* Интерпретация значения */}
-                  {latestHealthIndex !== null && (
+                  {displayHealthIndex !== null && (
                     <div className="flex justify-center lg:justify-start">
-                      {latestHealthIndex >= 85 && (
+                      {displayHealthIndex >= 85 && (
                         <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
                           Отличное здоровье
                         </Badge>
                       )}
-                      {latestHealthIndex >= 70 && latestHealthIndex < 85 && (
+                      {displayHealthIndex >= 70 && displayHealthIndex < 85 && (
                         <Badge variant="secondary">
                           Хорошее здоровье
                         </Badge>
                       )}
-                      {latestHealthIndex >= 50 && latestHealthIndex < 70 && (
+                      {displayHealthIndex >= 50 && displayHealthIndex < 70 && (
                         <Badge variant="outline" className="border-yellow-500/50 text-yellow-700 dark:text-yellow-400">
                           Умеренные отклонения
                         </Badge>
                       )}
-                      {latestHealthIndex < 50 && (
+                      {displayHealthIndex < 50 && (
                         <Badge variant="destructive">
                           Требуется внимание
                         </Badge>
@@ -611,7 +641,7 @@ export default function Dashboard() {
                   )}
 
                   {/* Расшифровка расчета если есть AI */}
-                  {latestHealthIndex !== null && latestBiomarkersMetadata?.ai_analysis?.explanation && (
+                  {displayHealthIndex !== null && displayBiomarkersMetadata?.ai_analysis?.explanation && (
                     <Alert className="bg-card/50 border-border/50">
                       <Info className="h-4 w-4" />
                       <AlertDescription className="text-xs text-muted-foreground">
@@ -628,14 +658,14 @@ export default function Dashboard() {
                       <Activity className="h-4 w-4 text-primary" />
                       <span className="text-sm text-muted-foreground">Анализов</span>
                     </div>
-                    <span className="text-xl font-bold text-foreground">{analysesCount}</span>
+                    <span className="text-xl font-bold text-foreground">{displayAnalysesCount}</span>
                   </div>
                   <div className="flex flex-col items-center lg:items-start gap-1">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-status-good" />
                       <span className="text-sm text-muted-foreground">Скорость</span>
                     </div>
-                    <span className="text-xl font-bold text-foreground">{agingRate ? agingRate.toFixed(2) : "—"}</span>
+                    <span className="text-xl font-bold text-foreground">{displayAgingRate ? displayAgingRate.toFixed(2) : "—"}</span>
                   </div>
                 </div>
               </div>
@@ -673,16 +703,16 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className={`text-3xl font-bold ${
-                agingRate && agingRate < 1 
+                displayAgingRate && displayAgingRate < 1 
                   ? "text-status-good" 
-                  : agingRate && agingRate > 1
+                  : displayAgingRate && displayAgingRate > 1
                   ? "text-status-danger"
                   : "text-foreground"
               }`}>
-                {agingRate ? agingRate.toFixed(2) : "—"}
+                {displayAgingRate ? displayAgingRate.toFixed(2) : "—"}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {agingRate ? (agingRate < 1 ? "Медленнее нормы" : agingRate > 1 ? "Быстрее нормы" : "Норма") : "Требуется анализ"}
+                {displayAgingRate ? (displayAgingRate < 1 ? "Медленнее нормы" : displayAgingRate > 1 ? "Быстрее нормы" : "Норма") : "Требуется анализ"}
               </p>
             </CardContent>
           </Card>
@@ -706,7 +736,7 @@ export default function Dashboard() {
               <Activity className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">{analysesCount}</div>
+              <div className="text-3xl font-bold text-foreground">{displayAnalysesCount}</div>
               <p className="text-xs text-muted-foreground mt-1">За всё время</p>
             </CardContent>
           </Card>
@@ -721,9 +751,9 @@ export default function Dashboard() {
             <CardTitle className="text-lg">Карта тела</CardTitle>
           </CardHeader>
           <CardContent>
-            {bodyHeatmapData.length > 0 ? (
+            {displayBodyHeatmap.length > 0 ? (
               <BodyHeatmap 
-                biomarkerData={bodyHeatmapData} 
+                biomarkerData={displayBodyHeatmap} 
                 patientAge={chronologicalAge} 
                 patientGender={profile?.gender as 'male' | 'female' | undefined}
               />
@@ -752,30 +782,32 @@ export default function Dashboard() {
         </div>
 
         {/* Update Strategy Button */}
-        <div className="flex justify-end">
-          <Button
-            onClick={generateAnalysis}
-            disabled={analyzing}
-            variant={needsRefresh ? "default" : "outline"}
-          >
-            {analyzing ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Анализируем...
-              </>
-            ) : needsRefresh ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Доступно обновление
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Обновить стратегию
-              </>
-            )}
-          </Button>
-        </div>
+        {!demoMode && (
+          <div className="flex justify-end">
+            <Button
+              onClick={generateAnalysis}
+              disabled={analyzing}
+              variant={needsRefresh ? "default" : "outline"}
+            >
+              {analyzing ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Анализируем...
+                </>
+              ) : needsRefresh ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Доступно обновление
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Обновить стратегию
+                </>
+              )}
+            </Button>
+          </div>
+        )}
 
         {/* Alert if no biomarkers in risk analysis */}
         {riskData && !riskData.has_biomarkers && (

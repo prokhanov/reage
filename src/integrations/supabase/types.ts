@@ -396,6 +396,33 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_data_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          female_data: Json
+          id: string
+          male_data: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          female_data: Json
+          id?: string
+          male_data: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          female_data?: Json
+          id?: string
+          male_data?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       invite_tokens: {
         Row: {
           created_at: string
@@ -599,6 +626,7 @@ export type Database = {
         Row: {
           birth_date: string
           created_at: string
+          demo_mode_enabled: boolean | null
           email: string | null
           first_name: string
           gender: string
@@ -614,6 +642,7 @@ export type Database = {
         Insert: {
           birth_date: string
           created_at?: string
+          demo_mode_enabled?: boolean | null
           email?: string | null
           first_name: string
           gender: string
@@ -629,6 +658,7 @@ export type Database = {
         Update: {
           birth_date?: string
           created_at?: string
+          demo_mode_enabled?: boolean | null
           email?: string | null
           first_name?: string
           gender?: string
