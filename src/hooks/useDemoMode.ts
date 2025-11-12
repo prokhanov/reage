@@ -37,27 +37,41 @@ export const useDemoMode = () => {
     const genderData = userProfile.gender === 'male' ? templateData.male_data : templateData.female_data;
     
     const userAge = userProfile.birth_date ? calculateAge(userProfile.birth_date) : null;
+    const templateAge = genderData.profile.birth_date ? calculateAge(genderData.profile.birth_date) : 45;
     
     // Adapt profile data
     const adaptedProfile = {
       ...genderData.profile,
-      chronological_age: userAge || genderData.profile.chronological_age,
+      chronological_age: userAge || templateAge,
       weight: userProfile.weight || genderData.profile.weight,
       height: userProfile.height || genderData.profile.height,
       gender: userProfile.gender
     };
 
-    // Adapt analyses array - adjust biological ages based on user's actual age if available
-    const adaptedAnalyses = (genderData.analyses || []).map((analysis: any) => {
+    // Calculate dates relative to current date (last 9 months: 4 analyses with 3-month intervals)
+    const today = new Date();
+    const analysisIntervalMonths = 3;
+    const numberOfAnalyses = 4;
+    
+    // Adapt analyses array - adjust biological ages and dates
+    const adaptedAnalyses = (genderData.analyses || []).map((analysis: any, index: number) => {
+      // Calculate date: most recent analysis is today, each previous one is 3 months earlier
+      const monthsBack = (numberOfAnalyses - 1 - index) * analysisIntervalMonths;
+      const analysisDate = new Date(today);
+      analysisDate.setMonth(analysisDate.getMonth() - monthsBack);
+      
+      // Adjust biological age if user age is available
+      let biologicalAge = analysis.biological_age;
       if (userAge) {
-        // Maintain the same delta from chronological age
-        const originalDelta = analysis.biological_age - genderData.profile.chronological_age;
-        return {
-          ...analysis,
-          biological_age: userAge + originalDelta
-        };
+        const originalDelta = analysis.biological_age - templateAge;
+        biologicalAge = userAge + originalDelta;
       }
-      return analysis;
+      
+      return {
+        ...analysis,
+        date: analysisDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
+        biological_age: biologicalAge
+      };
     });
 
     return {
