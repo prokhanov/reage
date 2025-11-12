@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface DemoData {
   profile: any;
@@ -28,6 +29,7 @@ export const useDemoMode = () => {
   const [demoData, setDemoData] = useState<DemoData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { getUserId } = useViewAsUser();
 
   useEffect(() => {
     fetchDemoModeStatus();
@@ -88,8 +90,8 @@ export const useDemoMode = () => {
 
   const fetchDemoModeStatus = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const userId = await getUserId();
+      if (!userId) {
         setLoading(false);
         return;
       }
@@ -97,7 +99,7 @@ export const useDemoMode = () => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('demo_mode_enabled, gender, birth_date, weight, height')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
       if (profile?.demo_mode_enabled) {
@@ -132,14 +134,14 @@ export const useDemoMode = () => {
 
   const toggleDemoMode = async (enabled: boolean) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const userId = await getUserId();
+      if (!userId) return false;
 
       if (enabled) {
         const { count } = await supabase
           .from('analyses')
           .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
 
         if (count && count > 0) {
           toast({
@@ -154,7 +156,7 @@ export const useDemoMode = () => {
       const { error } = await supabase
         .from('profiles')
         .update({ demo_mode_enabled: enabled })
-        .eq('id', user.id);
+        .eq('id', userId);
 
       if (error) throw error;
 
@@ -163,7 +165,7 @@ export const useDemoMode = () => {
         const { data: profile } = await supabase
           .from('profiles')
           .select('gender, birth_date, weight, height')
-          .eq('id', user.id)
+          .eq('id', userId)
           .single();
         
         if (profile) {
