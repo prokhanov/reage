@@ -266,16 +266,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* Theme Toggle */}
-          <div className="p-2 border-t border-border/30">
-            {isOpen ? (
-              <div className="px-2">
-                <ThemeToggle />
-              </div>
-            ) : (
-              <div className="flex justify-center py-2">
-                <ThemeToggle />
-              </div>
-            )}
+          <div className="p-2 border-t border-border/30 flex justify-center">
+            <ThemeToggle />
           </div>
 
           {/* User Profile & Logout */}

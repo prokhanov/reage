@@ -1,7 +1,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -13,35 +13,42 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full justify-start gap-3 px-4 py-2.5"
+      <button
+        className="relative w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center"
+        disabled
       >
-        <Sun className="h-4 w-4" />
-        <span className="font-medium">Тема</span>
-      </Button>
+        <Sun className="h-4 w-4 text-muted-foreground" />
+      </button>
     );
   }
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
+    <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-full justify-start gap-3 px-4 py-2.5 hover:bg-primary/10 hover:text-primary transition-all duration-200"
-    >
-      {theme === "dark" ? (
-        <>
-          <Sun className="h-4 w-4" />
-          <span className="font-medium">Светлая тема</span>
-        </>
-      ) : (
-        <>
-          <Moon className="h-4 w-4" />
-          <span className="font-medium">Темная тема</span>
-        </>
+      className={cn(
+        "relative w-10 h-10 rounded-full transition-all duration-300 ease-in-out",
+        "bg-gradient-to-br from-primary/20 to-primary/10",
+        "hover:from-primary/30 hover:to-primary/20 hover:scale-110",
+        "active:scale-95",
+        "border border-primary/20 hover:border-primary/40",
+        "shadow-sm hover:shadow-md"
       )}
-    </Button>
+      title={theme === "dark" ? "Переключить на светлую тему" : "Переключить на тёмную тему"}
+    >
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Sun
+          className={cn(
+            "absolute h-4 w-4 text-primary transition-all duration-300",
+            theme === "dark" ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
+          )}
+        />
+        <Moon
+          className={cn(
+            "absolute h-4 w-4 text-primary transition-all duration-300",
+            theme === "dark" ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
+          )}
+        />
+      </div>
+    </button>
   );
 }
