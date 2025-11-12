@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
@@ -19,6 +19,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
+import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
+import { HealthTrendsCard } from "@/components/dashboard/HealthTrendsCard";
+import { HealthPercentileCard } from "@/components/dashboard/HealthPercentileCard";
+import { NextAnalysisCard } from "@/components/dashboard/NextAnalysisCard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -33,6 +37,7 @@ export default function Dashboard() {
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
   const [agingRate, setAgingRate] = useState<number | null>(null);
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
+  const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
   const [bodyHeatmapData, setBodyHeatmapData] = useState<any[]>([]);
   const [riskData, setRiskData] = useState<any>(null);
   const [needsRefresh, setNeedsRefresh] = useState(false);
@@ -86,6 +91,15 @@ export default function Dashboard() {
         .eq('user_id', viewAsUserId);
 
       setAnalysesCount(totalCount || 0);
+
+      // Get all analyses for trends
+      const { data: allAnalysesData } = await supabase
+        .from('analyses')
+        .select('*')
+        .eq('user_id', viewAsUserId)
+        .order('date', { ascending: true });
+
+      setAllAnalyses(allAnalysesData || []);
 
       // Get latest analysis for biological age
       const { data: latestAnalysis } = await supabase
@@ -362,6 +376,43 @@ export default function Dashboard() {
   const ageDifference = displayBioAge && chronologicalAge ? chronologicalAge - displayBioAge : null;
   const circleProgress = displayHealthIndex ? displayHealthIndex : 0;
 
+  // Calculate progress metrics
+  const analyses = demoMode && demoData ? demoData.analyses : allAnalyses;
+  let displayRecentChange: number | null = null;
+  let displayRecentPeriod: string | null = null;
+  let displayTotalProgress: number | null = null;
+
+  if (analyses && analyses.length >= 2) {
+    const sortedAnalyses = [...analyses].sort((a: any, b: any) => 
+      new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
+    );
+
+    const latest = sortedAnalyses[sortedAnalyses.length - 1];
+    const secondLatest = sortedAnalyses[sortedAnalyses.length - 2];
+    const first = sortedAnalyses[0];
+
+    const latestBioAge = latest.biological_age;
+    const secondLatestBioAge = secondLatest.biological_age;
+    const firstBioAge = first.biological_age;
+
+    displayRecentChange = latestBioAge && secondLatestBioAge ? latestBioAge - secondLatestBioAge : null;
+    
+    // Calculate period between last two analyses
+    const latestDate = new Date(latest.date || latest.analysis_date);
+    const secondLatestDate = new Date(secondLatest.date || secondLatest.analysis_date);
+    const monthsDiff = Math.round((latestDate.getTime() - secondLatestDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+    displayRecentPeriod = monthsDiff > 0 ? `за ${monthsDiff} ${monthsDiff === 1 ? 'месяц' : monthsDiff < 5 ? 'месяца' : 'месяцев'}` : null;
+
+    displayTotalProgress = latestBioAge && firstBioAge ? latestBioAge - firstBioAge : null;
+  }
+
+  // Additional display variables
+  const displayBiologicalAge = displayBioAge;
+  const displayCategoryScores = demoMode && latestDemoAnalysis 
+    ? latestDemoAnalysis.biomarkers_metadata?.ai_analysis?.category_scores 
+    : latestBiomarkersMetadata?.ai_analysis?.category_scores;
+  const displayAllAnalyses = analyses || [];
+
   return (
     <div className="p-4 md:p-8 space-y-6">
       {/* Demo Banner */}
@@ -503,11 +554,50 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
-                    <TrendingUp className="h-5 w-5 text-status-good flex-shrink-0" />
+                    <TrendingUp className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
                     <div className="flex-1">
-                      <div className="text-sm text-muted-foreground">Скорость старения</div>
-                      <div className="text-2xl font-bold text-foreground">
-                        {displayAgingRate ? `${displayAgingRate.toFixed(2)}x` : "—"}
+                      <div className="text-sm text-muted-foreground">Динамика</div>
+                      <div className={`text-2xl font-bold ${
+                        displayRecentChange && displayRecentChange < 0 
+                          ? "text-status-good" 
+                          : displayRecentChange && displayRecentChange > 0
+                          ? "text-status-danger"
+                          : "text-foreground"
+                      }`}>
+                        {displayRecentChange !== null 
+                          ? `${displayRecentChange > 0 ? '+' : ''}${displayRecentChange.toFixed(1)} лет`
+                          : "—"
+                        }
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {displayRecentPeriod || "за последний период"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
+                    <Trophy className="h-5 w-5 flex-shrink-0 text-primary" />
+                    <div className="flex-1">
+                      <div className="text-sm text-muted-foreground">Общий прогресс</div>
+                      <div className={`text-2xl font-bold ${
+                        displayTotalProgress && displayTotalProgress < 0 
+                          ? "text-status-good" 
+                          : displayTotalProgress && displayTotalProgress > 0
+                          ? "text-status-danger"
+                          : "text-foreground"
+                      }`}>
+                        {displayTotalProgress !== null 
+                          ? `${displayTotalProgress > 0 ? '+' : ''}${displayTotalProgress.toFixed(1)} лет`
+                          : "—"
+                        }
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {displayTotalProgress !== null 
+                          ? displayTotalProgress < 0 
+                            ? "помолодели" 
+                            : "постарели"
+                          : "за всё время"
+                        }
                       </div>
                     </div>
                   </div>
@@ -517,74 +607,24 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Secondary Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Разница в возрасте</CardTitle>
-              <Brain className="h-5 w-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${
-                ageDifference && ageDifference > 0 
-                  ? "text-status-good" 
-                  : ageDifference && ageDifference < 0
-                  ? "text-status-danger"
-                  : "text-foreground"
-              }`}>
-                {ageDifference !== null ? (ageDifference > 0 ? `−${ageDifference.toFixed(1)}` : `+${Math.abs(ageDifference).toFixed(1)}`) : "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {ageDifference !== null ? "лет от паспортного" : "Требуется анализ"}
-              </p>
-            </CardContent>
-          </Card>
+        {/* Next Analysis Card */}
+        <NextAnalysisCard userId={profile?.id} />
 
-          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Скорость старения</CardTitle>
-              <Activity className="h-5 w-5 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${
-                displayAgingRate && displayAgingRate < 1 
-                  ? "text-status-good" 
-                  : displayAgingRate && displayAgingRate > 1
-                  ? "text-status-danger"
-                  : "text-foreground"
-              }`}>
-                {displayAgingRate ? displayAgingRate.toFixed(2) : "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {displayAgingRate ? (displayAgingRate < 1 ? "Медленнее нормы" : displayAgingRate > 1 ? "Быстрее нормы" : "Норма") : "Требуется анализ"}
-              </p>
-            </CardContent>
-          </Card>
+        {/* Health Percentile */}
+        <HealthPercentileCard 
+          biologicalAge={displayBiologicalAge}
+          chronologicalAge={chronologicalAge}
+        />
 
-          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Тренд за месяц</CardTitle>
-              <TrendingUp className="h-5 w-5 text-status-good" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">
-                {ageTrend || "—"}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Изменение возраста</p>
-            </CardContent>
-          </Card>
+        {/* System Ratings */}
+        <SystemRatingsCard 
+          categoryScores={displayCategoryScores}
+        />
 
-          <Card className="border-border bg-card backdrop-blur-sm hover:border-primary/30 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Всего анализов</CardTitle>
-              <Activity className="h-5 w-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">{displayAnalysesCount}</div>
-              <p className="text-xs text-muted-foreground mt-1">За всё время</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Health Trends */}
+        <HealthTrendsCard 
+          analyses={displayAllAnalyses}
+        />
 
         {/* Weight Tracker */}
         <WeightTracker />
