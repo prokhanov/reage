@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Menu, PanelLeftOpen } from "lucide-react";
 import reAgeLogo from "@/assets/reage-logo.png";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
+import { useDemoMode } from "@/hooks/useDemoMode";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { demoMode } = useDemoMode();
 
   // Set initial state based on screen size
   useEffect(() => {
@@ -28,7 +30,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           variant="outline"
           size="icon"
           onClick={() => setSidebarOpen(true)}
-          className="hidden lg:flex fixed top-4 left-4 z-40 bg-secondary/90 backdrop-blur-xl border-border/50 hover:bg-secondary hover:border-primary/50 transition-all"
+          className={`hidden lg:flex fixed left-4 z-40 bg-secondary/90 backdrop-blur-xl border-border/50 hover:bg-secondary hover:border-primary/50 transition-all ${demoMode ? 'top-20' : 'top-4'}`}
           title="Открыть боковую панель"
         >
           <PanelLeftOpen className="h-5 w-5" />
