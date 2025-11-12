@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle, ChevronLeft } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,7 +145,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 className="w-full flex justify-center p-2 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
                 title="Развернуть боковую панель"
               >
-                <img src={reAgeLogo} alt="ReAge" className="h-8 w-8 object-contain" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             )}
           </div>
@@ -265,11 +265,6 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             )}
           </nav>
 
-          {/* Theme Toggle */}
-          <div className="p-2 border-t border-border/30 flex justify-center">
-            <ThemeToggle />
-          </div>
-
           {/* User Profile & Logout */}
           <div className="p-2 border-t border-border/30 space-y-1">
             {viewAsUserId ? (
@@ -331,6 +326,14 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {isOpen && <span className="font-medium">Выход</span>}
               </button>
             )}
+
+            {/* Theme Toggle */}
+            <div className={cn(
+              "border-t border-border/30 mt-1",
+              isOpen ? "pt-1" : "flex justify-center pt-2"
+            )}>
+              <ThemeToggle isOpen={isOpen} />
+            </div>
           </div>
         </div>
       </aside>

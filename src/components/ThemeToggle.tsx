@@ -1,9 +1,14 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  isOpen?: boolean;
+}
+
+export function ThemeToggle({ isOpen = true }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -12,43 +17,46 @@ export function ThemeToggle() {
   }, []);
 
   if (!mounted) {
+    return null;
+  }
+
+  const isDark = theme === "dark";
+
+  if (!isOpen) {
     return (
       <button
-        className="relative w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center"
-        disabled
+        onClick={() => setTheme(isDark ? "light" : "dark")}
+        className="p-2 rounded-lg hover:bg-primary/10 transition-colors"
+        title={isDark ? "Светлая тема" : "Тёмная тема"}
       >
-        <Sun className="h-4 w-4 text-muted-foreground" />
+        {isDark ? (
+          <Moon className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <Sun className="h-4 w-4 text-muted-foreground" />
+        )}
       </button>
     );
   }
 
   return (
-    <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className={cn(
-        "relative w-10 h-10 rounded-full transition-all duration-300 ease-in-out",
-        "bg-gradient-to-br from-primary/20 to-primary/10",
-        "hover:from-primary/30 hover:to-primary/20 hover:scale-110",
-        "active:scale-95",
-        "border border-primary/20 hover:border-primary/40",
-        "shadow-sm hover:shadow-md"
-      )}
-      title={theme === "dark" ? "Переключить на светлую тему" : "Переключить на тёмную тему"}
-    >
-      <div className="relative w-full h-full flex items-center justify-center">
-        <Sun
-          className={cn(
-            "absolute h-4 w-4 text-primary transition-all duration-300",
-            theme === "dark" ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-0 opacity-0"
-          )}
-        />
-        <Moon
-          className={cn(
-            "absolute h-4 w-4 text-primary transition-all duration-300",
-            theme === "dark" ? "-rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"
-          )}
-        />
+    <div className="flex items-center justify-between gap-3 py-2 px-3">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {isDark ? (
+          <>
+            <Moon className="h-4 w-4" />
+            <span>Тёмная тема</span>
+          </>
+        ) : (
+          <>
+            <Sun className="h-4 w-4" />
+            <span>Светлая тема</span>
+          </>
+        )}
       </div>
-    </button>
+      <Switch
+        checked={isDark}
+        onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+      />
+    </div>
   );
 }
