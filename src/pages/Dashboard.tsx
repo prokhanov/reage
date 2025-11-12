@@ -18,6 +18,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
+import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -409,182 +410,13 @@ export default function Dashboard() {
         <Card className="border-border bg-card backdrop-blur-sm">
           <CardContent className="pt-8 pb-8">
             <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
-              {/* Circular Progress */}
-              <div className="relative flex items-center justify-center">
-                <svg className="w-64 h-64 transform -rotate-90">
-                  {/* Background circle */}
-                  <circle
-                    cx="128"
-                    cy="128"
-                    r="112"
-                    stroke="hsl(var(--border))"
-                    strokeWidth="16"
-                    fill="none"
-                    opacity="0.2"
-                  />
-                  {/* Progress circle */}
-                  <circle
-                    cx="128"
-                    cy="128"
-                    r="112"
-                    stroke={
-                      ageDifference && ageDifference > 0 
-                        ? "hsl(var(--status-good))" 
-                        : ageDifference && ageDifference < 0
-                        ? "hsl(var(--status-danger))"
-                        : "hsl(var(--primary))"
-                    }
-                    strokeWidth="16"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 112}`}
-                    strokeDashoffset={`${2 * Math.PI * 112 * (1 - circleProgress / 100)}`}
-                    className="transition-all duration-1000 ease-out"
-                  />
-                </svg>
-                
-                {/* Center content */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <div className="text-6xl font-bold text-foreground animate-scale-in">
-                    {displayBioAge ? displayBioAge.toFixed(1) : "—"}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-2">
-                    лет
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1 px-4">
-                    Биологический возраст
-                  </div>
-                  {displayBiomarkersMetadata && (
-                    <div className="space-y-2">
-                      {/* Базовая информация о биомаркерах */}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1 mt-1 cursor-help">
-                              <Info className="h-3 w-3" />
-                              {displayBiomarkersMetadata.current_count} свежих + {displayBiomarkersMetadata.historical_count} исторических
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <p className="font-medium mb-1">Расчет основан на {displayBiomarkersMetadata.total_count} биомаркерах:</p>
-                            <p className="text-sm">• {displayBiomarkersMetadata.current_count} из текущего анализа</p>
-                            <p className="text-sm">• {displayBiomarkersMetadata.historical_count} из предыдущих анализов (за 4 месяца)</p>
-                            {displayBiomarkersMetadata.oldest_historical_date && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Самые старые данные: {new Date(displayBiomarkersMetadata.oldest_historical_date).toLocaleDateString('ru-RU')}
-                              </p>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      {/* AI-анализ если есть */}
-                      {displayBiomarkersMetadata.ai_analysis && (
-                        <div className="space-y-3 mt-4">
-                          {/* Уверенность и скорость старения */}
-                          <div className="flex items-center justify-center gap-3 text-xs">
-                            <Badge variant={
-                              displayBiomarkersMetadata.ai_analysis.confidence_score >= 80 ? "default" :
-                              displayBiomarkersMetadata.ai_analysis.confidence_score >= 60 ? "secondary" : "outline"
-                            }>
-                              Уверенность: {displayBiomarkersMetadata.ai_analysis.confidence_score}%
-                            </Badge>
-                            <Badge variant={
-                              displayBiomarkersMetadata.ai_analysis.aging_rate < 1 ? "default" :
-                              displayBiomarkersMetadata.ai_analysis.aging_rate === 1 ? "secondary" : "destructive"
-                            }>
-                              Скорость старения: {displayBiomarkersMetadata.ai_analysis.aging_rate.toFixed(2)}x
-                            </Badge>
-                          </div>
-
-                          {/* Объяснение AI */}
-                          <Alert className="text-left">
-                            <Sparkles className="h-4 w-4" />
-                            <AlertDescription className="text-xs">
-                              {displayBiomarkersMetadata.ai_analysis.explanation}
-                            </AlertDescription>
-                          </Alert>
-
-                          {/* Топ-3 ключевых маркера старения */}
-                          {displayBiomarkersMetadata.ai_analysis.key_aging_markers?.length > 0 && (
-                            <div className="space-y-1">
-                              <p className="text-xs font-semibold text-muted-foreground">Ключевые маркеры старения:</p>
-                              {displayBiomarkersMetadata.ai_analysis.key_aging_markers.slice(0, 3).map((marker: any, idx: number) => (
-                                <TooltipProvider key={idx}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <div className="flex items-center gap-2 text-xs cursor-help">
-                                        <Badge variant={marker.impact === 'high' ? 'destructive' : marker.impact === 'moderate' ? 'secondary' : 'outline'}>
-                                          {marker.name}
-                                        </Badge>
-                                        <span className="text-muted-foreground">{marker.deviation}</span>
-                                        <Info className="h-3 w-3" />
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="max-w-xs">{marker.reason}</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Недостающие критичные маркеры */}
-                          {displayBiomarkersMetadata.ai_analysis.missing_critical_markers?.length > 0 && (
-                            <Alert variant="destructive" className="text-left">
-                              <AlertTriangle className="h-4 w-4" />
-                              <AlertDescription className="text-xs">
-                                Для более точной оценки рекомендуем сдать: {displayBiomarkersMetadata.ai_analysis.missing_critical_markers.join(", ")}
-                              </AlertDescription>
-                            </Alert>
-                          )}
-
-                          {/* Оценки по категориям */}
-                          {displayBiomarkersMetadata.ai_analysis.category_scores && (
-                            <div className="grid grid-cols-5 gap-2 mt-4">
-                              {Object.entries(displayBiomarkersMetadata.ai_analysis.category_scores).map(([category, data]: [string, any]) => (
-                                <TooltipProvider key={category}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <div className="text-center p-2 rounded-lg border cursor-help">
-                                        <div className="text-2xl mb-1">
-                                          {category.includes("Энергия") && "⚡"}
-                                          {category.includes("Сердечно-сосудистая") && "❤️"}
-                                          {category.includes("Воспалительная") && "🛡️"}
-                                          {category.includes("Эндокринная") && "🧬"}
-                                          {category.includes("Обмен веществ") && "🔄"}
-                                        </div>
-                                        <div className={`text-sm font-semibold ${
-                                          data.score >= 70 ? 'text-green-600' : 
-                                          data.score >= 50 ? 'text-yellow-600' : 'text-red-600'
-                                        }`}>
-                                          {data.score}
-                                        </div>
-                                      </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p className="font-semibold">{category}</p>
-                                      <p className="text-xs">Оценка: {data.score}/100</p>
-                                      <p className="text-xs">Влияние: {
-                                        data.impact === 'high' ? 'Высокое' :
-                                        data.impact === 'moderate' ? 'Среднее' : 'Низкое'
-                                      }</p>
-                                      {data.key_markers?.length > 0 && (
-                                        <p className="text-xs mt-1">Ключевые: {data.key_markers.join(", ")}</p>
-                                      )}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Animated Biological Age Circle */}
+              <BiologicalAgeCircle
+                biologicalAge={displayBioAge}
+                chronologicalAge={chronologicalAge}
+                healthIndex={displayHealthIndex}
+                biomarkersMetadata={displayBiomarkersMetadata}
+              />
 
               {/* Age Comparison */}
               <div className="flex flex-col gap-4 text-center lg:text-left">
