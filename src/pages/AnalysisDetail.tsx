@@ -50,7 +50,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess } = usePatientModuleAccess();
-  const { demoMode, demoData } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
   const [analysis, setAnalysis] = useState<any>(null);
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
@@ -70,8 +70,11 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const isDemoAnalysis = id === "demo-analysis-1";
 
   useEffect(() => {
+    if (isDemoAnalysis && demoLoading) {
+      return;
+    }
     loadData();
-  }, [id]);
+  }, [id, isDemoAnalysis, demoLoading]);
 
   useEffect(() => {
     // Auto-expand all categories on load
@@ -81,7 +84,18 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }, [biomarkers]);
 
   const loadData = async () => {
-    if (isDemoAnalysis && demoMode && demoData) {
+    if (isDemoAnalysis) {
+      if (!demoMode || !demoData) {
+        console.error("Demo mode not active or demo data not loaded");
+        toast({
+          title: "Ошибка",
+          description: "Демо-данные недоступны. Попробуйте перезагрузить страницу.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       try {
         // Load demo data
         setPatientGender(demoData.profile.gender || null);
@@ -96,7 +110,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           biological_age: demoData.analysis.biological_age,
           status: "processed",
           note: demoData.analysis.note || null,
-          biomarkers_metadata: demoData.analysis.biomarkers_metadata || null
+          biomarkers_metadata: demoData.analysis.biomarkers_metadata || null,
         });
         
         // Load category order from database
@@ -127,14 +141,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             normal_max_male: b.normal_max_male || null,
             normal_min_female: b.normal_min_female || null,
             normal_max_female: b.normal_max_female || null,
-            age_ranges: null
-          }
+            age_ranges: null,
+          },
         }));
         
         setValues(demoValues);
         
         // Extract unique biomarkers and sort
-        const uniqueBiomarkers = demoValues.map(v => v.biomarkers);
+        const uniqueBiomarkers = demoValues.map((v) => v.biomarkers);
         const sortedBiomarkers = uniqueBiomarkers.sort((a, b) => {
           const orderA = categoryOrderMap.get(a.category) ?? 999;
           const orderB = categoryOrderMap.get(b.category) ?? 999;
