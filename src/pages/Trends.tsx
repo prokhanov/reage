@@ -39,7 +39,7 @@ interface AnalysisValue {
 export default function Trends() {
   const { getUserId } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
-  const { demoMode, demoData } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
   const [trendData, setTrendData] = useState<any[]>([]);
@@ -51,8 +51,11 @@ export default function Trends() {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (demoMode && demoLoading) {
+      return;
+    }
     loadBiomarkers();
-  }, []);
+  }, [demoMode, demoLoading]);
 
   useEffect(() => {
     if (selectedBiomarker) {
@@ -61,7 +64,13 @@ export default function Trends() {
   }, [selectedBiomarker, period]);
 
   const loadBiomarkers = async () => {
-    if (demoMode && demoData) {
+    if (demoMode) {
+      if (!demoData) {
+        console.error("Demo mode active but demo data not loaded");
+        setLoading(false);
+        return;
+      }
+      
       const demoBiomarkers = demoData.biomarkers.map((b: any) => ({
         id: b.code,
         name: b.name || b.code,

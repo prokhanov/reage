@@ -57,7 +57,7 @@ export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
-  const { demoMode, demoData } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,11 +78,20 @@ export default function Recommendations() {
       .replace(/^-+|-+$/g, "");
 
   useEffect(() => {
+    if (demoMode && demoLoading) {
+      return;
+    }
     loadRecommendations();
-  }, []);
+  }, [demoMode, demoLoading]);
 
   const loadRecommendations = async () => {
-    if (demoMode && demoData) {
+    if (demoMode) {
+      if (!demoData) {
+        console.error("Demo mode active but demo data not loaded");
+        setLoading(false);
+        return;
+      }
+      
       const demoRecommendations = demoData.recommendations.map((r: any, idx: number) => ({
         id: `demo-rec-${idx}`,
         type: r.type,

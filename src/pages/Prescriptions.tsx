@@ -41,7 +41,7 @@ export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editPrescription, setEditPrescription] = useState<Prescription | null>(null);
-  const { demoMode, demoData } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
@@ -50,9 +50,13 @@ export default function Prescriptions() {
   const userId = viewAsUserId || undefined;
 
   const { data: prescriptions = [], isLoading } = useQuery({
-    queryKey: ["prescriptions", userId, hasPatientAccess, demoMode],
+    queryKey: ["prescriptions", userId, hasPatientAccess, demoMode, demoData],
+    enabled: !demoLoading,
     queryFn: async () => {
-      if (demoMode && demoData) {
+      if (demoMode) {
+        if (!demoData) {
+          return [];
+        }
         return demoData.prescriptions.map((p: any, idx: number) => ({
           id: `demo-${idx}`,
           prescription: p.prescription,

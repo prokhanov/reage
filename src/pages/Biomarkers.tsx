@@ -46,33 +46,40 @@ export default function Biomarkers() {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (demoMode && demoLoading) {
+      return;
+    }
     loadBiomarkers();
-  }, [demoMode, demoData]);
+  }, [demoMode, demoData, demoLoading]);
 
   const loadBiomarkers = async () => {
     if (demoMode) {
+      if (!demoData) {
+        console.error("Demo mode active but demo data not loaded");
+        setLoading(false);
+        return;
+      }
+      
       // Load demo biomarkers
-      if (demoData) {
-        try {
-          const { data: categoriesData } = await supabase
-            .from("biomarker_categories")
-            .select("name, display_order")
-            .order("display_order");
+      try {
+        const { data: categoriesData } = await supabase
+          .from("biomarker_categories")
+          .select("name, display_order")
+          .order("display_order");
 
-          const transformed = transformDemoBiomarkersToDisplay(
-            demoData.biomarkers,
-            demoData.analysis,
-            categoriesData || []
-          );
-          
-          setBiomarkers(transformed);
-          setPatientGender(demoData.profile.gender || null);
-          setPatientAge(demoData.profile.chronological_age || null);
-        } catch (error) {
-          console.error("Error loading demo biomarkers:", error);
-        } finally {
-          setLoading(false);
-        }
+        const transformed = transformDemoBiomarkersToDisplay(
+          demoData.biomarkers,
+          demoData.analysis,
+          categoriesData || []
+        );
+        
+        setBiomarkers(transformed);
+        setPatientGender(demoData.profile.gender || null);
+        setPatientAge(demoData.profile.chronological_age || null);
+      } catch (error) {
+        console.error("Error loading demo biomarkers:", error);
+      } finally {
+        setLoading(false);
       }
       return;
     }

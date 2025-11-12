@@ -41,7 +41,7 @@ export default function Analyses() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess } = usePatientModuleAccess();
-  const { demoMode, demoData } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -53,8 +53,11 @@ export default function Analyses() {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (demoMode && demoLoading) {
+      return;
+    }
     loadAnalyses();
-  }, []);
+  }, [demoMode, demoLoading]);
 
   const loadAnalyses = async () => {
     if (demoMode) {
