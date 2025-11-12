@@ -16,7 +16,7 @@ import { WeightTracker } from "@/components/WeightTracker";
 import { format } from "date-fns";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useDemoMode } from "@/hooks/useDemoMode";
+import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 
 export default function Dashboard() {
@@ -336,7 +336,7 @@ export default function Dashboard() {
   }
 
   // Use demo data if demo mode is active
-  const latestDemoAnalysis = demoMode && demoData ? demoData.analyses[demoData.analyses.length - 1] : null;
+  const latestDemoAnalysis = getLatestDemoAnalysis(demoData);
   const displayBioAge = latestDemoAnalysis ? latestDemoAnalysis.biological_age : latestBioAge;
   const displayHealthIndex = latestDemoAnalysis ? latestDemoAnalysis.health_index : latestHealthIndex;
   const displayAnalysesCount = demoMode && demoData ? demoData.analyses.length : analysesCount;
