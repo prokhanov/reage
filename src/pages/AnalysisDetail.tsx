@@ -67,7 +67,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const isDemoAnalysis = id === "demo-analysis-1";
+  const isDemoAnalysis = id?.startsWith("demo-analysis-");
 
   useEffect(() => {
     if (isDemoAnalysis && demoLoading) {
@@ -101,16 +101,24 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         setPatientGender(demoData.profile.gender || null);
         setPatientAge(demoData.profile.chronological_age || null);
         
+        // Extract analysis index from id (e.g., "demo-analysis-2" -> 2)
+        const analysisIndex = parseInt(id.replace("demo-analysis-", ""));
+        const selectedAnalysis = demoData.analyses[analysisIndex];
+        
+        if (!selectedAnalysis) {
+          throw new Error("Demo analysis not found");
+        }
+        
         // Set demo analysis
         setAnalysis({
-          id: "demo-analysis-1",
-          date: demoData.analysis.analysis_date,
-          lab_name: demoData.analysis.lab_name,
-          health_index: demoData.analysis.health_index,
-          biological_age: demoData.analysis.biological_age,
+          id: id,
+          date: selectedAnalysis.analysis_date,
+          lab_name: selectedAnalysis.lab_name,
+          health_index: selectedAnalysis.health_index,
+          biological_age: selectedAnalysis.biological_age,
           status: "processed",
-          note: demoData.analysis.note || null,
-          biomarkers_metadata: demoData.analysis.biomarkers_metadata || null,
+          note: selectedAnalysis.note || null,
+          biomarkers_metadata: selectedAnalysis.biomarkers_metadata || null,
         });
         
         // Load category order from database
@@ -123,8 +131,13 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           (categoriesData || []).map((cat) => [cat.name, cat.display_order])
         );
         
+        // Filter biomarkers for this specific analysis
+        const analysisBiomarkers = demoData.biomarkers.filter(
+          (b: any) => (b.analysis_index || 0) === analysisIndex
+        );
+        
         // Transform demo biomarkers to analysis values format
-        const demoValues: AnalysisValue[] = demoData.biomarkers.map((b: any) => ({
+        const demoValues: AnalysisValue[] = analysisBiomarkers.map((b: any) => ({
           id: `demo-value-${b.code}`,
           biomarker_id: b.code,
           value: b.value,

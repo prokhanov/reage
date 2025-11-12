@@ -68,7 +68,7 @@ export default function Biomarkers() {
 
         const transformed = await transformDemoBiomarkersToDisplay(
           demoData.biomarkers,
-          demoData.analysis,
+          demoData.analyses,
           categoriesData || []
         );
         

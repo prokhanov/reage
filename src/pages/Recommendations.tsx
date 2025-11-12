@@ -92,23 +92,24 @@ export default function Recommendations() {
         return;
       }
       
+      const latestAnalysis = demoData.analyses[demoData.analyses.length - 1];
       const demoRecommendations = demoData.recommendations.map((r: any, idx: number) => ({
         id: `demo-rec-${idx}`,
         type: r.type,
         text: r.text,
-        created_at: demoData.analysis.analysis_date,
-        analysis_date: demoData.analysis.analysis_date,
+        created_at: latestAnalysis.analysis_date,
+        analysis_date: latestAnalysis.analysis_date,
         analysis_status: "processed" as const,
-        analysis_id: "demo-analysis-1"
+        analysis_id: `demo-analysis-${demoData.analyses.length - 1}`
       }));
       
       setRecommendations(demoRecommendations);
       
       const demoReport: RecommendationReport = {
-        date: demoData.analysis.analysis_date,
+        date: latestAnalysis.analysis_date,
         recommendations: demoRecommendations,
         count: demoRecommendations.length,
-        analysisId: "demo-analysis-1"
+        analysisId: `demo-analysis-${demoData.analyses.length - 1}`
       };
       
       setReports([demoReport]);

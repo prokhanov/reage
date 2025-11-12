@@ -5,13 +5,8 @@ import { calculateAge } from "@/lib/biomarkerNorms";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 interface DemoData {
-  profile: {
-    chronological_age: number;
-    weight: number;
-    height: number;
-    gender: string;
-  };
-  analysis: any;
+  profile: any;
+  analyses: any[];  // Changed from single analysis to array
   biomarkers: any[];
   symptoms: any[];
   weight_history: any[];
@@ -19,6 +14,14 @@ interface DemoData {
   recommendations: any[];
   risk_zones: any;
 }
+
+// Helper to get latest analysis from demo data
+export const getLatestDemoAnalysis = (demoData: DemoData | null) => {
+  if (!demoData || !demoData.analyses || demoData.analyses.length === 0) {
+    return null;
+  }
+  return demoData.analyses[demoData.analyses.length - 1];
+};
 
 export const useDemoMode = () => {
   const [demoMode, setDemoMode] = useState<boolean>(false);
@@ -30,30 +33,43 @@ export const useDemoMode = () => {
     fetchDemoModeStatus();
   }, []);
 
-  const adaptDemoDataToUser = (
-    templateData: any,
-    userAge: number,
-    userWeight: number,
-    userHeight: number,
-    userGender: string
-  ): DemoData => {
-    const adapted = JSON.parse(JSON.stringify(templateData));
+  const adaptDemoDataToUser = (templateData: any, userProfile: any): DemoData => {
+    const genderData = userProfile.gender === 'male' ? templateData.male_data : templateData.female_data;
     
-    const ageDiff = userAge - 45;
-    adapted.profile.chronological_age = userAge;
-    adapted.analysis.biological_age = Math.round(49 + ageDiff);
+    const userAge = userProfile.birth_date ? calculateAge(userProfile.birth_date) : null;
     
-    adapted.profile.weight = userWeight;
-    adapted.profile.height = userHeight;
-    adapted.profile.gender = userGender;
-    
-    const weightRatio = userWeight / templateData.profile.weight;
-    adapted.weight_history = adapted.weight_history.map((entry: any) => ({
-      ...entry,
-      weight: Math.round(entry.weight * weightRatio * 10) / 10
-    }));
-    
-    return adapted;
+    // Adapt profile data
+    const adaptedProfile = {
+      ...genderData.profile,
+      chronological_age: userAge || genderData.profile.chronological_age,
+      weight: userProfile.weight || genderData.profile.weight,
+      height: userProfile.height || genderData.profile.height,
+      gender: userProfile.gender
+    };
+
+    // Adapt analyses array - adjust biological ages based on user's actual age if available
+    const adaptedAnalyses = (genderData.analyses || []).map((analysis: any) => {
+      if (userAge) {
+        // Maintain the same delta from chronological age
+        const originalDelta = analysis.biological_age - genderData.profile.chronological_age;
+        return {
+          ...analysis,
+          biological_age: userAge + originalDelta
+        };
+      }
+      return analysis;
+    });
+
+    return {
+      profile: adaptedProfile,
+      analyses: adaptedAnalyses,
+      biomarkers: genderData.biomarkers || [],  // Keep all biomarkers for trends
+      symptoms: genderData.symptoms || [],
+      weight_history: genderData.weight_history || [],
+      prescriptions: genderData.prescriptions || [],
+      recommendations: genderData.recommendations || [],
+      risk_zones: genderData.risk_zones || null
+    };
   };
 
   const fetchDemoModeStatus = async () => {
@@ -72,12 +88,7 @@ export const useDemoMode = () => {
 
       if (profile?.demo_mode_enabled) {
         setDemoMode(true);
-        await loadDemoData(
-          profile.gender || 'male',
-          profile.birth_date ? calculateAge(profile.birth_date) : 45,
-          profile.weight || (profile.gender === 'female' ? 68 : 85),
-          profile.height || (profile.gender === 'female' ? 165 : 178)
-        );
+        await loadDemoData(profile);
       } else {
         setDemoMode(false);
       }
@@ -88,12 +99,7 @@ export const useDemoMode = () => {
     }
   };
 
-  const loadDemoData = async (
-    gender: string,
-    age: number,
-    weight: number,
-    height: number
-  ) => {
+  const loadDemoData = async (userProfile: any) => {
     try {
       const { data: template } = await supabase
         .from('demo_data_templates')
@@ -102,8 +108,7 @@ export const useDemoMode = () => {
         .single();
 
       if (template) {
-        const genderData = gender === 'female' ? template.female_data : template.male_data;
-        const adaptedData = adaptDemoDataToUser(genderData, age, weight, height, gender);
+        const adaptedData = adaptDemoDataToUser(template, userProfile);
         setDemoData(adaptedData);
       }
     } catch (error) {
@@ -148,12 +153,7 @@ export const useDemoMode = () => {
           .single();
         
         if (profile) {
-          await loadDemoData(
-            profile.gender || 'male',
-            profile.birth_date ? calculateAge(profile.birth_date) : 45,
-            profile.weight || (profile.gender === 'female' ? 68 : 85),
-            profile.height || (profile.gender === 'female' ? 165 : 178)
-          );
+          await loadDemoData(profile);
         }
       } else {
         setDemoData(null);
@@ -190,56 +190,89 @@ export const useDemoMode = () => {
 // Helper function exported for reuse
 export const transformDemoBiomarkersToDisplay = async (
   demoBiomarkers: any[],
-  demoProfile: any,
-  categoriesData: any[]
-) => {
-  const categoryOrderMap = new Map(
-    (categoriesData || []).map((cat) => [cat.name, cat.display_order])
-  );
+  demoAnalyses: any[],  // Changed to accept analyses array
+  categories: any[]
+): Promise<Record<string, any[]>> => {
+  // Use the latest analysis for display
+  const latestAnalysisIndex = demoAnalyses.length - 1;
 
-  // Normalize demo codes to database codes
-  const normalizedCodes = demoBiomarkers.map(b => DEMO_TO_DB_CODE[b.code] ?? b.code);
+  // Filter biomarkers for the latest analysis and map demo codes to database codes
+  const latestBiomarkers = demoBiomarkers
+    .filter((b: any) => (b.analysis_index || 0) === latestAnalysisIndex)
+    .map((b: any) => ({
+      ...b,
+      code: DEMO_TO_DB_CODE[b.code] || b.code
+    }));
   
-  // Load biomarker metadata from database to get normal ranges, units, etc.
+  // Get unique codes
+  const uniqueCodes = [...new Set(latestBiomarkers.map((b: any) => b.code))];
+  
+  // Fetch biomarker metadata from DB
   const { data: biomarkersMetadata } = await supabase
     .from('biomarkers')
-    .select('code, name, unit, description, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, age_ranges')
-    .in('code', normalizedCodes);
+    .select('*')
+    .in('code', uniqueCodes);
 
+  // Map metadata by code
   const metadataMap = new Map(
-    (biomarkersMetadata || []).map(bm => [bm.code, bm])
+    (biomarkersMetadata || []).map((b: any) => [b.code, b])
   );
 
-  const biomarkersWithMeta = demoBiomarkers.map((b: any) => {
-    const lookupCode = DEMO_TO_DB_CODE[b.code] ?? b.code;
-    const meta = metadataMap.get(lookupCode);
+  // For trend calculation, find previous analysis values
+  const previousAnalysisIndex = latestAnalysisIndex - 1;
+  const previousBiomarkers = demoBiomarkers.filter(
+    (b: any) => (b.analysis_index || 0) === previousAnalysisIndex
+  );
+  const previousValuesMap = new Map(
+    previousBiomarkers.map((b: any) => [DEMO_TO_DB_CODE[b.code] || b.code, b.value])
+  );
+
+  // Combine demo data with DB metadata
+  const enrichedBiomarkers = latestBiomarkers.map((b: any) => {
+    const metadata = metadataMap.get(b.code);
+    const previousValue = previousValuesMap.get(b.code) || null;
     
-    if (!meta) {
-      console.warn(`No metadata found for demo code '${b.code}' -> lookup '${lookupCode}'`);
+    // Calculate trend
+    let trend: "up" | "down" | "stable" | null = null;
+    if (previousValue !== null) {
+      const diff = b.value - previousValue;
+      const threshold = Math.abs(previousValue) * 0.05; // 5% change
+      if (Math.abs(diff) < threshold) {
+        trend = "stable";
+      } else if (diff > 0) {
+        trend = "up";
+      } else {
+        trend = "down";
+      }
     }
     
     return {
       id: b.code,
-      name: meta?.name || b.code,
+      name: metadata?.name || b.code,
       code: b.code,
-      category: b.category,
-      unit: meta?.unit || "",
-      description: meta?.description ?? null,
-      normal_min: meta?.normal_min ?? null,
-      normal_max: meta?.normal_max ?? null,
-      normal_min_male: meta?.normal_min_male ?? null,
-      normal_max_male: meta?.normal_max_male ?? null,
-      normal_min_female: meta?.normal_min_female ?? null,
-      normal_max_female: meta?.normal_max_female ?? null,
-      age_ranges: meta?.age_ranges ?? null,
+      category: metadata?.category || b.category,
+      unit: metadata?.unit || b.unit || '',
+      description: metadata?.description || null,
+      normal_min: metadata?.normal_min || null,
+      normal_max: metadata?.normal_max || null,
+      normal_min_male: metadata?.normal_min_male || null,
+      normal_max_male: metadata?.normal_max_male || null,
+      normal_min_female: metadata?.normal_min_female || null,
+      normal_max_female: metadata?.normal_max_female || null,
+      age_ranges: metadata?.age_ranges || null,
       latest_value: b.value,
-      latest_date: demoProfile.analysis_date || new Date().toISOString(),
-      previous_value: b.value * 0.95, // Demo previous value
-      trend: b.value > (b.value * 0.95) ? "up" : "stable",
+      latest_date: demoAnalyses[latestAnalysisIndex].analysis_date,
+      previous_value: previousValue,
+      trend
     };
   });
 
-  const grouped = biomarkersWithMeta.reduce((acc: any, biomarker: any) => {
+  const categoryOrderMap = new Map(
+    (categories || []).map((cat) => [cat.name, cat.display_order])
+  );
+
+  // Group by category
+  const grouped = enrichedBiomarkers.reduce((acc: any, biomarker: any) => {
     const category = biomarker.category;
     if (!acc[category]) {
       acc[category] = [];
@@ -248,6 +281,7 @@ export const transformDemoBiomarkersToDisplay = async (
     return acc;
   }, {});
 
+  // Sort categories by display_order
   const sortedGrouped: any = {};
   Object.keys(grouped)
     .sort((a, b) => {
@@ -261,4 +295,3 @@ export const transformDemoBiomarkersToDisplay = async (
 
   return sortedGrouped;
 };
-

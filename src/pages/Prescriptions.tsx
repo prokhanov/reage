@@ -57,6 +57,7 @@ export default function Prescriptions() {
         if (!demoData) {
           return [];
         }
+        const latestAnalysis = demoData.analyses[demoData.analyses.length - 1];
         return demoData.prescriptions.map((p: any, idx: number) => ({
           id: `demo-${idx}`,
           prescription: p.prescription,
@@ -64,7 +65,7 @@ export default function Prescriptions() {
           control_date: p.control_date,
           status: p.status || "confirmed",
           is_archived: false,
-          created_at: demoData.analysis.analysis_date
+          created_at: latestAnalysis.analysis_date
         } as Prescription));
       }
 

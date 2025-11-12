@@ -336,18 +336,26 @@ export default function Dashboard() {
   }
 
   // Use demo data if demo mode is active
-  const displayBioAge = demoMode && demoData ? demoData.analysis.biological_age : latestBioAge;
-  const displayHealthIndex = demoMode && demoData ? demoData.analysis.health_index : latestHealthIndex;
-  const displayAnalysesCount = demoMode && demoData ? 1 : analysesCount;
-  const displayAgingRate = demoMode && demoData ? demoData.analysis.ai_analysis.aging_rate : agingRate;
-  const displayBiomarkersMetadata = demoMode && demoData ? { ai_analysis: demoData.analysis.ai_analysis } : latestBiomarkersMetadata;
-  const displayBodyHeatmap = demoMode && demoData ? demoData.biomarkers.map((b: any) => ({
-    name: b.code,
-    category: b.category,
-    value: b.value,
-    normal_min: null,
-    normal_max: null
-  })) : bodyHeatmapData;
+  const latestDemoAnalysis = demoMode && demoData ? demoData.analyses[demoData.analyses.length - 1] : null;
+  const displayBioAge = latestDemoAnalysis ? latestDemoAnalysis.biological_age : latestBioAge;
+  const displayHealthIndex = latestDemoAnalysis ? latestDemoAnalysis.health_index : latestHealthIndex;
+  const displayAnalysesCount = demoMode && demoData ? demoData.analyses.length : analysesCount;
+  const displayAgingRate = latestDemoAnalysis?.ai_analysis?.aging_rate || agingRate;
+  const displayBiomarkersMetadata = latestDemoAnalysis ? { ai_analysis: latestDemoAnalysis.ai_analysis } : latestBiomarkersMetadata;
+  
+  // For body heatmap in demo mode, use latest analysis biomarkers
+  const latestAnalysisIndex = demoMode && demoData ? demoData.analyses.length - 1 : -1;
+  const displayBodyHeatmap = demoMode && demoData 
+    ? demoData.biomarkers
+        .filter((b: any) => (b.analysis_index || 0) === latestAnalysisIndex)
+        .map((b: any) => ({
+          name: b.code,
+          category: b.category,
+          value: b.value,
+          normal_min: null,
+          normal_max: null
+        }))
+    : bodyHeatmapData;
 
   const chronologicalAge = profile?.birth_date ? calculateAge(profile.birth_date) : (demoMode && demoData ? demoData.profile.chronological_age : null);
   const ageDifference = displayBioAge && chronologicalAge ? chronologicalAge - displayBioAge : null;

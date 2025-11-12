@@ -29,8 +29,12 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   ALP: "ALP",
   BIL: "Билирубин общий",
   
+  // Воспалительная и иммунная система (дополнительно)
+  WBC: "Лейкоциты (WBC)",
+  
   // Эндокринная и стрессовая система
   TEST: "Тестостерон общий",
+  ESTR: "Эстрадиол",
   SHBG: "SHBG",
   DHEAS: "DHEA-S",
   VITD: "25-ОН витамин D",

@@ -59,7 +59,7 @@ export default function Trends() {
 
   useEffect(() => {
     if (selectedBiomarker) {
-      loadTrendData(selectedBiomarker);
+      loadTrendData(selectedBiomarker, period);
     }
   }, [selectedBiomarker, period]);
 
@@ -148,27 +148,40 @@ export default function Trends() {
     }
   };
 
-  const loadTrendData = async (biomarkerId: string) => {
+  const loadTrendData = async (biomarkerId: string, period: string) => {
     if (demoMode && demoData) {
-      const demoBiomarker = demoData.biomarkers.find((b: any) => b.code === biomarkerId);
-      if (demoBiomarker) {
-        setTrendData([
-          { 
-            date: "1 янв", 
-            value: demoBiomarker.value * 0.95,
-            refMin: demoBiomarker.normal_min,
-            refMax: demoBiomarker.normal_max,
+      const now = new Date();
+      const periodMonths = period === "3" ? 3 : period === "6" ? 6 : 12;
+      const cutoffDate = new Date(now);
+      cutoffDate.setMonth(cutoffDate.getMonth() - periodMonths);
+
+      const filteredAnalyses = demoData.analyses.filter((analysis: any) => {
+        const analysisDate = new Date(analysis.analysis_date);
+        return analysisDate >= cutoffDate;
+      });
+
+      const trendData: any[] = [];
+      filteredAnalyses.forEach((analysis: any, index: number) => {
+        const biomarker = demoData.biomarkers.find(
+          (b: any) => (b.code === biomarkerId) && (b.analysis_index || 0) === demoData.analyses.indexOf(analysis)
+        );
+        
+        if (biomarker) {
+          const analysisDate = new Date(analysis.analysis_date);
+          trendData.push({
+            date: analysisDate.toLocaleDateString("ru-RU", {
+              day: "numeric",
+              month: "short",
+            }),
+            value: biomarker.value,
+            refMin: biomarker.normal_min,
+            refMax: biomarker.normal_max,
             age: demoData.profile.chronological_age
-          },
-          { 
-            date: "15 янв", 
-            value: demoBiomarker.value,
-            refMin: demoBiomarker.normal_min,
-            refMax: demoBiomarker.normal_max,
-            age: demoData.profile.chronological_age
-          }
-        ]);
-      }
+          });
+        }
+      });
+      
+      setTrendData(trendData);
       return;
     }
 

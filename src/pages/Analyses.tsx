@@ -143,15 +143,15 @@ export default function Analyses() {
 
 
   const displayAnalyses = demoMode && demoData
-    ? [{
-        id: 'demo-analysis-1',
-        date: demoData.analysis.analysis_date,
-        lab_name: demoData.analysis.lab_name,
-        health_index: demoData.analysis.health_index,
-        biological_age: demoData.analysis.biological_age,
-        biomarkers_count: demoData.biomarkers.length,
+    ? demoData.analyses.map((analysis: any, index: number) => ({
+        id: `demo-analysis-${index}`,
+        date: analysis.analysis_date,
+        lab_name: analysis.lab_name,
+        health_index: analysis.health_index,
+        biological_age: analysis.biological_age,
+        biomarkers_count: demoData.biomarkers.filter((b: any) => (b.analysis_index || 0) === index).length,
         status: "processed" as const
-      }]
+      }))
     : analyses;
 
   return (
