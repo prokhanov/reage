@@ -566,7 +566,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                           stroke="hsl(var(--status-danger))"
                                           strokeWidth="10"
                                           strokeLinecap="round"
-                                          opacity="0.4"
+                                          opacity="0.8"
                                         />
                                         {/* Normal zone */}
                                         <path
@@ -575,7 +575,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                           stroke="hsl(var(--status-good))"
                                           strokeWidth="10"
                                           strokeLinecap="round"
-                                          opacity="0.4"
+                                          opacity="0.8"
                                         />
                                         {/* Danger zone right (above normal) */}
                                         <path
@@ -584,7 +584,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                           stroke="hsl(var(--status-warning))"
                                           strokeWidth="10"
                                           strokeLinecap="round"
-                                          opacity="0.4"
+                                          opacity="0.8"
                                         />
                                       </>
                                     ) : null}
