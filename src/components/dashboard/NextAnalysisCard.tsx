@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,9 +9,10 @@ import { ru } from "date-fns/locale";
 
 interface NextAnalysisCardProps {
   userId?: string;
+  compact?: boolean;
 }
 
-export function NextAnalysisCard({ userId }: NextAnalysisCardProps) {
+export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardProps) {
   const [booking, setBooking] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -43,6 +44,45 @@ export function NextAnalysisCard({ userId }: NextAnalysisCardProps) {
 
   if (loading) return null;
 
+  if (compact) {
+    if (!booking) {
+      return (
+        <div 
+          className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50 cursor-pointer hover:bg-background/70 transition-colors"
+          onClick={() => navigate('/analyses')}
+        >
+          <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
+          <div className="flex-1">
+            <div className="text-sm text-muted-foreground">Следующий анализ</div>
+            <div className="text-lg font-bold text-foreground">Не запланирован</div>
+          </div>
+        </div>
+      );
+    }
+
+    const bookingDate = new Date(booking.booking_date);
+    const daysUntil = differenceInDays(bookingDate, new Date());
+
+    return (
+      <div 
+        className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50 cursor-pointer hover:bg-background/70 transition-colors"
+        onClick={() => navigate('/analyses')}
+      >
+        <Calendar className="h-5 w-5 text-primary flex-shrink-0" />
+        <div className="flex-1">
+          <div className="text-sm text-muted-foreground">Следующий анализ</div>
+          <div className="text-lg font-bold text-foreground">
+            {format(bookingDate, 'd MMMM', { locale: ru })}
+          </div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            через {daysUntil} {daysUntil === 1 ? 'день' : daysUntil < 5 ? 'дня' : 'дней'}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Original full card version
   if (!booking) {
     return (
       <Card className="border-border bg-card backdrop-blur-sm">

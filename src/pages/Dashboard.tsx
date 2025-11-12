@@ -502,7 +502,7 @@ export default function Dashboard() {
               </div>
 
               {/* Right side - Stats */}
-              <div className="flex flex-col gap-6 w-full lg:w-auto lg:min-w-[300px]">
+              <div className="flex flex-col gap-4 w-full lg:w-auto lg:min-w-[300px]">
                 {/* Health Index */}
                 <div className="space-y-3 p-6 rounded-lg border border-border bg-background/50">
                   <div className="flex items-center gap-3">
@@ -542,8 +542,9 @@ export default function Dashboard() {
                   )}
                 </div>
 
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 gap-4">
+                {/* Compact Stats Grid */}
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Analyses Count */}
                   <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
                     <Activity className="h-5 w-5 text-primary flex-shrink-0" />
                     <div className="flex-1">
@@ -552,6 +553,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
+                  {/* Recent Change */}
                   <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
                     <TrendingUp className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
                     <div className="flex-1">
@@ -574,6 +576,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
+                  {/* Total Progress */}
                   <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
                     <Trophy className="h-5 w-5 flex-shrink-0 text-primary" />
                     <div className="flex-1">
@@ -600,21 +603,17 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
 
-            {/* Bottom Section - Next Analysis + Health Percentile */}
-            <div className="mt-8 pt-8 border-t border-border">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Next Analysis - Inline */}
-                <NextAnalysisCard userId={profile?.id} />
-                
-                {/* Health Percentile - Inline */}
-                <HealthPercentileCard 
-                  biologicalAge={displayBiologicalAge}
-                  chronologicalAge={chronologicalAge}
-                />
+                  {/* Next Analysis - Compact */}
+                  <NextAnalysisCard userId={profile?.id} compact={true} />
+
+                  {/* Health Percentile - Compact */}
+                  <HealthPercentileCard 
+                    biologicalAge={displayBiologicalAge}
+                    chronologicalAge={chronologicalAge}
+                    compact={true}
+                  />
+                </div>
               </div>
             </div>
           </CardContent>

@@ -4,10 +4,23 @@ import { Trophy, Star, TrendingUp, Target } from "lucide-react";
 interface HealthPercentileCardProps {
   biologicalAge?: number | null;
   chronologicalAge?: number | null;
+  compact?: boolean;
 }
 
-export function HealthPercentileCard({ biologicalAge, chronologicalAge }: HealthPercentileCardProps) {
+export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact = false }: HealthPercentileCardProps) {
   if (!biologicalAge || !chronologicalAge) {
+    if (compact) {
+      return (
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
+          <Trophy className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+          <div className="flex-1">
+            <div className="text-sm text-muted-foreground">Ваш результат</div>
+            <div className="text-lg font-bold text-foreground">—</div>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <Card className="border-border bg-card backdrop-blur-sm">
         <CardHeader>
@@ -101,6 +114,20 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge }: Health
   const data = getPercentileData();
   const Icon = data.icon;
 
+  if (compact) {
+    return (
+      <div className={`flex items-center gap-3 p-4 rounded-lg border border-border ${data.bgColor}`}>
+        <Icon className={`h-5 w-5 flex-shrink-0 ${data.color}`} />
+        <div className="flex-1">
+          <div className="text-sm text-muted-foreground">Ваш результат</div>
+          <div className={`text-lg font-bold ${data.color}`}>{data.title}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{data.emoji} {data.message.split('!')[0]}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Original full card version
   return (
     <Card className={`border-border backdrop-blur-sm ${data.bgColor}`}>
       <CardHeader>
