@@ -68,18 +68,19 @@ export default function Dashboard() {
       fetchAnalysesStats();
       fetchBodyHeatmapData();
       fetchNextBooking();
-      if (!demoMode) {
-        fetchRiskZones();
-      }
     }
-  }, [profile, demoMode]);
+  }, [profile]);
 
   useEffect(() => {
     if (demoMode && demoData) {
       setRiskData(demoData.risk_zones);
       setNeedsRefresh(false);
+    } else if (!demoMode && profile) {
+      // Clear demo risk data and fetch real data when demo mode is disabled
+      setRiskData(null);
+      fetchRiskZones();
     }
-  }, [demoMode, demoData]);
+  }, [demoMode, demoData, profile]);
 
   const fetchAnalysesStats = async () => {
     if (demoMode) return; // Skip fetching real data in demo mode
