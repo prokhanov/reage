@@ -46,9 +46,8 @@ export default function Biomarkers() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (demoMode && demoLoading) {
-      return;
-    }
+    // Wait until demo loading is resolved to avoid triggering real DB fetches prematurely
+    if (demoLoading) return;
     loadBiomarkers();
   }, [demoMode, demoData, demoLoading]);
 
