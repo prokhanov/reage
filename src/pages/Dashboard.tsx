@@ -74,6 +74,7 @@ export default function Dashboard() {
   }, [demoMode, demoData]);
 
   const fetchAnalysesStats = async () => {
+    if (demoMode) return; // Skip fetching real data in demo mode
     if (!viewAsUserId) return;
 
     try {
@@ -268,6 +269,7 @@ export default function Dashboard() {
 
 
   const fetchBodyHeatmapData = async () => {
+    if (demoMode) return; // Skip fetching real data in demo mode
     try {
       const userId = await getUserId();
       if (!userId) return;
