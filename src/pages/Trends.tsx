@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from "recharts";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
+import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
@@ -71,22 +72,32 @@ export default function Trends() {
         return;
       }
       
-      const demoBiomarkers = demoData.biomarkers.map((b: any) => ({
-        id: b.code,
-        name: b.name || b.code,
-        code: b.code,
-        unit: b.unit || "units",
-        normal_min: b.normal_min || null,
-        normal_max: b.normal_max || null,
-        normal_min_male: b.normal_min_male || null,
-        normal_max_male: b.normal_max_male || null,
-        normal_min_female: b.normal_min_female || null,
-        normal_max_female: b.normal_max_female || null,
-        age_ranges: null
-      }));
-      setBiomarkers(demoBiomarkers);
-      if (demoBiomarkers.length > 0) {
-        setSelectedBiomarker(demoBiomarkers[0].id);
+      // Get unique biomarker codes from demo data
+      const uniqueCodes = [...new Set(
+        demoData.biomarkers
+          .map((b: any) => DEMO_TO_DB_CODE[b.code] || b.code)
+          .filter(Boolean)
+      )];
+      
+      // Fetch biomarker metadata from database
+      const { data: biomarkersMetadata } = await supabase
+        .from('biomarkers')
+        .select('*')
+        .in('code', uniqueCodes);
+      
+      if (!biomarkersMetadata || biomarkersMetadata.length === 0) {
+        console.error("No biomarker metadata found");
+        setLoading(false);
+        return;
+      }
+      
+      // Set patient profile data for age-dependent norms
+      setPatientGender(demoData.profile.gender as 'male' | 'female');
+      setPatientBirthDate(demoData.profile.birth_date || null);
+      
+      setBiomarkers(biomarkersMetadata as Biomarker[]);
+      if (biomarkersMetadata.length > 0) {
+        setSelectedBiomarker(biomarkersMetadata[0].id);
       }
       setLoading(false);
       return;
@@ -156,27 +167,52 @@ export default function Trends() {
       cutoffDate.setMonth(cutoffDate.getMonth() - periodMonths);
 
       const filteredAnalyses = demoData.analyses.filter((analysis: any) => {
-        const analysisDate = new Date(analysis.analysis_date);
+        const analysisDate = new Date(analysis.date);
         return analysisDate >= cutoffDate;
       });
+      
+      // Find the selected biomarker metadata
+      const selectedBiomarkerData = biomarkers.find(b => b.id === biomarkerId);
+      if (!selectedBiomarkerData) {
+        console.error("Selected biomarker not found");
+        return;
+      }
 
       const trendData: any[] = [];
       filteredAnalyses.forEach((analysis: any, index: number) => {
+        const analysisIndex = demoData.analyses.indexOf(analysis);
         const biomarker = demoData.biomarkers.find(
-          (b: any) => (b.code === biomarkerId) && (b.analysis_index || 0) === demoData.analyses.indexOf(analysis)
+          (b: any) => {
+            const dbCode = DEMO_TO_DB_CODE[b.code] || b.code;
+            return (dbCode === selectedBiomarkerData.code) && (b.analysis_index || 0) === analysisIndex;
+          }
         );
         
         if (biomarker) {
-          const analysisDate = new Date(analysis.analysis_date);
+          const analysisDate = new Date(analysis.date);
+          
+          // Calculate age at time of analysis for age-dependent ranges
+          let ageAtAnalysis = demoData.profile.chronological_age || null;
+          if (patientBirthDate && analysis.date) {
+            ageAtAnalysis = calculateAge(patientBirthDate);
+          }
+          
+          // Get age-dependent normal ranges
+          const normalRange = getNormalRangeForAge(
+            selectedBiomarkerData,
+            ageAtAnalysis || 40,
+            patientGender || 'male'
+          );
+          
           trendData.push({
             date: analysisDate.toLocaleDateString("ru-RU", {
               day: "numeric",
               month: "short",
             }),
             value: biomarker.value,
-            refMin: biomarker.normal_min,
-            refMax: biomarker.normal_max,
-            age: demoData.profile.chronological_age
+            refMin: normalRange.min,
+            refMax: normalRange.max,
+            age: ageAtAnalysis
           });
         }
       });
