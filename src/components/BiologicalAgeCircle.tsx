@@ -50,7 +50,7 @@ export function BiologicalAgeCircle({
     const radius = 130;
 
     const particles: Particle[] = [];
-    const particleCount = 40;
+    const particleCount = 50;
 
     // Initialize particles
     for (let i = 0; i < particleCount; i++) {
@@ -59,11 +59,11 @@ export function BiologicalAgeCircle({
       particles.push({
         x: centerX + Math.cos(angle) * distance,
         y: centerY + Math.sin(angle) * distance,
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15,
-        radius: Math.random() * 1.5 + 0.8,
-        opacity: Math.random() * 0.25 + 0.15,
-        hue: color.hue + (Math.random() - 0.5) * 20,
+        vx: (Math.random() - 0.5) * 0.12,
+        vy: (Math.random() - 0.5) * 0.12,
+        radius: Math.random() * 1.2 + 0.6,
+        opacity: Math.random() * 0.2 + 0.1,
+        hue: color.hue + (Math.random() - 0.5) * 30,
       });
     }
 
@@ -71,10 +71,34 @@ export function BiologicalAgeCircle({
     let time = 0;
 
     const animate = () => {
-      time += 0.02;
+      time += 0.015;
       ctx.clearRect(0, 0, size, size);
 
-      // Animate and draw particles
+      // Animated gradient background fill
+      const gradientAngle = time * 0.3;
+      const x1 = centerX + Math.cos(gradientAngle) * radius;
+      const y1 = centerY + Math.sin(gradientAngle) * radius;
+      const x2 = centerX + Math.cos(gradientAngle + Math.PI) * radius;
+      const y2 = centerY + Math.sin(gradientAngle + Math.PI) * radius;
+      
+      const bgGradient = ctx.createLinearGradient(x1, y1, x2, y2);
+      
+      // Beautiful shifting gradient colors
+      const hueShift = Math.sin(time * 0.2) * 20;
+      const color1Hue = color.hue + hueShift;
+      const color2Hue = color.hue + 40 + hueShift;
+      const color3Hue = color.hue - 30 + hueShift;
+      
+      bgGradient.addColorStop(0, `hsla(${color1Hue}, 75%, 70%, 0.15)`);
+      bgGradient.addColorStop(0.5, `hsla(${color2Hue}, 80%, 65%, 0.25)`);
+      bgGradient.addColorStop(1, `hsla(${color3Hue}, 70%, 75%, 0.15)`);
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius - 3, 0, Math.PI * 2);
+      ctx.fillStyle = bgGradient;
+      ctx.fill();
+
+      // Animate and draw particles with shimmer
       particles.forEach((particle) => {
         particle.x += particle.vx;
         particle.y += particle.vy;
@@ -84,20 +108,21 @@ export function BiologicalAgeCircle({
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         // Bounce particles within circle smoothly
-        if (distance > radius - 20) {
+        if (distance > radius - 25) {
           const angle = Math.atan2(dy, dx);
-          particle.x = centerX + Math.cos(angle) * (radius - 20);
-          particle.y = centerY + Math.sin(angle) * (radius - 20);
+          particle.x = centerX + Math.cos(angle) * (radius - 25);
+          particle.y = centerY + Math.sin(angle) * (radius - 25);
           particle.vx *= -0.5;
           particle.vy *= -0.5;
         }
 
-        // Very gentle pulsing effect
-        const pulse = Math.sin(time * 0.5 + particle.x * 0.005) * 0.15 + 1;
+        // Gentle pulsing and shimmer effect
+        const pulse = Math.sin(time * 0.5 + particle.x * 0.01) * 0.2 + 1;
+        const shimmer = Math.sin(time * 0.8 + particle.y * 0.015) * 0.3 + 0.7;
 
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.radius * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particle.hue}, ${color.sat - 10}%, ${color.light}%, ${particle.opacity})`;
+        ctx.fillStyle = `hsla(${particle.hue + hueShift}, 85%, 75%, ${particle.opacity * shimmer})`;
         ctx.fill();
 
         // Soft glow to particles
@@ -107,25 +132,42 @@ export function BiologicalAgeCircle({
           0,
           particle.x,
           particle.y,
-          particle.radius * pulse * 4
+          particle.radius * pulse * 5
         );
-        particleGlow.addColorStop(0, `hsla(${particle.hue}, ${color.sat - 10}%, ${color.light + 5}%, ${particle.opacity * 0.3})`);
-        particleGlow.addColorStop(1, `hsla(${particle.hue}, ${color.sat - 10}%, ${color.light}%, 0)`);
+        particleGlow.addColorStop(0, `hsla(${particle.hue + hueShift}, 85%, 80%, ${particle.opacity * 0.4 * shimmer})`);
+        particleGlow.addColorStop(1, `hsla(${particle.hue + hueShift}, 80%, 75%, 0)`);
         ctx.fillStyle = particleGlow;
         ctx.fill();
       });
 
-      // Draw main circle border with gradient
-      const borderGradient = ctx.createLinearGradient(centerX - radius, centerY, centerX + radius, centerY);
-      borderGradient.addColorStop(0, `hsl(${color.hue - 10}, ${color.sat}%, ${color.light}%)`);
-      borderGradient.addColorStop(0.5, `hsl(${color.hue}, ${color.sat + 10}%, ${color.light + 5}%)`);
-      borderGradient.addColorStop(1, `hsl(${color.hue + 10}, ${color.sat}%, ${color.light}%)`);
+      // Animated border with gradient
+      const borderGradientAngle = time * 0.4;
+      const bx1 = centerX + Math.cos(borderGradientAngle) * radius * 1.5;
+      const by1 = centerY + Math.sin(borderGradientAngle) * radius * 1.5;
+      const bx2 = centerX + Math.cos(borderGradientAngle + Math.PI) * radius * 1.5;
+      const by2 = centerY + Math.sin(borderGradientAngle + Math.PI) * radius * 1.5;
+      
+      const borderGradient = ctx.createLinearGradient(bx1, by1, bx2, by2);
+      borderGradient.addColorStop(0, `hsla(${color.hue + hueShift - 10}, 80%, 65%, 0.5)`);
+      borderGradient.addColorStop(0.3, `hsla(${color.hue + hueShift + 20}, 85%, 70%, 0.8)`);
+      borderGradient.addColorStop(0.7, `hsla(${color.hue + hueShift + 30}, 90%, 75%, 0.8)`);
+      borderGradient.addColorStop(1, `hsla(${color.hue + hueShift - 20}, 75%, 70%, 0.5)`);
       
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
       ctx.strokeStyle = borderGradient;
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 4;
       ctx.stroke();
+
+      // Inner glow ring
+      const innerGlowGradient = ctx.createRadialGradient(centerX, centerY, radius - 15, centerX, centerY, radius - 5);
+      innerGlowGradient.addColorStop(0, `hsla(${color.hue + hueShift + 20}, 90%, 80%, 0)`);
+      innerGlowGradient.addColorStop(1, `hsla(${color.hue + hueShift + 20}, 85%, 75%, 0.15)`);
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius - 5, 0, Math.PI * 2);
+      ctx.fillStyle = innerGlowGradient;
+      ctx.fill();
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -143,7 +185,7 @@ export function BiologicalAgeCircle({
         ref={canvasRef}
         className="absolute inset-0 pointer-events-none"
         style={{ 
-          filter: `drop-shadow(0 0 30px hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0.4))`
+          filter: `drop-shadow(0 0 40px hsla(${color.hue}, 85%, 70%, 0.6)) drop-shadow(0 0 80px hsla(${color.hue + 30}, 80%, 65%, 0.3))`
         }}
       />
       
