@@ -609,7 +609,7 @@ export default function MyState() {
           {/* Survey Tab */}
           <TabsContent value="survey" className="space-y-6">
             <div className="max-w-4xl mx-auto">
-              {!canTakeSurveyActual && (
+              {!canTakeSurveyActual && daysUntilNextSurvey > 0 && (
                 <Card className="p-8 text-center bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
