@@ -607,51 +607,56 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Next Analysis Card */}
-        <NextAnalysisCard userId={profile?.id} />
+        {/* Quick Stats Grid - 3 columns on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <NextAnalysisCard userId={profile?.id} />
+          <HealthPercentileCard 
+            biologicalAge={displayBiologicalAge}
+            chronologicalAge={chronologicalAge}
+          />
+        </div>
 
-        {/* Health Percentile */}
-        <HealthPercentileCard 
-          biologicalAge={displayBiologicalAge}
-          chronologicalAge={chronologicalAge}
-        />
+        {/* System Health Grid - 2/3 + 1/3 layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <SystemRatingsCard 
+              categoryScores={displayCategoryScores}
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <HealthTrendsCard 
+              analyses={displayAllAnalyses}
+            />
+          </div>
+        </div>
 
-        {/* System Ratings */}
-        <SystemRatingsCard 
-          categoryScores={displayCategoryScores}
-        />
-
-        {/* Health Trends */}
-        <HealthTrendsCard 
-          analyses={displayAllAnalyses}
-        />
-
-        {/* Weight Tracker */}
-        <WeightTracker />
-
-        {/* Body Heatmap */}
-        <Card className="border-border bg-card backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Карта тела</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {displayBodyHeatmap.length > 0 ? (
-              <BodyHeatmap 
-                biomarkerData={displayBodyHeatmap} 
-                patientAge={chronologicalAge} 
-                patientGender={profile?.gender as 'male' | 'female' | undefined}
-              />
-            ) : (
-              <div className="h-[300px] flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                  <p className="text-sm">Нет данных для отображения</p>
-                  <p className="text-xs mt-2">Добавьте анализ для просмотра карты тела</p>
+        {/* Body Metrics Grid - 2 columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <WeightTracker />
+          
+          <Card className="border-border bg-card backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Карта тела</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {displayBodyHeatmap.length > 0 ? (
+                <BodyHeatmap 
+                  biomarkerData={displayBodyHeatmap} 
+                  patientAge={chronologicalAge} 
+                  patientGender={profile?.gender as 'male' | 'female' | undefined}
+                />
+              ) : (
+                <div className="h-[300px] flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                    <p className="text-sm">Нет данных для отображения</p>
+                    <p className="text-xs mt-2">Добавьте анализ для просмотра карты тела</p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Divider - Strategy Section */}
         <div className="relative py-8">

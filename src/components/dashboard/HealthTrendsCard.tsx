@@ -137,13 +137,13 @@ export function HealthTrendsCard({ analyses }: HealthTrendsCardProps) {
 
   if (!analyses || analyses.length < 2) {
     return (
-      <Card className="border-border bg-card backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-lg">📊 Тренды здоровья</CardTitle>
+      <Card className="border-border bg-card backdrop-blur-sm h-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">📊 Тренды</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
-            <p className="text-sm">Добавьте минимум 2 анализа для отслеживания трендов</p>
+            <p className="text-xs">Нужно минимум 2 анализа</p>
           </div>
         </CardContent>
       </Card>
@@ -151,66 +151,61 @@ export function HealthTrendsCard({ analyses }: HealthTrendsCardProps) {
   }
 
   return (
-    <Card className="border-border bg-card backdrop-blur-sm">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">📊 Тренды здоровья</CardTitle>
-          <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="3">Последние 3 месяца</SelectItem>
-              <SelectItem value="6">Последние 6 месяцев</SelectItem>
-              <SelectItem value="12">Последний год</SelectItem>
-              <SelectItem value="all">За всё время</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <Card className="border-border bg-card backdrop-blur-sm h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">📊 Тренды</CardTitle>
+        <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
+          <SelectTrigger className="w-full mt-2">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="3">3 месяца</SelectItem>
+            <SelectItem value="6">6 месяцев</SelectItem>
+            <SelectItem value="12">1 год</SelectItem>
+            <SelectItem value="all">Всё время</SelectItem>
+          </SelectContent>
+        </Select>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         {trends.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            <p className="text-sm">Нет данных за выбранный период</p>
+          <div className="text-center text-muted-foreground py-4">
+            <p className="text-xs">Нет данных</p>
           </div>
         ) : (
-          <>
-            <p className="text-sm text-muted-foreground mb-4">{getPeriodText()}:</p>
-            <div className="space-y-3">
-              {trends.map((trend, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-start gap-3 p-3 rounded-lg bg-background/50"
-                >
-                  {trend.type === 'improvement' && (
-                    <CheckCircle2 className="h-5 w-5 text-status-good flex-shrink-0 mt-0.5" />
-                  )}
-                  {trend.type === 'decline' && (
-                    <AlertTriangle className="h-5 w-5 text-status-danger flex-shrink-0 mt-0.5" />
-                  )}
-                  {trend.type === 'stable' && (
-                    <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                  )}
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-base">{trend.emoji}</span>
-                      <span className="text-sm font-medium text-foreground">
-                        {trend.category}
-                      </span>
-                    </div>
-                    <p className={`text-sm ${
-                      trend.type === 'improvement' ? 'text-status-good' :
-                      trend.type === 'decline' ? 'text-status-danger' :
-                      'text-muted-foreground'
-                    }`}>
-                      {trend.text}
-                    </p>
+          <div className="space-y-2">
+            {trends.map((trend, index) => (
+              <div 
+                key={index} 
+                className="flex items-start gap-2 p-2 rounded-lg bg-background/50"
+              >
+                {trend.type === 'improvement' && (
+                  <CheckCircle2 className="h-4 w-4 text-status-good flex-shrink-0 mt-0.5" />
+                )}
+                {trend.type === 'decline' && (
+                  <AlertTriangle className="h-4 w-4 text-status-danger flex-shrink-0 mt-0.5" />
+                )}
+                {trend.type === 'stable' && (
+                  <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-sm">{trend.emoji}</span>
+                    <span className="text-xs font-medium text-foreground truncate">
+                      {trend.category}
+                    </span>
                   </div>
+                  <p className={`text-xs ${
+                    trend.type === 'improvement' ? 'text-status-good' :
+                    trend.type === 'decline' ? 'text-status-danger' :
+                    'text-muted-foreground'
+                  }`}>
+                    {trend.text}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
