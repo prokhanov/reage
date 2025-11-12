@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle, ChevronLeft } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,15 +110,23 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-secondary/80 border-r border-border/30 backdrop-blur-xl transition-transform duration-300 ease-in-out",
-          "lg:translate-x-0 w-64",
+          "fixed top-0 left-0 z-50 h-screen bg-secondary/80 border-r border-border/30 backdrop-blur-xl transition-transform duration-300 ease-in-out w-64",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
+          {/* Logo with collapse button */}
           <div className="p-6 border-b border-border/30">
-            <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto mb-3" />
+            <div className="flex items-start justify-between mb-3">
+              <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto" />
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors lg:flex hidden"
+                title="Скрыть боковую панель"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground mt-1 truncate">
               {viewAsUserId ? patientEmail : userEmail}
             </p>
