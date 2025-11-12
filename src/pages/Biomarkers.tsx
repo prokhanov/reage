@@ -10,6 +10,8 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
 import { calculateAge, getNormalRangeForAge } from "@/lib/biomarkerNorms";
+import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 interface BiomarkerData {
   id: string;
@@ -36,6 +38,7 @@ interface GroupedBiomarkers {
 
 export default function Biomarkers() {
   const { getUserId } = useViewAsUser();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<GroupedBiomarkers>({});
   const [loading, setLoading] = useState(true);
   const [patientGender, setPatientGender] = useState<string | null>(null);
@@ -44,9 +47,36 @@ export default function Biomarkers() {
 
   useEffect(() => {
     loadBiomarkers();
-  }, []);
+  }, [demoMode, demoData]);
 
   const loadBiomarkers = async () => {
+    if (demoMode) {
+      // Load demo biomarkers
+      if (demoData) {
+        try {
+          const { data: categoriesData } = await supabase
+            .from("biomarker_categories")
+            .select("name, display_order")
+            .order("display_order");
+
+          const transformed = transformDemoBiomarkersToDisplay(
+            demoData.biomarkers,
+            demoData.analysis,
+            categoriesData || []
+          );
+          
+          setBiomarkers(transformed);
+          setPatientGender(demoData.profile.gender || null);
+          setPatientAge(demoData.profile.chronological_age || null);
+        } catch (error) {
+          console.error("Error loading demo biomarkers:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+      return;
+    }
+
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
@@ -213,6 +243,7 @@ export default function Biomarkers() {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {demoMode && <DemoBanner />}
       {loading && <BiomarkerTableSkeleton />}
       {!loading && (
       <>

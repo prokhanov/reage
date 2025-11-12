@@ -8,6 +8,7 @@ interface DemoData {
     chronological_age: number;
     weight: number;
     height: number;
+    gender: string;
   };
   analysis: any;
   biomarkers: any[];
@@ -32,7 +33,8 @@ export const useDemoMode = () => {
     templateData: any,
     userAge: number,
     userWeight: number,
-    userHeight: number
+    userHeight: number,
+    userGender: string
   ): DemoData => {
     const adapted = JSON.parse(JSON.stringify(templateData));
     
@@ -42,6 +44,7 @@ export const useDemoMode = () => {
     
     adapted.profile.weight = userWeight;
     adapted.profile.height = userHeight;
+    adapted.profile.gender = userGender;
     
     const weightRatio = userWeight / templateData.profile.weight;
     adapted.weight_history = adapted.weight_history.map((entry: any) => ({
@@ -99,7 +102,7 @@ export const useDemoMode = () => {
 
       if (template) {
         const genderData = gender === 'female' ? template.female_data : template.male_data;
-        const adaptedData = adaptDemoDataToUser(genderData, age, weight, height);
+        const adaptedData = adaptDemoDataToUser(genderData, age, weight, height, gender);
         setDemoData(adaptedData);
       }
     } catch (error) {
@@ -182,3 +185,56 @@ export const useDemoMode = () => {
     refreshDemoMode: fetchDemoModeStatus
   };
 };
+
+// Helper function exported for reuse
+export const transformDemoBiomarkersToDisplay = (
+  demoBiomarkers: any[],
+  demoProfile: any,
+  categoriesData: any[]
+) => {
+  const categoryOrderMap = new Map(
+    (categoriesData || []).map((cat) => [cat.name, cat.display_order])
+  );
+
+  const biomarkersWithMeta = demoBiomarkers.map((b: any) => ({
+    id: b.code,
+    name: b.name || b.code,
+    code: b.code,
+    category: b.category,
+    unit: b.unit || "",
+    description: b.description || null,
+    normal_min: b.normal_min || null,
+    normal_max: b.normal_max || null,
+    normal_min_male: b.normal_min_male || null,
+    normal_max_male: b.normal_max_male || null,
+    normal_min_female: b.normal_min_female || null,
+    normal_max_female: b.normal_max_female || null,
+    latest_value: b.value,
+    latest_date: demoProfile.analysis_date || new Date().toISOString(),
+    previous_value: b.value * 0.95, // Demo previous value
+    trend: b.value > (b.value * 0.95) ? "up" : "stable",
+  }));
+
+  const grouped = biomarkersWithMeta.reduce((acc: any, biomarker: any) => {
+    const category = biomarker.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(biomarker);
+    return acc;
+  }, {});
+
+  const sortedGrouped: any = {};
+  Object.keys(grouped)
+    .sort((a, b) => {
+      const orderA = categoryOrderMap.get(a) ?? 999;
+      const orderB = categoryOrderMap.get(b) ?? 999;
+      return orderA - orderB;
+    })
+    .forEach(cat => {
+      sortedGrouped[cat] = grouped[cat];
+    });
+
+  return sortedGrouped;
+};
+

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Eye, Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -55,6 +57,7 @@ export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
+  const { demoMode, demoData } = useDemoMode();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +82,31 @@ export default function Recommendations() {
   }, []);
 
   const loadRecommendations = async () => {
+    if (demoMode && demoData) {
+      const demoRecommendations = demoData.recommendations.map((r: any, idx: number) => ({
+        id: `demo-rec-${idx}`,
+        type: r.type,
+        text: r.text,
+        created_at: demoData.analysis.analysis_date,
+        analysis_date: demoData.analysis.analysis_date,
+        analysis_status: "processed" as const,
+        analysis_id: "demo-analysis-1"
+      }));
+      
+      setRecommendations(demoRecommendations);
+      
+      const demoReport: RecommendationReport = {
+        date: demoData.analysis.analysis_date,
+        recommendations: demoRecommendations,
+        count: demoRecommendations.length,
+        analysisId: "demo-analysis-1"
+      };
+      
+      setReports([demoReport]);
+      setLoading(false);
+      return;
+    }
+
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
@@ -550,6 +578,7 @@ export default function Recommendations() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {demoMode && <DemoBanner />}
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
           Персональные отчёты

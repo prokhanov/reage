@@ -17,6 +17,8 @@ import { CompareRecordsDialog } from "@/components/symptom-history/CompareRecord
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MyStateSkeleton } from "@/components/skeletons/MyStateSkeleton";
 import { useSymptomCategories } from "@/hooks/useSymptomCategories";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 interface Prescription {
   id: string;
@@ -239,6 +241,7 @@ const categoryEmojis: Record<string, string> = {
 
 export default function MyState() {
   const { getUserId, isViewMode } = useViewAsUser();
+  const { demoMode, demoData } = useDemoMode();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [adherenceAnswers, setAdherenceAnswers] = useState<Record<string, number>>({});
@@ -290,6 +293,11 @@ export default function MyState() {
   };
 
   const fetchSymptoms = async () => {
+    if (demoMode) {
+      setLoadingHistory(false);
+      return;
+    }
+
     try {
       const userId = await getUserId();
       
@@ -466,8 +474,21 @@ export default function MyState() {
     }
   };
 
+  const displaySymptoms = demoMode && demoData
+    ? demoData.symptoms.map((s: any, idx: number) => ({
+        id: `demo-${idx}`,
+        category: s.category,
+        symptom: s.symptom,
+        severity: s.severity,
+        tracked_at: s.tracked_at,
+        user_id: 'demo'
+      }))
+    : symptoms;
+
+  const canTakeSurveyActual = demoMode ? false : canTakeSurvey;
+
   // Группировка по датам для истории
-  const groupedByDate = symptoms.reduce((acc, symptom) => {
+  const groupedByDate = displaySymptoms.reduce((acc, symptom) => {
     const date = format(new Date(symptom.tracked_at), "yyyy-MM-dd");
     if (!acc[date]) {
       acc[date] = [];
@@ -571,6 +592,7 @@ export default function MyState() {
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-8">
+      {demoMode && <DemoBanner />}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Мое состояние</h1>
         <p className="text-muted-foreground">
@@ -587,7 +609,7 @@ export default function MyState() {
           {/* Survey Tab */}
           <TabsContent value="survey" className="space-y-6">
             <div className="max-w-4xl mx-auto">
-              {!canTakeSurvey && (
+              {!canTakeSurveyActual && (
                 <Card className="p-8 text-center bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +41,7 @@ export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editPrescription, setEditPrescription] = useState<Prescription | null>(null);
+  const { demoMode, demoData } = useDemoMode();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
@@ -47,8 +50,20 @@ export default function Prescriptions() {
   const userId = viewAsUserId || undefined;
 
   const { data: prescriptions = [], isLoading } = useQuery({
-    queryKey: ["prescriptions", userId, hasPatientAccess],
+    queryKey: ["prescriptions", userId, hasPatientAccess, demoMode],
     queryFn: async () => {
+      if (demoMode && demoData) {
+        return demoData.prescriptions.map((p: any, idx: number) => ({
+          id: `demo-${idx}`,
+          prescription: p.prescription,
+          effect: p.effect,
+          control_date: p.control_date,
+          status: p.status || "confirmed",
+          is_archived: false,
+          created_at: demoData.analysis.analysis_date
+        } as Prescription));
+      }
+
       let query = supabase
         .from("prescriptions")
         .select("*")
@@ -187,6 +202,7 @@ export default function Prescriptions() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+        {demoMode && <DemoBanner />}
         {isLoading && <PrescriptionListSkeleton />}
         {!isLoading && (
           <>

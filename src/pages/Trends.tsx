@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from "recharts";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
@@ -37,6 +39,7 @@ interface AnalysisValue {
 export default function Trends() {
   const { getUserId } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
+  const { demoMode, demoData } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
   const [trendData, setTrendData] = useState<any[]>([]);
@@ -58,6 +61,28 @@ export default function Trends() {
   }, [selectedBiomarker, period]);
 
   const loadBiomarkers = async () => {
+    if (demoMode && demoData) {
+      const demoBiomarkers = demoData.biomarkers.map((b: any) => ({
+        id: b.code,
+        name: b.name || b.code,
+        code: b.code,
+        unit: b.unit || "units",
+        normal_min: b.normal_min || null,
+        normal_max: b.normal_max || null,
+        normal_min_male: b.normal_min_male || null,
+        normal_max_male: b.normal_max_male || null,
+        normal_min_female: b.normal_min_female || null,
+        normal_max_female: b.normal_max_female || null,
+        age_ranges: null
+      }));
+      setBiomarkers(demoBiomarkers);
+      if (demoBiomarkers.length > 0) {
+        setSelectedBiomarker(demoBiomarkers[0].id);
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
@@ -115,6 +140,29 @@ export default function Trends() {
   };
 
   const loadTrendData = async (biomarkerId: string) => {
+    if (demoMode && demoData) {
+      const demoBiomarker = demoData.biomarkers.find((b: any) => b.code === biomarkerId);
+      if (demoBiomarker) {
+        setTrendData([
+          { 
+            date: "1 янв", 
+            value: demoBiomarker.value * 0.95,
+            refMin: demoBiomarker.normal_min,
+            refMax: demoBiomarker.normal_max,
+            age: demoData.profile.chronological_age
+          },
+          { 
+            date: "15 янв", 
+            value: demoBiomarker.value,
+            refMin: demoBiomarker.normal_min,
+            refMax: demoBiomarker.normal_max,
+            age: demoData.profile.chronological_age
+          }
+        ]);
+      }
+      return;
+    }
+
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
@@ -195,6 +243,7 @@ export default function Trends() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+    {demoMode && <DemoBanner />}
     {loading && <TrendChartSkeleton />}
     {!loading && (
     <>

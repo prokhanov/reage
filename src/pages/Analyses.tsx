@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
@@ -39,6 +41,7 @@ export default function Analyses() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess } = usePatientModuleAccess();
+  const { demoMode, demoData } = useDemoMode();
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -54,6 +57,11 @@ export default function Analyses() {
   }, []);
 
   const loadAnalyses = async () => {
+    if (demoMode) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
@@ -131,9 +139,22 @@ export default function Analyses() {
   };
 
 
+  const displayAnalyses = demoMode && demoData
+    ? [{
+        id: 'demo-analysis-1',
+        date: demoData.analysis.analysis_date,
+        lab_name: demoData.analysis.lab_name,
+        health_index: demoData.analysis.health_index,
+        biological_age: demoData.analysis.biological_age,
+        biomarkers_count: demoData.biomarkers.length,
+        status: "processed" as const
+      }]
+    : analyses;
+
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {demoMode && <DemoBanner />}
         {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
         {(!loading || analyses.length > 0) && (
           <>
@@ -156,7 +177,7 @@ export default function Analyses() {
           )}
         </div>
 
-        {analyses.length === 0 ? (
+        {displayAnalyses.length === 0 ? (
           <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
             <CardContent className="flex flex-col items-center justify-center py-16 px-6">
               <div className="relative mb-6">
@@ -174,7 +195,7 @@ export default function Analyses() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {analyses.map((analysis) => (
+            {displayAnalyses.map((analysis) => (
               <Card
                 key={analysis.id}
                 className="hover:shadow-neon-primary hover:border-primary/50 transition-all border-primary/20 bg-gradient-to-br from-card to-primary/5 group relative"
