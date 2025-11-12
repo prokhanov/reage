@@ -80,15 +80,6 @@ export function BiologicalAgeCircle({
       time += 0.02;
       ctx.clearRect(0, 0, size, size);
 
-      // Draw outer glow ring
-      const glowGradient = ctx.createRadialGradient(centerX, centerY, radius - 10, centerX, centerY, radius + 20);
-      glowGradient.addColorStop(0, `hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0.3)`);
-      glowGradient.addColorStop(1, `hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0)`);
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius + 10, 0, Math.PI * 2);
-      ctx.fillStyle = glowGradient;
-      ctx.fill();
-
       // Animate and draw particles
       particles.forEach((particle) => {
         particle.x += particle.vx;
@@ -159,15 +150,6 @@ export function BiologicalAgeCircle({
       ctx.strokeStyle = borderGradient;
       ctx.lineWidth = 6;
       ctx.stroke();
-
-      // Inner subtle glow
-      const innerGlow = ctx.createRadialGradient(centerX, centerY, radius - 30, centerX, centerY, radius);
-      innerGlow.addColorStop(0, `hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0)`);
-      innerGlow.addColorStop(1, `hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0.1)`);
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.fillStyle = innerGlow;
-      ctx.fill();
 
       animationFrameId = requestAnimationFrame(animate);
     };
