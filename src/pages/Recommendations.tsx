@@ -117,14 +117,14 @@ export default function Recommendations() {
             id: `demo-rec-${analysisIndex}-${idx}`,
             type: r.type,
             text: r.text,
-            created_at: analysis.analysis_date,
-            analysis_date: analysis.analysis_date,
+            created_at: analysis.date,
+            analysis_date: analysis.date,
             analysis_status: "processed" as const,
             analysis_id: `demo-analysis-${analysisIndex}`
           }));
           
           return {
-            date: analysis.analysis_date,
+            date: analysis.date,
             recommendations,
             count: recommendations.length,
             analysisId: `demo-analysis-${analysisIndex}`
