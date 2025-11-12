@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw, Trophy } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw, Trophy, Calendar, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
@@ -13,15 +13,14 @@ import { useNavigate } from "react-router-dom";
 import { BodyHeatmap } from "@/components/BodyHeatmap";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { WeightTracker } from "@/components/WeightTracker";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
+import { ru } from "date-fns/locale";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
-import { HealthPercentileCard } from "@/components/dashboard/HealthPercentileCard";
-import { NextAnalysisCard } from "@/components/dashboard/NextAnalysisCard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -41,6 +40,7 @@ export default function Dashboard() {
   const [riskData, setRiskData] = useState<any>(null);
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [nextBooking, setNextBooking] = useState<any>(null);
 
   useEffect(() => {
     // Reset all state when exiting view mode
@@ -65,6 +65,7 @@ export default function Dashboard() {
     if (profile) {
       fetchAnalysesStats();
       fetchBodyHeatmapData();
+      fetchNextBooking();
       if (!demoMode) {
         fetchRiskZones();
       }
@@ -282,6 +283,26 @@ export default function Dashboard() {
   };
 
 
+  const fetchNextBooking = async () => {
+    if (demoMode) return;
+    if (!profile?.id) return;
+
+    try {
+      const { data } = await supabase
+        .from('analysis_bookings')
+        .select('booking_date')
+        .eq('user_id', profile.id)
+        .gte('booking_date', new Date().toISOString().split('T')[0])
+        .order('booking_date', { ascending: true })
+        .limit(1)
+        .single();
+
+      setNextBooking(data);
+    } catch (error) {
+      console.error('Error loading next booking:', error);
+    }
+  };
+
   const fetchBodyHeatmapData = async () => {
     if (demoMode) return; // Skip fetching real data in demo mode
     try {
@@ -456,153 +477,214 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Central Bio Age Circle - Combined Card */}
-        <Card className="border-border bg-card backdrop-blur-sm">
-          <CardContent className="pt-6 pb-6">
-            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
-              {/* Left side - Circle */}
-              <div className="flex flex-col items-center gap-4">
+        {/* Hero Section - Biological Age with Metrics Grid */}
+        <Card className="border-border bg-card backdrop-blur-sm overflow-hidden">
+          <CardContent className="p-8 lg:p-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Left: Circle */}
+              <div className="flex flex-col items-center justify-center">
                 <BiologicalAgeCircle
                   biologicalAge={displayBioAge}
                   chronologicalAge={chronologicalAge}
                 />
-
-                {/* Age Comparison Below Circle */}
+                
+                {/* Compact comparison text */}
                 {displayBioAge && chronologicalAge && ageDifference !== null ? (
-                  <>
+                  <div className="mt-6 text-center">
                     {ageDifference > 0 ? (
-                      <p className="text-base text-status-good animate-fade-in font-medium">
-                        Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе 🎉
-                      </p>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-status-good/10">
+                        <span className="text-2xl font-bold text-status-good">−{Math.abs(ageDifference).toFixed(1)}</span>
+                        <span className="text-sm text-status-good">лет моложе</span>
+                      </div>
                     ) : ageDifference < 0 ? (
-                      <p className="text-base text-status-danger animate-fade-in font-medium">
-                        Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше
-                      </p>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-status-danger/10">
+                        <span className="text-2xl font-bold text-status-danger">+{Math.abs(ageDifference).toFixed(1)}</span>
+                        <span className="text-sm text-status-danger">лет старше</span>
+                      </div>
                     ) : (
-                      <p className="text-base text-muted-foreground animate-fade-in">
-                        Соответствует паспортному возрасту
-                      </p>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted">
+                        <span className="text-sm text-muted-foreground">Равен паспортному</span>
+                      </div>
                     )}
-                  </>
-                ) : (
-                  <p className="text-base text-muted-foreground">
-                    Добавьте анализ
-                  </p>
-                )}
+                  </div>
+                ) : null}
               </div>
 
-              {/* Right side - Stats */}
-              <div className="flex flex-col gap-4 w-full lg:w-auto lg:min-w-[300px]">
-                {/* Health Index */}
-                <div className="space-y-3 p-6 rounded-lg border border-border bg-background/50">
-                  <div className="flex items-center gap-3">
-                    <Heart className="h-6 w-6 text-accent flex-shrink-0" />
+              {/* Right: Unified Metrics Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Health Index - Highlighted Large Card */}
+                <div className="col-span-2 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="text-sm text-muted-foreground mb-1">Индекс здоровья</div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-foreground">{displayHealthIndex || "—"}</span>
-                        <span className="text-sm text-muted-foreground">/100</span>
+                      <div className="text-sm text-muted-foreground mb-2">Индекс здоровья</div>
+                      <div className="text-5xl font-bold text-foreground mb-3">
+                        {displayHealthIndex || "—"}
+                        <span className="text-2xl text-muted-foreground ml-1">/100</span>
                       </div>
+                      {displayHealthIndex !== null && (
+                        <div className="inline-flex">
+                          {displayHealthIndex >= 85 && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-status-good/20 text-status-good font-medium">
+                              Отлично
+                            </span>
+                          )}
+                          {displayHealthIndex >= 70 && displayHealthIndex < 85 && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-status-moderate/20 text-status-moderate font-medium">
+                              Хорошо
+                            </span>
+                          )}
+                          {displayHealthIndex >= 50 && displayHealthIndex < 70 && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-status-warning/20 text-status-warning font-medium">
+                              Умеренно
+                            </span>
+                          )}
+                          {displayHealthIndex < 50 && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-status-danger/20 text-status-danger font-medium">
+                              Внимание
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
+                    <Heart className="h-8 w-8 text-primary/60" />
                   </div>
-                  
-                  {displayHealthIndex !== null && (
-                    <div className="flex justify-start">
-                      {displayHealthIndex >= 85 && (
-                        <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
-                          Отличное здоровье
-                        </Badge>
-                      )}
-                      {displayHealthIndex >= 70 && displayHealthIndex < 85 && (
-                        <Badge variant="secondary">
-                          Хорошее здоровье
-                        </Badge>
-                      )}
-                      {displayHealthIndex >= 50 && displayHealthIndex < 70 && (
-                        <Badge variant="outline" className="border-yellow-500/50 text-yellow-700 dark:text-yellow-400">
-                          Умеренные отклонения
-                        </Badge>
-                      )}
-                      {displayHealthIndex < 50 && (
-                        <Badge variant="destructive">
-                          Требуется внимание
-                        </Badge>
-                      )}
-                    </div>
+                </div>
+
+                {/* Compact Metric Cards - Uniform Height */}
+                {/* Analyses Count */}
+                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                  <Activity className="h-5 w-5 text-primary/60 mb-2" />
+                  <div className="text-xs text-muted-foreground mb-1">Анализов</div>
+                  <div className="text-3xl font-bold text-foreground">{displayAnalysesCount}</div>
+                </div>
+
+                {/* Recent Change */}
+                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                  <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
+                  <div className="text-xs text-muted-foreground mb-1">Динамика</div>
+                  <div className={`text-3xl font-bold ${
+                    displayRecentChange && displayRecentChange < 0 
+                      ? "text-status-good" 
+                      : displayRecentChange && displayRecentChange > 0
+                      ? "text-status-danger"
+                      : "text-foreground"
+                  }`}>
+                    {displayRecentChange !== null 
+                      ? `${displayRecentChange > 0 ? '+' : ''}${displayRecentChange.toFixed(1)}`
+                      : "—"
+                    }
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {displayRecentPeriod || "за период"}
+                  </div>
+                </div>
+
+                {/* Total Progress */}
+                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                  <Trophy className="h-5 w-5 text-primary/60 mb-2" />
+                  <div className="text-xs text-muted-foreground mb-1">Прогресс</div>
+                  <div className={`text-3xl font-bold ${
+                    displayTotalProgress && displayTotalProgress < 0 
+                      ? "text-status-good" 
+                      : displayTotalProgress && displayTotalProgress > 0
+                      ? "text-status-danger"
+                      : "text-foreground"
+                  }`}>
+                    {displayTotalProgress !== null 
+                      ? `${displayTotalProgress > 0 ? '+' : ''}${displayTotalProgress.toFixed(1)}`
+                      : "—"
+                    }
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {displayTotalProgress !== null 
+                      ? displayTotalProgress < 0 ? "лучше" : "хуже"
+                      : "всего"
+                    }
+                  </div>
+                </div>
+
+                {/* Next Analysis */}
+                <div 
+                  className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50 cursor-pointer"
+                  onClick={() => navigate('/analyses')}
+                >
+                  <Calendar className="h-5 w-5 text-primary/60 mb-2" />
+                  <div className="text-xs text-muted-foreground mb-1">Анализ</div>
+                  {nextBooking ? (
+                    <>
+                      <div className="text-2xl font-bold text-foreground">
+                        {format(new Date(nextBooking.booking_date), 'd MMM', { locale: ru })}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {differenceInDays(new Date(nextBooking.booking_date), new Date())} дней
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-2xl font-bold text-muted-foreground">—</div>
                   )}
                 </div>
 
-                {/* Compact Stats Grid */}
-                <div className="grid grid-cols-1 gap-3">
-                  {/* Analyses Count */}
-                  <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
-                    <Activity className="h-5 w-5 text-primary flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="text-sm text-muted-foreground">Анализов</div>
-                      <div className="text-2xl font-bold text-foreground">{displayAnalysesCount}</div>
-                    </div>
-                  </div>
+                {/* Health Percentile */}
+                <div className="col-span-2 p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                  {(() => {
+                    if (!displayBiologicalAge || !chronologicalAge) {
+                      return (
+                        <div className="flex items-center gap-3">
+                          <Trophy className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Ваш результат</div>
+                            <div className="text-xl font-bold text-muted-foreground">—</div>
+                          </div>
+                        </div>
+                      );
+                    }
 
-                  {/* Recent Change */}
-                  <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
-                    <TrendingUp className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div className="flex-1">
-                      <div className="text-sm text-muted-foreground">Динамика</div>
-                      <div className={`text-2xl font-bold ${
-                        displayRecentChange && displayRecentChange < 0 
-                          ? "text-status-good" 
-                          : displayRecentChange && displayRecentChange > 0
-                          ? "text-status-danger"
-                          : "text-foreground"
-                      }`}>
-                        {displayRecentChange !== null 
-                          ? `${displayRecentChange > 0 ? '+' : ''}${displayRecentChange.toFixed(1)} лет`
-                          : "—"
-                        }
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {displayRecentPeriod || "за последний период"}
-                      </div>
-                    </div>
-                  </div>
+                    const diff = chronologicalAge - displayBiologicalAge;
+                    let title = "";
+                    let Icon = Trophy;
+                    let color = "text-muted-foreground";
 
-                  {/* Total Progress */}
-                  <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-background/50">
-                    <Trophy className="h-5 w-5 flex-shrink-0 text-primary" />
-                    <div className="flex-1">
-                      <div className="text-sm text-muted-foreground">Общий прогресс</div>
-                      <div className={`text-2xl font-bold ${
-                        displayTotalProgress && displayTotalProgress < 0 
-                          ? "text-status-good" 
-                          : displayTotalProgress && displayTotalProgress > 0
-                          ? "text-status-danger"
-                          : "text-foreground"
-                      }`}>
-                        {displayTotalProgress !== null 
-                          ? `${displayTotalProgress > 0 ? '+' : ''}${displayTotalProgress.toFixed(1)} лет`
-                          : "—"
-                        }
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {displayTotalProgress !== null 
-                          ? displayTotalProgress < 0 
-                            ? "помолодели" 
-                            : "постарели"
-                          : "за всё время"
-                        }
-                      </div>
-                    </div>
-                  </div>
+                    if (diff >= 10) {
+                      title = "Топ 5%";
+                      color = "text-status-good";
+                    } else if (diff >= 7) {
+                      title = "Топ 10%";
+                      color = "text-status-good";
+                    } else if (diff >= 4) {
+                      title = "Топ 20%";
+                      color = "text-status-good";
+                    } else if (diff >= 2) {
+                      title = "Выше среднего";
+                      color = "text-status-moderate";
+                    } else if (diff >= -2) {
+                      title = "Средний уровень";
+                      Icon = Target;
+                    } else {
+                      title = "Ниже среднего";
+                      color = "text-status-warning";
+                      Icon = TrendingUp;
+                    }
 
-                  {/* Next Analysis - Compact */}
-                  <NextAnalysisCard userId={profile?.id} compact={true} />
-
-                  {/* Health Percentile - Compact */}
-                  <HealthPercentileCard 
-                    biologicalAge={displayBiologicalAge}
-                    chronologicalAge={chronologicalAge}
-                    compact={true}
-                  />
+                    return (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Icon className={`h-5 w-5 ${color}`} />
+                          <div>
+                            <div className="text-xs text-muted-foreground">Ваш результат</div>
+                            <div className={`text-xl font-bold ${color}`}>{title}</div>
+                          </div>
+                        </div>
+                        {diff > 0 && (
+                          <div className="text-right">
+                            <div className={`text-2xl font-bold ${color}`}>
+                              −{Math.abs(diff).toFixed(1)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">лет</div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
