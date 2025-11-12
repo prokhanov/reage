@@ -20,7 +20,6 @@ import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
-import { HealthTrendsCard } from "@/components/dashboard/HealthTrendsCard";
 import { HealthPercentileCard } from "@/components/dashboard/HealthPercentileCard";
 import { NextAnalysisCard } from "@/components/dashboard/NextAnalysisCard";
 
@@ -621,19 +620,11 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* System Health Grid - 2/3 + 1/3 layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <SystemRatingsCard 
-              categoryScores={displayCategoryScores}
-            />
-          </div>
-          <div className="lg:col-span-1">
-            <HealthTrendsCard 
-              analyses={displayAllAnalyses}
-            />
-          </div>
-        </div>
+        {/* System Health - Full Width with Trends */}
+        <SystemRatingsCard 
+          categoryScores={displayCategoryScores}
+          analyses={displayAllAnalyses}
+        />
 
         {/* Body Metrics Grid - 2 columns */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

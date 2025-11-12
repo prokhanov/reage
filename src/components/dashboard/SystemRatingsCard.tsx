@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Activity, CheckCircle2, AlertTriangle, ArrowRight, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,33 +12,137 @@ interface CategoryScore {
   displayOrder: number;
 }
 
-interface SystemRatingsCardProps {
-  categoryScores?: Record<string, number>;
+interface CategoryTrend {
+  change: number;
+  oldScore: number;
+  newScore: number;
+  text: string;
+  type: 'improvement' | 'decline' | 'stable';
 }
 
-export function SystemRatingsCard({ categoryScores }: SystemRatingsCardProps) {
+interface SystemRatingsCardProps {
+  categoryScores?: Record<string, number>;
+  analyses?: any[];
+}
+
+export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCardProps) {
   const [categories, setCategories] = useState<CategoryScore[]>([]);
+  const [period, setPeriod] = useState<'3' | '6' | '12' | 'all'>('3');
+  const [trends, setTrends] = useState<Record<string, CategoryTrend>>({});
 
   useEffect(() => {
     const loadCategories = async () => {
-      const { data } = await supabase
+      const { data: categoriesData, error } = await supabase
         .from('biomarker_categories')
         .select('name, emoji, display_order')
         .order('display_order');
 
-      if (data && categoryScores) {
-        const scores = data.map(cat => ({
-          name: cat.name,
-          emoji: cat.emoji,
-          score: categoryScores[cat.name] || 0,
-          displayOrder: cat.display_order
-        }));
-        setCategories(scores);
+      if (error) {
+        console.error('Error loading categories:', error);
+        return;
+      }
+
+      if (categoriesData && categoryScores) {
+        const mappedCategories = categoriesData
+          .map(cat => ({
+            name: cat.name,
+            emoji: cat.emoji,
+            score: categoryScores[cat.name] || 0,
+            displayOrder: cat.display_order
+          }))
+          .sort((a, b) => a.displayOrder - b.displayOrder);
+
+        setCategories(mappedCategories);
       }
     };
 
     loadCategories();
   }, [categoryScores]);
+
+  useEffect(() => {
+    if (!analyses || analyses.length < 2 || categories.length === 0) {
+      setTrends({});
+      return;
+    }
+
+    calculateTrends();
+  }, [period, analyses, categories]);
+
+  const calculateTrends = () => {
+    if (!analyses || analyses.length < 2) return;
+
+    const now = new Date();
+    const monthsAgo = period === 'all' ? Infinity : parseInt(period);
+    const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsAgo, now.getDate());
+
+    const filteredAnalyses = analyses.filter(a => {
+      const analysisDate = new Date(a.date || a.analysis_date);
+      return period === 'all' || analysisDate >= cutoffDate;
+    });
+
+    if (filteredAnalyses.length < 2) {
+      setTrends({});
+      return;
+    }
+
+    const sortedAnalyses = [...filteredAnalyses].sort((a, b) => 
+      new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
+    );
+    
+    const oldestAnalysis = sortedAnalyses[0];
+    const newestAnalysis = sortedAnalyses[sortedAnalyses.length - 1];
+
+    const oldScores = oldestAnalysis.biomarkers_metadata?.ai_analysis?.category_scores || {};
+    const newScores = newestAnalysis.biomarkers_metadata?.ai_analysis?.category_scores || {};
+
+    const calculatedTrends: Record<string, CategoryTrend> = {};
+
+    categories.forEach(cat => {
+      const oldScore = oldScores[cat.name];
+      const newScore = newScores[cat.name];
+
+      if (oldScore !== undefined && newScore !== undefined) {
+        const change = newScore - oldScore;
+        const percentChange = Math.abs((change / oldScore) * 100);
+
+        let text = '';
+        let type: 'improvement' | 'decline' | 'stable' = 'stable';
+
+        if (percentChange < 2) {
+          text = `стабильно`;
+          type = 'stable';
+        } else if (change > 0) {
+          type = 'improvement';
+          if (percentChange >= 15) {
+            text = `↑ ${percentChange.toFixed(0)}% (значительное улучшение)`;
+          } else if (percentChange >= 5) {
+            text = `↑ ${percentChange.toFixed(0)}% (улучшение)`;
+          } else {
+            text = `↑ ${percentChange.toFixed(0)}%`;
+          }
+        } else {
+          type = 'decline';
+          if (percentChange >= 15) {
+            text = `↓ ${percentChange.toFixed(0)}% (значительное ухудшение)`;
+          } else if (percentChange >= 5) {
+            text = `↓ ${percentChange.toFixed(0)}% (ухудшение)`;
+          } else {
+            text = `↓ ${percentChange.toFixed(0)}%`;
+          }
+        }
+
+        calculatedTrends[cat.name] = {
+          change,
+          oldScore,
+          newScore,
+          text,
+          type
+        };
+      }
+    });
+
+    setTrends(calculatedTrends);
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return "text-status-good";
@@ -47,10 +152,10 @@ export function SystemRatingsCard({ categoryScores }: SystemRatingsCardProps) {
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 85) return "Отличное состояние";
-    if (score >= 70) return "Хорошее состояние";
-    if (score >= 50) return "Требует внимания";
-    return "Критично";
+    if (score >= 85) return "Отлично";
+    if (score >= 70) return "Хорошо";
+    if (score >= 50) return "Умеренно";
+    return "Требует внимания";
   };
 
   const getProgressColor = (score: number) => {
@@ -65,7 +170,7 @@ export function SystemRatingsCard({ categoryScores }: SystemRatingsCardProps) {
       <Card className="border-border bg-card backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            💯 Рейтинг систем организма
+            🏥 Рейтинг систем организма
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -73,8 +178,7 @@ export function SystemRatingsCard({ categoryScores }: SystemRatingsCardProps) {
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <p className="text-sm">
-                    AI анализирует состояние каждой системы организма на основе ваших биомаркеров 
-                    и присваивает оценку от 0 до 100 баллов.
+                    AI анализирует состояние каждой системы организма и показывает изменения за выбранный период
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -82,8 +186,11 @@ export function SystemRatingsCard({ categoryScores }: SystemRatingsCardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-muted-foreground py-8">
-            <p className="text-sm">Добавьте анализ для получения рейтинга систем</p>
+          <div className="text-center py-8">
+            <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <p className="text-sm text-muted-foreground">
+              Добавьте анализ для оценки систем организма
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -93,49 +200,99 @@ export function SystemRatingsCard({ categoryScores }: SystemRatingsCardProps) {
   return (
     <Card className="border-border bg-card backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          💯 Рейтинг систем организма
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p className="text-sm">
-                  AI анализирует состояние каждой системы организма на основе ваших биомаркеров 
-                  и присваивает оценку от 0 до 100 баллов.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            🏥 Рейтинг систем организма
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-sm">
+                    AI анализирует состояние каждой системы организма и показывает изменения за выбранный период
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
+          {analyses && analyses.length >= 2 && (
+            <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">3 месяца</SelectItem>
+                <SelectItem value="6">6 месяцев</SelectItem>
+                <SelectItem value="12">1 год</SelectItem>
+                <SelectItem value="all">Всё время</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {categories.map((cat, index) => (
-          <div key={index} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{cat.emoji}</span>
-                <span className="text-sm font-medium text-foreground">{cat.name}</span>
+      <CardContent>
+        <div className="space-y-6">
+          {categories.map((category, index) => {
+            const trend = trends[category.name];
+            
+            return (
+              <div key={index} className="space-y-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{category.emoji}</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {category.name}
+                    </span>
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-lg font-bold ${getScoreColor(category.score)}`}>
+                            {category.score}
+                          </span>
+                          <span className="text-xs text-muted-foreground">/100</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{getScoreLabel(category.score)}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                
+                <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all ${getProgressColor(category.score)}`}
+                    style={{ width: `${category.score}%` }}
+                  />
+                </div>
+                
+                {trend && (
+                  <div className="flex items-center gap-2 text-xs">
+                    {trend.type === 'improvement' && (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-status-good flex-shrink-0" />
+                    )}
+                    {trend.type === 'decline' && (
+                      <AlertTriangle className="h-3.5 w-3.5 text-status-danger flex-shrink-0" />
+                    )}
+                    {trend.type === 'stable' && (
+                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className={`${
+                      trend.type === 'improvement' ? 'text-status-good' :
+                      trend.type === 'decline' ? 'text-status-danger' :
+                      'text-muted-foreground'
+                    }`}>
+                      {trend.text}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-lg font-bold ${getScoreColor(cat.score)}`}>
-                  {cat.score}
-                </span>
-                <span className="text-sm text-muted-foreground">/100</span>
-              </div>
-            </div>
-            <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-              <div 
-                className={`h-full rounded-full transition-all ${getProgressColor(cat.score)}`}
-                style={{ width: `${cat.score}%` }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {getScoreLabel(cat.score)}
-            </p>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );
