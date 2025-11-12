@@ -112,7 +112,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         // Set demo analysis
         setAnalysis({
           id: id,
-          date: selectedAnalysis.analysis_date,
+          date: selectedAnalysis.date,
           lab_name: selectedAnalysis.lab_name,
           health_index: selectedAnalysis.health_index,
           biological_age: selectedAnalysis.biological_age,
@@ -136,27 +136,51 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           (b: any) => (b.analysis_index || 0) === analysisIndex
         );
         
-        // Transform demo biomarkers to analysis values format
-        const demoValues: AnalysisValue[] = analysisBiomarkers.map((b: any) => ({
-          id: `demo-value-${b.code}`,
-          biomarker_id: b.code,
-          value: b.value,
-          biomarkers: {
-            id: b.code,
-            name: b.name || b.code,
-            code: b.code,
-            unit: b.unit || "",
-            category: b.category,
-            description: b.description || null,
-            normal_min: b.normal_min || null,
-            normal_max: b.normal_max || null,
-            normal_min_male: b.normal_min_male || null,
-            normal_max_male: b.normal_max_male || null,
-            normal_min_female: b.normal_min_female || null,
-            normal_max_female: b.normal_max_female || null,
-            age_ranges: null,
-          },
-        }));
+        // Get unique codes from demo biomarkers
+        const uniqueCodes = [...new Set(analysisBiomarkers.map((b: any) => b.code))];
+        
+        // Fetch biomarker metadata from database
+        const { data: biomarkersMetadata } = await supabase
+          .from('biomarkers')
+          .select('*')
+          .in('code', uniqueCodes);
+        
+        // Map metadata by code
+        const metadataMap = new Map(
+          (biomarkersMetadata || []).map((b: any) => [b.code, b])
+        );
+        
+        // Transform demo biomarkers to analysis values format with full metadata
+        const demoValues: AnalysisValue[] = analysisBiomarkers
+          .map((b: any) => {
+            const metadata = metadataMap.get(b.code);
+            if (!metadata) {
+              console.warn(`No metadata found for biomarker code: ${b.code}`);
+              return null;
+            }
+            
+            return {
+              id: `demo-value-${b.code}`,
+              biomarker_id: metadata.id,
+              value: b.value,
+              biomarkers: {
+                id: metadata.id,
+                name: metadata.name,
+                code: metadata.code,
+                unit: b.unit || metadata.unit,
+                category: metadata.category,
+                description: metadata.description,
+                normal_min: metadata.normal_min,
+                normal_max: metadata.normal_max,
+                normal_min_male: metadata.normal_min_male,
+                normal_max_male: metadata.normal_max_male,
+                normal_min_female: metadata.normal_min_female,
+                normal_max_female: metadata.normal_max_female,
+                age_ranges: metadata.age_ranges || null,
+              },
+            };
+          })
+          .filter((v) => v !== null) as AnalysisValue[];
         
         setValues(demoValues);
         

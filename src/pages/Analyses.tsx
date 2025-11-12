@@ -145,7 +145,7 @@ export default function Analyses() {
   const displayAnalyses = demoMode && demoData
     ? demoData.analyses.map((analysis: any, index: number) => ({
         id: `demo-analysis-${index}`,
-        date: analysis.analysis_date,
+        date: analysis.date,
         lab_name: analysis.lab_name,
         health_index: analysis.health_index,
         biological_age: analysis.biological_age,
