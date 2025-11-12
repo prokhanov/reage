@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw, Trophy, Calendar, Target } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw, Trophy, Calendar, Target, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
@@ -21,6 +21,7 @@ import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
+import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export default function Dashboard() {
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [nextBooking, setNextBooking] = useState<any>(null);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   useEffect(() => {
     // Reset all state when exiting view mode
@@ -604,24 +606,30 @@ export default function Dashboard() {
                 </div>
 
                 {/* Next Analysis */}
-                <div 
-                  className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50 cursor-pointer"
-                  onClick={() => navigate('/analyses')}
-                >
+                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
                   <Calendar className="h-5 w-5 text-primary/60 mb-2" />
-                  <div className="text-xs text-muted-foreground mb-1">Анализ</div>
+                  <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
                   {nextBooking ? (
                     <>
-                      <div className="text-2xl font-bold text-foreground">
+                      <div className="text-2xl font-bold text-foreground mb-1">
                         {format(new Date(nextBooking.booking_date), 'd MMM', { locale: ru })}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {differenceInDays(new Date(nextBooking.booking_date), new Date())} дней
+                      <div className="text-xs text-muted-foreground mb-3">
+                        через {differenceInDays(new Date(nextBooking.booking_date), new Date())} дней
                       </div>
                     </>
                   ) : (
-                    <div className="text-2xl font-bold text-muted-foreground">—</div>
+                    <div className="text-sm text-muted-foreground mb-3">Не запланирован</div>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full h-8 text-xs"
+                    onClick={() => setBookingDialogOpen(true)}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Назначить внеурочный
+                  </Button>
                 </div>
 
                 {/* Health Percentile */}
@@ -792,32 +800,41 @@ export default function Dashboard() {
         )}
 
         {/* Risk Zones Components */}
-        {riskData?.smart_priorities && (
-          <SmartPriorities data={riskData.smart_priorities} />
-        )}
+         {riskData?.smart_priorities && (
+           <SmartPriorities data={riskData.smart_priorities} />
+         )}
 
-        {riskData?.risk_map?.categories && (
-          <RiskMap categories={riskData.risk_map.categories} />
-        )}
+         {riskData?.risk_map?.categories && (
+           <RiskMap categories={riskData.risk_map.categories} />
+         )}
 
-        {riskData?.aging_blockers?.blockers && (
-          <AgingBlockers blockers={riskData.aging_blockers.blockers} />
-        )}
+         {riskData?.aging_blockers?.blockers && (
+           <AgingBlockers blockers={riskData.aging_blockers.blockers} />
+         )}
 
-        {/* Message if no strategy data */}
-        {!riskData && analysesCount > 0 && (
-          <Card className="border-dashed">
-            <CardContent className="py-12 text-center">
-              <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                Стратегия здоровья не сформирована
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Нажмите "Обновить стратегию" для формирования персональной карты здоровья
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+         {/* Message if no strategy data */}
+         {!riskData && analysesCount > 0 && (
+           <Card className="border-dashed">
+             <CardContent className="py-12 text-center">
+               <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+               <h3 className="text-lg font-semibold mb-2">
+                 Стратегия здоровья не сформирована
+               </h3>
+               <p className="text-muted-foreground mb-4">
+                 Нажмите "Обновить стратегию" для формирования персональной карты здоровья
+               </p>
+             </CardContent>
+           </Card>
+         )}
+
+      {/* Analysis Booking Dialog */}
+      <AnalysisBookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        onSuccess={() => {
+          fetchNextBooking();
+        }}
+      />
+    </div>
   );
 }
