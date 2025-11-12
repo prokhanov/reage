@@ -1,6 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Particle {
   x: number;
@@ -15,15 +13,11 @@ interface Particle {
 interface BiologicalAgeCircleProps {
   biologicalAge: number | null;
   chronologicalAge: number | null;
-  healthIndex: number | null;
-  biomarkersMetadata?: any;
 }
 
 export function BiologicalAgeCircle({
   biologicalAge,
   chronologicalAge,
-  healthIndex,
-  biomarkersMetadata,
 }: BiologicalAgeCircleProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ageDifference = biologicalAge && chronologicalAge ? chronologicalAge - biologicalAge : null;
@@ -158,68 +152,6 @@ export function BiologicalAgeCircle({
         <div className="text-7xl font-bold animate-scale-in text-foreground">
           {biologicalAge ? biologicalAge.toFixed(1) : "—"}
         </div>
-        {biomarkersMetadata && (
-          <div className="space-y-2 mt-3">
-            {/* Базовая информация о биомаркерах */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1 cursor-help">
-                    <Info className="h-3 w-3" />
-                    <span>
-                      {biomarkersMetadata.current_biomarkers_count} биомаркеров
-                      {biomarkersMetadata.historical_biomarkers_count > 0 &&
-                        ` (+${biomarkersMetadata.historical_biomarkers_count} из истории)`}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <div className="space-y-1 text-xs">
-                    <p>
-                      <span className="font-medium">Текущий анализ:</span>{" "}
-                      {biomarkersMetadata.current_biomarkers_count} биомаркеров
-                    </p>
-                    {biomarkersMetadata.historical_biomarkers_count > 0 && (
-                      <>
-                        <p>
-                          <span className="font-medium">Исторические данные:</span>{" "}
-                          {biomarkersMetadata.historical_biomarkers_count} биомаркеров
-                        </p>
-                        <p className="text-muted-foreground">
-                          Включены данные за последние {biomarkersMetadata.window_months || 4}{" "}
-                          месяца
-                          {biomarkersMetadata.oldest_historical_date &&
-                            ` (старейшие от ${new Date(
-                              biomarkersMetadata.oldest_historical_date
-                            ).toLocaleDateString("ru-RU")})`}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* AI analysis confidence */}
-            {biomarkersMetadata.ai_analysis?.confidence_score !== undefined && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1 cursor-help">
-                      <Info className="h-3 w-3" />
-                      <span>Достоверность: {biomarkersMetadata.ai_analysis.confidence_score}%</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      Уровень уверенности AI-анализа в расчёте биологического возраста на основе доступных данных
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

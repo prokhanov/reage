@@ -458,47 +458,37 @@ export default function Dashboard() {
 
         {/* Central Bio Age Circle - Combined Card */}
         <Card className="border-border bg-card backdrop-blur-sm">
-          <CardContent className="pt-8 pb-6">
-            {/* Title */}
-            <h2 className="text-2xl font-bold text-center text-foreground mb-8">
-              Ваш биологический возраст
-            </h2>
-
-            <div className="flex flex-col lg:flex-row items-start justify-center gap-12 lg:gap-20">
-              {/* Left side - Circle and age comparison */}
-              <div className="flex flex-col items-center gap-6 flex-shrink-0">
-                {/* Animated Biological Age Circle */}
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+              {/* Left side - Circle */}
+              <div className="flex flex-col items-center gap-4">
                 <BiologicalAgeCircle
                   biologicalAge={displayBioAge}
                   chronologicalAge={chronologicalAge}
-                  healthIndex={displayHealthIndex}
-                  biomarkersMetadata={displayBiomarkersMetadata}
                 />
 
-                {/* Age Comparison Text Below Circle */}
-                <div className="text-center max-w-md">
-                  {displayBioAge && chronologicalAge && ageDifference !== null ? (
-                    <>
-                      {ageDifference > 0 ? (
-                        <p className="text-base text-status-good animate-fade-in">
-                          Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе, чем ваш паспортный возраст! 🎉
-                        </p>
-                      ) : ageDifference < 0 ? (
-                        <p className="text-base text-status-danger animate-fade-in">
-                          Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше вашего паспортного возраста
-                        </p>
-                      ) : (
-                        <p className="text-base text-muted-foreground animate-fade-in">
-                          Это соответствует вашему паспортному возрасту
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-base text-muted-foreground">
-                      Добавьте анализ, чтобы узнать свой биологический возраст
-                    </p>
-                  )}
-                </div>
+                {/* Age Comparison Below Circle */}
+                {displayBioAge && chronologicalAge && ageDifference !== null ? (
+                  <>
+                    {ageDifference > 0 ? (
+                      <p className="text-base text-status-good animate-fade-in font-medium">
+                        Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} моложе 🎉
+                      </p>
+                    ) : ageDifference < 0 ? (
+                      <p className="text-base text-status-danger animate-fade-in font-medium">
+                        Это на <span className="font-bold text-xl">{Math.abs(ageDifference).toFixed(1)}</span> {Math.abs(ageDifference) === 1 ? 'год' : 'года'} старше
+                      </p>
+                    ) : (
+                      <p className="text-base text-muted-foreground animate-fade-in">
+                        Соответствует паспортному возрасту
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-base text-muted-foreground">
+                    Добавьте анализ
+                  </p>
+                )}
               </div>
 
               {/* Right side - Stats */}
