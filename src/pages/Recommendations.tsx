@@ -179,7 +179,16 @@ export default function Recommendations() {
     setViewDialogOpen(true);
     
     // Загружаем назначения для этого анализа
-    if (report.analysisId) {
+    if (demoMode && demoData?.prescriptions) {
+      // В демо-режиме используем данные из demoData
+      setSelectedPrescriptions(demoData.prescriptions.map((p: any, idx: number) => ({
+        id: `demo-presc-${idx}`,
+        prescription: p.prescription,
+        effect: p.effect,
+        control_date: p.control_date,
+        status: "confirmed" as const
+      })));
+    } else if (report.analysisId) {
       try {
         const { data, error } = await supabase
           .from("prescriptions")
@@ -432,12 +441,16 @@ export default function Recommendations() {
           content: prescriptions.map((p, idx) => 
             `**${idx + 1}. ${p.prescription}**\n\n*${p.effect}*\n\nДлительность: ${
               (() => {
+                if (!selectedReport.date || !p.control_date) return "—";
                 const start = new Date(selectedReport.date);
                 const end = new Date(p.control_date);
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
                 const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
                 return `${months} мес.`;
               })()
-            }, Контрольная дата: ${format(new Date(p.control_date), "dd.MM.yyyy")}`
+            }, Контрольная дата: ${p.control_date && !isNaN(new Date(p.control_date).getTime()) 
+              ? format(new Date(p.control_date), "dd.MM.yyyy")
+              : "—"}`
           ).join('\n\n---\n\n')
         }] : []),
         ...categories.flatMap(([type, recs]) => 
@@ -461,7 +474,9 @@ export default function Recommendations() {
             margin: [0, 0, 0, 10]
           },
           {
-            text: format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru }),
+            text: selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
+              ? format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })
+              : 'Дата не указана',
             style: 'date',
             alignment: 'center',
             margin: [0, 0, 0, 30]
@@ -559,13 +574,17 @@ export default function Recommendations() {
         
         // Настройки документа
         info: {
-          title: `Отчет ${format(new Date(selectedReport.date), "dd-MM-yyyy")}`,
+          title: selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
+            ? `Отчет ${format(new Date(selectedReport.date), "dd-MM-yyyy")}`
+            : 'Отчет',
           author: 'Health System',
           subject: 'Персональный отчет',
         }
       };
 
-      const fileName = `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`;
+      const fileName = selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
+        ? `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`
+        : 'Отчет.pdf';
       pdfMake.createPdf(docDefinition).download(fileName);
       
       toast({
@@ -629,7 +648,9 @@ export default function Recommendations() {
                   <TableRow key={report.date}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        {format(new Date(report.date), "d MMMM yyyy", { locale: ru })}
+                        {report.date && !isNaN(new Date(report.date).getTime()) 
+                          ? format(new Date(report.date), "d MMMM yyyy", { locale: ru })
+                          : "Дата не указана"}
                         {report.recommendations[0]?.analysis_status && (
                           <AnalysisStatusBadge status={report.recommendations[0].analysis_status} />
                         )}
@@ -703,7 +724,9 @@ export default function Recommendations() {
                         Содержание
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })}
+                        {selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
+                          ? format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })
+                          : "Дата не указана"}
                       </p>
                     </div>
                     
@@ -794,14 +817,20 @@ export default function Recommendations() {
                                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                     <span>
                                       Длительность: {(() => {
+                                        if (!selectedReport?.date || !prescription.control_date) return "—";
                                         const start = new Date(selectedReport.date);
                                         const end = new Date(prescription.control_date);
+                                        if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
                                         const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
                                         return `${months} мес.`;
                                       })()}
                                     </span>
                                     <span>•</span>
-                                    <span>Контрольная дата: {format(new Date(prescription.control_date), "dd.MM.yyyy")}</span>
+                                    <span>
+                                      Контрольная дата: {prescription.control_date && !isNaN(new Date(prescription.control_date).getTime())
+                                        ? format(new Date(prescription.control_date), "dd.MM.yyyy")
+                                        : "—"}
+                                    </span>
                                   </div>
                                 </div>
                               ))}
