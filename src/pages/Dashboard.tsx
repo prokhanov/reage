@@ -24,6 +24,7 @@ import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -482,248 +483,270 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Hero Section - Biological Age with Metrics Grid */}
+        {/* Hero Section - Biological Age with Metrics and Trends */}
         <Card className="border-border bg-card backdrop-blur-sm overflow-hidden">
-          <CardContent className="p-8 lg:p-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Left: Circle */}
-              <div className="flex flex-col items-center justify-center">
-                <BiologicalAgeCircle
-                  biologicalAge={displayBioAge}
-                  chronologicalAge={chronologicalAge}
-                />
-                
-                {/* Compact comparison text */}
-                {displayBioAge && chronologicalAge && ageDifference !== null ? (
-                  <div className="mt-6 text-center">
-                    {ageDifference > 0 ? (
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-status-good/10">
-                        <span className="text-2xl font-bold text-status-good">−{Math.abs(ageDifference).toFixed(1)}</span>
-                        <span className="text-sm text-status-good">лет моложе</span>
-                      </div>
-                    ) : ageDifference < 0 ? (
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-status-danger/10">
-                        <span className="text-2xl font-bold text-status-danger">+{Math.abs(ageDifference).toFixed(1)}</span>
-                        <span className="text-sm text-status-danger">лет старше</span>
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted">
-                        <span className="text-sm text-muted-foreground">Равен паспортному</span>
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-              </div>
+          <CardHeader>
+            <CardTitle className="text-2xl">Ваш биологический возраст</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 lg:p-8">
+            <Tabs defaultValue="current" className="w-full">
+              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+                <TabsTrigger value="current">Текущее состояние</TabsTrigger>
+                <TabsTrigger value="dynamics">Динамика</TabsTrigger>
+              </TabsList>
 
-              {/* Right: Unified Metrics Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Health Index - Highlighted Large Card */}
-                <div className="col-span-2 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="text-sm text-muted-foreground mb-2">Индекс здоровья</div>
-                      <div className="text-5xl font-bold text-foreground mb-3">
-                        {displayHealthIndex || "—"}
-                        <span className="text-2xl text-muted-foreground ml-1">/100</span>
-                      </div>
-                      {displayHealthIndex !== null && (
-                        <div className="inline-flex">
-                          {displayHealthIndex >= 85 && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-status-good/20 text-status-good font-medium">
-                              Отлично
-                            </span>
-                          )}
-                          {displayHealthIndex >= 70 && displayHealthIndex < 85 && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-status-moderate/20 text-status-moderate font-medium">
-                              Хорошо
-                            </span>
-                          )}
-                          {displayHealthIndex >= 50 && displayHealthIndex < 70 && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-status-warning/20 text-status-warning font-medium">
-                              Умеренно
-                            </span>
-                          )}
-                          {displayHealthIndex < 50 && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-status-danger/20 text-status-danger font-medium">
-                              Внимание
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <Heart className="h-8 w-8 text-primary/60" />
-                  </div>
-                </div>
-
-                {/* Compact Metric Cards - Uniform Height */}
-                {/* Analyses Count */}
-                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
-                  <Activity className="h-5 w-5 text-primary/60 mb-2" />
-                  <div className="text-xs text-muted-foreground mb-1">Анализов</div>
-                  <div className="text-3xl font-bold text-foreground">{displayAnalysesCount}</div>
-                </div>
-
-                {/* Recent Change */}
-                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
-                  <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
-                  <div className="text-xs text-muted-foreground mb-1">Динамика</div>
-                  <div className={`text-3xl font-bold ${
-                    displayRecentChange && displayRecentChange < 0 
-                      ? "text-status-good" 
-                      : displayRecentChange && displayRecentChange > 0
-                      ? "text-status-danger"
-                      : "text-foreground"
-                  }`}>
-                    {displayRecentChange !== null 
-                      ? `${displayRecentChange > 0 ? '+' : ''}${displayRecentChange.toFixed(1)}`
-                      : "—"
-                    }
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {displayRecentPeriod || "за период"}
-                  </div>
-                </div>
-
-                {/* Total Progress */}
-                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
-                  <Trophy className="h-5 w-5 text-primary/60 mb-2" />
-                  <div className="text-xs text-muted-foreground mb-1">Прогресс</div>
-                  <div className={`text-3xl font-bold ${
-                    displayTotalProgress && displayTotalProgress < 0 
-                      ? "text-status-good" 
-                      : displayTotalProgress && displayTotalProgress > 0
-                      ? "text-status-danger"
-                      : "text-foreground"
-                  }`}>
-                    {displayTotalProgress !== null 
-                      ? `${displayTotalProgress > 0 ? '+' : ''}${displayTotalProgress.toFixed(1)}`
-                      : "—"
-                    }
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {displayTotalProgress !== null 
-                      ? displayTotalProgress < 0 ? "лучше" : "хуже"
-                      : "всего"
-                    }
-                  </div>
-                </div>
-
-                {/* Next Analysis */}
-                <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
-                  <Calendar className="h-5 w-5 text-primary/60 mb-2" />
-                  <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
-                  {nextBooking ? (
-                    <>
-                      <div className="text-2xl font-bold text-foreground mb-1">
-                        {format(new Date(nextBooking.booking_date), 'd MMM', { locale: ru })}
-                      </div>
-                      <div className="text-xs text-muted-foreground mb-3">
-                        через {differenceInDays(new Date(nextBooking.booking_date), new Date())} дней
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-sm text-muted-foreground mb-3">Не запланирован</div>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full h-8 text-xs"
-                    onClick={() => setBookingDialogOpen(true)}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    Назначить внеурочный
-                  </Button>
-                </div>
-
-                {/* Health Percentile */}
-                <div className="col-span-2 p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
-                  {(() => {
-                    if (!displayBiologicalAge || !chronologicalAge) {
-                      return (
-                        <div className="flex items-center gap-3">
-                          <Trophy className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <div className="text-xs text-muted-foreground">Место среди ровесников</div>
-                            <div className="text-xl font-bold text-muted-foreground">—</div>
+              {/* Tab 1: Current State */}
+              <TabsContent value="current" className="mt-0">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                  {/* Left: Circle */}
+                  <div className="flex flex-col items-center justify-center">
+                    <BiologicalAgeCircle
+                      biologicalAge={displayBioAge}
+                      chronologicalAge={chronologicalAge}
+                    />
+                    
+                    {/* Compact comparison text */}
+                    {displayBioAge && chronologicalAge && ageDifference !== null ? (
+                      <div className="mt-6 text-center">
+                        {ageDifference > 0 ? (
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-status-good/10">
+                            <span className="text-2xl font-bold text-status-good">−{Math.abs(ageDifference).toFixed(1)}</span>
+                            <span className="text-sm text-status-good">лет моложе</span>
                           </div>
-                        </div>
-                      );
-                    }
-
-                    const diff = chronologicalAge - displayBiologicalAge;
-                    let topPercent = 0;
-                    let betterThanPercent = 0;
-                    let Icon = Trophy;
-                    let color = "text-muted-foreground";
-
-                    if (diff >= 10) {
-                      topPercent = 5;
-                      betterThanPercent = 95;
-                      color = "text-status-good";
-                    } else if (diff >= 7) {
-                      topPercent = 10;
-                      betterThanPercent = 90;
-                      color = "text-status-good";
-                    } else if (diff >= 4) {
-                      topPercent = 20;
-                      betterThanPercent = 80;
-                      color = "text-status-good";
-                    } else if (diff >= 2) {
-                      topPercent = 40;
-                      betterThanPercent = 60;
-                      color = "text-status-moderate";
-                    } else if (diff >= -2) {
-                      topPercent = 60;
-                      betterThanPercent = 40;
-                      Icon = Target;
-                    } else {
-                      topPercent = 80;
-                      betterThanPercent = 20;
-                      color = "text-status-warning";
-                      Icon = TrendingUp;
-                    }
-
-                    return (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Icon className={`h-5 w-5 ${color}`} />
-                          <div>
-                            <div className="text-xs text-muted-foreground">Место среди ровесников</div>
-                            <div className={`text-2xl font-bold ${color}`}>Топ {topPercent}%</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">
-                              Лучше {betterThanPercent}% людей вашего возраста
-                            </div>
+                        ) : ageDifference < 0 ? (
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-status-danger/10">
+                            <span className="text-2xl font-bold text-status-danger">+{Math.abs(ageDifference).toFixed(1)}</span>
+                            <span className="text-sm text-status-danger">лет старше</span>
                           </div>
-                        </div>
-                        {diff !== 0 && (
-                          <div className="text-right">
-                            <div className={`text-2xl font-bold ${color}`}>
-                              {diff > 0 ? '−' : '+'}{Math.abs(diff).toFixed(1)}
-                            </div>
-                            <div className="text-xs text-muted-foreground">лет</div>
+                        ) : (
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted">
+                            <span className="text-sm text-muted-foreground">Равен паспортному</span>
                           </div>
                         )}
                       </div>
-                    );
-                  })()}
+                    ) : null}
+                  </div>
+
+                  {/* Right: Unified Metrics Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Health Index - Highlighted Large Card */}
+                    <div className="col-span-2 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="text-sm text-muted-foreground mb-2">Индекс здоровья</div>
+                          <div className="text-5xl font-bold text-foreground mb-3">
+                            {displayHealthIndex || "—"}
+                            <span className="text-2xl text-muted-foreground ml-1">/100</span>
+                          </div>
+                          {displayHealthIndex !== null && (
+                            <div className="inline-flex">
+                              {displayHealthIndex >= 85 && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-status-good/20 text-status-good font-medium">
+                                  Отлично
+                                </span>
+                              )}
+                              {displayHealthIndex >= 70 && displayHealthIndex < 85 && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-status-moderate/20 text-status-moderate font-medium">
+                                  Хорошо
+                                </span>
+                              )}
+                              {displayHealthIndex >= 50 && displayHealthIndex < 70 && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-status-warning/20 text-status-warning font-medium">
+                                  Умеренно
+                                </span>
+                              )}
+                              {displayHealthIndex < 50 && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-status-danger/20 text-status-danger font-medium">
+                                  Внимание
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <Heart className="h-8 w-8 text-primary/60" />
+                      </div>
+                    </div>
+
+                    {/* Compact Metric Cards - Uniform Height */}
+                    {/* Analyses Count */}
+                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                      <Activity className="h-5 w-5 text-primary/60 mb-2" />
+                      <div className="text-xs text-muted-foreground mb-1">Анализов</div>
+                      <div className="text-3xl font-bold text-foreground">{displayAnalysesCount}</div>
+                    </div>
+
+                    {/* Recent Change */}
+                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                      <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
+                      <div className="text-xs text-muted-foreground mb-1">Динамика</div>
+                      <div className={`text-3xl font-bold ${
+                        displayRecentChange && displayRecentChange < 0 
+                          ? "text-status-good" 
+                          : displayRecentChange && displayRecentChange > 0
+                          ? "text-status-danger"
+                          : "text-foreground"
+                      }`}>
+                        {displayRecentChange !== null 
+                          ? `${displayRecentChange > 0 ? '+' : ''}${displayRecentChange.toFixed(1)}`
+                          : "—"
+                        }
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {displayRecentPeriod || "за период"}
+                      </div>
+                    </div>
+
+                    {/* Total Progress */}
+                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                      <Trophy className="h-5 w-5 text-primary/60 mb-2" />
+                      <div className="text-xs text-muted-foreground mb-1">Прогресс</div>
+                      <div className={`text-3xl font-bold ${
+                        displayTotalProgress && displayTotalProgress < 0 
+                          ? "text-status-good" 
+                          : displayTotalProgress && displayTotalProgress > 0
+                          ? "text-status-danger"
+                          : "text-foreground"
+                      }`}>
+                        {displayTotalProgress !== null 
+                          ? `${displayTotalProgress > 0 ? '+' : ''}${displayTotalProgress.toFixed(1)}`
+                          : "—"
+                        }
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {displayTotalProgress !== null 
+                          ? displayTotalProgress < 0 ? "лучше" : "хуже"
+                          : "всего"
+                        }
+                      </div>
+                    </div>
+
+                    {/* Next Analysis */}
+                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                      <Calendar className="h-5 w-5 text-primary/60 mb-2" />
+                      <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
+                      {nextBooking ? (
+                        <>
+                          <div className="text-2xl font-bold text-foreground mb-1">
+                            {format(new Date(nextBooking.booking_date), 'd MMM', { locale: ru })}
+                          </div>
+                          <div className="text-xs text-muted-foreground mb-3">
+                            через {differenceInDays(new Date(nextBooking.booking_date), new Date())} дней
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-sm text-muted-foreground mb-3">Не запланирован</div>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full h-8 text-xs"
+                        onClick={() => setBookingDialogOpen(true)}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Назначить внеурочный
+                      </Button>
+                    </div>
+
+                    {/* Health Percentile */}
+                    <div className="col-span-2 p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                      {(() => {
+                        if (!displayBiologicalAge || !chronologicalAge) {
+                          return (
+                            <div className="flex items-center gap-3">
+                              <Trophy className="h-5 w-5 text-muted-foreground" />
+                              <div>
+                                <div className="text-xs text-muted-foreground">Место среди ровесников</div>
+                                <div className="text-xl font-bold text-muted-foreground">—</div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        const diff = chronologicalAge - displayBiologicalAge;
+                        let topPercent = 0;
+                        let betterThanPercent = 0;
+                        let Icon = Trophy;
+                        let color = "text-muted-foreground";
+
+                        if (diff >= 10) {
+                          topPercent = 5;
+                          betterThanPercent = 95;
+                          color = "text-status-good";
+                        } else if (diff >= 7) {
+                          topPercent = 10;
+                          betterThanPercent = 90;
+                          color = "text-status-good";
+                        } else if (diff >= 4) {
+                          topPercent = 20;
+                          betterThanPercent = 80;
+                          color = "text-status-good";
+                        } else if (diff >= 2) {
+                          topPercent = 40;
+                          betterThanPercent = 60;
+                          color = "text-status-moderate";
+                        } else if (diff >= -2) {
+                          topPercent = 60;
+                          betterThanPercent = 40;
+                          Icon = Target;
+                        } else {
+                          topPercent = 80;
+                          betterThanPercent = 20;
+                          color = "text-status-warning";
+                          Icon = TrendingUp;
+                        }
+
+                        return (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Icon className={`h-5 w-5 ${color}`} />
+                              <div>
+                                <div className="text-xs text-muted-foreground">Место среди ровесников</div>
+                                <div className={`text-2xl font-bold ${color}`}>Топ {topPercent}%</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  Лучше {betterThanPercent}% людей вашего возраста
+                                </div>
+                              </div>
+                            </div>
+                            {diff !== 0 && (
+                              <div className="text-right">
+                                <div className={`text-2xl font-bold ${color}`}>
+                                  {diff > 0 ? '−' : '+'}{Math.abs(diff).toFixed(1)}
+                                </div>
+                                <div className="text-xs text-muted-foreground">лет</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </TabsContent>
+
+              {/* Tab 2: Dynamics */}
+              <TabsContent value="dynamics" className="mt-0">
+                {displayAllAnalyses.length >= 2 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <BioAgeTrendChart 
+                      analyses={displayAllAnalyses}
+                      birthDate={profile?.birth_date}
+                    />
+                    <HealthIndexTrendChart 
+                      analyses={displayAllAnalyses}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <TrendingUp className="h-16 w-16 text-muted-foreground/20 mb-4" />
+                    <p className="text-muted-foreground mb-4">
+                      Добавьте минимум 2 анализа для отслеживания динамики
+                    </p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
-
-        {/* Health Metrics History - Trend Charts */}
-        {displayAllAnalyses.length >= 2 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BioAgeTrendChart 
-              analyses={displayAllAnalyses}
-              birthDate={profile?.birth_date}
-            />
-            <HealthIndexTrendChart 
-              analyses={displayAllAnalyses}
-            />
-          </div>
-        )}
 
         {/* System Health + Body Heatmap Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

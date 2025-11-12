@@ -87,36 +87,22 @@ export function HealthIndexTrendChart({ analyses }: HealthIndexTrendChartProps) 
 
   if (!analyses || analyses.length < 2) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">💚 Динамика индекса здоровья</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              Добавьте минимум 2 анализа для отслеживания динамики
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-muted-foreground mb-4">
+          Добавьте минимум 2 анализа для отслеживания динамики
+        </p>
+      </div>
     );
   }
 
   if (chartData.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">💚 Динамика индекса здоровья</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground">
-              Ваши анализы не содержат данных об индексе здоровья.<br />
-              Добавьте лабораторные данные для расчета.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-muted-foreground">
+          Ваши анализы не содержат данных об индексе здоровья.<br />
+          Добавьте лабораторные данные для расчета.
+        </p>
+      </div>
     );
   }
 
@@ -124,7 +110,7 @@ export function HealthIndexTrendChart({ analyses }: HealthIndexTrendChartProps) 
     <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <CardTitle className="text-lg">💚 Динамика индекса здоровья</CardTitle>
+          <CardTitle className="text-lg">Индекс здоровья</CardTitle>
           <Select value={period} onValueChange={(v) => setPeriod(v as any)}>
             <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue />
