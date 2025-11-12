@@ -7,6 +7,8 @@ import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDemoMode } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -48,6 +50,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess } = usePatientModuleAccess();
+  const { demoMode, demoData } = useDemoMode();
   const [analysis, setAnalysis] = useState<any>(null);
   const [values, setValues] = useState<AnalysisValue[]>([]);
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
@@ -63,6 +66,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [editReportAnalysisId, setEditReportAnalysisId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const isDemoAnalysis = id === "demo-analysis-1";
 
   useEffect(() => {
     loadData();
@@ -76,6 +81,81 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }, [biomarkers]);
 
   const loadData = async () => {
+    if (isDemoAnalysis && demoMode && demoData) {
+      try {
+        // Load demo data
+        setPatientGender(demoData.profile.gender || null);
+        setPatientAge(demoData.profile.chronological_age || null);
+        
+        // Set demo analysis
+        setAnalysis({
+          id: "demo-analysis-1",
+          date: demoData.analysis.analysis_date,
+          lab_name: demoData.analysis.lab_name,
+          health_index: demoData.analysis.health_index,
+          biological_age: demoData.analysis.biological_age,
+          status: "processed",
+          note: demoData.analysis.note || null,
+          biomarkers_metadata: demoData.analysis.biomarkers_metadata || null
+        });
+        
+        // Load category order from database
+        const { data: categoriesData } = await supabase
+          .from("biomarker_categories")
+          .select("name, display_order")
+          .order("display_order");
+
+        const categoryOrderMap = new Map(
+          (categoriesData || []).map((cat) => [cat.name, cat.display_order])
+        );
+        
+        // Transform demo biomarkers to analysis values format
+        const demoValues: AnalysisValue[] = demoData.biomarkers.map((b: any) => ({
+          id: `demo-value-${b.code}`,
+          biomarker_id: b.code,
+          value: b.value,
+          biomarkers: {
+            id: b.code,
+            name: b.name || b.code,
+            code: b.code,
+            unit: b.unit || "",
+            category: b.category,
+            description: b.description || null,
+            normal_min: b.normal_min || null,
+            normal_max: b.normal_max || null,
+            normal_min_male: b.normal_min_male || null,
+            normal_max_male: b.normal_max_male || null,
+            normal_min_female: b.normal_min_female || null,
+            normal_max_female: b.normal_max_female || null,
+            age_ranges: null
+          }
+        }));
+        
+        setValues(demoValues);
+        
+        // Extract unique biomarkers and sort
+        const uniqueBiomarkers = demoValues.map(v => v.biomarkers);
+        const sortedBiomarkers = uniqueBiomarkers.sort((a, b) => {
+          const orderA = categoryOrderMap.get(a.category) ?? 999;
+          const orderB = categoryOrderMap.get(b.category) ?? 999;
+          if (orderA !== orderB) return orderA - orderB;
+          return a.name.localeCompare(b.name);
+        });
+        
+        setBiomarkers(sortedBiomarkers);
+      } catch (error: any) {
+        console.error("Error loading demo data:", error);
+        toast({
+          title: "Ошибка",
+          description: "Не удалось загрузить демо-данные",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
@@ -287,6 +367,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {isDemoAnalysis && demoMode && <DemoBanner />}
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-3">
