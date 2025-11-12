@@ -632,7 +632,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-3">
                           <Trophy className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <div className="text-xs text-muted-foreground">Ваш результат</div>
+                            <div className="text-xs text-muted-foreground">Место среди ровесников</div>
                             <div className="text-xl font-bold text-muted-foreground">—</div>
                           </div>
                         </div>
@@ -640,27 +640,34 @@ export default function Dashboard() {
                     }
 
                     const diff = chronologicalAge - displayBiologicalAge;
-                    let title = "";
+                    let topPercent = 0;
+                    let betterThanPercent = 0;
                     let Icon = Trophy;
                     let color = "text-muted-foreground";
 
                     if (diff >= 10) {
-                      title = "Топ 5%";
+                      topPercent = 5;
+                      betterThanPercent = 95;
                       color = "text-status-good";
                     } else if (diff >= 7) {
-                      title = "Топ 10%";
+                      topPercent = 10;
+                      betterThanPercent = 90;
                       color = "text-status-good";
                     } else if (diff >= 4) {
-                      title = "Топ 20%";
+                      topPercent = 20;
+                      betterThanPercent = 80;
                       color = "text-status-good";
                     } else if (diff >= 2) {
-                      title = "Выше среднего";
+                      topPercent = 40;
+                      betterThanPercent = 60;
                       color = "text-status-moderate";
                     } else if (diff >= -2) {
-                      title = "Средний уровень";
+                      topPercent = 60;
+                      betterThanPercent = 40;
                       Icon = Target;
                     } else {
-                      title = "Ниже среднего";
+                      topPercent = 80;
+                      betterThanPercent = 20;
                       color = "text-status-warning";
                       Icon = TrendingUp;
                     }
@@ -670,14 +677,17 @@ export default function Dashboard() {
                         <div className="flex items-center gap-3">
                           <Icon className={`h-5 w-5 ${color}`} />
                           <div>
-                            <div className="text-xs text-muted-foreground">Ваш результат</div>
-                            <div className={`text-xl font-bold ${color}`}>{title}</div>
+                            <div className="text-xs text-muted-foreground">Место среди ровесников</div>
+                            <div className={`text-2xl font-bold ${color}`}>Топ {topPercent}%</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              Лучше {betterThanPercent}% людей вашего возраста
+                            </div>
                           </div>
                         </div>
-                        {diff > 0 && (
+                        {diff !== 0 && (
                           <div className="text-right">
                             <div className={`text-2xl font-bold ${color}`}>
-                              −{Math.abs(diff).toFixed(1)}
+                              {diff > 0 ? '−' : '+'}{Math.abs(diff).toFixed(1)}
                             </div>
                             <div className="text-xs text-muted-foreground">лет</div>
                           </div>
