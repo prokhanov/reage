@@ -446,7 +446,7 @@ export default function Dashboard() {
                 {/* Center content */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <div className="text-6xl font-bold text-foreground animate-scale-in">
-                    {latestBioAge ? latestBioAge.toFixed(1) : "—"}
+                    {displayBioAge ? displayBioAge.toFixed(1) : "—"}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
                     лет
@@ -454,7 +454,7 @@ export default function Dashboard() {
                   <div className="text-xs text-muted-foreground mt-1 px-4">
                     Биологический возраст
                   </div>
-                  {latestBiomarkersMetadata && (
+                  {displayBiomarkersMetadata && (
                     <div className="space-y-2">
                       {/* Базовая информация о биомаркерах */}
                       <TooltipProvider>
