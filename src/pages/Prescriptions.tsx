@@ -161,7 +161,7 @@ export default function Prescriptions() {
                 </div>
               )}
               
-              {prescription.control_date && (
+              {prescription.control_date && !isNaN(new Date(prescription.control_date).getTime()) && (
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-primary/70" />
                   <span className="text-sm font-medium">
@@ -170,10 +170,12 @@ export default function Prescriptions() {
                 </div>
               )}
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Создано:</span>
-                <span>{format(new Date(prescription.created_at), "d MMM yyyy", { locale: ru })}</span>
-              </div>
+              {prescription.created_at && !isNaN(new Date(prescription.created_at).getTime()) && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Создано:</span>
+                  <span>{format(new Date(prescription.created_at), "d MMM yyyy", { locale: ru })}</span>
+                </div>
+              )}
             </div>
 
             {hasPatientAccess && (
