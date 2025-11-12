@@ -109,25 +109,21 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
         let type: 'improvement' | 'decline' | 'stable' = 'stable';
 
         if (percentChange < 2) {
-          text = `стабильно`;
+          text = `без изменений`;
           type = 'stable';
         } else if (change > 0) {
           type = 'improvement';
           if (percentChange >= 15) {
-            text = `↑ ${percentChange.toFixed(0)}% (значительное улучшение)`;
-          } else if (percentChange >= 5) {
-            text = `↑ ${percentChange.toFixed(0)}% (улучшение)`;
+            text = `улучшилось на ${percentChange.toFixed(0)}%`;
           } else {
-            text = `↑ ${percentChange.toFixed(0)}%`;
+            text = `улучшилось на ${percentChange.toFixed(0)}%`;
           }
         } else {
           type = 'decline';
           if (percentChange >= 15) {
-            text = `↓ ${percentChange.toFixed(0)}% (значительное ухудшение)`;
-          } else if (percentChange >= 5) {
-            text = `↓ ${percentChange.toFixed(0)}% (ухудшение)`;
+            text = `ухудшилось на ${percentChange.toFixed(0)}%`;
           } else {
-            text = `↓ ${percentChange.toFixed(0)}%`;
+            text = `ухудшилось на ${percentChange.toFixed(0)}%`;
           }
         }
 
