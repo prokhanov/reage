@@ -185,27 +185,14 @@ export function BiologicalAgeCircle({
         ref={canvasRef}
         className="absolute inset-0 pointer-events-none"
         style={{ 
-          filter: `drop-shadow(0 0 30px hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0.4))`,
-          animation: 'pulse 3s ease-in-out infinite'
+          filter: `drop-shadow(0 0 30px hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0.4))`
         }}
       />
       
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10 px-4">
-        <div 
-          className="text-6xl font-bold animate-scale-in transition-colors duration-1000"
-          style={{ 
-            color: `hsl(${color.hue}, ${color.sat}%, ${color.light - 10}%)`,
-            textShadow: `0 0 20px hsla(${color.hue}, ${color.sat}%, ${color.light}%, 0.5)`
-          }}
-        >
+        <div className="text-7xl font-bold animate-scale-in text-foreground">
           {biologicalAge ? biologicalAge.toFixed(1) : "—"}
-        </div>
-        <div className="text-sm text-muted-foreground mt-2">
-          лет
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
-          Биологический возраст
         </div>
         {biomarkersMetadata && (
           <div className="space-y-2 mt-3">
