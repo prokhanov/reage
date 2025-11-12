@@ -984,6 +984,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_data_deleted: {
+        Args: { check_user_id: string }
+        Returns: {
+          records_found: number
+          table_name: string
+        }[]
+      }
+      clean_orphaned_user_data: {
+        Args: never
+        Returns: {
+          deleted_count: number
+          table_name: string
+        }[]
+      }
       has_admin_permission: {
         Args: {
           _module: Database["public"]["Enums"]["admin_module"]
