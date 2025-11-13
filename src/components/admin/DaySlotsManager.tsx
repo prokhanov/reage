@@ -156,11 +156,16 @@ export function DaySlotsManager() {
                       >
                         <div className="w-20 font-medium">{slot.time_slot}</div>
 
-                        <div className="text-sm text-muted-foreground">
-                          Выбрано: <span className="font-medium">{slot.booked_count}</span> из {slot.total_capacity}
-                          {!isFullyBooked && (
-                            <span className="ml-1 text-primary">({available} свободно)</span>
-                          )}
+                        <div className="flex flex-col gap-1">
+                          <div className="text-sm text-muted-foreground">
+                            Выбрано: <span className="font-medium">{slot.booked_count}</span> из {slot.total_capacity}
+                            {!isFullyBooked && (
+                              <span className="ml-1 text-primary">({available} свободно)</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Забронировано: <span className="font-medium">{slot.booked_count}/{slot.total_capacity}</span>
+                          </div>
                         </div>
 
                         {isFullyBooked && (
