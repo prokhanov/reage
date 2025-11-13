@@ -48,13 +48,16 @@ export function usePatientSlots() {
       // Skip if not fully booked
       if (otherSlot.booked_count < otherSlot.total_capacity) continue;
       
+      // Skip if capacity doesn't match (different number of workers)
+      if (otherSlot.total_capacity !== slot.total_capacity) continue;
+      
       const otherTime = parseTimeSlot(otherSlot.time_slot);
       if (!otherTime) continue;
       
       // Calculate time difference in minutes
       const timeDiff = currentTime - otherTime;
       
-      // If there's a fully booked slot within previous 2 hours (120 minutes), block this slot
+      // If there's a fully booked slot (with same capacity) within previous 2 hours (120 minutes), block this slot
       if (timeDiff > 0 && timeDiff <= 120) {
         return false;
       }
