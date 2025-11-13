@@ -67,8 +67,8 @@ export function EditInteractionDialog({
       outcome: interaction.outcome || '',
       duration_minutes: interaction.duration_minutes?.toString() || '',
       tags: interaction.tags?.join(', ') || '',
-      related_analysis_id: interaction.related_analysis_id || '',
-      related_prescription_id: interaction.related_prescription_id || ''
+      related_analysis_id: interaction.related_analysis_id || 'none',
+      related_prescription_id: interaction.related_prescription_id || 'none'
     }
   });
 
@@ -83,8 +83,8 @@ export function EditInteractionDialog({
       setValue('outcome', interaction.outcome || '');
       setValue('duration_minutes', interaction.duration_minutes?.toString() || '');
       setValue('tags', interaction.tags?.join(', ') || '');
-      setValue('related_analysis_id', interaction.related_analysis_id || '');
-      setValue('related_prescription_id', interaction.related_prescription_id || '');
+      setValue('related_analysis_id', interaction.related_analysis_id || 'none');
+      setValue('related_prescription_id', interaction.related_prescription_id || 'none');
       setInteractionDate(new Date(interaction.interaction_date));
       setScheduledDate(interaction.scheduled_date ? new Date(interaction.scheduled_date) : undefined);
       setIsImportant(interaction.is_important);
@@ -130,8 +130,8 @@ export function EditInteractionDialog({
           interaction_date: interactionDate.toISOString(),
           scheduled_date: scheduledDate?.toISOString() || null,
           duration_minutes: values.duration_minutes ? parseInt(values.duration_minutes) : null,
-          related_analysis_id: values.related_analysis_id || null,
-          related_prescription_id: values.related_prescription_id || null,
+          related_analysis_id: values.related_analysis_id === 'none' ? null : values.related_analysis_id || null,
+          related_prescription_id: values.related_prescription_id === 'none' ? null : values.related_prescription_id || null,
           tags,
           is_important: isImportant
         })
@@ -280,7 +280,7 @@ export function EditInteractionDialog({
                   <SelectValue placeholder="Не выбрано" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не выбрано</SelectItem>
+                  <SelectItem value="none">Не выбрано</SelectItem>
                   {analyses?.map(analysis => (
                     <SelectItem key={analysis.id} value={analysis.id}>
                       Анализ от {format(new Date(analysis.date), "dd.MM.yyyy")}
@@ -300,7 +300,7 @@ export function EditInteractionDialog({
                   <SelectValue placeholder="Не выбрано" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не выбрано</SelectItem>
+                  <SelectItem value="none">Не выбрано</SelectItem>
                   {prescriptions?.map(prescription => (
                     <SelectItem key={prescription.id} value={prescription.id}>
                       {prescription.prescription.substring(0, 50)}...
