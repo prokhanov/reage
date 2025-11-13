@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -64,12 +64,27 @@ export default function Subscription() {
     }
   };
 
-  const periods = [
+  const allPeriods = [
     { value: 'monthly', label: 'Месяц' },
     { value: 'quarterly', label: 'Квартал' },
     { value: 'semiannual', label: 'Полгода' },
     { value: 'annual', label: 'Год' }
   ];
+
+  // Фильтруем периоды - показываем только те, для которых есть активные цены
+  const availablePeriods = useMemo(() => 
+    allPeriods.filter(period => 
+      plans?.some(plan => plan.pricing.some(p => p.period === period.value))
+    ),
+    [plans]
+  );
+
+  // Если выбранный период недоступен, переключаем на первый доступный
+  useEffect(() => {
+    if (availablePeriods.length > 0 && !availablePeriods.find(p => p.value === selectedPeriod)) {
+      setSelectedPeriod(availablePeriods[0].value);
+    }
+  }, [availablePeriods, selectedPeriod]);
 
   const getMaxDiscount = () => {
     if (!plans) return 0;
@@ -101,7 +116,7 @@ export default function Subscription() {
           onValueChange={(value) => value && setSelectedPeriod(value)}
           className="inline-flex flex-wrap justify-center rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
         >
-          {periods.map(period => (
+          {availablePeriods.map(period => (
             <ToggleGroupItem 
               key={period.value}
               value={period.value} 
