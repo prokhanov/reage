@@ -248,7 +248,7 @@ export default function Biomarkers() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="w-full px-4 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
       {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {loading && <BiomarkerTableSkeleton />}
       {!loading && (

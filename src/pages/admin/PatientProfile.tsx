@@ -240,7 +240,7 @@ export default function PatientProfile() {
 
   return (
     <>
-      <div className="w-full px-4 lg:px-8 py-6 space-y-6">
+      <div className="p-6 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/admin/patients")}>

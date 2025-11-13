@@ -186,7 +186,7 @@ export default function Profile() {
   const age = getAge();
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>

@@ -423,7 +423,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }
 
   return (
-    <div className="w-full px-4 lg:px-8 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {isDemoAnalysis && demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

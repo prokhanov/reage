@@ -300,7 +300,7 @@ export default function Trends() {
   const trend = trendData.length >= 2 ? calculateTrend() : "neutral";
 
   return (
-    <div className="w-full px-4 lg:px-8 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
     {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
     {loading && <TrendChartSkeleton />}
     {!loading && (

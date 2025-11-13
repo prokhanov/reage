@@ -591,7 +591,7 @@ export default function MyState() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-8">
+    <div className="container max-w-6xl mx-auto px-4 py-8">
       {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Мое состояние</h1>

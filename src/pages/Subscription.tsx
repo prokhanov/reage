@@ -142,7 +142,7 @@ export default function Subscription() {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-8 md:py-12">
+    <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
       {/* Hero Section */}
       <div className="text-center space-y-4 mb-12">
         <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-4">

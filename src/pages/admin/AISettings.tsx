@@ -116,7 +116,7 @@ export default function AISettings() {
   }
 
   return (
-    <div className="w-full px-4 lg:px-8 py-6">
+    <div className="container mx-auto p-6 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Настройки AI промптов</h1>
         <p className="text-muted-foreground">
