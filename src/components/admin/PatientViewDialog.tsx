@@ -1,9 +1,12 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
+import reAgeLogo from "@/assets/reage-logo.png";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
@@ -14,7 +17,6 @@ import Prescriptions from "@/pages/Prescriptions";
 import Trends from "@/pages/Trends";
 import MyState from "@/pages/MyState";
 import Subscription from "@/pages/Subscription";
-import { useState } from "react";
 
 function SimulatedContent() {
   const { simPath } = useContext(ViewAsPatientContext);
@@ -56,6 +58,12 @@ interface PatientViewDialogProps {
 export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
+  // Set initial state based on screen size
+  useEffect(() => {
+    const isDesktop = window.innerWidth >= 1024;
+    setSidebarOpen(isDesktop);
+  }, []);
+  
   if (!patientId) return null;
 
   return (
@@ -70,7 +78,22 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
           <div className="flex h-full w-full bg-gradient-dark">
             <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
             
-            <ScrollArea className="flex-1 lg:ml-64 h-screen">
+            {/* Mobile header */}
+            <header className="lg:hidden fixed top-0 left-0 right-0 z-30 border-b border-border/30 bg-secondary/90 backdrop-blur-xl">
+              <div className="flex items-center justify-between p-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+                <img src={reAgeLogo} alt="ReAge" className="h-8 w-auto" />
+                <div className="w-10" />
+              </div>
+            </header>
+            
+            <ScrollArea className={`flex-1 h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
               <div className="pt-16 lg:pt-0">
                 <AnalysisBookingBanner />
               </div>
