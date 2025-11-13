@@ -99,14 +99,26 @@ export function EditDaySlotDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {sortedSlots.map(slot => (
-            <div key={slot.id} className="flex items-center gap-4 p-3 border rounded-lg">
-              <div className="flex-1">
-                <div className="font-medium">{slot.time_slot}</div>
-                <div className="text-sm text-muted-foreground">
-                  Забронировано: {slot.booked_count} из {slot.total_capacity}
+          {sortedSlots.map(slot => {
+            const isFullyBooked = slot.booked_count >= slot.total_capacity;
+            const availableCount = slot.total_capacity - slot.booked_count;
+            
+            return (
+              <div key={slot.id} className={`flex items-center gap-4 p-3 border rounded-lg ${isFullyBooked ? 'bg-destructive/5 border-destructive/20' : ''}`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium">{slot.time_slot}</div>
+                    {isFullyBooked && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+                        Полностью забронировано
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Забронировано: <span className={isFullyBooked ? 'text-destructive font-medium' : 'text-primary font-medium'}>{slot.booked_count}</span> из {slot.total_capacity}
+                    {!isFullyBooked && <span className="text-primary ml-1">({availableCount} свободно)</span>}
+                  </div>
                 </div>
-              </div>
 
               <div className="flex items-center gap-2">
                 <Label htmlFor={`capacity-${slot.id}`} className="text-sm">
@@ -155,8 +167,9 @@ export function EditDaySlotDialog({
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
-            </div>
-          ))}
+              </div>
+            );
+          })}
 
           <div className="border-t pt-4">
             <div className="font-medium mb-3">Добавить новый слот</div>
