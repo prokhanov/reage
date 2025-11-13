@@ -320,10 +320,10 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           {existingBookingId && (
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={handleCancelClick}
               disabled={isSubmitting}
-              className="w-full h-12 border-destructive text-destructive hover:bg-destructive/10"
+              className="w-full h-12 text-destructive hover:bg-destructive/10"
             >
               Отменить запись
             </Button>
