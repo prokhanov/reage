@@ -224,7 +224,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
 
   return (
     <Dialog open={!!patientId} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Информация о пациенте</DialogTitle>
           <DialogDescription>
@@ -241,8 +241,8 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
             </div>
           </div>
         ) : patientData ? (
-          <div className="space-y-6">
-            {/* Основная информация с аватаром */}
+          <>
+            {/* Основная информация с аватаром - над вкладками */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
@@ -268,260 +268,305 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               </CardContent>
             </Card>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Личные данные */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    Личные данные
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Возраст:</span>
-                    <span className="font-medium">
-                      {patientData.profile.birth_date
-                        ? `${calculateAge(patientData.profile.birth_date)} лет`
-                        : "Не указан"}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Пол:</span>
-                    <Badge variant="outline">
-                      {patientData.profile.gender === "male" ? "Мужской" : "Женский"}
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Ruler className="w-4 h-4" /> Рост:
-                    </span>
-                    <span className="font-medium">
-                      {patientData.profile.height ? `${patientData.profile.height} см` : "Не указан"}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Weight className="w-4 h-4" /> Вес:
-                    </span>
-                    <span className="font-medium">
-                      {patientData.profile.weight ? `${patientData.profile.weight} кг` : "Не указан"}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Вкладки */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">
+                  <User className="w-4 h-4 mr-2" />
+                  Обзор
+                </TabsTrigger>
+                <TabsTrigger value="medical">
+                  <Heart className="w-4 h-4 mr-2" />
+                  Медицинские данные
+                </TabsTrigger>
+                <TabsTrigger value="interactions">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Взаимодействия
+                </TabsTrigger>
+              </TabsList>
 
-              {/* Подписка */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <CreditCard className="w-5 h-5" />
-                      Подписка
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsHistoryOpen(true)}
-                      >
-                        <Clock className="w-4 h-4 mr-2" />
-                        История
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsEditSubscriptionOpen(true)}
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Изменить
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Статус:</span>
-                    {getSubscriptionBadge(patientData.subscription?.status || "pending")}
-                  </div>
-                  {patientData.subscription && (
-                    <>
-                      {patientData.subscription.subscription_plans && (
-                        <>
-                          <Separator />
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Тариф:</span>
-                            <span className="font-medium">
-                              {patientData.subscription.subscription_plans.display_name}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                      {patientData.subscription.subscription_pricing && (
-                        <>
-                          <Separator />
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Период оплаты:</span>
-                            <span className="font-medium">
-                              {patientData.subscription.subscription_pricing.period_display}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                      <Separator />
+              {/* Вкладка "Обзор" */}
+              <TabsContent value="overview" className="space-y-4 mt-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Личные данные */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <User className="w-5 h-5" />
+                        Личные данные
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Сумма:</span>
-                        <span className="font-medium">{patientData.subscription.amount} ₽</span>
-                      </div>
-                      {patientData.subscription.start_date && (
-                        <>
-                          <Separator />
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground">Период действия:</span>
-                            <span>
-                              {new Date(patientData.subscription.start_date).toLocaleDateString("ru-RU")} —{" "}
-                              {patientData.subscription.end_date
-                                ? new Date(patientData.subscription.end_date).toLocaleDateString("ru-RU")
-                                : "—"}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Анализы */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-5 h-5" />
-                    Анализы
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Всего анализов:</span>
-                    <span className="font-semibold text-lg">{patientData.analysisCount}</span>
-                  </div>
-                  {patientData.latestAnalysis && (
-                    <>
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Последний анализ:</span>
+                        <span className="text-muted-foreground">Возраст:</span>
                         <span className="font-medium">
-                          {new Date(patientData.latestAnalysis.date).toLocaleDateString("ru-RU")}
+                          {patientData.profile.birth_date
+                            ? `${calculateAge(patientData.profile.birth_date)} лет`
+                            : "Не указан"}
                         </span>
                       </div>
-                    </>
-                  )}
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Syringe className="w-4 h-4" /> Статус бронирования:
-                    </span>
-                    {getBookingBadge(patientData.booking?.status || "not_scheduled")}
-                  </div>
-                  {patientData.booking && patientData.booking.status !== "not_scheduled" && (
-                    <>
-                      {patientData.booking.booking_date && (
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Пол:</span>
+                        <Badge variant="outline">
+                          {patientData.profile.gender === "male" ? "Мужской" : "Женский"}
+                        </Badge>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Ruler className="w-4 h-4" /> Рост:
+                        </span>
+                        <span className="font-medium">
+                          {patientData.profile.height ? `${patientData.profile.height} см` : "Не указан"}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Weight className="w-4 h-4" /> Вес:
+                        </span>
+                        <span className="font-medium">
+                          {patientData.profile.weight ? `${patientData.profile.weight} кг` : "Не указан"}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Подписка */}
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <CreditCard className="w-5 h-5" />
+                          Подписка
+                        </CardTitle>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsHistoryOpen(true)}
+                          >
+                            <Clock className="w-4 h-4 mr-2" />
+                            История
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditSubscriptionOpen(true)}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Изменить
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Статус:</span>
+                        {getSubscriptionBadge(patientData.subscription?.status || "pending")}
+                      </div>
+                      {patientData.subscription && (
+                        <>
+                          {patientData.subscription.subscription_plans && (
+                            <>
+                              <Separator />
+                              <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Тариф:</span>
+                                <span className="font-medium">
+                                  {patientData.subscription.subscription_plans.display_name}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          {patientData.subscription.subscription_pricing && (
+                            <>
+                              <Separator />
+                              <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Период оплаты:</span>
+                                <span className="font-medium">
+                                  {patientData.subscription.subscription_pricing.period_display}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          <Separator />
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Сумма:</span>
+                            <span className="font-medium">{patientData.subscription.amount} ₽</span>
+                          </div>
+                          {patientData.subscription.start_date && (
+                            <>
+                              <Separator />
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Период действия:</span>
+                                <span>
+                                  {new Date(patientData.subscription.start_date).toLocaleDateString("ru-RU")} —{" "}
+                                  {patientData.subscription.end_date
+                                    ? new Date(patientData.subscription.end_date).toLocaleDateString("ru-RU")
+                                    : "—"}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Следующий анализ */}
+                  <Card className="md:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="w-5 h-5" />
+                        Следующий анализ
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Syringe className="w-4 h-4" /> Статус бронирования:
+                        </span>
+                        {getBookingBadge(patientData.booking?.status || "not_scheduled")}
+                      </div>
+                      {patientData.booking && patientData.booking.status !== "not_scheduled" && (
+                        <>
+                          {patientData.booking.booking_date && (
+                            <>
+                              <Separator />
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Дата записи:</span>
+                                <span>
+                                  {new Date(patientData.booking.booking_date).toLocaleDateString("ru-RU")}{" "}
+                                  {patientData.booking.booking_time}
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          {patientData.booking.address && (
+                            <>
+                              <Separator />
+                              <div className="flex flex-col gap-1 text-sm">
+                                <span className="text-muted-foreground">Адрес:</span>
+                                <span className="font-medium">{patientData.booking.address}</span>
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
+                      <Separator />
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Дата следующего анализа:</span>
+                        <button
+                          onClick={() => setIsEditDateOpen(true)}
+                          className="font-medium border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
+                        >
+                          {patientData.booking?.next_analysis_date
+                            ? new Date(patientData.booking.next_analysis_date).toLocaleDateString("ru-RU")
+                            : "Не назначена"}
+                        </button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* Вкладка "Медицинские данные" */}
+              <TabsContent value="medical" className="space-y-4 mt-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Анализы */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="w-5 h-5" />
+                        Анализы
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Всего анализов:</span>
+                        <span className="font-semibold text-lg">{patientData.analysisCount}</span>
+                      </div>
+                      {patientData.latestAnalysis && (
                         <>
                           <Separator />
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground">Дата записи:</span>
-                            <span>
-                              {new Date(patientData.booking.booking_date).toLocaleDateString("ru-RU")}{" "}
-                              {patientData.booking.booking_time}
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Последний анализ:</span>
+                            <span className="font-medium">
+                              {new Date(patientData.latestAnalysis.date).toLocaleDateString("ru-RU")}
                             </span>
                           </div>
                         </>
                       )}
-                      {patientData.booking.address && (
-                        <>
-                          <Separator />
-                          <div className="flex flex-col gap-1 text-sm">
-                            <span className="text-muted-foreground">Адрес:</span>
-                            <span className="font-medium">{patientData.booking.address}</span>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-                  <Separator />
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Дата следующего анализа:</span>
-                    <button
-                      onClick={() => setIsEditDateOpen(true)}
-                      className="font-medium border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
-                    >
-                      {patientData.booking?.next_analysis_date
-                        ? new Date(patientData.booking.next_analysis_date).toLocaleDateString("ru-RU")
-                        : "Не назначена"}
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
 
-              {/* Медицинская информация */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Heart className="w-5 h-5" />
-                    Медицинская информация
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Медицинская история:</span>
-                    <span className="font-medium">{patientData.medicalHistoryCount} записей</span>
-                  </div>
-                  {patientData.complaints && (
-                    <>
-                      {patientData.complaints.main_complaints && (
+                  {/* Медицинская информация */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Heart className="w-5 h-5" />
+                        Медицинская информация
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Записей в истории болезни:</span>
+                        <span className="font-medium">{patientData.medicalHistoryCount} записей</span>
+                      </div>
+                      {patientData.complaints && (
                         <>
-                          <Separator />
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <FileText className="w-4 h-4" />
-                              <span className="text-sm">Основные жалобы:</span>
-                            </div>
-                            <p className="text-sm pl-5">{patientData.complaints.main_complaints}</p>
-                          </div>
+                          {patientData.complaints.main_complaints && (
+                            <>
+                              <Separator />
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <FileText className="w-4 h-4" />
+                                  <span className="text-sm">Основные жалобы:</span>
+                                </div>
+                                <p className="text-sm pl-5">{patientData.complaints.main_complaints}</p>
+                              </div>
+                            </>
+                          )}
+                          {patientData.complaints.goals && (
+                            <>
+                              <Separator />
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <Target className="w-4 h-4" />
+                                  <span className="text-sm">Цели:</span>
+                                </div>
+                                <p className="text-sm pl-5">{patientData.complaints.goals}</p>
+                              </div>
+                            </>
+                          )}
+                          {patientData.complaints.lifestyle && (
+                            <>
+                              <Separator />
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <Sparkles className="w-4 h-4" />
+                                  <span className="text-sm">Образ жизни:</span>
+                                </div>
+                                <p className="text-sm pl-5">{patientData.complaints.lifestyle}</p>
+                              </div>
+                            </>
+                          )}
                         </>
                       )}
-                      {patientData.complaints.goals && (
-                        <>
-                          <Separator />
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Target className="w-4 h-4" />
-                              <span className="text-sm">Цели:</span>
-                            </div>
-                            <p className="text-sm pl-5">{patientData.complaints.goals}</p>
-                          </div>
-                        </>
-                      )}
-                      {patientData.complaints.lifestyle && (
-                        <>
-                          <Separator />
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <Sparkles className="w-4 h-4" />
-                              <span className="text-sm">Образ жизни:</span>
-                            </div>
-                            <p className="text-sm pl-5">{patientData.complaints.lifestyle}</p>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* Вкладка "Взаимодействия" */}
+              <TabsContent value="interactions" className="mt-4">
+                <PatientInteractionsTab
+                  patientId={patientId}
+                  patientName={`${patientData.profile.first_name || ''} ${patientData.profile.name || ''}`.trim()}
+                />
+              </TabsContent>
+            </Tabs>
 
             {/* Кнопки действий */}
             <div className="flex justify-end gap-3 pt-4">
@@ -533,7 +578,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                 Открыть режим просмотра
               </Button>
             </div>
-          </div>
+          </>
         ) : null}
 
         {/* Диалог редактирования даты следующего анализа */}
@@ -560,7 +605,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               open={isHistoryOpen}
               onClose={() => setIsHistoryOpen(false)}
               userId={patientId}
-              patientName={patientData?.profile.name || ""}
+              patientName={`${patientData?.profile.first_name || ''} ${patientData?.profile.name || ''}`.trim()}
             />
           </>
         )}
