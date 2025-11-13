@@ -135,10 +135,15 @@ export default function Patients() {
             .limit(1)
             .maybeSingle();
 
-          // Get subscription status
+          // Get subscription status with plan details
           const { data: subscription } = await supabase
             .from("subscriptions")
-            .select("status")
+            .select(`
+              status,
+              subscription_plans (
+                display_name
+              )
+            `)
             .eq("user_id", profile.id)
             .order("created_at", { ascending: false })
             .limit(1)
@@ -186,6 +191,7 @@ export default function Patients() {
             analysisCount: analysisCount || 0,
             latestAnalysisDate: latestAnalysis?.date,
             subscriptionStatus: subscription?.status || 'pending',
+            subscriptionPlan: subscription?.subscription_plans?.display_name || null,
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
             role: primaryRole,
             allRoles: userRoleData.allRoles,
@@ -417,7 +423,16 @@ export default function Patients() {
                               <span className="text-muted-foreground">—</span>
                             )}
                           </TableCell>
-                          <TableCell>{getSubscriptionBadge(patient.subscriptionStatus)}</TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {getSubscriptionBadge(patient.subscriptionStatus)}
+                              {patient.subscriptionPlan && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {patient.subscriptionPlan}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">

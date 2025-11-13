@@ -27,9 +27,11 @@ import {
   Eye,
   Ruler,
   Weight,
+  Edit,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
+import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
@@ -39,6 +41,7 @@ interface PatientInfoDialogProps {
 
 export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInfoDialogProps) {
   const [isEditDateOpen, setIsEditDateOpen] = useState(false);
+  const [isEditSubscriptionOpen, setIsEditSubscriptionOpen] = useState(false);
   const queryClient = useQueryClient();
   
   // Real-time subscription for analysis bookings and subscriptions updates
@@ -92,10 +95,20 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
 
       if (profileError) throw profileError;
 
-      // Подписка
+      // Подписка с информацией о тарифе
       const { data: subscription } = await supabase
         .from("subscriptions")
-        .select("*")
+        .select(`
+          *,
+          subscription_plans (
+            display_name,
+            name
+          ),
+          subscription_pricing (
+            period_display,
+            duration_months
+          )
+        `)
         .eq("user_id", patientId)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -499,6 +512,16 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
             bookingId={patientData.booking.id}
             currentDate={patientData.booking.next_analysis_date}
             userId={patientId}
+          />
+        )}
+        
+        {/* Edit Subscription Dialog */}
+        {patientId && (
+          <EditSubscriptionDialog
+            open={isEditSubscriptionOpen}
+            onClose={() => setIsEditSubscriptionOpen(false)}
+            subscription={patientData?.subscription || null}
+            patientId={patientId}
           />
         )}
       </DialogContent>
