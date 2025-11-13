@@ -537,6 +537,42 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_biomarkers: {
+        Row: {
+          biomarker_id: string
+          created_at: string
+          id: string
+          plan_id: string
+        }
+        Insert: {
+          biomarker_id: string
+          created_at?: string
+          id?: string
+          plan_id: string
+        }
+        Update: {
+          biomarker_id?: string
+          created_at?: string
+          id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_biomarkers_biomarker_id_fkey"
+            columns: ["biomarker_id"]
+            isOneToOne: false
+            referencedRelation: "biomarkers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_biomarkers_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prescription_adherence: {
         Row: {
           adherence_level: number

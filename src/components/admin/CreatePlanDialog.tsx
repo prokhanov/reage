@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, X } from "lucide-react";
 import { usePlans } from "@/hooks/usePlans";
+import { usePlanBiomarkers } from "@/hooks/usePlanBiomarkers";
+import { BiomarkerSelector } from "./BiomarkerSelector";
 
 export function CreatePlanDialog() {
   const [open, setOpen] = useState(false);
@@ -16,13 +19,15 @@ export function CreatePlanDialog() {
   const [badgeText, setBadgeText] = useState("");
   const [badgeColor, setBadgeColor] = useState("");
   const [displayOrder, setDisplayOrder] = useState(0);
+  const [selectedBiomarkers, setSelectedBiomarkers] = useState<string[]>([]);
 
   const { createPlan } = usePlans();
+  const { updateBiomarkers } = usePlanBiomarkers();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    await createPlan.mutateAsync({
+    const newPlan = await createPlan.mutateAsync({
       name,
       display_name: displayName,
       description: description || undefined,
@@ -31,6 +36,14 @@ export function CreatePlanDialog() {
       badge_color: badgeColor || undefined,
       display_order: displayOrder,
     });
+
+    // Сохранить биомаркеры
+    if (selectedBiomarkers.length > 0) {
+      await updateBiomarkers.mutateAsync({
+        planId: newPlan.id,
+        biomarkerIds: selectedBiomarkers,
+      });
+    }
 
     setOpen(false);
     resetForm();
@@ -44,6 +57,7 @@ export function CreatePlanDialog() {
     setBadgeText("");
     setBadgeColor("");
     setDisplayOrder(0);
+    setSelectedBiomarkers([]);
   };
 
   const addFeature = () => {
@@ -68,11 +82,18 @@ export function CreatePlanDialog() {
           Создать тариф
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Создать новый тариф</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <Tabs defaultValue="info" className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="info" className="flex-1">Информация</TabsTrigger>
+              <TabsTrigger value="biomarkers" className="flex-1">Биомаркеры</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="info" className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Название (латиница)</Label>
@@ -164,6 +185,15 @@ export function CreatePlanDialog() {
               />
             </div>
           </div>
+            </TabsContent>
+
+            <TabsContent value="biomarkers" className="mt-4">
+              <BiomarkerSelector
+                selectedBiomarkers={selectedBiomarkers}
+                onChange={setSelectedBiomarkers}
+              />
+            </TabsContent>
+          </Tabs>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

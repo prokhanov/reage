@@ -13,6 +13,7 @@ export interface SubscriptionPlan {
   badge_color: string | null;
   created_at: string;
   updated_at: string;
+  included_biomarkers?: string[];
 }
 
 export interface SubscriptionPricing {
@@ -51,6 +52,13 @@ export function useSubscriptionPlans() {
 
       if (pricingError) throw pricingError;
 
+      // Загрузка биомаркеров для каждого тарифа
+      const { data: planBiomarkers, error: biomarkersError } = await supabase
+        .from('plan_biomarkers')
+        .select('plan_id, biomarker_id');
+
+      if (biomarkersError) throw biomarkersError;
+
       const plansWithPricing: PlanWithPricing[] = (plans || []).map(plan => ({
         ...plan,
         features: (plan.features as string[]) || [],
@@ -59,7 +67,10 @@ export function useSubscriptionPlans() {
           .map(p => ({
             ...p,
             period: p.period as 'monthly' | 'quarterly' | 'semiannual' | 'annual'
-          }))
+          })),
+        included_biomarkers: (planBiomarkers || [])
+          .filter(pb => pb.plan_id === plan.id)
+          .map(pb => pb.biomarker_id)
       }));
 
       return plansWithPricing;

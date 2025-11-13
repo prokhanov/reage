@@ -73,6 +73,9 @@ function SortablePlanItem({ plan, onEdit, onDelete }: {
                 {plan.badge_text && (
                   <Badge variant="outline">{plan.badge_text}</Badge>
                 )}
+                <Badge variant="outline" className="text-xs">
+                  📊 {plan.included_biomarkers?.length || 0} биомаркеров
+                </Badge>
               </div>
               <p className="text-sm text-muted-foreground mb-2">{plan.description}</p>
               <div className="flex flex-wrap gap-1">

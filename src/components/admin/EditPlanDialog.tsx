@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, X } from "lucide-react";
 import { usePlans } from "@/hooks/usePlans";
+import { usePlanBiomarkers } from "@/hooks/usePlanBiomarkers";
 import { SubscriptionPlan } from "@/hooks/useSubscriptionPlans";
+import { BiomarkerSelector } from "./BiomarkerSelector";
 
 interface EditPlanDialogProps {
   plan: SubscriptionPlan | null;
@@ -26,6 +29,8 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
   const [isActive, setIsActive] = useState(true);
 
   const { updatePlan } = usePlans();
+  const { includedBiomarkers, updateBiomarkers } = usePlanBiomarkers(plan?.id);
+  const [selectedBiomarkers, setSelectedBiomarkers] = useState<string[]>([]);
 
   useEffect(() => {
     if (plan) {
@@ -39,6 +44,10 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
       setIsActive(plan.is_active);
     }
   }, [plan]);
+
+  useEffect(() => {
+    setSelectedBiomarkers(includedBiomarkers);
+  }, [includedBiomarkers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +63,12 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
       badge_color: badgeColor || undefined,
       display_order: displayOrder,
       is_active: isActive,
+    });
+
+    // Обновить биомаркеры
+    await updateBiomarkers.mutateAsync({
+      planId: plan.id,
+      biomarkerIds: selectedBiomarkers,
     });
 
     onOpenChange(false);
@@ -75,11 +90,18 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Редактировать тариф</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <Tabs defaultValue="info" className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="info" className="flex-1">Информация</TabsTrigger>
+              <TabsTrigger value="biomarkers" className="flex-1">Биомаркеры</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="info" className="space-y-4 mt-4">
           <div className="flex items-center gap-2">
             <Switch
               id="isActive"
@@ -175,6 +197,15 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
               />
             </div>
           </div>
+            </TabsContent>
+
+            <TabsContent value="biomarkers" className="mt-4">
+              <BiomarkerSelector
+                selectedBiomarkers={selectedBiomarkers}
+                onChange={setSelectedBiomarkers}
+              />
+            </TabsContent>
+          </Tabs>
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
