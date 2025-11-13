@@ -119,7 +119,7 @@ export function EditInteractionDialog({
     mutationFn: async (values: any) => {
       const tags = values.tags ? values.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('patient_interactions')
         .update({
           interaction_type: values.interaction_type,

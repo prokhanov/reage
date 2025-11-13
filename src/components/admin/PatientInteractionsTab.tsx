@@ -90,7 +90,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
   const { data: interactions, isLoading } = useQuery({
     queryKey: ['patient-interactions', patientId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('patient_interactions')
         .select(`
           *,
@@ -109,7 +109,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('patient_interactions')
         .delete()
         .eq('id', id);
@@ -135,7 +135,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
     if (!acc[group]) acc[group] = [];
     acc[group].push(interaction);
     return acc;
-  }, {} as Record<string, typeof interactions>);
+  }, {} as Record<string, any[]>);
 
   const totalInteractions = interactions?.length || 0;
   const scheduledCount = interactions?.filter(i => i.status === 'scheduled').length || 0;
@@ -190,7 +190,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
               <div key={group}>
                 <h4 className="text-sm font-semibold text-muted-foreground mb-3">{group}</h4>
                 <div className="space-y-3">
-                  {items.map((interaction: any) => (
+                  {(items as any[]).map((interaction: any) => (
                     <Card key={interaction.id} className={interaction.is_important ? "border-primary" : ""}>
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
