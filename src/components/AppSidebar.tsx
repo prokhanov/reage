@@ -127,7 +127,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       >
         <div className="flex flex-col h-full">
           {/* Logo with collapse button */}
-          <div className="p-4 border-b border-border/30">
+          <div className={cn("border-b border-border/30", isOpen ? "p-4" : "p-2")}>
             {isOpen ? (
               <>
                 <div className="flex items-start justify-between mb-3">
@@ -174,7 +174,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           )}
 
           {/* Navigation */}
-          <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+          <nav className={cn("flex-1 space-y-1 overflow-y-auto", isOpen ? "p-2" : "py-2 px-0")}>
             {isLoadingRoles ? (
               // Скелетон навигации
               <>
@@ -276,7 +276,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           </nav>
 
           {/* User Profile & Logout */}
-          <div className="p-2 border-t border-border/30 space-y-1">
+          <div className={cn("border-t border-border/30 space-y-1", isOpen ? "p-2" : "py-2 px-0")}>
             {viewAsUserId ? (
               <button
                 onClick={() => { setSimPath("/profile"); closeSidebarOnMobile(); }}
