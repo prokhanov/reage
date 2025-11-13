@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
   const [cancelling, setCancelling] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleCancelSubscription = async () => {
     setCancelling(true);
@@ -56,8 +58,11 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
         description: "Ваша подписка успешно отменена. Доступ будет сохранен до окончания оплаченного периода.",
       });
 
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
       setShowCancelDialog(false);
+      
+      // Явное обновление UI - переход на страницу выбора тарифа
+      navigate('/subscription', { replace: true });
     } catch (error) {
       console.error('Error cancelling subscription:', error);
       toast({
