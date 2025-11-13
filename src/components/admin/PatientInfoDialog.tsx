@@ -311,10 +311,20 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               {/* Подписка */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="w-5 h-5" />
-                    Подписка
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <CreditCard className="w-5 h-5" />
+                      Подписка
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditSubscriptionOpen(true)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Изменить
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
@@ -323,13 +333,28 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                   </div>
                   {patientData.subscription && (
                     <>
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">План:</span>
-                        <span className="font-medium">
-                          {patientData.subscription.plan_type === "annual" ? "Годовая" : "Месячная"}
-                        </span>
-                      </div>
+                      {patientData.subscription.subscription_plans && (
+                        <>
+                          <Separator />
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Тариф:</span>
+                            <span className="font-medium">
+                              {patientData.subscription.subscription_plans.display_name}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      {patientData.subscription.subscription_pricing && (
+                        <>
+                          <Separator />
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Период оплаты:</span>
+                            <span className="font-medium">
+                              {patientData.subscription.subscription_pricing.period_display}
+                            </span>
+                          </div>
+                        </>
+                      )}
                       <Separator />
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Сумма:</span>
@@ -339,22 +364,13 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                         <>
                           <Separator />
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground">Период:</span>
+                            <span className="text-muted-foreground">Период действия:</span>
                             <span>
                               {new Date(patientData.subscription.start_date).toLocaleDateString("ru-RU")} —{" "}
                               {patientData.subscription.end_date
                                 ? new Date(patientData.subscription.end_date).toLocaleDateString("ru-RU")
                                 : "—"}
                             </span>
-                          </div>
-                        </>
-                      )}
-                      {patientData.subscription.payment_method && (
-                        <>
-                          <Separator />
-                          <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Способ оплаты:</span>
-                            <span className="font-medium">{patientData.subscription.payment_method}</span>
                           </div>
                         </>
                       )}
