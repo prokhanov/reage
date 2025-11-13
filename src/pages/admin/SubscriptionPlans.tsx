@@ -18,7 +18,7 @@ export default function SubscriptionPlans() {
   const [activeTab, setActiveTab] = useState("plans");
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
 
-  const { data: plans, isLoading } = useSubscriptionPlans(true);
+  const { data: plans, isLoading } = useSubscriptionPlans({ includeInactivePlans: true, includeDisabledPricing: true });
 
   const selectedPlan = plans?.find((p) => p.id === selectedPlanId);
 

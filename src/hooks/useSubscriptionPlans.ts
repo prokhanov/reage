@@ -33,29 +33,33 @@ export interface PlanWithPricing extends SubscriptionPlan {
   pricing: SubscriptionPricing[];
 }
 
-export function useSubscriptionPlans(includeInactive = false) {
+export function useSubscriptionPlans(options: { includeInactivePlans?: boolean; includeDisabledPricing?: boolean } = {}) {
+  const { includeInactivePlans = false, includeDisabledPricing = false } = options;
   return useQuery({
-    queryKey: ['subscription-plans', includeInactive],
+    queryKey: ['subscription-plans', includeInactivePlans, includeDisabledPricing],
     queryFn: async () => {
-      let query = supabase
+      let plansQuery = supabase
         .from('subscription_plans')
         .select('*');
       
-      if (!includeInactive) {
-        query = query.eq('is_active', true);
+      if (!includeInactivePlans) {
+        plansQuery = plansQuery.eq('is_active', true);
       }
       
-      const { data: plans, error: plansError } = await query
+      const { data: plans, error: plansError } = await plansQuery
         .order('display_order', { ascending: true });
 
       if (plansError) throw plansError;
 
-      const { data: pricing, error: pricingError } = await supabase
+      let pricingQuery = supabase
         .from('subscription_pricing')
-        .select('*')
-        .eq('is_enabled', true);
+        .select('*');
 
-      if (pricingError) throw pricingError;
+      if (!includeDisabledPricing) {
+        pricingQuery = pricingQuery.eq('is_enabled', true);
+      }
+
+      const { data: pricing, error: pricingError } = await pricingQuery;
 
       // Загрузка биомаркеров для каждого тарифа
       const { data: planBiomarkers, error: biomarkersError } = await supabase
