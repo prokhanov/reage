@@ -23,7 +23,7 @@ export default function SubscriptionPlans() {
   const selectedPlan = plans?.find((p) => p.id === selectedPlanId);
 
   return (
-    <div className="container max-w-7xl mx-auto py-8">
+    <div className="w-full px-4 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Управление тарифами</h1>
