@@ -35,7 +35,7 @@ import AnalysisBookingsSkeleton from "@/components/skeletons/AnalysisBookingsSke
 import AssignStaffDialog from "@/components/admin/AssignStaffDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
-import { SlotsManagement } from "@/components/admin/SlotsManagement";
+import { DaySlotsManager } from "@/components/admin/DaySlotsManager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -497,7 +497,7 @@ export default function AnalysisBookings() {
         </TabsContent>
 
         <TabsContent value="slots">
-          <SlotsManagement />
+          <DaySlotsManager />
         </TabsContent>
       </Tabs>
 

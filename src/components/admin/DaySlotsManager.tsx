@@ -1,0 +1,258 @@
+import { useMemo, useState } from "react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, compareAsc } from "date-fns";
+import { ru } from "date-fns/locale";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Trash2, AlertTriangle, Plus } from "lucide-react";
+import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
+
+interface Slot {
+  id: string;
+  date: string; // yyyy-MM-dd
+  time_slot: string; // HH:mm
+  total_capacity: number;
+  booked_count: number;
+  is_active: boolean;
+}
+
+function parseMinutes(time: string): number | null {
+  const m = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+
+function computeBlockedByTwoHours(slots: Slot[]) {
+  // mark a slot as blocked if there exists a fully booked slot within the previous 120 minutes
+  const minutesMap = slots.map((s) => ({ s, m: parseMinutes(s.time_slot) ?? -1 }));
+  return new Set(
+    minutesMap
+      .filter(({ s, m }) => {
+        if (m < 0) return false;
+        return minutesMap.some(({ s: other, m: mo }) => {
+          if (mo < 0) return false;
+          const fullyBooked = other.booked_count >= other.total_capacity;
+          const diff = m - mo;
+          return fullyBooked && diff > 0 && diff <= 120;
+        });
+      })
+      .map(({ s }) => s.id)
+  );
+}
+
+export function DaySlotsManager() {
+  const [currentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+
+  const days = useMemo(
+    () => eachDayOfInterval({ start: monthStart, end: monthEnd }).sort(compareAsc),
+    [monthStart, monthEnd]
+  );
+
+  const { slots = [], isLoading, updateSlot, deleteSlot, createSlot } = useAvailabilitySlots(
+    monthStart,
+    monthEnd
+  ) as unknown as {
+    slots: Slot[];
+    isLoading: boolean;
+    updateSlot: { mutateAsync: (data: Partial<Slot> & { id: string }) => Promise<any> };
+    deleteSlot: { mutateAsync: (id: string) => Promise<any> };
+    createSlot: { mutateAsync: (data: { date: string; time_slot: string; total_capacity: number }) => Promise<any> };
+  };
+
+  const slotsByDate = useMemo(() => {
+    const map: Record<string, Slot[]> = {};
+    for (const s of slots) {
+      (map[s.date] ||= []).push(s);
+    }
+    // sort times
+    for (const key of Object.keys(map)) {
+      map[key] = map[key].sort((a, b) => a.time_slot.localeCompare(b.time_slot));
+    }
+    return map;
+  }, [slots]);
+
+  const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+  const daySlots = slotsByDate[selectedDateStr] || [];
+  const blockedSet = computeBlockedByTwoHours(daySlots);
+
+  const [newTime, setNewTime] = useState("");
+  const [newCap, setNewCap] = useState(3);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <Card className="lg:col-span-4">
+        <CardHeader>
+          <div className="font-semibold">Дни месяца</div>
+        </CardHeader>
+        <CardContent>
+          <div className="max-h-[70vh] overflow-y-auto space-y-1">
+            {days.map((d) => {
+              const ds = format(d, "yyyy-MM-dd");
+              const dayList = slotsByDate[ds] || [];
+              const total = dayList.reduce((acc, s) => acc + s.total_capacity, 0);
+              const booked = dayList.reduce((acc, s) => acc + s.booked_count, 0);
+              const available = total - booked;
+              const isSelected = ds === selectedDateStr;
+              return (
+                <button
+                  key={ds}
+                  onClick={() => setSelectedDate(d)}
+                  className={`w-full text-left px-3 py-2 rounded-md border transition-colors ${
+                    isSelected ? "bg-accent border-accent" : "hover:bg-accent/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium">
+                      {format(d, "d MMMM, EEE", { locale: ru })}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {available}/{total}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="lg:col-span-8">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="font-semibold">
+              Слоты на {format(selectedDate, "d MMMM yyyy", { locale: ru })}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-muted-foreground">Загрузка...</div>
+          ) : (
+            <div className="space-y-4">
+              {daySlots.length === 0 ? (
+                <div className="text-sm text-muted-foreground">Нет слотов на этот день</div>
+              ) : (
+                <div className="space-y-3">
+                  {daySlots.map((slot) => {
+                    const isFullyBooked = slot.booked_count >= slot.total_capacity;
+                    const isBlocked = blockedSet.has(slot.id);
+                    const available = slot.total_capacity - slot.booked_count;
+                    return (
+                      <div
+                        key={slot.id}
+                        className={`p-3 border rounded-lg flex items-center gap-4 ${
+                          isFullyBooked ? "bg-destructive/5 border-destructive/20" : ""
+                        }`}
+                      >
+                        <div className="w-20 font-medium">{slot.time_slot}</div>
+
+                        <div className="text-sm text-muted-foreground">
+                          Выбрано: <span className="font-medium">{slot.booked_count}</span> из {slot.total_capacity}
+                          {!isFullyBooked && (
+                            <span className="ml-1 text-primary">({available} свободно)</span>
+                          )}
+                        </div>
+
+                        {isFullyBooked && (
+                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+                            Полностью
+                          </span>
+                        )}
+                        {isBlocked && (
+                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-accent/20 text-foreground inline-flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" /> 2ч блок
+                          </span>
+                        )}
+
+                        <Separator orientation="vertical" className="mx-2 h-8" />
+
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`cap-${slot.id}`} className="text-sm">Мест:</Label>
+                          <Input
+                            id={`cap-${slot.id}`}
+                            type="number"
+                            className="w-20"
+                            min={slot.booked_count}
+                            value={slot.total_capacity}
+                            onChange={async (e) => {
+                              const v = parseInt(e.target.value, 10) || slot.booked_count;
+                              if (v < slot.booked_count) return;
+                              await updateSlot.mutateAsync({ id: slot.id, total_capacity: v, is_active: slot.is_active });
+                            }}
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`act-${slot.id}`} className="text-sm">Активен</Label>
+                          <Switch
+                            id={`act-${slot.id}`}
+                            checked={slot.is_active}
+                            onCheckedChange={async (checked) => {
+                              await updateSlot.mutateAsync({ id: slot.id, is_active: checked, total_capacity: slot.total_capacity });
+                            }}
+                          />
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteSlot.mutateAsync(slot.id)}
+                          disabled={slot.booked_count > 0}
+                          title={slot.booked_count > 0 ? "Нельзя удалить слот с записями" : "Удалить слот"}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="pt-2 border-t">
+                <div className="font-medium mb-2">Добавить слот</div>
+                <div className="flex gap-2">
+                  <Input
+                    type="time"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
+                    className="w-36"
+                  />
+                  <Input
+                    type="number"
+                    min={1}
+                    value={newCap}
+                    onChange={(e) => setNewCap(parseInt(e.target.value, 10) || 1)}
+                    className="w-24"
+                  />
+                  <Button
+                    onClick={async () => {
+                      if (!newTime) return;
+                      await createSlot.mutateAsync({
+                        date: selectedDateStr,
+                        time_slot: newTime,
+                        total_capacity: newCap,
+                      });
+                      setNewTime("");
+                      setNewCap(3);
+                    }}
+                    disabled={!newTime}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Добавить
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">Если слот станет полностью выбран, следующие 2 часа будут заблокированы для записи.</div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
