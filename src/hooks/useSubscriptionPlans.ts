@@ -33,14 +33,19 @@ export interface PlanWithPricing extends SubscriptionPlan {
   pricing: SubscriptionPricing[];
 }
 
-export function useSubscriptionPlans() {
+export function useSubscriptionPlans(includeInactive = false) {
   return useQuery({
-    queryKey: ['subscription-plans'],
+    queryKey: ['subscription-plans', includeInactive],
     queryFn: async () => {
-      const { data: plans, error: plansError } = await supabase
+      let query = supabase
         .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
+        .select('*');
+      
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+      
+      const { data: plans, error: plansError } = await query
         .order('display_order', { ascending: true });
 
       if (plansError) throw plansError;
