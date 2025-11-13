@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Clock, MapPin, Check } from "lucide-react";
+import { Calendar, Clock, MapPin, Check, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { usePatientSlots } from "@/hooks/usePatientSlots";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -21,20 +22,22 @@ interface AnalysisBookingDialogProps {
   onSuccess?: () => void;
 }
 
-const timeSlots = [
-  "09:00", "10:00", "11:00", "12:00",
-  "14:00", "15:00", "16:00", "17:00", "18:00"
-];
-
 export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: AnalysisBookingDialogProps) {
   const queryClient = useQueryClient();
   const { getUserId } = useViewAsUser();
+  const { slots, isLoading: slotsLoading, hasAvailableSlots, getTimeSlotsForDate } = usePatientSlots();
+  
   const [bookingDate, setBookingDate] = useState<Date>();
   const [bookingTime, setBookingTime] = useState("");
+  const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [bookingAddress, setBookingAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
+  const [existingSlotId, setExistingSlotId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  // Get available time slots for selected date
+  const availableTimeSlots = getTimeSlotsForDate(bookingDate);
 
   // Load existing booking when dialog opens
   useEffect(() => {
@@ -59,13 +62,16 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
       if (bookings && bookings.length > 0 && bookings[0].status === 'scheduled') {
         const booking = bookings[0];
         setExistingBookingId(booking.id);
+        setExistingSlotId((booking as any).slot_id || null);
         setBookingDate(new Date(booking.booking_date));
         setBookingTime(booking.booking_time);
         setBookingAddress(booking.address);
       } else {
         setExistingBookingId(null);
+        setExistingSlotId(null);
         setBookingDate(undefined);
         setBookingTime("");
+        setSelectedSlotId("");
         setBookingAddress("");
       }
     } catch (error) {
@@ -73,15 +79,37 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
-  const isValid = bookingDate && bookingTime && bookingAddress.trim().length > 0;
+  const isValid = bookingDate && bookingTime && selectedSlotId && bookingAddress.trim().length > 0;
 
   const handleSubmit = async () => {
-    if (!isValid || !bookingDate) return;
+    if (!isValid || !bookingDate || !selectedSlotId) return;
 
     setIsSubmitting(true);
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("User not authenticated");
+
+      // If updating and slot changed, cancel old slot first
+      if (existingBookingId && existingSlotId && existingSlotId !== selectedSlotId) {
+        const { data: cancelResult } = await supabase.rpc('cancel_booking' as any, { 
+          p_slot_id: existingSlotId 
+        }) as any;
+        
+        if (!cancelResult?.success) {
+          throw new Error(cancelResult?.error || 'Failed to cancel old slot');
+        }
+      }
+
+      // Book the slot (only if new booking or slot changed)
+      if (!existingBookingId || existingSlotId !== selectedSlotId) {
+        const { data: bookResult } = await supabase.rpc('book_analysis_slot' as any, { 
+          p_slot_id: selectedSlotId 
+        }) as any;
+        
+        if (!bookResult?.success) {
+          throw new Error(bookResult?.error || 'Слот уже занят. Выберите другое время.');
+        }
+      }
 
       if (existingBookingId) {
         // Update existing booking
@@ -91,6 +119,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             booking_date: format(bookingDate, 'yyyy-MM-dd'),
             booking_time: bookingTime,
             address: bookingAddress,
+            slot_id: selectedSlotId,
             status: 'scheduled'
           } as any)
           .eq('id', existingBookingId);
@@ -110,6 +139,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
             booking_date: format(bookingDate, 'yyyy-MM-dd'),
             booking_time: bookingTime,
             address: bookingAddress,
+            slot_id: selectedSlotId,
             status: 'scheduled'
           } as any);
 
@@ -121,16 +151,20 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         });
       }
 
-      // Invalidate queries to refresh admin views
+      // Invalidate queries to refresh views
       await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });
       await queryClient.invalidateQueries({ queryKey: ["patient-info", userId] });
       await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
+      await queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
+      await queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
       
       // Reset form and close dialog
       setBookingDate(undefined);
       setBookingTime("");
+      setSelectedSlotId("");
       setBookingAddress("");
       setExistingBookingId(null);
+      setExistingSlotId(null);
       onOpenChange(false);
       
       // Call success callback to refresh banner
@@ -157,9 +191,20 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     setShowCancelConfirm(false);
     setIsSubmitting(true);
     try {
+      // Cancel slot booking if exists
+      if (existingSlotId) {
+        const { data: cancelResult } = await supabase.rpc('cancel_booking' as any, { 
+          p_slot_id: existingSlotId 
+        }) as any;
+        
+        if (!cancelResult?.success) {
+          console.error('Failed to cancel slot:', cancelResult?.error);
+        }
+      }
+
       const { error } = await supabase
         .from('analysis_bookings')
-        .update({ status: 'not_scheduled' } as any)
+        .update({ status: 'not_scheduled', slot_id: null } as any)
         .eq('id', existingBookingId);
 
       if (error) throw error;
@@ -171,17 +216,21 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
       const userId = await getUserId();
       if (userId) {
-        // Invalidate queries to refresh admin views
+        // Invalidate queries to refresh views
         await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });
         await queryClient.invalidateQueries({ queryKey: ["patient-info", userId] });
         await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
+        await queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
+        await queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
       }
 
       // Reset form and close dialog
       setBookingDate(undefined);
       setBookingTime("");
+      setSelectedSlotId("");
       setBookingAddress("");
       setExistingBookingId(null);
+      setExistingSlotId(null);
       onOpenChange(false);
       
       // Call success callback to refresh banner
@@ -242,8 +291,19 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
                 <CalendarComponent
                   mode="single"
                   selected={bookingDate}
-                  onSelect={setBookingDate}
-                  disabled={(date) => date < new Date() || date > new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
+                  onSelect={(date) => {
+                    setBookingDate(date);
+                    setBookingTime("");
+                    setSelectedSlotId("");
+                  }}
+                  disabled={(date) => {
+                    // Disable past dates
+                    if (date < new Date(new Date().setHours(0, 0, 0, 0))) return true;
+                    // Disable dates beyond 2 months
+                    if (date > new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)) return true;
+                    // Disable dates without available slots
+                    return !hasAvailableSlots(date);
+                  }}
                   initialFocus
                   className="pointer-events-auto"
                 />
@@ -257,22 +317,41 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
               <Clock className="h-5 w-5 text-primary" />
               Время визита
             </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {timeSlots.map((time) => (
-                <Button
-                  key={time}
-                  type="button"
-                  variant={bookingTime === time ? "default" : "outline"}
-                  className={cn(
-                    "h-12 transition-all",
-                    bookingTime === time && "bg-gradient-primary shadow-neon-primary"
-                  )}
-                  onClick={() => setBookingTime(time)}
-                >
-                  {time}
-                </Button>
-              ))}
-            </div>
+            {!bookingDate ? (
+              <div className="text-sm text-muted-foreground p-4 text-center border rounded-lg">
+                Выберите дату, чтобы увидеть доступное время
+              </div>
+            ) : availableTimeSlots.length === 0 ? (
+              <div className="text-sm text-muted-foreground p-4 text-center border rounded-lg">
+                На выбранную дату нет доступных слотов
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {availableTimeSlots.map((slot) => (
+                  <Button
+                    key={slot.slotId}
+                    type="button"
+                    variant={bookingTime === slot.time ? "default" : "outline"}
+                    className={cn(
+                      "h-12 transition-all relative",
+                      bookingTime === slot.time && "bg-gradient-primary shadow-neon-primary"
+                    )}
+                    onClick={() => {
+                      setBookingTime(slot.time);
+                      setSelectedSlotId(slot.slotId);
+                    }}
+                  >
+                    <div className="flex flex-col items-center">
+                      <span>{slot.time}</span>
+                      <span className="text-xs opacity-70 flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {slot.available}
+                      </span>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Address */}
