@@ -39,13 +39,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </header>
 
-      {/* Analysis Booking Banner */}
-      <div className={`pt-16 lg:pt-0 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
-        <AnalysisBookingBanner />
-      </div>
-
       {/* Main content */}
       <main className={`pt-16 lg:pt-0 min-h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+        <AnalysisBookingBanner />
         {children}
       </main>
     </div>
