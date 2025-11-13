@@ -51,6 +51,10 @@ export function usePatientSlots(existingSlotId?: string | null) {
       // Skip if capacity doesn't match (different number of workers)
       if (otherSlot.total_capacity !== slot.total_capacity) continue;
       
+      // Skip if this is the user's existing booking slot
+      // (when they move their booking, this slot will free up)
+      if (otherSlot.id === existingSlotId) continue;
+      
       const otherTime = parseTimeSlot(otherSlot.time_slot);
       if (!otherTime) continue;
       
