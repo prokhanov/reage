@@ -549,12 +549,20 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
         
         {/* Edit Subscription Dialog */}
         {patientId && (
-          <EditSubscriptionDialog
-            open={isEditSubscriptionOpen}
-            onClose={() => setIsEditSubscriptionOpen(false)}
-            subscription={patientData?.subscription || null}
-            patientId={patientId}
-          />
+          <>
+            <EditSubscriptionDialog
+              open={isEditSubscriptionOpen}
+              onClose={() => setIsEditSubscriptionOpen(false)}
+              subscription={patientData?.subscription || null}
+              patientId={patientId}
+            />
+            <SubscriptionHistoryDialog
+              open={isHistoryOpen}
+              onClose={() => setIsHistoryOpen(false)}
+              userId={patientId}
+              patientName={patientData?.profile.name || ""}
+            />
+          </>
         )}
       </DialogContent>
     </Dialog>
