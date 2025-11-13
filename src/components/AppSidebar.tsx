@@ -265,7 +265,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                           </span>
                         )}
                         {!isOpen && showCount && (
-                          <span className="absolute top-3 right-[14px] w-2 h-2 bg-primary rounded-full" />
+                          <span className="absolute top-2 right-[14px] w-2 h-2 bg-primary rounded-full" />
                         )}
                       </NavLink>
                     </div>
