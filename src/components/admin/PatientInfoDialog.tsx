@@ -41,18 +41,30 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
   const [isEditDateOpen, setIsEditDateOpen] = useState(false);
   const queryClient = useQueryClient();
   
-  // Real-time subscription for analysis bookings updates
+  // Real-time subscription for analysis bookings and subscriptions updates
   useEffect(() => {
     if (!patientId) return;
 
     const channel = supabase
-      .channel('patient-info-bookings-changes')
+      .channel('patient-info-changes')
       .on(
         'postgres_changes',
         { 
           event: '*', 
           schema: 'public', 
           table: 'analysis_bookings',
+          filter: `user_id=eq.${patientId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'subscriptions',
           filter: `user_id=eq.${patientId}`
         },
         () => {

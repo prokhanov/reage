@@ -51,7 +51,12 @@ export default function Subscription() {
         description: "Ваша подписка успешно оформлена. Добро пожаловать в ReAge!",
       });
 
+      // Обновляем все связанные запросы
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      if (user.id) {
+        queryClient.invalidateQueries({ queryKey: ['patient-info', user.id] });
+      }
     } catch (error) {
       console.error('Error creating subscription:', error);
       toast({

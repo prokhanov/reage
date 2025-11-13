@@ -12,6 +12,7 @@ import { addMonths } from "date-fns";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { PlanCard } from "@/components/subscription/PlanCard";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SubscriptionRequiredDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function SubscriptionRequiredDialog({
   const [creating, setCreating] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: plans, isLoading } = useSubscriptionPlans();
 
   const handleSelectPlan = async (planId: string, pricingId: string) => {
@@ -64,6 +66,13 @@ export function SubscriptionRequiredDialog({
         title: "Подписка активирована!",
         description: "Теперь вы можете записаться на анализы и использовать все возможности платформы.",
       });
+
+      // Обновляем все связанные запросы
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      if (user.id) {
+        queryClient.invalidateQueries({ queryKey: ['patient-info', user.id] });
+      }
 
       onOpenChange(false);
       onSuccess();
