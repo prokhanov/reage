@@ -179,11 +179,10 @@ export function DaySlotsManager() {
                             id={`cap-${slot.id}`}
                             type="number"
                             className="w-20"
-                            min={slot.booked_count}
+                            min={0}
                             value={slot.total_capacity}
                             onChange={async (e) => {
-                              const v = parseInt(e.target.value, 10) || slot.booked_count;
-                              if (v < slot.booked_count) return;
+                              const v = parseInt(e.target.value, 10) || 0;
                               await updateSlot.mutateAsync({ id: slot.id, total_capacity: v, is_active: slot.is_active });
                             }}
                           />
