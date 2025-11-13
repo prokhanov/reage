@@ -188,10 +188,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {(isPatient || viewAsUserId) && navItems.map((item) => {
               const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
               const baseClasses = cn(
-                "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                 "hover:bg-primary/10 hover:text-primary",
                 activeInSim && "bg-primary/15 text-primary border border-primary/20",
-                isOpen ? "px-3" : "px-0 justify-center"
+                isOpen ? "px-3" : "px-0 justify-center w-14"
               );
 
               if (viewAsUserId) {
@@ -215,10 +215,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   onClick={closeSidebarOnMobile}
                   className={({ isActive }) =>
                     cn(
-                      "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                      "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                       "hover:bg-primary/10 hover:text-primary",
                       isActive && "bg-primary/15 text-primary border border-primary/20",
-                      isOpen ? "px-3" : "px-0 justify-center"
+                      isOpen ? "px-3" : "px-0 justify-center w-14"
                     )
                   }
                   title={!isOpen ? item.label : undefined}
@@ -247,10 +247,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                         onClick={closeSidebarOnMobile}
                         className={({ isActive }) =>
                           cn(
-                            "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                            "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                             "hover:bg-primary/10 hover:text-primary",
                             isActive && "bg-primary/15 text-primary border border-primary/20",
-                            isOpen ? "px-3" : "px-0 justify-center"
+                            isOpen ? "px-3" : "px-0 justify-center w-14"
                           )
                         }
                         title={!isOpen ? item.label : undefined}
@@ -281,10 +281,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               <button
                 onClick={() => { setSimPath("/profile"); closeSidebarOnMobile(); }}
                 className={cn(
-                  "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                  "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                   "hover:bg-primary/10 hover:text-primary",
                   simPath === "/profile" && "bg-primary/15 text-primary border border-primary/20",
-                  isOpen ? "px-3" : "px-0 justify-center"
+                  isOpen ? "px-3" : "px-0 justify-center w-14"
                 )}
                 title={!isOpen ? "Профиль" : undefined}
               >
@@ -297,10 +297,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 onClick={closeSidebarOnMobile}
                 className={({ isActive }) =>
                   cn(
-                    "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                    "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                     "hover:bg-primary/10 hover:text-primary",
                     isActive && "bg-primary/15 text-primary border border-primary/20",
-                    isOpen ? "px-3" : "px-0 justify-center"
+                    isOpen ? "px-3" : "px-0 justify-center w-14"
                   )
                 }
                 title={!isOpen ? "Профиль" : undefined}
