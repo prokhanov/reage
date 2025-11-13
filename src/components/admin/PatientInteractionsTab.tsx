@@ -90,7 +90,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
   const { data: interactions, isLoading } = useQuery({
     queryKey: ['patient-interactions', patientId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('patient_interactions')
         .select(`
           *,
