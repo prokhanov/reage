@@ -33,8 +33,46 @@ export function usePatientSlots() {
     },
   });
 
-  // Filter only slots with available capacity
-  const availableSlots = slots.filter(slot => slot.booked_count < slot.total_capacity);
+  // Filter slots considering capacity and 2-hour blocking rule
+  const availableSlots = slots.filter(slot => {
+    // First check if slot has available capacity
+    if (slot.booked_count >= slot.total_capacity) return false;
+    
+    // Check if there's a fully booked slot within 2 hours before this slot
+    const currentTime = parseTimeSlot(slot.time_slot);
+    if (!currentTime) return true;
+    
+    const slotsOnSameDate = slots.filter(s => s.date === slot.date);
+    
+    for (const otherSlot of slotsOnSameDate) {
+      // Skip if not fully booked
+      if (otherSlot.booked_count < otherSlot.total_capacity) continue;
+      
+      const otherTime = parseTimeSlot(otherSlot.time_slot);
+      if (!otherTime) continue;
+      
+      // Calculate time difference in minutes
+      const timeDiff = currentTime - otherTime;
+      
+      // If there's a fully booked slot within previous 2 hours (120 minutes), block this slot
+      if (timeDiff > 0 && timeDiff <= 120) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  // Helper function to parse time slot string (HH:MM) to minutes
+  function parseTimeSlot(timeStr: string): number | null {
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    
+    return hours * 60 + minutes;
+  }
 
   // Get available dates
   const availableDates = new Set(
