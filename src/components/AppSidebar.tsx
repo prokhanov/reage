@@ -109,7 +109,7 @@ export function AppSidebar() {
         {/* Logo Header */}
         <div className="p-4 border-b border-border/30">
           <div className="flex items-start justify-between">
-            <img src={reAgeLogo} alt="ReAge" className={cn("transition-all", isOpen ? "h-12 w-auto" : "h-8 w-8 object-contain")} />
+            {isOpen && <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto transition-all" />}
             <SidebarTrigger className="lg:flex hidden" />
           </div>
           {isOpen && (
