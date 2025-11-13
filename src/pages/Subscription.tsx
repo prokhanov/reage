@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -81,77 +79,75 @@ export default function Subscription() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
-        {/* Hero Section */}
-        <div className="text-center space-y-4 mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-4">
-            <Sparkles className="h-8 w-8 md:h-10 md:w-10 text-white" />
-          </div>
-          <h1 className="text-3xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Выберите свой тариф
-          </h1>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Персонализированная медицина нового поколения для вашего здоровья и долголетия
-          </p>
+    <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
+      {/* Hero Section */}
+      <div className="text-center space-y-4 mb-12">
+        <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-4">
+          <Sparkles className="h-8 w-8 md:h-10 md:w-10 text-white" />
         </div>
-
-        {/* Period Selector */}
-        <div className="flex flex-col items-center gap-4 mb-12">
-          <ToggleGroup 
-            type="single" 
-            value={selectedPeriod}
-            onValueChange={(value) => value && setSelectedPeriod(value)}
-            className="inline-flex flex-wrap justify-center rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
-          >
-            {periods.map(period => (
-              <ToggleGroupItem 
-                key={period.value}
-                value={period.value} 
-                className="rounded-md px-4 md:px-6 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground transition-all"
-              >
-                {period.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          
-          {getMaxDiscount() > 0 && (
-            <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300">
-              💰 Сэкономьте до {getMaxDiscount()}% при годовой оплате
-            </p>
-          )}
-        </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
-
-        {/* Plans Grid */}
-        {!isLoading && plans && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
-            {plans.map((plan, index) => (
-              <PlanCard
-                key={plan.id}
-                plan={plan}
-                selectedPeriod={selectedPeriod}
-                isRecommended={index === 1}
-                onSelect={handleSelectPlan}
-                isLoading={creating}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Trust Indicators */}
-        <div className="text-center space-y-4 pt-8 border-t border-border/50">
-          <p className="text-sm text-muted-foreground">
-            🔒 Безопасная оплата • 🎯 Без скрытых платежей • ✨ Отмена в любое время
-          </p>
-        </div>
+        <h1 className="text-3xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          Выберите свой тариф
+        </h1>
+        <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+          Персонализированная медицина нового поколения для вашего здоровья и долголетия
+        </p>
       </div>
-    </DashboardLayout>
+
+      {/* Period Selector */}
+      <div className="flex flex-col items-center gap-4 mb-12">
+        <ToggleGroup 
+          type="single" 
+          value={selectedPeriod}
+          onValueChange={(value) => value && setSelectedPeriod(value)}
+          className="inline-flex flex-wrap justify-center rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+        >
+          {periods.map(period => (
+            <ToggleGroupItem 
+              key={period.value}
+              value={period.value} 
+              className="rounded-md px-4 md:px-6 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground transition-all"
+            >
+              {period.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        
+        {getMaxDiscount() > 0 && (
+          <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300">
+            💰 Сэкономьте до {getMaxDiscount()}% при годовой оплате
+          </p>
+        )}
+      </div>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {/* Plans Grid */}
+      {!isLoading && plans && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
+          {plans.map((plan, index) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              selectedPeriod={selectedPeriod}
+              isRecommended={index === 1}
+              onSelect={handleSelectPlan}
+              isLoading={creating}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Trust Indicators */}
+      <div className="text-center space-y-4 pt-8 border-t border-border/50">
+        <p className="text-sm text-muted-foreground">
+          🔒 Безопасная оплата • 🎯 Без скрытых платежей • ✨ Отмена в любое время
+        </p>
+      </div>
+    </div>
   );
 }
