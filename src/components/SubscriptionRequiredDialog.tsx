@@ -5,12 +5,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Check, CreditCard, Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { addYears } from "date-fns";
+import { addMonths } from "date-fns";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { PlanCard } from "@/components/subscription/PlanCard";
 
 interface SubscriptionRequiredDialogProps {
   open: boolean;
@@ -18,51 +19,50 @@ interface SubscriptionRequiredDialogProps {
   onSuccess: () => void;
 }
 
-const benefits = [
-  "Неограниченный доступ ко всем анализам",
-  "Персонализированные рекомендации от AI",
-  "Визиты медсестры на дом",
-  "Приоритетная поддержка",
-  "Отслеживание биомаркеров в реальном времени",
-  "Детальные тренды и аналитика",
-  "Консультации специалистов",
-  "Индивидуальные планы здоровья"
-];
-
 export function SubscriptionRequiredDialog({
   open,
   onOpenChange,
   onSuccess
 }: SubscriptionRequiredDialogProps) {
   const [creating, setCreating] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const { toast } = useToast();
+  const { data: plans, isLoading } = useSubscriptionPlans();
 
-  const handleCreateSubscription = async () => {
+  const handleSelectPlan = async (planId: string, pricingId: string) => {
     setCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const pricing = plans
+        ?.flatMap(p => p.pricing)
+        .find(p => p.id === pricingId);
+
+      if (!pricing) throw new Error('Pricing not found');
+
       const startDate = new Date();
-      const endDate = addYears(startDate, 1);
+      const endDate = addMonths(startDate, pricing.duration_months);
 
       const { error } = await supabase
         .from('subscriptions')
         .insert({
           user_id: user.id,
-          plan_type: 'annual',
-          amount: 120000,
+          plan_id: planId,
+          pricing_id: pricingId,
+          plan_type: pricing.period,
+          amount: pricing.amount,
           status: 'active',
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
-          payment_method: 'test'
+          payment_method: 'card'
         });
 
       if (error) throw error;
 
       toast({
         title: "Подписка активирована!",
-        description: "Ваша годовая подписка успешно оформлена. Теперь вы можете записаться на анализы.",
+        description: "Теперь вы можете записаться на анализы и использовать все возможности платформы.",
       });
 
       onOpenChange(false);
@@ -79,11 +79,17 @@ export function SubscriptionRequiredDialog({
     }
   };
 
+  const periods = [
+    { value: 'quarterly', label: 'Квартал' },
+    { value: 'semiannual', label: 'Полгода' },
+    { value: 'annual', label: 'Год' }
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="subscription-description">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto" aria-describedby="subscription-description">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl">
+          <DialogTitle className="text-center text-2xl md:text-3xl">
             Для записи на анализы требуется подписка
           </DialogTitle>
         </DialogHeader>
@@ -101,41 +107,52 @@ export function SubscriptionRequiredDialog({
             </p>
           </div>
 
-          <Card className="border-primary/20 shadow-neon-primary">
-            <CardContent className="pt-6">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold mb-2">Годовая подписка</h3>
-                <div className="text-3xl font-bold text-primary">
-                  120 000 ₽
-                  <span className="text-lg text-muted-foreground font-normal"> / год</span>
-                </div>
-              </div>
+          {/* Period Selector */}
+          <div className="flex flex-col items-center gap-3">
+            <ToggleGroup 
+              type="single" 
+              value={selectedPeriod}
+              onValueChange={(value) => value && setSelectedPeriod(value)}
+              className="inline-flex rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+            >
+              {periods.map(period => (
+                <ToggleGroupItem 
+                  key={period.value}
+                  value={period.value} 
+                  className="rounded-md px-4 md:px-6 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                >
+                  {period.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
 
-              <div className="space-y-3 mb-6">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                      <Check className="h-3 w-3 text-primary" />
-                    </div>
-                    <span className="text-sm text-foreground">{benefit}</span>
-                  </div>
-                ))}
-              </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
 
-              <Button 
-                className="w-full h-12 text-base bg-gradient-primary shadow-neon-primary"
-                onClick={handleCreateSubscription}
-                disabled={creating}
-              >
-                <CreditCard className="mr-2 h-5 w-5" />
-                {creating ? "Оформляем..." : "Оформить подписку"}
-              </Button>
+          {/* Plans Grid */}
+          {!isLoading && plans && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              {plans.map((plan, index) => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  selectedPeriod={selectedPeriod}
+                  isRecommended={index === 1}
+                  onSelect={handleSelectPlan}
+                  isLoading={creating}
+                />
+              ))}
+            </div>
+          )}
 
-              <p className="text-center text-xs text-muted-foreground mt-4">
-                Безопасная оплата. Отмена в любое время.
-              </p>
-            </CardContent>
-          </Card>
+          <p className="text-center text-xs text-muted-foreground">
+            🔒 Безопасная оплата • Отмена в любое время
+          </p>
         </div>
       </DialogContent>
     </Dialog>

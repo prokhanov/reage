@@ -773,6 +773,95 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          badge_color: string | null
+          badge_text: string | null
+          created_at: string
+          description: string | null
+          display_name: string
+          display_order: number
+          features: Json | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          display_name: string
+          display_order?: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          badge_color?: string | null
+          badge_text?: string | null
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          display_order?: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_pricing: {
+        Row: {
+          amount: number
+          created_at: string
+          discount_percentage: number | null
+          duration_months: number
+          id: string
+          is_enabled: boolean
+          period: string
+          period_display: string
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          discount_percentage?: number | null
+          duration_months: number
+          id?: string
+          is_enabled?: boolean
+          period: string
+          period_display: string
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          discount_percentage?: number | null
+          duration_months?: number
+          id?: string
+          is_enabled?: boolean
+          period?: string
+          period_display?: string
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_pricing_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           amount: number
@@ -780,7 +869,9 @@ export type Database = {
           end_date: string | null
           id: string
           payment_method: string | null
+          plan_id: string | null
           plan_type: string
+          pricing_id: string | null
           start_date: string | null
           status: string
           updated_at: string
@@ -792,7 +883,9 @@ export type Database = {
           end_date?: string | null
           id?: string
           payment_method?: string | null
+          plan_id?: string | null
           plan_type?: string
+          pricing_id?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -804,13 +897,30 @@ export type Database = {
           end_date?: string | null
           id?: string
           payment_method?: string | null
+          plan_id?: string | null
           plan_type?: string
+          pricing_id?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_pricing_id_fkey"
+            columns: ["pricing_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_pricing"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       symptom_categories: {
         Row: {

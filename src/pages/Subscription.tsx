@@ -1,108 +1,59 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { SubscriptionSkeleton } from "@/components/skeletons/SubscriptionSkeleton";
-import { AuthBackground } from "@/components/AuthBackground";
-import { Check, Calendar, CreditCard, Sparkles } from "lucide-react";
-import { format, addYears } from "date-fns";
-import { ru } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
-
-interface Subscription {
-  id: string;
-  plan_type: string;
-  amount: number;
-  status: string;
-  start_date: string | null;
-  end_date: string | null;
-  payment_method: string | null;
-  created_at: string;
-}
-
-const benefits = [
-  "Неограниченный доступ ко всем анализам",
-  "Персонализированные рекомендации от AI",
-  "Визиты медсестры на дом",
-  "Приоритетная поддержка",
-  "Отслеживание биомаркеров в реальном времени",
-  "Детальные тренды и аналитика",
-  "Консультации специалистов",
-  "Индивидуальные планы здоровья"
-];
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { PlanCard } from "@/components/subscription/PlanCard";
+import { addMonths } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Subscription() {
-  const { getUserId } = useViewAsUser();
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const [creating, setCreating] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: plans, isLoading } = useSubscriptionPlans();
 
-  useEffect(() => {
-    loadSubscription();
-  }, [getUserId]);
-
-  const loadSubscription = async () => {
-    setLoading(true);
-    try {
-      const userId = await getUserId();
-      if (!userId) return;
-
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      // Only set subscription if status is 'active'
-      if (data && data.status === 'active') {
-        setSubscription(data);
-      } else {
-        setSubscription(null);
-      }
-    } catch (error) {
-      console.error('Error loading subscription:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateSubscription = async () => {
+  const handleSelectPlan = async (planId: string, pricingId: string) => {
     setCreating(true);
     try {
-      const userId = await getUserId();
-      if (!userId) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const pricing = plans
+        ?.flatMap(p => p.pricing)
+        .find(p => p.id === pricingId);
+
+      if (!pricing) throw new Error('Pricing not found');
 
       const startDate = new Date();
-      const endDate = addYears(startDate, 1);
+      const endDate = addMonths(startDate, pricing.duration_months);
 
       const { error } = await supabase
         .from('subscriptions')
         .insert({
-          user_id: userId,
-          plan_type: 'annual',
-          amount: 120000,
+          user_id: user.id,
+          plan_id: planId,
+          pricing_id: pricingId,
+          plan_type: pricing.period,
+          amount: pricing.amount,
           status: 'active',
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
-          payment_method: 'test'
+          payment_method: 'card'
         });
 
       if (error) throw error;
 
       toast({
         title: "Подписка активирована!",
-        description: "Ваша годовая подписка успешно оформлена.",
+        description: "Ваша подписка успешно оформлена. Добро пожаловать в ReAge!",
       });
 
-      // Reload subscription data
-      await loadSubscription();
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
     } catch (error) {
       console.error('Error creating subscription:', error);
       toast({
@@ -115,258 +66,92 @@ export default function Subscription() {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    if (!subscription) return;
-    
-    setCreating(true);
-    try {
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({ status: 'cancelled' })
-        .eq('id', subscription.id);
+  const periods = [
+    { value: 'monthly', label: 'Месяц' },
+    { value: 'quarterly', label: 'Квартал' },
+    { value: 'semiannual', label: 'Полгода' },
+    { value: 'annual', label: 'Год' }
+  ];
 
-      if (error) throw error;
-
-      toast({
-        title: "Подписка отменена",
-        description: "Ваша подписка успешно отменена.",
-      });
-
-      // Reload subscription data
-      await loadSubscription();
-    } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось отменить подписку. Попробуйте позже.",
-        variant: "destructive",
-      });
-    } finally {
-      setCreating(false);
-    }
+  const getMaxDiscount = () => {
+    if (!plans) return 0;
+    const allPricing = plans.flatMap(p => p.pricing);
+    const maxDiscount = Math.max(...allPricing.map(p => p.discount_percentage));
+    return maxDiscount;
   };
 
-  if (loading) {
-    return <SubscriptionSkeleton />;
-  }
-
-  // No subscription - show benefits and payment offer
-  if (!subscription) {
-    return (
-      <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-6 relative overflow-hidden">
-        <AuthBackground />
-        
-        <div className="container mx-auto max-w-4xl relative z-10 animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary mb-4">
-            <Sparkles className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-3">
-            Подписка ReAge
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Полный доступ к персональной медицине нового поколения
-          </p>
-        </div>
-
-        <Card className="border-primary/20 shadow-neon-primary mb-6">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-3xl">Годовая подписка</CardTitle>
-            <CardDescription className="text-xl mt-2">
-              <span className="text-4xl font-bold text-primary">120 000 ₽</span>
-              <span className="text-muted-foreground"> / год</span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 mb-8">
-              {benefits.map((benefit, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                    <Check className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-foreground">{benefit}</span>
-                </div>
-              ))}
-            </div>
-
-            <Button 
-              className="w-full h-14 text-lg bg-gradient-primary shadow-neon-primary"
-              size="lg"
-              onClick={handleCreateSubscription}
-              disabled={creating}
-            >
-              <CreditCard className="mr-2 h-5 w-5" />
-              {creating ? "Оформляем..." : "Оформить подписку"}
-            </Button>
-
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              Безопасная оплата. Отмена в любое время.
-            </p>
-          </CardContent>
-        </Card>
-
-        <div className="grid md:grid-cols-3 gap-4">
-          <Card className="border-border/50">
-            <CardContent className="pt-6 text-center">
-              <Calendar className="h-8 w-8 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Гибкость</h3>
-              <p className="text-sm text-muted-foreground">
-                Отмените или измените план в любое время
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50">
-            <CardContent className="pt-6 text-center">
-              <Sparkles className="h-8 w-8 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">AI-технологии</h3>
-              <p className="text-sm text-muted-foreground">
-                Передовые алгоритмы анализа здоровья
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50">
-            <CardContent className="pt-6 text-center">
-              <CreditCard className="h-8 w-8 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Прозрачность</h3>
-              <p className="text-sm text-muted-foreground">
-                Никаких скрытых платежей и комиссий
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Has subscription - show subscription info
-  const isActive = subscription.status === 'active';
-
   return (
-    <div className="container mx-auto p-6 max-w-4xl animate-fade-in">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Моя подписка</h1>
-        <p className="text-muted-foreground">
-          Управление вашей подпиской ReAge
-        </p>
-      </div>
-
-      <Card className="border-primary/20 shadow-neon-primary mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl flex items-center gap-3">
-                Годовая подписка
-                <Badge variant="default" className="text-sm">
-                  Активна
-                </Badge>
-              </CardTitle>
-              <CardDescription className="text-lg mt-1">
-                {subscription.amount.toLocaleString('ru-RU')} ₽ / год
-              </CardDescription>
-            </div>
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary">
-              <Sparkles className="h-8 w-8 text-white" />
-            </div>
+    <DashboardLayout>
+      <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
+        {/* Hero Section */}
+        <div className="text-center space-y-4 mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-4">
+            <Sparkles className="h-8 w-8 md:h-10 md:w-10 text-white" />
           </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            {subscription.start_date && (
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <Calendar className="h-4 w-4" />
-                  Дата начала
-                </div>
-                <p className="text-lg font-medium">
-                  {format(new Date(subscription.start_date), 'd MMMM yyyy', { locale: ru })}
-                </p>
-              </div>
-            )}
-
-            {subscription.end_date && (
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <Calendar className="h-4 w-4" />
-                  Дата окончания
-                </div>
-                <p className="text-lg font-medium">
-                  {format(new Date(subscription.end_date), 'd MMMM yyyy', { locale: ru })}
-                </p>
-              </div>
-            )}
-
-            {subscription.payment_method && (
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <CreditCard className="h-4 w-4" />
-                  Способ оплаты
-                </div>
-                <p className="text-lg font-medium capitalize">
-                  {subscription.payment_method}
-                </p>
-              </div>
-            )}
-
-            <div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Sparkles className="h-4 w-4" />
-                Тип плана
-              </div>
-              <p className="text-lg font-medium capitalize">
-                {subscription.plan_type === 'annual' ? 'Годовая' : subscription.plan_type}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="font-semibold">Ваши преимущества:</h3>
-            <div className="grid md:grid-cols-2 gap-3">
-              {benefits.slice(0, 6).map((benefit, index) => (
-                <div key={index} className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-muted-foreground">{benefit}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button 
-              variant="outline"
-              className="flex-1"
-              size="lg"
-            >
-              Управление подпиской
-            </Button>
-            <Button 
-              variant="destructive"
-              onClick={handleCancelSubscription}
-              disabled={creating}
-              size="lg"
-            >
-              {creating ? "Отменяем..." : "Отменить подписку"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle>Автоматическое продление</CardTitle>
-          <CardDescription>
-            Ваша подписка будет автоматически продлена в конце периода
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Вы можете отменить автоматическое продление в любое время. 
-            После отмены подписка останется активной до окончания оплаченного периода.
+          <h1 className="text-3xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Выберите свой тариф
+          </h1>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+            Персонализированная медицина нового поколения для вашего здоровья и долголетия
           </p>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+        {/* Period Selector */}
+        <div className="flex flex-col items-center gap-4 mb-12">
+          <ToggleGroup 
+            type="single" 
+            value={selectedPeriod}
+            onValueChange={(value) => value && setSelectedPeriod(value)}
+            className="inline-flex flex-wrap justify-center rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+          >
+            {periods.map(period => (
+              <ToggleGroupItem 
+                key={period.value}
+                value={period.value} 
+                className="rounded-md px-4 md:px-6 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground transition-all"
+              >
+                {period.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          
+          {getMaxDiscount() > 0 && (
+            <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300">
+              💰 Сэкономьте до {getMaxDiscount()}% при годовой оплате
+            </p>
+          )}
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+
+        {/* Plans Grid */}
+        {!isLoading && plans && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
+            {plans.map((plan, index) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                selectedPeriod={selectedPeriod}
+                isRecommended={index === 1}
+                onSelect={handleSelectPlan}
+                isLoading={creating}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Trust Indicators */}
+        <div className="text-center space-y-4 pt-8 border-t border-border/50">
+          <p className="text-sm text-muted-foreground">
+            🔒 Безопасная оплата • 🎯 Без скрытых платежей • ✨ Отмена в любое время
+          </p>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }
