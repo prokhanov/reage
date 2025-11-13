@@ -11,7 +11,7 @@ interface AvailabilitySlot {
   is_active: boolean;
 }
 
-export function usePatientSlots() {
+export function usePatientSlots(existingSlotId?: string | null) {
   // Load slots for current and next month
   const startDate = startOfMonth(new Date());
   const endDate = endOfMonth(addMonths(new Date(), 1));
@@ -96,7 +96,7 @@ export function usePatientSlots() {
         slotId: slot.id,
         available: slot.total_capacity - slot.booked_count,
         total: slot.total_capacity,
-        isAvailable: availableSlotIds.has(slot.id),
+        isAvailable: availableSlotIds.has(slot.id) || slot.id === existingSlotId,
       }));
   };
 

@@ -25,7 +25,8 @@ interface AnalysisBookingDialogProps {
 export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: AnalysisBookingDialogProps) {
   const queryClient = useQueryClient();
   const { getUserId } = useViewAsUser();
-  const { slots, isLoading: slotsLoading, hasAvailableSlots, getTimeSlotsForDate } = usePatientSlots();
+  const [existingSlotId, setExistingSlotId] = useState<string | null>(null);
+  const { slots, isLoading: slotsLoading, hasAvailableSlots, getTimeSlotsForDate } = usePatientSlots(existingSlotId);
   
   const [bookingDate, setBookingDate] = useState<Date>();
   const [bookingTime, setBookingTime] = useState("");
@@ -33,7 +34,6 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [bookingAddress, setBookingAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
-  const [existingSlotId, setExistingSlotId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Get available time slots for selected date
