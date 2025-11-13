@@ -90,14 +90,14 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
   const { data: interactions, isLoading } = useQuery({
     queryKey: ['patient-interactions', patientId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('patient_interactions')
         .select(`
           *,
-          creator:created_by(id, profiles(name, first_name)),
-          assignee:assigned_to(id, profiles(name, first_name)),
-          analysis:related_analysis_id(id, date),
-          prescription:related_prescription_id(id, prescription)
+          creator_profile:profiles!patient_interactions_created_by_profiles_fkey(name, first_name),
+          assignee_profile:profiles!patient_interactions_assigned_to_profiles_fkey(name, first_name),
+          analysis:analyses(id, date),
+          prescription:prescriptions(id, prescription)
         `)
         .eq('user_id', patientId)
         .order('interaction_date', { ascending: false });
@@ -257,8 +257,16 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
                               ))}
                             </div>
                           )}
-                          <div className="text-xs text-muted-foreground pt-2">
-                            Создал: {interaction.creator?.profiles?.first_name} {interaction.creator?.profiles?.name}
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
+                            {interaction.creator_profile && (
+                              <span>Создал: {interaction.creator_profile.first_name || interaction.creator_profile.name}</span>
+                            )}
+                            {interaction.assignee_profile && (
+                              <>
+                                <span>•</span>
+                                <span>Назначен: {interaction.assignee_profile.first_name || interaction.assignee_profile.name}</span>
+                              </>
+                            )}
                           </div>
                         </CardContent>
                       )}
