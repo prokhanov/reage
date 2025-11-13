@@ -91,9 +91,16 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const handleExitViewMode = () => {
     setViewAsUserId(null);
     setSimPath("/dashboard");
-    setIsOpen(false);
+    closeSidebarOnMobile();
     if (onExitView) {
       onExitView();
+    }
+  };
+
+  const closeSidebarOnMobile = () => {
+    // Закрываем сайдбар только на мобильных устройствах (ширина < 1024px)
+    if (window.innerWidth < 1024) {
+      setIsOpen(false);
     }
   };
 
@@ -190,7 +197,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 return (
                   <button
                     key={item.to}
-                    onClick={() => { setSimPath(item.to); setIsOpen(false); }}
+                    onClick={() => { setSimPath(item.to); closeSidebarOnMobile(); }}
                     className={baseClasses}
                     title={!isOpen ? item.label : undefined}
                   >
@@ -204,7 +211,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeSidebarOnMobile}
                   className={({ isActive }) =>
                     cn(
                       "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
@@ -234,7 +241,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     <div key={item.to} className="relative">
                       <NavLink
                         to={item.to}
-                        onClick={() => setIsOpen(false)}
+                        onClick={closeSidebarOnMobile}
                         className={({ isActive }) =>
                           cn(
                             "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
@@ -269,7 +276,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
           <div className="p-2 border-t border-border/30 space-y-1">
             {viewAsUserId ? (
               <button
-                onClick={() => { setSimPath("/profile"); setIsOpen(false); }}
+                onClick={() => { setSimPath("/profile"); closeSidebarOnMobile(); }}
                 className={cn(
                   "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                   "hover:bg-primary/10 hover:text-primary",
@@ -284,6 +291,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             ) : (
               <NavLink
                 to="/profile"
+                onClick={closeSidebarOnMobile}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
