@@ -28,10 +28,12 @@ import {
   Ruler,
   Weight,
   Edit,
+  Clock,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
+import { SubscriptionHistoryDialog } from "@/components/admin/SubscriptionHistoryDialog";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
@@ -42,6 +44,7 @@ interface PatientInfoDialogProps {
 export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInfoDialogProps) {
   const [isEditDateOpen, setIsEditDateOpen] = useState(false);
   const [isEditSubscriptionOpen, setIsEditSubscriptionOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const queryClient = useQueryClient();
   
   // Real-time subscription for analysis bookings and subscriptions updates
@@ -316,14 +319,24 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                       <CreditCard className="w-5 h-5" />
                       Подписка
                     </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsEditSubscriptionOpen(true)}
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Изменить
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsHistoryOpen(true)}
+                      >
+                        <Clock className="w-4 h-4 mr-2" />
+                        История
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditSubscriptionOpen(true)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Изменить
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

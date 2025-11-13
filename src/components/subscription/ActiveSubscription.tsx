@@ -46,12 +46,25 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
   const handleCancelSubscription = async () => {
     setCancelling(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { error } = await supabase
         .from('subscriptions')
         .update({ status: 'cancelled' })
         .eq('id', subscription.id);
 
       if (error) throw error;
+
+      // Log history
+      await supabase.from('subscription_history').insert({
+        subscription_id: subscription.id,
+        user_id: user?.id || '',
+        action: 'cancelled',
+        changed_by: user?.id,
+        old_data: { status: 'active' },
+        new_data: { status: 'cancelled' },
+        note: 'Отменено пользователем',
+      });
 
       toast({
         title: "Подписка отменена",

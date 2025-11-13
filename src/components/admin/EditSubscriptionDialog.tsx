@@ -78,7 +78,7 @@ export function EditSubscriptionDialog({
   }, [selectedPricingId, startDate, availablePricing]);
 
   const handleSave = async () => {
-    if (!selectedPlanId || !selectedPricingId || !startDate || !endDate) {
+    if (!selectedPlanId || !selectedPricingId || !status || !startDate) {
       toast({
         title: "Ошибка",
         description: "Заполните все обязательные поля",
@@ -89,47 +89,80 @@ export function EditSubscriptionDialog({
 
     setSaving(true);
     try {
+      const selectedPlan = plans?.find(p => p.id === selectedPlanId);
       const pricing = availablePricing.find(p => p.id === selectedPricingId);
+
+      if (!selectedPlan || !pricing) {
+        throw new Error("Plan or pricing not found");
+      }
+
+      const subscriptionData = {
+        user_id: patientId,
+        plan_id: selectedPlanId,
+        pricing_id: selectedPricingId,
+        plan_type: pricing.period,
+        status,
+        start_date: startDate,
+        end_date: endDate || null,
+        amount: amount ? parseFloat(amount) : pricing.amount,
+      };
+
+      const { data: { user } } = await supabase.auth.getUser();
       
       if (subscription?.id) {
         // Update existing subscription
         const { error } = await supabase
           .from("subscriptions")
-          .update({
-            plan_id: selectedPlanId,
-            pricing_id: selectedPricingId,
-            plan_type: pricing?.period || "annual",
-            status,
-            start_date: startDate,
-            end_date: endDate,
-            amount: parseFloat(amount),
-          })
+          .update(subscriptionData)
           .eq("id", subscription.id);
 
         if (error) throw error;
+
+        // Log history
+        await supabase.from('subscription_history').insert({
+          subscription_id: subscription.id,
+          user_id: patientId,
+          action: 'updated',
+          changed_by: user?.id,
+          old_data: {
+            plan_id: subscription.plan_id,
+            pricing_id: subscription.pricing_id,
+            status: subscription.status,
+            start_date: subscription.start_date,
+            end_date: subscription.end_date,
+            amount: subscription.amount,
+          },
+          new_data: subscriptionData,
+        });
+
+        toast({
+          title: "Успешно",
+          description: "Подписка обновлена",
+        });
       } else {
         // Create new subscription
-        const { error } = await supabase
+        const { data: newSubscription, error } = await supabase
           .from("subscriptions")
-          .insert({
-            user_id: patientId,
-            plan_id: selectedPlanId,
-            pricing_id: selectedPricingId,
-            plan_type: pricing?.period || "annual",
-            status,
-            start_date: startDate,
-            end_date: endDate,
-            amount: parseFloat(amount),
-            payment_method: "card",
-          });
+          .insert(subscriptionData)
+          .select()
+          .single();
 
         if (error) throw error;
-      }
 
-      toast({
-        title: "Успешно сохранено",
-        description: "Подписка пациента обновлена",
-      });
+        // Log history
+        await supabase.from('subscription_history').insert({
+          subscription_id: newSubscription.id,
+          user_id: patientId,
+          action: 'created',
+          changed_by: user?.id,
+          new_data: subscriptionData,
+        });
+
+        toast({
+          title: "Успешно",
+          description: "Подписка создана",
+        });
+      }
 
       queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] });
       queryClient.invalidateQueries({ queryKey: ["patients"] });

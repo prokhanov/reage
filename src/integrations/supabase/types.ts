@@ -809,6 +809,50 @@ export type Database = {
           },
         ]
       }
+      subscription_history: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          new_data: Json
+          note: string | null
+          old_data: Json | null
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_data: Json
+          note?: string | null
+          old_data?: Json | null
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_data?: Json
+          note?: string | null
+          old_data?: Json | null
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_history_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           badge_color: string | null
