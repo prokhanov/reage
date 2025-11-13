@@ -334,11 +334,15 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
                     variant={bookingTime === slot.time ? "default" : "outline"}
                     className={cn(
                       "h-12 transition-all relative",
-                      bookingTime === slot.time && "bg-gradient-primary shadow-neon-primary"
+                      bookingTime === slot.time && "bg-gradient-primary shadow-neon-primary",
+                      !slot.isAvailable && "opacity-50 cursor-not-allowed"
                     )}
+                    disabled={!slot.isAvailable}
                     onClick={() => {
-                      setBookingTime(slot.time);
-                      setSelectedSlotId(slot.slotId);
+                      if (slot.isAvailable) {
+                        setBookingTime(slot.time);
+                        setSelectedSlotId(slot.slotId);
+                      }
                     }}
                   >
                     <span>{slot.time}</span>

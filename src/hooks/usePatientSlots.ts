@@ -82,18 +82,21 @@ export function usePatientSlots() {
     availableSlots.map(slot => slot.date)
   );
 
-  // Get available time slots for a specific date
+  // Get all time slots for a specific date with availability status
   const getTimeSlotsForDate = (date: Date | undefined) => {
     if (!date) return [];
     
     const dateStr = format(date, "yyyy-MM-dd");
-    return availableSlots
+    const availableSlotIds = new Set(availableSlots.map(s => s.id));
+    
+    return slots
       .filter(slot => slot.date === dateStr)
       .map(slot => ({
         time: slot.time_slot,
         slotId: slot.id,
         available: slot.total_capacity - slot.booked_count,
         total: slot.total_capacity,
+        isAvailable: availableSlotIds.has(slot.id),
       }));
   };
 
