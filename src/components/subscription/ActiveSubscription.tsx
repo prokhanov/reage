@@ -1,12 +1,27 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Calendar, CreditCard, Package, ArrowRight } from "lucide-react";
+import { CheckCircle2, Calendar, CreditCard, Package, ArrowRight, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ActiveSubscriptionProps {
   subscription: {
+    id: string;
     status: string;
     start_date: string;
     end_date: string;
@@ -21,6 +36,39 @@ interface ActiveSubscriptionProps {
 }
 
 export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('id', subscription.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Подписка отменена",
+        description: "Ваша подписка успешно отменена. Доступ будет сохранен до окончания оплаченного периода.",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      setShowCancelDialog(false);
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось отменить подписку. Попробуйте позже.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancelling(false);
+    }
+  };
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "d MMMM yyyy", { locale: ru });
   };
@@ -129,9 +177,39 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
               Перейти к анализам
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            <Button 
+              variant="outline" 
+              className="sm:w-auto"
+              onClick={() => setShowCancelDialog(true)}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              Отменить подписку
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Отменить подписку?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите отменить подписку? Доступ к функциям будет сохранен до окончания оплаченного периода ({formatDate(subscription.end_date)}), после чего подписка прекратит действие.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cancelling}>Не отменять</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCancelSubscription}
+              disabled={cancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cancelling ? "Отмена..." : "Да, отменить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Trust Indicators */}
       <div className="text-center space-y-2 pt-8">
