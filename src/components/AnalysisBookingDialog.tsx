@@ -52,7 +52,8 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         .from('analysis_bookings')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .eq('status', 'scheduled')
+        .order('booking_date', { ascending: false })
         .limit(1);
 
       if (bookings && bookings.length > 0 && bookings[0].status === 'scheduled') {
