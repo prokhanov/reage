@@ -63,8 +63,8 @@ export function CreateInteractionDialog({
       outcome: '',
       duration_minutes: '',
       tags: '',
-      related_analysis_id: '',
-      related_prescription_id: ''
+      related_analysis_id: 'none',
+      related_prescription_id: 'none'
     }
   });
 
@@ -114,8 +114,8 @@ export function CreateInteractionDialog({
           interaction_date: interactionDate.toISOString(),
           scheduled_date: scheduledDate?.toISOString() || null,
           duration_minutes: values.duration_minutes ? parseInt(values.duration_minutes) : null,
-          related_analysis_id: values.related_analysis_id || null,
-          related_prescription_id: values.related_prescription_id || null,
+          related_analysis_id: values.related_analysis_id === 'none' ? null : values.related_analysis_id || null,
+          related_prescription_id: values.related_prescription_id === 'none' ? null : values.related_prescription_id || null,
           assigned_to: values.assigned_to || null,
           tags,
           is_important: isImportant
@@ -284,7 +284,7 @@ export function CreateInteractionDialog({
                   <SelectValue placeholder="Не выбрано" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не выбрано</SelectItem>
+                  <SelectItem value="none">Не выбрано</SelectItem>
                   {analyses?.map(analysis => (
                     <SelectItem key={analysis.id} value={analysis.id}>
                       Анализ от {format(new Date(analysis.date), "dd.MM.yyyy")}
@@ -304,7 +304,7 @@ export function CreateInteractionDialog({
                   <SelectValue placeholder="Не выбрано" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Не выбрано</SelectItem>
+                  <SelectItem value="none">Не выбрано</SelectItem>
                   {prescriptions?.map(prescription => (
                     <SelectItem key={prescription.id} value={prescription.id}>
                       {prescription.prescription.substring(0, 50)}...
