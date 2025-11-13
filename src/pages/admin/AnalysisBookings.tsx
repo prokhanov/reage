@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Search, Eye, MoreVertical, Trash2 } from "lucide-react";
+import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -35,6 +35,7 @@ import AnalysisBookingsSkeleton from "@/components/skeletons/AnalysisBookingsSke
 import AssignStaffDialog from "@/components/admin/AssignStaffDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
+import { SlotsManagement } from "@/components/admin/SlotsManagement";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type BookingStatus = "scheduled" | "collected" | "uploaded";
 
@@ -80,6 +82,7 @@ const statusColors: Record<BookingStatus, string> = {
 };
 
 export default function AnalysisBookings() {
+  const [activeTab, setActiveTab] = useState("bookings");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [staffFilter, setStaffFilter] = useState<string>("all");
@@ -291,10 +294,23 @@ export default function AnalysisBookings() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Записи на анализы</h1>
         <p className="text-muted-foreground mt-2">
-          Управление записями пациентов на забор анализов
+          Управление записями пациентов и доступными слотами
         </p>
       </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="bookings">
+            <Calendar className="h-4 w-4 mr-2" />
+            Записи пациентов
+          </TabsTrigger>
+          <TabsTrigger value="slots">
+            <CalendarClock className="h-4 w-4 mr-2" />
+            Управление слотами
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="bookings">
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row gap-4">
@@ -478,6 +494,12 @@ export default function AnalysisBookings() {
         )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="slots">
+          <SlotsManagement />
+        </TabsContent>
+      </Tabs>
 
       {selectedBookingForStaff && (
         <AssignStaffDialog
