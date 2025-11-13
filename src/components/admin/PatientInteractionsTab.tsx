@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { CreateInteractionDialog } from "./CreateInteractionDialog";
 import { EditInteractionDialog } from "./EditInteractionDialog";
@@ -87,7 +88,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: interactions, isLoading } = useQuery({
+  const { data: interactions, isLoading, isError, error } = useQuery({
     queryKey: ['patient-interactions', patientId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -102,9 +103,12 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
         .eq('user_id', patientId)
         .order('interaction_date', { ascending: false });
 
-      if (error) throw error;
-      return data;
-    }
+      if (error) {
+        console.error('Error loading interactions:', error);
+        throw error;
+      }
+      return data || [];
+    },
   });
 
   const deleteMutation = useMutation({
@@ -180,6 +184,14 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
       <ScrollArea className="h-[500px] pr-4">
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+        ) : isError ? (
+          <Alert variant="destructive" className="m-4">
+            <AlertDescription>
+              Ошибка загрузки взаимодействий: {error?.message || 'Неизвестная ошибка'}
+              <br />
+              <span className="text-sm">Попробуйте обновить страницу</span>
+            </AlertDescription>
+          </Alert>
         ) : !interactions?.length ? (
           <div className="text-center py-8 text-muted-foreground">
             Нет записей о взаимодействиях
