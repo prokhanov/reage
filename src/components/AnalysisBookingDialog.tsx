@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Clock, MapPin, Check, Users } from "lucide-react";
+import { Calendar, Clock, MapPin, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -341,13 +341,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
                       setSelectedSlotId(slot.slotId);
                     }}
                   >
-                    <div className="flex flex-col items-center">
-                      <span>{slot.time}</span>
-                      <span className="text-xs opacity-70 flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {slot.available}
-                      </span>
-                    </div>
+                    <span>{slot.time}</span>
                   </Button>
                 ))}
               </div>
