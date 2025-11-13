@@ -6,7 +6,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { PlanCard } from "@/components/subscription/PlanCard";
 import { addMonths } from "date-fns";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { ActiveSubscription } from "@/components/subscription/ActiveSubscription";
 
 export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
@@ -14,6 +15,34 @@ export default function Subscription() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: plans, isLoading } = useSubscriptionPlans();
+
+  // Check for active subscription
+  const { data: activeSubscription, isLoading: loadingSubscription } = useQuery({
+    queryKey: ['subscription'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          *,
+          subscription_plans (
+            display_name,
+            description,
+            features
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const handleSelectPlan = async (planId: string, pricingId: string) => {
     setCreating(true);
@@ -97,6 +126,20 @@ export default function Subscription() {
     const maxDiscount = Math.max(...allPricing.map(p => p.discount_percentage));
     return maxDiscount;
   };
+
+  // Show loading state
+  if (loadingSubscription || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show active subscription if exists
+  if (activeSubscription) {
+    return <ActiveSubscription subscription={activeSubscription} />;
+  }
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
