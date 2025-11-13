@@ -188,7 +188,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {(isPatient || viewAsUserId) && navItems.map((item) => {
               const activeInSim = viewAsUserId && (simPath === item.to || (item.to === "/analyses" && simPath.startsWith("/analyses")));
               const baseClasses = cn(
-                "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                 "hover:bg-primary/10 hover:text-primary",
                 activeInSim && "bg-primary/15 text-primary border border-primary/20",
                 isOpen ? "px-3" : "px-0 justify-center"
@@ -215,7 +215,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   onClick={closeSidebarOnMobile}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                      "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                       "hover:bg-primary/10 hover:text-primary",
                       isActive && "bg-primary/15 text-primary border border-primary/20",
                       isOpen ? "px-3" : "px-0 justify-center"
@@ -247,7 +247,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                         onClick={closeSidebarOnMobile}
                         className={({ isActive }) =>
                           cn(
-                            "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                            "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                             "hover:bg-primary/10 hover:text-primary",
                             isActive && "bg-primary/15 text-primary border border-primary/20",
                             isOpen ? "px-3" : "px-0 justify-center"
@@ -281,7 +281,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               <button
                 onClick={() => { setSimPath("/profile"); closeSidebarOnMobile(); }}
                 className={cn(
-                  "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                  "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                   "hover:bg-primary/10 hover:text-primary",
                   simPath === "/profile" && "bg-primary/15 text-primary border border-primary/20",
                   isOpen ? "px-3" : "px-0 justify-center"
@@ -297,7 +297,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 onClick={closeSidebarOnMobile}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
+                    "w-full flex items-center gap-3 py-3 rounded-lg transition-all duration-200 text-sm",
                     "hover:bg-primary/10 hover:text-primary",
                     isActive && "bg-primary/15 text-primary border border-primary/20",
                     isOpen ? "px-3" : "px-0 justify-center"
