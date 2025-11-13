@@ -199,7 +199,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary mb-4">
@@ -214,7 +214,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           </p>
         </DialogHeader>
 
-        <div className="space-y-6 pt-4">
+        <div className="space-y-6 pt-4 overflow-y-auto flex-1">
           {/* Date Selection */}
           <div className="space-y-3">
             <Label className="text-base font-medium flex items-center gap-2">
@@ -317,14 +317,15 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           </div>
           
           {existingBookingId && (
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handleCancelClick}
               disabled={isSubmitting}
-              className="w-full text-center text-sm text-destructive hover:text-destructive/80 transition-colors disabled:opacity-50"
+              className="w-full h-12 border-destructive text-destructive hover:bg-destructive/10"
             >
               Отменить запись
-            </button>
+            </Button>
           )}
         </div>
       </DialogContent>
