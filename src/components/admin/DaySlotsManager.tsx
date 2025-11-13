@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { Trash2, AlertTriangle, Plus } from "lucide-react";
 import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
+import { toast } from "sonner";
 
 interface Slot {
   id: string;
@@ -141,15 +143,16 @@ export function DaySlotsManager() {
               ) : (
                 <div className="space-y-3">
                   {daySlots.map((slot) => {
-                    const isFullyBooked = slot.booked_count >= slot.total_capacity;
+                    const isFullyBooked = slot.booked_count >= slot.total_capacity && slot.total_capacity > 0;
                     const isBlocked = blockedSet.has(slot.id);
                     const available = slot.total_capacity - slot.booked_count;
+                    const isClosed = slot.total_capacity === 0;
                     return (
                       <div
                         key={slot.id}
                         className={`p-3 border rounded-lg flex items-center gap-4 ${
                           isFullyBooked ? "bg-destructive/5 border-destructive/20" : ""
-                        }`}
+                        } ${isClosed ? "bg-muted/50" : ""}`}
                       >
                         <div className="w-20 font-medium">{slot.time_slot}</div>
 
@@ -161,14 +164,19 @@ export function DaySlotsManager() {
                         </div>
 
                         {isFullyBooked && (
-                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
-                            Полностью
-                          </span>
+                          <Badge variant="destructive" className="text-xs">
+                            Полностью забронировано
+                          </Badge>
                         )}
-                        {isBlocked && (
-                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-accent/20 text-foreground inline-flex items-center gap-1">
-                            <AlertTriangle className="h-3 w-3" /> 2ч блок
-                          </span>
+                        {isBlocked && !isFullyBooked && (
+                          <Badge variant="outline" className="text-xs border-orange-500 text-orange-500">
+                            <AlertTriangle className="h-3 w-3 mr-1" /> 2ч блок
+                          </Badge>
+                        )}
+                        {isClosed && (
+                          <Badge variant="secondary" className="text-xs">
+                            Закрыт
+                          </Badge>
                         )}
 
                         <Separator orientation="vertical" className="mx-2 h-8" />
@@ -183,6 +191,10 @@ export function DaySlotsManager() {
                             value={slot.total_capacity}
                             onChange={async (e) => {
                               const v = parseInt(e.target.value, 10) || 0;
+                              if (v < slot.booked_count) {
+                                toast.error("Нельзя установить мест меньше уже забронированных");
+                                return;
+                              }
                               await updateSlot.mutateAsync({ id: slot.id, total_capacity: v, is_active: slot.is_active });
                             }}
                           />
@@ -211,6 +223,17 @@ export function DaySlotsManager() {
                       </div>
                     );
                   })}
+                  
+                  {/* Daily Summary */}
+                  {daySlots.length > 0 && (
+                    <div className="mt-4 p-3 bg-muted/50 rounded border">
+                      <div className="text-sm font-semibold">
+                        Итого за день: выбрано {daySlots.reduce((sum, s) => sum + s.booked_count, 0)} из{' '}
+                        {daySlots.reduce((sum, s) => sum + s.total_capacity, 0)}{' '}
+                        ({daySlots.reduce((sum, s) => sum + (s.total_capacity - s.booked_count), 0)} свободно)
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
