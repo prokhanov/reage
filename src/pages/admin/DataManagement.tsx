@@ -585,7 +585,7 @@ export default function DataManagement() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      <div className="w-full px-4 lg:px-8 py-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Управление данными</h1>
           <p className="text-muted-foreground mt-1">

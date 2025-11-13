@@ -265,7 +265,7 @@ export default function HealthAssistant() {
   }
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 pt-6 h-screen flex flex-col">
+    <div className="w-full max-w-6xl mx-auto px-4 pt-6 h-screen flex flex-col">
       <div className="mb-4 flex-shrink-0">
         <div className="flex items-center justify-between gap-3 mb-2">
           <div className="flex items-center gap-3">
