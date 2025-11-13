@@ -29,11 +29,14 @@ import {
   Weight,
   Edit,
   Clock,
+  MessageCircle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
 import { SubscriptionHistoryDialog } from "@/components/admin/SubscriptionHistoryDialog";
+import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTab";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
