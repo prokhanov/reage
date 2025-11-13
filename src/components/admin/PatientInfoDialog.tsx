@@ -563,7 +563,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               <TabsContent value="interactions" className="mt-4">
                 <PatientInteractionsTab
                   patientId={patientId}
-                  patientName={`${patientData.profile.first_name || ''} ${patientData.profile.name || ''}`.trim()}
+                  patientName={patientData.profile.name || ''}
                 />
               </TabsContent>
             </Tabs>
@@ -605,7 +605,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               open={isHistoryOpen}
               onClose={() => setIsHistoryOpen(false)}
               userId={patientId}
-              patientName={`${patientData?.profile.first_name || ''} ${patientData?.profile.name || ''}`.trim()}
+              patientName={patientData?.profile.name || ""}
             />
           </>
         )}
