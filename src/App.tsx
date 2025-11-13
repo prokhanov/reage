@@ -33,6 +33,7 @@ import PatientProfile from "./pages/admin/PatientProfile";
 import UserManagement from "./pages/admin/UserManagement";
 import AnalysisBookings from "./pages/admin/AnalysisBookings";
 import MyAssignments from "./pages/admin/MyAssignments";
+import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import RegisterStaff from "./pages/RegisterStaff";
 import NotFound from "./pages/NotFound";
 
@@ -162,6 +163,14 @@ const App = () => (
                       <MyAssignments />
                     </AdminModuleRoute>
                   </StaffRoute>
+                } 
+              />
+              <Route 
+                path="/admin/subscription-plans" 
+                element={
+                  <SuperAdminRoute>
+                    <SubscriptionPlans />
+                  </SuperAdminRoute>
                 } 
               />
             </Route>

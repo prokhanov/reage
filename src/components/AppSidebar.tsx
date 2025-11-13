@@ -37,6 +37,7 @@ const adminNavItems = [
   { to: "/admin/analysis-bookings", label: "Записи на анализы", icon: Calendar },
   { to: "/admin/my-assignments", label: "Назначены мне", icon: ClipboardList },
   { to: "/admin/user-management", label: "Управление пользователями", icon: Briefcase },
+  { to: "/admin/subscription-plans", label: "Управление тарифами", icon: CreditCard, requiresSuperAdmin: true },
   { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings },
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical },
 ];
@@ -229,7 +230,9 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             })}
 
                 {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем админские разделы */}
-                {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems.map((item) => {
+                {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems
+                  .filter(item => !item.requiresSuperAdmin || isSuperAdmin)
+                  .map((item) => {
                   const isBookingsPage = item.to === "/admin/analysis-bookings";
                   const isMyAssignmentsPage = item.to === "/admin/my-assignments";
                   const hasScheduled = isBookingsPage && scheduledCount > 0;
