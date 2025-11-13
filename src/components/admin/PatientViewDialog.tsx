@@ -4,6 +4,7 @@ import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPa
 import { AppSidebar } from "@/components/AppSidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
@@ -54,8 +55,6 @@ interface PatientViewDialogProps {
 }
 
 export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
   if (!patientId) return null;
 
   return (
@@ -67,18 +66,20 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
         <DialogTitle className="sr-only">Просмотр пациента</DialogTitle>
         <DialogDescription className="sr-only">Режим просмотра пациентского интерфейса</DialogDescription>
         <ViewAsPatientProvider userId={patientId} onExitView={onClose}>
-          <div className="flex h-full w-full bg-gradient-dark">
-            <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-            
-            <ScrollArea className="flex-1 lg:ml-64 h-screen">
-              <div className="pt-16 lg:pt-0">
-                <AnalysisBookingBanner />
-              </div>
-              <main className="pb-10">
-                <SimulatedContent />
-              </main>
-            </ScrollArea>
-          </div>
+          <SidebarProvider defaultOpen={true}>
+            <div className="flex h-full w-full bg-gradient-dark">
+              <AppSidebar />
+              
+              <ScrollArea className="flex-1 h-screen">
+                <div className="pt-16 lg:pt-0">
+                  <AnalysisBookingBanner />
+                </div>
+                <main className="pb-10">
+                  <SimulatedContent />
+                </main>
+              </ScrollArea>
+            </div>
+          </SidebarProvider>
         </ViewAsPatientProvider>
       </DialogContent>
     </Dialog>
