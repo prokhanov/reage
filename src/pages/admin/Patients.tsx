@@ -29,14 +29,26 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PatientViewDialog } from "@/components/admin/PatientViewDialog";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
   const [selectedPatientForInfo, setSelectedPatientForInfo] = useState<string | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  const ITEMS_PER_PAGE = 20;
 
   // Setup real-time subscriptions
   useEffect(() => {
@@ -242,6 +254,17 @@ export default function Patients() {
       p.gender?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Pagination calculations
+  const totalPages = Math.ceil((filteredPatients?.length || 0) / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedPatients = filteredPatients?.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const calculateAge = (birthDate: string) => {
     if (!birthDate) return null;
     const today = new Date();
@@ -371,8 +394,8 @@ export default function Patients() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPatients && filteredPatients.length > 0 ? (
-                      filteredPatients.map((patient) => (
+                    {paginatedPatients && paginatedPatients.length > 0 ? (
+                      paginatedPatients.map((patient) => (
                         <TableRow
                           key={patient.id}
                           className="cursor-pointer hover:bg-muted/50"
@@ -478,6 +501,59 @@ export default function Patients() {
                   </TableBody>
                 </Table>
               </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center pt-4">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                        // Show first page, last page, current page, and pages around current
+                        const showPage = page === 1 || 
+                                        page === totalPages || 
+                                        Math.abs(page - currentPage) <= 1;
+                        
+                        if (!showPage) {
+                          // Show ellipsis before/after current range
+                          if (page === currentPage - 2 || page === currentPage + 2) {
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            );
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
           </CardContent>
         </Card>
 
