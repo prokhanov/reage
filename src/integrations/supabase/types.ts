@@ -113,6 +113,7 @@ export type Database = {
           created_at: string
           id: string
           next_analysis_date: string | null
+          slot_id: string | null
           status: string
           updated_at: string
           user_id: string
@@ -125,6 +126,7 @@ export type Database = {
           created_at?: string
           id?: string
           next_analysis_date?: string | null
+          slot_id?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -137,6 +139,7 @@ export type Database = {
           created_at?: string
           id?: string
           next_analysis_date?: string | null
+          slot_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -147,6 +150,13 @@ export type Database = {
             columns: ["assigned_staff_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analysis_bookings_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "availability_slots"
             referencedColumns: ["id"]
           },
         ]
@@ -192,6 +202,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      availability_slots: {
+        Row: {
+          booked_count: number
+          created_at: string
+          date: string
+          id: string
+          is_active: boolean
+          time_slot: string
+          total_capacity: number
+          updated_at: string
+        }
+        Insert: {
+          booked_count?: number
+          created_at?: string
+          date: string
+          id?: string
+          is_active?: boolean
+          time_slot: string
+          total_capacity?: number
+          updated_at?: string
+        }
+        Update: {
+          booked_count?: number
+          created_at?: string
+          date?: string
+          id?: string
+          is_active?: boolean
+          time_slot?: string
+          total_capacity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      availability_templates: {
+        Row: {
+          created_at: string
+          days_of_week: number[]
+          id: string
+          is_active: boolean
+          name: string
+          time_slots: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_of_week: number[]
+          id?: string
+          is_active?: boolean
+          name: string
+          time_slots: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_of_week?: number[]
+          id?: string
+          is_active?: boolean
+          name?: string
+          time_slots?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       biomarker_categories: {
         Row: {
@@ -536,6 +609,101 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      patient_interactions: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          interaction_date: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          is_important: boolean | null
+          metadata: Json | null
+          outcome: string | null
+          related_analysis_id: string | null
+          related_prescription_id: string | null
+          scheduled_date: string | null
+          status: Database["public"]["Enums"]["interaction_status"]
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          interaction_date?: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          is_important?: boolean | null
+          metadata?: Json | null
+          outcome?: string | null
+          related_analysis_id?: string | null
+          related_prescription_id?: string | null
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["interaction_status"]
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          interaction_date?: string
+          interaction_type?: Database["public"]["Enums"]["interaction_type"]
+          is_important?: boolean | null
+          metadata?: Json | null
+          outcome?: string | null
+          related_analysis_id?: string | null
+          related_prescription_id?: string | null
+          scheduled_date?: string | null
+          status?: Database["public"]["Enums"]["interaction_status"]
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_interactions_assigned_to_profiles_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_interactions_created_by_profiles_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_interactions_related_analysis_id_fkey"
+            columns: ["related_analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_interactions_related_prescription_id_fkey"
+            columns: ["related_prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plan_biomarkers: {
         Row: {
@@ -1174,6 +1342,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      book_analysis_slot: { Args: { p_slot_id: string }; Returns: Json }
+      cancel_booking: { Args: { p_slot_id: string }; Returns: Json }
       check_user_data_deleted: {
         Args: { check_user_id: string }
         Returns: {
@@ -1214,6 +1384,21 @@ export type Database = {
         | "my_assignments"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
+      interaction_status:
+        | "completed"
+        | "scheduled"
+        | "cancelled"
+        | "pending"
+        | "in_progress"
+      interaction_type:
+        | "online_consultation"
+        | "phone_call"
+        | "email"
+        | "in_person_meeting"
+        | "message"
+        | "note"
+        | "task"
+        | "appointment"
       prescription_status: "on_review" | "confirmed"
     }
     CompositeTypes: {
@@ -1352,6 +1537,23 @@ export const Constants = {
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],
+      interaction_status: [
+        "completed",
+        "scheduled",
+        "cancelled",
+        "pending",
+        "in_progress",
+      ],
+      interaction_type: [
+        "online_consultation",
+        "phone_call",
+        "email",
+        "in_person_meeting",
+        "message",
+        "note",
+        "task",
+        "appointment",
+      ],
       prescription_status: ["on_review", "confirmed"],
     },
   },
