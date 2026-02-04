@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { PainPointsSection } from "@/components/landing/PainPointsSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <HeroSection />
+      <PainPointsSection />
     </div>
   );
 };
