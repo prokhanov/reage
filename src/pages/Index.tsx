@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { ComparisonSection } from "@/components/landing/ComparisonSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ const Index = () => {
       <HeroSection />
       <PainPointsSection />
       <HowItWorksSection />
+      <ComparisonSection />
     </div>
   );
 };
