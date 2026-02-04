@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ParticleBackground } from "@/components/ParticleBackground";
-import { ArrowRight, Sparkles, Clock, Shield } from "lucide-react";
+import { ArrowRight, Sparkles, Activity, TrendingUp, Brain, Calendar } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export function HeroSection() {
@@ -32,22 +32,22 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">50+ биомаркеров • AI-анализ • Забор на дому</span>
+            <span className="text-sm font-medium text-primary">Биовозраст • Тренды здоровья • AI-рекомендации • Забор на дому</span>
           </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="block text-foreground">Ваши анализы скажут,</span>
+            <span className="block text-foreground">Ваше здоровье в цифрах,</span>
             <span className="block mt-2 bg-gradient-hero bg-clip-text text-transparent">
-              сколько вам на самом деле
+              динамике и рекомендациях
             </span>
           </h1>
 
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Один забор крови. Точный расчёт биологического возраста. 
+            50 биомаркеров → биологический возраст → тренды по системам → AI-рекомендации.
             <span className="hidden sm:inline"><br /></span>
-            Медсестра приедет к вам.
+            Медсестра приедет к вам. Результат за 5 дней.
           </p>
 
           {/* CTAs */}
@@ -57,7 +57,7 @@ export function HeroSection() {
               onClick={() => navigate("/register")} 
               className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
             >
-              Узнать свой возраст
+              Начать мониторинг
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button
@@ -71,21 +71,26 @@ export function HeroSection() {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <StatCard 
-              icon={<Sparkles className="w-5 h-5" />}
+              icon={<Activity className="w-5 h-5" />}
               value="50+"
               label="биомаркеров"
             />
             <StatCard 
-              icon={<Clock className="w-5 h-5" />}
-              value="15 мин"
-              label="забор крови"
+              icon={<TrendingUp className="w-5 h-5" />}
+              value="5 систем"
+              label="под контролем"
             />
             <StatCard 
-              icon={<Shield className="w-5 h-5" />}
-              value="5 дней"
-              label="до результата"
+              icon={<Brain className="w-5 h-5" />}
+              value="AI"
+              label="персональный анализ"
+            />
+            <StatCard 
+              icon={<Calendar className="w-5 h-5" />}
+              value="4× в год"
+              label="отслеживание трендов"
             />
           </div>
         </div>
