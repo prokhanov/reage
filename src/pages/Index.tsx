@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { BiomarkersDeepDiveSection } from "@/components/landing/BiomarkersDeepDiveSection";
+import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { PersonasSection } from "@/components/landing/PersonasSection";
@@ -66,6 +68,8 @@ const Index = () => {
       <HeroSection />
       <PainPointsSection />
       <HowItWorksSection />
+      <BiomarkersDeepDiveSection />
+      <AppFeaturesSection />
       <BenefitsSection />
       <ComparisonSection />
       <PersonasSection />
