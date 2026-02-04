@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
+import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -57,6 +58,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <HeroSection />
       <PainPointsSection />
+      <HowItWorksSection />
     </div>
   );
 };
