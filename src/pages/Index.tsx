@@ -5,6 +5,10 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { PricingSection } from "@/components/landing/PricingSection";
+import { FAQSection } from "@/components/landing/FAQSection";
+import { CTASection, Footer } from "@/components/landing/CTASection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -61,6 +65,11 @@ const Index = () => {
       <PainPointsSection />
       <HowItWorksSection />
       <ComparisonSection />
+      <TestimonialsSection />
+      <PricingSection />
+      <FAQSection />
+      <CTASection />
+      <Footer />
     </div>
   );
 };
