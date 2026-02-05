@@ -33,13 +33,19 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
             <p className="mb-4 text-foreground leading-relaxed">{children}</p>
           ),
           ul: ({ children }) => (
-            <ul className="list-disc list-inside mb-4 space-y-2 text-foreground">{children}</ul>
+            <ul className="list-disc list-outside pl-6 mb-4 space-y-2 text-foreground">
+              {children}
+            </ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal list-inside mb-4 space-y-2 text-foreground">{children}</ol>
+            <ol className="list-decimal list-outside pl-6 mb-4 space-y-2 text-foreground">
+              {children}
+            </ol>
           ),
           li: ({ children }) => (
-            <li className="ml-4 text-foreground">{children}</li>
+            <li className="text-foreground [&_p]:m-0 [&_p]:inline [&_p]:leading-relaxed">
+              {children}
+            </li>
           ),
           strong: ({ children }) => (
             <strong className="font-bold text-foreground">{children}</strong>
