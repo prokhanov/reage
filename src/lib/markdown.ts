@@ -20,6 +20,10 @@ export function cleanMarkdownArtifacts(text: string): string {
     // Also handle bullets after a closing parenthesis
     .replace(/(\))\s*[•*]\s+/g, "$1\n- ");
 
+  // Fix numbered lists that got split across lines:
+  // "1.\n**Header**" -> "1. **Header**"
+  preprocessed = preprocessed.replace(/(\d+\.)\s*\n\s*(\*\*)/g, '$1 $2');
+
   // Split into lines for processing
   const lines = preprocessed.split('\n');
   const cleanedLines: string[] = [];
@@ -44,15 +48,26 @@ export function cleanMarkdownArtifacts(text: string): string {
     }
     
     // Remove list markers before bold section headers (e.g., "*   **Цинк**" or "    *   **Добавки...**")
+    // BUT NOT if it's a numbered list like "1. **Header**"
     // This handles both top-level and nested list items with bold headers
     // Also ensure paragraph break by adding empty line before
-    if (/^\s*[*\-]\s+\*\*.+\*\*:?\s*$/.test(trimmed) || /^\s*[*\-]\s+\*\*[^*]+\*\*/.test(line)) {
+    const isBoldHeader = /^\s*[*\-]\s+\*\*.+\*\*:?\s*$/.test(trimmed) || /^\s*[*\-]\s+\*\*[^*]+\*\*/.test(line);
+    const isNumberedList = /^\s*\d+\.\s+/.test(trimmed);
+    
+    if (isBoldHeader && !isNumberedList) {
       // Add blank line before to ensure paragraph separation
       if (cleanedLines.length > 0 && cleanedLines[cleanedLines.length - 1].trim() !== '') {
         cleanedLines.push('');
       }
       // Remove leading whitespace and list marker, keep the bold text
       cleanedLines.push(line.replace(/^\s*[*\-]\s+/, ''));
+      continue;
+    }
+    
+    // Fix numbered lists that got split: "1.\n**Header**" -> "1. **Header**"
+    // Detect lone number marker and merge with next line
+    if (/^\d+\.\s*$/.test(trimmed)) {
+      // This is just "1." or "2." alone - skip it, we'll handle inline
       continue;
     }
     
