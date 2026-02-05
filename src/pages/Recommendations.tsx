@@ -9,6 +9,7 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -844,7 +845,7 @@ export default function Recommendations() {
                           <div id="section-patient-data" className="scroll-mt-6">
                             <div className="prose prose-sm max-w-none">
                               <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 shadow-sm">
-                                <MarkdownContent content={patientData.text} />
+                                <MarkdownContent content={cleanMarkdownArtifacts(patientData.text)} />
                               </div>
                             </div>
                           </div>
@@ -854,7 +855,7 @@ export default function Recommendations() {
                           <div id="section-summary" className="scroll-mt-6">
                             <div className="prose prose-sm max-w-none">
                               <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
-                                <MarkdownContent content={summary.text} />
+                                <MarkdownContent content={cleanMarkdownArtifacts(summary.text)} />
                               </div>
                             </div>
                           </div>
@@ -919,7 +920,7 @@ export default function Recommendations() {
                               </div>
                               {recs.map((rec) => (
                                 <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                  <MarkdownContent content={rec.text} />
+                                  <MarkdownContent content={cleanMarkdownArtifacts(rec.text)} />
                                 </div>
                               ))}
                             </div>
