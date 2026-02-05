@@ -223,6 +223,9 @@ export function EditReportDialog({
           .quill-editor .ql-editor {
             font-size: 15px;
             line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
           }
           .quill-editor .ql-editor p {
             margin-bottom: 1em;
