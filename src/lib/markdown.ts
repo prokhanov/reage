@@ -21,8 +21,8 @@ export function cleanMarkdownArtifacts(text: string): string {
     .replace(/(\))\s*[•*]\s+/g, "$1\n- ");
 
   // Fix numbered lists that got split across lines:
-  // "1.\n**Header**" -> "1. **Header**"
-  preprocessed = preprocessed.replace(/(\d+\.)\s*\n\s*(\*\*)/g, '$1 $2');
+  // "1.\nТекст" -> "1. Текст"
+  preprocessed = preprocessed.replace(/(^|\n)(\d+\.)\s*\n\s*([^\n]+)/g, "$1$2 $3");
 
   // Split into lines for processing
   const lines = preprocessed.split('\n');
@@ -64,12 +64,9 @@ export function cleanMarkdownArtifacts(text: string): string {
       continue;
     }
     
-    // Fix numbered lists that got split: "1.\n**Header**" -> "1. **Header**"
-    // Detect lone number marker and merge with next line
-    if (/^\d+\.\s*$/.test(trimmed)) {
-      // This is just "1." or "2." alone - skip it, we'll handle inline
-      continue;
-    }
+    // If a lone number marker survived, keep it as-is (we already tried joining above).
+    // Removing it can destroy legitimate lists coming from AI.
+    // (Visual layout of lists is handled in Markdown renderer.)
     
     cleanedLines.push(line);
   }
