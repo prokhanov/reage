@@ -1,23 +1,58 @@
-# План: Прямая привязка назначений к отчёту ✅ ВЫПОЛНЕНО
 
-## Что было сделано
+# План: Добавить отображение причины (reason) в назначениях отчёта
 
-### 1. Миграция БД
-```sql
-ALTER TABLE prescriptions 
-ADD COLUMN recommendation_id UUID REFERENCES recommendations(id) ON DELETE CASCADE;
+## Проблема
 
-CREATE INDEX idx_prescriptions_recommendation_id ON prescriptions(recommendation_id);
+В секции "Назначения" на странице отчёта (`Recommendations.tsx`) не отображается поле `reason` — причина назначения (какой биомаркер вызвал это назначение).
+
+Данные есть в БД:
+```
+reason: "Малоновый диальдегид: 2.8 мкмоль/л (норма: ?-2.5 мкмоль/л) — повышенный уровень маркера оксидативного стресса."
 ```
 
-### 2. Изменения в Edge Function `analyze-biomarkers`
+Но интерфейс `Prescription` и UI не включают это поле.
 
-- При сохранении recommendations теперь получаем их ids через `.select("id, type")`
-- Находим id рекомендации "Общее резюме" 
-- При создании prescriptions передаём `recommendation_id`
+## Решение
+
+### 1. Обновить интерфейс Prescription
+
+**Файл:** `src/pages/Recommendations.tsx` (строки 46-52)
+
+```typescript
+interface Prescription {
+  id: string;
+  prescription: string;
+  reason: string | null;  // ← добавить
+  effect: string;
+  control_date: string;
+  status: "on_review" | "confirmed";
+}
+```
+
+### 2. Добавить отображение reason в UI
+
+**Файл:** `src/pages/Recommendations.tsx` (после строки 893)
+
+Добавить блок отображения причины между заголовком назначения и эффектом:
+
+```tsx
+{prescription.reason && (
+  <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
+    <span className="text-primary mt-0.5">📊</span>
+    <p className="text-sm text-foreground leading-relaxed">
+      <span className="font-medium">Причина:</span> {prescription.reason}
+    </p>
+  </div>
+)}
+```
+
+### 3. Обновить демо-данные
+
+Если используется демо-режим, добавить `reason` в маппинг демо-данных (строки 217-223).
 
 ## Результат
 
-- Назначения привязаны к recommendation через `recommendation_id`
-- При удалении recommendation → назначения удаляются автоматически (CASCADE)
-- `analysis_id` сохранён для обратной совместимости
+После изменений:
+- В секции "Назначения" отчёта будет отображаться причина (какой биомаркер)
+- Стиль совпадает с отображением на странице `/prescriptions`
+- Пользователь видит полную информацию о назначении
