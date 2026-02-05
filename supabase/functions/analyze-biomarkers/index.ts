@@ -710,15 +710,21 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       });
     }
 
-    // Сохраняем все рекомендации
-    const { error: insertError } = await supabase
+    // Сохраняем все рекомендации и получаем их ids
+    const { data: insertedRecommendations, error: insertError } = await supabase
       .from("recommendations")
-      .insert(recommendationsToInsert);
+      .insert(recommendationsToInsert)
+      .select("id, type");
 
     if (insertError) {
       console.error("Error inserting recommendations:", insertError);
       throw insertError;
     }
+
+    // Находим id рекомендации "Общее резюме" для привязки назначений
+    const summaryRecommendation = insertedRecommendations?.find(r => r.type === "Общее резюме");
+    const prescriptionRecommendationId = summaryRecommendation?.id || null;
+    console.log(`Summary recommendation id for prescriptions: ${prescriptionRecommendationId}`);
 
     console.log("Recommendations saved successfully. Starting prescriptions generation...");
 
@@ -824,6 +830,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                   .insert({
                     user_id: analysis.user_id,
                     analysis_id: analysisId,
+                    recommendation_id: prescriptionRecommendationId,
                     prescription: prescription.prescription,
                     reason: prescription.reason,
                     effect: prescription.effect,
