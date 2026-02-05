@@ -1,79 +1,86 @@
 
-# План: Добавление промптов разделов отчёта в AI Settings
+# План: Исправление оставшихся артефактов в отчётах
 
-## Цель
-Добавить на страницу AI Settings раздел для редактирования промптов "Назначения" и "Общее резюме" — двух разделов финального отчёта.
+## Диагностика проблем
 
-## Текущее состояние
-- В базе данных уже существуют промпты:
-  - `prescriptions_system` / `prescriptions_user` — для раздела "Назначения"
-  - `summary_system` / `summary_user` — для раздела "Общее резюме"
-- На странице AISettings.tsx отображаются только промпты категорий биомаркеров
+На основе анализа оригинальных данных AI в базе найдены следующие артефакты:
+
+| Проблема | Пример в базе | Место отображения |
+|----------|---------------|-------------------|
+| Horizontal rule с пробелами | `* * *` (строки 321, 330) | Предпросмотр и редактор |
+| Точка перед секцией | Перед "Энергия", "Меры коррекции" | Редактор (ReactQuill) |
+| Trailing emphasis | `.*` в конце абзацев | Предпросмотр |
+| Экранированные номера | `**1\.`, `**2\.` | PDF экспорт |
 
 ## Изменения
 
-### Файл: `src/pages/admin/AISettings.tsx`
+### 1. Файл: `src/lib/markdown.ts`
 
-1. **Добавить новый раздел "Промпты разделов отчёта"** перед разделом категорий биомаркеров:
-   - Группа "Назначения" (иконка 💊):
-     - System Prompt (`prescriptions_system`)
-     - User Prompt (`prescriptions_user`)
-   - Группа "Общее резюме" (иконка 📋):
-     - System Prompt (`summary_system`)
-     - User Prompt (`summary_user`)
+**Улучшение функции `cleanMarkdownArtifacts`:**
 
-2. **Структура UI:**
-   - Использовать тот же Accordion-паттерн, что и для категорий
-   - Каждый раздел отчёта — отдельный AccordionItem
-   - Внутри — карточки System/User промптов с кнопкой редактирования
-
-3. **Логика:**
-   - Извлечь промпты из `settings` по ключам `prescriptions_*` и `summary_*`
-   - Включить их в поиск по `searchQuery`
-
-## Результат
-
-| Раздел | Содержимое |
-|--------|------------|
-| Промпты разделов отчёта | Назначения (2 промпта), Общее резюме (2 промпта) |
-| Промпты категорий биомаркеров | 5 категорий × 2 промпта |
-
-## Техническая реализация
+- Добавить обработку `* * *` с пробелами (сейчас regex ловит только `***` без пробелов)
+- Добавить очистку экранированных точек в номерах (`1\.` → `1.`)
+- Улучшить regex для trailing emphasis (`.*` → `.`)
 
 ```typescript
-// Конфигурация разделов отчёта
-const reportSections = [
-  { 
-    id: 'prescriptions', 
-    name: 'Назначения', 
-    emoji: '💊',
-    description: 'Промпты для генерации персонализированных назначений',
-    systemKey: 'prescriptions_system',
-    userKey: 'prescriptions_user'
-  },
-  { 
-    id: 'summary', 
-    name: 'Общее резюме', 
-    emoji: '📋',
-    description: 'Промпты для формирования итогового резюме отчёта',
-    systemKey: 'summary_system',
-    userKey: 'summary_user'
-  }
-];
+// Добавить в начало функции:
+// Normalize horizontal rules with spaces (* * *, - - -)
+if (/^[\*\-_](\s+[\*\-_]){2,}$/.test(trimmed)) {
+  cleanedLines.push('');
+  continue;
+}
 
-// Маппинг промптов
-const reportPrompts = reportSections.map(section => ({
-  section,
-  systemPrompt: settings?.find(s => s.key === section.systemKey),
-  userPrompt: settings?.find(s => s.key === section.userKey)
+// Добавить после обработки строк:
+// Fix escaped periods in numbered lists (1\. → 1.)
+result = result.replace(/(\d+)\\\.(?=\s)/g, '$1.');
+
+// Fix trailing emphasis before period (text*. → text.)
+result = result.replace(/\*\.(?=\s|$)/g, '.');
+```
+
+### 2. Файл: `src/components/admin/EditReportDialog.tsx`
+
+**Добавить очистку markdown перед конвертацией в HTML:**
+
+```typescript
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
+
+// В loadRecommendations():
+const sectionsWithHtml = (data || []).map(section => ({
+  ...section,
+  originalMarkdown: section.text,
+  text: marked.parse(cleanMarkdownArtifacts(section.text)) as string
 }));
 ```
 
-## Визуальный результат
+### 3. Файл: `src/pages/Recommendations.tsx`
 
-Страница AI Settings будет содержать два раздела:
-1. **Промпты разделов отчёта** — для назначений и резюме
-2. **Промпты категорий биомаркеров** — для 5 категорий (как сейчас)
+**Улучшить `parseMarkdownToPdfMake`:**
 
+Добавить очистку экранированных точек в номерах для PDF:
 
-да и старые захардкоженные промпты перенеси тоже сразу в настройки
+```typescript
+// В функции cleanMarkdownEscapes добавить:
+.replace(/(\d+)\\\.(?=\s)/g, '$1.')  // 1\. → 1.
+```
+
+## Причина проблемы "точка перед секцией"
+
+В базе данные AI генерирует структуру:
+
+```markdown
+*   **Меры коррекции**:
+*   **Образ жизни**: ...
+```
+
+Это некорректный markdown — после `*   ` идёт жирный заголовок вместо текста пункта. Когда `marked` парсит это, он создаёт `<li>` элемент, который отображает точку.
+
+Исправление: добавить в `cleanMarkdownArtifacts` логику для удаления начальных `*   ` перед жирным заголовком подраздела.
+
+## Результат
+
+После изменений:
+- `* * *` → удаляется (пустая строка)
+- `**1\.` → `**1.` (без экранирования)
+- `text.*` → `text.` (без trailing asterisk)
+- Точка перед заголовками секций → исчезнет
