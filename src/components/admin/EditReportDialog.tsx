@@ -341,16 +341,18 @@ export function EditReportDialog({
                     </div>
                   </div>
                 ) : (
-                  sections.filter(s => s.type === selectedSection).map((section) => (
-                    <ReactQuill
-                      key={section.id}
-                      theme="bubble"
-                      value={section.text}
-                      onChange={(text) => updateSection(section.id, text)}
-                      placeholder="Выделите текст для форматирования..."
-                      className="bg-background rounded-md border border-border p-6 flex-1 quill-editor"
-                    />
-                  ))
+                  <div className="flex-1 overflow-auto min-h-0">
+                    {sections.filter(s => s.type === selectedSection).map((section) => (
+                      <ReactQuill
+                        key={section.id}
+                        theme="bubble"
+                        value={section.text}
+                        onChange={(text) => updateSection(section.id, text)}
+                        placeholder="Выделите текст для форматирования..."
+                        className="bg-background rounded-md border border-border p-6 h-full quill-editor"
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
             )}
