@@ -30,8 +30,12 @@ export function cleanMarkdownArtifacts(text: string): string {
     }
     
     // Remove list markers before bold section headers (e.g., "*   **Цинк**" or "*   **Меры коррекции**:")
-    // Matches: * or - followed by spaces, then **text** with optional :
+    // Also ensure paragraph break by adding empty line before
     if (/^[*\-]\s+\*\*.+\*\*:?\s*$/.test(trimmed)) {
+      // Add blank line before to ensure paragraph separation
+      if (cleanedLines.length > 0 && cleanedLines[cleanedLines.length - 1].trim() !== '') {
+        cleanedLines.push('');
+      }
       cleanedLines.push(trimmed.replace(/^[*\-]\s+/, ''));
       continue;
     }
