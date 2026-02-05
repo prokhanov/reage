@@ -97,7 +97,9 @@ export function EditReportDialog({
       const sectionsWithHtml = (data || []).map(section => ({
         ...section,
         originalMarkdown: section.text,
-        text: marked.parse(cleanMarkdownArtifacts(section.text)) as string
+        text: marked.parse(
+          cleanMarkdownArtifacts(section.text).replace(/^(?:\t| {4,})(?=\*\*)/gm, '')
+        ) as string
       }));
       
       // Сортируем разделы в правильном порядке
