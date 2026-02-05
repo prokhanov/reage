@@ -28,6 +28,7 @@ interface EditPrescriptionDialogProps {
   prescription: {
     id: string;
     prescription: string;
+    reason: string | null;
     effect: string | null;
     control_date: string | null;
     status: PrescriptionStatus;
@@ -40,6 +41,7 @@ export function EditPrescriptionDialog({
   prescription,
 }: EditPrescriptionDialogProps) {
   const [prescriptionText, setPrescriptionText] = useState("");
+  const [reason, setReason] = useState("");
   const [effect, setEffect] = useState("");
   const [controlDate, setControlDate] = useState<Date | undefined>(undefined);
   const [status, setStatus] = useState<PrescriptionStatus>("on_review");
@@ -49,6 +51,7 @@ export function EditPrescriptionDialog({
   useEffect(() => {
     if (prescription) {
       setPrescriptionText(prescription.prescription);
+      setReason(prescription.reason || "");
       setEffect(prescription.effect || "");
       setControlDate(prescription.control_date ? new Date(prescription.control_date) : undefined);
       setStatus(prescription.status);
@@ -63,6 +66,7 @@ export function EditPrescriptionDialog({
         .from("prescriptions")
         .update({
           prescription: prescriptionText,
+          reason: reason || null,
           effect: effect || null,
           control_date: controlDate ? format(controlDate, "yyyy-MM-dd") : null,
           status,
@@ -92,6 +96,7 @@ export function EditPrescriptionDialog({
   const handleClose = () => {
     onOpenChange(false);
     setPrescriptionText("");
+    setReason("");
     setEffect("");
     setControlDate(undefined);
     setStatus("on_review");
@@ -126,6 +131,17 @@ export function EditPrescriptionDialog({
               placeholder="Введите текст назначения"
               className="min-h-[100px]"
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="reason">Причина (какой биомаркер)</Label>
+            <Textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Например: 25-OH Витамин D: 18 нг/мл (норма 30-50) — дефицит"
+              className="min-h-[60px]"
             />
           </div>
 

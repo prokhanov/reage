@@ -771,7 +771,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             messages: [
               { 
                 role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"prescription\": \"текст\", \"effect\": \"текст\", \"duration_months\": число}]}. Никакого дополнительного текста!"
+                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"prescription\": \"текст\", \"reason\": \"причина с биомаркером\", \"effect\": \"текст\", \"duration_months\": число}]}. Никакого дополнительного текста!"
               },
               { 
                 role: "user", 
@@ -804,6 +804,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               .filter((p: any) => p.prescription && p.prescription.trim())
               .map((p: any) => ({
                 prescription: p.prescription.trim().substring(0, 5000),
+                reason: (p.reason || "").trim().substring(0, 2000),
                 effect: (p.effect || "").trim().substring(0, 5000),
                 duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
               }));
@@ -824,6 +825,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                     user_id: analysis.user_id,
                     analysis_id: analysisId,
                     prescription: prescription.prescription,
+                    reason: prescription.reason,
                     effect: prescription.effect,
                     control_date: controlDate.toISOString().split('T')[0],
                     status: "on_review",

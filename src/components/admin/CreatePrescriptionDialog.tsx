@@ -40,6 +40,7 @@ export function CreatePrescriptionDialog({
   userId,
 }: CreatePrescriptionDialogProps) {
   const [prescription, setPrescription] = useState("");
+  const [reason, setReason] = useState("");
   const [effect, setEffect] = useState("");
   const [controlDate, setControlDate] = useState<Date>();
   const [status, setStatus] = useState<"on_review" | "confirmed">("on_review");
@@ -54,6 +55,7 @@ export function CreatePrescriptionDialog({
       const { error } = await supabase.from("prescriptions").insert({
         user_id: userId,
         prescription,
+        reason: reason.trim() || null,
         effect: effect.trim() || null,
         control_date: controlDate?.toISOString().split("T")[0] || null,
         status,
@@ -83,6 +85,7 @@ export function CreatePrescriptionDialog({
 
   const handleClose = () => {
     setPrescription("");
+    setReason("");
     setEffect("");
     setControlDate(undefined);
     setStatus("on_review");
@@ -122,6 +125,17 @@ export function CreatePrescriptionDialog({
                 onChange={(e) => setPrescription(e.target.value)}
                 rows={3}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reason">Причина (какой биомаркер)</Label>
+              <Textarea
+                id="reason"
+                placeholder="Например: 25-OH Витамин D: 18 нг/мл (норма 30-50) — дефицит"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={2}
               />
             </div>
 
