@@ -406,7 +406,7 @@ export default function Recommendations() {
         const headerText = line.replace('# ', '');
         content.push({ text: parseInlineMarkdown(headerText), style: 'h1', margin: [0, 10, 0, 5] });
       }
-      // Списки
+      // Маркированные списки
       else if (line.match(/^[-*]\s/)) {
         const listText = line.replace(/^[-*]\s/, '');
         const parsedText = parseInlineMarkdown(listText);
@@ -415,6 +415,20 @@ export default function Recommendations() {
           style: 'listItem', 
           margin: [20, 0, 0, 5] 
         });
+      }
+      // Нумерованные списки (1., 2., etc.)
+      else if (line.match(/^\d+\.\s/)) {
+        const match = line.match(/^(\d+)\.\s(.*)$/);
+        if (match) {
+          const number = match[1];
+          const listText = match[2];
+          const parsedText = parseInlineMarkdown(listText);
+          content.push({ 
+            text: [{ text: `${number}. ` }, ...parsedText],
+            style: 'listItem', 
+            margin: [20, 0, 0, 5] 
+          });
+        }
       }
       // Обычный текст
       else {
