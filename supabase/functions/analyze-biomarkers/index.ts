@@ -525,6 +525,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .replace(/{userContext}/g, userContext)
           .replace(/{category}/g, category)
           .replace(/{biomarkersText}/g, biomarkersText)
+          .replace(/{biomarkers}/g, biomarkersText)
           .replace(/{trends}/g, getCategoryTrends(category))
           .replace(/{recommendations}/g, getCategoryRecommendations(category));
 
