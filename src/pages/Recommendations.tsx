@@ -414,8 +414,8 @@ export default function Recommendations() {
         continue;
       }
       
-      // Строки-заголовки секций с маркером списка (* **Секция**:) — убираем только маркер списка
-      if (trimmedLine.match(/^[*\-]\s+\*\*[^*]+\*\*:?\s*$/)) {
+      // Строки-заголовки секций с маркером списка (* **Цинк** или * **Секция**:) — убираем только маркер списка
+      if (trimmedLine.match(/^[*\-]\s+\*\*.+\*\*:?\s*$/)) {
         const cleanedHeader = trimmedLine.replace(/^[*\-]\s+/, '');
         const parsedText = parseInlineMarkdown(cleanedHeader);
         content.push({ text: parsedText, style: 'h3', margin: [0, 8, 0, 4] });
