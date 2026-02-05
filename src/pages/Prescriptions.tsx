@@ -30,6 +30,7 @@ import {
 type Prescription = {
   id: string;
   prescription: string;
+  reason: string | null;
   effect: string | null;
   control_date: string | null;
   status: "on_review" | "confirmed";
@@ -142,10 +143,18 @@ export default function Prescriptions() {
           className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 space-y-4 hover:border-primary/30 transition-colors"
         >
           {/* Назначение */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="text-lg font-semibold leading-relaxed">
               {prescription.prescription}
             </h3>
+            {prescription.reason && (
+              <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10">
+                <span className="text-primary mt-0.5">📊</span>
+                <p className="text-sm text-foreground leading-relaxed">
+                  <span className="font-medium">Причина:</span> {prescription.reason}
+                </p>
+              </div>
+            )}
             {prescription.effect && (
               <p className="text-sm text-muted-foreground leading-relaxed">
                 <span className="font-medium text-foreground">Эффект:</span> {prescription.effect}

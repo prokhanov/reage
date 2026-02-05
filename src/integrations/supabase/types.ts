@@ -787,6 +787,7 @@ export type Database = {
           id: string
           is_archived: boolean
           prescription: string
+          reason: string | null
           status: Database["public"]["Enums"]["prescription_status"]
           updated_at: string
           user_id: string
@@ -801,6 +802,7 @@ export type Database = {
           id?: string
           is_archived?: boolean
           prescription: string
+          reason?: string | null
           status?: Database["public"]["Enums"]["prescription_status"]
           updated_at?: string
           user_id: string
@@ -815,6 +817,7 @@ export type Database = {
           id?: string
           is_archived?: boolean
           prescription?: string
+          reason?: string | null
           status?: Database["public"]["Enums"]["prescription_status"]
           updated_at?: string
           user_id?: string

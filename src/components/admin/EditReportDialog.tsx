@@ -24,8 +24,9 @@ interface Recommendation {
 interface Prescription {
   id: string;
   prescription: string;
-  effect: string;
-  control_date: string;
+  reason: string | null;
+  effect: string | null;
+  control_date: string | null;
   status: "on_review" | "confirmed";
 }
 
