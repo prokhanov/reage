@@ -400,8 +400,24 @@ export default function Recommendations() {
         continue;
       }
       
+      // Горизонтальные разделители (---, ***, ___) — пропускаем или добавляем отступ
+      if (trimmedLine.match(/^[-*_]{3,}$/)) {
+        content.push({ text: ' ', margin: [0, 10, 0, 10] });
+        continue;
+      }
+      
+      // Одиночные символы * или • (артефакты) — пропускаем
+      if (trimmedLine.match(/^[*•]+\s*[*•]*$/)) {
+        continue;
+      }
+      
+      // Заголовки уровня 4-6 (#### и глубже) — обрабатываем как h3
+      if (trimmedLine.match(/^#{4,}\s+/)) {
+        const headerText = cleanMarkdownEscapes(trimmedLine.replace(/^#{4,}\s+/, ''));
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 6, 0, 3] });
+      }
       // Заголовки (проверяем по trimmedLine для корректной работы с отступами)
-      if (trimmedLine.startsWith('### ')) {
+      else if (trimmedLine.startsWith('### ')) {
         const headerText = cleanMarkdownEscapes(trimmedLine.replace('### ', ''));
         content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 6, 0, 3] });
       } else if (trimmedLine.startsWith('## ')) {
@@ -412,7 +428,7 @@ export default function Recommendations() {
         content.push({ text: parseInlineMarkdown(headerText), style: 'h1', margin: [0, 10, 0, 5] });
       }
       // Маркированные списки (проверяем по trimmedLine для поддержки отступов типа "  * пункт")
-      else if (trimmedLine.match(/^[-*]\s+/)) {
+      else if (trimmedLine.match(/^[-*]\s+\S/)) {
         const listText = cleanMarkdownEscapes(trimmedLine.replace(/^[-*]\s+/, ''));
         const parsedText = parseInlineMarkdown(listText);
         content.push({ 
