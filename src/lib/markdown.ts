@@ -24,8 +24,33 @@ export function cleanMarkdownArtifacts(text: string): string {
   // "1.\nТекст" or "1.\n\n\nТекст" -> "1. Текст"
   preprocessed = preprocessed.replace(/(^|\n)(\d+\.)\s*\n+\s*(?=\S)/g, "$1$2 ");
   
+  // Fix missing space after number: "13.Все" -> "13. Все"
+  preprocessed = preprocessed.replace(/^(\s*\d+)\.(\S)/gm, '$1. $2');
+  
   // Remove naked numbered markers without content (lines like "1." "2." "3." alone)
   preprocessed = preprocessed.replace(/^\d+\.\s*$/gm, "");
+  
+  // Detect numbered list items that are actually subheadings (short phrases without punctuation)
+  // Pattern: "12. Системные взаимосвязи" -> "### Системные взаимосвязи"
+  // Criteria: 2-7 words, starts with capital letter, no sentence-ending punctuation
+  preprocessed = preprocessed.replace(
+    /^(\d+)\.\s+([А-ЯЁA-Z][^\n]{3,60})$/gm,
+    (match, num, text) => {
+      const trimmedText = text.trim();
+      const words = trimmedText.split(/\s+/);
+      // Subheading: 2-7 words, no punctuation at end (. ! ? : ; ,)
+      if (words.length >= 2 && words.length <= 7 && !/[.!?:;,]$/.test(trimmedText)) {
+        return `### ${trimmedText}`;
+      }
+      return match;
+    }
+  );
+  
+  // Remove number from the item immediately after a subheading (make it a paragraph)
+  preprocessed = preprocessed.replace(
+    /(### [^\n]+\n\n)(\d+)\.\s+/g,
+    '$1'
+  );
   
   // Convert standalone bold lines to headers (these are sub-headers, not list items)
   // Pattern: line that is ONLY bold text (with optional colon), surrounded by empty lines or list items
