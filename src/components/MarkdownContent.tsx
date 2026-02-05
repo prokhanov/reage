@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import { Children, isValidElement } from 'react';
 
 interface MarkdownContentProps {
   content: string;
@@ -37,11 +38,26 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
               {children}
             </ul>
           ),
-          ol: ({ children }) => (
-            <ol className="list-decimal list-outside pl-6 mb-4 space-y-2 text-foreground">
-              {children}
-            </ol>
-          ),
+          ol: ({ children }) => {
+            const items = Children.toArray(children);
+            return (
+              <ol className="list-none pl-0 mb-4 space-y-3 text-foreground">
+                {items.map((child, idx) => {
+                  const itemContent = isValidElement(child) ? (child.props as any).children : child;
+                  return (
+                    <li key={idx} className="flex gap-3 items-start">
+                      <span className="tabular-nums shrink-0 text-foreground select-text">
+                        {idx + 1}.
+                      </span>
+                      <div className="min-w-0 flex-1 [&_p]:m-0 [&_p]:inline [&_p]:leading-relaxed">
+                        {itemContent}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            );
+          },
           li: ({ children }) => (
             <li className="text-foreground [&_p]:m-0 [&_p]:inline [&_p]:leading-relaxed">
               {children}
