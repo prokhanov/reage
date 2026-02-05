@@ -1,45 +1,71 @@
 
-# План: Каскадное удаление назначений при удалении анализа
 
-## Текущая ситуация
+# План: Прямая привязка назначений к отчёту
 
-- Таблица `prescriptions` уже имеет поле `analysis_id`
-- Назначения привязаны к анализам (видно `analysis_id: 61a46d28-...`)
-- **Проблема:** Нет Foreign Key constraint → при удалении анализа назначения остаются "сиротами"
+## Текущая проблема
+
+```text
+Сейчас:
+prescriptions.analysis_id → analyses.id
+
+Но назначения генерируются из recommendations!
+```
 
 ## Решение
 
-Добавить FK constraint с `ON DELETE CASCADE`:
-
-```sql
-ALTER TABLE prescriptions 
-ADD CONSTRAINT prescriptions_analysis_id_fkey 
-FOREIGN KEY (analysis_id) 
-REFERENCES analyses(id) 
-ON DELETE CASCADE;
-```
-
-## Что произойдёт после изменения
+Добавить `recommendation_id` в `prescriptions` с FK CASCADE:
 
 ```text
-Удаление анализа:
-├─ DELETE FROM analyses WHERE id = '61a46d28-...'
-└─ Автоматически удаляются все связанные prescriptions
+prescriptions.recommendation_id → recommendations.id ON DELETE CASCADE
 ```
 
-## Технические детали
+## Миграция БД
 
-### Миграция базы данных
+```sql
+-- 1. Добавить колонку recommendation_id
+ALTER TABLE prescriptions 
+ADD COLUMN recommendation_id UUID REFERENCES recommendations(id) ON DELETE CASCADE;
 
-Одна SQL команда для добавления FK constraint с каскадным удалением.
+-- 2. Индекс для быстрого поиска
+CREATE INDEX idx_prescriptions_recommendation_id ON prescriptions(recommendation_id);
+```
 
-### Проверка целостности
+## Изменения в Edge Function
 
-Перед добавлением FK нужно убедиться, что нет "сирот" — назначений с несуществующими `analysis_id`. Если есть, очистить их или установить `analysis_id = NULL`.
+**supabase/functions/analyze-biomarkers/index.ts**:
+
+При сохранении назначений передавать `recommendation_id` вместо/вместе с `analysis_id`:
+
+```typescript
+// После сохранения recommendation получаем его id
+const { data: recData } = await supabaseClient
+  .from("recommendations")
+  .insert({ analysis_id, type, text })
+  .select("id")
+  .single();
+
+// Используем recommendation_id при создании prescriptions
+await supabaseClient.from("prescriptions").insert({
+  user_id: userId,
+  recommendation_id: recData.id,  // ← новая связь
+  analysis_id: analysisId,        // можно оставить для обратной совместимости
+  prescription: p.prescription,
+  ...
+});
+```
+
+## Логика работы
+
+```text
+Удаление отчёта (recommendation):
+├─ DELETE FROM recommendations WHERE id = 'xxx'
+└─ CASCADE → автоматически удаляются prescriptions с этим recommendation_id
+```
 
 ## Результат
 
-После выполнения:
-- При удалении анализа все его назначения удаляются автоматически
-- Сохраняется целостность данных между анализами и назначениями
-- Соответствует принципу cascade deletion из архитектуры проекта
+- Назначения напрямую привязаны к записи отчёта
+- При удалении recommendation → назначения удаляются автоматически (CASCADE)
+- Чистая архитектура без триггеров
+- `analysis_id` в prescriptions можно оставить для удобства запросов или убрать позже
+
