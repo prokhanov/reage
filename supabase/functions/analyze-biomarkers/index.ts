@@ -8,7 +8,64 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Hardcoded CATEGORY_EXPERTS removed - now loaded from database
+// Функция для парсинга назначений из Markdown отчёта категории
+function extractPrescriptionsFromReport(report: string): Array<{
+  prescription: string;
+  effect: string;
+  duration_months: number;
+}> {
+  const prescriptions: Array<{
+    prescription: string;
+    effect: string;
+    duration_months: number;
+  }> = [];
+  
+  // Ищем секцию "Назначения" в разных форматах
+  const prescriptionSectionMatch = report.match(/###?\s*📋?\s*Назначения[^#]*?(?=###|##|$)/is);
+  if (!prescriptionSectionMatch) {
+    return prescriptions;
+  }
+  
+  const prescriptionSection = prescriptionSectionMatch[0];
+  
+  // Парсим каждое назначение (паттерн **1. Название** или **Название**)
+  const itemRegex = /\*\*\d*\.?\s*([^*]+)\*\*[\s\S]*?(?=\*\*\d*\.?\s*[^*]+\*\*|$)/g;
+  const items = prescriptionSection.matchAll(itemRegex);
+  
+  for (const item of items) {
+    const text = item[0];
+    const name = item[1]?.trim();
+    
+    if (!name || name.length < 3) continue;
+    
+    // Извлекаем действие
+    const actionMatch = text.match(/(?:Действие|Что делать|Дозировка|Приём|Схема)[:\s]*(.+?)(?=\n|Эффект|Срок|$)/is);
+    const action = actionMatch?.[1]?.trim() || "";
+    
+    // Извлекаем эффект
+    const effectMatch = text.match(/Эффект[:\s]*(.+?)(?=\n|Срок|Контроль|$)/is);
+    const effect = effectMatch?.[1]?.trim() || "";
+    
+    // Извлекаем срок в месяцах
+    const durationMatch = text.match(/(\d+)\s*(?:мес|месяц)/i);
+    const duration = durationMatch ? parseInt(durationMatch[1]) : 3;
+    
+    // Формируем текст назначения
+    const prescriptionText = action 
+      ? `${name}: ${action}` 
+      : name;
+    
+    if (prescriptionText.length > 5) {
+      prescriptions.push({
+        prescription: prescriptionText.substring(0, 5000),
+        effect: effect.substring(0, 1000),
+        duration_months: Math.min(Math.max(duration, 1), 12)
+      });
+    }
+  }
+  
+  return prescriptions;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -409,6 +466,13 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
     // Параллельные запросы для каждой категории
     const categoryReports: Record<string, string> = {};
     const categoryStatuses: Record<string, any> = {};
+    // Собираем назначения из каждой категории
+    const allCategoryPrescriptions: Array<{
+      prescription: string;
+      effect: string;
+      duration_months: number;
+      category: string;
+    }> = [];
     let totalTokens = 0;
 
     const categoryPromises = Object.entries(categorizedBiomarkers).map(async ([category, biomarkers]) => {
@@ -588,6 +652,18 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         
         totalTokens += tokensUsed;
 
+        // Парсим назначения из отчёта категории
+        const categoryPrescriptions = extractPrescriptionsFromReport(categoryReport);
+        console.log(`Category ${category}: extracted ${categoryPrescriptions.length} prescriptions from report`);
+        
+        // Добавляем категорию к каждому назначению
+        categoryPrescriptions.forEach(p => {
+          allCategoryPrescriptions.push({
+            ...p,
+            category: category
+          });
+        });
+
         console.log(`Category ${category} completed: ${tokensUsed} tokens, finish_reason: ${finishReason}`);
 
       } catch (error: any) {
@@ -690,13 +766,44 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       });
     }
 
-    // 3. Детальные отчеты по категориям (9 штук)
+    // 3. Детальные отчеты по категориям
     for (const [category, report] of Object.entries(categoryReports)) {
       recommendationsToInsert.push({
         user_id: analysis.user_id,
         analysis_id: analysisId,
         type: category,
         text: report
+      });
+    }
+
+    // 4. Формируем сводку назначений для раздела "Назначения"
+    if (allCategoryPrescriptions.length > 0) {
+      // Группируем назначения по категориям
+      const prescriptionsByCategory = allCategoryPrescriptions.reduce((acc, p) => {
+        if (!acc[p.category]) acc[p.category] = [];
+        acc[p.category].push(p);
+        return acc;
+      }, {} as Record<string, typeof allCategoryPrescriptions>);
+
+      let prescriptionsSummaryText = "# 📋 Сводка назначений\n\n";
+      prescriptionsSummaryText += "Ниже представлен краткий список всех назначений из отчёта, сгруппированных по категориям.\n\n";
+      
+      for (const [category, prescriptions] of Object.entries(prescriptionsByCategory)) {
+        prescriptionsSummaryText += `## ${category}\n\n`;
+        prescriptions.forEach((p, idx) => {
+          prescriptionsSummaryText += `**${idx + 1}. ${p.prescription}**\n`;
+          if (p.effect) {
+            prescriptionsSummaryText += `- Эффект: ${p.effect}\n`;
+          }
+          prescriptionsSummaryText += `- Контроль: через ${p.duration_months} мес.\n\n`;
+        });
+      }
+
+      recommendationsToInsert.push({
+        user_id: analysis.user_id,
+        analysis_id: analysisId,
+        type: "Назначения",
+        text: prescriptionsSummaryText
       });
     }
 
@@ -710,144 +817,45 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       throw insertError;
     }
 
-    console.log("Recommendations saved successfully. Starting prescriptions generation...");
+    console.log("Recommendations saved successfully. Saving prescriptions from categories...");
 
-    // Генерация назначений
+    // Сохраняем назначения из категорий в таблицу prescriptions
     let prescriptionsCreated = 0;
     let prescriptionsStatus = "skipped";
 
-    try {
-      // Загружаем промпты для назначений
-      const prescriptionsSystemPrompt = promptSettings?.find(p => p.key === 'prescriptions_system');
-      const prescriptionsUserPrompt = promptSettings?.find(p => p.key === 'prescriptions_user');
-
-      if (!prescriptionsSystemPrompt || !prescriptionsUserPrompt) {
-        console.log("Prescriptions prompts not found, skipping prescriptions generation");
-      } else {
-        // Собираем аномальные биомаркеры
-        const abnormalBiomarkers = analysis.analysis_values
-          .filter((av: any) => {
-            const min = av.biomarkers.normal_min;
-            const max = av.biomarkers.normal_max;
-            return (min !== null && av.value < min) || (max !== null && av.value > max);
-          })
-          .map((av: any) => 
-            `${av.biomarkers.name}: ${av.value} ${av.biomarkers.unit} (норма: ${av.biomarkers.normal_min || "?"}-${av.biomarkers.normal_max || "?"} ${av.biomarkers.unit})`
-          )
-          .join('\n');
-
-        // Извлекаем ключевые находки из сгенерированных отчетов
-        const keyFindings = Object.entries(categoryReports)
-          .map(([category, report]) => `${category}: ${report.substring(0, 300)}...`)
-          .join('\n\n');
-
-        // Формируем финальный промпт
-        const finalPrescriptionsPrompt = prescriptionsUserPrompt.prompt_text
-          .replace('{userContext}', userContext)
-          .replace('{keyFindings}', keyFindings)
-          .replace('{abnormalBiomarkers}', abnormalBiomarkers || 'Все показатели в пределах нормы');
-
-        console.log("Starting prescriptions generation...");
-
-        // Вызываем AI для генерации назначений (без tool calling, только JSON)
-        const prescriptionsResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { 
-                role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"prescription\": \"текст\", \"effect\": \"текст\", \"duration_months\": число}]}. Никакого дополнительного текста!"
-              },
-              { 
-                role: "user", 
-                content: finalPrescriptionsPrompt 
-              }
-            ]
-          }),
-        });
-
-        if (prescriptionsResponse.ok) {
-          const prescriptionsData = await prescriptionsResponse.json();
-          const content = prescriptionsData.choices?.[0]?.message?.content || "";
-          
-          console.log(`Got model content snippet: ${content.substring(0, 200)}...`);
-
-          try {
-            // Извлекаем JSON из ответа
-            const jsonStart = content.indexOf('{');
-            const jsonEnd = content.lastIndexOf('}') + 1;
-            if (jsonStart === -1 || jsonEnd <= jsonStart) {
-              throw new Error("No JSON found in response");
-            }
-            
-            const jsonStr = content.substring(jsonStart, jsonEnd);
-            const parsed = JSON.parse(jsonStr);
-            let prescriptionsToCreate = parsed.prescriptions || [];
-            
-            // Валидация и очистка данных
-            prescriptionsToCreate = prescriptionsToCreate
-              .filter((p: any) => p.prescription && p.prescription.trim())
-              .map((p: any) => ({
-                prescription: p.prescription.trim().substring(0, 5000),
-                effect: (p.effect || "").trim().substring(0, 5000),
-                duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
-              }));
-            
-            console.log(`Parsed ${prescriptionsToCreate.length} valid prescriptions`);
-            
-            // Сохраняем назначения в БД
-            if (prescriptionsToCreate.length > 0) {
-              const analysisDate = new Date(analysis.date);
-              
-              for (const prescription of prescriptionsToCreate) {
-                const controlDate = new Date(analysisDate);
-                controlDate.setMonth(controlDate.getMonth() + prescription.duration_months);
-                
-                const { error: prescriptionError } = await supabase
-                  .from("prescriptions")
-                  .insert({
-                    user_id: analysis.user_id,
-                    analysis_id: analysisId,
-                    prescription: prescription.prescription,
-                    effect: prescription.effect,
-                    control_date: controlDate.toISOString().split('T')[0],
-                    status: "on_review",
-                    is_archived: false,
-                    created_by: null
-                  });
-                
-                if (prescriptionError) {
-                  console.error("Error creating prescription:", prescriptionError);
-                } else {
-                  prescriptionsCreated++;
-                }
-              }
-              
-              prescriptionsStatus = "success";
-              console.log(`Successfully created ${prescriptionsCreated} prescriptions in database`);
-            } else {
-              prescriptionsStatus = "success";
-              console.log("No prescriptions were needed based on analysis");
-            }
-          } catch (parseError) {
-            console.error("Failed to parse prescriptions JSON:", parseError, "Content:", content);
-            prescriptionsStatus = "error";
-          }
+    if (allCategoryPrescriptions.length > 0) {
+      const analysisDate = new Date(analysis.date);
+      
+      for (const prescription of allCategoryPrescriptions) {
+        const controlDate = new Date(analysisDate);
+        controlDate.setMonth(controlDate.getMonth() + prescription.duration_months);
+        
+        const { error: prescriptionError } = await supabase
+          .from("prescriptions")
+          .insert({
+            user_id: analysis.user_id,
+            analysis_id: analysisId,
+            prescription: prescription.prescription,
+            effect: prescription.effect,
+            control_date: controlDate.toISOString().split('T')[0],
+            status: "on_review",
+            is_archived: false,
+            created_by: null,
+            category: prescription.category
+          });
+        
+        if (prescriptionError) {
+          console.error("Error creating prescription:", prescriptionError);
         } else {
-          const errorText = await prescriptionsResponse.text();
-          console.error("Failed to generate prescriptions:", prescriptionsResponse.status, errorText);
-          prescriptionsStatus = "error";
+          prescriptionsCreated++;
         }
       }
-    } catch (error: any) {
-      console.error("Error generating prescriptions:", error);
-      prescriptionsStatus = "error";
-      // Не блокируем основной анализ при ошибке генерации назначений
+      
+      prescriptionsStatus = "success";
+      console.log(`Successfully created ${prescriptionsCreated} prescriptions from category reports`);
+    } else {
+      console.log("No prescriptions extracted from category reports");
+      prescriptionsStatus = "no_prescriptions";
     }
 
     // ============== AI-POWERED BIOLOGICAL AGE CALCULATION ==============
