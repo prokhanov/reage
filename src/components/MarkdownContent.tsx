@@ -6,6 +6,13 @@ interface MarkdownContentProps {
 }
 
 export function MarkdownContent({ content, className = '' }: MarkdownContentProps) {
+  // Guard against accidental indented lines (tabs / 4+ spaces) that Markdown
+  // interprets as code blocks. We only de-indent lines that start with bold
+  // "headers" like "**2. ...:**".
+  const safeContent = content
+    .replace(/\r\n/g, "\n")
+    .replace(/^(?:\t| {4,})(?=\*\*)/gm, "");
+
   return (
     <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
       <ReactMarkdown
@@ -57,7 +64,7 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
           ),
         }}
       >
-        {content}
+        {safeContent}
       </ReactMarkdown>
     </div>
   );
