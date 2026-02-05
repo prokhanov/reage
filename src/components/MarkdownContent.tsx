@@ -39,7 +39,25 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
             </ul>
           ),
           ol: ({ children }) => {
-            const items = Children.toArray(children);
+            const items = Children.toArray(children).filter((child) => {
+              // Skip empty elements
+              if (!isValidElement(child)) return false;
+              const content = (child.props as any).children;
+              // Check if there's actual content
+              if (!content) return false;
+              if (typeof content === 'string' && !content.trim()) return false;
+              // Check for array of children (e.g., nested elements)
+              if (Array.isArray(content)) {
+                const hasContent = content.some((c) => {
+                  if (typeof c === 'string') return c.trim().length > 0;
+                  if (isValidElement(c)) return true;
+                  return false;
+                });
+                if (!hasContent) return false;
+              }
+              return true;
+            });
+            
             return (
               <ol className="list-none pl-0 mb-4 space-y-3 text-foreground">
                 {items.map((child, idx) => {
