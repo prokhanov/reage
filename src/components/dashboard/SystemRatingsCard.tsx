@@ -21,7 +21,7 @@ interface CategoryTrend {
 }
 
 interface SystemRatingsCardProps {
-  categoryScores?: Record<string, number>;
+  categoryScores?: Record<string, number | { score: number; impact?: string; key_markers?: string[] } | null>;
   analyses?: any[];
 }
 
@@ -44,12 +44,26 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
 
       if (categoriesData && categoryScores) {
         const mappedCategories = categoriesData
-          .map(cat => ({
-            name: cat.name,
-            emoji: cat.emoji,
-            score: categoryScores[cat.name] || 0,
-            displayOrder: cat.display_order
-          }))
+          .map(cat => {
+            // categoryScores[cat.name] может быть числом или объектом {score, impact, key_markers}
+            const scoreValue = categoryScores[cat.name];
+            let score = 0;
+            if (scoreValue !== null && scoreValue !== undefined) {
+              if (typeof scoreValue === 'object' && 'score' in scoreValue) {
+                const objScore = (scoreValue as { score?: number }).score;
+                score = typeof objScore === 'number' ? objScore : 0;
+              } else if (typeof scoreValue === 'number') {
+                score = scoreValue;
+              }
+            }
+            
+            return {
+              name: cat.name,
+              emoji: cat.emoji,
+              score: typeof score === 'number' ? score : 0,
+              displayOrder: cat.display_order
+            };
+          })
           .sort((a, b) => a.displayOrder - b.displayOrder);
 
         setCategories(mappedCategories);
