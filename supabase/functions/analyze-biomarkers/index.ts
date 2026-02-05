@@ -606,48 +606,23 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         `=== ${cat} ===\n${report.substring(0, 2000)}...`
       ).join("\n\n");
 
-      const summaryUserPromptTemplate = prompts['summary_user'] || `
-КОНТЕКСТ ПАЦИЕНТА:
-{userContext}
-
-ДЕТАЛЬНЫЕ ОТЧЕТЫ ПО СИСТЕМАМ:
-{allReportsText}
-
-На основе этих детальных отчетов дай ОБЩЕЕ РЕЗЮМЕ (3000+ слов):
-
-1. ОБЩАЯ ОЦЕНКА ЗДОРОВЬЯ:
-   - Интегральная картина состояния здоровья
-   - Общий прогноз
-
-2. КЛЮЧЕВЫЕ ПРОБЛЕМЫ И ПРИОРИТЕТЫ:
-   - Топ-3 самых важных проблемы, требующих немедленного внимания
-   - Почему именно эти проблемы критичны
-   - Какие системы наиболее уязвимы
-
-3. СИСТЕМНЫЕ ВЗАИМОСВЯЗИ:
-   - Как проблемы в одной системе влияют на другие
-   - Каскадные эффекты
-   - Порочные круги, которые нужно разорвать
-
-4. ИНТЕГРИРОВАННЫЙ ПЛАН ДЕЙСТВИЙ:
-   - Приоритезация рекомендаций из всех отчетов
-   - Что делать СНАЧАЛА (первый месяц)
-   - Что добавлять ПОТОМ (2-6 месяцев)
-   - Стратегия на год
-
-5. МОТИВАЦИЯ И ПЕРСПЕКТИВЫ:
-   - Что уже хорошо - положительные моменты
-   - Реалистичные ожидания от выполнения рекомендаций
-   - Как будет улучшаться состояние при соблюдении рекомендаций
-   - Долгосрочная перспектива здоровья и долголетия
-      `.trim();
+      const summaryUserPromptTemplate = prompts['summary_user'];
+      
+      if (!summaryUserPromptTemplate) {
+        console.error("Summary user prompt not found in database");
+        throw new Error("Промпт для общего резюме не найден в настройках");
+      }
 
       const summaryPrompt = summaryUserPromptTemplate
         .replace(/{userContext}/g, userContext)
         .replace(/{allReportsText}/g, allReportsText);
 
-      const summarySystemPrompt = prompts['summary_system'] || 
-        "Ты главный врач-куратор долголетия. Твоя задача - дать общую оценку здоровья пациента на основе детальных отчетов по всем системам организма.";
+      const summarySystemPrompt = prompts['summary_system'];
+      
+      if (!summarySystemPrompt) {
+        console.error("Summary system prompt not found in database");
+        throw new Error("Системный промпт для общего резюме не найден в настройках");
+      }
 
       const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",

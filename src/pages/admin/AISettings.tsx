@@ -25,6 +25,26 @@ interface PromptFormData {
 
 type BiomarkerCategory = Tables<"biomarker_categories">;
 
+// Конфигурация разделов отчёта
+const reportSections = [
+  { 
+    id: 'prescriptions', 
+    name: 'Назначения', 
+    emoji: '💊',
+    description: 'Промпты для генерации персонализированных назначений',
+    systemKey: 'prescriptions_system',
+    userKey: 'prescriptions_user'
+  },
+  { 
+    id: 'summary', 
+    name: 'Общее резюме', 
+    emoji: '📋',
+    description: 'Промпты для формирования итогового резюме отчёта',
+    systemKey: 'summary_system',
+    userKey: 'summary_user'
+  }
+];
+
 export default function AISettings() {
   const { toast } = useToast();
   const { data: settings, isLoading } = useAISettings();
@@ -64,6 +84,22 @@ export default function AISettings() {
       userPrompt
     };
   });
+
+  // Маппинг промптов для разделов отчёта
+  const reportPrompts = reportSections.map(section => ({
+    section,
+    systemPrompt: settings?.find(s => s.key === section.systemKey),
+    userPrompt: settings?.find(s => s.key === section.userKey)
+  }));
+
+  // Фильтруем разделы отчёта по поисковому запросу
+  const filteredReportPrompts = searchQuery 
+    ? reportPrompts.filter(rp => 
+        rp.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rp.systemPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rp.userPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : reportPrompts;
 
   // Фильтруем только если есть поисковый запрос
   const filteredCategoryPrompts = searchQuery 
@@ -136,7 +172,137 @@ export default function AISettings() {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
+        {/* Раздел: Промпты разделов отчёта */}
+        {filteredReportPrompts.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Промпты разделов отчёта</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Промпты для генерации ключевых разделов финального отчёта: назначения и общее резюме
+            </p>
+            <Accordion type="multiple" className="space-y-4">
+              {filteredReportPrompts.map((rp) => (
+                <AccordionItem 
+                  key={rp.section.id} 
+                  value={rp.section.id}
+                  className="border rounded-lg"
+                >
+                  <AccordionTrigger className="px-6 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{rp.section.emoji}</span>
+                      <div className="text-left">
+                        <div className="font-semibold">{rp.section.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {rp.section.description}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6">
+                    <div className="space-y-4 mt-4">
+                      {/* System Prompt */}
+                      {rp.systemPrompt && (
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                System Prompt
+                              </Badge>
+                              <Badge variant="outline" className="text-xs font-mono">
+                                {rp.systemPrompt.key}
+                              </Badge>
+                            </div>
+                            <CardTitle className="text-base">
+                              {rp.systemPrompt.description || "System промпт"}
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                              Определяет роль AI для этого раздела
+                              {rp.systemPrompt.updated_at && (
+                                <>
+                                  <br />
+                                  Обновлено: {format(new Date(rp.systemPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                                </>
+                              )}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                {rp.systemPrompt.prompt_text}
+                              </p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleEdit(rp.systemPrompt)}
+                            >
+                              <Edit className="w-3 h-3 mr-2" />
+                              Редактировать
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* User Prompt */}
+                      {rp.userPrompt && (
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                User Prompt
+                              </Badge>
+                              <Badge variant="outline" className="text-xs font-mono">
+                                {rp.userPrompt.key}
+                              </Badge>
+                            </div>
+                            <CardTitle className="text-base">
+                              {rp.userPrompt.description || "User промпт"}
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                              Шаблон запроса для генерации раздела
+                              {rp.userPrompt.updated_at && (
+                                <>
+                                  <br />
+                                  Обновлено: {format(new Date(rp.userPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                                </>
+                              )}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                {rp.userPrompt.prompt_text}
+                              </p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleEdit(rp.userPrompt)}
+                            >
+                              <Edit className="w-3 h-3 mr-2" />
+                              Редактировать
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Предупреждение если промпты не найдены */}
+                      {!rp.systemPrompt && !rp.userPrompt && (
+                        <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                          Промпты для этого раздела не настроены в базе данных
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
+
+        {/* Раздел: Промпты категорий биомаркеров */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Промпты категорий биомаркеров</h2>
           <p className="text-sm text-muted-foreground mb-4">
