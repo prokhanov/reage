@@ -452,17 +452,34 @@ export default function Recommendations() {
         });
       }
       // Нумерованные списки (1., 2., etc.) — включая экранированные точки (1\.)
+      // Сначала проверяем, не является ли это подзаголовком
       else if (trimmedLine.match(/^\d+\\?\.\s+/)) {
         const match = trimmedLine.match(/^(\d+)\\?\.\s+(.*)$/);
         if (match) {
           const number = match[1];
           const listText = cleanMarkdownEscapes(match[2]);
-          const parsedText = parseInlineMarkdown(listText);
-          content.push({ 
-            text: [{ text: `${number}. ` }, ...parsedText],
-            style: 'listItem', 
-            margin: [20, 0, 0, 5] 
-          });
+          const words = listText.trim().split(/\s+/);
+          
+          // Детектируем подзаголовок: 2-7 слов, начинается с заглавной, нет пунктуации в конце
+          const isSubheading = 
+            words.length >= 2 && 
+            words.length <= 7 && 
+            /^[А-ЯЁA-Z]/.test(listText.trim()) &&
+            !/[.!?:;,]$/.test(listText.trim());
+          
+          if (isSubheading) {
+            // Рендерим как заголовок без номера
+            const parsedText = parseInlineMarkdown(listText);
+            content.push({ text: parsedText, style: 'h3', margin: [0, 10, 0, 5] });
+          } else {
+            // Обычный пункт списка
+            const parsedText = parseInlineMarkdown(listText);
+            content.push({ 
+              text: [{ text: `${number}. ` }, ...parsedText],
+              style: 'listItem', 
+              margin: [20, 0, 0, 5] 
+            });
+          }
         }
       }
       // Обычный текст
