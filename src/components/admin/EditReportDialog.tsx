@@ -12,6 +12,7 @@ import { marked } from 'marked';
 import TurndownService from 'turndown';
 import { format } from "date-fns";
 import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 
 interface Recommendation {
   id: string;
@@ -92,11 +93,11 @@ export function EditReportDialog({
 
       if (error) throw error;
       
-      // Конвертируем markdown в HTML для редактора
+      // Конвертируем markdown в HTML для редактора (очищаем артефакты перед парсингом)
       const sectionsWithHtml = (data || []).map(section => ({
         ...section,
         originalMarkdown: section.text,
-        text: marked.parse(section.text) as string
+        text: marked.parse(cleanMarkdownArtifacts(section.text)) as string
       }));
       
       // Сортируем разделы в правильном порядке

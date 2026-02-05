@@ -13,8 +13,8 @@ export function cleanMarkdownArtifacts(text: string): string {
   for (const line of lines) {
     const trimmed = line.trim();
     
-    // Skip horizontal rules (---, ***, ___)
-    if (/^[-*_]{3,}$/.test(trimmed)) {
+    // Skip horizontal rules (---, ***, ___) including with spaces (* * *, - - -)
+    if (/^[-*_]{3,}$/.test(trimmed) || /^[\*\-_](\s+[\*\-_]){2,}$/.test(trimmed)) {
       cleanedLines.push('');
       continue;
     }
@@ -29,11 +29,20 @@ export function cleanMarkdownArtifacts(text: string): string {
       continue;
     }
     
+    // Remove list markers before bold section headers (e.g., "*   **Меры коррекции**:" → "**Меры коррекции**:")
+    if (/^[*\-]\s+\*\*[^*]+\*\*:?\s*$/.test(trimmed)) {
+      cleanedLines.push(trimmed.replace(/^[*\-\s]+/, ''));
+      continue;
+    }
+    
     cleanedLines.push(line);
   }
   
   // Clean up trailing/leading asterisks that aren't proper emphasis
   let result = cleanedLines.join('\n');
+  
+  // Fix escaped periods in numbered lists (1\. → 1.)
+  result = result.replace(/(\d+)\\\.(?=\s)/g, '$1.');
   
   // Remove trailing asterisk followed by period (e.g., "text.*.")
   result = result.replace(/\*\.(?=\s|$)/g, '.');

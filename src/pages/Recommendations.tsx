@@ -385,7 +385,9 @@ export default function Recommendations() {
 
   // Утилита для очистки markdown-escape артефактов
   const cleanMarkdownEscapes = (text: string): string => {
-    return text.replace(/\\\./g, '.');
+    return text
+      .replace(/(\d+)\\\.(?=\s)/g, '$1.')  // 1\. → 1. (escaped numbered lists)
+      .replace(/\\\./g, '.');  // \. → . (other escaped periods)
   };
 
   const parseMarkdownToPdfMake = (markdown: string): any[] => {
@@ -401,14 +403,22 @@ export default function Recommendations() {
         continue;
       }
       
-      // Горизонтальные разделители (---, ***, ___) — пропускаем или добавляем отступ
-      if (trimmedLine.match(/^[-*_]{3,}$/)) {
+      // Горизонтальные разделители (---, ***, ___ и с пробелами * * *) — пропускаем или добавляем отступ
+      if (trimmedLine.match(/^[-*_]{3,}$/) || trimmedLine.match(/^[\*\-_](\s+[\*\-_]){2,}$/)) {
         content.push({ text: ' ', margin: [0, 10, 0, 10] });
         continue;
       }
       
       // Одиночные символы * или • (артефакты) — пропускаем
       if (trimmedLine.match(/^[*•]+\s*[*•]*$/)) {
+        continue;
+      }
+      
+      // Строки-заголовки секций с маркером списка (* **Секция**:) — убираем маркер
+      if (trimmedLine.match(/^[*\-]\s+\*\*[^*]+\*\*:?\s*$/)) {
+        const cleanedHeader = trimmedLine.replace(/^[*\-\s]+/, '');
+        const parsedText = parseInlineMarkdown(cleanedHeader);
+        content.push({ text: parsedText, style: 'h3', margin: [0, 8, 0, 4] });
         continue;
       }
       
