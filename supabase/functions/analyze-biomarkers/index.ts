@@ -88,6 +88,16 @@ serve(async (req) => {
       throw new Error("Анализ не найден");
     }
 
+    // Удаляем старые рекомендации перед генерацией новых (защита от дубликатов)
+    const { error: deleteRecsError } = await supabase
+      .from("recommendations")
+      .delete()
+      .eq("analysis_id", analysisId);
+    
+    if (deleteRecsError) {
+      console.warn("Failed to delete old recommendations:", deleteRecsError.message);
+    }
+
     // Получаем профиль пользователя
     const { data: profile } = await supabase
       .from("profiles")
