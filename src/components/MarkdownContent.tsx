@@ -14,6 +14,31 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
     .replace(/\r\n/g, "\n")
     .replace(/^(?:\t| {4,})(?=\*\*)/gm, "");
 
+  const getTextContent = (node: any): string => {
+    if (node == null) return "";
+    if (typeof node === "string" || typeof node === "number") return String(node);
+    if (Array.isArray(node)) return node.map(getTextContent).join("");
+    if (isValidElement(node)) return getTextContent((node.props as any)?.children);
+    return "";
+  };
+
+  const isLikelySubheading = (text: string): boolean => {
+    const t = text.replace(/\s+/g, " ").trim();
+    if (!t) return false;
+    if (t.length < 4 || t.length > 80) return false;
+    // Headings usually don't end with sentence punctuation.
+    if (/[.!?…]$/.test(t)) return false;
+    // Avoid treating sentences / enumerations as headings.
+    if (/[,:;]/.test(t)) return false;
+    if (/[()\[\]{}]/.test(t)) return false;
+    if (/\d/.test(t)) return false;
+
+    const words = t.split(/\s+/).filter(Boolean);
+    if (words.length < 2 || words.length > 7) return false;
+
+    return true;
+  };
+
   return (
     <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
       <ReactMarkdown
@@ -62,6 +87,20 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
               <ol className="list-none pl-0 mb-4 space-y-3 text-foreground">
                 {items.map((child, idx) => {
                   const itemContent = isValidElement(child) ? (child.props as any).children : child;
+                  const plain = getTextContent(itemContent);
+                  const isSimpleNode = !Array.isArray(itemContent) || itemContent.length === 1;
+                  const isSubheading = isSimpleNode && isLikelySubheading(plain);
+
+                  if (isSubheading) {
+                    return (
+                      <li key={idx} className="mt-6">
+                        <div className="text-lg font-semibold text-foreground [&_p]:m-0 [&_p]:leading-snug">
+                          {itemContent}
+                        </div>
+                      </li>
+                    );
+                  }
+
                   return (
                     <li key={idx} className="flex gap-3 items-start">
                       <span className="tabular-nums shrink-0 text-foreground select-text">
