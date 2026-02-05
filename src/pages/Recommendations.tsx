@@ -382,6 +382,11 @@ export default function Recommendations() {
     return parts.length > 0 ? parts : [{ text: currentText }];
   };
 
+  // Утилита для очистки markdown-escape артефактов
+  const cleanMarkdownEscapes = (text: string): string => {
+    return text.replace(/\\\./g, '.');
+  };
+
   const parseMarkdownToPdfMake = (markdown: string): any[] => {
     const content: any[] = [];
     const lines = markdown.split('\n');
@@ -395,20 +400,20 @@ export default function Recommendations() {
         continue;
       }
       
-      // Заголовки
-      if (line.startsWith('### ')) {
-        const headerText = line.replace('### ', '');
+      // Заголовки (проверяем по trimmedLine для корректной работы с отступами)
+      if (trimmedLine.startsWith('### ')) {
+        const headerText = cleanMarkdownEscapes(trimmedLine.replace('### ', ''));
         content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 6, 0, 3] });
-      } else if (line.startsWith('## ')) {
-        const headerText = line.replace('## ', '');
+      } else if (trimmedLine.startsWith('## ')) {
+        const headerText = cleanMarkdownEscapes(trimmedLine.replace('## ', ''));
         content.push({ text: parseInlineMarkdown(headerText), style: 'h2', margin: [0, 8, 0, 4] });
-      } else if (line.startsWith('# ')) {
-        const headerText = line.replace('# ', '');
+      } else if (trimmedLine.startsWith('# ')) {
+        const headerText = cleanMarkdownEscapes(trimmedLine.replace('# ', ''));
         content.push({ text: parseInlineMarkdown(headerText), style: 'h1', margin: [0, 10, 0, 5] });
       }
-      // Маркированные списки
-      else if (line.match(/^[-*]\s/)) {
-        const listText = line.replace(/^[-*]\s/, '');
+      // Маркированные списки (проверяем по trimmedLine для поддержки отступов типа "  * пункт")
+      else if (trimmedLine.match(/^[-*]\s+/)) {
+        const listText = cleanMarkdownEscapes(trimmedLine.replace(/^[-*]\s+/, ''));
         const parsedText = parseInlineMarkdown(listText);
         content.push({ 
           text: [{ text: '• ' }, ...parsedText],
@@ -416,12 +421,12 @@ export default function Recommendations() {
           margin: [20, 0, 0, 5] 
         });
       }
-      // Нумерованные списки (1., 2., etc.)
-      else if (line.match(/^\d+\.\s/)) {
-        const match = line.match(/^(\d+)\.\s(.*)$/);
+      // Нумерованные списки (1., 2., etc.) — включая экранированные точки (1\.)
+      else if (trimmedLine.match(/^\d+\\?\.\s+/)) {
+        const match = trimmedLine.match(/^(\d+)\\?\.\s+(.*)$/);
         if (match) {
           const number = match[1];
-          const listText = match[2];
+          const listText = cleanMarkdownEscapes(match[2]);
           const parsedText = parseInlineMarkdown(listText);
           content.push({ 
             text: [{ text: `${number}. ` }, ...parsedText],
@@ -432,7 +437,8 @@ export default function Recommendations() {
       }
       // Обычный текст
       else {
-        const parsedText = parseInlineMarkdown(line);
+        const cleanedLine = cleanMarkdownEscapes(trimmedLine);
+        const parsedText = parseInlineMarkdown(cleanedLine);
         content.push({ 
           text: parsedText, 
           style: 'paragraph', 
