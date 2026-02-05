@@ -29,14 +29,16 @@ export function cleanMarkdownArtifacts(text: string): string {
       continue;
     }
     
-    // Remove list markers before bold section headers (e.g., "*   **Цинк**" or "*   **Меры коррекции**:")
+    // Remove list markers before bold section headers (e.g., "*   **Цинк**" or "    *   **Добавки...**")
+    // This handles both top-level and nested list items with bold headers
     // Also ensure paragraph break by adding empty line before
-    if (/^[*\-]\s+\*\*.+\*\*:?\s*$/.test(trimmed)) {
+    if (/^\s*[*\-]\s+\*\*.+\*\*:?\s*$/.test(trimmed) || /^\s*[*\-]\s+\*\*[^*]+\*\*/.test(line)) {
       // Add blank line before to ensure paragraph separation
       if (cleanedLines.length > 0 && cleanedLines[cleanedLines.length - 1].trim() !== '') {
         cleanedLines.push('');
       }
-      cleanedLines.push(trimmed.replace(/^[*\-]\s+/, ''));
+      // Remove leading whitespace and list marker, keep the bold text
+      cleanedLines.push(line.replace(/^\s*[*\-]\s+/, ''));
       continue;
     }
     
