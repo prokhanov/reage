@@ -1,73 +1,86 @@
 
-# План: Динамическая валидация типов рекомендаций
+# План: Исправление подстановки биомаркеров в промпты
 
-## Цель
-Заменить статический CHECK constraint на динамический триггер, который берёт категории из таблицы `biomarker_categories`.
+## Проблема
 
-## Миграция базы данных
+AI не видит результаты анализов при генерации отчёта. Вместо реального анализа AI пишет:
+> "Пожалуйста, предоставьте список биомаркеров, чтобы я мог начать анализ"
 
-### 1. Создать функцию валидации
+### Причина
 
-```sql
-CREATE OR REPLACE FUNCTION public.validate_recommendation_type()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-DECLARE
-  allowed_types TEXT[];
-BEGIN
-  -- Служебные типы (захардкожены) + все категории из biomarker_categories
-  SELECT ARRAY['Данные пациента', 'Общее резюме'] 
-         || COALESCE(ARRAY_AGG(name), ARRAY[]::TEXT[])
-  INTO allowed_types
-  FROM biomarker_categories;
-  
-  -- Проверяем, что type входит в допустимые
-  IF NEW.type = ANY(allowed_types) THEN
-    RETURN NEW;
-  ELSE
-    RAISE EXCEPTION 'Invalid recommendation type: %. Allowed types: %', 
-                    NEW.type, array_to_string(allowed_types, ', ');
-  END IF;
-END;
-$$;
+**Несоответствие плейсхолдеров** между промптами в БД и кодом edge function:
+
+| Где | Плейсхолдер |
+|-----|-------------|
+| Промпты в `ai_prompt_settings` | `{biomarkers}` |
+| Код `analyze-biomarkers/index.ts` | `{biomarkersText}` |
+
+Edge function пытается заменить `{biomarkersText}`, но в промптах из БД используется `{biomarkers}` — замена не происходит!
+
+### Текущий код (строки 524-529):
+
+```typescript
+const categoryPrompt = userPromptTemplate
+  .replace(/{userContext}/g, userContext)
+  .replace(/{category}/g, category)
+  .replace(/{biomarkersText}/g, biomarkersText)  // ❌ Ищет {biomarkersText}
+  .replace(/{trends}/g, getCategoryTrends(category))
+  .replace(/{recommendations}/g, getCategoryRecommendations(category));
 ```
 
-### 2. Удалить старый CHECK constraint
+### Промпт из БД:
 
-```sql
-ALTER TABLE recommendations 
-DROP CONSTRAINT IF EXISTS recommendations_type_check;
+```
+Проанализируйте следующие биомаркеры категории "Энергия и восстановление":
+
+{biomarkers}   ← ❌ Не заменяется!
+
+Для каждого отклонения от нормы...
 ```
 
-### 3. Создать триггер
+---
 
-```sql
-DROP TRIGGER IF EXISTS check_recommendation_type ON recommendations;
+## Решение
 
-CREATE TRIGGER check_recommendation_type
-  BEFORE INSERT OR UPDATE ON recommendations
-  FOR EACH ROW
-  EXECUTE FUNCTION validate_recommendation_type();
+Добавить дополнительную замену `{biomarkers}` в edge function.
+
+### Изменение в `supabase/functions/analyze-biomarkers/index.ts`:
+
+**Строки 524-529 — добавить замену `{biomarkers}`:**
+
+```typescript
+const categoryPrompt = userPromptTemplate
+  .replace(/{userContext}/g, userContext)
+  .replace(/{category}/g, category)
+  .replace(/{biomarkersText}/g, biomarkersText)
+  .replace(/{biomarkers}/g, biomarkersText)  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+  .replace(/{trends}/g, getCategoryTrends(category))
+  .replace(/{recommendations}/g, getCategoryRecommendations(category));
 ```
 
-## Результат
+---
 
-| Тип | Источник |
-|-----|----------|
-| Данные пациента | Захардкожен в функции |
-| Общее резюме | Захардкожен в функции |
-| Энергия и восстановление | Из biomarker_categories |
-| Сердечно-сосудистая система | Из biomarker_categories |
-| Воспалительная и иммунная система | Из biomarker_categories |
-| Эндокринная и стрессовая система | Из biomarker_categories |
-| Обмен веществ и детоксикация | Из biomarker_categories |
+## Почему так, а не редактировать промпты в БД?
 
-## Тестирование
+1. **Обратная совместимость** — поддержка обоих плейсхолдеров `{biomarkers}` и `{biomarkersText}`
+2. **Гибкость** — админы могут использовать любой из вариантов
+3. **Минимальное изменение** — одна строка кода
 
-После миграции нужно:
-1. Перегенерировать отчёт для Алексея Тестова
-2. Убедиться, что ошибка больше не появляется
-3. Проверить, что рекомендации сохранились корректно
+---
+
+## Шаги реализации
+
+1. Добавить `.replace(/{biomarkers}/g, biomarkersText)` в edge function
+2. Задеплоить функцию
+3. Перегенерировать отчёт для Алексея Тестова
+4. Убедиться, что AI теперь видит данные биомаркеров
+
+---
+
+## Техническая информация
+
+| Элемент | Значение |
+|---------|----------|
+| Файл | `supabase/functions/analyze-biomarkers/index.ts` |
+| Строки | 524-529 |
+| Изменение | Добавить 1 строку с заменой `{biomarkers}` |
