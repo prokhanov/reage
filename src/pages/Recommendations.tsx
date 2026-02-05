@@ -46,6 +46,7 @@ interface RecommendationReport {
 interface Prescription {
   id: string;
   prescription: string;
+  reason: string | null;
   effect: string;
   control_date: string;
   status: "on_review" | "confirmed";
@@ -217,6 +218,7 @@ export default function Recommendations() {
         .map((p: any, idx: number) => ({
           id: `demo-presc-${analysisIndex}-${idx}`,
           prescription: p.prescription,
+          reason: p.reason || null,
           effect: p.effect,
           control_date: p.control_date,
           status: "confirmed" as const
@@ -891,6 +893,14 @@ export default function Recommendations() {
                                       {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
                                     </Badge>
                                   </div>
+                                  {prescription.reason && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
+                                      <span className="text-primary mt-0.5">📊</span>
+                                      <p className="text-sm text-foreground leading-relaxed">
+                                        <span className="font-medium">Причина:</span> {prescription.reason}
+                                      </p>
+                                    </div>
+                                  )}
                                   {prescription.effect && (
                                     <p className="text-sm text-muted-foreground mb-3 italic">
                                       {prescription.effect}
