@@ -1,79 +1,60 @@
 
-# План: Исправление подстановки биомаркеров в промпты
+# План: Исправление артефактов markdown в PDF экспорте
 
 ## Проблема
 
-AI не видит результаты анализов при генерации отчёта. Вместо реального анализа AI пишет:
-> "Пожалуйста, предоставьте список биомаркеров, чтобы я мог начать анализ"
+При экспорте отчёта в PDF появляются артефакты нумерованных списков:
+```
+1\. Общий холестерин (TC): 5.8 ммоль/л
+```
 
 ### Причина
 
-**Несоответствие плейсхолдеров** между промптами в БД и кодом edge function:
+Функция `parseMarkdownToPdfMake` в `src/pages/Recommendations.tsx` не обрабатывает нумерованные списки. Она поддерживает только:
+- Заголовки (`#`, `##`, `###`)
+- Маркированные списки (`-` или `*`)
+- Обычный текст
 
-| Где | Плейсхолдер |
-|-----|-------------|
-| Промпты в `ai_prompt_settings` | `{biomarkers}` |
-| Код `analyze-biomarkers/index.ts` | `{biomarkersText}` |
-
-Edge function пытается заменить `{biomarkersText}`, но в промптах из БД используется `{biomarkers}` — замена не происходит!
-
-### Текущий код (строки 524-529):
-
-```typescript
-const categoryPrompt = userPromptTemplate
-  .replace(/{userContext}/g, userContext)
-  .replace(/{category}/g, category)
-  .replace(/{biomarkersText}/g, biomarkersText)  // ❌ Ищет {biomarkersText}
-  .replace(/{trends}/g, getCategoryTrends(category))
-  .replace(/{recommendations}/g, getCategoryRecommendations(category));
-```
-
-### Промпт из БД:
-
-```
-Проанализируйте следующие биомаркеры категории "Энергия и восстановление":
-
-{biomarkers}   ← ❌ Не заменяется!
-
-Для каждого отклонения от нормы...
-```
-
----
+Нумерованные списки (`1.`, `2.`, etc.) попадают в ветку "обычный текст" и выводятся как есть, включая escape-символы.
 
 ## Решение
 
-Добавить дополнительную замену `{biomarkers}` в edge function.
+Добавить обработку нумерованных списков в функцию `parseMarkdownToPdfMake`.
 
-### Изменение в `supabase/functions/analyze-biomarkers/index.ts`:
+### Изменения в `src/pages/Recommendations.tsx`
 
-**Строки 524-529 — добавить замену `{biomarkers}`:**
+**Добавить обработку нумерованных списков (после строки 417):**
 
 ```typescript
-const categoryPrompt = userPromptTemplate
-  .replace(/{userContext}/g, userContext)
-  .replace(/{category}/g, category)
-  .replace(/{biomarkersText}/g, biomarkersText)
-  .replace(/{biomarkers}/g, biomarkersText)  // ← ДОБАВИТЬ ЭТУ СТРОКУ
-  .replace(/{trends}/g, getCategoryTrends(category))
-  .replace(/{recommendations}/g, getCategoryRecommendations(category));
+// Списки с маркерами
+else if (line.match(/^[-*]\s/)) {
+  const listText = line.replace(/^[-*]\s/, '');
+  const parsedText = parseInlineMarkdown(listText);
+  content.push({ 
+    text: [{ text: '• ' }, ...parsedText],
+    style: 'listItem', 
+    margin: [20, 0, 0, 5] 
+  });
+}
+// ДОБАВИТЬ: Нумерованные списки (1., 2., etc.)
+else if (line.match(/^\d+\.\s/)) {
+  const match = line.match(/^(\d+)\.\s(.*)$/);
+  if (match) {
+    const number = match[1];
+    const listText = match[2];
+    const parsedText = parseInlineMarkdown(listText);
+    content.push({ 
+      text: [{ text: `${number}. ` }, ...parsedText],
+      style: 'listItem', 
+      margin: [20, 0, 0, 5] 
+    });
+  }
+}
+// Обычный текст
+else {
+  // ...existing code
+}
 ```
-
----
-
-## Почему так, а не редактировать промпты в БД?
-
-1. **Обратная совместимость** — поддержка обоих плейсхолдеров `{biomarkers}` и `{biomarkersText}`
-2. **Гибкость** — админы могут использовать любой из вариантов
-3. **Минимальное изменение** — одна строка кода
-
----
-
-## Шаги реализации
-
-1. Добавить `.replace(/{biomarkers}/g, biomarkersText)` в edge function
-2. Задеплоить функцию
-3. Перегенерировать отчёт для Алексея Тестова
-4. Убедиться, что AI теперь видит данные биомаркеров
 
 ---
 
@@ -81,6 +62,21 @@ const categoryPrompt = userPromptTemplate
 
 | Элемент | Значение |
 |---------|----------|
-| Файл | `supabase/functions/analyze-biomarkers/index.ts` |
-| Строки | 524-529 |
-| Изменение | Добавить 1 строку с заменой `{biomarkers}` |
+| Файл | `src/pages/Recommendations.tsx` |
+| Функция | `parseMarkdownToPdfMake` |
+| Строка | После строки 417 (после обработки маркированных списков) |
+| Изменение | Добавить обработку нумерованных списков с regex `/^\d+\.\s/` |
+
+## Результат
+
+| До | После |
+|----|-------|
+| `1\. Общий холестерин (TC): 5.8 ммоль/л` | `1. Общий холестерин (TC): 5.8 ммоль/л` |
+| Артефакты escape-символов | Чистый форматированный текст |
+
+## Тестирование
+
+После реализации:
+1. Перегенерировать отчёт для Алексея Тестова
+2. Экспортировать в PDF
+3. Проверить, что нумерованные списки отображаются корректно без артефактов
