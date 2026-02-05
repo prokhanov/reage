@@ -31,7 +31,7 @@ export function cleanMarkdownArtifacts(text: string): string {
     
     // Remove list markers before bold section headers (e.g., "*   **Меры коррекции**:" → "**Меры коррекции**:")
     if (/^[*\-]\s+\*\*[^*]+\*\*:?\s*$/.test(trimmed)) {
-      cleanedLines.push(trimmed.replace(/^[*\-\s]+/, ''));
+      cleanedLines.push(trimmed.replace(/^[*\-]\s+/, ''));
       continue;
     }
     
