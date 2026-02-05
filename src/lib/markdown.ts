@@ -21,8 +21,8 @@ export function cleanMarkdownArtifacts(text: string): string {
     .replace(/(\))\s*[•*]\s+/g, "$1\n- ");
 
   // Fix numbered lists that got split across lines:
-  // "1.\nТекст" -> "1. Текст"
-  preprocessed = preprocessed.replace(/(^|\n)(\d+\.)\s*\n\s*([^\n]+)/g, "$1$2 $3");
+  // "1.\nТекст" or "1.\n\nТекст" -> "1. Текст"
+  preprocessed = preprocessed.replace(/(^|\n)(\d+\.)\s*\n+\s*([^\n]+)/g, "$1$2 $3");
 
   // Split into lines for processing
   const lines = preprocessed.split('\n');
