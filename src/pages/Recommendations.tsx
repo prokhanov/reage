@@ -795,8 +795,8 @@ export default function Recommendations() {
               const sections = [
                 ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
                 ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
-                ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : []),
-                ...categories.map(([type]) => ({ id: toSlug(type), label: type }))
+                ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+                ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
               ];
 
               return (
@@ -874,6 +874,24 @@ export default function Recommendations() {
                           </div>
                         )}
 
+                        {categories.map(([type, recs]) => (
+                          <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
+                            <div className="prose prose-sm max-w-none space-y-4">
+                              <div className="mb-6">
+                                <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                  {type}
+                                </h2>
+                                <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                              </div>
+                              {recs.map((rec) => (
+                                <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                  <MarkdownContent content={cleanMarkdownArtifacts(rec.text)} />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+
                         {selectedPrescriptions.length > 0 && (
                           <div id="section-prescriptions" className="scroll-mt-6">
                             <div className="mb-6">
@@ -929,24 +947,6 @@ export default function Recommendations() {
                             </div>
                           </div>
                         )}
-
-                        {categories.map(([type, recs]) => (
-                          <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
-                            <div className="prose prose-sm max-w-none space-y-4">
-                              <div className="mb-6">
-                                <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                                  {type}
-                                </h2>
-                                <div className="h-1 w-20 bg-gradient-primary rounded-full" />
-                              </div>
-                              {recs.map((rec) => (
-                                <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                  <MarkdownContent content={cleanMarkdownArtifacts(rec.text)} />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>
