@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
 import { marked } from 'marked';
@@ -50,6 +49,7 @@ export function EditReportDialog({
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
   const [selectedStatus, setSelectedStatus] = useState<"on_review" | "processed">(initialStatus);
+  const [selectedSection, setSelectedSection] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -113,6 +113,9 @@ export function EditReportDialog({
       });
       
       setSections(sorted);
+      if (sorted.length > 0) {
+        setSelectedSection(sorted[0].type);
+      }
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -212,8 +215,6 @@ export function EditReportDialog({
     setEditPrescriptionDialogOpen(true);
   };
 
-
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -271,33 +272,30 @@ export function EditReportDialog({
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <Tabs defaultValue={sections[0]?.type || "summary"} className="flex-1 overflow-hidden flex flex-col">
-                <TabsList className="shrink-0 grid w-full" style={{ gridTemplateColumns: `repeat(${sections.length + (prescriptions.length > 0 ? 1 : 0)}, minmax(0, 1fr))` }}>
-                  {sections.map((section) => (
-                    <TabsTrigger key={section.id} value={section.type}>
-                      {section.type}
-                    </TabsTrigger>
-                  ))}
-                  {prescriptions.length > 0 && (
-                    <TabsTrigger value="prescriptions">
-                      Назначения ({prescriptions.length})
-                    </TabsTrigger>
-                  )}
-                </TabsList>
-                {sections.map((section) => (
-                  <TabsContent key={section.id} value={section.type} className="flex-1 overflow-hidden mt-4">
-                    <ReactQuill
-                      theme="bubble"
-                      value={section.text}
-                      onChange={(text) => updateSection(section.id, text)}
-                      placeholder="Выделите текст для форматирования..."
-                      className="bg-background rounded-md border border-border p-6 h-full quill-editor"
-                    />
-                  </TabsContent>
-                ))}
-                {prescriptions.length > 0 && (
-                  <TabsContent value="prescriptions" className="flex-1 overflow-auto mt-4">
-                    <div className="space-y-4 p-6">
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="shrink-0 mb-4">
+                  <Select value={selectedSection} onValueChange={setSelectedSection}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Выберите раздел" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {sections.map((section) => (
+                        <SelectItem key={section.id} value={section.type}>
+                          {section.type}
+                        </SelectItem>
+                      ))}
+                      {prescriptions.length > 0 && (
+                        <SelectItem value="prescriptions">
+                          Назначения ({prescriptions.length})
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {selectedSection === "prescriptions" ? (
+                  <div className="flex-1 overflow-auto">
+                    <div className="space-y-4">
                       {prescriptions.map((prescription, idx) => (
                         <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
                           <div className="flex items-start justify-between gap-4 mb-3">
@@ -341,9 +339,20 @@ export function EditReportDialog({
                         </div>
                       ))}
                     </div>
-                  </TabsContent>
+                  </div>
+                ) : (
+                  sections.filter(s => s.type === selectedSection).map((section) => (
+                    <ReactQuill
+                      key={section.id}
+                      theme="bubble"
+                      value={section.text}
+                      onChange={(text) => updateSection(section.id, text)}
+                      placeholder="Выделите текст для форматирования..."
+                      className="bg-background rounded-md border border-border p-6 flex-1 quill-editor"
+                    />
+                  ))
                 )}
-              </Tabs>
+              </div>
             )}
           </div>
 
