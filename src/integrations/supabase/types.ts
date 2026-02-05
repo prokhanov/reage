@@ -788,6 +788,7 @@ export type Database = {
           is_archived: boolean
           prescription: string
           reason: string | null
+          recommendation_id: string | null
           status: Database["public"]["Enums"]["prescription_status"]
           updated_at: string
           user_id: string
@@ -803,6 +804,7 @@ export type Database = {
           is_archived?: boolean
           prescription: string
           reason?: string | null
+          recommendation_id?: string | null
           status?: Database["public"]["Enums"]["prescription_status"]
           updated_at?: string
           user_id: string
@@ -818,6 +820,7 @@ export type Database = {
           is_archived?: boolean
           prescription?: string
           reason?: string | null
+          recommendation_id?: string | null
           status?: Database["public"]["Enums"]["prescription_status"]
           updated_at?: string
           user_id?: string
@@ -828,6 +831,13 @@ export type Database = {
             columns: ["analysis_id"]
             isOneToOne: false
             referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "recommendations"
             referencedColumns: ["id"]
           },
         ]
