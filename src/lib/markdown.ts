@@ -26,6 +26,15 @@ export function cleanMarkdownArtifacts(text: string): string {
   
   // Remove naked numbered markers without content (lines like "1." "2." "3." alone)
   preprocessed = preprocessed.replace(/^\d+\.\s*$/gm, "");
+  
+  // Convert standalone bold lines to headers (these are sub-headers, not list items)
+  // Pattern: line that is ONLY bold text (with optional colon), surrounded by empty lines or list items
+  // "**Системные взаимосвязи**" or "**Заголовок:**" -> "### Системные взаимосвязи" or "### Заголовок:"
+  preprocessed = preprocessed.replace(/^(\*\*[^*\n]+\*\*):?\s*$/gm, (match, boldText) => {
+    // Extract text inside ** **
+    const headerText = boldText.replace(/^\*\*/, '').replace(/\*\*$/, '');
+    return `### ${headerText}`;
+  });
 
   // Split into lines for processing
   const lines = preprocessed.split('\n');
