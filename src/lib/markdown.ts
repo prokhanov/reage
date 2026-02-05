@@ -6,8 +6,22 @@
  * - Trailing asterisks used for emphasis that weren't closed
  */
 export function cleanMarkdownArtifacts(text: string): string {
+  // Pre-normalize common inline bullet artifacts produced by AI.
+  // Example:
+  // "... ассоциируется с: * Пункт 1. * Пункт 2." ->
+  // "... ассоциируется с:\n\n- Пункт 1.\n- Пункт 2."
+  // This makes markdown parsers treat them as real lists (UI + editor + PDF).
+  let preprocessed = text
+    .replace(/\r\n/g, "\n")
+    // Start list after a colon/semicolon
+    .replace(/([:;])\s*[•*]\s+/g, "$1\n\n- ")
+    // Continue list after sentence endings
+    .replace(/([.!?])\s*[•*]\s+/g, "$1\n- ")
+    // Also handle bullets after a closing parenthesis
+    .replace(/(\))\s*[•*]\s+/g, "$1\n- ");
+
   // Split into lines for processing
-  const lines = text.split('\n');
+  const lines = preprocessed.split('\n');
   const cleanedLines: string[] = [];
   
   for (const line of lines) {

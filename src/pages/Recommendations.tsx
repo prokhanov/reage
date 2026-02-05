@@ -392,7 +392,8 @@ export default function Recommendations() {
 
   const parseMarkdownToPdfMake = (markdown: string): any[] => {
     const content: any[] = [];
-    const lines = markdown.split('\n');
+    const cleanedMarkdown = cleanMarkdownArtifacts(markdown);
+    const lines = cleanedMarkdown.split('\n');
     
     for (let line of lines) {
       const trimmedLine = line.trim();
