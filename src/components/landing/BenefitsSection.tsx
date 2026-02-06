@@ -118,19 +118,32 @@ export function BenefitsSection() {
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Что вы получите</span>
+            <span className="text-sm font-medium text-primary">Результат в ваших руках</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Всё для </span>
+            <span className="text-foreground">Полная </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              управления здоровьем
+              оцифровка организма
             </span>
           </h2>
           
-          <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Не просто анализы — комплексная система мониторинга и улучшения
+          <p className="text-lg md:text-xl text-muted-foreground animate-fade-in mb-8" style={{ animationDelay: '0.2s' }}>
+            Не нужно бояться цифр — нужно их использовать
           </p>
+
+          {/* Motivational quotes */}
+          <div className="flex flex-wrap justify-center gap-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <span className="px-4 py-2 rounded-full bg-muted/50 border border-border/50 text-sm text-muted-foreground">
+              Ничего не менять — тоже выбор
+            </span>
+            <span className="px-4 py-2 rounded-full bg-muted/50 border border-border/50 text-sm text-muted-foreground">
+              Решения не обязательны. Последствия — да.
+            </span>
+            <span className="px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm text-primary font-medium">
+              Делим жизнь на до и после
+            </span>
+          </div>
         </div>
 
         {/* Benefits Grid */}
