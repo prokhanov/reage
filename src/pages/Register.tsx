@@ -226,30 +226,30 @@ export default function Register() {
                 const isCompleted = currentStep > step.id;
 
                 return (
-                  <div key={step.id} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center flex-1">
+                  <div key={step.id} className="flex items-center">
+                    <div className="flex flex-col items-center">
                       <div 
                         className={`
-                          w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500
+                          w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500
                           ${isActive ? 'bg-gradient-primary text-white scale-110 shadow-neon-primary' : ''}
                           ${isCompleted ? 'bg-primary/20 text-primary scale-105' : ''}
                           ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
                         `}
                       >
                         {isCompleted ? (
-                          <Check className="h-7 w-7" />
+                          <Check className="h-5 w-5 sm:h-7 sm:w-7" />
                         ) : (
-                          <Icon className="h-7 w-7" />
+                          <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
                         )}
                       </div>
-                      <div className="text-center mt-3 hidden sm:block">
-                        <p className={`text-sm font-medium transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                      <div className="text-center mt-2 sm:mt-3 hidden sm:block">
+                        <p className={`text-xs sm:text-sm font-medium transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                           {step.title}
                         </p>
                       </div>
                     </div>
                     {index < steps.length - 1 && (
-                      <div className="h-1 flex-1 mx-4 rounded-full bg-muted overflow-hidden">
+                      <div className="h-1 w-8 sm:w-16 md:w-24 mx-2 sm:mx-4 rounded-full bg-muted overflow-hidden">
                         <div 
                           className={`
                             h-full bg-gradient-primary transition-all duration-700 ease-out
