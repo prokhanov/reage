@@ -118,18 +118,18 @@ export function BenefitsSection() {
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Что вы получите</span>
+            <span className="text-sm font-medium text-primary">Делим жизнь на до и после</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Всё для </span>
+            <span className="text-foreground">Полные дашборды </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              управления здоровьем
+              по здоровью
             </span>
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Не просто анализы — комплексная система мониторинга и улучшения
+            Не нужно бояться цифр — нужно их использовать
           </p>
         </div>
 
