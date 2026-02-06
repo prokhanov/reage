@@ -9,7 +9,11 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  Target,
+  TrendingUp,
+  Pill
 } from "lucide-react";
 
 const biomarkerCategories = [
@@ -95,6 +99,46 @@ const biomarkerCategories = [
   }
 ];
 
+const serviceSections = [
+  {
+    icon: Target,
+    title: "Резюме на 1 странице",
+    items: [
+      "Биологический возраст vs паспортный",
+      "Индекс здоровья (0-100)",
+      "Топ-3 зоны внимания",
+      "Топ-3 сильные стороны"
+    ]
+  },
+  {
+    icon: TrendingUp,
+    title: "Детальный анализ по системам",
+    items: [
+      "Оценка каждой системы (0-100 баллов)",
+      "Маркеры в норме / отклонения",
+      "Объяснение простым языком"
+    ]
+  },
+  {
+    icon: FileText,
+    title: "Персональные рекомендации",
+    items: [
+      "Питание (конкретные продукты)",
+      "Добавки и БАДы (дозировки, длительность)",
+      "Образ жизни (сон, активность)",
+      "Что проверить дополнительно"
+    ]
+  },
+  {
+    icon: Pill,
+    title: "Назначения врача",
+    items: [
+      "Препараты (если нужны)",
+      "Сроки контроля",
+      "Критерии эффективности"
+    ]
+  }
+];
 
 function CategoryCard({ category, index }: { category: typeof biomarkerCategories[0]; index: number }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -269,6 +313,59 @@ export function BiomarkersDeepDiveSection() {
           {biomarkerCategories.map((category, index) => (
             <CategoryCard key={category.id} category={category} index={index} />
           ))}
+        </div>
+
+        {/* What you get section */}
+        <div className="relative">
+          <div className="text-center mb-12 animate-fade-in">
+            <Badge variant="outline" className="mb-4 px-4 py-1.5">
+              ✨ Что входит в сервис
+            </Badge>
+            <h3 className="text-3xl md:text-4xl font-bold mb-4">
+              Полная картина{" "}
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+                вашего здоровья
+              </span>
+            </h3>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Каждый анализ включает комплексную оценку и конкретные рекомендации
+            </p>
+          </div>
+
+          {/* Service cards */}
+          <div className="max-w-4xl mx-auto">
+            <div className="relative p-1 rounded-2xl bg-gradient-to-br from-primary/50 via-primary/20 to-primary/50">
+              <div className="bg-card rounded-xl p-6 md:p-8">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {serviceSections.map((section, index) => {
+                    const Icon = section.icon;
+                    return (
+                      <div
+                        key={section.title}
+                        className="p-5 rounded-xl bg-muted/30 border border-border/50 animate-fade-in"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                      >
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Icon className="w-5 h-5 text-primary" />
+                          </div>
+                          <h4 className="font-semibold">{section.title}</h4>
+                        </div>
+                        <ul className="space-y-2">
+                          {section.items.map((item, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
