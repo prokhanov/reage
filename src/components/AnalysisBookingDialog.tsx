@@ -162,6 +162,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
         await queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
         await queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
+        await queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
         
         // Reset form and close dialog
         setBookingDate(undefined);
@@ -202,6 +203,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
       await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
       await queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
       await queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
+      await queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
       
       // Reset form and close dialog
       setBookingDate(undefined);
@@ -267,6 +269,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
         await queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
         await queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
+        await queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
       }
 
       // Reset form and close dialog
