@@ -140,18 +140,18 @@ export function HowItWorksSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
-            <span className="text-sm font-medium text-primary">От записи до оцифровки</span>
+            <span className="text-sm font-medium text-primary">4 простых шага</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Результат </span>
+            <span className="text-foreground">Как это </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              в ваших руках
+              работает
             </span>
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            4 простых шага к полной оцифровке организма
+            От записи до получения персональных рекомендаций — всего 5 дней
           </p>
         </div>
 

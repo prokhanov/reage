@@ -24,16 +24,16 @@ export function CTASection() {
             <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-primary rounded-3xl" />
             
             <div className="relative m-[2px] rounded-[22px] bg-card p-8 md:p-12 lg:p-16">
-            <div className="text-center max-w-2xl mx-auto">
+              <div className="text-center max-w-2xl mx-auto">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                  <span className="text-foreground">Готовы разделить жизнь на </span>
+                  <span className="text-foreground">Готовы узнать свой </span>
                   <span className="bg-gradient-hero bg-clip-text text-transparent">
-                    до и после?
+                    биологический возраст?
                   </span>
                 </h2>
                 
                 <p className="text-lg md:text-xl text-muted-foreground mb-8">
-                  Ничего не менять — тоже выбор. Но результат в ваших руках.
+                  Начните мониторинг здоровья сегодня. Первый анализ со скидкой 20%.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">

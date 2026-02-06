@@ -101,18 +101,18 @@ export function FAQSection() {
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
             <HelpCircle className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Разбираемся вместе</span>
+            <span className="text-sm font-medium text-primary">Частые вопросы</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Не нужно бояться </span>
+            <span className="text-foreground">Ответы на </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              задавать вопросы
+              ваши вопросы
             </span>
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Как и цифр — вопросы помогают принимать решения
+            Не нашли ответ? Напишите нам — ответим в течение часа
           </p>
         </div>
 

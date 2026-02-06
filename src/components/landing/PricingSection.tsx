@@ -167,18 +167,18 @@ export function PricingSection() {
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Результат в ваших руках</span>
+            <span className="text-sm font-medium text-primary">Прозрачные цены</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Инвестиция в </span>
+            <span className="text-foreground">Выберите свой </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              себя
+              план мониторинга
             </span>
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Ничего не менять — тоже выбор. Но он имеет свою цену.
+            Годовая подписка с ежеквартальными анализами. Скидка до 20% при оплате за год.
           </p>
         </div>
 

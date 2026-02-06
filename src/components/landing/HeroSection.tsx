@@ -32,22 +32,22 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Оцифровка организма • Полные дашборды • Результат в ваших руках</span>
+            <span className="text-sm font-medium text-primary">Биовозраст • Тренды здоровья • AI-рекомендации • Забор на дому</span>
           </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="block text-foreground">Делим жизнь на</span>
+            <span className="block text-foreground">Ваше здоровье в цифрах,</span>
             <span className="block mt-2 bg-gradient-hero bg-clip-text text-transparent">
-              до и после
+              динамике и рекомендациях
             </span>
           </h1>
 
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Не нужно бояться цифр — нужно их использовать.
+            50 биомаркеров → биологический возраст → тренды по системам → AI-рекомендации.
             <span className="hidden sm:inline"><br /></span>
-            Полная оцифровка организма. Полные дашборды по здоровью. Персональный план действий.
+            Медсестра приедет к вам. Результат за 5 дней.
           </p>
 
           {/* CTAs */}
