@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { 
   Briefcase, 
   Dumbbell, 
@@ -5,125 +6,93 @@ import {
   Baby,
   Clock,
   Trophy,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-interface PersonaCardProps {
-  icon: React.ReactNode;
+interface Persona {
+  id: string;
   emoji: string;
+  icon: React.ReactNode;
   title: string;
+  shortTitle: string;
   age: string;
   pain: string;
   goal: string;
   result: string;
-  delay: number;
-}
-
-function PersonaCard({ icon, emoji, title, age, pain, goal, result, delay }: PersonaCardProps) {
-  return (
-    <div 
-      className="group relative h-full animate-fade-in"
-      style={{ animationDelay: `${delay}s` }}
-    >
-      {/* Hover glow */}
-      <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-      
-      <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 p-8 transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-xl">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="text-4xl">{emoji}</div>
-            <div>
-              <h3 className="text-lg font-bold text-foreground">{title}</h3>
-              <p className="text-sm text-muted-foreground">{age}</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary">
-            {icon}
-          </div>
-        </div>
-        
-        {/* Pain point */}
-        <div className="mb-4">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Боль</div>
-          <p className="text-sm text-foreground leading-relaxed">{pain}</p>
-        </div>
-        
-        {/* Goal */}
-        <div className="mb-4">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Цель</div>
-          <p className="text-sm text-foreground leading-relaxed">{goal}</p>
-        </div>
-        
-        {/* Result */}
-        <div className="mt-auto pt-4 border-t border-border/50">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-status-warning" />
-            <span className="text-sm font-medium text-primary">{result}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  quote: string;
 }
 
 export function PersonasSection() {
   const navigate = useNavigate();
+  const [activePersona, setActivePersona] = useState(0);
   
-  const personas = [
+  const personas: Persona[] = [
     {
+      id: "professional",
       emoji: "👨‍💼",
       icon: <Briefcase className="w-5 h-5" />,
       title: "Занятой профессионал",
+      shortTitle: "Профессионал",
       age: "35-50 лет",
       pain: "Нет времени на походы по клиникам. Чувствую, что здоровье ухудшается, но непонятно что делать.",
       goal: "Системно следить за здоровьем без потери времени",
       result: "Биовозраст -4 года за 12 месяцев",
-      delay: 0.1,
+      quote: "Теперь я точно знаю, на что обращать внимание",
     },
     {
+      id: "biohacker",
       emoji: "🏃‍♂️",
       icon: <Dumbbell className="w-5 h-5" />,
       title: "Биохакер / Спортсмен",
+      shortTitle: "Биохакер",
       age: "25-45 лет",
       pain: "Хочу оптимизировать показатели. Нужны данные, а не догадки.",
       goal: "Максимальная производительность и энергия",
       result: "Оптимизация 12 биомаркеров",
-      delay: 0.2,
+      quote: "Наконец-то вижу результаты своих усилий в цифрах",
     },
     {
+      id: "conscious",
       emoji: "👩‍⚕️",
       icon: <Heart className="w-5 h-5" />,
       title: "Осознанный про здоровье",
+      shortTitle: "Осознанный",
       age: "30-55 лет",
       pain: "Уже слежу за питанием и спортом, но не вижу полной картины.",
       goal: "Понять, работает ли то, что я делаю",
       result: "Тренды показали эффект диеты",
-      delay: 0.3,
+      quote: "ReAge подтвердил, что мой образ жизни работает",
     },
     {
+      id: "family",
       emoji: "👨‍👩‍👧",
       icon: <Baby className="w-5 h-5" />,
       title: "Планирую семью",
+      shortTitle: "Семья",
       age: "28-40 лет",
       pain: "Хочу быть здоровым для детей. Нужно понять текущее состояние.",
       goal: "Подготовить организм к родительству",
       result: "Нормализация гормонов",
-      delay: 0.4,
+      quote: "Подготовились к беременности осознанно",
     },
     {
+      id: "longevity",
       emoji: "⏰",
       icon: <Clock className="w-5 h-5" />,
       title: "После 40",
+      shortTitle: "Долголетие",
       age: "40-60 лет",
       pain: "Начались первые звоночки. Хочу замедлить старение.",
       goal: "Профилактика возрастных заболеваний",
       result: "Биовозраст моложе на 7 лет",
-      delay: 0.5,
+      quote: "Чувствую себя моложе, чем 5 лет назад",
     },
   ];
+
+  const activeData = personas[activePersona];
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">
@@ -142,7 +111,7 @@ export function PersonasSection() {
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
             <Heart className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Для кого это</span>
@@ -154,37 +123,134 @@ export function PersonasSection() {
               в наших клиентах
             </span>
           </h2>
-          
-          <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            ReAge подходит тем, кто готов взять здоровье в свои руки
-          </p>
         </div>
 
-        {/* Personas Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {personas.slice(0, 3).map((persona, index) => (
-            <PersonaCard key={index} {...persona} />
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {personas.slice(3).map((persona, index) => (
-            <PersonaCard key={index + 3} {...persona} />
-          ))}
+        {/* Persona Switcher */}
+        <div className="relative mb-12 md:mb-16">
+          {/* Scrollable container */}
+          <div className="relative overflow-hidden">
+            {/* Gradient masks */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-12 md:w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+            
+            {/* Switcher */}
+            <div className="flex justify-center">
+              <div className="flex gap-2 md:gap-4 px-8 md:px-16 overflow-x-auto scrollbar-hide py-2">
+                {personas.map((persona, index) => (
+                  <button
+                    key={persona.id}
+                    onClick={() => setActivePersona(index)}
+                    className={`relative flex-shrink-0 px-5 md:px-8 py-3 md:py-4 rounded-2xl text-sm md:text-lg font-medium transition-all duration-300 whitespace-nowrap ${
+                      activePersona === index
+                        ? "text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {/* Active background */}
+                    {activePersona === index && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-2xl animate-scale-in" />
+                    )}
+                    
+                    {/* Hover background */}
+                    {activePersona !== index && (
+                      <div className="absolute inset-0 bg-muted/50 rounded-2xl opacity-0 hover:opacity-100 transition-opacity" />
+                    )}
+                    
+                    <span className="relative flex items-center gap-2 md:gap-3">
+                      <span className="text-lg md:text-2xl">{persona.emoji}</span>
+                      <span className="hidden sm:inline">{persona.shortTitle}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-          <Button 
-            size="lg"
-            variant="outline"
-            onClick={() => navigate("/register")}
-            className="text-lg px-8 py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 group"
+        {/* Content Card */}
+        <div className="max-w-5xl mx-auto">
+          <div 
+            key={activePersona}
+            className="relative animate-fade-in"
           >
-            Это про меня — начать
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
+            {/* Glow effect */}
+            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-[40px] blur-2xl opacity-50" />
+            
+            <div className="relative bg-card/80 backdrop-blur-xl border border-border/50 rounded-3xl overflow-hidden">
+              <div className="grid md:grid-cols-2 gap-0">
+                {/* Left side - Info */}
+                <div className="p-8 md:p-12 space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl md:text-6xl">{activeData.emoji}</div>
+                    <div>
+                      <h3 className="text-2xl md:text-3xl font-bold text-foreground">{activeData.title}</h3>
+                      <p className="text-muted-foreground">{activeData.age}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Quote */}
+                  <div className="relative pl-4 border-l-2 border-primary/50">
+                    <p className="text-lg md:text-xl text-foreground/80 italic">
+                      "{activeData.quote}"
+                    </p>
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div className="bg-muted/30 rounded-2xl p-4">
+                      <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Боль</div>
+                      <p className="text-sm text-foreground">{activeData.pain}</p>
+                    </div>
+                    <div className="bg-muted/30 rounded-2xl p-4">
+                      <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Цель</div>
+                      <p className="text-sm text-foreground">{activeData.goal}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Right side - Result showcase */}
+                <div className="relative bg-gradient-to-br from-primary/10 via-accent/5 to-transparent p-8 md:p-12 flex flex-col justify-center items-center">
+                  {/* Decorative elements */}
+                  <div className="absolute top-8 right-8 text-primary/10">
+                    <Sparkles className="w-24 h-24" />
+                  </div>
+                  
+                  {/* Result card */}
+                  <div className="relative z-10 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <Trophy className="w-6 h-6 text-status-warning" />
+                      <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Результат</span>
+                    </div>
+                    
+                    <div className="text-3xl md:text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-6">
+                      {activeData.result}
+                    </div>
+                    
+                    <Button 
+                      size="lg"
+                      onClick={() => navigate("/register")}
+                      className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/25 group"
+                    >
+                      Это про меня
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
+                  
+                  {/* Icon decoration */}
+                  <div className="absolute bottom-8 left-8 flex items-center justify-center w-16 h-16 rounded-2xl bg-card/50 backdrop-blur border border-border/50 text-primary">
+                    {activeData.icon}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Subtitle */}
+        <p className="text-center text-lg text-muted-foreground mt-12 animate-fade-in">
+          ReAge подходит тем, кто готов взять здоровье в свои руки
+        </p>
       </div>
     </section>
   );
