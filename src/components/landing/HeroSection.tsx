@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, Activity, TrendingUp, Brain, Calendar, Moon, Sun 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import reageLogo from "@/assets/reage-logo.png";
 
 export function HeroSection() {
   const navigate = useNavigate();
