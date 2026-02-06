@@ -13,7 +13,8 @@ import {
   Target,
   TrendingUp,
   Pill,
-  CheckCircle2
+  CheckCircle2,
+  FileDown
 } from "lucide-react";
 
 const biomarkerCategories = [
@@ -327,9 +328,18 @@ export function BiomarkersDeepDiveSection() {
                 Персональный отчёт
               </span>
             </h3>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
               Подробный анализ вашего здоровья с конкретными рекомендациями
             </p>
+            <a
+              href="/sample-report.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium transition-colors"
+            >
+              <FileDown className="w-5 h-5" />
+              Скачать пример отчёта
+            </a>
           </div>
 
           {/* Report mockup */}
