@@ -8,17 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, AlertTriangle, Plus, ChevronLeft, ChevronRight, CalendarPlus, Loader2 } from "lucide-react";
+import { RotateCcw, AlertTriangle, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
 import { toast } from "sonner";
 
 interface Slot {
   id: string;
-  date: string; // yyyy-MM-dd
-  time_slot: string; // HH:mm
+  date: string;
+  time_slot: string;
   total_capacity: number;
   booked_count: number;
   is_active: boolean;
+  is_override: boolean;
 }
 
 function parseMinutes(time: string): number | null {
@@ -28,7 +29,6 @@ function parseMinutes(time: string): number | null {
 }
 
 function computeBlockedByTwoHours(slots: Slot[]) {
-  // mark a slot as blocked if there exists a fully booked slot within the previous 120 minutes
   const minutesMap = slots.map((s) => ({ s, m: parseMinutes(s.time_slot) ?? -1 }));
   return new Set(
     minutesMap
@@ -37,8 +37,10 @@ function computeBlockedByTwoHours(slots: Slot[]) {
         return minutesMap.some(({ s: other, m: mo }) => {
           if (mo < 0) return false;
           const fullyBooked = other.booked_count >= other.total_capacity;
+          // Only block if capacities match (same number of nurses)
+          const sameCapacity = other.total_capacity === s.total_capacity;
           const diff = m - mo;
-          return fullyBooked && diff > 0 && diff <= 120;
+          return fullyBooked && sameCapacity && diff > 0 && diff <= 120;
         });
       })
       .map(({ s }) => s.id)
@@ -77,8 +79,8 @@ export function DaySlotsManager() {
   ) as unknown as {
     slots: Slot[];
     isLoading: boolean;
-    updateSlot: { mutateAsync: (data: Partial<Slot> & { id: string }) => Promise<any> };
-    deleteSlot: { mutateAsync: (id: string) => Promise<any> };
+    updateSlot: { mutateAsync: (data: { id: string; date: string; time_slot: string; total_capacity?: number; is_active?: boolean }) => Promise<any> };
+    deleteSlot: { mutateAsync: (data: { date: string; time_slot: string }) => Promise<any> };
     createSlot: { mutateAsync: (data: { date: string; time_slot: string; total_capacity: number }) => Promise<any> };
   };
 
@@ -87,7 +89,6 @@ export function DaySlotsManager() {
     for (const s of slots) {
       (map[s.date] ||= []).push(s);
     }
-    // sort times
     for (const key of Object.keys(map)) {
       map[key] = map[key].sort((a, b) => a.time_slot.localeCompare(b.time_slot));
     }
@@ -100,63 +101,14 @@ export function DaySlotsManager() {
 
   const [newTime, setNewTime] = useState("");
   const [newCap, setNewCap] = useState(3);
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const defaultTimeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
-  const defaultCapacity = 3;
-
-  const generateMonthSlots = async () => {
-    setIsGenerating(true);
-    try {
-      let created = 0;
-      let skipped = 0;
-      
-      for (const day of days) {
-        const dateStr = format(day, "yyyy-MM-dd");
-        const existingSlots = slotsByDate[dateStr] || [];
-        const existingTimes = new Set(existingSlots.map((s) => s.time_slot));
-        
-        for (const time of defaultTimeSlots) {
-          if (!existingTimes.has(time)) {
-            await createSlot.mutateAsync({
-              date: dateStr,
-              time_slot: time,
-              total_capacity: defaultCapacity,
-            });
-            created++;
-          } else {
-            skipped++;
-          }
-        }
-      }
-      
-      toast.success(`Создано ${created} слотов (пропущено ${skipped} существующих)`);
-    } catch (error) {
-      toast.error("Ошибка при генерации слотов");
-      console.error(error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <Card className="lg:col-span-4">
         <CardHeader className="pb-2 space-y-2">
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="w-full" 
-            onClick={generateMonthSlots}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <CalendarPlus className="h-4 w-4 mr-2" />
-            )}
-            {isGenerating ? "Генерация..." : "Добавить слоты на месяц"}
-          </Button>
+          <p className="text-sm text-muted-foreground">
+            Слоты генерируются автоматически по настройкам.
+          </p>
           <div className="flex items-center justify-between">
             <Button variant="ghost" size="icon" onClick={goToPreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
@@ -218,20 +170,22 @@ export function DaySlotsManager() {
           ) : (
             <div className="space-y-4">
               {daySlots.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Нет слотов на этот день</div>
+                <div className="text-sm text-muted-foreground">Нет слотов на этот день (проверьте настройки по умолчанию)</div>
               ) : (
                 <div className="space-y-3">
                   {daySlots.map((slot) => {
                     const isFullyBooked = slot.booked_count >= slot.total_capacity && slot.total_capacity > 0;
                     const isBlocked = blockedSet.has(slot.id);
                     const available = slot.total_capacity - slot.booked_count;
-                    const isClosed = slot.total_capacity === 0;
+                    const isClosed = slot.total_capacity === 0 || !slot.is_active;
+                    const isVirtual = !slot.is_override;
+                    
                     return (
                       <div
                         key={slot.id}
                         className={`p-3 border rounded-lg flex items-center gap-4 ${
                           isFullyBooked ? "bg-destructive/5 border-destructive/20" : ""
-                        } ${isClosed ? "bg-muted/50" : ""}`}
+                        } ${isClosed ? "bg-muted/50" : ""} ${isVirtual ? "bg-muted/30" : ""}`}
                       >
                         <div className="w-20 font-medium">{slot.time_slot}</div>
 
@@ -242,11 +196,13 @@ export function DaySlotsManager() {
                               <span className="ml-1 text-primary">({available} свободно)</span>
                             )}
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            Забронировано: <span className="font-medium">{slot.booked_count}/{slot.total_capacity}</span>
-                          </div>
                         </div>
 
+                        {isVirtual && (
+                          <Badge variant="outline" className="text-xs">
+                            По умолчанию
+                          </Badge>
+                        )}
                         {isFullyBooked && (
                           <Badge variant="destructive" className="text-xs">
                             Полностью забронировано
@@ -279,7 +235,13 @@ export function DaySlotsManager() {
                                 toast.error("Нельзя установить мест меньше уже забронированных");
                                 return;
                               }
-                              await updateSlot.mutateAsync({ id: slot.id, total_capacity: v, is_active: slot.is_active });
+                              await updateSlot.mutateAsync({ 
+                                id: slot.id, 
+                                date: slot.date,
+                                time_slot: slot.time_slot,
+                                total_capacity: v, 
+                                is_active: slot.is_active 
+                              });
                             }}
                           />
                         </div>
@@ -290,25 +252,32 @@ export function DaySlotsManager() {
                             id={`act-${slot.id}`}
                             checked={slot.is_active}
                             onCheckedChange={async (checked) => {
-                              await updateSlot.mutateAsync({ id: slot.id, is_active: checked, total_capacity: slot.total_capacity });
+                              await updateSlot.mutateAsync({ 
+                                id: slot.id, 
+                                date: slot.date,
+                                time_slot: slot.time_slot,
+                                is_active: checked, 
+                                total_capacity: slot.total_capacity 
+                              });
                             }}
                           />
                         </div>
 
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteSlot.mutateAsync(slot.id)}
-                          disabled={slot.booked_count > 0}
-                          title={slot.booked_count > 0 ? "Нельзя удалить слот с записями" : "Удалить слот"}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {slot.is_override && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteSlot.mutateAsync({ date: slot.date, time_slot: slot.time_slot })}
+                            disabled={slot.booked_count > 0}
+                            title={slot.booked_count > 0 ? "Нельзя сбросить слот с записями" : "Сбросить к настройкам по умолчанию"}
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     );
                   })}
                   
-                  {/* Daily Summary */}
                   {daySlots.length > 0 && (
                     <div className="mt-4 p-3 bg-muted/50 rounded border">
                       <div className="text-sm font-semibold">
@@ -322,7 +291,7 @@ export function DaySlotsManager() {
               )}
 
               <div className="pt-2 border-t">
-                <div className="font-medium mb-2">Добавить слот</div>
+                <div className="font-medium mb-2">Добавить нестандартный слот</div>
                 <div className="flex gap-2">
                   <Input
                     type="time"

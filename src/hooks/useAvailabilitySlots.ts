@@ -10,16 +10,13 @@ interface AvailabilitySlot {
   total_capacity: number;
   booked_count: number;
   is_active: boolean;
-}
-
-interface CreateSlotInput {
-  date: string;
-  time_slot: string;
-  total_capacity: number;
+  is_override: boolean;
 }
 
 interface UpdateSlotInput {
   id: string;
+  date: string;
+  time_slot: string;
   total_capacity?: number;
   is_active?: boolean;
 }
@@ -29,68 +26,44 @@ export function useAvailabilitySlots(startDate?: Date, endDate?: Date) {
   const { toast } = useToast();
 
   const slotsQuery = useQuery({
-    queryKey: ["availability-slots", startDate, endDate],
+    queryKey: ["availability-slots", startDate ? format(startDate, "yyyy-MM-dd") : null, endDate ? format(endDate, "yyyy-MM-dd") : null],
     queryFn: async () => {
-      let query = supabase
-        .from("availability_slots" as any)
-        .select("*")
-        .order("date", { ascending: true })
-        .order("time_slot", { ascending: true });
+      if (!startDate || !endDate) return [];
+      
+      const { data, error } = await supabase.rpc('get_slots_for_date_range' as any, {
+        p_start_date: format(startDate, "yyyy-MM-dd"),
+        p_end_date: format(endDate, "yyyy-MM-dd"),
+        p_existing_slot_id: null
+      });
 
-      if (startDate) {
-        query = query.gte("date", format(startDate, "yyyy-MM-dd"));
-      }
-      if (endDate) {
-        query = query.lte("date", format(endDate, "yyyy-MM-dd"));
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return (data || []) as unknown as AvailabilitySlot[];
     },
+    enabled: !!startDate && !!endDate,
   });
 
-  const createSlot = useMutation({
-    mutationFn: async (input: CreateSlotInput) => {
-      const { data, error } = await supabase
-        .from("availability_slots" as any)
-        .insert([input])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
-      toast({
-        title: "Слот создан",
-        description: "Временной слот успешно создан",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Ошибка",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
+  // Update slot using upsert RPC function
   const updateSlot = useMutation({
-    mutationFn: async ({ id, ...updates }: UpdateSlotInput) => {
-      const { data, error } = await supabase
-        .from("availability_slots" as any)
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
+    mutationFn: async ({ id, date, time_slot, total_capacity, is_active }: UpdateSlotInput) => {
+      const { data, error } = await supabase.rpc('upsert_slot_override' as any, {
+        p_date: date,
+        p_time_slot: time_slot,
+        p_total_capacity: total_capacity ?? null,
+        p_is_active: is_active ?? null
+      });
 
       if (error) throw error;
-      return data;
+      
+      const result = data as any;
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to update slot');
+      }
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
       toast({
         title: "Слот обновлен",
         description: "Изменения успешно сохранены",
@@ -105,20 +78,29 @@ export function useAvailabilitySlots(startDate?: Date, endDate?: Date) {
     },
   });
 
+  // Delete slot (reset to default)
   const deleteSlot = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("availability_slots" as any)
-        .delete()
-        .eq("id", id);
+    mutationFn: async ({ date, time_slot }: { date: string; time_slot: string }) => {
+      const { data, error } = await supabase.rpc('reset_slot_to_default' as any, {
+        p_date: date,
+        p_time_slot: time_slot
+      });
 
       if (error) throw error;
+      
+      const result = data as any;
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to reset slot');
+      }
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
       toast({
-        title: "Слот удален",
-        description: "Временной слот успешно удален",
+        title: "Слот сброшен",
+        description: "Слот возвращён к настройкам по умолчанию",
       });
     },
     onError: (error: Error) => {
@@ -130,46 +112,31 @@ export function useAvailabilitySlots(startDate?: Date, endDate?: Date) {
     },
   });
 
-  const generateDefaultSlots = useMutation({
-    mutationFn: async ({ startDate, endDate, capacity = 3 }: { 
-      startDate: Date; 
-      endDate: Date;
-      capacity?: number;
-    }) => {
-      const slots: CreateSlotInput[] = [];
-      const timeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
-      
-      const current = new Date(startDate);
-      while (current <= endDate) {
-        const dateStr = format(current, "yyyy-MM-dd");
-        
-        // Skip weekends (0 = Sunday, 6 = Saturday)
-        if (current.getDay() !== 0 && current.getDay() !== 6) {
-          for (const timeSlot of timeSlots) {
-            slots.push({
-              date: dateStr,
-              time_slot: timeSlot,
-              total_capacity: capacity,
-            });
-          }
-        }
-        
-        current.setDate(current.getDate() + 1);
-      }
-
-      const { data, error } = await supabase
-        .from("availability_slots" as any)
-        .insert(slots)
-        .select();
+  // Create slot override (for custom times not in defaults)
+  const createSlot = useMutation({
+    mutationFn: async ({ date, time_slot, total_capacity }: { date: string; time_slot: string; total_capacity: number }) => {
+      const { data, error } = await supabase.rpc('upsert_slot_override' as any, {
+        p_date: date,
+        p_time_slot: time_slot,
+        p_total_capacity: total_capacity,
+        p_is_active: true
+      });
 
       if (error) throw error;
-      return data;
+      
+      const result = data as any;
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to create slot');
+      }
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
       toast({
-        title: "Слоты созданы",
-        description: "Слоты успешно созданы на выбранный период",
+        title: "Слот создан",
+        description: "Временной слот успешно создан",
       });
     },
     onError: (error: Error) => {
@@ -187,6 +154,5 @@ export function useAvailabilitySlots(startDate?: Date, endDate?: Date) {
     createSlot,
     updateSlot,
     deleteSlot,
-    generateDefaultSlots,
   };
 }
