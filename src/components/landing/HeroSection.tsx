@@ -55,6 +55,11 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 py-20 md:py-32">
+        {/* Logo */}
+        <div className="flex justify-center mb-10 animate-fade-in">
+          <img src={reageLogo} alt="ReAge" className="h-10 md:h-12 w-auto" />
+        </div>
+
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
