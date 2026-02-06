@@ -102,54 +102,99 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
 
       // Book the slot (only if new booking or slot changed)
       if (!existingBookingId || existingSlotId !== selectedSlotId) {
+        // Pass date and time_slot for virtual slots that don't exist yet
         const { data: bookResult } = await supabase.rpc('book_analysis_slot' as any, { 
-          p_slot_id: selectedSlotId 
+          p_slot_id: selectedSlotId,
+          p_date: format(bookingDate, 'yyyy-MM-dd'),
+          p_time_slot: bookingTime
         }) as any;
         
         if (!bookResult?.success) {
           throw new Error(bookResult?.error || 'Слот уже занят. Выберите другое время.');
         }
+        
+        // Use the real slot_id from the booking result
+        const realSlotId = bookResult.slot_id;
+        
+        if (existingBookingId) {
+          // Update existing booking with new slot
+          const { error } = await supabase
+            .from('analysis_bookings')
+            .update({
+              booking_date: format(bookingDate, 'yyyy-MM-dd'),
+              booking_time: bookingTime,
+              address: bookingAddress,
+              slot_id: realSlotId,
+              status: 'scheduled'
+            } as any)
+            .eq('id', existingBookingId);
+
+          if (error) throw error;
+
+          toast({
+            title: "Запись обновлена",
+            description: "Изменения сохранены",
+          });
+        } else {
+          // Create new booking
+          const { error } = await supabase
+            .from('analysis_bookings')
+            .insert({
+              user_id: userId,
+              booking_date: format(bookingDate, 'yyyy-MM-dd'),
+              booking_time: bookingTime,
+              address: bookingAddress,
+              slot_id: realSlotId,
+              status: 'scheduled'
+            } as any);
+
+          if (error) throw error;
+
+          toast({
+            title: "Запись создана",
+            description: "Медсестра приедет к вам в назначенное время",
+          });
+        }
+        
+        // Invalidate queries to refresh views
+        await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["patient-info", userId] });
+        await queryClient.invalidateQueries({ queryKey: ["scheduledBookingsCount"] });
+        await queryClient.invalidateQueries({ queryKey: ["patient-available-slots"] });
+        await queryClient.invalidateQueries({ queryKey: ["availability-slots"] });
+        
+        // Reset form and close dialog
+        setBookingDate(undefined);
+        setBookingTime("");
+        setSelectedSlotId("");
+        setBookingAddress("");
+        setExistingBookingId(null);
+        setExistingSlotId(null);
+        onOpenChange(false);
+        
+        // Call success callback to refresh banner
+        onSuccess?.();
+        return;
       }
 
-      if (existingBookingId) {
-        // Update existing booking
-        const { error } = await supabase
-          .from('analysis_bookings')
-          .update({
-            booking_date: format(bookingDate, 'yyyy-MM-dd'),
-            booking_time: bookingTime,
-            address: bookingAddress,
-            slot_id: selectedSlotId,
-            status: 'scheduled'
-          } as any)
-          .eq('id', existingBookingId);
+      // This block handles when the slot didn't change (only address update)
+      // Update existing booking with same slot
+      const { error } = await supabase
+        .from('analysis_bookings')
+        .update({
+          booking_date: format(bookingDate, 'yyyy-MM-dd'),
+          booking_time: bookingTime,
+          address: bookingAddress,
+          status: 'scheduled'
+        } as any)
+        .eq('id', existingBookingId);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Запись обновлена",
-          description: "Изменения сохранены",
-        });
-      } else {
-        // Create new booking
-        const { error } = await supabase
-          .from('analysis_bookings')
-          .insert({
-            user_id: userId,
-            booking_date: format(bookingDate, 'yyyy-MM-dd'),
-            booking_time: bookingTime,
-            address: bookingAddress,
-            slot_id: selectedSlotId,
-            status: 'scheduled'
-          } as any);
-
-        if (error) throw error;
-
-        toast({
-          title: "Запись создана",
-          description: "Медсестра приедет к вам в назначенное время",
-        });
-      }
+      toast({
+        title: "Запись обновлена",
+        description: "Изменения сохранены",
+      });
 
       // Invalidate queries to refresh views
       await queryClient.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });

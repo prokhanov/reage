@@ -9,6 +9,7 @@ interface AvailabilitySlot {
   total_capacity: number;
   booked_count: number;
   is_active: boolean;
+  is_override: boolean;
 }
 
 export function usePatientSlots(existingSlotId?: string | null) {
@@ -17,16 +18,13 @@ export function usePatientSlots(existingSlotId?: string | null) {
   const endDate = endOfMonth(addMonths(new Date(), 1));
 
   const { data: slots = [], isLoading } = useQuery({
-    queryKey: ["patient-available-slots", startDate, endDate],
+    queryKey: ["patient-available-slots", format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), existingSlotId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("availability_slots" as any)
-        .select("*")
-        .gte("date", format(startDate, "yyyy-MM-dd"))
-        .lte("date", format(endDate, "yyyy-MM-dd"))
-        .eq("is_active", true)
-        .order("date", { ascending: true })
-        .order("time_slot", { ascending: true });
+      const { data, error } = await supabase.rpc('get_slots_for_date_range' as any, {
+        p_start_date: format(startDate, "yyyy-MM-dd"),
+        p_end_date: format(endDate, "yyyy-MM-dd"),
+        p_existing_slot_id: existingSlotId || null
+      });
 
       if (error) throw error;
       return (data || []) as unknown as AvailabilitySlot[];
@@ -35,14 +33,19 @@ export function usePatientSlots(existingSlotId?: string | null) {
 
   // Filter slots considering capacity and 2-hour blocking rule
   const availableSlots = slots.filter(slot => {
+    // Skip inactive slots
+    if (!slot.is_active) return false;
+    
     // First check if slot has available capacity
-    if (slot.booked_count >= slot.total_capacity) return false;
+    // Allow re-selecting own slot even if full
+    const isOwnSlot = existingSlotId && slot.id === existingSlotId;
+    if (slot.booked_count >= slot.total_capacity && !isOwnSlot) return false;
     
     // Check if there's a fully booked slot within 2 hours before this slot
     const currentTime = parseTimeSlot(slot.time_slot);
     if (!currentTime) return true;
     
-    const slotsOnSameDate = slots.filter(s => s.date === slot.date);
+    const slotsOnSameDate = slots.filter(s => s.date === slot.date && s.is_active);
     
     for (const otherSlot of slotsOnSameDate) {
       // Skip if not fully booked
@@ -53,7 +56,7 @@ export function usePatientSlots(existingSlotId?: string | null) {
       
       // Skip if this is the user's existing booking slot
       // (when they move their booking, this slot will free up)
-      if (otherSlot.id === existingSlotId) continue;
+      if (existingSlotId && otherSlot.id === existingSlotId) continue;
       
       const otherTime = parseTimeSlot(otherSlot.time_slot);
       if (!otherTime) continue;
@@ -94,13 +97,14 @@ export function usePatientSlots(existingSlotId?: string | null) {
     const availableSlotIds = new Set(availableSlots.map(s => s.id));
     
     return slots
-      .filter(slot => slot.date === dateStr)
+      .filter(slot => slot.date === dateStr && slot.is_active)
       .map(slot => ({
         time: slot.time_slot,
         slotId: slot.id,
         available: slot.total_capacity - slot.booked_count,
         total: slot.total_capacity,
-        isAvailable: availableSlotIds.has(slot.id) || slot.id === existingSlotId,
+        isAvailable: availableSlotIds.has(slot.id) || (existingSlotId && slot.id === existingSlotId),
+        isOverride: slot.is_override,
       }));
   };
 

@@ -469,6 +469,36 @@ export type Database = {
         }
         Relationships: []
       }
+      default_slot_settings: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          id: string
+          is_active: boolean
+          time_slot: string
+          total_capacity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          id?: string
+          is_active?: boolean
+          time_slot: string
+          total_capacity?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          is_active?: boolean
+          time_slot?: string
+          total_capacity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       demo_data_templates: {
         Row: {
           created_at: string | null
@@ -1358,7 +1388,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      book_analysis_slot: { Args: { p_slot_id: string }; Returns: Json }
+      book_analysis_slot:
+        | { Args: { p_slot_id: string }; Returns: Json }
+        | {
+            Args: { p_date?: string; p_slot_id?: string; p_time_slot?: string }
+            Returns: Json
+          }
       cancel_booking: { Args: { p_slot_id: string }; Returns: Json }
       check_user_data_deleted: {
         Args: { check_user_id: string }
@@ -1372,6 +1407,22 @@ export type Database = {
         Returns: {
           deleted_count: number
           table_name: string
+        }[]
+      }
+      get_slots_for_date_range: {
+        Args: {
+          p_end_date: string
+          p_existing_slot_id?: string
+          p_start_date: string
+        }
+        Returns: {
+          booked_count: number
+          date: string
+          id: string
+          is_active: boolean
+          is_override: boolean
+          time_slot: string
+          total_capacity: number
         }[]
       }
       has_admin_permission: {
@@ -1389,6 +1440,19 @@ export type Database = {
         Returns: boolean
       }
       is_patient: { Args: { _user_id: string }; Returns: boolean }
+      reset_slot_to_default: {
+        Args: { p_date: string; p_time_slot: string }
+        Returns: Json
+      }
+      upsert_slot_override: {
+        Args: {
+          p_date: string
+          p_is_active?: boolean
+          p_time_slot: string
+          p_total_capacity?: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       admin_module:

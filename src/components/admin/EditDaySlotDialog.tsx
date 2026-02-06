@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,17 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Trash2 } from "lucide-react";
+import { Trash2, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
+import { Badge } from "@/components/ui/badge";
 
 interface Slot {
   id: string;
+  date: string;
   time_slot: string;
   total_capacity: number;
   booked_count: number;
   is_active: boolean;
+  is_override?: boolean;
 }
 
 interface EditDaySlotDialogProps {
@@ -36,15 +39,20 @@ export function EditDaySlotDialog({
   date,
   slots,
 }: EditDaySlotDialogProps) {
+  const dateStr = format(date, "yyyy-MM-dd");
+  
   const [editedSlots, setEditedSlots] = useState<Record<string, { capacity: number; active: boolean }>>(
-    () => {
-      const initial: Record<string, { capacity: number; active: boolean }> = {};
-      slots.forEach(slot => {
-        initial[slot.id] = { capacity: slot.total_capacity, active: slot.is_active };
-      });
-      return initial;
-    }
+    {}
   );
+
+  // Reset edited slots when slots change
+  useEffect(() => {
+    const initial: Record<string, { capacity: number; active: boolean }> = {};
+    slots.forEach(slot => {
+      initial[slot.id] = { capacity: slot.total_capacity, active: slot.is_active };
+    });
+    setEditedSlots(initial);
+  }, [slots]);
 
   const { updateSlot, deleteSlot, createSlot } = useAvailabilitySlots();
   const [newTimeSlot, setNewTimeSlot] = useState("");
@@ -53,9 +61,11 @@ export function EditDaySlotDialog({
   const handleSave = async () => {
     const promises = slots.map(slot => {
       const edited = editedSlots[slot.id];
-      if (edited.capacity !== slot.total_capacity || edited.active !== slot.is_active) {
+      if (edited && (edited.capacity !== slot.total_capacity || edited.active !== slot.is_active)) {
         return updateSlot.mutateAsync({
           id: slot.id,
+          date: slot.date,
+          time_slot: slot.time_slot,
           total_capacity: edited.capacity,
           is_active: edited.active,
         });
@@ -67,15 +77,15 @@ export function EditDaySlotDialog({
     onOpenChange(false);
   };
 
-  const handleDelete = async (slotId: string) => {
-    await deleteSlot.mutateAsync(slotId);
+  const handleResetToDefault = async (slot: Slot) => {
+    await deleteSlot.mutateAsync({ date: slot.date, time_slot: slot.time_slot });
   };
 
   const handleAddSlot = async () => {
     if (!newTimeSlot) return;
 
     await createSlot.mutateAsync({
-      date: format(date, "yyyy-MM-dd"),
+      date: dateStr,
       time_slot: newTimeSlot,
       total_capacity: newCapacity,
     });
@@ -94,7 +104,7 @@ export function EditDaySlotDialog({
             Управление слотами на {format(date, "d MMMM yyyy", { locale: ru })}
           </DialogTitle>
           <DialogDescription>
-            Измените количество мест или активность слотов
+            Измените количество мест или активность слотов. Виртуальные слоты (без изменений) доступны автоматически.
           </DialogDescription>
         </DialogHeader>
 
@@ -102,12 +112,18 @@ export function EditDaySlotDialog({
           {sortedSlots.map(slot => {
             const isFullyBooked = slot.booked_count >= slot.total_capacity;
             const availableCount = slot.total_capacity - slot.booked_count;
+            const isVirtual = !slot.is_override;
             
             return (
-              <div key={slot.id} className={`flex items-center gap-4 p-3 border rounded-lg ${isFullyBooked ? 'bg-destructive/5 border-destructive/20' : ''}`}>
+              <div key={slot.id} className={`flex items-center gap-4 p-3 border rounded-lg ${isFullyBooked ? 'bg-destructive/5 border-destructive/20' : ''} ${isVirtual ? 'bg-muted/30' : ''}`}>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <div className="font-medium">{slot.time_slot}</div>
+                    {isVirtual && (
+                      <Badge variant="outline" className="text-xs">
+                        По умолчанию
+                      </Badge>
+                    )}
                     {isFullyBooked && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
                         Полностью забронировано
@@ -158,15 +174,17 @@ export function EditDaySlotDialog({
                 />
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(slot.id)}
-                disabled={slot.booked_count > 0}
-                title={slot.booked_count > 0 ? "Нельзя удалить слот с записями" : "Удалить слот"}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {slot.is_override && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleResetToDefault(slot)}
+                  disabled={slot.booked_count > 0}
+                  title={slot.booked_count > 0 ? "Нельзя сбросить слот с записями" : "Сбросить к настройкам по умолчанию"}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              )}
               </div>
             );
           })}

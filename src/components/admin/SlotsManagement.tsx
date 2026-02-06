@@ -6,30 +6,18 @@ import { ru } from "date-fns/locale";
 import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
 import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
 import { EditDaySlotDialog } from "./EditDaySlotDialog";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export function SlotsManagement() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
-  const [generateCapacity, setGenerateCapacity] = useState(3);
 
   const startDate = startOfMonth(currentMonth);
   const endDate = endOfMonth(currentMonth);
 
-  const { slots, isLoading, generateDefaultSlots } = useAvailabilitySlots(startDate, endDate);
+  const { slots, isLoading } = useAvailabilitySlots(startDate, endDate);
 
   // Group slots by date
   const slotsByDate = slots.reduce((acc, slot) => {
@@ -45,15 +33,6 @@ export function SlotsManagement() {
       setSelectedDate(date);
       setShowEditDialog(true);
     }
-  };
-
-  const handleGenerateSlots = async () => {
-    await generateDefaultSlots.mutateAsync({
-      startDate,
-      endDate,
-      capacity: generateCapacity,
-    });
-    setShowGenerateDialog(false);
   };
 
   const getDateInfo = (date: Date) => {
@@ -89,42 +68,9 @@ export function SlotsManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Календарь доступности</CardTitle>
-            <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Сгенерировать слоты
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Генерация слотов</DialogTitle>
-                  <DialogDescription>
-                    Создать слоты с 09:00 до 17:00 на весь текущий месяц (кроме выходных)
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="capacity">Количество мест на слот</Label>
-                    <Input
-                      id="capacity"
-                      type="number"
-                      min="1"
-                      value={generateCapacity}
-                      onChange={(e) => setGenerateCapacity(parseInt(e.target.value) || 1)}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setShowGenerateDialog(false)}>
-                      Отмена
-                    </Button>
-                    <Button onClick={handleGenerateSlots}>
-                      Создать слоты
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <p className="text-sm text-muted-foreground">
+              Слоты генерируются автоматически. Кликните на дату для настройки.
+            </p>
           </div>
         </CardHeader>
         <CardContent>
