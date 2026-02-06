@@ -1,4 +1,4 @@
-import { ArrowRight, Mail, Phone, MessageCircle } from "lucide-react";
+import { ArrowRight, Mail, Phone, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -48,10 +48,11 @@ export function CTASection() {
                   <Button 
                     size="lg"
                     variant="outline"
-                    onClick={() => navigate("/auth")}
-                    className="text-lg px-10 py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5"
+                    onClick={() => navigate("/register")}
+                    className="text-lg px-10 py-6 border-accent/50 hover:border-accent hover:bg-accent/10 group"
                   >
-                    Войти в аккаунт
+                    <Sparkles className="mr-2 w-5 h-5 text-accent" />
+                    Посмотреть демо-аккаунт
                   </Button>
                 </div>
                 

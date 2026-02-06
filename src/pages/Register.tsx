@@ -210,7 +210,11 @@ export default function Register() {
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
-            <p className="text-muted-foreground text-lg">Начните ваше путешествие к здоровью</p>
+            <p className="text-muted-foreground text-lg mb-3">Начните ваше путешествие к здоровью</p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Создание аккаунта — это бесплатно</span>
+            </div>
           </div>
 
           {/* Progress */}
