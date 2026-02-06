@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, compareAsc } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, compareAsc, addMonths, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, AlertTriangle, Plus } from "lucide-react";
+import { Trash2, AlertTriangle, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
 import { toast } from "sonner";
 
@@ -46,8 +46,22 @@ function computeBlockedByTwoHours(slots: Slot[]) {
 }
 
 export function DaySlotsManager() {
-  const [currentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  const goToPreviousMonth = () => {
+    setCurrentMonth((prev) => subMonths(prev, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentMonth((prev) => addMonths(prev, 1));
+  };
+
+  const goToToday = () => {
+    const today = new Date();
+    setCurrentMonth(today);
+    setSelectedDate(today);
+  };
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -90,8 +104,21 @@ export function DaySlotsManager() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <Card className="lg:col-span-4">
-        <CardHeader>
-          <div className="font-semibold">Дни месяца</div>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="icon" onClick={goToPreviousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="font-semibold text-center">
+              {format(currentMonth, "LLLL yyyy", { locale: ru })}
+            </div>
+            <Button variant="ghost" size="icon" onClick={goToNextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button variant="outline" size="sm" className="w-full mt-2" onClick={goToToday}>
+            Сегодня
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="max-h-[70vh] overflow-y-auto space-y-1">
