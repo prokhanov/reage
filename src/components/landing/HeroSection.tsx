@@ -24,6 +24,7 @@ export function HeroSection() {
       {/* Theme Toggle */}
       {mounted && (
         <button
+          type="button"
           onClick={() => setTheme(isDark ? "light" : "dark")}
           className="fixed top-4 right-4 z-50 p-3 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
           aria-label={isDark ? "Светлая тема" : "Тёмная тема"}

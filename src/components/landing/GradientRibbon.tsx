@@ -9,8 +9,8 @@ export function GradientRibbon() {
 
     let offset = 0;
     const animate = () => {
-      offset += 0.15;
-      ribbon.style.transform = `translateY(${Math.sin(offset * 0.02) * 8}px)`;
+      offset += 0.08;
+      ribbon.style.transform = `translateY(${Math.sin(offset * 0.015) * 12}px)`;
       requestAnimationFrame(animate);
     };
     
@@ -18,122 +18,192 @@ export function GradientRibbon() {
     return () => cancelAnimationFrame(animationId);
   }, []);
 
+  // Ribbon width (height of the tube)
+  const ribbonWidth = 80;
+
+  // Main center path - S-curve through the middle
+  const centerPath = `
+    M -100 700
+    C 200 650, 400 450, 600 400
+    S 900 250, 1100 300
+    S 1400 450, 1600 400
+    S 1900 250, 2100 300
+  `;
+
+  // Calculate offset paths for top and bottom edges
+  const topPath = `
+    M -100 ${700 - ribbonWidth}
+    C 200 ${650 - ribbonWidth}, 400 ${450 - ribbonWidth}, 600 ${400 - ribbonWidth}
+    S 900 ${250 - ribbonWidth}, 1100 ${300 - ribbonWidth}
+    S 1400 ${450 - ribbonWidth}, 1600 ${400 - ribbonWidth}
+    S 1900 ${250 - ribbonWidth}, 2100 ${300 - ribbonWidth}
+  `;
+
+  const bottomPath = `
+    M -100 ${700 + ribbonWidth}
+    C 200 ${650 + ribbonWidth}, 400 ${450 + ribbonWidth}, 600 ${400 + ribbonWidth}
+    S 900 ${250 + ribbonWidth}, 1100 ${300 + ribbonWidth}
+    S 1400 ${450 + ribbonWidth}, 1600 ${400 + ribbonWidth}
+    S 1900 ${250 + ribbonWidth}, 2100 ${300 + ribbonWidth}
+  `;
+
+  // Closed ribbon body path
+  const ribbonBodyPath = `
+    M -100 ${700 - ribbonWidth}
+    C 200 ${650 - ribbonWidth}, 400 ${450 - ribbonWidth}, 600 ${400 - ribbonWidth}
+    S 900 ${250 - ribbonWidth}, 1100 ${300 - ribbonWidth}
+    S 1400 ${450 - ribbonWidth}, 1600 ${400 - ribbonWidth}
+    S 1900 ${250 - ribbonWidth}, 2100 ${300 - ribbonWidth}
+    L 2100 ${300 + ribbonWidth}
+    C 1900 ${250 + ribbonWidth}, 1600 ${400 + ribbonWidth}, 1400 ${450 + ribbonWidth}
+    S 1100 ${300 + ribbonWidth}, 900 ${250 + ribbonWidth}
+    S 600 ${400 + ribbonWidth}, 400 ${450 + ribbonWidth}
+    S 200 ${650 + ribbonWidth}, -100 ${700 + ribbonWidth}
+    Z
+  `;
+
+  // Highlight path (top third of ribbon)
+  const highlightPath = `
+    M -100 ${700 - ribbonWidth}
+    C 200 ${650 - ribbonWidth}, 400 ${450 - ribbonWidth}, 600 ${400 - ribbonWidth}
+    S 900 ${250 - ribbonWidth}, 1100 ${300 - ribbonWidth}
+    S 1400 ${450 - ribbonWidth}, 1600 ${400 - ribbonWidth}
+    S 1900 ${250 - ribbonWidth}, 2100 ${300 - ribbonWidth}
+    L 2100 ${300 - ribbonWidth + 35}
+    C 1900 ${250 - ribbonWidth + 35}, 1600 ${400 - ribbonWidth + 35}, 1400 ${450 - ribbonWidth + 35}
+    S 1100 ${300 - ribbonWidth + 35}, 900 ${250 - ribbonWidth + 35}
+    S 600 ${400 - ribbonWidth + 35}, 400 ${450 - ribbonWidth + 35}
+    S 200 ${650 - ribbonWidth + 35}, -100 ${700 - ribbonWidth + 35}
+    Z
+  `;
+
+  // Shadow path (bottom third)
+  const shadowPath = `
+    M -100 ${700 + ribbonWidth - 35}
+    C 200 ${650 + ribbonWidth - 35}, 400 ${450 + ribbonWidth - 35}, 600 ${400 + ribbonWidth - 35}
+    S 900 ${250 + ribbonWidth - 35}, 1100 ${300 + ribbonWidth - 35}
+    S 1400 ${450 + ribbonWidth - 35}, 1600 ${400 + ribbonWidth - 35}
+    S 1900 ${250 + ribbonWidth - 35}, 2100 ${300 + ribbonWidth - 35}
+    L 2100 ${300 + ribbonWidth}
+    C 1900 ${250 + ribbonWidth}, 1600 ${400 + ribbonWidth}, 1400 ${450 + ribbonWidth}
+    S 1100 ${300 + ribbonWidth}, 900 ${250 + ribbonWidth}
+    S 600 ${400 + ribbonWidth}, 400 ${450 + ribbonWidth}
+    S 200 ${650 + ribbonWidth}, -100 ${700 + ribbonWidth}
+    Z
+  `;
+
+  // Shine line path (very thin bright line near top)
+  const shinePath = `
+    M -100 ${700 - ribbonWidth + 12}
+    C 200 ${650 - ribbonWidth + 12}, 400 ${450 - ribbonWidth + 12}, 600 ${400 - ribbonWidth + 12}
+    S 900 ${250 - ribbonWidth + 12}, 1100 ${300 - ribbonWidth + 12}
+    S 1400 ${450 - ribbonWidth + 12}, 1600 ${400 - ribbonWidth + 12}
+    S 1900 ${250 - ribbonWidth + 12}, 2100 ${300 - ribbonWidth + 12}
+  `;
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 1 }}>
       <svg
         viewBox="0 0 1920 1080"
-        className="absolute w-[250%] h-[180%] -left-[50%] -top-[40%] md:w-[180%] md:h-[140%] md:-left-[20%] md:-top-[20%]"
+        className="absolute w-[200%] h-[150%] -left-[25%] -top-[25%] md:w-[140%] md:h-[120%] md:-left-[10%] md:-top-[10%]"
         preserveAspectRatio="xMidYMid slice"
       >
         <defs>
-          {/* Main gradient - vibrant pink to purple */}
-          <linearGradient id="ribbonMain" x1="0%" y1="100%" x2="100%" y2="0%">
+          {/* Main horizontal gradient along the ribbon */}
+          <linearGradient id="ribbonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#ff1493" />
-            <stop offset="25%" stopColor="#ff69b4" />
-            <stop offset="50%" stopColor="#da70d6" />
-            <stop offset="75%" stopColor="#9370db" />
-            <stop offset="100%" stopColor="#8a2be2" />
-          </linearGradient>
-          
-          {/* Lighter edge gradient for 3D effect */}
-          <linearGradient id="ribbonLight" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.7" />
-            <stop offset="30%" stopColor="#ffb6c1" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#ff69b4" stopOpacity="0" />
-          </linearGradient>
-          
-          {/* Darker edge gradient for depth */}
-          <linearGradient id="ribbonDark" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor="#4b0082" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#8b008b" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#da70d6" stopOpacity="0" />
+            <stop offset="20%" stopColor="#ff69b4" />
+            <stop offset="40%" stopColor="#da70d6" />
+            <stop offset="60%" stopColor="#9370db" />
+            <stop offset="80%" stopColor="#8a2be2" />
+            <stop offset="100%" stopColor="#6366f1" />
           </linearGradient>
 
-          {/* Glow filter */}
-          <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="30" result="coloredBlur" />
+          {/* Vertical gradient for 3D cylindrical effect - applied to main body */}
+          <linearGradient id="cylinderShading" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
+            <stop offset="25%" stopColor="rgba(255,255,255,0.1)" />
+            <stop offset="50%" stopColor="rgba(0,0,0,0)" />
+            <stop offset="75%" stopColor="rgba(0,0,0,0.15)" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+          </linearGradient>
+
+          {/* Highlight gradient for top edge */}
+          <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.7)" />
+            <stop offset="50%" stopColor="rgba(255,192,203,0.4)" />
+            <stop offset="100%" stopColor="rgba(255,105,180,0)" />
+          </linearGradient>
+
+          {/* Shadow gradient for bottom edge */}
+          <linearGradient id="shadowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(75,0,130,0)" />
+            <stop offset="50%" stopColor="rgba(75,0,130,0.3)" />
+            <stop offset="100%" stopColor="rgba(30,0,50,0.6)" />
+          </linearGradient>
+
+          {/* Glow filter for ambient light */}
+          <filter id="glowFilter" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="40" result="blur" />
+            <feComposite in="blur" in2="SourceGraphic" operator="over" />
+          </filter>
+
+          {/* Soft outer glow */}
+          <filter id="outerGlow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="50" result="coloredBlur" />
             <feMerge>
               <feMergeNode in="coloredBlur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          
-          {/* Soft shadow */}
-          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="20" stdDeviation="40" floodColor="#ff1493" floodOpacity="0.4" />
+
+          {/* Drop shadow for depth */}
+          <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="30" stdDeviation="50" floodColor="#ff1493" floodOpacity="0.35" />
           </filter>
         </defs>
         
         <g ref={ribbonRef}>
-          {/* Background glow - large and diffuse */}
+          {/* Layer 1: Diffuse glow behind the ribbon */}
           <path
-            d="M -200 950 
-               C 100 900, 300 800, 500 700 
-               S 800 550, 1000 500 
-               S 1300 400, 1500 380 
-               S 1800 300, 2100 200"
-            fill="none"
-            stroke="url(#ribbonMain)"
-            strokeWidth="200"
-            strokeLinecap="round"
-            opacity="0.25"
-            filter="url(#glow)"
+            d={ribbonBodyPath}
+            fill="url(#ribbonGradient)"
+            opacity="0.3"
+            filter="url(#glowFilter)"
           />
-          
-          {/* Main ribbon body - thick and bold */}
+
+          {/* Layer 2: Main ribbon body with gradient */}
           <path
-            d="M -200 950 
-               C 100 900, 300 800, 500 700 
-               S 800 550, 1000 500 
-               S 1300 400, 1500 380 
-               S 1800 300, 2100 200"
-            fill="none"
-            stroke="url(#ribbonMain)"
-            strokeWidth="120"
-            strokeLinecap="round"
-            filter="url(#shadow)"
+            d={ribbonBodyPath}
+            fill="url(#ribbonGradient)"
+            filter="url(#dropShadow)"
           />
-          
-          {/* Top highlight - for 3D volume */}
+
+          {/* Layer 3: Cylindrical shading overlay for 3D depth */}
           <path
-            d="M -200 920 
-               C 100 870, 300 770, 500 670 
-               S 800 520, 1000 470 
-               S 1300 370, 1500 350 
-               S 1800 270, 2100 170"
-            fill="none"
-            stroke="url(#ribbonLight)"
-            strokeWidth="60"
-            strokeLinecap="round"
-            opacity="0.9"
+            d={ribbonBodyPath}
+            fill="url(#cylinderShading)"
           />
-          
-          {/* Bottom shadow edge - for depth */}
+
+          {/* Layer 4: Top highlight for glossy effect */}
           <path
-            d="M -200 980 
-               C 100 930, 300 830, 500 730 
-               S 800 580, 1000 530 
-               S 1300 430, 1500 410 
-               S 1800 330, 2100 230"
-            fill="none"
-            stroke="url(#ribbonDark)"
-            strokeWidth="50"
-            strokeLinecap="round"
-            opacity="0.7"
+            d={highlightPath}
+            fill="url(#highlightGradient)"
           />
-          
-          {/* Inner shine line - bright accent */}
+
+          {/* Layer 5: Bottom shadow for depth */}
           <path
-            d="M -200 910 
-               C 100 860, 300 760, 500 660 
-               S 800 510, 1000 460 
-               S 1300 360, 1500 340 
-               S 1800 260, 2100 160"
+            d={shadowPath}
+            fill="url(#shadowGradient)"
+          />
+
+          {/* Layer 6: Thin shine line at the top */}
+          <path
+            d={shinePath}
             fill="none"
-            stroke="white"
-            strokeWidth="8"
+            stroke="rgba(255,255,255,0.6)"
+            strokeWidth="3"
             strokeLinecap="round"
-            opacity="0.5"
           />
         </g>
       </svg>
