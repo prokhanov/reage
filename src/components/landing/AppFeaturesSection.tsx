@@ -201,16 +201,16 @@ export function AppFeaturesSection() {
         {/* Section header */}
         <div className="text-center mb-16 animate-fade-in">
           <Badge variant="outline" className="mb-4 px-4 py-1.5">
-            📱 Приложение
+            📱 Полные дашборды
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Всё в одном приложении —{" "}
+            Результат{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              полный контроль
+              в ваших руках
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            8 разделов для управления вашим здоровьем — от анализов до AI-ассистента
+            8 разделов для полного контроля — от оцифровки до персональных рекомендаций
           </p>
         </div>
 

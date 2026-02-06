@@ -67,16 +67,16 @@ export function ReportShowcaseSection() {
         <div className="text-center mb-16 animate-fade-in">
           <Badge className="mb-4 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm">
             <Sparkles className="w-4 h-4 mr-2 inline" />
-            Главный продукт
+            Полная оцифровка
           </Badge>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            Ваш{" "}
+            Не просто PDF —{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              персональный отчёт
+              ваша карта здоровья
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            20+ страниц глубокого анализа вашего здоровья, подготовленного AI и проверенного врачом
+            Полные дашборды по здоровью. 20+ страниц, где каждая цифра объяснена и превращена в действие
           </p>
         </div>
 

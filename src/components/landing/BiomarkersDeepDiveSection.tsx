@@ -229,18 +229,18 @@ export function BiomarkersDeepDiveSection() {
         {/* Section header */}
         <div className="text-center mb-16 animate-fade-in">
           <Badge variant="outline" className="mb-4 px-4 py-1.5">
-            🔬 Научный подход
+            🔬 Полная оцифровка
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Что мы{" "}
+            Оцифровка{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              измеряем
+              организма
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            50+ биомаркеров, сгруппированных в{" "}
+            50+ биомаркеров → {" "}
             <span className="text-foreground font-medium">5 систем организма</span>
-            — от энергии до гормонов
+            {" "}→ полная карта вашего здоровья
           </p>
         </div>
 
@@ -319,16 +319,16 @@ export function BiomarkersDeepDiveSection() {
         <div className="relative">
           <div className="text-center mb-12 animate-fade-in">
             <Badge variant="outline" className="mb-4 px-4 py-1.5">
-              ✨ Что входит в сервис
+              ✨ Полные дашборды по здоровью
             </Badge>
             <h3 className="text-3xl md:text-4xl font-bold mb-4">
-              Полная картина{" "}
+              Всё под{" "}
               <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-                вашего здоровья
+                контролем
               </span>
             </h3>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Каждый анализ включает комплексную оценку и конкретные рекомендации
+              Не нужно бояться цифр — нужно их использовать для принятия решений
             </p>
           </div>
 

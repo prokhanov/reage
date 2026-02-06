@@ -139,18 +139,18 @@ export function PainPointsSection() {
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 border border-destructive/20 mb-6 animate-fade-in">
             <AlertTriangle className="w-4 h-4 text-destructive" />
-            <span className="text-sm font-medium text-destructive">Знакомо?</span>
+            <span className="text-sm font-medium text-destructive">Ничего не менять — тоже выбор</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">3 правды, которые </span>
+            <span className="text-foreground">Решения не обязательны. </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              неприятно слышать
+              Последствия — да.
             </span>
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Почему стандартный подход к анализам не работает — и как мы это решаем
+            Вы можете продолжать не замечать — но организм ведёт счёт
           </p>
         </div>
 
