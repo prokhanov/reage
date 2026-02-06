@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ParticleBackground } from "@/components/ParticleBackground";
+import { HeroShowcase } from "@/components/landing/HeroShowcase";
 import { ArrowRight, Sparkles, Activity, TrendingUp, Brain, Calendar, Moon, Sun } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
@@ -118,11 +119,11 @@ export function HeroSection() {
               label="отслеживание трендов"
             />
           </div>
+
+          {/* Hero Showcase */}
+          <HeroShowcase />
         </div>
       </div>
-
-      {/* Bottom Gradient Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </section>
   );
 }
