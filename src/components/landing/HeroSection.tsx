@@ -59,14 +59,41 @@ export function HeroSection() {
             </span>
           </h1>
 
-          {/* Subheading */}
-          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
-          animationDelay: '0.2s'
-        }}>
-            50 биомаркеров → биологический возраст → тренды по системам → AI-рекомендации.
-            <span className="hidden sm:inline"><br /></span>
-            Медсестра приедет к вам. Результат за 5 дней.
-          </p>
+          {/* Value Chain */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            {/* Step Flow */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-5">
+              {[
+                { icon: <Activity className="w-4 h-4" />, text: "50 биомаркеров" },
+                { icon: <TrendingUp className="w-4 h-4" />, text: "Биовозраст" },
+                { icon: <Brain className="w-4 h-4" />, text: "Тренды по системам" },
+                { icon: <Sparkles className="w-4 h-4" />, text: "AI-рекомендации" },
+              ].map((step, i, arr) => (
+                <span key={i} className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary backdrop-blur-sm">
+                    {step.icon}
+                    {step.text}
+                  </span>
+                  {i < arr.length - 1 && (
+                    <ArrowRight className="w-4 h-4 text-primary/40 hidden sm:block" />
+                  )}
+                </span>
+              ))}
+            </div>
+
+            {/* Bottom accent line */}
+            <div className="flex items-center justify-center gap-6 text-muted-foreground">
+              <span className="flex items-center gap-2 text-sm sm:text-base">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                Медсестра приедет к вам
+              </span>
+              <span className="w-px h-4 bg-border" />
+              <span className="flex items-center gap-2 text-sm sm:text-base">
+                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" style={{ animationDelay: '0.5s' }} />
+                Результат за 5 дней
+              </span>
+            </div>
+          </div>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in" style={{
