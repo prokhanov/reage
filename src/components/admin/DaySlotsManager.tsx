@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, AlertTriangle, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, AlertTriangle, Plus, ChevronLeft, ChevronRight, CalendarPlus, Loader2 } from "lucide-react";
 import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
 import { toast } from "sonner";
 
@@ -100,11 +100,63 @@ export function DaySlotsManager() {
 
   const [newTime, setNewTime] = useState("");
   const [newCap, setNewCap] = useState(3);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const defaultTimeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+  const defaultCapacity = 3;
+
+  const generateMonthSlots = async () => {
+    setIsGenerating(true);
+    try {
+      let created = 0;
+      let skipped = 0;
+      
+      for (const day of days) {
+        const dateStr = format(day, "yyyy-MM-dd");
+        const existingSlots = slotsByDate[dateStr] || [];
+        const existingTimes = new Set(existingSlots.map((s) => s.time_slot));
+        
+        for (const time of defaultTimeSlots) {
+          if (!existingTimes.has(time)) {
+            await createSlot.mutateAsync({
+              date: dateStr,
+              time_slot: time,
+              total_capacity: defaultCapacity,
+            });
+            created++;
+          } else {
+            skipped++;
+          }
+        }
+      }
+      
+      toast.success(`Создано ${created} слотов (пропущено ${skipped} существующих)`);
+    } catch (error) {
+      toast.error("Ошибка при генерации слотов");
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <Card className="lg:col-span-4">
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 space-y-2">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="w-full" 
+            onClick={generateMonthSlots}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <CalendarPlus className="h-4 w-4 mr-2" />
+            )}
+            {isGenerating ? "Генерация..." : "Добавить слоты на месяц"}
+          </Button>
           <div className="flex items-center justify-between">
             <Button variant="ghost" size="icon" onClick={goToPreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
@@ -116,7 +168,7 @@ export function DaySlotsManager() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <Button variant="outline" size="sm" className="w-full mt-2" onClick={goToToday}>
+          <Button variant="outline" size="sm" className="w-full" onClick={goToToday}>
             Сегодня
           </Button>
         </CardHeader>
