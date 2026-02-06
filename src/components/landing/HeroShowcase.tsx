@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, Zap, Shield, Clock, Target } from "lucide-react";
 
 type Section = "dashboard" | "biomarkers" | "trends" | "recommendations" | "assistant" | "profile";
 
@@ -12,10 +12,20 @@ const sections: { id: Section; label: string; icon: React.ReactNode }[] = [
   { id: "profile", label: "Профиль", icon: <User className="w-4 h-4" /> },
 ];
 
+const statsWidgets = [
+  { icon: <Heart className="w-6 h-6" />, value: "32", label: "Биовозраст", sublabel: "−3 года", color: "text-primary" },
+  { icon: <Activity className="w-6 h-6" />, value: "87%", label: "Индекс здоровья", sublabel: "Отлично", color: "text-status-good" },
+  { icon: <Brain className="w-6 h-6" />, value: "50+", label: "Биомаркеров", sublabel: "анализируется", color: "text-foreground" },
+  { icon: <Zap className="w-6 h-6" />, value: "12", label: "AI-рекомендаций", sublabel: "персональных", color: "text-accent" },
+  { icon: <Shield className="w-6 h-6" />, value: "5", label: "Систем", sublabel: "под контролем", color: "text-primary" },
+  { icon: <Clock className="w-6 h-6" />, value: "4×", label: "В год", sublabel: "мониторинг", color: "text-status-good" },
+  { icon: <Target className="w-6 h-6" />, value: "98%", label: "Точность", sublabel: "AI-анализа", color: "text-accent" },
+  { icon: <TrendingUp className="w-6 h-6" />, value: "+22%", label: "Улучшение", sublabel: "за 6 мес", color: "text-status-good" },
+];
+
 function DashboardContent() {
   return (
     <div className="p-4 space-y-4">
-      {/* Bio Age Card */}
       <div className="bg-gradient-to-br from-primary/20 to-accent/10 rounded-xl p-6 border border-primary/20">
         <div className="flex items-center justify-between">
           <div>
@@ -29,7 +39,6 @@ function DashboardContent() {
         </div>
       </div>
       
-      {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card/80 rounded-lg p-3 border border-border/50">
           <div className="text-xs text-muted-foreground">Индекс здоровья</div>
@@ -49,7 +58,6 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Systems */}
       <div className="space-y-2">
         <div className="text-xs text-muted-foreground">Системы организма</div>
         {[
@@ -206,6 +214,31 @@ function ProfileContent() {
 
 export function HeroShowcase() {
   const [activeSection, setActiveSection] = useState<Section>("dashboard");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!scrollRef.current || !containerRef.current) return;
+      
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // Calculate how far the container is scrolled into view
+      const scrollProgress = Math.max(0, Math.min(1, 
+        (windowHeight - containerRect.top) / (windowHeight + containerRect.height)
+      ));
+      
+      // Translate the scroll container horizontally based on vertical scroll
+      const maxScroll = scrollRef.current.scrollWidth - scrollRef.current.clientWidth;
+      scrollRef.current.scrollLeft = scrollProgress * maxScroll;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Initial call
+    
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -219,43 +252,9 @@ export function HeroShowcase() {
   };
 
   return (
-    <div className="relative mt-16 md:mt-24 px-4 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-      {/* Floating Stat Cards - Left */}
-      <div className="absolute left-0 top-1/4 -translate-x-1/2 hidden lg:block z-20">
-        <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-xl">
-          <div className="text-xs text-muted-foreground mb-1">Биовозраст</div>
-          <div className="text-3xl font-bold text-primary">32</div>
-          <div className="text-xs text-status-good mt-1">−3 года</div>
-        </div>
-      </div>
-
-      <div className="absolute left-4 bottom-1/4 hidden lg:block z-20">
-        <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-xl">
-          <div className="text-xs text-muted-foreground mb-1">Индекс здоровья</div>
-          <div className="text-3xl font-bold text-status-good">87%</div>
-          <div className="text-xs text-muted-foreground mt-1">Отлично</div>
-        </div>
-      </div>
-
-      {/* Floating Stat Cards - Right */}
-      <div className="absolute right-0 top-1/3 translate-x-1/2 hidden lg:block z-20">
-        <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-xl">
-          <div className="text-xs text-muted-foreground mb-1">Биомаркеров</div>
-          <div className="text-3xl font-bold text-foreground">50+</div>
-          <div className="text-xs text-muted-foreground mt-1">анализируется</div>
-        </div>
-      </div>
-
-      <div className="absolute right-8 bottom-1/3 hidden lg:block z-20">
-        <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-xl">
-          <div className="text-xs text-muted-foreground mb-1">AI-рекомендаций</div>
-          <div className="text-3xl font-bold text-accent">12</div>
-          <div className="text-xs text-muted-foreground mt-1">персональных</div>
-        </div>
-      </div>
-
+    <div className="relative mt-16 md:mt-24 animate-fade-in" style={{ animationDelay: '0.5s' }}>
       {/* Main Mockup */}
-      <div className="relative max-w-4xl mx-auto">
+      <div className="relative max-w-4xl mx-auto px-4">
         {/* Browser Chrome */}
         <div className="bg-card/90 backdrop-blur-xl rounded-t-2xl border border-border/50 border-b-0 p-3 flex items-center gap-2">
           <div className="flex gap-1.5">
@@ -322,8 +321,32 @@ export function HeroShowcase() {
         </div>
       </div>
 
+      {/* Horizontal Scroll Stats */}
+      <div ref={containerRef} className="mt-12 overflow-hidden">
+        <div 
+          ref={scrollRef}
+          className="flex gap-4 px-4 pb-4 overflow-x-auto scrollbar-hide"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {/* Duplicate widgets for seamless scroll effect */}
+          {[...statsWidgets, ...statsWidgets].map((widget, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 w-40 bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300"
+            >
+              <div className={`${widget.color} mb-2`}>
+                {widget.icon}
+              </div>
+              <div className={`text-2xl font-bold ${widget.color}`}>{widget.value}</div>
+              <div className="text-sm text-foreground mt-1">{widget.label}</div>
+              <div className="text-xs text-muted-foreground">{widget.sublabel}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Bottom Status Indicators */}
-      <div className="flex justify-center gap-4 mt-8 flex-wrap">
+      <div className="flex justify-center gap-4 mt-8 flex-wrap px-4">
         <div className="flex items-center gap-2 px-4 py-2 bg-card/50 backdrop-blur border border-border/30 rounded-full text-xs text-muted-foreground">
           <div className="w-2 h-2 rounded-full bg-status-good animate-pulse" />
           Данные в реальном времени
