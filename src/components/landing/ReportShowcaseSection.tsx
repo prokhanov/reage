@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -8,7 +9,9 @@ import {
   Pill, 
   CheckCircle2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 const reportPages = [
@@ -56,6 +59,16 @@ const reportFeatures = [
 ];
 
 export function ReportShowcaseSection() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev === 0 ? reportPages.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev === reportPages.length - 1 ? 0 : prev + 1));
+  };
+
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background effects */}
@@ -82,55 +95,97 @@ export function ReportShowcaseSection() {
 
         {/* Main content grid */}
         <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-          {/* Left: Report mockups */}
+          {/* Left: Report mockups with carousel */}
           <div className="relative">
             {/* Decorative elements */}
             <div className="absolute -top-4 -left-4 w-24 h-24 bg-primary/20 rounded-full blur-2xl" />
             <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/15 rounded-full blur-2xl" />
             
-            {/* Stacked report pages mockup */}
-            <div className="relative h-[500px] flex items-center justify-center">
-              {reportPages.map((page, index) => (
-                <div
-                  key={page.title}
-                  className={`absolute bg-gradient-to-br ${page.color} backdrop-blur-sm border ${page.borderColor} rounded-2xl p-6 shadow-2xl transition-all duration-500 hover:scale-105`}
-                  style={{
-                    width: '280px',
-                    height: '380px',
-                    left: `${50 + index * 40}px`,
-                    top: `${60 - index * 20}px`,
-                    zIndex: 3 - index,
-                    transform: `rotate(${-5 + index * 5}deg)`,
-                  }}
-                >
-                  <div className="h-full flex flex-col">
-                    {/* Page header mockup */}
-                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/30">
-                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-primary" />
+            {/* Stacked report pages with animation */}
+            <div className="relative h-[450px] flex items-center justify-center">
+              {reportPages.map((page, index) => {
+                // Calculate position relative to active index
+                const position = (index - activeIndex + reportPages.length) % reportPages.length;
+                
+                return (
+                  <div
+                    key={page.title}
+                    className={`absolute bg-gradient-to-br ${page.color} backdrop-blur-sm border ${page.borderColor} rounded-2xl p-6 shadow-2xl transition-all duration-500 ease-out cursor-pointer`}
+                    style={{
+                      width: '280px',
+                      height: '380px',
+                      transform: `
+                        translateX(${position * 30}px) 
+                        translateY(${position * -15}px) 
+                        rotate(${-3 + position * 3}deg)
+                        scale(${1 - position * 0.05})
+                      `,
+                      zIndex: reportPages.length - position,
+                      opacity: position === 0 ? 1 : 0.7 - position * 0.15,
+                    }}
+                    onClick={() => setActiveIndex(index)}
+                  >
+                    <div className="h-full flex flex-col">
+                      {/* Page header mockup */}
+                      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/30">
+                        <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm">{page.title}</h4>
+                          <p className="text-xs text-muted-foreground">{page.description}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-sm">{page.title}</h4>
-                        <p className="text-xs text-muted-foreground">{page.description}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Content lines mockup */}
-                    <div className="flex-1 space-y-3">
-                      <div className="h-3 bg-foreground/10 rounded-full w-full" />
-                      <div className="h-3 bg-foreground/10 rounded-full w-4/5" />
-                      <div className="h-3 bg-foreground/10 rounded-full w-3/4" />
-                      <div className="h-8 bg-primary/10 rounded-lg w-full mt-4" />
-                      <div className="h-3 bg-foreground/10 rounded-full w-5/6" />
-                      <div className="h-3 bg-foreground/10 rounded-full w-2/3" />
-                      <div className="grid grid-cols-2 gap-2 mt-4">
-                        <div className="h-16 bg-foreground/5 rounded-lg" />
-                        <div className="h-16 bg-foreground/5 rounded-lg" />
+                      
+                      {/* Content lines mockup */}
+                      <div className="flex-1 space-y-3">
+                        <div className="h-3 bg-foreground/10 rounded-full w-full" />
+                        <div className="h-3 bg-foreground/10 rounded-full w-4/5" />
+                        <div className="h-3 bg-foreground/10 rounded-full w-3/4" />
+                        <div className="h-8 bg-primary/10 rounded-lg w-full mt-4" />
+                        <div className="h-3 bg-foreground/10 rounded-full w-5/6" />
+                        <div className="h-3 bg-foreground/10 rounded-full w-2/3" />
+                        <div className="grid grid-cols-2 gap-2 mt-4">
+                          <div className="h-16 bg-foreground/5 rounded-lg" />
+                          <div className="h-16 bg-foreground/5 rounded-lg" />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
+            </div>
+
+            {/* Navigation arrows */}
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <button
+                onClick={handlePrev}
+                className="w-10 h-10 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 group"
+              >
+                <ChevronLeft className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </button>
+              
+              {/* Dots indicator */}
+              <div className="flex items-center gap-2">
+                {reportPages.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === activeIndex 
+                        ? 'w-6 bg-primary' 
+                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                    }`}
+                  />
+                ))}
+              </div>
+              
+              <button
+                onClick={handleNext}
+                className="w-10 h-10 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 group"
+              >
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </button>
             </div>
           </div>
 
