@@ -28,6 +28,18 @@ const reportPages = [
     borderColor: "border-purple-500/30"
   },
   {
+    title: "Биомаркеры",
+    description: "Расшифровка каждого показателя",
+    color: "from-amber-500/20 to-orange-500/20",
+    borderColor: "border-amber-500/30"
+  },
+  {
+    title: "Зоны риска",
+    description: "Карта проблемных областей",
+    color: "from-rose-500/20 to-red-500/20",
+    borderColor: "border-rose-500/30"
+  },
+  {
     title: "Персональные назначения",
     description: "Конкретные действия для улучшения",
     color: "from-emerald-500/20 to-teal-500/20",
