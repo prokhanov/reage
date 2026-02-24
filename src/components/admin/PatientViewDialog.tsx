@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { useContext, useState, useEffect } from "react";
 import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { AppSidebar } from "@/components/AppSidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -100,11 +100,9 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
               <div className="pt-16 lg:pt-0 flex-shrink-0">
                 <AnalysisBookingBanner />
               </div>
-              <ScrollArea className="flex-1 min-h-0">
-                <main className="pb-10 h-full">
-                  <SimulatedContent />
-                </main>
-              </ScrollArea>
+              <main className="flex-1 min-h-0 overflow-y-auto">
+                <SimulatedContent />
+              </main>
             </div>
           </div>
         </ViewAsPatientProvider>
