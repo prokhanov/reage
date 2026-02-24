@@ -96,14 +96,16 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
               </div>
             </header>
             
-            <ScrollArea className={`flex-1 h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
-              <div className="pt-16 lg:pt-0">
+            <div className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+              <div className="pt-16 lg:pt-0 flex-shrink-0">
                 <AnalysisBookingBanner />
               </div>
-              <main className="pb-10">
-                <SimulatedContent />
-              </main>
-            </ScrollArea>
+              <ScrollArea className="flex-1 min-h-0">
+                <main className="pb-10 h-full">
+                  <SimulatedContent />
+                </main>
+              </ScrollArea>
+            </div>
           </div>
         </ViewAsPatientProvider>
       </DialogContent>
