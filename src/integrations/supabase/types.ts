@@ -302,6 +302,7 @@ export type Database = {
       biomarkers: {
         Row: {
           age_ranges: Json | null
+          aging_weight: number
           category: string
           code: string
           created_at: string
@@ -320,6 +321,7 @@ export type Database = {
         }
         Insert: {
           age_ranges?: Json | null
+          aging_weight?: number
           category: string
           code: string
           created_at?: string
@@ -338,6 +340,7 @@ export type Database = {
         }
         Update: {
           age_ranges?: Json | null
+          aging_weight?: number
           category?: string
           code?: string
           created_at?: string
