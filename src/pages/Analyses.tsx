@@ -149,7 +149,7 @@ export default function Analyses() {
         lab_name: analysis.lab_name,
         health_index: analysis.health_index,
         biological_age: analysis.biological_age,
-        biomarkers_count: demoData.biomarkers.filter((b: any) => (b.analysis_index || 0) === index).length,
+        biomarkers_count: undefined,
         status: "processed" as const
       }))
     : analyses;

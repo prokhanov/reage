@@ -512,14 +512,16 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
         {/* Tabs */}
         <Tabs defaultValue="entered" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="entered">
-              Введенные значения ({values.length})
-            </TabsTrigger>
-            <TabsTrigger value="all">
-              Все показатели ({filteredBiomarkers.length})
-            </TabsTrigger>
-          </TabsList>
+          {!isDemoAnalysis && (
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="entered">
+                Введенные значения ({values.length})
+              </TabsTrigger>
+              <TabsTrigger value="all">
+                Все показатели ({filteredBiomarkers.length})
+              </TabsTrigger>
+            </TabsList>
+          )}
 
           {/* Entered Values Tab */}
           <TabsContent value="entered" className="space-y-6">
