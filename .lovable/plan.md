@@ -1,149 +1,45 @@
 
-# План: Слоты доступны по умолчанию (без предгенерации)
 
-## Проблема
+## Problem Analysis
 
-Текущий подход создаёт **~270 записей на каждый месяц** (30 дней × 9 слотов). Сейчас в БД:
-- 801 запись всего
-- Только 1 слот с реальной бронью
-- 797 слотов с дефолтными значениями (capacity=3, booked=0, active=true)
+Two issues prevent the medical history list from loading on registration step 3:
 
-Это неэффективно: 99% записей — "пустышки".
+**Issue 1: RLS blocking categories for unauthenticated users**
+The `medical_condition_categories` API call returns `[]` (empty array) because the user is not authenticated during registration. The table likely lacks a public SELECT policy. The `medical_conditions_templates` table works fine because it has an "Anyone can view" policy with `USING (true)`.
 
-## Решение
+**Issue 2: Category name mismatch**
+Even if categories loaded, the names don't match between the two tables:
+- `medical_condition_categories`: "🧠 Неврология", "🍽️ ЖКТ", "🦴 Опорно-двигательная"
+- `medical_conditions_templates.category`: "🧠 Нервная система", "🍽 Пищеварительная система", "💪 Опорно-двигательная система"
 
-Инвертировать логику: **все слоты считаются доступными по умолчанию**. Записи в `availability_slots` создаются только когда:
-- Админ закрывает слот или меняет capacity
-- Пациент бронирует слот
+The grouping logic (`c.category === cat.name`) fails because these names are completely different.
 
----
+## Solution
 
-## Что сохраняется
+Simplify `RegisterStep3.tsx` to skip the `medical_condition_categories` table entirely and derive categories directly from the `medical_conditions_templates` data, which already contains category names with emojis and is publicly readable.
 
-- **Правило 2-часового блока** — логика в `usePatientSlots.ts` и `DaySlotsManager.tsx` работает на виртуальных слотах
-- **Бронирование через ЛК пациента** — `AnalysisBookingDialog` продолжает работать
-- **Редактирование/отмена брони** — те же функции `book_analysis_slot` и `cancel_booking`
-- **Перенос брони** — игнорируется свой слот при проверке 2ч блока
+### Changes to `src/components/register/RegisterStep3.tsx`
 
----
+1. **Remove** the query to `medical_condition_categories`
+2. **Group templates by their `category` field** to build the category list dynamically
+3. Extract unique categories from the templates data, preserving order
+4. The emoji is already embedded in the category name (e.g., "🫀 Сердечно-сосудистая система"), so the `getCategoryEmoji` helper becomes unnecessary for display
 
-## Технические изменения
+### Technical Detail
 
-### 1. Новая таблица настроек по умолчанию
-
+Instead of:
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ default_slot_settings                                       │
-├─────────────────────────────────────────────────────────────┤
-│ id            uuid PRIMARY KEY                              │
-│ day_of_week   int (0-6, 0=воскресенье)                     │
-│ time_slot     text (09:00, 10:00, ...)                     │
-│ total_capacity int DEFAULT 3                                │
-│ is_active     boolean DEFAULT true                          │
-│ UNIQUE(day_of_week, time_slot)                             │
-└─────────────────────────────────────────────────────────────┘
+1. Fetch categories table → [] (blocked by RLS)
+2. Fetch templates table → [conditions...]
+3. Group conditions by matching category name → nothing matches
 ```
 
-Заполняется 63 записями (7 дней × 9 временных слотов) — все дни недели с 09:00 до 17:00.
-
-### 2. Новая SQL-функция `get_slots_for_date_range`
-
-Генерирует "виртуальные" слоты на основе дефолтов и мержит с реальными записями:
-
+The fix does:
 ```text
-Вход: p_start_date, p_end_date, p_existing_slot_id (для перебронирования)
-Выход: id, date, time_slot, total_capacity, booked_count, is_active, is_override
+1. Fetch templates table → [conditions...]
+2. Extract unique categories from conditions
+3. Group conditions by their own category field → works correctly
 ```
 
-- Для каждой даты в диапазоне берёт дефолты по дню недели
-- Если есть запись в `availability_slots` — использует её значения
-- Флаг `is_override` показывает, реальная это запись или виртуальная
+No database changes needed. Single file change in `RegisterStep3.tsx`.
 
-### 3. Обновлённая функция `book_analysis_slot`
-
-```text
-Вход: p_slot_id (может быть NULL), p_date, p_time_slot
-```
-
-- Если слот существует — стандартная логика (increment booked_count)
-- Если слот НЕ существует — создаёт на основе дефолтов с booked_count=1
-
-### 4. Обновлённая функция `cancel_booking`
-
-- При отмене уменьшает booked_count
-- Опционально: удаляет запись, если она вернулась к дефолтным значениям
-
-### 5. Обновить `usePatientSlots.ts`
-
-```typescript
-// Было: прямой запрос к availability_slots
-const { data } = await supabase.from("availability_slots")...
-
-// Станет: вызов RPC-функции
-const { data } = await supabase.rpc('get_slots_for_date_range', {
-  p_start_date: format(startDate, 'yyyy-MM-dd'),
-  p_end_date: format(endDate, 'yyyy-MM-dd'),
-  p_existing_slot_id: existingSlotId || null
-});
-```
-
-Вся логика 2-часового блока остаётся без изменений — она работает с массивом слотов.
-
-### 6. Обновить `useAvailabilitySlots.ts`
-
-Аналогично использовать RPC-функцию вместо прямого запроса.
-
-### 7. Обновить `AnalysisBookingDialog.tsx`
-
-При бронировании передавать дополнительно date и time_slot:
-
-```typescript
-await supabase.rpc('book_analysis_slot', { 
-  p_slot_id: selectedSlotId.startsWith('virtual_') ? null : selectedSlotId,
-  p_date: format(bookingDate, 'yyyy-MM-dd'),
-  p_time_slot: bookingTime
-});
-```
-
-### 8. Обновить `DaySlotsManager.tsx`
-
-- Удалить кнопку "Добавить слоты на месяц"
-- При изменении capacity/is_active виртуального слота — создавать реальную запись (upsert)
-- Удалить слот = вернуть к дефолтным настройкам (удалить запись)
-- Визуально показывать "виртуальные" слоты иначе (опционально)
-
-### 9. Миграция существующих данных
-
-```sql
--- Удалить слоты без бронирований с дефолтными настройками
-DELETE FROM availability_slots 
-WHERE booked_count = 0 
-  AND total_capacity = 3 
-  AND is_active = true;
-```
-
-Это удалит ~797 из 801 записей, оставив только реально изменённые/забронированные.
-
----
-
-## Преимущества
-
-| До | После |
-|---|---|
-| 270+ записей на месяц | 0 записей по умолчанию |
-| Нужна ручная генерация | Слоты "появляются" автоматически |
-| Медленная генерация | Мгновенный доступ к любой дате |
-| Много места в БД | Только исключения хранятся |
-
----
-
-## Порядок реализации
-
-1. SQL-миграция: создать `default_slot_settings` и заполнить
-2. SQL-миграция: создать функцию `get_slots_for_date_range`
-3. SQL-миграция: обновить `book_analysis_slot` и `cancel_booking`
-4. Обновить `usePatientSlots.ts` — использовать RPC
-5. Обновить `useAvailabilitySlots.ts` — использовать RPC
-6. Обновить `AnalysisBookingDialog.tsx` — передавать date/time при бронировании
-7. Обновить `DaySlotsManager.tsx` — убрать генерацию, добавить upsert для виртуальных
-8. SQL-миграция: очистить старые дефолтные записи
