@@ -748,40 +748,11 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* System Health + Body Heatmap Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <SystemRatingsCard 
-              categoryScores={displayCategoryScores}
-              analyses={displayAllAnalyses}
-            />
-          </div>
-          
-          <div className="lg:col-span-1">
-            <Card className="border-border bg-card backdrop-blur-sm h-full">
-              <CardHeader>
-                <CardTitle className="text-lg">Карта тела</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {displayBodyHeatmap.length > 0 ? (
-                  <BodyHeatmap 
-                    biomarkerData={displayBodyHeatmap} 
-                    patientAge={chronologicalAge} 
-                    patientGender={profile?.gender as 'male' | 'female' | undefined}
-                  />
-                ) : (
-                  <div className="h-[300px] flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <Activity className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                      <p className="text-sm">Нет данных для отображения</p>
-                      <p className="text-xs mt-2">Добавьте анализ для просмотра карты тела</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* System Health */}
+        <SystemRatingsCard 
+          categoryScores={displayCategoryScores}
+          analyses={displayAllAnalyses}
+        />
 
         {/* Weight Tracker - Full Width */}
         <WeightTracker />
