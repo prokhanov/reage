@@ -2,34 +2,64 @@
 
 ## Problem
 
-During registration, weight and height are saved to the `profiles` table (lines 132-133 of Register.tsx). However, the dashboard's `WeightTracker` component reads the current weight exclusively from the `weight_history` table. Since no record is inserted into `weight_history` during registration, the "Текущий вес" card shows "—".
+The SmartPriorities component has two issues:
 
-Additionally, `WeightTracker` reads height from `profiles.height` (which works), but weight from `weight_history` (which is empty).
+### 1. Data format mismatch
+Demo data uses a different structure than what the component expects:
+
+**Demo data (predicted_improvements):**
+```json
+{"metric": "HbA1c", "from": 6.1, "to": 5.7, "unit": "%"}
+{"metric": "Энергия", "improvement": "+25%"}
+```
+
+**Component expects:**
+```json
+{"metric": "HbA1c", "change": "...", "timeline_days": 14, "confidence": 90}
+```
+
+Similarly, demo task predictions lack `id`, `timeline`, `metric`, `improvement` fields. This causes "0%", "0 мг/л", missing data throughout.
+
+Real AI-generated data does match the schema (as confirmed by the actual `risk_zone_analyses` query), but demo data does not.
+
+### 2. Confusing UI
+Even with correct data, the display shows raw numbers without context:
+- "14д, 90%" — what does 14 days mean? 90% of what?
+- "0% уверенности" — unclear and alarming
+- Too many numbers crammed together
 
 ## Solution
 
-Two changes to `src/pages/Register.tsx` in `handleFinalSubmit`:
+### A. Redesign SmartPriorities UI (component rewrite)
 
-1. **Insert initial weight into `weight_history`** after creating the profile (around line 136), so the dashboard picks it up immediately:
+**Predicted improvements section** — show clearly:
+- Metric name on the left
+- Expected change as a clear badge (e.g., "HbA1c 6.1→5.7%" or "↓15-20%")
+- Timeline as readable text: "за 2 нед." instead of "14д"
+- Remove confidence percentage from improvements (clutters UI, low user value)
 
-```typescript
-// After profile creation, insert weight into weight_history
-if (formData.weight) {
-  await supabase
-    .from('weight_history')
-    .insert({
-      user_id: authData.user.id,
-      weight: parseFloat(formData.weight)
-    });
-}
-```
+**Task cards** — simplify:
+- Show action + reason (keep as-is)
+- Show prediction effect as a single clear line
+- Remove "% уверенности" — this number is meaningless to users
+- Show timeline from the task itself ("2 недели", "4-6 недель")
 
-2. Also make `WeightTracker` **fall back to `profiles.weight`** when `weight_history` is empty, so it shows the weight even if the history insert somehow fails:
+### B. Handle both data formats (demo + AI)
 
-In `WeightTracker.tsx`, after fetching weight history, if no records exist, fetch and display `profiles.weight` as the current weight.
+Make the component gracefully handle both the demo data format (`from/to/unit`, `improvement`) and the AI schema format (`change`, `timeline_days`, `confidence`). Normalize data before rendering:
 
-## Files to Change
+- If `from` and `to` exist: display as "from → to unit"
+- If `change` exists: display as-is
+- If `improvement` exists: display as-is
+- If `timeline_days` exists: convert to readable ("14д" → "2 нед.")
+- If task has no `id`/`timeline`/prediction fields: handle gracefully with fallbacks
 
-- `src/pages/Register.tsx` -- add `weight_history` insert after profile creation
-- `src/components/WeightTracker.tsx` -- add fallback to `profiles.weight` when history is empty
+### C. Update demo data in database
+
+Update the `demo_data_templates` to use the correct schema format matching the AI output, so demo data renders identically to real data. This is a migration to fix `smart_priorities` in both `male_data` and `female_data`.
+
+## Files to change
+
+1. **`src/components/risk-zones/SmartPriorities.tsx`** — redesign UI, handle both data formats
+2. **New migration** — fix demo `smart_priorities` data to match AI schema
 
