@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HeroShowcase } from "@/components/landing/HeroShowcase";
@@ -133,15 +132,12 @@ const appFeatures = [
 ];
 
 function FeatureCard({ feature, index }: { feature: typeof appFeatures[0]; index: number }) {
-  const [isHovered, setIsHovered] = useState(false);
   const Icon = feature.icon;
 
   return (
     <Card 
       className="group relative overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 transition-all duration-500 hover:bg-card/80 hover:border-primary/30 hover:shadow-xl animate-fade-in"
       style={{ animationDelay: `${index * 75}ms` }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Background gradient */}
       <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
@@ -173,7 +169,7 @@ function FeatureCard({ feature, index }: { feature: typeof appFeatures[0]; index
         </div>
 
         {/* Features list - shown on hover */}
-        <div className={`space-y-2 overflow-hidden transition-all duration-300 ${isHovered ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="space-y-2">
           <div className="pt-4 border-t border-border/50">
             {feature.features.map((f, i) => {
               const FeatureIcon = f.icon;
