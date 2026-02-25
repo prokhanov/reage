@@ -112,10 +112,15 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
     const calculatedTrends: Record<string, CategoryTrend> = {};
 
     categories.forEach(cat => {
-      const oldScore = oldScores[cat.name];
-      const newScore = newScores[cat.name];
+      const rawOld = oldScores[cat.name];
+      const oldScore = typeof rawOld === 'object' && rawOld !== null && 'score' in rawOld
+        ? (rawOld as any).score : (typeof rawOld === 'number' ? rawOld : null);
 
-      if (oldScore !== undefined && newScore !== undefined) {
+      const rawNew = newScores[cat.name];
+      const newScore = typeof rawNew === 'object' && rawNew !== null && 'score' in rawNew
+        ? (rawNew as any).score : (typeof rawNew === 'number' ? rawNew : null);
+
+      if (oldScore !== null && newScore !== null && oldScore !== 0) {
         const change = newScore - oldScore;
         const percentChange = Math.abs((change / oldScore) * 100);
 
