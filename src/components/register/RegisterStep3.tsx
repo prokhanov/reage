@@ -27,32 +27,29 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
 
   const loadMedicalConditions = async () => {
     try {
-      // Load categories with display_order
-      const { data: categories } = await supabase
-        .from("medical_condition_categories")
-        .select("*")
-        .order("display_order");
-
-      // Load condition templates
       const { data: conditions } = await supabase
         .from("medical_conditions_templates")
         .select("*")
-        .order("condition", { ascending: true });
+        .order("display_order", { ascending: true });
 
-      if (categories && categories.length > 0) {
-        // Group conditions by category, preserving category order
-        const grouped = categories.map(cat => {
-          const categoryConditions = (conditions || [])
-            .filter(c => c.category === cat.name)
-            .map(c => c.condition);
-          
-          return {
-            emoji: getCategoryEmoji(cat.name),
-            title: cat.name,
-            icon: getCategoryIcon(cat.name),
-            conditions: categoryConditions
-          };
-        }).filter(cat => cat.conditions.length > 0);
+      if (conditions && conditions.length > 0) {
+        // Extract unique categories preserving order of first appearance
+        const categoryOrder: string[] = [];
+        const categoryMap: Record<string, string[]> = {};
+        
+        for (const c of conditions) {
+          if (!categoryMap[c.category]) {
+            categoryMap[c.category] = [];
+            categoryOrder.push(c.category);
+          }
+          categoryMap[c.category].push(c.condition);
+        }
+
+        const grouped = categoryOrder.map(cat => ({
+          title: cat,
+          icon: getCategoryIcon(cat),
+          conditions: categoryMap[cat]
+        }));
         
         setDynamicCategories(grouped);
       }
@@ -61,22 +58,6 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getCategoryEmoji = (category: string) => {
-    const emojiMap: Record<string, string> = {
-      "🫀 Сердечно-сосудистая система": "🫀",
-      "🧠 Нервная система": "🧠",
-      "🍽 Пищеварительная система": "🍽",
-      "🩸 Метаболические нарушения": "🩸",
-      "🧘‍♀️ Гормональные нарушения": "🧘‍♀️",
-      "💪 Опорно-двигательная система": "💪",
-      "🦠 Иммунная система": "🦠",
-      "🩸 Кроветворная система": "🩸",
-      "💊 Инфекционные заболевания": "💊",
-      "🧬 Онкология": "🧬"
-    };
-    return emojiMap[category] || "📋";
   };
 
   const getCategoryIcon = (category: string) => {
