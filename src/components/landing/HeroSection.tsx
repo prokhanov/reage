@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ParticleBackground } from "@/components/ParticleBackground";
-import { HeroShowcase } from "@/components/landing/HeroShowcase";
+
 import { ArrowRight, Activity, TrendingUp, Brain, Calendar, Moon, Sun } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
@@ -89,8 +89,8 @@ export function HeroSection() {
             </Button>
           </div>
 
-          {/* Hero Showcase */}
-          <HeroShowcase />
+
+
         </div>
       </div>
     </section>;
