@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
+import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 import { DemoBanner } from "@/components/DemoBanner";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -149,7 +150,10 @@ export default function Analyses() {
         lab_name: analysis.lab_name,
         health_index: analysis.health_index,
         biological_age: analysis.biological_age,
-        biomarkers_count: undefined,
+        biomarkers_count: demoData.biomarkers
+          .filter((b: any) => (b.analysis_index || 0) === index)
+          .filter((b: any) => DEMO_TO_DB_CODE[b.code] !== undefined)
+          .length,
         status: "processed" as const
       }))
     : analyses;

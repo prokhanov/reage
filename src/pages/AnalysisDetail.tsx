@@ -512,7 +512,11 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
         {/* Tabs */}
         <Tabs defaultValue="entered" className="space-y-6">
-          {!isDemoAnalysis && (
+          {isDemoAnalysis ? (
+            <h3 className="text-lg font-semibold">
+              Введенные значения ({values.length})
+            </h3>
+          ) : (
             <TabsList className="grid w-full max-w-md grid-cols-2">
               <TabsTrigger value="entered">
                 Введенные значения ({values.length})
