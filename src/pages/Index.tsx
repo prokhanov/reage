@@ -69,9 +69,9 @@ const Index = () => {
       <HeroSection />
       <PainPointsSection />
       <HowItWorksSection />
-      <AppFeaturesSection />
       <ReportShowcaseSection />
       <BiomarkersDeepDiveSection />
+      <AppFeaturesSection />
       <BenefitsSection />
       <ComparisonSection />
       <PersonasSection />
