@@ -62,9 +62,9 @@ export function HeroSection() {
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
-        }}>
-            50 биомаркеров → биологический возраст → тренды по системам → AI-рекомендации.
-            <span className="hidden sm:inline"><br /></span>
+        }}>Самый глубокий на рынке формат анализа здоровья: контроль биологического возраста, энергии, метаболизма, воспаления, гормонального баланса и факторов риска — с регулярной динамикой и сопровождением
+
+          <span className="hidden sm:inline"><br /></span>
             Медсестра приедет к вам. Результат за 5 дней.
           </p>
 
@@ -101,11 +101,11 @@ function StatCard({
   icon,
   value,
   label
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-}) {
+
+
+
+
+}: {icon: React.ReactNode;value: string;label: string;}) {
   return <div className="flex items-center justify-center sm:justify-start gap-3 p-4 rounded-2xl bg-card/50 border border-border/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/20 transition-all duration-300 group">
       <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
         {icon}
