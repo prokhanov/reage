@@ -38,7 +38,7 @@ export function BioAgeTrendChart({ analyses, birthDate }: BioAgeTrendChartProps)
       const ageInYears = (analysisDate.getTime() - birthDateObj.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
       const chronologicalAge = Math.round(ageInYears * 10) / 10;
       
-      const difference = analysis.biological_age - chronologicalAge;
+      const difference = chronologicalAge - analysis.biological_age;
       const agingRate = analysis.biomarkers_metadata?.ai_analysis?.aging_rate;
 
       return {
@@ -56,7 +56,7 @@ export function BioAgeTrendChart({ analyses, birthDate }: BioAgeTrendChartProps)
     if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
-    const diffColor = data.difference < 0 ? 'text-green-600' : 'text-red-600';
+    const diffColor = data.difference > 0 ? 'text-green-600' : 'text-red-600';
     const diffSign = data.difference > 0 ? '+' : '';
 
     return (
@@ -70,7 +70,7 @@ export function BioAgeTrendChart({ analyses, birthDate }: BioAgeTrendChartProps)
             Хронологический: <span className="font-semibold">{data.chronological_age} лет</span>
           </p>
           <p className={diffColor}>
-            Разница: <span className="font-semibold">{diffSign}{data.difference} лет</span>
+            <span className="font-semibold">{diffSign}{data.difference} {data.difference > 0 ? 'моложе' : data.difference < 0 ? 'старше' : ''}</span>
           </p>
           {data.aging_rate && (
             <p className="text-muted-foreground">
