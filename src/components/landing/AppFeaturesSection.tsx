@@ -243,9 +243,9 @@ export function AppFeaturesSection() {
 
         {/* Bottom CTA */}
         <div className="text-center mt-16 animate-fade-in" style={{ animationDelay: '600ms' }}>
-          <p className="text-lg text-muted-foreground mb-4">
-            Всё синхронизировано и работает вместе
-          </p>
+          
+
+
           
 
 
