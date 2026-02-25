@@ -135,6 +135,16 @@ export default function Register() {
 
       if (profileError) throw profileError;
 
+      // Insert initial weight into weight_history
+      if (formData.weight) {
+        await supabase
+          .from('weight_history')
+          .insert({
+            user_id: authData.user.id,
+            weight: parseFloat(formData.weight)
+          });
+      }
+
       // Note: user_roles is automatically created by trigger on auth.users
 
       // 3. Save medical history
