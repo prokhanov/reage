@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, Target, Mountain, ArrowRight, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PredictedImprovement {
   metric: string;
@@ -177,7 +178,23 @@ export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
   );
 };
 
+/** Check if improvement is a micro-change (< 1%) that should show "Стабильно" */
+const normalizeImprovement = (value?: string): { text: string; isStable: boolean } | null => {
+  if (!value) return null;
+  // Already says "Стабильно"
+  if (value === "Стабильно") return { text: "Стабильно", isStable: true };
+  // Try to parse as a percentage number
+  const match = value.match(/^[+\-−]?\s*(\d+(?:[.,]\d+)?)\s*%$/);
+  if (match) {
+    const num = parseFloat(match[1].replace(",", "."));
+    if (num < 1) return { text: "Стабильно", isStable: true };
+  }
+  return { text: value, isStable: false };
+};
+
 const TaskCard = ({ task }: { task: Task }) => {
+  const improvement = normalizeImprovement(task.prediction?.improvement);
+
   return (
     <Card className="border-l-4 border-l-primary">
       <CardContent className="p-4 space-y-2">
@@ -189,9 +206,15 @@ const TaskCard = ({ task }: { task: Task }) => {
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <ArrowRight className="h-3 w-3 text-primary" />
               <span className="text-foreground">{task.prediction.effect}</span>
-              {task.prediction.improvement && (
-                <Badge variant="secondary" className="font-mono text-xs">
-                  {task.prediction.improvement}
+              {improvement && (
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    "font-mono text-xs",
+                    improvement.isStable && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  )}
+                >
+                  {improvement.text}
                 </Badge>
               )}
             </div>
