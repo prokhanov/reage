@@ -252,7 +252,7 @@ export default function Analyses() {
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-muted-foreground">Био. возраст:</span>
                             <span className="text-lg font-semibold text-foreground">
-                              {analysis.biological_age} лет
+                              {Math.round(analysis.biological_age * 10) / 10} лет
                             </span>
                           </div>
                         )}
