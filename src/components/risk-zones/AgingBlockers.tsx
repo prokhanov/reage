@@ -20,6 +20,12 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
     return "hsl(var(--status-good))";
   };
 
+  const getImpactLabel = (score: number) => {
+    if (score >= 8) return "Критическое";
+    if (score >= 5) return "Умеренное";
+    return "Слабое";
+  };
+
   // Sort by impact score (highest first)
   const sortedBlockers = [...blockers].sort((a, b) => b.impact_score - a.impact_score);
 
@@ -57,14 +63,15 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
                     </h4>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-sm text-muted-foreground">Влияние:</span>
                     <span 
-                      className="text-xl font-bold"
-                      style={{ color: impactColor }}
+                      className="text-xs font-medium px-2 py-0.5 rounded-full"
+                      style={{ 
+                        color: impactColor, 
+                        backgroundColor: `${impactColor}15` 
+                      }}
                     >
-                      {blocker.impact_score}
+                      {getImpactLabel(blocker.impact_score)}
                     </span>
-                    <span className="text-sm text-muted-foreground">/10</span>
                   </div>
                 </div>
 
@@ -83,7 +90,7 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
                 {/* Evidence */}
                 <div className="space-y-1">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Доказательства:
+                    На основании ваших данных:
                   </span>
                   <ul className="space-y-1">
                     {blocker.evidence.map((item, evidenceIdx) => (
