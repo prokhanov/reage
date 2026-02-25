@@ -44,10 +44,10 @@ export function HeroSection() {
 
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Биовозраст • Тренды здоровья • AI-рекомендации • Забор на дому</span>
-          </div>
+          
+
+
+
 
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight animate-fade-in" style={{
@@ -62,8 +62,8 @@ export function HeroSection() {
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
-        }}>Самый глубокий на рынке формат анализа здоровья: контроль биологического возраста, энергии, метаболизма, воспаления, гормонального баланса и факторов риска — с регулярной динамикой и сопровождением
-
+        }}>Самый глубокий на рынке формат анализа здоровья. 
+Контроль биологического возраста, энергии, метаболизма, воспаления, гормонального баланса и факторов риска — с регулярной динамикой и сопровождением
           <span className="hidden sm:inline"><br /></span>
             Медсестра приедет к вам. Результат за 5 дней.
           </p>
