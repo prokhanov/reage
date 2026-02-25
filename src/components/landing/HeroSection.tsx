@@ -62,9 +62,8 @@ export function HeroSection() {
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
-        }}>Самый глубокий на рынке формат анализа здоровья:
+         }}>Самый глубокий на рынке формат анализа здоровья:
             <br />контроль биологического возраста, всех систем организма и факторов риска — с регулярной динамикой и сопровождением.
-            <br />Медсестра приедет к вам. Результат за 5 дней.
           </p>
 
           {/* Stats Row */}
