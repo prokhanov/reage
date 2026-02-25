@@ -49,7 +49,7 @@ export function BenefitsSection() {
   const benefits = [
     {
       icon: <Activity className="w-6 h-6 text-primary" />,
-      title: "50+ биомаркеров",
+      title: "70+ биомаркеров",
       description: "Расширенная панель анализов покрывает все ключевые системы организма — от гормонов до витаминов.",
       highlight: "Больше, чем в клиниках",
       delay: 0.1,
