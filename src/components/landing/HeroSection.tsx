@@ -46,7 +46,7 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Биовозраст • Тренды здоровья • AI-рекомендации • Забор на дому</span>
+            <span className="text-sm font-medium text-primary">Медсестра приедет к вам • Результат за 5 дней        </span>
           </div>
 
           {/* Main Heading */}
