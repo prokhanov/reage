@@ -398,7 +398,23 @@ export default function Dashboard() {
         }))
     : bodyHeatmapData;
 
-  const chronologicalAge = profile?.birth_date ? calculateAge(profile.birth_date) : (demoMode && demoData ? demoData.profile.chronological_age : null);
+  // Calculate chronological age at the date of the latest analysis (not today) for consistency with the chart
+  const latestAnalysisDate = (() => {
+    const ans = demoMode && demoData ? demoData.analyses : allAnalyses;
+    if (!ans || ans.length === 0) return null;
+    const sorted = [...ans].sort((a: any, b: any) => new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime());
+    return sorted[sorted.length - 1]?.date || sorted[sorted.length - 1]?.analysis_date || null;
+  })();
+  const birthDateStr = profile?.birth_date || (demoMode && demoData ? demoData.profile.birth_date : null);
+  const chronologicalAge = (() => {
+    if (!birthDateStr) return demoMode && demoData ? demoData.profile.chronological_age : null;
+    if (latestAnalysisDate) {
+      const analysisMs = new Date(latestAnalysisDate).getTime();
+      const birthMs = new Date(birthDateStr).getTime();
+      return Math.round(((analysisMs - birthMs) / (365.25 * 24 * 60 * 60 * 1000)) * 10) / 10;
+    }
+    return calculateAge(birthDateStr);
+  })();
   const ageDifference = displayBioAge && chronologicalAge ? chronologicalAge - displayBioAge : null;
   const circleProgress = displayHealthIndex ? displayHealthIndex : 0;
 
