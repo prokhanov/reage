@@ -191,8 +191,11 @@ export function BiologicalAgeCircle({
       
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10 px-4">
-        <div className="text-7xl font-bold animate-scale-in text-foreground">
+        <div className="text-7xl font-bold animate-scale-in text-foreground leading-none">
           {biologicalAge ? biologicalAge.toFixed(1) : "—"}
+        </div>
+        <div className="text-xs font-medium text-muted-foreground/70 tracking-widest uppercase mt-2">
+          био · возраст
         </div>
       </div>
     </div>
