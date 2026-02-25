@@ -411,6 +411,7 @@ export default function DataManagement() {
       normal_max_male: formData.get("normal_max_male") ? Number(formData.get("normal_max_male")) : null,
       normal_min_female: formData.get("normal_min_female") ? Number(formData.get("normal_min_female")) : null,
       normal_max_female: formData.get("normal_max_female") ? Number(formData.get("normal_max_female")) : null,
+      aging_weight: formData.get("aging_weight") ? Number(formData.get("aging_weight")) : 1.0,
       age_ranges: (filteredAgeRanges.male.length > 0 || filteredAgeRanges.female.length > 0) ? filteredAgeRanges : null,
     };
     saveBiomarker.mutate(biomarker);
@@ -666,7 +667,8 @@ export default function DataManagement() {
                                   <TableHead>Код</TableHead>
                                   <TableHead>Единица</TableHead>
                                   <TableHead>Норма (М)</TableHead>
-                                  <TableHead>Норма (Ж)</TableHead>
+                                   <TableHead>Норма (Ж)</TableHead>
+                                  <TableHead>Вес старения</TableHead>
                                   <TableHead className="w-[100px]">Действия</TableHead>
                                 </TableRow>
                               </TableHeader>
@@ -696,6 +698,9 @@ export default function DataManagement() {
                                               : <span>—</span>
                                             )
                                         }
+                                      </TableCell>
+                                      <TableCell>
+                                        <span className="font-mono text-xs">{biomarker.aging_weight ?? 1.0}</span>
                                       </TableCell>
                                       <TableCell>
                                         <div className="flex gap-2">
@@ -1279,15 +1284,33 @@ export default function DataManagement() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Описание</Label>
-              <Textarea
-                id="description"
-                name="description"
-                defaultValue={editingBiomarker?.description}
-                placeholder="Описание биомаркера..."
-                rows={3}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="aging_weight">Вес старения</Label>
+                <Input
+                  id="aging_weight"
+                  name="aging_weight"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  defaultValue={editingBiomarker?.aging_weight ?? 1.0}
+                  placeholder="1.0"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Влияние на биологический возраст (0.5–3.0). Выше = сильнее влияет.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Описание</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  defaultValue={editingBiomarker?.description}
+                  placeholder="Описание биомаркера..."
+                  rows={3}
+                />
+              </div>
             </div>
 
             {/* Age-dependent ranges */}
