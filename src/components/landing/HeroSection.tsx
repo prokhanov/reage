@@ -72,7 +72,7 @@ export function HeroSection() {
         }}>
             <StatCard icon={<Activity className="w-5 h-5" />} value="70+" label="биомаркеров" />
             <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
-            <StatCard icon={<Brain className="w-5 h-5" />} value="AI" label="персональный анализ" />
+            <StatCard icon={<Brain className="w-5 h-5" />} value="Подробные отчеты" label="персональный анализ" />
             <StatCard icon={<Calendar className="w-5 h-5" />} value="4× в год" label="отслеживание трендов" />
           </div>
 
