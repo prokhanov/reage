@@ -68,9 +68,19 @@ export function HeroSection() {
             Медсестра приедет к вам. Результат за 5 дней.
           </p>
 
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
+          animationDelay: '0.3s'
+        }}>
+            <StatCard icon={<Activity className="w-5 h-5" />} value="50+" label="биомаркеров" />
+            <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
+            <StatCard icon={<Brain className="w-5 h-5" />} value="AI" label="персональный анализ" />
+            <StatCard icon={<Calendar className="w-5 h-5" />} value="4× в год" label="отслеживание трендов" />
+          </div>
+
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in" style={{
-          animationDelay: '0.3s'
+          animationDelay: '0.4s'
         }}>
             <Button size="lg" onClick={() => navigate("/register")} className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group">
               Начать мониторинг
@@ -79,16 +89,6 @@ export function HeroSection() {
             <Button size="lg" variant="outline" onClick={() => navigate("/auth")} className="text-lg px-8 py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-all duration-300">
               Войти в аккаунт
             </Button>
-          </div>
-
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto animate-fade-in" style={{
-          animationDelay: '0.4s'
-        }}>
-            <StatCard icon={<Activity className="w-5 h-5" />} value="50+" label="биомаркеров" />
-            <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
-            <StatCard icon={<Brain className="w-5 h-5" />} value="AI" label="персональный анализ" />
-            <StatCard icon={<Calendar className="w-5 h-5" />} value="4× в год" label="отслеживание трендов" />
           </div>
 
           {/* Hero Showcase */}
