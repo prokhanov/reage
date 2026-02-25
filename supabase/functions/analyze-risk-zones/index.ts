@@ -322,9 +322,10 @@ serve(async (req) => {
                 name: { type: "string" },
                 impact_score: { type: "number" },
                 evidence: { type: "array", items: { type: "string" } },
-                recommendation: { type: "string" }
+                recommendation: { type: "string" },
+                expected_effect_years: { type: "number", description: "Ожидаемый эффект от устранения этого блокера в годах биологического возраста (например 0.5, 1.0, 2.0). Оцени реалистично на основе impact_score и научных данных." }
               },
-              required: ["name", "impact_score", "evidence", "recommendation"]
+              required: ["name", "impact_score", "evidence", "recommendation", "expected_effect_years"]
             }
           }
         },

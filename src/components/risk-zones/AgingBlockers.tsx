@@ -7,6 +7,7 @@ interface AgingBlocker {
   impact_score: number;
   evidence: string[];
   recommendation: string;
+  expected_effect_years?: number;
 }
 
 interface AgingBlockersProps {
@@ -111,11 +112,17 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
                 </div>
 
                 {/* Recommendation */}
-                <div className="pt-2 border-t border-border">
+                <div className="pt-2 border-t border-border space-y-1.5">
                   <p className="text-sm text-foreground">
                     <span className="font-medium text-primary">Рекомендация: </span>
                     {blocker.recommendation}
                   </p>
+                  {blocker.expected_effect_years != null && (
+                    <p className="text-sm font-medium text-status-good flex items-center gap-1.5">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-status-good" />
+                      Ожидаемый эффект: −{blocker.expected_effect_years.toFixed(1)} {blocker.expected_effect_years === 1 ? 'год' : blocker.expected_effect_years < 5 ? 'года' : 'лет'} биовозраста
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
