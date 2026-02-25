@@ -1,38 +1,36 @@
 
 
-# Исправление "NaN%" в трендах SystemRatingsCard
+# Адаптация биологических возрастов в risk_zones
 
 ## Проблема
+Стратегия показывает "43.5 → 42 года" (шаблонные значения), хотя дашборд показывает адаптированный биовозраст (например, 24.5 для 26-летнего).
 
-В `calculateTrends()` (строка ~95) значения `oldScores` и `newScores` берутся из `category_scores`, но после обновления демо-данных scores хранятся как объекты `{ score: number, impact: string, key_markers: string[] }`, а не как числа. Код делит на объект вместо числа → `NaN`.
+## Изменение
 
-```typescript
-// Строки 100-101: получаем объект вместо числа
-const oldScore = oldScores[cat.name]; // { score: 83, impact: "...", key_markers: [...] }
-const newScore = newScores[cat.name]; // { score: 85, impact: "...", key_markers: [...] }
-// Строка 105: NaN
-const change = newScore - oldScore; // object - object = NaN
-```
+**Файл:** `src/hooks/useDemoMode.ts`, после строки 88 (после блока замены хронологического возраста)
 
-## Решение
-
-В `src/components/dashboard/SystemRatingsCard.ts`, в функции `calculateTrends()` (~строки 100-101), извлекать `.score` из объекта так же, как уже сделано в `loadCategories()` (~строки 44-53):
+Добавить ~12 строк: берём биовозрасты из шаблонных и адаптированных анализов, вычисляем дельту, заменяем в `risk_zones`:
 
 ```typescript
-const rawOld = oldScores[cat.name];
-const oldScore = typeof rawOld === 'object' && rawOld !== null && 'score' in rawOld 
-  ? rawOld.score : (typeof rawOld === 'number' ? rawOld : null);
+// Adapt biological age references in risk_zones
+if (adaptedRiskZones && adaptedAnalyses.length > 0) {
+  const templateAnalyses = genderData.analyses || [];
+  const lastTemplateBio = templateAnalyses[templateAnalyses.length - 1]?.biological_age;
+  const lastAdaptedBio = adaptedAnalyses[adaptedAnalyses.length - 1]?.biological_age;
 
-const rawNew = newScores[cat.name];  
-const newScore = typeof rawNew === 'object' && rawNew !== null && 'score' in rawNew
-  ? rawNew.score : (typeof rawNew === 'number' ? rawNew : null);
+  if (lastTemplateBio && lastAdaptedBio && lastTemplateBio !== lastAdaptedBio) {
+    const delta = lastAdaptedBio - lastTemplateBio;
+    const templateTarget = 42;
+    const adaptedTarget = Math.round((templateTarget + delta) * 10) / 10;
+
+    let riskZonesStr = JSON.stringify(adaptedRiskZones);
+    riskZonesStr = riskZonesStr
+      .replace(/43\.5/g, String(Math.round(lastAdaptedBio * 10) / 10))
+      .replace(/42 года/g, `${adaptedTarget} года`);
+    adaptedRiskZones = JSON.parse(riskZonesStr);
+  }
+}
 ```
 
-И добавить проверку `oldScore === 0` чтобы не делить на ноль:
-
-```typescript
-if (oldScore === null || newScore === null || oldScore === 0) return;
-```
-
-Один файл, ~10 строк изменений.
+Коллизий нет: `43.5` уникально, `42 года` не совпадает с "42 нг/мл". Интерпретации биомаркеров не затрагиваются — меняются только числа биовозраста.
 
