@@ -50,17 +50,20 @@ export function WeightTracker() {
       .order("measured_at", { ascending: false })
       .limit(10);
 
+    // Fetch height and weight from profile
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("height, weight")
+      .eq("id", userId)
+      .single();
+
     if (weightData && weightData.length > 0) {
       setHistory(weightData);
       setCurrentWeight(weightData[0].weight);
+    } else if (profileData?.weight) {
+      // Fallback to profile weight when no history exists
+      setCurrentWeight(profileData.weight);
     }
-
-    // Fetch height from profile
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("height")
-      .eq("id", userId)
-      .single();
 
     if (profileData?.height) {
       setHeight(profileData.height);
