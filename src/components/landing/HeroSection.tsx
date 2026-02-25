@@ -62,16 +62,16 @@ export function HeroSection() {
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
-        }}>Самый глубокий на рынке формат анализа здоровья. 
+        }}>Самый глубокий на рынке формат анализа здоровья.
 Контроль биологического возраста, энергии, метаболизма, воспаления, гормонального баланса и факторов риска — с регулярной динамикой и сопровождением
+Медсестра приедет к вам. Результат за 5 дней.
+
           <span className="hidden sm:inline"><br /></span>
             Медсестра приедет к вам. Результат за 5 дней.
           </p>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
-          animationDelay: '0.3s'
-        }}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <StatCard icon={<Activity className="w-5 h-5" />} value="50+" label="биомаркеров" />
             <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
             <StatCard icon={<Brain className="w-5 h-5" />} value="AI" label="персональный анализ" />
