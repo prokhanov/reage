@@ -406,31 +406,36 @@ export default function Dashboard() {
   const analyses = demoMode && demoData ? demoData.analyses : allAnalyses;
   let displayRecentChange: number | null = null;
   let displayRecentPeriod: string | null = null;
-  let displayTotalProgress: number | null = null;
+   let displayTotalProgress: number | null = null;
+   let displayFirstAnalysisDate: string | null = null;
 
-  if (analyses && analyses.length >= 2) {
-    const sortedAnalyses = [...analyses].sort((a: any, b: any) => 
-      new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
-    );
+   if (analyses && analyses.length >= 2) {
+     const sortedAnalyses = [...analyses].sort((a: any, b: any) => 
+       new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
+     );
 
-    const latest = sortedAnalyses[sortedAnalyses.length - 1];
-    const secondLatest = sortedAnalyses[sortedAnalyses.length - 2];
-    const first = sortedAnalyses[0];
+     const latest = sortedAnalyses[sortedAnalyses.length - 1];
+     const secondLatest = sortedAnalyses[sortedAnalyses.length - 2];
+     const first = sortedAnalyses[0];
 
-    const latestBioAge = latest.biological_age;
-    const secondLatestBioAge = secondLatest.biological_age;
-    const firstBioAge = first.biological_age;
+     const latestBioAge = latest.biological_age;
+     const secondLatestBioAge = secondLatest.biological_age;
+     const firstBioAge = first.biological_age;
 
-    displayRecentChange = latestBioAge && secondLatestBioAge ? latestBioAge - secondLatestBioAge : null;
-    
-    // Calculate period between last two analyses
-    const latestDate = new Date(latest.date || latest.analysis_date);
-    const secondLatestDate = new Date(secondLatest.date || secondLatest.analysis_date);
-    const monthsDiff = Math.round((latestDate.getTime() - secondLatestDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
-    displayRecentPeriod = monthsDiff > 0 ? `за ${monthsDiff} ${monthsDiff === 1 ? 'месяц' : monthsDiff < 5 ? 'месяца' : 'месяцев'}` : null;
+     displayRecentChange = latestBioAge && secondLatestBioAge ? latestBioAge - secondLatestBioAge : null;
+     
+     // Calculate period between last two analyses
+     const latestDate = new Date(latest.date || latest.analysis_date);
+     const secondLatestDate = new Date(secondLatest.date || secondLatest.analysis_date);
+     const monthsDiff = Math.round((latestDate.getTime() - secondLatestDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+     displayRecentPeriod = monthsDiff > 0 ? `за ${monthsDiff} ${monthsDiff === 1 ? 'месяц' : monthsDiff < 5 ? 'месяца' : 'месяцев'}` : null;
 
-    displayTotalProgress = latestBioAge && firstBioAge ? latestBioAge - firstBioAge : null;
-  }
+     displayTotalProgress = latestBioAge && firstBioAge ? latestBioAge - firstBioAge : null;
+     
+     // Format first analysis date for display
+     const firstDate = new Date(first.date || first.analysis_date);
+     displayFirstAnalysisDate = `с ${format(firstDate, 'LLL yyyy', { locale: ru })}`;
+   }
 
   // Additional display variables
   const displayBiologicalAge = displayBioAge;
@@ -579,7 +584,7 @@ export default function Dashboard() {
                     {/* Recent Change */}
                     <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
                       <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
-                      <div className="text-xs text-muted-foreground mb-1">Динамика</div>
+                      <div className="text-xs text-muted-foreground mb-1">Последнее изменение</div>
                       <div className={`text-3xl font-bold ${
                         displayRecentChange && displayRecentChange < 0 
                           ? "text-status-good" 
@@ -588,7 +593,7 @@ export default function Dashboard() {
                           : "text-foreground"
                       }`}>
                         {displayRecentChange !== null 
-                          ? `${displayRecentChange > 0 ? '+' : ''}${displayRecentChange.toFixed(1)}`
+                          ? `${displayRecentChange > 0 ? '+' : ''}${displayRecentChange.toFixed(1)} г.`
                           : "—"
                         }
                       </div>
@@ -600,7 +605,7 @@ export default function Dashboard() {
                     {/* Total Progress */}
                     <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
                       <Trophy className="h-5 w-5 text-primary/60 mb-2" />
-                      <div className="text-xs text-muted-foreground mb-1">Прогресс</div>
+                      <div className="text-xs text-muted-foreground mb-1">Общий прогресс</div>
                       <div className={`text-3xl font-bold ${
                         displayTotalProgress && displayTotalProgress < 0 
                           ? "text-status-good" 
@@ -609,15 +614,12 @@ export default function Dashboard() {
                           : "text-foreground"
                       }`}>
                         {displayTotalProgress !== null 
-                          ? `${displayTotalProgress > 0 ? '+' : ''}${displayTotalProgress.toFixed(1)}`
+                          ? `${displayTotalProgress > 0 ? '+' : ''}${displayTotalProgress.toFixed(1)} г.`
                           : "—"
                         }
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {displayTotalProgress !== null 
-                          ? displayTotalProgress < 0 ? "лучше" : "хуже"
-                          : "всего"
-                        }
+                        {displayFirstAnalysisDate || "всего"}
                       </div>
                     </div>
 
