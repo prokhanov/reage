@@ -36,7 +36,7 @@ export function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[60px]">
+      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[80px]">
         {/* Logo */}
         <div className="flex justify-center mb-10 animate-fade-in">
           <img src={reageLogo} alt="ReAge" className="h-14 md:h-20 w-auto" />
@@ -62,7 +62,7 @@ export function HeroSection() {
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
-         }}>Самый глубокий на рынке формат анализа здоровья:
+        }}>Самый глубокий на рынке формат анализа здоровья:
             <br />контроль биологического возраста, всех систем организма и факторов риска — с регулярной динамикой и сопровождением.
           </p>
 
