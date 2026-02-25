@@ -87,6 +87,25 @@ export const useDemoMode = () => {
       );
     }
 
+    // Adapt biological age references in risk_zones
+    if (adaptedRiskZones && adaptedAnalyses.length > 0) {
+      const templateAnalyses = genderData.analyses || [];
+      const lastTemplateBio = templateAnalyses[templateAnalyses.length - 1]?.biological_age;
+      const lastAdaptedBio = adaptedAnalyses[adaptedAnalyses.length - 1]?.biological_age;
+
+      if (lastTemplateBio && lastAdaptedBio && lastTemplateBio !== lastAdaptedBio) {
+        const delta = lastAdaptedBio - lastTemplateBio;
+        const templateTarget = 42;
+        const adaptedTarget = Math.round((templateTarget + delta) * 10) / 10;
+
+        let riskZonesStr = JSON.stringify(adaptedRiskZones);
+        riskZonesStr = riskZonesStr
+          .replace(/43\.5/g, String(Math.round(lastAdaptedBio * 10) / 10))
+          .replace(/42 года/g, `${adaptedTarget} года`);
+        adaptedRiskZones = JSON.parse(riskZonesStr);
+      }
+    }
+
     return {
       profile: adaptedProfile,
       analyses: adaptedAnalyses,
