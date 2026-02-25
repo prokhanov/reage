@@ -499,11 +499,12 @@ export default function Dashboard() {
               <TabsContent value="current" className="mt-0">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                   {/* Left: Circle */}
-                  <div className="flex flex-col items-center justify-center">
-                    <BiologicalAgeCircle
-                      biologicalAge={displayBioAge}
-                      chronologicalAge={chronologicalAge}
-                    />
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-sm font-medium text-muted-foreground tracking-wide mb-3">Биологический возраст</span>
+                      <BiologicalAgeCircle
+                        biologicalAge={displayBioAge}
+                        chronologicalAge={chronologicalAge}
+                      />
                     
                     {/* Compact comparison text */}
                     {displayBioAge && chronologicalAge && ageDifference !== null ? (
