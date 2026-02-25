@@ -194,9 +194,6 @@ export function BiologicalAgeCircle({
         <div className="text-7xl font-bold animate-scale-in text-foreground leading-none">
           {biologicalAge ? biologicalAge.toFixed(1) : "—"}
         </div>
-        <div className="text-xs font-medium text-muted-foreground/70 tracking-widest uppercase mt-2">
-          био · возраст
-        </div>
       </div>
     </div>
   );
