@@ -70,7 +70,7 @@ export function HeroSection() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
           animationDelay: '0.3s'
         }}>
-            <StatCard icon={<Activity className="w-5 h-5" />} value="50+" label="биомаркеров" />
+            <StatCard icon={<Activity className="w-5 h-5" />} value="70+" label="биомаркеров" />
             <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
             <StatCard icon={<Brain className="w-5 h-5" />} value="AI" label="персональный анализ" />
             <StatCard icon={<Calendar className="w-5 h-5" />} value="4× в год" label="отслеживание трендов" />
