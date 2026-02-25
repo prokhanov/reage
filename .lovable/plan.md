@@ -1,54 +1,38 @@
 
 
-# Добавить недостающие биомаркеры в демо-данные
+# Исправление "NaN%" в трендах SystemRatingsCard
 
-## Текущая ситуация
+## Проблема
 
-- В таблице `biomarkers` — **80** записей, из них **CD19+** исключён → **79 активных**
-- В демо-данных (`demo_data_templates`) — только **54 уникальных кода**
-- В маппинге `DEMO_TO_DB_CODE` — **69 кодов**
-- Пользователь видит 54, хотя должен видеть все ~79
+В `calculateTrends()` (строка ~95) значения `oldScores` и `newScores` берутся из `category_scores`, но после обновления демо-данных scores хранятся как объекты `{ score: number, impact: string, key_markers: string[] }`, а не как числа. Код делит на объект вместо числа → `NaN`.
 
-## Что не хватает
-
-### A. 15 кодов есть в маппинге, но отсутствуют в демо-данных:
-`APOA1`, `APOB`, `VLDL`, `LPA`, `NTPROBNP`, `CPK`, `LDH`, `IL6`, `TNF`, `IGF1`, `CD3`, `CD4`, `CD8`, `NK`, `ESTR`
-
-### B. 10 биомаркеров есть в БД, но нет ни в маппинге, ни в демо:
-| БД код | Короткий код |
-|---|---|
-| Медь | CU |
-| не-HDL холестерин | NONHDL |
-| Соотношение ApoB/ApoA1 | ABRA |
-| Эстрон (E1) | E1 |
-| Эстриол (E3) | E3 |
-| Коэнзим Q10 (plasma) | COQ10 |
-| Лактат | LACT |
-| Малоновый диальдегид | MDA |
-| Общий антиоксидантный статус (OAS) | OAS |
-| Селен | SE |
-
-**Итого:** 54 + 15 + 10 = **79 биомаркеров** в демо (все кроме CD19+)
-
-## План изменений
-
-### 1. Обновить демо-данные в БД
-Добавить 25 биомаркеров × 4 анализа = 100 новых записей в `male_data->'biomarkers'` с реалистичными значениями и прогрессией (как у существующих).
-
-### 2. Добавить 10 новых кодов в `DEMO_TO_DB_CODE` (`src/lib/biomarkerCodeMap.ts`)
-```
-CU → "Медь"
-NONHDL → "не-HDL холестерин"
-ABRA → "Соотношение ApoB/ApoA1"
-E1 → "Эстрон (E1)"
-E3 → "Эстриол (E3)"
-COQ10 → "Коэнзим Q10 (plasma)"
-LACT → "Лактат"
-MDA → "Малоновый диальдегид"
-OAS → "Общий антиоксидантный статус (OAS)"
-SE → "Селен"
+```typescript
+// Строки 100-101: получаем объект вместо числа
+const oldScore = oldScores[cat.name]; // { score: 83, impact: "...", key_markers: [...] }
+const newScore = newScores[cat.name]; // { score: 85, impact: "...", key_markers: [...] }
+// Строка 105: NaN
+const change = newScore - oldScore; // object - object = NaN
 ```
 
-### 3. Код без изменений
-`Analyses.tsx` и `AnalysisDetail.tsx` уже корректно фильтруют по `DEMO_TO_DB_CODE` — после добавления данных количество автоматически станет 79.
+## Решение
+
+В `src/components/dashboard/SystemRatingsCard.ts`, в функции `calculateTrends()` (~строки 100-101), извлекать `.score` из объекта так же, как уже сделано в `loadCategories()` (~строки 44-53):
+
+```typescript
+const rawOld = oldScores[cat.name];
+const oldScore = typeof rawOld === 'object' && rawOld !== null && 'score' in rawOld 
+  ? rawOld.score : (typeof rawOld === 'number' ? rawOld : null);
+
+const rawNew = newScores[cat.name];  
+const newScore = typeof rawNew === 'object' && rawNew !== null && 'score' in rawNew
+  ? rawNew.score : (typeof rawNew === 'number' ? rawNew : null);
+```
+
+И добавить проверку `oldScore === 0` чтобы не делить на ноль:
+
+```typescript
+if (oldScore === null || newScore === null || oldScore === 0) return;
+```
+
+Один файл, ~10 строк изменений.
 
