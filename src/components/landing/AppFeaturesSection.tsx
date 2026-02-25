@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HeroShowcase } from "@/components/landing/HeroShowcase";
 import { 
   LayoutDashboard, 
   FlaskConical, 
@@ -212,6 +213,9 @@ export function AppFeaturesSection() {
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             8 разделов для управления вашим здоровьем — от анализов до AI-ассистента
           </p>
+
+          {/* Interactive Showcase */}
+          <HeroShowcase />
         </div>
 
         {/* Stats bar */}
