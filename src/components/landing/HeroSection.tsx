@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { HeroShowcase } from "@/components/landing/HeroShowcase";
-import { ArrowRight, Sparkles, Activity, TrendingUp, Brain, Calendar, Moon, Sun } from "lucide-react";
+import { ArrowRight, Activity, TrendingUp, Brain, Calendar, Moon, Sun } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -45,7 +45,7 @@ export function HeroSection() {
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4 text-primary" />
+            
             <span className="text-sm font-medium text-primary">Медсестра приедет к вам • Результат за 5 дней        </span>
           </div>
 
