@@ -1,27 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Target, Mountain } from "lucide-react";
+import { Zap, Target, Mountain, ArrowRight, Clock } from "lucide-react";
 
 interface PredictedImprovement {
   metric: string;
-  change: string;
-  timeline_days: number;
-  confidence: number;
+  change?: string;
+  timeline_days?: number;
+  confidence?: number;
+  // Demo format fields
+  from?: number;
+  to?: number;
+  unit?: string;
+  improvement?: string;
 }
 
 interface Prediction {
   effect: string;
-  metric: string;
-  confidence: number;
-  improvement: string;
+  metric?: string;
+  confidence?: number;
+  improvement?: string;
 }
 
 interface Task {
-  id: string;
+  id?: string;
   action: string;
   reason: string;
-  timeline: string;
-  prediction: Prediction;
+  timeline?: string;
+  prediction?: Prediction;
 }
 
 interface PriorityLevel {
@@ -46,12 +51,12 @@ interface SmartPrioritiesProps {
 const levelConfig = {
   immediate: {
     icon: Zap,
-    title: "Краткосрочно (1-2 недели)",
+    title: "Краткосрочно (1–2 недели)",
     gradient: "from-red-500 to-orange-500",
   },
   medium_term: {
     icon: Target,
-    title: "Среднесрочно (1-2 месяца)",
+    title: "Среднесрочно (1–2 месяца)",
     gradient: "from-blue-500 to-cyan-500",
   },
   long_term: {
@@ -59,6 +64,32 @@ const levelConfig = {
     title: "Долгосрочно (3+ месяца)",
     gradient: "from-purple-500 to-pink-500",
   },
+};
+
+/** Format timeline_days into readable Russian text */
+const formatTimeline = (days?: number): string | null => {
+  if (!days) return null;
+  if (days <= 7) return `${days} дн.`;
+  if (days <= 14) return "2 нед.";
+  if (days <= 21) return "3 нед.";
+  if (days <= 30) return "1 мес.";
+  if (days <= 60) return "2 мес.";
+  if (days <= 90) return "3 мес.";
+  if (days <= 180) return "6 мес.";
+  return `${Math.round(days / 30)} мес.`;
+};
+
+/** Normalize predicted improvement into a display string */
+const formatChange = (pred: PredictedImprovement): string => {
+  // Demo format: from → to
+  if (pred.from !== undefined && pred.to !== undefined) {
+    return `${pred.from} → ${pred.to}${pred.unit ? ` ${pred.unit}` : ""}`;
+  }
+  // improvement field (demo or AI)
+  if (pred.improvement) return pred.improvement;
+  // change field (AI format)
+  if (pred.change) return pred.change;
+  return "—";
 };
 
 export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
@@ -94,46 +125,50 @@ export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
             </CardHeader>
 
             <CardContent className="space-y-4">
-              {/* Focus Section */}
-              <div className="p-4 bg-secondary/50 rounded-lg space-y-3">
-                <p className="text-sm text-foreground leading-relaxed">
-                  {level.data.focus.description}
-                </p>
+              {/* Focus description */}
+              <p className="text-sm text-foreground leading-relaxed">
+                {level.data.focus.description}
+              </p>
 
-                <div className="space-y-2">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Прогнозируемые улучшения:
+              {/* Predicted improvements */}
+              {level.data.focus.predicted_improvements?.length > 0 && (
+                <div className="p-3 bg-secondary/50 rounded-lg space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Ожидаемые улучшения
                   </span>
-                  {level.data.focus.predicted_improvements.map((pred, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-foreground">{pred.metric}</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-mono">
-                          {pred.change}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {pred.timeline_days}д, {pred.confidence}%
-                        </span>
+                  {level.data.focus.predicted_improvements.map((pred, idx) => {
+                    const timeline = formatTimeline(pred.timeline_days);
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between text-sm"
+                      >
+                        <span className="text-foreground">{pred.metric}</span>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {formatChange(pred)}
+                          </Badge>
+                          {timeline && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {timeline}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-              </div>
+              )}
 
-              {/* Tasks Section */}
-              <div className="space-y-2">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Задачи:
-                </span>
+              {/* Tasks */}
+              {level.data.tasks?.length > 0 && (
                 <div className="space-y-2">
-                  {level.data.tasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                  {level.data.tasks.map((task, idx) => (
+                    <TaskCard key={task.id || idx} task={task} />
                   ))}
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         );
@@ -146,28 +181,27 @@ const TaskCard = ({ task }: { task: Task }) => {
   return (
     <Card className="border-l-4 border-l-primary">
       <CardContent className="p-4 space-y-2">
-        <div className="space-y-1">
-          <p className="font-medium text-sm text-foreground">{task.action}</p>
-          <p className="text-xs text-muted-foreground">{task.reason}</p>
-        </div>
+        <p className="font-medium text-sm text-foreground">{task.action}</p>
+        <p className="text-xs text-muted-foreground">{task.reason}</p>
 
         <div className="flex items-center justify-between pt-2 border-t">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-foreground">
-              {task.prediction.effect}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {task.prediction.metric}
-            </p>
-          </div>
-          <div className="text-right space-y-1">
-            <Badge variant="secondary" className="font-mono text-xs">
-              {task.prediction.improvement}
-            </Badge>
-            <p className="text-xs text-muted-foreground">
-              {task.prediction.confidence}% уверенности
-            </p>
-          </div>
+          {task.prediction && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <ArrowRight className="h-3 w-3 text-primary" />
+              <span className="text-foreground">{task.prediction.effect}</span>
+              {task.prediction.improvement && (
+                <Badge variant="secondary" className="font-mono text-xs">
+                  {task.prediction.improvement}
+                </Badge>
+              )}
+            </div>
+          )}
+          {task.timeline && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1 ml-auto">
+              <Clock className="h-3 w-3" />
+              {task.timeline}
+            </span>
+          )}
         </div>
       </CardContent>
     </Card>
