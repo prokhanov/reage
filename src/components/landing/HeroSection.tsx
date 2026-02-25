@@ -36,7 +36,7 @@ export function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[60px]">
+      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[80px]">
         {/* Logo */}
         <div className="flex justify-center mb-10 animate-fade-in">
           <img src={reageLogo} alt="ReAge" className="h-14 md:h-20 w-auto" />
