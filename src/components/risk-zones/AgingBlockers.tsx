@@ -21,9 +21,9 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
   };
 
   const getImpactLabel = (score: number) => {
-    if (score >= 8) return "Критическое";
-    if (score >= 5) return "Умеренное";
-    return "Слабое";
+    if (score >= 8) return "Критическое влияние";
+    if (score >= 5) return "Умеренное влияние";
+    return "Слабое влияние";
   };
 
   // Sort by impact score (highest first)
@@ -76,16 +76,21 @@ export function AgingBlockers({ blockers }: AgingBlockersProps) {
                 </div>
 
                 {/* Impact Progress */}
-                <Progress 
-                  value={blocker.impact_score * 10} 
-                  className="h-2"
-                  style={{
-                    backgroundColor: "hsl(var(--muted))",
-                  }}
-                  indicatorStyle={{
-                    backgroundColor: impactColor,
-                  }}
-                />
+                <div className="space-y-1">
+                  <Progress 
+                    value={blocker.impact_score * 10} 
+                    className="h-2"
+                    style={{
+                      backgroundColor: "hsl(var(--muted))",
+                    }}
+                    indicatorStyle={{
+                      backgroundColor: impactColor,
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground text-right">
+                    Влияние на старение: {blocker.impact_score}/10
+                  </p>
+                </div>
 
                 {/* Evidence */}
                 <div className="space-y-1">
