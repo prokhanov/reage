@@ -36,7 +36,7 @@ export function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[80px]">
+      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[60px]">
         {/* Logo */}
         <div className="flex justify-center mb-10 animate-fade-in">
           <img src={reageLogo} alt="ReAge" className="h-14 md:h-20 w-auto" />
@@ -44,10 +44,10 @@ export function HeroSection() {
 
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
-          
-
-
-
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Биовозраст • Тренды здоровья • AI-рекомендации • Забор на дому</span>
+          </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight animate-fade-in" style={{
@@ -62,16 +62,16 @@ export function HeroSection() {
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
-        }}>Самый глубокий на рынке формат анализа здоровья. 
-Контроль биологического возраста, энергии, метаболизма, воспаления, гормонального баланса и факторов риска — с регулярной динамикой и сопровождением. 
-Медсестра приедет к вам. Результат за 5 дней.
+        }}>Самый глубокий на рынке формат анализа здоровья: контроль биологического возраста, энергии, метаболизма, воспаления, гормонального баланса и факторов риска — с регулярной динамикой и сопровождением
 
           <span className="hidden sm:inline"><br /></span>
             Медсестра приедет к вам. Результат за 5 дней.
           </p>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
+          animationDelay: '0.3s'
+        }}>
             <StatCard icon={<Activity className="w-5 h-5" />} value="50+" label="биомаркеров" />
             <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
             <StatCard icon={<Brain className="w-5 h-5" />} value="AI" label="персональный анализ" />
