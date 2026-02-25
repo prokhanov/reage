@@ -12,13 +12,10 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   MCV: "MCV",
   MCHC: "MCH / MCHC",
   PLT: "Тромбоциты (PLT)",
-  RETIC: "Ретикулоциты",
-  HAPTO: "Гаптоглобин",
   FE: "Железо",
-  TIBC: "ОЖСС (TIBC)",
   TRANSF: "Трансферрин",
-  TSAT: "Насыщение трансферрина (%)",
   FOLATE: "Фолиевая кислота (B9)",
+  B12: "Витамин B12",
   
   // Воспалительная и иммунная система
   CRP: "CRP (hs-CRP)",
@@ -32,12 +29,9 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   TNF: "TNF-α",
   IGM: "IgM",
   IGG: "IgG",
-  IGA: "IgA",
-  IGE: "IgE",
   CD3: "CD3+ (T-лимфоциты)",
   CD4: "CD4+ (T-хелперы)",
   CD8: "CD8+ (T-супрессоры)",
-  CD19: "CD19+ (B-лимфоциты)",
   NK: "NK-клетки (CD16+CD56+)",
   
   // Сердечно-сосудистая система
@@ -52,8 +46,6 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   LPA: "Lp(a)",
   HCY: "Гомоцистеин",
   NTPROBNP: "NT-proBNP",
-  TROP: "Тропонин I",
-  MYO: "Миоглобин",
   CPK: "Креатинкиназа (КФК)",
   LDH: "Лактатдегидрогеназа (ЛДГ)",
   
@@ -67,11 +59,14 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   ALP: "ALP",
   BIL: "Билирубин",
   TP: "Общий белок",
+  ALB: "Альбумин",
   UREA: "Мочевина",
   NA: "Натрий (Na)",
   K: "Калий (K)",
   CL: "Хлор (Cl)",
   CACL: "Кальций (Ca)",
+  MG: "Магний (сыворотка)",
+  ZN: "Цинк",
   
   // Эндокринная и стрессовая система
   TEST: "Тестостерон общий",
@@ -85,4 +80,5 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   CORT: "Кортизол",
   INS: "Инсулин",
   IGF1: "IGF-1",
+  HOMAIR: "HOMA-IR (расчётный)",
 };
