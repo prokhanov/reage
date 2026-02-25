@@ -76,6 +76,17 @@ export const useDemoMode = () => {
       };
     });
 
+    // Adapt risk_zones: replace template age references with user's age
+    let adaptedRiskZones = genderData.risk_zones || null;
+    if (adaptedRiskZones && userAge && templateAge) {
+      adaptedRiskZones = JSON.parse(
+        JSON.stringify(adaptedRiskZones)
+          .replace(new RegExp(`${templateAge}\\+`, 'g'), `${userAge}+`)
+          .replace(new RegExp(`после ${templateAge}`, 'g'), `после ${userAge}`)
+          .replace(new RegExp(`возраста ${templateAge}`, 'g'), `возраста ${userAge}`)
+      );
+    }
+
     return {
       profile: adaptedProfile,
       analyses: adaptedAnalyses,
@@ -84,7 +95,7 @@ export const useDemoMode = () => {
       weight_history: genderData.weight_history || [],
       prescriptions: genderData.prescriptions || [],
       recommendations: genderData.recommendations || [],
-      risk_zones: genderData.risk_zones || null
+      risk_zones: adaptedRiskZones
     };
   };
 
