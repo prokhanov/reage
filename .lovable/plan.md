@@ -1,36 +1,34 @@
 
 
-# Адаптация биологических возрастов в risk_zones
+# Очистка aging_rate — удаление мёртвого и противоречивого кода
 
-## Проблема
-Стратегия показывает "43.5 → 42 года" (шаблонные значения), хотя дашборд показывает адаптированный биовозраст (например, 24.5 для 26-летнего).
+## Текущее состояние
 
-## Изменение
+Aging rate существует в трёх местах, все противоречат друг другу:
 
-**Файл:** `src/hooks/useDemoMode.ts`, после строки 88 (после блока замены хронологического возраста)
+| Место | Логика | Используется? |
+|-------|--------|---------------|
+| `Dashboard.tsx` (стр. 140-142) | `bio / chrono` = 0.94 | Нет — `displayAgingRate` (стр. 384) вычисляется, но **нигде не рендерится** |
+| `analyze-biomarkers` (стр. 1129, 1202) | AI субъективно возвращает число (0.85) | Сохраняется в metadata |
+| `BioAgeTrendChart.tsx` (стр. 42, 75-79) | Берёт AI-значение из metadata | Да — в тултипе графика |
 
-Добавить ~12 строк: берём биовозрасты из шаблонных и адаптированных анализов, вычисляем дельту, заменяем в `risk_zones`:
+## План: убрать всё
 
-```typescript
-// Adapt biological age references in risk_zones
-if (adaptedRiskZones && adaptedAnalyses.length > 0) {
-  const templateAnalyses = genderData.analyses || [];
-  const lastTemplateBio = templateAnalyses[templateAnalyses.length - 1]?.biological_age;
-  const lastAdaptedBio = adaptedAnalyses[adaptedAnalyses.length - 1]?.biological_age;
+Метрика бесполезна: Dashboard уже показывает разницу bio vs chrono в годах, что понятнее голого коэффициента. AI-значение субъективно и не воспроизводимо.
 
-  if (lastTemplateBio && lastAdaptedBio && lastTemplateBio !== lastAdaptedBio) {
-    const delta = lastAdaptedBio - lastTemplateBio;
-    const templateTarget = 42;
-    const adaptedTarget = Math.round((templateTarget + delta) * 10) / 10;
+### Файл 1: `src/pages/Dashboard.tsx`
+- Удалить state `agingRate` (стр. 40)
+- Удалить `setAgingRate(null)` в reset (стр. 59)
+- Удалить вычисление `rate = bio / chrono` и `setAgingRate(rate)` (стр. 140-142)
+- Удалить `setAgingRate(null)` в else (стр. 149)
+- Удалить `displayAgingRate` (стр. 384)
 
-    let riskZonesStr = JSON.stringify(adaptedRiskZones);
-    riskZonesStr = riskZonesStr
-      .replace(/43\.5/g, String(Math.round(lastAdaptedBio * 10) / 10))
-      .replace(/42 года/g, `${adaptedTarget} года`);
-    adaptedRiskZones = JSON.parse(riskZonesStr);
-  }
-}
-```
+### Файл 2: `src/components/dashboard/BioAgeTrendChart.tsx`
+- Удалить `aging_rate` из data mapping (стр. 42, 50)
+- Удалить блок `{data.aging_rate && ...}` из тултипа (стр. 75-79)
 
-Коллизий нет: `43.5` уникально, `42 года` не совпадает с "42 нг/мл". Интерпретации биомаркеров не затрагиваются — меняются только числа биовозраста.
+### НЕ трогаем
+- `analyze-biomarkers/index.ts` — AI всё равно возвращает это поле, удалять из schema не нужно. Данные просто не будут отображаться.
+
+Итого: ~12 строк удалить в 2 файлах. Чистка мёртвого кода без изменения функциональности.
 
