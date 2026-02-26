@@ -25,6 +25,31 @@ interface PromptFormData {
 
 type BiomarkerCategory = Tables<"biomarker_categories">;
 
+// Конфигурация секции стратегии (зоны риска)
+const riskZoneSections = [
+  { 
+    id: 'risk_map', 
+    name: 'Карта рисков', 
+    emoji: '🗺️',
+    description: 'Промпт для анализа карты рисков по системам организма',
+    promptKey: 'risk_zones_risk_map'
+  },
+  { 
+    id: 'aging_blockers', 
+    name: 'Факторы старения', 
+    emoji: '🧬',
+    description: 'Промпт для определения факторов, тормозящих anti-aging прогресс',
+    promptKey: 'risk_zones_aging_blockers'
+  },
+  { 
+    id: 'smart_priorities', 
+    name: 'Умные приоритеты', 
+    emoji: '🎯',
+    description: 'Промпт для генерации стратегических приоритетов и задач',
+    promptKey: 'risk_zones_smart_priorities'
+  }
+];
+
 // Конфигурация разделов отчёта
 const reportSections = [
   { 
@@ -85,12 +110,26 @@ export default function AISettings() {
     };
   });
 
+  // Маппинг промптов для стратегии (зоны риска)
+  const riskZonePrompts = riskZoneSections.map(section => ({
+    section,
+    prompt: settings?.find(s => s.key === section.promptKey)
+  }));
+
   // Маппинг промптов для разделов отчёта
   const reportPrompts = reportSections.map(section => ({
     section,
     systemPrompt: settings?.find(s => s.key === section.systemKey),
     userPrompt: settings?.find(s => s.key === section.userKey)
   }));
+
+  // Фильтруем стратегию по поисковому запросу
+  const filteredRiskZonePrompts = searchQuery
+    ? riskZonePrompts.filter(rz =>
+        rz.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        rz.prompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : riskZonePrompts;
 
   // Фильтруем разделы отчёта по поисковому запросу
   const filteredReportPrompts = searchQuery 
@@ -292,6 +331,85 @@ export default function AISettings() {
                       {!rp.systemPrompt && !rp.userPrompt && (
                         <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
                           Промпты для этого раздела не настроены в базе данных
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
+
+        {/* Раздел: Промпты стратегии (Зоны риска) */}
+        {filteredRiskZonePrompts.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Промпты стратегии (Зоны риска)</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Промпты для генерации карты рисков, факторов старения и стратегических приоритетов
+            </p>
+            <Accordion type="multiple" className="space-y-4">
+              {filteredRiskZonePrompts.map((rz) => (
+                <AccordionItem 
+                  key={rz.section.id} 
+                  value={rz.section.id}
+                  className="border rounded-lg"
+                >
+                  <AccordionTrigger className="px-6 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{rz.section.emoji}</span>
+                      <div className="text-left">
+                        <div className="font-semibold">{rz.section.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {rz.section.description}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6">
+                    <div className="space-y-4 mt-4">
+                      {rz.prompt ? (
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                Prompt
+                              </Badge>
+                              <Badge variant="outline" className="text-xs font-mono">
+                                {rz.prompt.key}
+                              </Badge>
+                            </div>
+                            <CardTitle className="text-base">
+                              {rz.prompt.description || rz.section.name}
+                            </CardTitle>
+                            <CardDescription className="text-xs">
+                              {rz.prompt.updated_at && (
+                                <>
+                                  Обновлено: {format(new Date(rz.prompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}
+                                </>
+                              )}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                                {rz.prompt.prompt_text}
+                              </p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleEdit(rz.prompt)}
+                            >
+                              <Edit className="w-3 h-3 mr-2" />
+                              Редактировать
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                          Промпт не найден в базе данных (ключ: {rz.section.promptKey})
                         </div>
                       )}
                     </div>
