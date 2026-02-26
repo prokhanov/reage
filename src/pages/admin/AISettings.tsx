@@ -25,6 +25,38 @@ interface PromptFormData {
 
 type BiomarkerCategory = Tables<"biomarker_categories">;
 
+// Конфигурация одиночных промптов (без пары system/user)
+const standaloneSections = [
+  {
+    id: 'health_assistant',
+    name: 'AI Ассистент',
+    emoji: '🤖',
+    description: 'Промпт для AI-чата с пациентом (роль, правила, стиль общения)',
+    promptKey: 'health_assistant',
+    group: 'assistant'
+  },
+  {
+    id: 'trends_summary',
+    name: 'Тренды',
+    emoji: '📈',
+    description: 'Промпт для генерации текстового описания трендов биомаркеров',
+    promptKey: 'trends_summary_prompt',
+    group: 'trends'
+  }
+];
+
+// Конфигурация парных промптов (system/user) вне категорий
+const pairedSections = [
+  {
+    id: 'biological_age',
+    name: 'Биологический возраст',
+    emoji: '🧪',
+    description: 'Промпты для расчёта биологического возраста на основе биомаркеров',
+    systemKey: 'biological_age_system',
+    userKey: 'biological_age_user'
+  }
+];
+
 // Конфигурация секции стратегии (зоны риска)
 const riskZoneSections = [
   { 
@@ -123,6 +155,19 @@ export default function AISettings() {
     userPrompt: settings?.find(s => s.key === section.userKey)
   }));
 
+  // Маппинг одиночных промптов
+  const standalonePrompts = standaloneSections.map(section => ({
+    section,
+    prompt: settings?.find(s => s.key === section.promptKey)
+  }));
+
+  // Маппинг парных промптов
+  const pairedPrompts = pairedSections.map(section => ({
+    section,
+    systemPrompt: settings?.find(s => s.key === section.systemKey),
+    userPrompt: settings?.find(s => s.key === section.userKey)
+  }));
+
   // Фильтруем стратегию по поисковому запросу
   const filteredRiskZonePrompts = searchQuery
     ? riskZonePrompts.filter(rz =>
@@ -130,6 +175,23 @@ export default function AISettings() {
         rz.prompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : riskZonePrompts;
+
+  // Фильтруем одиночные промпты
+  const filteredStandalonePrompts = searchQuery
+    ? standalonePrompts.filter(sp =>
+        sp.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sp.prompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : standalonePrompts;
+
+  // Фильтруем парные промпты
+  const filteredPairedPrompts = searchQuery
+    ? pairedPrompts.filter(pp =>
+        pp.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pp.systemPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pp.userPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : pairedPrompts;
 
   // Фильтруем разделы отчёта по поисковому запросу
   const filteredReportPrompts = searchQuery 
@@ -212,6 +274,141 @@ export default function AISettings() {
       </div>
 
       <div className="space-y-8">
+        {/* Раздел: Одиночные промпты (AI Ассистент, Тренды) */}
+        {filteredStandalonePrompts.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Общие промпты</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              AI ассистент, тренды и другие промпты, не привязанные к категориям
+            </p>
+            <Accordion type="multiple" className="space-y-4">
+              {filteredStandalonePrompts.map((sp) => (
+                <AccordionItem key={sp.section.id} value={sp.section.id} className="border rounded-lg">
+                  <AccordionTrigger className="px-6 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{sp.section.emoji}</span>
+                      <div className="text-left">
+                        <div className="font-semibold">{sp.section.name}</div>
+                        <div className="text-sm text-muted-foreground">{sp.section.description}</div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6">
+                    <div className="space-y-4 mt-4">
+                      {sp.prompt ? (
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <Badge variant="secondary" className="text-xs">Prompt</Badge>
+                              <Badge variant="outline" className="text-xs font-mono">{sp.prompt.key}</Badge>
+                            </div>
+                            <CardTitle className="text-base">{sp.prompt.description || sp.section.name}</CardTitle>
+                            <CardDescription className="text-xs">
+                              {sp.prompt.updated_at && <>Обновлено: {format(new Date(sp.prompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{sp.prompt.prompt_text}</p>
+                            </div>
+                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(sp.prompt)}>
+                              <Edit className="w-3 h-3 mr-2" />Редактировать
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                          Промпт не найден в базе данных (ключ: {sp.section.promptKey})
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
+
+        {/* Раздел: Биологический возраст (парные промпты) */}
+        {filteredPairedPrompts.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Биологический возраст</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Промпты для расчёта биологического возраста на основе анализа биомаркеров
+            </p>
+            <Accordion type="multiple" className="space-y-4">
+              {filteredPairedPrompts.map((pp) => (
+                <AccordionItem key={pp.section.id} value={pp.section.id} className="border rounded-lg">
+                  <AccordionTrigger className="px-6 hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{pp.section.emoji}</span>
+                      <div className="text-left">
+                        <div className="font-semibold">{pp.section.name}</div>
+                        <div className="text-sm text-muted-foreground">{pp.section.description}</div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-6">
+                    <div className="space-y-4 mt-4">
+                      {pp.systemPrompt && (
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <Badge variant="secondary" className="text-xs">System Prompt</Badge>
+                              <Badge variant="outline" className="text-xs font-mono">{pp.systemPrompt.key}</Badge>
+                            </div>
+                            <CardTitle className="text-base">{pp.systemPrompt.description || "System промпт"}</CardTitle>
+                            <CardDescription className="text-xs">
+                              Определяет роль AI для расчёта биовозраста
+                              {pp.systemPrompt.updated_at && (<><br />Обновлено: {format(new Date(pp.systemPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>)}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{pp.systemPrompt.prompt_text}</p>
+                            </div>
+                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(pp.systemPrompt)}>
+                              <Edit className="w-3 h-3 mr-2" />Редактировать
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
+                      {pp.userPrompt && (
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <Badge variant="secondary" className="text-xs">User Prompt</Badge>
+                              <Badge variant="outline" className="text-xs font-mono">{pp.userPrompt.key}</Badge>
+                            </div>
+                            <CardTitle className="text-base">{pp.userPrompt.description || "User промпт"}</CardTitle>
+                            <CardDescription className="text-xs">
+                              Шаблон запроса для расчёта биовозраста
+                              {pp.userPrompt.updated_at && (<><br />Обновлено: {format(new Date(pp.userPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>)}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{pp.userPrompt.prompt_text}</p>
+                            </div>
+                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(pp.userPrompt)}>
+                              <Edit className="w-3 h-3 mr-2" />Редактировать
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
+                      {!pp.systemPrompt && !pp.userPrompt && (
+                        <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
+                          Промпты не найдены в базе данных
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
+
         {/* Раздел: Промпты разделов отчёта */}
         {filteredReportPrompts.length > 0 && (
           <div>
