@@ -96,105 +96,109 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
-    // Calculate age for age-dependent context
-    const patientAge = profile?.birth_date ? calculateAge(profile.birth_date) : null;
-    const patientGender = profile?.gender as 'male' | 'female' | null;
+    let userContext = "";
 
-    // Get latest analyses
-    const { data: analyses } = await supabase
-      .from("analyses")
-      .select("*, analysis_values(*, biomarkers(*))")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(3);
-
-    // Get latest biomarker results with age-dependent processing
-    const { data: latestAnalysis } = await supabase
-      .from("analyses")
-      .select("id, analysis_values(*, biomarkers(*))")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(1)
-      .single();
-
-    const biomarkers = latestAnalysis?.analysis_values || [];
-
-    // Get latest symptoms
-    const { data: symptoms } = await supabase
-      .from("user_symptoms")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("tracked_at", { ascending: false })
-      .limit(50);
-
-    // Get active prescriptions
-    const { data: prescriptions } = await supabase
-      .from("prescriptions")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("status", "confirmed")
-      .eq("is_archived", false);
-
-    // Build context
-    const userContext = `
-ИНФОРМАЦИЯ О ПАЦИЕНТЕ:
+    if (profile?.demo_mode_enabled) {
+      // Demo user — skip all data queries, provide demo notice
+      console.log("User is in demo mode, skipping data queries");
+      userContext = `
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
 
 Личные данные:
 - Имя: ${profile?.name || "Не указано"}
 - Пол: ${profile?.gender === 'male' ? 'мужской' : 'женский'}
-- Возраст: ${patientAge || "Не указан"} лет
-- Рост: ${profile?.height || "Не указан"} см
-- Вес: ${profile?.weight || "Не указан"} кг
 
-${biomarkers && biomarkers.length > 0 ? `
-Последние показатели биомаркеров (с учетом возраста):
-${biomarkers.map((b: any) => {
-  const biomarker = b.biomarkers;
-  if (!biomarker) return '';
-  
-  // Calculate age-dependent norms
-  let normalMin = biomarker.normal_min;
-  let normalMax = biomarker.normal_max;
-  
-  if (patientAge && patientGender && biomarker.age_ranges) {
-    const ageRanges = biomarker.age_ranges[patientGender];
-    if (ageRanges) {
-      const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
-      if (ageRange) {
-        normalMin = ageRange.min;
-        normalMax = ageRange.max;
-      }
-    }
-  }
-  
-  // Fallback to gender-specific
-  if (patientGender === 'male' && biomarker.normal_min_male !== null) {
-    normalMin = biomarker.normal_min_male;
-    normalMax = biomarker.normal_max_male;
-  } else if (patientGender === 'female' && biomarker.normal_min_female !== null) {
-    normalMin = biomarker.normal_min_female;
-    normalMax = biomarker.normal_max_female;
-  }
-  
-  return `- ${biomarker.name}: ${b.value} ${biomarker.unit} (норма для вашего возраста: ${normalMin}-${normalMax})`;
-}).join("\n")}
-` : ""}
-
-${symptoms && symptoms.length > 0 ? `
-Последние симптомы:
-${symptoms.slice(0, 10).map((s: any) => `- ${s.symptom} (${s.category}): степень ${s.severity}`).join("\n")}
-` : ""}
-
-${prescriptions && prescriptions.length > 0 ? `
-Активные назначения:
-${prescriptions.map((p: any) => `- ${p.prescription}${p.effect ? ` (${p.effect})` : ""}`).join("\n")}
-` : ""}
-
-${analyses && analyses.length > 0 ? `
-История анализов: ${analyses.length} записей
-Последний анализ: биологический возраст ${analyses[0]?.biological_age || 'н/д'}, индекс здоровья ${analyses[0]?.health_index || 'н/д'}
-` : ""}
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
 `;
+    } else {
+      // Real user — gather full context
+
+      // Calculate age for age-dependent context
+      const patientAge = profile?.birth_date ? calculateAge(profile.birth_date) : null;
+      const patientGender = profile?.gender as 'male' | 'female' | null;
+
+      // Get latest analyses
+      const { data: analyses } = await supabase
+        .from("analyses")
+        .select("*, analysis_values(*, biomarkers(*))")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
+        .limit(3);
+
+      // Get latest biomarker results
+      const { data: latestAnalysis } = await supabase
+        .from("analyses")
+        .select("id, analysis_values(*, biomarkers(*))")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
+        .limit(1)
+        .single();
+
+      const biomarkers = latestAnalysis?.analysis_values || [];
+
+      // Get latest symptoms
+      const { data: symptoms } = await supabase
+        .from("user_symptoms")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("tracked_at", { ascending: false })
+        .limit(50);
+
+      // Get active prescriptions
+      const { data: prescriptions } = await supabase
+        .from("prescriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("status", "confirmed")
+        .eq("is_archived", false);
+
+      // Build context
+      const biomarkerLines = biomarkers && biomarkers.length > 0
+        ? biomarkers.map((b: any) => {
+            const biomarker = b.biomarkers;
+            if (!biomarker) return '';
+            let normalMin = biomarker.normal_min;
+            let normalMax = biomarker.normal_max;
+            if (patientAge && patientGender && biomarker.age_ranges) {
+              const ageRanges = biomarker.age_ranges[patientGender];
+              if (ageRanges) {
+                const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
+                if (ageRange) { normalMin = ageRange.min; normalMax = ageRange.max; }
+              }
+            }
+            if (patientGender === 'male' && biomarker.normal_min_male !== null) {
+              normalMin = biomarker.normal_min_male; normalMax = biomarker.normal_max_male;
+            } else if (patientGender === 'female' && biomarker.normal_min_female !== null) {
+              normalMin = biomarker.normal_min_female; normalMax = biomarker.normal_max_female;
+            }
+            return "- " + biomarker.name + ": " + b.value + " " + biomarker.unit + " (норма: " + normalMin + "-" + normalMax + ")";
+          }).join("\n")
+        : "";
+
+      const symptomLines = symptoms && symptoms.length > 0
+        ? symptoms.slice(0, 10).map((s: any) => "- " + s.symptom + " (" + s.category + "): степень " + s.severity).join("\n")
+        : "";
+
+      const prescriptionLines = prescriptions && prescriptions.length > 0
+        ? prescriptions.map((p: any) => "- " + p.prescription + (p.effect ? " (" + p.effect + ")" : "")).join("\n")
+        : "";
+
+      userContext = "ИНФОРМАЦИЯ О ПАЦИЕНТЕ:\n\n" +
+        "Личные данные:\n" +
+        "- Имя: " + (profile?.name || "Не указано") + "\n" +
+        "- Пол: " + (profile?.gender === 'male' ? 'мужской' : 'женский') + "\n" +
+        "- Возраст: " + (patientAge || "Не указан") + " лет\n" +
+        "- Рост: " + (profile?.height || "Не указан") + " см\n" +
+        "- Вес: " + (profile?.weight || "Не указан") + " кг\n" +
+        (biomarkerLines ? "\nПоследние показатели биомаркеров:\n" + biomarkerLines + "\n" : "") +
+        (symptomLines ? "\nПоследние симптомы:\n" + symptomLines + "\n" : "") +
+        (prescriptionLines ? "\nАктивные назначения:\n" + prescriptionLines + "\n" : "") +
+        (analyses && analyses.length > 0 ? "\nИстория анализов: " + analyses.length + " записей\nПоследний анализ: биологический возраст " + (analyses[0]?.biological_age || 'н/д') + ", индекс здоровья " + (analyses[0]?.health_index || 'н/д') + "\n" : "");
+    }
 
     // Helper function to calculate age
     function calculateAge(birthDate: string): number {
