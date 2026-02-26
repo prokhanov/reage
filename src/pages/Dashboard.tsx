@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [latestHealthIndex, setLatestHealthIndex] = useState<number | null>(null);
   const [latestBiomarkersMetadata, setLatestBiomarkersMetadata] = useState<any>(null);
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
-  const [agingRate, setAgingRate] = useState<number | null>(null);
+  
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
   const [bodyHeatmapData, setBodyHeatmapData] = useState<any[]>([]);
@@ -56,7 +56,6 @@ export default function Dashboard() {
     setLatestHealthIndex(null);
     setLatestBiomarkersMetadata(null);
     setAgeTrend(null);
-    setAgingRate(null);
     setRecentAnalyses([]);
     setBodyHeatmapData([]);
     setRiskData(null);
@@ -135,18 +134,12 @@ export default function Dashboard() {
             setLatestBiomarkersMetadata(latestAnalysis.biomarkers_metadata);
           }
           
-          // Calculate aging rate
-          if (latestAnalysis.biological_age && profile?.birth_date) {
-            const chronologicalAge = calculateAge(profile.birth_date);
-            const rate = latestAnalysis.biological_age / chronologicalAge;
-            setAgingRate(rate);
-          }
         } else {
           // No biomarkers - clear the values to show warning
           setLatestBioAge(null);
           setLatestHealthIndex(null);
           setLatestBiomarkersMetadata(null);
-          setAgingRate(null);
+          
         }
       }
 
@@ -381,7 +374,7 @@ export default function Dashboard() {
   const displayBioAge = latestDemoAnalysis ? latestDemoAnalysis.biological_age : latestBioAge;
   const displayHealthIndex = latestDemoAnalysis ? latestDemoAnalysis.health_index : latestHealthIndex;
   const displayAnalysesCount = demoMode && demoData ? demoData.analyses.length : analysesCount;
-  const displayAgingRate = latestDemoAnalysis?.ai_analysis?.aging_rate || agingRate;
+  
   const displayBiomarkersMetadata = latestDemoAnalysis?.biomarkers_metadata || latestBiomarkersMetadata;
   
   // For body heatmap in demo mode, use latest analysis biomarkers
