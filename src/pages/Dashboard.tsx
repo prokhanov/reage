@@ -86,14 +86,15 @@ export default function Dashboard() {
 
   const fetchAnalysesStats = async () => {
     if (demoMode) return; // Skip fetching real data in demo mode
-    if (!viewAsUserId) return;
+    const userId = await getUserId();
+    if (!userId) return;
 
     try {
       // Get total count
       const { count: totalCount } = await supabase
         .from('analyses')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', viewAsUserId);
+        .eq('user_id', userId);
 
       setAnalysesCount(totalCount || 0);
 
@@ -101,7 +102,7 @@ export default function Dashboard() {
       const { data: allAnalysesData } = await supabase
         .from('analyses')
         .select('*')
-        .eq('user_id', viewAsUserId)
+        .eq('user_id', userId)
         .order('date', { ascending: true });
 
       setAllAnalyses(allAnalysesData || []);
@@ -110,7 +111,7 @@ export default function Dashboard() {
       const { data: latestAnalysis } = await supabase
         .from('analyses')
         .select('id, biological_age, health_index, biomarkers_metadata, date')
-        .eq('user_id', viewAsUserId)
+        .eq('user_id', userId)
         .order('date', { ascending: false })
         .limit(1)
         .single();
