@@ -522,10 +522,10 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Детальный анализ по категориям</span>
-                    <span>{analysisProgress.current}/{analysisProgress.total}</span>
+                    <span className="text-muted-foreground">{analysisProgress.stage || "Подготовка..."}</span>
+                    <span className="font-medium">{analysisProgress.current}/{analysisProgress.total}</span>
                   </div>
-                  <Progress value={(analysisProgress.current / analysisProgress.total) * 100} />
+                  <Progress value={analysisProgress.total > 0 ? (analysisProgress.current / analysisProgress.total) * 100 : 0} />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Это может занять 2-3 минуты. Создаем детальный отчет с персональными советами...
