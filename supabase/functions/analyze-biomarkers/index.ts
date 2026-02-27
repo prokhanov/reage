@@ -88,7 +88,16 @@ serve(async (req) => {
       throw new Error("Анализ не найден");
     }
 
-    // Удаляем старые рекомендации перед генерацией новых (защита от дубликатов)
+    // Удаляем старые рекомендации и назначения перед генерацией новых
+    const { error: deletePrescsError } = await supabase
+      .from("prescriptions")
+      .delete()
+      .eq("analysis_id", analysisId);
+
+    if (deletePrescsError) {
+      console.warn("Failed to delete old prescriptions:", deletePrescsError.message);
+    }
+
     const { error: deleteRecsError } = await supabase
       .from("recommendations")
       .delete()
@@ -97,6 +106,9 @@ serve(async (req) => {
     if (deleteRecsError) {
       console.warn("Failed to delete old recommendations:", deleteRecsError.message);
     }
+
+    // Сохраняем "Данные пациента" сразу (чтобы клиент видел прогресс)
+    // Будет вставлен ниже после формирования patientDataSection
 
     // Получаем профиль пользователя
     const { data: profile } = await supabase
@@ -377,6 +389,15 @@ ${complaints && complaints.length > 0 && complaints[0].goals
 ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}
 `.trim();
 
+    // Сохраняем "Данные пациента" сразу — клиент увидит прогресс
+    await supabase.from("recommendations").insert({
+      user_id: analysis.user_id,
+      analysis_id: analysisId,
+      type: "Данные пациента",
+      text: patientDataSection
+    });
+    console.log("Saved: Данные пациента");
+
     // Получаем тренды для каждой категории
     const getCategoryTrends = (category: string) => {
       if (!previousAnalyses || previousAnalyses.length === 0) {
@@ -652,6 +673,19 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         categoryReports[category] = categoryReport;
         totalTokens += tokensUsed;
 
+        // Сохраняем категорию сразу — клиент увидит прогресс через polling
+        const { error: catInsertError } = await supabase.from("recommendations").insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: category,
+          text: categoryReport
+        });
+        if (catInsertError) {
+          console.error(`Failed to save category ${category}:`, catInsertError.message);
+        } else {
+          console.log(`Saved: ${category}`);
+        }
+
         console.log(`Category ${category} FINAL: ${categoryReport.length} chars, retries: ${retryCount}`);
 
       } catch (error: any) {
@@ -737,54 +771,30 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       summaryReport = "Ошибка при генерации общего резюме";
     }
 
-    // Сохраняем все отчеты в базу данных
-    const recommendationsToInsert = [];
+    // Сохраняем только Общее резюме (Данные пациента и категории уже сохранены выше)
+    let prescriptionRecommendationId: string | null = null;
 
-    // 1. Данные пациента (ПЕРВЫМ!)
-    recommendationsToInsert.push({
-      user_id: analysis.user_id,
-      analysis_id: analysisId,
-      type: "Данные пациента",
-      text: patientDataSection
-    });
-
-    // 2. Общее резюме
     if (summaryReport) {
-      recommendationsToInsert.push({
-        user_id: analysis.user_id,
-        analysis_id: analysisId,
-        type: "Общее резюме",
-        text: summaryReport
-      });
+      const { data: summaryInserted, error: summaryInsertError } = await supabase
+        .from("recommendations")
+        .insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: "Общее резюме",
+          text: summaryReport
+        })
+        .select("id")
+        .single();
+
+      if (summaryInsertError) {
+        console.error("Error inserting summary:", summaryInsertError);
+      } else {
+        prescriptionRecommendationId = summaryInserted?.id || null;
+        console.log(`Saved: Общее резюме (id: ${prescriptionRecommendationId})`);
+      }
     }
 
-    // 3. Детальные отчеты по категориям (9 штук)
-    for (const [category, report] of Object.entries(categoryReports)) {
-      recommendationsToInsert.push({
-        user_id: analysis.user_id,
-        analysis_id: analysisId,
-        type: category,
-        text: report
-      });
-    }
-
-    // Сохраняем все рекомендации и получаем их ids
-    const { data: insertedRecommendations, error: insertError } = await supabase
-      .from("recommendations")
-      .insert(recommendationsToInsert)
-      .select("id, type");
-
-    if (insertError) {
-      console.error("Error inserting recommendations:", insertError);
-      throw insertError;
-    }
-
-    // Находим id рекомендации "Общее резюме" для привязки назначений
-    const summaryRecommendation = insertedRecommendations?.find(r => r.type === "Общее резюме");
-    const prescriptionRecommendationId = summaryRecommendation?.id || null;
-    console.log(`Summary recommendation id for prescriptions: ${prescriptionRecommendationId}`);
-
-    console.log("Recommendations saved successfully. Starting prescriptions generation...");
+    console.log("All recommendations saved. Starting prescriptions generation...");
 
     // Генерация назначений
     let prescriptionsCreated = 0;
