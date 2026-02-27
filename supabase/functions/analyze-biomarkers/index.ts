@@ -88,7 +88,16 @@ serve(async (req) => {
       throw new Error("Анализ не найден");
     }
 
-    // Удаляем старые рекомендации перед генерацией новых (защита от дубликатов)
+    // Удаляем старые рекомендации и назначения перед генерацией новых
+    const { error: deletePrescsError } = await supabase
+      .from("prescriptions")
+      .delete()
+      .eq("analysis_id", analysisId);
+
+    if (deletePrescsError) {
+      console.warn("Failed to delete old prescriptions:", deletePrescsError.message);
+    }
+
     const { error: deleteRecsError } = await supabase
       .from("recommendations")
       .delete()
@@ -97,6 +106,9 @@ serve(async (req) => {
     if (deleteRecsError) {
       console.warn("Failed to delete old recommendations:", deleteRecsError.message);
     }
+
+    // Сохраняем "Данные пациента" сразу (чтобы клиент видел прогресс)
+    // Будет вставлен ниже после формирования patientDataSection
 
     // Получаем профиль пользователя
     const { data: profile } = await supabase
