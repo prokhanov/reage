@@ -582,23 +582,77 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         }
 
         const data = await response.json();
-        const categoryReport = data.choices[0].message.content;
+        let categoryReport = data.choices[0].message.content;
         const finishReason = data.choices[0].finish_reason;
-        const tokensUsed = (data.usage?.total_tokens || 0);
-        
-        // Проверка на обрыв текста
-        if (finishReason === "length") {
+        const promptTokens = data.usage?.prompt_tokens || 0;
+        const completionTokens = data.usage?.completion_tokens || 0;
+        const tokensUsed = data.usage?.total_tokens || 0;
+        const contentLength = categoryReport?.length || 0;
+
+        console.log(`Category ${category}: finish_reason=${finishReason}, prompt_tokens=${promptTokens}, completion_tokens=${completionTokens}, total_tokens=${tokensUsed}, content_length=${contentLength}`);
+
+        if (contentLength > 0) {
+          const preview = contentLength > 200 
+            ? `First 100: ${categoryReport.substring(0, 100)} | Last 100: ${categoryReport.substring(contentLength - 100)}`
+            : `Full: ${categoryReport}`;
+          console.log(`Category ${category} content preview: ${preview}`);
+        }
+
+        // Валидация + retry для коротких ответов
+        const MIN_CONTENT_LENGTH = 500;
+        let retryCount = 0;
+
+        while ((!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) && retryCount < 2) {
+          retryCount++;
+          console.warn(`RETRY ${retryCount}/2 for ${category}: content too short (${categoryReport?.length || 0} chars)`);
+          await new Promise(r => setTimeout(r, 3000));
+
+          const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${lovableApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: categoryPrompt }
+              ],
+              max_completion_tokens: 16000
+            }),
+          });
+
+          if (retryResponse.ok) {
+            const retryData = await retryResponse.json();
+            categoryReport = retryData.choices[0].message.content;
+            const retryFinish = retryData.choices[0].finish_reason;
+            const retryCompletionTokens = retryData.usage?.completion_tokens || 0;
+            const retryContentLen = categoryReport?.length || 0;
+            console.log(`Retry ${retryCount} result for ${category}: content_length=${retryContentLen}, finish=${retryFinish}, completion_tokens=${retryCompletionTokens}`);
+          } else {
+            console.error(`Retry ${retryCount} failed for ${category}: status ${retryResponse.status}`);
+            try { await retryResponse.text(); } catch {}
+          }
+        }
+
+        // Fallback при полной неудаче
+        if (!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) {
+          console.error(`FAILED: Category ${category} content too short after ${retryCount} retries (${categoryReport?.length || 0} chars). Using fallback.`);
+          categoryReport = `## ${category}\n\nАнализ этой категории не удался при генерации (получено ${categoryReport?.length || 0} символов вместо минимальных ${MIN_CONTENT_LENGTH}). Рекомендуется перегенерировать отчёт.`;
+          categoryStatuses[category] = { success: false, error: `Content too short after ${retryCount} retries`, tokens: tokensUsed };
+        } else if (finishReason === "length") {
           console.warn(`WARNING: Category ${category} was truncated at token limit`);
-          categoryReports[category] = categoryReport + "\n\n[⚠️ ВНИМАНИЕ: Отчёт был сокращён из-за ограничения по длине. Рекомендуется перегенерировать.]";
+          categoryReport += "\n\n[⚠️ ВНИМАНИЕ: Отчёт был сокращён из-за ограничения по длине. Рекомендуется перегенерировать.]";
           categoryStatuses[category] = { success: true, tokens: tokensUsed, truncated: true };
         } else {
-          categoryReports[category] = categoryReport;
-          categoryStatuses[category] = { success: true, tokens: tokensUsed };
+          categoryStatuses[category] = { success: true, tokens: tokensUsed, retries: retryCount };
         }
         
+        categoryReports[category] = categoryReport;
         totalTokens += tokensUsed;
 
-        console.log(`Category ${category} completed: ${tokensUsed} tokens, finish_reason: ${finishReason}`);
+        console.log(`Category ${category} FINAL: ${categoryReport.length} chars, retries: ${retryCount}`);
 
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
@@ -660,7 +714,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const summaryData = await summaryResponse.json();
         const summaryFinishReason = summaryData.choices[0].finish_reason;
         summaryReport = summaryData.choices[0].message.content;
+        const summaryPromptTokens = summaryData.usage?.prompt_tokens || 0;
+        const summaryCompletionTokens = summaryData.usage?.completion_tokens || 0;
         const summaryTokens = summaryData.usage?.total_tokens || 0;
+        const summaryContentLen = summaryReport?.length || 0;
+        
+        console.log(`Summary: finish_reason=${summaryFinishReason}, prompt_tokens=${summaryPromptTokens}, completion_tokens=${summaryCompletionTokens}, total_tokens=${summaryTokens}, content_length=${summaryContentLen}`);
         
         // Проверка на обрыв резюме
         if (summaryFinishReason === "length") {
@@ -669,7 +728,6 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         }
         
         totalTokens += summaryTokens;
-        console.log(`Summary completed: ${summaryTokens} tokens, finish_reason: ${summaryFinishReason}`);
       } else {
         console.error("Failed to generate summary");
         summaryReport = "Не удалось сгенерировать общее резюме";
