@@ -714,7 +714,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const summaryData = await summaryResponse.json();
         const summaryFinishReason = summaryData.choices[0].finish_reason;
         summaryReport = summaryData.choices[0].message.content;
+        const summaryPromptTokens = summaryData.usage?.prompt_tokens || 0;
+        const summaryCompletionTokens = summaryData.usage?.completion_tokens || 0;
         const summaryTokens = summaryData.usage?.total_tokens || 0;
+        const summaryContentLen = summaryReport?.length || 0;
+        
+        console.log(`Summary: finish_reason=${summaryFinishReason}, prompt_tokens=${summaryPromptTokens}, completion_tokens=${summaryCompletionTokens}, total_tokens=${summaryTokens}, content_length=${summaryContentLen}`);
         
         // Проверка на обрыв резюме
         if (summaryFinishReason === "length") {
@@ -723,7 +728,6 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         }
         
         totalTokens += summaryTokens;
-        console.log(`Summary completed: ${summaryTokens} tokens, finish_reason: ${summaryFinishReason}`);
       } else {
         console.error("Failed to generate summary");
         summaryReport = "Не удалось сгенерировать общее резюме";
