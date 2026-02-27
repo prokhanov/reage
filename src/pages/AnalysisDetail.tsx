@@ -59,7 +59,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [patientGender, setPatientGender] = useState<string | null>(null);
   const [patientAge, setPatientAge] = useState<number | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 0, currentCategory: "" });
+  const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 7, currentCategory: "", stage: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [editAnalysisDialogOpen, setEditAnalysisDialogOpen] = useState(false);
