@@ -312,13 +312,47 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
     // Определяем количество категорий
     const categories = [...new Set(values.map(v => v.biomarkers.category))];
-    setAnalysisProgress({ current: 0, total: categories.length, currentCategory: categories[0] || "" });
+    // total = categories + "Данные пациента" + "Общее резюме" + "Назначения" = categories.length + 3
+    const totalSteps = categories.length + 3;
+    setAnalysisProgress({ current: 0, total: totalSteps, currentCategory: "", stage: "Подготовка данных..." });
     setAnalyzing(true);
+
+    // Запускаем polling для отслеживания прогресса
+    let pollingStopped = false;
+    const stageNames: Record<string, string> = {
+      "Данные пациента": "Сохранение данных пациента...",
+      "Общее резюме": "Формирование общего резюме...",
+    };
+    categories.forEach(c => { stageNames[c] = `Анализ: ${c}...`; });
+
+    const pollInterval = setInterval(async () => {
+      if (pollingStopped) return;
+      try {
+        const { data: recs } = await supabase
+          .from("recommendations")
+          .select("type")
+          .eq("analysis_id", id!);
+
+        const savedCount = recs?.length || 0;
+        const lastSaved = recs?.[recs.length - 1]?.type || "";
+        const stageName = stageNames[lastSaved] || lastSaved;
+
+        setAnalysisProgress({
+          current: savedCount,
+          total: totalSteps,
+          currentCategory: lastSaved,
+          stage: savedCount < totalSteps ? stageName : "Генерация назначений..."
+        });
+      } catch {}
+    }, 2500);
 
     try {
       const { data, error } = await supabase.functions.invoke("analyze-biomarkers", {
         body: { analysisId: id },
       });
+
+      pollingStopped = true;
+      clearInterval(pollInterval);
 
       if (error) {
         if (error.message?.includes("402") || error.message?.includes("Payment required")) {
@@ -339,11 +373,13 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         return;
       }
 
+      setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
+
       const successCount = Object.values(data.categories_processed).filter((s: any) => s.success).length;
       
       toast({
         title: "Отчет сгенерирован",
-        description: "Проверьте и отредактируйте отчет",
+        description: `Успешно: ${successCount} из ${categories.length} категорий`,
       });
 
       loadData();
@@ -352,6 +388,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       setEditReportAnalysisId(id || null);
       setShowEditReport(true);
     } catch (error: any) {
+      pollingStopped = true;
+      clearInterval(pollInterval);
       toast({
         title: "Ошибка анализа",
         description: error.message || "Не удалось выполнить AI-анализ",
