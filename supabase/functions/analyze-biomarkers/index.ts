@@ -389,6 +389,15 @@ ${complaints && complaints.length > 0 && complaints[0].goals
 ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}
 `.trim();
 
+    // Сохраняем "Данные пациента" сразу — клиент увидит прогресс
+    await supabase.from("recommendations").insert({
+      user_id: analysis.user_id,
+      analysis_id: analysisId,
+      type: "Данные пациента",
+      text: patientDataSection
+    });
+    console.log("Saved: Данные пациента");
+
     // Получаем тренды для каждой категории
     const getCategoryTrends = (category: string) => {
       if (!previousAnalyses || previousAnalyses.length === 0) {
