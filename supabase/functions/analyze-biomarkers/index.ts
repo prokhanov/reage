@@ -771,54 +771,30 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       summaryReport = "Ошибка при генерации общего резюме";
     }
 
-    // Сохраняем все отчеты в базу данных
-    const recommendationsToInsert = [];
+    // Сохраняем только Общее резюме (Данные пациента и категории уже сохранены выше)
+    let prescriptionRecommendationId: string | null = null;
 
-    // 1. Данные пациента (ПЕРВЫМ!)
-    recommendationsToInsert.push({
-      user_id: analysis.user_id,
-      analysis_id: analysisId,
-      type: "Данные пациента",
-      text: patientDataSection
-    });
-
-    // 2. Общее резюме
     if (summaryReport) {
-      recommendationsToInsert.push({
-        user_id: analysis.user_id,
-        analysis_id: analysisId,
-        type: "Общее резюме",
-        text: summaryReport
-      });
+      const { data: summaryInserted, error: summaryInsertError } = await supabase
+        .from("recommendations")
+        .insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: "Общее резюме",
+          text: summaryReport
+        })
+        .select("id")
+        .single();
+
+      if (summaryInsertError) {
+        console.error("Error inserting summary:", summaryInsertError);
+      } else {
+        prescriptionRecommendationId = summaryInserted?.id || null;
+        console.log(`Saved: Общее резюме (id: ${prescriptionRecommendationId})`);
+      }
     }
 
-    // 3. Детальные отчеты по категориям (9 штук)
-    for (const [category, report] of Object.entries(categoryReports)) {
-      recommendationsToInsert.push({
-        user_id: analysis.user_id,
-        analysis_id: analysisId,
-        type: category,
-        text: report
-      });
-    }
-
-    // Сохраняем все рекомендации и получаем их ids
-    const { data: insertedRecommendations, error: insertError } = await supabase
-      .from("recommendations")
-      .insert(recommendationsToInsert)
-      .select("id, type");
-
-    if (insertError) {
-      console.error("Error inserting recommendations:", insertError);
-      throw insertError;
-    }
-
-    // Находим id рекомендации "Общее резюме" для привязки назначений
-    const summaryRecommendation = insertedRecommendations?.find(r => r.type === "Общее резюме");
-    const prescriptionRecommendationId = summaryRecommendation?.id || null;
-    console.log(`Summary recommendation id for prescriptions: ${prescriptionRecommendationId}`);
-
-    console.log("Recommendations saved successfully. Starting prescriptions generation...");
+    console.log("All recommendations saved. Starting prescriptions generation...");
 
     // Генерация назначений
     let prescriptionsCreated = 0;
