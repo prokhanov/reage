@@ -1,53 +1,24 @@
 
 
-# Уведомление демо-пользователей в AI-ассистенте
+## Problem
 
-## Проблема
+The dashboard doesn't show biological age data for regular patients because `fetchAnalysesStats` (line 89) checks `if (!viewAsUserId) return;` — but `viewAsUserId` is `null` for regular patients (it's only set in admin "View As Patient" mode). The function exits early without fetching any analysis data.
 
-Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
+Other functions like `fetchProfile` and `fetchBodyHeatmapData` work correctly because they use `getUserId()` which falls back to `auth.uid()`.
 
-## Решение
+## Fix
 
-Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
+In `src/pages/Dashboard.tsx`, change `fetchAnalysesStats` to use `getUserId()` instead of `viewAsUserId` directly:
 
-## Техническая реализация
+1. Replace `if (!viewAsUserId) return;` with:
+   ```typescript
+   const userId = await getUserId();
+   if (!userId) return;
+   ```
 
-### Файл: `supabase/functions/health-assistant/index.ts`
+2. Replace all `viewAsUserId` references inside `fetchAnalysesStats` with `userId` (lines 96, 104, 113).
 
-1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
-2. После получения профиля проверить `profile.demo_mode_enabled`
-3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
-4. Вместо полного контекста подставить текст:
+3. Update the `useEffect` dependency — currently `fetchAnalysesStats` is called when `profile` changes (line 70), which is correct. No dependency change needed.
 
-```
-ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
-
-Твоя задача:
-- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
-- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
-- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
-- Предложи пользователю записаться на анализ
-```
-
-5. Если `false` — оставить текущую логику без изменений
-
-### Изменения в коде (псевдокод)
-
-```typescript
-// Текущий SELECT:
-.select('*')
-// Заменить на:
-.select('*, demo_mode_enabled')
-
-// После получения профиля:
-if (profile?.demo_mode_enabled) {
-  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
-  // Формируем упрощённый systemPrompt с уведомлением
-} else {
-  // Существующая логика
-}
-```
-
-### Файлы
-- `supabase/functions/health-assistant/index.ts` — единственное изменение
+This is a one-file, ~5-line fix that aligns `fetchAnalysesStats` with the pattern used by every other fetch function in this component.
 
