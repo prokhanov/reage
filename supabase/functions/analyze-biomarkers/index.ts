@@ -673,6 +673,19 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         categoryReports[category] = categoryReport;
         totalTokens += tokensUsed;
 
+        // Сохраняем категорию сразу — клиент увидит прогресс через polling
+        const { error: catInsertError } = await supabase.from("recommendations").insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: category,
+          text: categoryReport
+        });
+        if (catInsertError) {
+          console.error(`Failed to save category ${category}:`, catInsertError.message);
+        } else {
+          console.log(`Saved: ${category}`);
+        }
+
         console.log(`Category ${category} FINAL: ${categoryReport.length} chars, retries: ${retryCount}`);
 
       } catch (error: any) {
