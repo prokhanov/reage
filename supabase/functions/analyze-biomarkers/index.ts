@@ -1008,6 +1008,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         else if (deviation < 1.0) penalty = 10 * agingWeight;
         else penalty = 20 * agingWeight;
         
+        // Cap individual penalty to prevent single outlier from crashing the score
+        const MAX_SINGLE_PENALTY = 10;
+        penalty = Math.min(penalty, MAX_SINGLE_PENALTY);
+        
         totalPenalty += penalty;
         if (penalty > 0) {
           penalties.push({
