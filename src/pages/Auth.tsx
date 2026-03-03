@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthBackground } from "@/components/AuthBackground";
-import { Sparkles, Mail, Lock } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import reAgeLogo from "@/assets/reage-logo.png";
 
 // Функция для определения посадочной страницы по ролям
@@ -134,7 +134,6 @@ export default function Auth() {
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 mb-4">
             <img src={reAgeLogo} alt="ReAge" className="h-16 w-auto" />
-            <Sparkles className="h-6 w-6 text-primary" />
           </div>
           <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
             Добро пожаловать
