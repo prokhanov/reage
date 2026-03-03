@@ -39,7 +39,7 @@ export function HeroSection() {
       <div className="relative z-10 container mx-auto px-4 md:py-32 py-[80px]">
         {/* Logo */}
         <div className="flex justify-center mb-10 animate-fade-in">
-          <img src={reageLogo} alt="ReAge" className="h-[134px] md:h-[179px] w-auto" />
+          <img src={reageLogo} alt="ReAge" className="h-24 md:h-32 w-auto" />
         </div>
 
         <div className="max-w-5xl mx-auto text-center">
