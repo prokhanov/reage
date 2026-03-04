@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "./ui/button";
 import { Menu, PanelLeftOpen } from "lucide-react";
-import reAgeLogo from "@/assets/reage-logo.png";
+import reAgeLogo from "@/assets/reage-logo-light.png";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
 

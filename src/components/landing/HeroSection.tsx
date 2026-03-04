@@ -6,7 +6,7 @@ import { ArrowRight, Activity, TrendingUp, Brain, Calendar, Moon, Sun } from "lu
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import reageLogo from "@/assets/reage-logo.png";
+import reageLogo from "@/assets/reage-logo-light.png";
 export function HeroSection() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();

@@ -16,7 +16,7 @@ import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { RegisterStep5 } from "@/components/register/RegisterStep5";
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
-import reAgeLogo from "@/assets/reage-logo.png";
+import reAgeLogo from "@/assets/reage-logo-light.png";
 import registerHero from "@/assets/register-hero.png";
 import registerProfile from "@/assets/register-profile.png";
 import registerHealth from "@/assets/register-health.png";
