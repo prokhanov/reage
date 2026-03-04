@@ -20,8 +20,14 @@ export function HeroSection() {
   }, []);
   const isDark = theme === "dark";
   return <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
-      {/* Logo - top left */}
-      <ThemedLogo className="absolute top-4 left-8 z-10 h-20 w-auto animate-hue-shift" />
+      {/* Top bar: Logo left, Badge center, Theme toggle right */}
+      <div className="absolute top-4 left-0 right-0 z-10 flex items-center justify-between px-8">
+        <ThemedLogo className="h-20 w-auto animate-hue-shift" />
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
+          <span className="text-sm font-medium text-primary">Медсестра приедет к вам • Результат за 5 дней</span>
+        </div>
+        <div className="w-12" /> {/* Spacer for theme toggle */}
+      </div>
 
       {/* Theme Toggle */}
       {mounted && <button onClick={() => setTheme(isDark ? "light" : "dark")} className="fixed top-4 right-4 z-50 p-3 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg" aria-label={isDark ? "Светлая тема" : "Тёмная тема"}>
@@ -31,12 +37,6 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 md:py-32 py-[80px]">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
-            
-            <span className="text-sm font-medium text-primary">Медсестра приедет к вам • Результат за 5 дней        </span>
-          </div>
-
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight animate-fade-in" style={{
           animationDelay: '0.1s'
