@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { StatsMarqueeSection } from "@/components/landing/StatsMarqueeSection";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -365,6 +366,11 @@ export function BiomarkersDeepDiveSection() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Stats Marquee */}
+          <div className="mt-16" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }}>
+            <StatsMarqueeSection />
           </div>
         </div>
       </div>
