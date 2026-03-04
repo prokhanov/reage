@@ -72,9 +72,9 @@ const Index = () => {
       {/* <PainPointsSection /> */}
       <HowItWorksSection />
       <StatsMarqueeSection />
+      <BiomarkersDeepDiveSection />
       <ReportShowcaseSection />
       <AppFeaturesSection />
-      <BiomarkersDeepDiveSection />
       <BenefitsSection />
       <WhyCheckupsFail />
       <ComparisonSection />
