@@ -69,19 +69,8 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={`${consultations} в год`} isPopular={isPopular} />
         </div>
 
-        <div className="border-t border-border/50 my-6" />
-        
-        {/* Extras */}
-        <ul className="space-y-3 mb-8">
-          {extras.map((feature, index) =>
-          <li key={index} className="flex items-start gap-3">
-              <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${isPopular ? "bg-primary/20" : "bg-muted"}`}>
-                <Check className={`w-3 h-3 ${isPopular ? "text-primary" : "text-muted-foreground"}`} />
-              </div>
-              <span className="text-sm text-muted-foreground">{feature}</span>
-            </li>
-          )}
-        </ul>
+        {/* Description */}
+        <p className="text-sm text-muted-foreground leading-relaxed mb-8">{description}</p>
         
         <Button
           className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
