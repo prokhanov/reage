@@ -222,17 +222,18 @@ export function AppFeaturesSection() {
           )}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center mt-16 animate-fade-in" style={{ animationDelay: '600ms' }}>
-          
-
-
-          
-
-
-
-
-
+        {/* Risk Badges Marquee */}
+        <div className="mt-20">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl md:text-3xl font-bold mb-3">
+              Выявляем <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">100+ рисков</span> на ранней стадии
+            </h3>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Наш AI анализирует биомаркеры и находит скрытые угрозы до появления симптомов
+            </p>
+          </div>
+          <RiskBadgesMarquee />
+        </div>
 
 
 
