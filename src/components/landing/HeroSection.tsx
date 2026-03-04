@@ -19,7 +19,7 @@ export function HeroSection() {
     setMounted(true);
   }, []);
   const isDark = theme === "dark";
-  return <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
+  return <section className="relative min-h-[90dvh] flex items-center justify-center overflow-hidden">
       {/* Logo - top left */}
       <ThemedLogo className="absolute top-4 left-8 z-10 h-20 w-auto animate-hue-shift" />
 
