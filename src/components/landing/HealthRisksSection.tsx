@@ -94,10 +94,12 @@ export function HealthRisksSection() {
 
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">
-            Выявляем <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">100+ рисков</span> на ранней стадии
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in">
+            <span className="text-foreground">Выявляем </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">100+ рисков</span>
+            <span className="text-foreground"> на ранней стадии</span>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.1s' }}>
             AI анализирует биомаркеры и находит скрытые угрозы до появления симптомов
           </p>
         </div>
