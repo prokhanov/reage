@@ -20,7 +20,31 @@ export function HeroSection() {
     setMounted(true);
   }, []);
   const isDark = theme === "dark";
-  return <section className="relative flex items-center justify-center overflow-hidden">
+  return <section className="relative flex items-center justify-center overflow-hidden bg-background">
+      {/* Ambient light gradient — inspired by blue-teal beam */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Main beam — horizontal light streak */}
+        <div 
+          className="absolute top-[45%] left-[15%] w-[90%] h-[8px] blur-[80px] opacity-40 dark:opacity-30"
+          style={{ background: 'linear-gradient(90deg, hsl(240 80% 55%), hsl(190 90% 55%), hsl(160 80% 50%))' }}
+        />
+        {/* Upper glow spread */}
+        <div 
+          className="absolute top-[10%] right-[10%] w-[60%] h-[50%] blur-[120px] opacity-[0.12] dark:opacity-[0.08] rounded-full"
+          style={{ background: 'radial-gradient(ellipse at center, hsl(190 90% 55%), transparent 70%)' }}
+        />
+        {/* Left blue glow */}
+        <div 
+          className="absolute top-[30%] left-[-5%] w-[40%] h-[40%] blur-[100px] opacity-[0.10] dark:opacity-[0.07] rounded-full"
+          style={{ background: 'radial-gradient(ellipse at center, hsl(240 80% 55%), transparent 70%)' }}
+        />
+        {/* Bottom teal reflection */}
+        <div 
+          className="absolute bottom-[5%] right-[15%] w-[50%] h-[30%] blur-[100px] opacity-[0.10] dark:opacity-[0.06] rounded-full"
+          style={{ background: 'radial-gradient(ellipse at center, hsl(170 70% 45%), transparent 70%)' }}
+        />
+      </div>
+
       {/* Logo - top left */}
       <ThemedLogo className="absolute top-4 left-8 z-10 h-20 w-auto animate-hue-shift" />
 
