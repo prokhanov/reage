@@ -97,6 +97,7 @@ export function PricingSection() {
       name: "Basic",
       price: "10 000₽",
       yearPrice: "120 000₽",
+      period: "мес",
       description: "Для начала мониторинга",
       badge: "Старт",
       features: [
