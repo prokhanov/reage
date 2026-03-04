@@ -47,7 +47,7 @@ export function ComparisonSection() {
     { feature: "Персональный план", reage: true, labs: false, genetics: "Общий" },
     { feature: "Время до результата", reage: "5 дней", labs: "1-3 дня", genetics: "2-4 недели" },
     { feature: "Регулярный мониторинг", reage: true, labs: false, genetics: false },
-    { feature: "Цена за год", reage: "от 120 000₽", labs: "~50 000₽*", genetics: "~80 000₽" },
+    { feature: "Цена за год", reage: "от 75 000₽", labs: "~50 000₽*", genetics: "~80 000₽" },
   ];
 
   return (
