@@ -81,18 +81,6 @@ export function HeroSection() {
         }}>Регулярно берём анализы у вас дома и предоставляем самый глубокий отчёт по системам организма, факторам риска и биологическому возрасту — в динамике и с сопровождением.
           </p>
 
-          {/* Stats Row — minimal text-only */}
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 max-w-3xl mx-auto mb-10 animate-fade-in" style={{
-          animationDelay: '0.3s'
-        }}>
-            <span className="text-muted-foreground text-sm"><span className="font-semibold text-foreground">70+</span> биомаркеров</span>
-            <span className="text-muted-foreground/40">•</span>
-            <span className="text-muted-foreground text-sm"><span className="font-semibold text-foreground">5 систем</span> под контролем</span>
-            <span className="text-muted-foreground/40">•</span>
-            <span className="text-muted-foreground text-sm">Персональные <span className="font-semibold text-foreground">отчёты</span></span>
-            <span className="text-muted-foreground/40">•</span>
-            <span className="text-muted-foreground text-sm"><span className="font-semibold text-foreground">4× в год</span> динамика</span>
-          </div>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
