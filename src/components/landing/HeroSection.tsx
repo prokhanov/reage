@@ -57,7 +57,7 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
             
-            <span className="text-sm font-medium text-primary">Медсестра приедет к вам • Результат за 5 дней        </span>
+            <span className="text-sm font-medium text-primary">85 биомаркеров • Анализы не выходя из дома • Результат за 5 дней • Отслеживание трендов</span>
           </div>
 
           {/* Main Heading */}
@@ -81,15 +81,6 @@ export function HeroSection() {
         }}>Регулярно берём анализы у вас дома и предоставляем самый глубокий отчёт по системам организма, факторам риска и биологическому возрасту — в динамике и с сопровождением.
           </p>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
-          animationDelay: '0.3s'
-        }}>
-            <StatCard icon={<Activity className="w-5 h-5" />} value="70+" label="биомаркеров" />
-            <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
-            <StatCard icon={<Brain className="w-5 h-5" />} value="Отчеты" label="персональный анализ" />
-            <StatCard icon={<Calendar className="w-5 h-5" />} value="4× в год" label="отслеживание трендов" />
-          </div>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
