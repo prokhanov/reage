@@ -174,7 +174,7 @@ export function HeroMetricsMarquee() {
       <style>{`
         .hero-marquee-track {
           width: max-content;
-          animation: hero-marquee-scroll 35s linear infinite;
+          animation: hero-marquee-scroll 60s linear infinite;
         }
         @keyframes hero-marquee-scroll {
           0% { transform: translateX(0); }
