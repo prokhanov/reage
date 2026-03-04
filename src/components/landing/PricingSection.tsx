@@ -20,25 +20,21 @@ interface PricingCardProps {
   analyses: string;
   consultations: string;
   biomarkersBySystem: BiomarkerCategory[];
+  glowColor?: string;
   isPopular?: boolean;
   badge?: string;
   delay: number;
 }
 
-function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, biomarkersBySystem, isPopular, badge, delay }: PricingCardProps) {
+function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay }: PricingCardProps) {
   const navigate = useNavigate();
 
   return (
     <div
-      className={`
-        group relative h-full animate-fade-in
-        ${isPopular ? "md:-mt-4 md:mb-4" : ""}
-      `}
+      className="group relative h-full animate-fade-in"
       style={{ animationDelay: `${delay}s` }}>
       
-      {isPopular &&
-      <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary via-accent to-primary opacity-50 blur-xl" />
-      }
+      <div className="absolute -inset-0.5 rounded-3xl opacity-50 blur-xl" style={{ background: glowColor }} />
       
       <div className={`
         relative h-full rounded-3xl border p-8 transition-all duration-500 flex flex-col
@@ -179,6 +175,7 @@ export function PricingSection() {
     analyses: "2 раза в год",
     consultations: "3",
     biomarkersBySystem: standardBiomarkers,
+    glowColor: "linear-gradient(135deg, hsla(160, 60%, 65%, 0.6), hsla(145, 50%, 55%, 0.4))",
     delay: 0.1
   },
   {
@@ -193,6 +190,7 @@ export function PricingSection() {
     analyses: "3 раза в год",
     consultations: "4",
     biomarkersBySystem: plusBiomarkers,
+    glowColor: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))",
     delay: 0.2
   },
   {
@@ -206,6 +204,7 @@ export function PricingSection() {
     analyses: "4 раза в год",
     consultations: "6",
     biomarkersBySystem: premiumBiomarkers,
+    glowColor: "linear-gradient(135deg, hsla(200, 60%, 65%, 0.6), hsla(210, 55%, 55%, 0.4))",
     delay: 0.3
   }];
 
