@@ -156,18 +156,15 @@ function BiomarkerScale({ position, status }: { position: number; status: "optim
 }
 
 export function HeroMetricsMarquee() {
-  const tripled = [...widgets, ...widgets, ...widgets];
+  // Two copies is enough for seamless loop
+  const doubled = [...widgets, ...widgets];
   return (
-    <div className="relative w-full overflow-hidden mb-8">
-      {/* Edge masks */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-
-      <div className="flex gap-3 hero-marquee-track">
-        {tripled.map((w, i) => (
+    <div className="relative w-full overflow-hidden">
+      <div className="flex hero-marquee-track">
+        {doubled.map((w, i) => (
           <div
             key={`${w.id}-${i}`}
-            className="flex-shrink-0 w-[160px] px-3 py-2.5 rounded-xl bg-card/30 backdrop-blur-sm border border-border/30"
+            className="flex-shrink-0 w-[160px] mx-1.5 px-3 py-2.5 rounded-xl bg-card/30 backdrop-blur-sm border border-border/30"
           >
             {w.render()}
           </div>
@@ -175,12 +172,13 @@ export function HeroMetricsMarquee() {
       </div>
 
       <style>{`
+        .hero-marquee-track {
+          width: max-content;
+          animation: hero-marquee-scroll 35s linear infinite;
+        }
         @keyframes hero-marquee-scroll {
           0% { transform: translateX(0); }
-          100% { transform: translateX(-33.333%); }
-        }
-        .hero-marquee-track {
-          animation: hero-marquee-scroll 40s linear infinite;
+          100% { transform: translateX(-50%); }
         }
       `}</style>
     </div>
