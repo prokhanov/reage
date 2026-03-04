@@ -1,6 +1,14 @@
-import { Check, Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck } from "lucide-react";
+import { Check, Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+interface BiomarkerCategory {
+  emoji: string;
+  name: string;
+  markers: string[];
+}
 
 interface PricingCardProps {
   name: string;
@@ -11,12 +19,13 @@ interface PricingCardProps {
   biomarkers: string;
   analyses: string;
   consultations: string;
+  biomarkersBySystem: BiomarkerCategory[];
   isPopular?: boolean;
   badge?: string;
   delay: number;
 }
 
-function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, isPopular, badge, delay }: PricingCardProps) {
+function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, biomarkersBySystem, isPopular, badge, delay }: PricingCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -63,7 +72,7 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
 
         {/* Key metrics */}
         <div className="space-y-3 mb-6">
-          <MetricRow icon={<FlaskConical className="w-4 h-4" />} label="Биомаркеров" value={biomarkers} isPopular={isPopular} />
+          <BiomarkersMetricRow biomarkers={biomarkers} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
           <MetricRow icon={<CalendarCheck className="w-4 h-4" />} label="Анализов" value={analyses} isPopular={isPopular} />
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={`${consultations} в год`} isPopular={isPopular} />
         </div>
@@ -83,6 +92,44 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
     </div>);
 }
 
+function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30 hover:border-primary/40 hover:bg-muted/80 transition-colors cursor-pointer text-left">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <FlaskConical className="w-4 h-4" />
+            <span>Биомаркеров</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className={`text-sm font-bold ${isPopular ? "text-primary" : "text-foreground"}`}>{biomarkers}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+          </div>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" align="center">
+        <h4 className="text-sm font-semibold text-foreground mb-3">Биомаркеры по системам</h4>
+        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+          {biomarkersBySystem.map((cat, i) => (
+            <div key={i}>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span>{cat.emoji}</span>
+                <span className="text-xs font-semibold text-foreground">{cat.name}</span>
+                <span className="text-xs text-muted-foreground">({cat.markers.length})</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {cat.markers.map((m, j) => (
+                  <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function MetricRow({ icon, label, value, isPopular }: { icon: React.ReactNode; label: string; value: string; isPopular?: boolean }) {
   return (
     <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30">
@@ -94,7 +141,6 @@ function MetricRow({ icon, label, value, isPopular }: { icon: React.ReactNode; l
     </div>
   );
 }
-
 export function PricingSection() {
   const plans = [
   {
