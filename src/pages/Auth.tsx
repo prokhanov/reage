@@ -10,7 +10,7 @@ import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthBackground } from "@/components/AuthBackground";
 import { Mail, Lock } from "lucide-react";
-import reAgeLogo from "@/assets/reage-logo.png";
+import reAgeLogo from "@/assets/reage-logo-light.png";
 
 // Функция для определения посадочной страницы по ролям
 const getDefaultRouteForUser = async (userId: string): Promise<string> => {
