@@ -254,69 +254,6 @@ export function BiomarkersDeepDiveSection() {
           </p>
         </div>
 
-        {/* Central pentagon visualization */}
-        <div className="relative mb-16">
-          <div className="flex justify-center mb-8">
-            <div className="relative w-64 h-64 md:w-80 md:h-80">
-              {/* Central circle */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-2xl shadow-primary/30">
-                  <span className="text-3xl md:text-4xl font-bold text-primary-foreground">50+</span>
-                </div>
-              </div>
-              
-              {/* Orbiting icons */}
-              {biomarkerCategories.map((cat, i) => {
-                const angle = (i * 72 - 90) * (Math.PI / 180);
-                const radius = 100;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                
-                return (
-                  <div
-                    key={cat.id}
-                    className={`absolute w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br ${cat.gradient} flex items-center justify-center text-xl md:text-2xl shadow-lg transform transition-transform hover:scale-110`}
-                    style={{
-                      left: `calc(50% + ${x}px - 28px)`,
-                      top: `calc(50% + ${y}px - 28px)`,
-                    }}
-                  >
-                    {cat.emoji}
-                  </div>
-                );
-              })}
-              
-              {/* Connection lines */}
-              <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
-                {biomarkerCategories.map((_, i) => {
-                  const angle1 = (i * 72 - 90) * (Math.PI / 180);
-                  const angle2 = ((i + 1) % 5 * 72 - 90) * (Math.PI / 180);
-                  const radius = 100;
-                  const cx = 160;
-                  const cy = 160;
-                  
-                  return (
-                    <line
-                      key={i}
-                      x1={cx + Math.cos(angle1) * radius}
-                      y1={cy + Math.sin(angle1) * radius}
-                      x2={cx + Math.cos(angle2) * radius}
-                      y2={cy + Math.sin(angle2) * radius}
-                      stroke="hsl(var(--border))"
-                      strokeWidth="1"
-                      strokeDasharray="4 4"
-                      className="hidden md:block"
-                    />
-                  );
-                })}
-              </svg>
-            </div>
-          </div>
-          
-          <p className="text-center text-muted-foreground">
-            Все системы взаимосвязаны — мы анализируем их комплексно
-          </p>
-        </div>
 
         {/* Category cards */}
         <div className="space-y-6 mb-20">
