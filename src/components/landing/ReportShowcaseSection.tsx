@@ -248,25 +248,6 @@ export function ReportShowcaseSection() {
             </div>
           </div>
         </div>
-
-        {/* Bottom stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[
-            { value: "20+", label: "Страниц анализа" },
-            { value: "50+", label: "Биомаркеров" },
-            { value: "5", label: "Систем организма" },
-            { value: "100%", label: "Персонализация" }
-          ].map((stat, index) => (
-            <div
-              key={stat.label}
-              className="text-center p-6 rounded-xl bg-card/30 border border-border/50 backdrop-blur-sm animate-fade-in"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
