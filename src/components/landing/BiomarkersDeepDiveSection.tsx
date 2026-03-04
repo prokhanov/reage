@@ -23,8 +23,7 @@ const biomarkerCategories = [
     emoji: "⚡",
     icon: Zap,
     name: "Энергия и восстановление",
-    color: "from-amber-500 to-orange-500",
-    bgGlow: "bg-amber-500/10",
+    gradient: "from-[hsl(270,90%,60%)] to-[hsl(290,80%,55%)]",
     markers: ["Глюкоза", "HbA1c", "Инсулин", "HOMA-IR", "ЛДГ", "Коэнзим Q10", "Малоновый диальдегид", "Антиоксидантный статус", "Магний", "B12", "B9", "Цинк", "Селен", "Альбумин", "Лактат"],
     insights: [
       "Почему постоянная усталость",
@@ -39,8 +38,7 @@ const biomarkerCategories = [
     emoji: "❤️",
     icon: Heart,
     name: "Сердечно-сосудистая система",
-    color: "from-red-500 to-rose-500",
-    bgGlow: "bg-red-500/10",
+    gradient: "from-[hsl(320,100%,60%)] to-[hsl(340,85%,55%)]",
     markers: ["Общий холестерин", "ЛПВП", "ЛПНП", "Триглицериды", "ЛПОНП", "ApoA1", "ApoB", "ApoB/ApoA1", "не-HDL холестерин", "Индекс атерогенности", "Гомоцистеин", "Lp(a)", "Ферритин", "Железо", "Медь", "NT-proBNP", "КФК"],
     insights: [
       "Риск атеросклероза",
@@ -55,8 +53,7 @@ const biomarkerCategories = [
     emoji: "🛡️",
     icon: Shield,
     name: "Воспалительная и иммунная система",
-    color: "from-emerald-500 to-teal-500",
-    bgGlow: "bg-emerald-500/10",
+    gradient: "from-[hsl(260,75%,55%)] to-[hsl(280,70%,50%)]",
     markers: ["Гемоглобин", "Эритроциты", "Гематокрит", "MCV", "MCH/MCHC", "Лейкоциты", "Нейтрофилы", "Лимфоциты", "Моноциты", "Эозинофилы", "Базофилы", "Тромбоциты", "CD3+", "CD4+", "CD8+", "CD19+", "NK-клетки", "СОЭ", "CRP", "IL-6", "TNF-α", "IgM", "IgG"],
     insights: [
       "Есть ли хроническое воспаление (главная причина старения)",
@@ -71,8 +68,7 @@ const biomarkerCategories = [
     emoji: "🧬",
     icon: Dna,
     name: "Эндокринная и стрессовая система",
-    color: "from-violet-500 to-purple-500",
-    bgGlow: "bg-violet-500/10",
+    gradient: "from-[hsl(285,85%,58%)] to-[hsl(310,90%,55%)]",
     markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Тестостерон", "Эстрадиол", "Эстрон", "Эстриол", "Кортизол", "DHEA-S", "SHBG", "Витамин D", "IGF-1"],
     insights: [
       "Гормональный баланс",
@@ -87,8 +83,7 @@ const biomarkerCategories = [
     emoji: "🔄",
     icon: RefreshCw,
     name: "Обмен веществ и детоксикация",
-    color: "from-blue-500 to-cyan-500",
-    bgGlow: "bg-blue-500/10",
+    gradient: "from-[hsl(250,70%,58%)] to-[hsl(270,85%,55%)]",
     markers: ["ALT", "AST", "GGT", "Билирубин", "ALP", "Общий белок", "Трансферрин", "Креатинин", "Мочевина", "Натрий", "Калий", "Хлор", "Кальций"],
     insights: [
       "Как работает печень",
