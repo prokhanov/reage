@@ -12,6 +12,7 @@ import { useThemedLogo } from "@/hooks/useThemedLogo";
 
 export default function RegisterStaff() {
   const [searchParams] = useSearchParams();
+  const reAgeLogo = useThemedLogo();
   const navigate = useNavigate();
   const { toast } = useToast();
   

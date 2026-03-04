@@ -43,6 +43,7 @@ const getDefaultRouteForUser = async (userId: string): Promise<string> => {
 };
 
 export default function Auth() {
+  const reAgeLogo = useThemedLogo();
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [formData, setFormData] = useState({
