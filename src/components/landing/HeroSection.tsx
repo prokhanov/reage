@@ -21,18 +21,24 @@ export function HeroSection() {
   }, []);
   const isDark = theme === "dark";
   return <section className="relative flex items-center justify-center overflow-hidden bg-background">
-      {/* Ambient light gradient — soft blue-teal glow */}
+      {/* Ambient light gradient — soft blue-teal glow with animation */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%]"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] animate-[hero-glow-pulse_8s_ease-in-out_infinite]"
           style={{ 
-            background: 'radial-gradient(ellipse 80% 40% at 45% 50%, hsl(220 85% 50% / 0.25) 0%, hsl(190 90% 50% / 0.15) 35%, transparent 70%)',
+            background: 'radial-gradient(ellipse 80% 40% at 42% 50%, hsl(220 85% 50% / 0.35) 0%, hsl(190 90% 50% / 0.2) 35%, transparent 65%)',
           }}
         />
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-[40%] -translate-y-1/2 w-[120%] h-[100%]"
+          className="absolute top-1/2 left-1/2 -translate-x-[40%] -translate-y-1/2 w-[140%] h-[120%] animate-[hero-glow-drift_12s_ease-in-out_infinite]"
           style={{ 
-            background: 'radial-gradient(ellipse 70% 25% at 55% 50%, hsl(175 80% 45% / 0.2) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse 65% 30% at 55% 50%, hsl(175 80% 45% / 0.3) 0%, transparent 65%)',
+          }}
+        />
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[80%] animate-[hero-glow-pulse_6s_ease-in-out_infinite_reverse]"
+          style={{ 
+            background: 'radial-gradient(ellipse 50% 20% at 48% 50%, hsl(200 90% 65% / 0.2) 0%, transparent 60%)',
           }}
         />
       </div>
