@@ -94,7 +94,7 @@ function PricingCard({ name, price, yearPrice, period, description, features, is
 export function PricingSection() {
   const plans = [
     {
-      name: "Basic",
+      name: "Standard",
       price: "10 000₽",
       yearPrice: "120 000₽",
       period: "мес",
@@ -111,7 +111,7 @@ export function PricingSection() {
       delay: 0.1,
     },
     {
-      name: "Standard",
+      name: "Plus",
       price: "13 300₽",
       yearPrice: "160 000₽",
       period: "мес",
