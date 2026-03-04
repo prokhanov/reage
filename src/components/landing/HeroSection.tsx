@@ -68,7 +68,7 @@ export function HeroSection() {
           </h1>
 
           {/* Metrics Marquee — edge to edge */}
-          <div className="mt-4 animate-fade-in" style={{ animationDelay: '0.15s', marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }}>
+          <div className="animate-fade-in" style={{ animationDelay: '0.15s', marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }}>
             <HeroMetricsMarquee />
           </div>
 
