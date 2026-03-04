@@ -1,4 +1,4 @@
-import { Check, Sparkles, ArrowRight } from "lucide-react";
+import { Check, Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -8,13 +8,16 @@ interface PricingCardProps {
   yearPrice: string;
   period: string;
   description: string;
-  features: string[];
+  biomarkers: string;
+  analyses: string;
+  consultations: string;
+  extras: string[];
   isPopular?: boolean;
   badge?: string;
   delay: number;
 }
 
-function PricingCard({ name, price, yearPrice, period, description, features, isPopular, badge, delay }: PricingCardProps) {
+function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, extras, isPopular, badge, delay }: PricingCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -25,7 +28,6 @@ function PricingCard({ name, price, yearPrice, period, description, features, is
       `}
       style={{ animationDelay: `${delay}s` }}>
       
-      {/* Glow effect for popular */}
       {isPopular &&
       <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary via-accent to-primary opacity-50 blur-xl" />
       }
@@ -35,23 +37,20 @@ function PricingCard({ name, price, yearPrice, period, description, features, is
         ${isPopular ?
       "bg-gradient-to-b from-card to-card/80 border-primary/50 shadow-2xl shadow-primary/20" :
       "bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/30 hover:bg-card/80"}
-      `
-      }>
-        {/* Badge */}
+      `}>
         {badge &&
         <div className={`
             absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold
             ${isPopular ?
         "bg-gradient-to-r from-primary to-accent text-white" :
         "bg-muted text-muted-foreground"}
-          `
-        }>
+          `}>
             {badge}
           </div>
         }
         
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h3 className="text-xl font-bold text-foreground mb-2">{name}</h3>
           <p className="text-sm text-muted-foreground mb-4">{description}</p>
           
@@ -63,10 +62,19 @@ function PricingCard({ name, price, yearPrice, period, description, features, is
           </div>
           <p className="text-sm text-muted-foreground mt-1">(или {yearPrice}/год)</p>
         </div>
+
+        {/* Key metrics */}
+        <div className="space-y-3 mb-6">
+          <MetricRow icon={<FlaskConical className="w-4 h-4" />} label="Биомаркеров" value={biomarkers} isPopular={isPopular} />
+          <MetricRow icon={<CalendarCheck className="w-4 h-4" />} label="Анализов" value={analyses} isPopular={isPopular} />
+          <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={`${consultations} в год`} isPopular={isPopular} />
+        </div>
+
+        <div className="border-t border-border/50 my-6" />
         
-        {/* Features */}
+        {/* Extras */}
         <ul className="space-y-3 mb-8">
-          {features.map((feature, index) =>
+          {extras.map((feature, index) =>
           <li key={index} className="flex items-start gap-3">
               <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${isPopular ? "bg-primary/20" : "bg-muted"}`}>
                 <Check className={`w-3 h-3 ${isPopular ? "text-primary" : "text-muted-foreground"}`} />
@@ -76,19 +84,28 @@ function PricingCard({ name, price, yearPrice, period, description, features, is
           )}
         </ul>
         
-        {/* CTA */}
         <Button
           className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={() => navigate("/register")}>
-          
           Выбрать план
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>
     </div>);
+}
 
+function MetricRow({ icon, label, value, isPopular }: { icon: React.ReactNode; label: string; value: string; isPopular?: boolean }) {
+  return (
+    <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <span className={`text-sm font-bold ${isPopular ? "text-primary" : "text-foreground"}`}>{value}</span>
+    </div>
+  );
 }
 
 export function PricingSection() {
