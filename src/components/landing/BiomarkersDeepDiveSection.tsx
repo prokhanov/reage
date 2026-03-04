@@ -154,10 +154,10 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
       {/* Background glow */}
       <div className={`absolute top-0 right-0 w-32 h-32 ${category.bgGlow} rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
       
-      <CardContent className="p-6 relative">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
+      <CardContent className="p-6 relative flex flex-col md:flex-row gap-6">
+        {/* Left: icon + title + insights */}
+        <div className="md:w-64 shrink-0">
+          <div className="flex items-center gap-3 mb-3">
             <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-2xl shadow-lg`}>
               {category.emoji}
             </div>
@@ -166,52 +166,60 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
               <p className="text-sm text-muted-foreground">{category.markers.length} маркеров</p>
             </div>
           </div>
-          <button className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
-            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-          </button>
+
+          {/* Insights - always visible on desktop */}
+          <ul className="space-y-1.5 mt-4 hidden md:block">
+            {category.insights.map((insight, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm">
+                <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <span>{insight}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Markers */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {category.markers.map((marker) => (
-            <Badge key={marker} variant="secondary" className="text-xs">
-              {marker}
-            </Badge>
-          ))}
+        {/* Right: markers */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap gap-1.5">
+            {category.markers.map((marker) => (
+              <Badge key={marker} variant="secondary" className="text-xs">
+                {marker}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Symptoms */}
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="flex flex-wrap gap-1.5">
+              {category.symptoms.map((symptom) => (
+                <Badge key={symptom} variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
+                  {symptom}
+                </Badge>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Expanded content */}
+        {/* Mobile expand */}
+        <button className="p-2 rounded-lg hover:bg-muted/50 transition-colors md:hidden absolute top-4 right-4">
+          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </button>
+
+        {/* Mobile expanded insights */}
         {isExpanded && (
-          <div className="space-y-4 pt-4 border-t border-border/50 animate-fade-in">
-            {/* What you'll learn */}
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">Что узнаете:</h4>
-              <ul className="space-y-1.5">
-                {category.insights.map((insight, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                    <span>{insight}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Symptoms */}
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">Признаки нарушений:</h4>
-              <div className="flex flex-wrap gap-2">
-                {category.symptoms.map((symptom) => (
-                  <Badge key={symptom} variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
-                    {symptom}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+          <div className="md:hidden space-y-3 animate-fade-in">
+            <ul className="space-y-1.5">
+              {category.insights.map((insight, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <span>{insight}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </CardContent>
-    </Card>
-  );
+    </Card>);
 }
 
 export function BiomarkersDeepDiveSection() {
@@ -305,7 +313,7 @@ export function BiomarkersDeepDiveSection() {
         </div>
 
         {/* Category cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+        <div className="grid grid-cols-1 gap-4 mb-20">
           {biomarkerCategories.map((category, index) => (
             <CategoryCard key={category.id} category={category} index={index} />
           ))}
