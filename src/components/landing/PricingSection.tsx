@@ -11,7 +11,6 @@ interface PricingCardProps {
   biomarkers: string;
   analyses: string;
   consultations: string;
-  extras: string[];
   isPopular?: boolean;
   badge?: string;
   delay: number;
