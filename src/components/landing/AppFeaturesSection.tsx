@@ -189,7 +189,7 @@ function FeatureCard({ feature, index }: {feature: typeof appFeatures[0];index: 
 
 export function AppFeaturesSection() {
   return (
-    <section className="relative py-24 overflow-hidden bg-muted/30">
+    <section className="relative py-20 md:py-28 overflow-hidden bg-muted/30">
       {/* Background decorations */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />

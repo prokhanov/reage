@@ -220,7 +220,7 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
 
 export function BiomarkersDeepDiveSection() {
   return (
-    <section className="relative py-24 overflow-hidden">
+    <section className="relative py-20 md:py-28 overflow-hidden">
       {/* Background decorations */}
       <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
