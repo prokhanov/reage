@@ -81,14 +81,17 @@ export function HeroSection() {
         }}>Регулярно берём анализы у вас дома и предоставляем самый глубокий отчёт по системам организма, факторам риска и биологическому возрасту — в динамике и с сопровождением.
           </p>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
+          {/* Stats Row — minimal text-only */}
+          <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 max-w-3xl mx-auto mb-10 animate-fade-in" style={{
           animationDelay: '0.3s'
         }}>
-            <StatCard icon={<Activity className="w-5 h-5" />} value="70+" label="биомаркеров" />
-            <StatCard icon={<TrendingUp className="w-5 h-5" />} value="5 систем" label="под контролем" />
-            <StatCard icon={<Brain className="w-5 h-5" />} value="Отчеты" label="персональный анализ" />
-            <StatCard icon={<Calendar className="w-5 h-5" />} value="4× в год" label="отслеживание трендов" />
+            <span className="text-muted-foreground text-sm"><span className="font-semibold text-foreground">70+</span> биомаркеров</span>
+            <span className="text-muted-foreground/40">•</span>
+            <span className="text-muted-foreground text-sm"><span className="font-semibold text-foreground">5 систем</span> под контролем</span>
+            <span className="text-muted-foreground/40">•</span>
+            <span className="text-muted-foreground text-sm">Персональные <span className="font-semibold text-foreground">отчёты</span></span>
+            <span className="text-muted-foreground/40">•</span>
+            <span className="text-muted-foreground text-sm"><span className="font-semibold text-foreground">4× в год</span> динамика</span>
           </div>
 
           {/* CTAs */}
