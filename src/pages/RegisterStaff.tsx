@@ -8,11 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, User, AlertCircle } from "lucide-react";
-import { useThemedLogo } from "@/hooks/useThemedLogo";
+import { ThemedLogo } from "@/components/ThemedLogo";
 
 export default function RegisterStaff() {
   const [searchParams] = useSearchParams();
-  const reAgeLogo = useThemedLogo();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -178,7 +177,7 @@ export default function RegisterStaff() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-dark p-4">
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="text-center space-y-4">
-          <img src={reAgeLogo} alt="ReAge" className="h-14 w-auto mx-auto" />
+          <ThemedLogo className="h-14 w-auto mx-auto" />
           {inviteToken && (
             <CardDescription className="text-base">
               Вас пригласили присоединиться как{" "}

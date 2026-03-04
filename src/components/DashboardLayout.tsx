@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "./ui/button";
 import { Menu, PanelLeftOpen } from "lucide-react";
-import { useThemedLogo } from "@/hooks/useThemedLogo";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
 
@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { demoMode } = useDemoMode();
-  const reAgeLogo = useThemedLogo();
+  
 
   // Set initial state based on screen size
   useEffect(() => {
@@ -35,7 +35,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <img src={reAgeLogo} alt="ReAge" className="h-8 w-auto" />
+          <ThemedLogo className="h-8 w-auto" />
           <div className="w-10" />
         </div>
       </header>
