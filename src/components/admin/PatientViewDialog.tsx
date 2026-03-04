@@ -6,7 +6,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import reAgeLogo from "@/assets/reage-logo-light.png";
+import { useThemedLogo } from "@/hooks/useThemedLogo";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
