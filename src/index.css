@@ -138,7 +138,8 @@ All colors MUST be HSL.
 }
 
 @keyframes hue-shift {
-  0% { filter: hue-rotate(0deg) saturate(0.7); }
-  50% { filter: hue-rotate(30deg) saturate(0.6); }
-  100% { filter: hue-rotate(0deg) saturate(0.7); }
+  0% { filter: hue-rotate(0deg) saturate(0.85); }
+  33% { filter: hue-rotate(25deg) saturate(0.8); }
+  66% { filter: hue-rotate(-25deg) saturate(0.8); }
+  100% { filter: hue-rotate(0deg) saturate(0.85); }
 }
