@@ -114,6 +114,7 @@ export function PricingSection() {
       name: "Standard",
       price: "13 300₽",
       yearPrice: "160 000₽",
+      period: "мес",
       description: "Полный мониторинг здоровья",
       badge: "Популярный",
       isPopular: true,
