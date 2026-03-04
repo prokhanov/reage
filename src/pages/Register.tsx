@@ -216,7 +216,7 @@ export default function Register() {
           {/* Header */}
           <div className="text-center mb-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 mb-4">
-              <ThemedLogo className="h-16 w-auto" />
+              <ThemedLogo className="h-24 w-auto" />
             </div>
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
             <p className="text-muted-foreground text-lg mb-3">Начните ваше путешествие к здоровью</p>
