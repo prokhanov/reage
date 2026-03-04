@@ -133,6 +133,7 @@ export function PricingSection() {
       name: "Premium",
       price: "20 000₽",
       yearPrice: "240 000₽",
+      period: "мес",
       description: "Максимальный контроль",
       badge: "VIP",
       features: [
