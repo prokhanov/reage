@@ -283,7 +283,7 @@ const riskRows = [
 ];
 
 function RiskBadgesMarquee() {
-  const speeds = [60, 50, 55];
+  const speeds = [180, 160, 170];
 
   return (
     <div className="space-y-3 overflow-hidden">
