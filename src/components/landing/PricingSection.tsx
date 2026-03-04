@@ -11,13 +11,12 @@ interface PricingCardProps {
   biomarkers: string;
   analyses: string;
   consultations: string;
-  extras: string[];
   isPopular?: boolean;
   badge?: string;
   delay: number;
 }
 
-function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, extras, isPopular, badge, delay }: PricingCardProps) {
+function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, isPopular, badge, delay }: PricingCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -51,8 +50,7 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
         
         {/* Header */}
         <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-foreground mb-2">{name}</h3>
-          <p className="text-sm text-muted-foreground mb-4">{description}</p>
+          <h3 className="text-xl font-bold text-foreground mb-4">{name}</h3>
           
           <div className="flex items-baseline justify-center gap-1">
             <span className={`text-4xl md:text-5xl font-bold ${isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"}`}>
@@ -70,19 +68,8 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={`${consultations} в год`} isPopular={isPopular} />
         </div>
 
-        <div className="border-t border-border/50 my-6" />
-        
-        {/* Extras */}
-        <ul className="space-y-3 mb-8">
-          {extras.map((feature, index) =>
-          <li key={index} className="flex items-start gap-3">
-              <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${isPopular ? "bg-primary/20" : "bg-muted"}`}>
-                <Check className={`w-3 h-3 ${isPopular ? "text-primary" : "text-muted-foreground"}`} />
-              </div>
-              <span className="text-sm text-muted-foreground">{feature}</span>
-            </li>
-          )}
-        </ul>
+        {/* Description */}
+        <p className="text-sm text-muted-foreground leading-relaxed mb-8">{description}</p>
         
         <Button
           className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
@@ -115,16 +102,11 @@ export function PricingSection() {
     price: "10 000₽",
     yearPrice: "120 000₽",
     period: "мес",
-    description: "Базовый мониторинг здоровья",
+    description: "Базовый, но умный чек-ап. 46 показателей крови и мочи, которые показывают, как работает обмен веществ, сердце, печень, почки, гормоны и воспаление. Подходит для регулярного трекинга здоровья и раннего выявления рисков — до появления симптомов.",
     badge: "Старт",
     biomarkers: "30",
     analyses: "2 раза в год",
     consultations: "3",
-    extras: [
-    "Биологический возраст",
-    "AI-рекомендации",
-    "Личный кабинет",
-    "Забор крови на дому"],
     delay: 0.1
   },
   {
@@ -132,17 +114,12 @@ export function PricingSection() {
     price: "13 300₽",
     yearPrice: "160 000₽",
     period: "мес",
-    description: "Расширенный мониторинг",
+    description: "Углублённый уровень поверх Стандарта. Добавляет расширенную оценку сердечно-сосудистых рисков, дефицитов, гормонального баланса и обмена железа — для более точного понимания причин усталости, снижения энергии и скрытых рисков.",
     badge: "Популярный",
     isPopular: true,
     biomarkers: "50",
     analyses: "3 раза в год",
     consultations: "4",
-    extras: [
-    "Биологический возраст + тренды",
-    "Полные AI-рекомендации",
-    "AI-ассистент 24/7",
-    "Приоритетная поддержка"],
     delay: 0.2
   },
   {
@@ -150,16 +127,11 @@ export function PricingSection() {
     price: "20 000₽",
     yearPrice: "240 000₽",
     period: "мес",
-    description: "Максимальный контроль",
+    description: "Максимальный уровень глубины анализа. Дополняет Стандарт и Плюс оценкой митохондриальной функции, окислительного стресса, низкоуровневого воспаления и ранних изменений со стороны сердца — для тех, кто хочет понимать процессы старения на самом глубоком уровне.",
     badge: "VIP",
     biomarkers: "70+",
     analyses: "4 раза в год",
     consultations: "6",
-    extras: [
-    "Расширенные панели биомаркеров",
-    "Персональный менеджер",
-    "Экспресс-результаты (3 дня)",
-    "Семейный доступ (до 2 чел.)"],
     delay: 0.3
   }];
 
