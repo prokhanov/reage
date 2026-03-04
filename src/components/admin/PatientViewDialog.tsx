@@ -60,6 +60,7 @@ interface PatientViewDialogProps {
 
 export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const reAgeLogo = useThemedLogo();
   
   // Set initial state based on screen size
   useEffect(() => {
