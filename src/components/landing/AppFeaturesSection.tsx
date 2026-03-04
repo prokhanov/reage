@@ -197,9 +197,6 @@ export function AppFeaturesSection() {
       <div className="container mx-auto px-4">
         {/* Section header */}
         <div className="text-center mb-16 animate-fade-in">
-          <Badge variant="outline" className="mb-4 px-4 py-1.5">
-            📱 Приложение
-          </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Всё в одном приложении —{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
