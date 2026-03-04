@@ -133,7 +133,7 @@ export default function Auth() {
         {/* Header with Logo */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 mb-4">
-            <img src={reAgeLogo} alt="ReAge" className="h-24 w-auto" />
+            <img src={reAgeLogo} alt="ReAge" className="h-24 w-auto animate-hue-shift" />
           </div>
           <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
             Добро пожаловать
