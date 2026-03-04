@@ -146,13 +146,13 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Outer glow on hover */}
-      <div className={`absolute -inset-px rounded-2xl bg-gradient-to-r ${category.color} opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700`} />
+      <div className={`absolute -inset-px rounded-2xl bg-gradient-to-r ${category.gradient} opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700`} />
 
       <div className="relative rounded-2xl bg-card/40 backdrop-blur-xl border border-border/40 overflow-hidden transition-all duration-500 group-hover:border-border/80 group-hover:bg-card/60">
         <div className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
           
           {/* Visual side */}
-          <div className={`relative md:w-80 shrink-0 p-8 md:p-10 flex flex-col justify-center bg-gradient-to-br ${category.color} overflow-hidden`}>
+          <div className={`relative md:w-80 shrink-0 p-8 md:p-10 flex flex-col justify-center bg-gradient-to-br ${category.gradient} overflow-hidden`}>
             {/* Large decorative emoji */}
             <div className="absolute -bottom-6 -right-6 text-[120px] leading-none opacity-[0.15] select-none pointer-events-none">
               {category.emoji}
@@ -185,7 +185,7 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {category.insights.map((insight, i) => (
                   <div key={i} className="flex items-start gap-2.5 text-sm">
-                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${category.color} mt-1.5 shrink-0`} />
+                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${category.gradient} mt-1.5 shrink-0`} />
                     <span className="text-foreground/80">{insight}</span>
                   </div>
                 ))}
@@ -275,7 +275,7 @@ export function BiomarkersDeepDiveSection() {
                 return (
                   <div
                     key={cat.id}
-                    className={`absolute w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-xl md:text-2xl shadow-lg transform transition-transform hover:scale-110`}
+                    className={`absolute w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br ${cat.gradient} flex items-center justify-center text-xl md:text-2xl shadow-lg transform transition-transform hover:scale-110`}
                     style={{
                       left: `calc(50% + ${x}px - 28px)`,
                       top: `calc(50% + ${y}px - 28px)`,
