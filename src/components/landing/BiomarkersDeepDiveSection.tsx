@@ -324,7 +324,7 @@ export function BiomarkersDeepDiveSection() {
         </div>
 
         {/* Category cards */}
-        <div className="grid grid-cols-1 gap-4 mb-20">
+        <div className="space-y-6 mb-20">
           {biomarkerCategories.map((category, index) => (
             <CategoryCard key={category.id} category={category} index={index} />
           ))}
