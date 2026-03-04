@@ -92,7 +92,7 @@ export function ReportShowcaseSection() {
         <div className="text-center mb-16 animate-fade-in">
           <Badge className="mb-4 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm">
             <Sparkles className="w-4 h-4 mr-2 inline" />
-            Главный продукт
+            Что я получу?
           </Badge>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Ваш{" "}
