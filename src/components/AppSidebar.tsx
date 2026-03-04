@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
 import { useMyAssignmentsCount } from "@/hooks/useMyAssignmentsCount";
-import { useThemedLogo } from "@/hooks/useThemedLogo";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface AppSidebarProps {
@@ -45,7 +45,6 @@ const adminNavItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const reAgeLogo = useThemedLogo();
   const queryClient = useQueryClient();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
@@ -132,7 +131,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             {isOpen ? (
               <>
                 <div className="flex items-start justify-between mb-3">
-                  <img src={reAgeLogo} alt="ReAge" className="h-12 w-auto animate-hue-shift" />
+                  <ThemedLogo className="h-12 w-auto animate-hue-shift" />
                   <button
                     onClick={() => setIsOpen(false)}
                     className="p-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"

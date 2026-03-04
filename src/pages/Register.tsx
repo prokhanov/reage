@@ -16,7 +16,7 @@ import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { RegisterStep5 } from "@/components/register/RegisterStep5";
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
-import { useThemedLogo } from "@/hooks/useThemedLogo";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import registerHero from "@/assets/register-hero.png";
 import registerProfile from "@/assets/register-profile.png";
 import registerHealth from "@/assets/register-health.png";
@@ -61,7 +61,6 @@ const steps = [
 ];
 
 export default function Register() {
-  const reAgeLogo = useThemedLogo();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -217,7 +216,7 @@ export default function Register() {
           {/* Header */}
           <div className="text-center mb-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 mb-4">
-              <img src={reAgeLogo} alt="ReAge" className="h-16 w-auto" />
+              <ThemedLogo className="h-16 w-auto" />
             </div>
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
             <p className="text-muted-foreground text-lg mb-3">Начните ваше путешествие к здоровью</p>

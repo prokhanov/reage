@@ -6,7 +6,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { useThemedLogo } from "@/hooks/useThemedLogo";
+import { ThemedLogo } from "@/components/ThemedLogo";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
@@ -60,7 +60,7 @@ interface PatientViewDialogProps {
 
 export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const reAgeLogo = useThemedLogo();
+  
   
   // Set initial state based on screen size
   useEffect(() => {
@@ -92,7 +92,7 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
-                <img src={reAgeLogo} alt="ReAge" className="h-8 w-auto" />
+                <ThemedLogo className="h-8 w-auto" />
                 <div className="w-10" />
               </div>
             </header>
