@@ -70,11 +70,16 @@ export function HeroSection() {
             </span>
           </h1>
 
+          {/* Metrics Marquee — right under the heading */}
+          <div className="mb-8 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+            <HeroMetricsMarquee />
+          </div>
+
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
         }}>Регулярно берём анализы у вас дома и предоставляем самый глубокий отчёт по системам организма, факторам риска и биологическому возрасту — в динамике и с сопровождением.
-        </p>
+          </p>
 
           {/* Stats Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
@@ -87,7 +92,7 @@ export function HeroSection() {
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 animate-fade-in" style={{
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
           animationDelay: '0.4s'
         }}>
             <Button size="lg" onClick={() => navigate("/register")} className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group">
@@ -98,9 +103,6 @@ export function HeroSection() {
               Войти в аккаунт
             </Button>
           </div>
-
-          {/* Metrics Marquee */}
-          <HeroMetricsMarquee />
         </div>
       </div>
     </section>;
