@@ -50,8 +50,8 @@ export function HeroSection() {
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
           animationDelay: '0.2s'
-        }}>Регулярно берем анализы у вас дома и проводим самый глубокий анализ всех систем организма, факторов риска и биологического возраста по 85 показателям — с регулярной динамикой и сопровождением.
-          </p>
+        }}>Регулярно берем анализы у вас дома и предоставляем самый глубокий отчет по всем системам организма, факторам риска и биологическому возрасту в динамике и профессиональным сопровождением
+        </p>
 
           {/* Stats Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10 animate-fade-in" style={{
