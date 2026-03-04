@@ -210,7 +210,7 @@ export function PricingSection() {
 
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-20 md:py-28 overflow-x-clip">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
       
