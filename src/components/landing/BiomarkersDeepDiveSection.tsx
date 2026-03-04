@@ -242,22 +242,6 @@ export function BiomarkersDeepDiveSection() {
             <span className="text-foreground font-medium">5 систем организма</span>
             — от энергии до гормонов
           </p>
-          
-          {/* Status Indicators */}
-          <div className="flex justify-center gap-4 mt-8 flex-wrap">
-            <div className="flex items-center gap-2 px-4 py-2 bg-card/50 backdrop-blur border border-border/30 rounded-full text-xs text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-status-good animate-pulse" />
-              Данные в реальном времени
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-card/50 backdrop-blur border border-border/30 rounded-full text-xs text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              AI-анализ активен
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-card/50 backdrop-blur border border-border/30 rounded-full text-xs text-muted-foreground">
-              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              Персональные рекомендации
-            </div>
-          </div>
         </div>
 
         {/* Central pentagon visualization */}
