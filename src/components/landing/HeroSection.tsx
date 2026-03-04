@@ -34,6 +34,9 @@ export function HeroSection() {
           {isDark ? <Sun className="h-5 w-5 text-foreground" /> : <Moon className="h-5 w-5 text-foreground" />}
         </button>}
 
+      {/* Content */}
+      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[80px]">
+        <div className="max-w-5xl mx-auto text-center">
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight animate-fade-in" style={{
           animationDelay: '0.1s'
