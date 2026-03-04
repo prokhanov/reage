@@ -32,9 +32,6 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 pt-28 pb-16 md:pt-36 md:pb-20">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Metrics Marquee */}
-          <HeroMetricsMarquee />
-
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
             
@@ -68,7 +65,7 @@ export function HeroSection() {
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 animate-fade-in" style={{
           animationDelay: '0.4s'
         }}>
             <Button size="lg" onClick={() => navigate("/register")} className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group">
@@ -80,8 +77,8 @@ export function HeroSection() {
             </Button>
           </div>
 
-
-
+          {/* Metrics Marquee */}
+          <HeroMetricsMarquee />
         </div>
       </div>
     </section>;
