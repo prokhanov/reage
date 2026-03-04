@@ -246,11 +246,6 @@ export function PersonasSection() {
             </div>
           </div>
         </div>
-
-        {/* Subtitle */}
-        <p className="text-center text-lg text-muted-foreground mt-12 animate-fade-in">
-          ReAge подходит тем, кто готов взять здоровье в свои руки
-        </p>
       </div>
     </section>
   );
