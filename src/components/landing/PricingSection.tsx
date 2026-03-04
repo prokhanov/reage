@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 interface PricingCardProps {
   name: string;
   price: string;
+  yearPrice: string;
   period: string;
   description: string;
   features: string[];
@@ -13,7 +14,7 @@ interface PricingCardProps {
   delay: number;
 }
 
-function PricingCard({ name, price, period, description, features, isPopular, badge, delay }: PricingCardProps) {
+function PricingCard({ name, price, yearPrice, period, description, features, isPopular, badge, delay }: PricingCardProps) {
   const navigate = useNavigate();
   
   return (
@@ -60,6 +61,7 @@ function PricingCard({ name, price, period, description, features, isPopular, ba
             </span>
             <span className="text-muted-foreground">/{period}</span>
           </div>
+          <p className="text-sm text-muted-foreground mt-1">(или {yearPrice}/год)</p>
         </div>
         
         {/* Features */}
@@ -94,6 +96,7 @@ export function PricingSection() {
     {
       name: "Basic",
       price: "10 000₽",
+      yearPrice: "120 000₽",
       period: "мес",
       description: "Для начала мониторинга",
       badge: "Старт",
@@ -110,6 +113,7 @@ export function PricingSection() {
     {
       name: "Standard",
       price: "13 300₽",
+      yearPrice: "160 000₽",
       period: "мес",
       description: "Полный мониторинг здоровья",
       badge: "Популярный",
@@ -128,6 +132,7 @@ export function PricingSection() {
     {
       name: "Premium",
       price: "20 000₽",
+      yearPrice: "240 000₽",
       period: "мес",
       description: "Максимальный контроль",
       badge: "VIP",
