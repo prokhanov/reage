@@ -20,27 +20,13 @@ export function HeroSection() {
   }, []);
   const isDark = theme === "dark";
   return <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
+      {/* Logo - top left */}
+      <img src={reageLogo} alt="ReAge" className="fixed top-4 left-4 z-50 h-10 w-auto animate-hue-shift" />
+
       {/* Theme Toggle */}
       {mounted && <button onClick={() => setTheme(isDark ? "light" : "dark")} className="fixed top-4 right-4 z-50 p-3 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg" aria-label={isDark ? "Светлая тема" : "Тёмная тема"}>
           {isDark ? <Sun className="h-5 w-5 text-foreground" /> : <Moon className="h-5 w-5 text-foreground" />}
         </button>}
-
-      {/* Particle Background */}
-      <ParticleBackground />
-      
-      {/* Gradient Orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] md:w-[700px] md:h-[700px] bg-primary rounded-full blur-[120px] opacity-[0.15] animate-float" />
-        <div className="absolute top-1/4 -right-32 w-[400px] h-[400px] md:w-[600px] md:h-[600px] bg-accent rounded-full blur-[100px] opacity-[0.12] animate-float-delayed" />
-        <div className="absolute -bottom-48 left-1/4 w-[500px] h-[500px] md:w-[800px] md:h-[800px] bg-secondary-glow rounded-full blur-[140px] opacity-[0.10] animate-float-slow" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[80px]">
-        {/* Logo */}
-        <div className="flex justify-center mb-10 animate-fade-in">
-          <img src={reageLogo} alt="ReAge" className="h-24 md:h-32 w-auto animate-hue-shift" />
-        </div>
 
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
