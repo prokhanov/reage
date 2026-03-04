@@ -214,25 +214,6 @@ export function AppFeaturesSection() {
           <HeroShowcase />
         </div>
 
-        {/* Stats bar */}
-        <div className="flex flex-wrap justify-center gap-8 mb-16">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary">8</div>
-            <div className="text-sm text-muted-foreground">Разделов</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary">50+</div>
-            <div className="text-sm text-muted-foreground">Биомаркеров</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary">24/7</div>
-            <div className="text-sm text-muted-foreground">AI-ассистент</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-primary">5</div>
-            <div className="text-sm text-muted-foreground">Систем организма</div>
-          </div>
-        </div>
 
         {/* Features grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
