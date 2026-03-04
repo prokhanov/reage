@@ -69,6 +69,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <HeroSection />
+      <WhyCheckupsFail />
       <PainPointsSection />
       <HowItWorksSection />
       <StatsMarqueeSection />
