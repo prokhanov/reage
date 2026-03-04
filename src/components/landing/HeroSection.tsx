@@ -53,39 +53,32 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 pt-28 pb-16 md:pt-36 md:pb-20">
-        <div className="max-w-5xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center flex flex-col items-center gap-6 md:gap-8">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
-            
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
             <span className="text-sm font-medium text-primary">85 биомаркеров • Анализы не выходя из дома • Результат за 5 дней • Отслеживание трендов</span>
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight animate-fade-in" style={{
-          animationDelay: '0.1s'
-        }}>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="block text-foreground">Ваше здоровье в цифрах,</span>
             <span className="block mt-2 bg-gradient-hero bg-clip-text text-transparent">
               динамике и рекомендациях
             </span>
           </h1>
 
-          {/* Metrics Marquee — right under the heading */}
-          <div className="-mx-4 md:-mx-[calc((100vw-theme(maxWidth.5xl))/2+1rem)] mb-8 animate-fade-in" style={{ animationDelay: '0.15s', marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }}>
+          {/* Metrics Marquee — edge to edge */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.15s', marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }}>
             <HeroMetricsMarquee />
           </div>
 
           {/* Subheading */}
-          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{
-          animationDelay: '0.2s'
-        }}>Регулярно берём анализы у вас дома и предоставляем самый глубокий отчёт по системам организма, факторам риска и биологическому возрасту — в динамике и с сопровождением.
+          <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            Регулярно берём анализы у вас дома и предоставляем самый глубокий отчёт по системам организма, факторам риска и биологическому возрасту — в динамике и с сопровождением.
           </p>
 
-
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
-          animationDelay: '0.4s'
-        }}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <Button size="lg" onClick={() => navigate("/register")} className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group">
               Начать мониторинг
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
