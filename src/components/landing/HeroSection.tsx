@@ -19,7 +19,7 @@ export function HeroSection() {
     setMounted(true);
   }, []);
   const isDark = theme === "dark";
-  return <section className="relative min-h-[90dvh] flex items-center justify-center overflow-hidden">
+  return <section className="relative flex items-center justify-center overflow-hidden">
       {/* Logo - top left */}
       <ThemedLogo className="absolute top-4 left-8 z-10 h-20 w-auto animate-hue-shift" />
 
@@ -29,7 +29,7 @@ export function HeroSection() {
         </button>}
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 md:py-32 py-[100px]">
+      <div className="relative z-10 container mx-auto px-4 pt-28 pb-16 md:pt-36 md:pb-20">
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm mb-8 animate-fade-in">
@@ -64,7 +64,7 @@ export function HeroSection() {
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in" style={{
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
           animationDelay: '0.4s'
         }}>
             <Button size="lg" onClick={() => navigate("/register")} className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group">
