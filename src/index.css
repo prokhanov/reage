@@ -133,11 +133,12 @@ All colors MUST be HSL.
   }
 
   .animate-hue-shift {
-    animation: hue-shift 5s linear infinite;
+    animation: hue-shift 12s ease-in-out infinite;
   }
 }
 
 @keyframes hue-shift {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
+  0% { filter: hue-rotate(0deg) saturate(0.7); }
+  50% { filter: hue-rotate(30deg) saturate(0.6); }
+  100% { filter: hue-rotate(0deg) saturate(0.7); }
 }
