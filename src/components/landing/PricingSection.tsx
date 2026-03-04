@@ -36,12 +36,8 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
       
       <div className="absolute -inset-0.5 rounded-3xl opacity-50 blur-xl" style={{ background: glowColor }} />
       
-      <div className={`
-        relative h-full rounded-3xl border p-8 transition-all duration-500 flex flex-col
-        ${isPopular ?
-      "bg-gradient-to-b from-card to-card/80 border-primary/50 shadow-2xl shadow-primary/20" :
-      "bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/30 hover:bg-card/80"}
-      `}>
+      <div className="relative h-full rounded-3xl border border-primary/30 p-8 transition-all duration-500 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-2xl shadow-primary/10">
+
         {badge &&
         <div className={`
             absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold
