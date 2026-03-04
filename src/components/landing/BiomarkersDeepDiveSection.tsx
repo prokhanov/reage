@@ -172,17 +172,12 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
         </div>
 
         {/* Markers */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {category.markers.slice(0, isExpanded ? undefined : 4).map((marker) => (
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {category.markers.map((marker) => (
             <Badge key={marker} variant="secondary" className="text-xs">
               {marker}
             </Badge>
           ))}
-          {!isExpanded && category.markers.length > 4 && (
-            <Badge variant="outline" className="text-xs">
-              +{category.markers.length - 4}
-            </Badge>
-          )}
         </div>
 
         {/* Expanded content */}
