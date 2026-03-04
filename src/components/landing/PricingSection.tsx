@@ -20,6 +20,7 @@ interface PricingCardProps {
   analyses: string;
   consultations: string;
   biomarkersBySystem: BiomarkerCategory[];
+  glowColor?: string;
   isPopular?: boolean;
   badge?: string;
   delay: number;
