@@ -142,84 +142,95 @@ const serviceSections = [
 ];
 
 function CategoryCard({ category, index }: { category: typeof biomarkerCategories[0]; index: number }) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const Icon = category.icon;
+  const isEven = index % 2 === 0;
 
   return (
-    <Card 
-      className="group relative overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 transition-all duration-500 hover:bg-card/80 hover:border-primary/30 hover:shadow-xl cursor-pointer"
+    <div
+      className="group relative animate-fade-in"
       style={{ animationDelay: `${index * 100}ms` }}
-      onClick={() => setIsExpanded(!isExpanded)}
     >
-      {/* Background glow */}
-      <div className={`absolute top-0 right-0 w-32 h-32 ${category.bgGlow} rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-      
-      <CardContent className="p-6 relative flex flex-col md:flex-row gap-6">
-        {/* Left: icon + title + insights */}
-        <div className="md:w-64 shrink-0">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center text-2xl shadow-lg`}>
+      {/* Outer glow on hover */}
+      <div className={`absolute -inset-px rounded-2xl bg-gradient-to-r ${category.color} opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700`} />
+
+      <div className="relative rounded-2xl bg-card/40 backdrop-blur-xl border border-border/40 overflow-hidden transition-all duration-500 group-hover:border-border/80 group-hover:bg-card/60">
+        <div className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
+          
+          {/* Visual side */}
+          <div className={`relative md:w-80 shrink-0 p-8 md:p-10 flex flex-col justify-center bg-gradient-to-br ${category.color} overflow-hidden`}>
+            {/* Large decorative emoji */}
+            <div className="absolute -bottom-6 -right-6 text-[120px] leading-none opacity-[0.15] select-none pointer-events-none">
               {category.emoji}
             </div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <Icon className="w-6 h-6 text-white" />
+                <span className="text-white/70 text-sm font-medium uppercase tracking-widest">
+                  Система {index + 1}/5
+                </span>
+              </div>
+              
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">
+                {category.name}
+              </h3>
+              
+              <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20">
+                <span className="text-white font-semibold text-sm">{category.markers.length}</span>
+                <span className="text-white/80 text-sm">маркеров</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Content side */}
+          <div className="flex-1 p-6 md:p-8 space-y-6">
+            {/* Insights */}
             <div>
-              <h3 className="font-semibold text-lg">{category.name}</h3>
-              <p className="text-sm text-muted-foreground">{category.markers.length} маркеров</p>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Что узнаете</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {category.insights.map((insight, i) => (
+                  <div key={i} className="flex items-start gap-2.5 text-sm">
+                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${category.color} mt-1.5 shrink-0`} />
+                    <span className="text-foreground/80">{insight}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Markers cloud */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Биомаркеры</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {category.markers.map((marker) => (
+                  <span
+                    key={marker}
+                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-muted/60 text-foreground/70 border border-border/40 transition-colors duration-200 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                  >
+                    {marker}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Symptoms */}
+            <div className="pt-4 border-t border-border/30">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Признаки нарушений</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {category.symptoms.map((symptom) => (
+                  <span
+                    key={symptom}
+                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-destructive/5 text-destructive/80 border border-destructive/15"
+                  >
+                    {symptom}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
-
-          {/* Insights - always visible on desktop */}
-          <ul className="space-y-1.5 mt-4 hidden md:block">
-            {category.insights.map((insight, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
-                <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                <span>{insight}</span>
-              </li>
-            ))}
-          </ul>
         </div>
-
-        {/* Right: markers */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap gap-1.5">
-            {category.markers.map((marker) => (
-              <Badge key={marker} variant="secondary" className="text-xs">
-                {marker}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Symptoms */}
-          <div className="mt-4 pt-4 border-t border-border/50">
-            <div className="flex flex-wrap gap-1.5">
-              {category.symptoms.map((symptom) => (
-                <Badge key={symptom} variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
-                  {symptom}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile expand */}
-        <button className="p-2 rounded-lg hover:bg-muted/50 transition-colors md:hidden absolute top-4 right-4">
-          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </button>
-
-        {/* Mobile expanded insights */}
-        {isExpanded && (
-          <div className="md:hidden space-y-3 animate-fade-in">
-            <ul className="space-y-1.5">
-              {category.insights.map((insight, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <span>{insight}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </CardContent>
-    </Card>);
+      </div>
+    </div>
+  );
 }
 
 export function BiomarkersDeepDiveSection() {
