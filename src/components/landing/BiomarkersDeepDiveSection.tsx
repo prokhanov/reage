@@ -316,10 +316,8 @@ export function BiomarkersDeepDiveSection() {
           ))}
         </div>
 
-        {/* Stats Marquee */}
-        <div className="mt-16" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }}>
-          <StatsMarqueeSection />
-        </div>
+
+
 
         {/* Risk Badges Marquee */}
         <div className="mt-16">
