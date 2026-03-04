@@ -21,27 +21,37 @@ export function HeroSection() {
   }, []);
   const isDark = theme === "dark";
   return <section className="relative flex items-center justify-center overflow-hidden bg-background">
-      {/* Ambient light gradient — inspired by blue-teal beam */}
+      {/* Ambient light gradient — dramatic blue-teal beam */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Main beam — horizontal light streak */}
+        {/* Core horizontal beam — bright center */}
         <div 
-          className="absolute top-[45%] left-[15%] w-[90%] h-[8px] blur-[80px] opacity-40 dark:opacity-30"
-          style={{ background: 'linear-gradient(90deg, hsl(240 80% 55%), hsl(190 90% 55%), hsl(160 80% 50%))' }}
+          className="absolute top-[48%] left-0 w-full h-[3px]"
+          style={{ background: 'linear-gradient(90deg, transparent 5%, hsl(220 90% 60%) 30%, hsl(180 95% 70%) 60%, hsl(160 90% 55%) 85%, transparent 95%)', boxShadow: '0 0 80px 40px hsl(200 90% 60% / 0.5), 0 0 160px 80px hsl(180 90% 55% / 0.3)' }}
         />
-        {/* Upper glow spread */}
+        {/* Upper fan — light spreading upward */}
         <div 
-          className="absolute top-[10%] right-[10%] w-[60%] h-[50%] blur-[120px] opacity-[0.12] dark:opacity-[0.08] rounded-full"
-          style={{ background: 'radial-gradient(ellipse at center, hsl(190 90% 55%), transparent 70%)' }}
+          className="absolute top-0 left-[20%] w-[70%] h-[50%]"
+          style={{ background: 'conic-gradient(from 0.75turn at 30% 100%, transparent 30%, hsl(230 85% 55% / 0.35) 42%, hsl(200 90% 65% / 0.5) 50%, hsl(170 85% 55% / 0.35) 58%, transparent 70%)' }}
         />
-        {/* Left blue glow */}
+        {/* Lower reflection */}
         <div 
-          className="absolute top-[30%] left-[-5%] w-[40%] h-[40%] blur-[100px] opacity-[0.10] dark:opacity-[0.07] rounded-full"
-          style={{ background: 'radial-gradient(ellipse at center, hsl(240 80% 55%), transparent 70%)' }}
+          className="absolute bottom-0 left-[20%] w-[70%] h-[50%]"
+          style={{ background: 'conic-gradient(from 0.25turn at 30% 0%, transparent 30%, hsl(230 85% 55% / 0.2) 42%, hsl(200 90% 65% / 0.3) 50%, hsl(170 85% 55% / 0.2) 58%, transparent 70%)' }}
         />
-        {/* Bottom teal reflection */}
+        {/* Blue glow left */}
         <div 
-          className="absolute bottom-[5%] right-[15%] w-[50%] h-[30%] blur-[100px] opacity-[0.10] dark:opacity-[0.06] rounded-full"
-          style={{ background: 'radial-gradient(ellipse at center, hsl(170 70% 45%), transparent 70%)' }}
+          className="absolute top-[20%] left-[5%] w-[40%] h-[60%] blur-[100px] rounded-full"
+          style={{ background: 'radial-gradient(ellipse at center, hsl(230 90% 50% / 0.4), transparent 70%)' }}
+        />
+        {/* Teal glow right */}
+        <div 
+          className="absolute top-[20%] right-[0%] w-[45%] h-[60%] blur-[100px] rounded-full"
+          style={{ background: 'radial-gradient(ellipse at center, hsl(170 80% 45% / 0.4), transparent 70%)' }}
+        />
+        {/* Dark vignette overlay for depth */}
+        <div 
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse at 40% 50%, transparent 20%, hsl(var(--background)) 75%)' }}
         />
       </div>
 
