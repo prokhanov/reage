@@ -78,6 +78,7 @@ const Index = () => {
       <BenefitsSection />
       <BiomarkersDeepDiveSection />
       <ComparisonSection />
+      <StatsMarqueeSection />
       <PricingSection />
       <PersonasSection />
       <TestimonialsSection />
