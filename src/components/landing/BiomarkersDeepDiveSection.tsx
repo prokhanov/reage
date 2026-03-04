@@ -248,7 +248,7 @@ export function BiomarkersDeepDiveSection() {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            50+ биомаркеров, сгруппированных в{" "}
+            Все системы взаимосвязаны — мы анализируем их комплексно. 50+ биомаркеров, сгруппированных в{" "}
             <span className="text-foreground font-medium">5 систем организма</span>
             — от энергии до гормонов
           </p>
