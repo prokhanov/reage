@@ -41,7 +41,7 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
       }
       
       <div className={`
-        relative h-full rounded-3xl border p-8 transition-all duration-500
+        relative h-full rounded-3xl border p-8 transition-all duration-500 flex flex-col
         ${isPopular ?
       "bg-gradient-to-b from-card to-card/80 border-primary/50 shadow-2xl shadow-primary/20" :
       "bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/30 hover:bg-card/80"}
@@ -78,7 +78,7 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
         </div>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground leading-relaxed mb-8">{description}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1">{description}</p>
         
         <Button
           className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
