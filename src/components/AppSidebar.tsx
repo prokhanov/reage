@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
 import { useMyAssignmentsCount } from "@/hooks/useMyAssignmentsCount";
-import reAgeLogo from "@/assets/reage-logo.png";
+import reAgeLogo from "@/assets/reage-logo-light.png";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface AppSidebarProps {
