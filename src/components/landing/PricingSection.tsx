@@ -175,7 +175,7 @@ export function PricingSection() {
     analyses: "2 раза в год",
     consultations: "3",
     biomarkersBySystem: standardBiomarkers,
-    glowColor: "linear-gradient(135deg, hsla(160, 60%, 65%, 0.6), hsla(145, 50%, 55%, 0.4))",
+    glowColor: "linear-gradient(135deg, hsla(175, 70%, 55%, 0.7), hsla(165, 65%, 50%, 0.5))",
     delay: 0.1
   },
   {
@@ -204,7 +204,7 @@ export function PricingSection() {
     analyses: "4 раза в год",
     consultations: "6",
     biomarkersBySystem: premiumBiomarkers,
-    glowColor: "linear-gradient(135deg, hsla(200, 60%, 65%, 0.6), hsla(210, 55%, 55%, 0.4))",
+    glowColor: "linear-gradient(135deg, hsla(210, 75%, 60%, 0.7), hsla(220, 70%, 55%, 0.5))",
     delay: 0.3
   }];
 
