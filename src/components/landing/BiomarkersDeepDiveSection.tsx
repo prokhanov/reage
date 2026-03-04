@@ -23,8 +23,7 @@ const biomarkerCategories = [
     emoji: "⚡",
     icon: Zap,
     name: "Энергия и восстановление",
-    color: "from-amber-500 to-orange-500",
-    bgGlow: "bg-amber-500/10",
+    gradient: "from-[hsl(270,90%,60%)] to-[hsl(290,80%,55%)]",
     markers: ["Глюкоза", "HbA1c", "Инсулин", "HOMA-IR", "ЛДГ", "Коэнзим Q10", "Малоновый диальдегид", "Антиоксидантный статус", "Магний", "B12", "B9", "Цинк", "Селен", "Альбумин", "Лактат"],
     insights: [
       "Почему постоянная усталость",
@@ -39,8 +38,7 @@ const biomarkerCategories = [
     emoji: "❤️",
     icon: Heart,
     name: "Сердечно-сосудистая система",
-    color: "from-red-500 to-rose-500",
-    bgGlow: "bg-red-500/10",
+    gradient: "from-[hsl(320,100%,60%)] to-[hsl(340,85%,55%)]",
     markers: ["Общий холестерин", "ЛПВП", "ЛПНП", "Триглицериды", "ЛПОНП", "ApoA1", "ApoB", "ApoB/ApoA1", "не-HDL холестерин", "Индекс атерогенности", "Гомоцистеин", "Lp(a)", "Ферритин", "Железо", "Медь", "NT-proBNP", "КФК"],
     insights: [
       "Риск атеросклероза",
@@ -55,8 +53,7 @@ const biomarkerCategories = [
     emoji: "🛡️",
     icon: Shield,
     name: "Воспалительная и иммунная система",
-    color: "from-emerald-500 to-teal-500",
-    bgGlow: "bg-emerald-500/10",
+    gradient: "from-[hsl(260,75%,55%)] to-[hsl(280,70%,50%)]",
     markers: ["Гемоглобин", "Эритроциты", "Гематокрит", "MCV", "MCH/MCHC", "Лейкоциты", "Нейтрофилы", "Лимфоциты", "Моноциты", "Эозинофилы", "Базофилы", "Тромбоциты", "CD3+", "CD4+", "CD8+", "CD19+", "NK-клетки", "СОЭ", "CRP", "IL-6", "TNF-α", "IgM", "IgG"],
     insights: [
       "Есть ли хроническое воспаление (главная причина старения)",
@@ -71,8 +68,7 @@ const biomarkerCategories = [
     emoji: "🧬",
     icon: Dna,
     name: "Эндокринная и стрессовая система",
-    color: "from-violet-500 to-purple-500",
-    bgGlow: "bg-violet-500/10",
+    gradient: "from-[hsl(285,85%,58%)] to-[hsl(310,90%,55%)]",
     markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Тестостерон", "Эстрадиол", "Эстрон", "Эстриол", "Кортизол", "DHEA-S", "SHBG", "Витамин D", "IGF-1"],
     insights: [
       "Гормональный баланс",
@@ -87,8 +83,7 @@ const biomarkerCategories = [
     emoji: "🔄",
     icon: RefreshCw,
     name: "Обмен веществ и детоксикация",
-    color: "from-blue-500 to-cyan-500",
-    bgGlow: "bg-blue-500/10",
+    gradient: "from-[hsl(250,70%,58%)] to-[hsl(270,85%,55%)]",
     markers: ["ALT", "AST", "GGT", "Билирубин", "ALP", "Общий белок", "Трансферрин", "Креатинин", "Мочевина", "Натрий", "Калий", "Хлор", "Кальций"],
     insights: [
       "Как работает печень",
@@ -151,13 +146,13 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Outer glow on hover */}
-      <div className={`absolute -inset-px rounded-2xl bg-gradient-to-r ${category.color} opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700`} />
+      <div className={`absolute -inset-px rounded-2xl bg-gradient-to-r ${category.gradient} opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700`} />
 
       <div className="relative rounded-2xl bg-card/40 backdrop-blur-xl border border-border/40 overflow-hidden transition-all duration-500 group-hover:border-border/80 group-hover:bg-card/60">
         <div className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
           
           {/* Visual side */}
-          <div className={`relative md:w-80 shrink-0 p-8 md:p-10 flex flex-col justify-center bg-gradient-to-br ${category.color} overflow-hidden`}>
+          <div className={`relative md:w-80 shrink-0 p-8 md:p-10 flex flex-col justify-center bg-gradient-to-br ${category.gradient} overflow-hidden`}>
             {/* Large decorative emoji */}
             <div className="absolute -bottom-6 -right-6 text-[120px] leading-none opacity-[0.15] select-none pointer-events-none">
               {category.emoji}
@@ -190,7 +185,7 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {category.insights.map((insight, i) => (
                   <div key={i} className="flex items-start gap-2.5 text-sm">
-                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${category.color} mt-1.5 shrink-0`} />
+                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${category.gradient} mt-1.5 shrink-0`} />
                     <span className="text-foreground/80">{insight}</span>
                   </div>
                 ))}
@@ -280,7 +275,7 @@ export function BiomarkersDeepDiveSection() {
                 return (
                   <div
                     key={cat.id}
-                    className={`absolute w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-xl md:text-2xl shadow-lg transform transition-transform hover:scale-110`}
+                    className={`absolute w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br ${cat.gradient} flex items-center justify-center text-xl md:text-2xl shadow-lg transform transition-transform hover:scale-110`}
                     style={{
                       left: `calc(50% + ${x}px - 28px)`,
                       top: `calc(50% + ${y}px - 28px)`,
