@@ -50,8 +50,7 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
         
         {/* Header */}
         <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-foreground mb-2">{name}</h3>
-          <p className="text-sm text-muted-foreground mb-4">{description}</p>
+          <h3 className="text-xl font-bold text-foreground mb-4">{name}</h3>
           
           <div className="flex items-baseline justify-center gap-1">
             <span className={`text-4xl md:text-5xl font-bold ${isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"}`}>
