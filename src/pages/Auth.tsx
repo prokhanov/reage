@@ -10,7 +10,7 @@ import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthBackground } from "@/components/AuthBackground";
 import { Mail, Lock } from "lucide-react";
-import reAgeLogo from "@/assets/reage-logo-light.png";
+import { useThemedLogo } from "@/hooks/useThemedLogo";
 
 // Функция для определения посадочной страницы по ролям
 const getDefaultRouteForUser = async (userId: string): Promise<string> => {
@@ -43,6 +43,7 @@ const getDefaultRouteForUser = async (userId: string): Promise<string> => {
 };
 
 export default function Auth() {
+  const reAgeLogo = useThemedLogo();
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [formData, setFormData] = useState({

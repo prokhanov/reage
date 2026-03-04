@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, User, AlertCircle } from "lucide-react";
-import reAgeLogo from "@/assets/reage-logo-light.png";
+import { useThemedLogo } from "@/hooks/useThemedLogo";
 
 export default function RegisterStaff() {
   const [searchParams] = useSearchParams();
+  const reAgeLogo = useThemedLogo();
   const navigate = useNavigate();
   const { toast } = useToast();
   

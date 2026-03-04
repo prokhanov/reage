@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
 import { useMyAssignmentsCount } from "@/hooks/useMyAssignmentsCount";
-import reAgeLogo from "@/assets/reage-logo-light.png";
+import { useThemedLogo } from "@/hooks/useThemedLogo";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface AppSidebarProps {
@@ -45,6 +45,7 @@ const adminNavItems = [
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const reAgeLogo = useThemedLogo();
   const queryClient = useQueryClient();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();

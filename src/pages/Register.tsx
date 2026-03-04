@@ -16,7 +16,7 @@ import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { RegisterStep5 } from "@/components/register/RegisterStep5";
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
-import reAgeLogo from "@/assets/reage-logo-light.png";
+import { useThemedLogo } from "@/hooks/useThemedLogo";
 import registerHero from "@/assets/register-hero.png";
 import registerProfile from "@/assets/register-profile.png";
 import registerHealth from "@/assets/register-health.png";
@@ -61,6 +61,7 @@ const steps = [
 ];
 
 export default function Register() {
+  const reAgeLogo = useThemedLogo();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<RegisterFormData>({
