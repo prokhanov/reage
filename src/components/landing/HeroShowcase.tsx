@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb } from "lucide-react";
 
 export type ShowcaseSection = "dashboard" | "analyses" | "biomarkers" | "trends" | "state" | "assistant" | "recommendations" | "prescriptions";
