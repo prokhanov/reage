@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { HeroShowcase, type ShowcaseSection } from "@/components/landing/HeroShowcase";
 import {
   LayoutDashboard,
