@@ -155,7 +155,7 @@ function FeatureCard({ feature, index }: {feature: typeof appFeatures[0];index: 
         </div>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+        <p className="text-sm text-muted-foreground mb-4">
           {feature.description}
         </p>
 
