@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { getNormalRangeForAge, AgeRanges } from "@/lib/biomarkerNorms";
+import { getNormalRangeForAge, getBiomarkerStatus, AgeRanges } from "@/lib/biomarkerNorms";
 
 interface BodyArea {
   id: string;
@@ -107,19 +107,19 @@ export function BodyHeatmap({ biomarkerData, patientAge, patientGender }: BodyHe
       if (processedBiomarkers.has(biomarker.name)) return;
       processedBiomarkers.add(biomarker.name);
 
-      // Get age-dependent norms if available
-      let normalMin = biomarker.normal_min;
-      let normalMax = biomarker.normal_max;
+      // Get age-dependent status using 4-tier system
+      let isAbnormal = false;
       
       if (patientAge !== null && patientAge !== undefined && patientGender) {
-        const ageDependent = getNormalRangeForAge(biomarker as any, patientAge, patientGender);
-        normalMin = ageDependent.min;
-        normalMax = ageDependent.max;
+        const statusInfo = getBiomarkerStatus(biomarker.value, biomarker as any, patientAge, patientGender);
+        isAbnormal = statusInfo.status === 'risk' || statusInfo.status === 'critical';
+      } else {
+        const normalMin = biomarker.normal_min;
+        const normalMax = biomarker.normal_max;
+        isAbnormal =
+          (normalMin !== null && normalMin !== undefined && biomarker.value < normalMin) ||
+          (normalMax !== null && normalMax !== undefined && biomarker.value > normalMax);
       }
-
-      const isAbnormal =
-        (normalMin !== null && normalMin !== undefined && biomarker.value < normalMin) ||
-        (normalMax !== null && normalMax !== undefined && biomarker.value > normalMax);
 
       if (isAbnormal) {
         Object.keys(areas).forEach((areaId) => {
@@ -131,11 +131,10 @@ export function BodyHeatmap({ biomarkerData, patientAge, patientGender }: BodyHe
             if (!area.issues.includes(biomarker.name)) {
               area.issues.push(biomarker.name);
             }
-            // Цвет по степени серьезности
             if (area.issues.length === 1) {
-              area.color = "hsl(var(--status-warning))";
+              area.color = "hsl(var(--status-risk))";
             } else if (area.issues.length >= 2) {
-              area.color = "hsl(var(--status-danger))";
+              area.color = "hsl(var(--status-critical))";
             }
           }
         });
@@ -220,7 +219,7 @@ export function BodyHeatmap({ biomarkerData, patientAge, patientGender }: BodyHe
                       </ul>
                     </div>
                   ) : (
-                    <p className="text-xs text-status-good">Показатели в норме ✓</p>
+                    <p className="text-xs text-status-optimal">Показатели в норме ✓</p>
                   )}
                 </div>
               </TooltipContent>
@@ -244,18 +243,22 @@ export function BodyHeatmap({ biomarkerData, patientAge, patientGender }: BodyHe
         </svg>
 
         {/* Легенда */}
-        <div className="flex items-center justify-center gap-6 text-xs">
+        <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-status-good opacity-40"></div>
-            <span className="text-muted-foreground">Норма</span>
+            <div className="w-3 h-3 rounded-full bg-status-optimal opacity-40"></div>
+            <span className="text-muted-foreground">Оптимально</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-status-warning opacity-60"></div>
-            <span className="text-muted-foreground">Внимание</span>
+            <div className="w-3 h-3 rounded-full bg-status-acceptable opacity-50"></div>
+            <span className="text-muted-foreground">Допустимо</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-status-danger opacity-80"></div>
-            <span className="text-muted-foreground">Проблема</span>
+            <div className="w-3 h-3 rounded-full bg-status-risk opacity-60"></div>
+            <span className="text-muted-foreground">Риск</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-status-critical opacity-80"></div>
+            <span className="text-muted-foreground">Критично</span>
           </div>
         </div>
       </div>
