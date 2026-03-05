@@ -1075,7 +1075,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       biomarkerValues: any[],
       patientAge: number | null,
       patientGender: string | null,
-      totalBiomarkersInSystem: number
+      totalBiomarkersInSystem: number,
+      patientBMI: number | null = null
     ): { raw: number; adjusted: number; coverage: number; confidenceFactor: number; penalties: any[] } {
       let totalPenalty = 0;
       const penalties: any[] = [];
