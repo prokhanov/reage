@@ -394,8 +394,20 @@ export default function DataManagement() {
     
     // Filter out empty age ranges
     const filteredAgeRanges = {
-      male: ageRanges.male.filter((r: any) => r.age_from !== '' && r.age_to !== '' && r.min !== '' && r.max !== ''),
-      female: ageRanges.female.filter((r: any) => r.age_from !== '' && r.age_to !== '' && r.min !== '' && r.max !== '')
+      male: ageRanges.male.filter((r: any) => r.age_from !== '' && r.age_to !== '' && r.min !== '' && r.max !== '').map((r: any) => ({
+        age_from: r.age_from, age_to: r.age_to, min: r.min, max: r.max,
+        ...(r.optimal_min !== '' && r.optimal_min != null ? { optimal_min: Number(r.optimal_min) } : {}),
+        ...(r.optimal_max !== '' && r.optimal_max != null ? { optimal_max: Number(r.optimal_max) } : {}),
+        ...(r.critical_min !== '' && r.critical_min != null ? { critical_min: Number(r.critical_min) } : {}),
+        ...(r.critical_max !== '' && r.critical_max != null ? { critical_max: Number(r.critical_max) } : {}),
+      })),
+      female: ageRanges.female.filter((r: any) => r.age_from !== '' && r.age_to !== '' && r.min !== '' && r.max !== '').map((r: any) => ({
+        age_from: r.age_from, age_to: r.age_to, min: r.min, max: r.max,
+        ...(r.optimal_min !== '' && r.optimal_min != null ? { optimal_min: Number(r.optimal_min) } : {}),
+        ...(r.optimal_max !== '' && r.optimal_max != null ? { optimal_max: Number(r.optimal_max) } : {}),
+        ...(r.critical_min !== '' && r.critical_min != null ? { critical_min: Number(r.critical_min) } : {}),
+        ...(r.critical_max !== '' && r.critical_max != null ? { critical_max: Number(r.critical_max) } : {}),
+      }))
     };
     
     const biomarker = {
