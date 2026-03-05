@@ -282,7 +282,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
         </div>
 
         {/* App Content */}
-        <div className="bg-background/95 backdrop-blur-xl rounded-b-2xl border border-border/50 border-t-0 overflow-hidden shadow-2xl">
+        <div className="bg-background/95 backdrop-blur-xl border border-border/50 border-t-0 overflow-hidden shadow-2xl">
           <div className="flex min-h-[400px] md:min-h-[450px]">
             {/* Sidebar */}
             <div className="w-48 border-r border-border/30 p-3 space-y-1 hidden sm:block bg-card/30">
