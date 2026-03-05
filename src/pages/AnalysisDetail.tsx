@@ -20,7 +20,7 @@ import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
-import { getNormalRangeForAge, calculateAge, AgeRanges } from "@/lib/biomarkerNorms";
+import { getNormalRangeForAge, calculateAge, AgeRanges, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
 
 interface Biomarker {
   id: string;
@@ -425,11 +425,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   };
 
   const getGaugeColor = (value: number, biomarker: Biomarker) => {
-    const { min, max } = getNormalRange(biomarker);
-    if (min === null || max === null) return "text-muted";
-    if (value < min) return "text-status-danger";
-    if (value > max) return "text-status-warning";
-    return "text-status-good";
+    const gender = (patientGender === 'male' || patientGender === 'female') ? patientGender : 'male';
+    const statusInfo = getBiomarkerStatus(value, biomarker, patientAge, gender);
+    return statusInfo.colorClass;
   };
 
   const filteredBiomarkers = biomarkers.filter(
@@ -608,9 +606,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                         const angle = getGaugeAngle(value.value, value.biomarkers);
                         const color = getGaugeColor(value.value, value.biomarkers);
                         const { min, max } = getNormalRange(value.biomarkers);
-                        const isLow = min !== null && value.value < min;
-                        const isHigh = max !== null && value.value > max;
-                        const isNormal = !isLow && !isHigh;
+                        const gender = (patientGender === 'male' || patientGender === 'female') ? patientGender : 'male';
+                        const statusInfo = getBiomarkerStatus(value.value, value.biomarkers, patientAge, gender);
 
                         return (
                           <Card
@@ -646,27 +643,54 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                     
                                     {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null ? (
                                       <>
-                                        {/* Danger zone left (below normal) */}
+                                        {/* Critical zone left */}
                                         <path
-                                          d="M 15 55 A 45 45 0 0 1 35 25"
+                                          d="M 15 55 A 45 45 0 0 1 25 35"
                                           fill="none"
-                                          stroke="hsl(var(--status-danger))"
+                                          stroke="hsl(var(--status-critical))"
                                           strokeWidth="10"
                                           strokeLinecap="round"
                                         />
-                                        {/* Normal zone */}
+                                        {/* Risk zone left */}
                                         <path
-                                          d="M 35 25 A 45 45 0 0 1 85 25"
+                                          d="M 25 35 A 45 45 0 0 1 35 25"
                                           fill="none"
-                                          stroke="hsl(var(--status-good))"
+                                          stroke="hsl(var(--status-risk))"
                                           strokeWidth="10"
-                                          strokeLinecap="round"
                                         />
-                                        {/* Danger zone right (above normal) */}
+                                        {/* Acceptable zone left */}
                                         <path
-                                          d="M 85 25 A 45 45 0 0 1 105 55"
+                                          d="M 35 25 A 45 45 0 0 1 45 20"
                                           fill="none"
-                                          stroke="hsl(var(--status-warning))"
+                                          stroke="hsl(var(--status-acceptable))"
+                                          strokeWidth="10"
+                                        />
+                                        {/* Optimal zone */}
+                                        <path
+                                          d="M 45 20 A 45 45 0 0 1 75 20"
+                                          fill="none"
+                                          stroke="hsl(var(--status-optimal))"
+                                          strokeWidth="10"
+                                        />
+                                        {/* Acceptable zone right */}
+                                        <path
+                                          d="M 75 20 A 45 45 0 0 1 85 25"
+                                          fill="none"
+                                          stroke="hsl(var(--status-acceptable))"
+                                          strokeWidth="10"
+                                        />
+                                        {/* Risk zone right */}
+                                        <path
+                                          d="M 85 25 A 45 45 0 0 1 95 35"
+                                          fill="none"
+                                          stroke="hsl(var(--status-risk))"
+                                          strokeWidth="10"
+                                        />
+                                        {/* Critical zone right */}
+                                        <path
+                                          d="M 95 35 A 45 45 0 0 1 105 55"
+                                          fill="none"
+                                          stroke="hsl(var(--status-critical))"
                                           strokeWidth="10"
                                           strokeLinecap="round"
                                         />
@@ -719,21 +743,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                               {/* Status Badge */}
                               {min !== null && max !== null && (
                                 <div className="flex justify-center mb-4">
-                                  {isLow && (
-                                    <div className="px-3 py-1 rounded-full bg-status-danger/20 text-status-danger text-sm font-medium border border-status-danger/30">
-                                      Ниже нормы
-                                    </div>
-                                  )}
-                                  {isHigh && (
-                                    <div className="px-3 py-1 rounded-full bg-status-warning/20 text-status-warning text-sm font-medium border border-status-warning/30">
-                                      Выше нормы
-                                    </div>
-                                  )}
-                                  {isNormal && (
-                                    <div className="px-3 py-1 rounded-full bg-status-good/20 text-status-good text-sm font-medium border border-status-good/30">
-                                      В норме
-                                    </div>
-                                  )}
+                                  <div className={`px-3 py-1 rounded-full ${statusInfo.bgClass} ${statusInfo.colorClass} text-sm font-medium border ${statusInfo.borderClass}`}>
+                                    {statusInfo.emoji} {statusInfo.label}
+                                  </div>
                                 </div>
                               )}
 
