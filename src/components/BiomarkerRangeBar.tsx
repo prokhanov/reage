@@ -1,4 +1,4 @@
-import { getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge } from "@/lib/biomarkerNorms";
+import { getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, getBiomarkerStatus } from "@/lib/biomarkerNorms";
 
 interface BiomarkerRangeBarProps {
   biomarker: any;
@@ -9,10 +9,38 @@ interface BiomarkerRangeBarProps {
   showLabels?: boolean;
 }
 
-interface Segment {
-  width: number;
-  color: string;
-  label: string;
+const STATUS_COLORS: Record<string, string> = {
+  critical: 'hsl(var(--status-critical))',
+  risk: 'hsl(var(--status-risk))',
+  acceptable: 'hsl(var(--status-acceptable))',
+  optimal: 'hsl(var(--status-optimal))',
+};
+
+function getZoneColor(
+  v: number,
+  normMin: number | null,
+  normMax: number | null,
+  optMin: number | null,
+  optMax: number | null,
+  critMin: number | null,
+  critMax: number | null,
+): string {
+  // Critical
+  if ((critMin !== null && v < critMin) || (critMax !== null && v > critMax)) {
+    return STATUS_COLORS.critical;
+  }
+  // Outside normal = risk
+  if ((normMin !== null && v < normMin) || (normMax !== null && v > normMax)) {
+    return STATUS_COLORS.risk;
+  }
+  // Inside optimal
+  const inOptimal =
+    (optMin === null || v >= optMin) && (optMax === null || v <= optMax);
+  if (optMin !== null || optMax !== null) {
+    return inOptimal ? STATUS_COLORS.optimal : STATUS_COLORS.acceptable;
+  }
+  // No optimal defined — normal = optimal
+  return STATUS_COLORS.optimal;
 }
 
 export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false }: BiomarkerRangeBarProps) {
@@ -25,23 +53,22 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
 
   if (normal.min === null && normal.max === null) return null;
 
-  const optMin = optimal.min;
-  const optMax = optimal.max;
   const normMin = normal.min;
   const normMax = normal.max;
+  const optMin = optimal.min;
+  const optMax = optimal.max;
   const critMin = critical.min;
   const critMax = critical.max;
 
-  const allValues = [value];
-  if (optMin !== null) allValues.push(optMin);
-  if (optMax !== null) allValues.push(optMax);
-  if (normMin !== null) allValues.push(normMin);
-  if (normMax !== null) allValues.push(normMax);
-  if (critMin !== null) allValues.push(critMin);
-  if (critMax !== null) allValues.push(critMax);
+  // Collect all boundary points
+  const pointSet = new Set<number>();
+  [value, normMin, normMax, optMin, optMax, critMin, critMax].forEach(v => {
+    if (v !== null) pointSet.add(v);
+  });
 
-  const dataMin = Math.min(...allValues);
-  const dataMax = Math.max(...allValues);
+  const allPoints = Array.from(pointSet);
+  const dataMin = Math.min(...allPoints);
+  const dataMax = Math.max(...allPoints);
   const range = dataMax - dataMin;
   const padding = range * 0.15 || 1;
 
@@ -51,71 +78,49 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
 
   const toPercent = (v: number) => ((v - scaleMin) / scaleRange) * 100;
 
-  // Build boundaries from left to right
-  const boundaries: { pos: number; color: string; labelValue: number | null }[] = [];
+  // Build sorted boundary points including scale edges
+  const boundaries = new Set<number>();
+  boundaries.add(scaleMin);
+  boundaries.add(scaleMax);
+  if (critMin !== null) boundaries.add(critMin);
+  if (normMin !== null) boundaries.add(normMin);
+  if (optMin !== null) boundaries.add(optMin);
+  if (optMax !== null) boundaries.add(optMax);
+  if (normMax !== null) boundaries.add(normMax);
+  if (critMax !== null) boundaries.add(critMax);
 
-  boundaries.push({ pos: scaleMin, color: 'hsl(var(--status-critical))', labelValue: null });
+  const sortedBounds = Array.from(boundaries).sort((a, b) => a - b);
 
-  if (critMin !== null && critMin > scaleMin) {
-    boundaries.push({ pos: critMin, color: 'hsl(var(--status-risk))', labelValue: critMin });
-  }
+  // Build segments — color determined by midpoint
+  const segments: { width: number; color: string }[] = [];
+  const labelPoints: { pos: number; value: number }[] = [];
 
-  if (normMin !== null) {
-    if (normMin > (critMin ?? scaleMin)) {
-      boundaries.push({ pos: normMin, color: 'hsl(var(--status-acceptable))', labelValue: normMin });
-    }
-  }
-
-  if (optMin !== null && optMin !== normMin) {
-    boundaries.push({ pos: optMin, color: 'hsl(var(--status-optimal))', labelValue: optMin });
-  } else if (optMin === null && normMin !== null) {
-    // Open-ended optimal on the low side: optimal starts from the leftmost point
-    boundaries.push({ pos: scaleMin, color: 'hsl(var(--status-optimal))', labelValue: null });
-  } else if (normMin !== null) {
-    boundaries.push({ pos: normMin, color: 'hsl(var(--status-optimal))', labelValue: null });
-  }
-
-  if (optMax !== null && optMax !== normMax) {
-    boundaries.push({ pos: optMax, color: 'hsl(var(--status-acceptable))', labelValue: optMax });
-  } else if (optMax === null && normMax !== null) {
-    // Open-ended optimal on the high side: optimal extends to the rightmost point
-    // Don't add a boundary here - let optimal color continue
-  }
-
-  if (normMax !== null) {
-    boundaries.push({ pos: normMax, color: 'hsl(var(--status-risk))', labelValue: normMax });
-  }
-
-  if (critMax !== null && critMax < scaleMax) {
-    boundaries.push({ pos: critMax, color: 'hsl(var(--status-critical))', labelValue: critMax });
-  }
-
-  boundaries.push({ pos: scaleMax, color: '', labelValue: null });
-
-  // Build segments
-  const segments: Segment[] = [];
-  for (let i = 0; i < boundaries.length - 1; i++) {
-    const start = boundaries[i].pos;
-    const end = boundaries[i + 1].pos;
+  for (let i = 0; i < sortedBounds.length - 1; i++) {
+    const start = sortedBounds[i];
+    const end = sortedBounds[i + 1];
+    const mid = (start + end) / 2;
     const width = toPercent(end) - toPercent(start);
     if (width > 0.1) {
       segments.push({
         width,
-        color: boundaries[i].color,
-        label: '',
+        color: getZoneColor(mid, normMin, normMax, optMin, optMax, critMin, critMax),
       });
     }
   }
 
-  const markerPos = Math.max(1, Math.min(99, toPercent(value)));
+  // Label points (all internal boundaries, not scale edges)
+  if (showLabels) {
+    for (const b of sortedBounds) {
+      if (b !== scaleMin && b !== scaleMax) {
+        labelPoints.push({
+          pos: Math.max(2, Math.min(98, toPercent(b))),
+          value: b,
+        });
+      }
+    }
+  }
 
-  // Collect boundary labels for display
-  const labelPoints = showLabels
-    ? boundaries.filter(b => b.labelValue !== null).map(b => ({
-        pos: Math.max(2, Math.min(98, toPercent(b.pos))),
-        value: b.labelValue!,
-      }))
-    : [];
+  const markerPos = Math.max(1, Math.min(99, toPercent(value)));
 
   return (
     <div className="space-y-0.5">
