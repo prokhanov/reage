@@ -298,7 +298,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
           </div>
           <div className="flex-1 mx-4">
             <div className="bg-muted/50 rounded-lg px-4 py-1.5 text-xs text-muted-foreground text-center">
-              reage.lovable.app/{activeSection === "dashboard" ? "" : activeSection}
+              reage.life/{activeSection === "dashboard" ? "" : activeSection}
             </div>
           </div>
         </div>
