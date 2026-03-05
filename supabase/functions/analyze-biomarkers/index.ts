@@ -1124,10 +1124,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           criticalMin = av.biomarkers.critical_min_female; criticalMax = av.biomarkers.critical_max_female;
         }
         
-        if (normalMin === null || normalMax === null) continue;
+        if (normalMin === null && normalMax === null) continue;
         
-        const range = normalMax - normalMin;
-        if (range <= 0) continue;
+        const range = (normalMin !== null && normalMax !== null) ? normalMax - normalMin : 1;
+        if (normalMin !== null && normalMax !== null && range <= 0) continue;
         
         const agingWeight = av.biomarkers.aging_weight || 1.0;
         
@@ -1137,9 +1137,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         
         const isCriticalLow = criticalMin !== null && av.value < criticalMin;
         const isCriticalHigh = criticalMax !== null && av.value > criticalMax;
-        const isOutsideNormal = av.value < normalMin || av.value > normalMax;
-        const isInOptimal = optimalMin !== null && optimalMax !== null
-          ? av.value >= optimalMin && av.value <= optimalMax
+        const isOutsideNormal = 
+          (normalMin !== null && av.value < normalMin) || 
+          (normalMax !== null && av.value > normalMax);
+        const isInOptimal = (optimalMin !== null || optimalMax !== null)
+          ? (optimalMin === null || av.value >= optimalMin) && 
+            (optimalMax === null || av.value <= optimalMax)
           : !isOutsideNormal;
         
         if (isCriticalLow || isCriticalHigh) {
@@ -1179,7 +1182,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         }
         if (nMin === av.biomarkers.normal_min && patientGender === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
         else if (nMin === av.biomarkers.normal_min && patientGender === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
-        return nMin !== null && nMax !== null && (nMax - nMin) > 0;
+        if (nMin === null && nMax === null) return false;
+        if (nMin !== null && nMax !== null && (nMax - nMin) <= 0) return false;
+        return true;
       }).length;
       
       if (markerCount === 0) return { raw: 70, adjusted: 70, coverage: 0, confidenceFactor: 0, penalties: [] };

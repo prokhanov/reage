@@ -25,8 +25,8 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
 
   if (normal.min === null && normal.max === null) return null;
 
-  const optMin = optimal.min ?? normal.min;
-  const optMax = optimal.max ?? normal.max;
+  const optMin = optimal.min;
+  const optMax = optimal.max;
   const normMin = normal.min;
   const normMax = normal.max;
   const critMin = critical.min;
