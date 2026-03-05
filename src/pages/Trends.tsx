@@ -469,14 +469,23 @@ export default function Trends() {
                         />
                         <Legend />
                         {/* 7-segment reference zones */}
-                        {trendData.length > 0 && trendData[0].refMin != null && trendData[0].refMax != null && (() => {
+                        {trendData.length > 0 && (trendData[0].refMin != null || trendData[0].refMax != null) && (() => {
                           const d = trendData[0];
                           const zones: React.ReactNode[] = [];
                           
-                          // Optimal zone (green)
-                          if (d.optimalMin != null && d.optimalMax != null) {
+                          // Compute chart Y domain for open-ended ranges
+                          const allVals = trendData.map(t => t.value);
+                          [d.refMin, d.refMax, d.optimalMin, d.optimalMax, d.criticalMin, d.criticalMax].forEach(v => { if (v != null) allVals.push(v); });
+                          const chartMin = Math.min(...allVals);
+                          const chartMax = Math.max(...allVals);
+                          const yPad = (chartMax - chartMin) * 0.2 || 1;
+                          const yLo = chartMin - yPad;
+                          const yHi = chartMax + yPad;
+                          
+                          // Optimal zone (green) — supports open-ended
+                          if (d.optimalMin != null || d.optimalMax != null) {
                             zones.push(
-                              <ReferenceArea key="optimal" y1={d.optimalMin} y2={d.optimalMax} fill="hsl(var(--status-optimal))" fillOpacity={0.1} />
+                              <ReferenceArea key="optimal" y1={d.optimalMin ?? yLo} y2={d.optimalMax ?? yHi} fill="hsl(var(--status-optimal))" fillOpacity={0.1} />
                             );
                           }
                           
@@ -486,6 +495,13 @@ export default function Trends() {
                           }
                           if (d.optimalMax != null && d.refMax != null && d.optimalMax < d.refMax) {
                             zones.push(<ReferenceArea key="acc-hi" y1={d.optimalMax} y2={d.refMax} fill="hsl(var(--status-acceptable))" fillOpacity={0.08} />);
+                          }
+                          // Open-ended acceptable: if optMin is null, acceptable zone is from refMin down to yLo (but only if refMin exists)
+                          if (d.optimalMin == null && d.refMin != null) {
+                            // No lower acceptable zone needed — optimal extends to yLo
+                          }
+                          if (d.optimalMax == null && d.refMax != null) {
+                            // No upper acceptable zone needed — optimal extends to yHi
                           }
                           
                           // Risk zones (orange) — between normal and critical
@@ -497,10 +513,12 @@ export default function Trends() {
                           }
                           
                           // Normal range lines
-                          zones.push(
-                            <ReferenceLine key="min" y={d.refMin} stroke="hsl(var(--status-acceptable))" strokeDasharray="3 3" />,
-                            <ReferenceLine key="max" y={d.refMax} stroke="hsl(var(--status-acceptable))" strokeDasharray="3 3" />
-                          );
+                          if (d.refMin != null) {
+                            zones.push(<ReferenceLine key="min" y={d.refMin} stroke="hsl(var(--status-acceptable))" strokeDasharray="3 3" />);
+                          }
+                          if (d.refMax != null) {
+                            zones.push(<ReferenceLine key="max" y={d.refMax} stroke="hsl(var(--status-acceptable))" strokeDasharray="3 3" />);
+                          }
                           
                           // Critical lines
                           if (d.criticalMin != null) {

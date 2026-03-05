@@ -742,7 +742,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                               </div>
 
                               {/* Status Badge */}
-                              {min !== null && max !== null && (
+                              {(min !== null || max !== null) && (
                                 <div className="flex justify-center mb-4">
                                   <div className={`px-3 py-1 rounded-full ${statusInfo.bgClass} ${statusInfo.colorClass} text-sm font-medium border ${statusInfo.borderClass}`}>
                                     {statusInfo.emoji} {statusInfo.label}
@@ -762,13 +762,18 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                               </div>
 
                               {/* Reference Range */}
-                              {min !== null && max !== null && (
+                              {(min !== null || max !== null) && (
                                 <div className="text-center mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
                                   <div className="text-xs text-muted-foreground mb-1">
                                     Референсные значения
                                   </div>
                                   <div className="text-sm font-semibold text-status-good">
-                                    {min} - {max} {value.biomarkers.unit}
+                                    {min !== null && max !== null
+                                      ? `${min} - ${max} ${value.biomarkers.unit}`
+                                      : min !== null
+                                        ? `≥ ${min} ${value.biomarkers.unit}`
+                                        : `≤ ${max} ${value.biomarkers.unit}`
+                                    }
                                   </div>
                                 </div>
                               )}
