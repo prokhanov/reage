@@ -348,16 +348,43 @@ export function WeightTracker() {
           </div>
         </div>
 
-        {bmi && (
-          <div className="space-y-2">
-            <div className="h-2 bg-gradient-to-r from-blue-500 via-green-500 via-yellow-500 to-red-500 rounded-full" />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>18.5</span>
-              <span>25</span>
-              <span>30</span>
+        {bmi && (() => {
+          const bmiVal = parseFloat(bmi);
+          const scaleMin = 15;
+          const scaleMax = 40;
+          const markerPos = Math.max(0, Math.min(100, ((bmiVal - scaleMin) / (scaleMax - scaleMin)) * 100));
+          // Segment widths as percentages of total scale
+          const seg1 = ((18.5 - scaleMin) / (scaleMax - scaleMin)) * 100; // blue
+          const seg2 = ((25 - 18.5) / (scaleMax - scaleMin)) * 100;      // green
+          const seg3 = ((30 - 25) / (scaleMax - scaleMin)) * 100;        // yellow
+          const seg4 = ((scaleMax - 30) / (scaleMax - scaleMin)) * 100;  // red
+          // Label positions
+          const lbl1 = ((18.5 - scaleMin) / (scaleMax - scaleMin)) * 100;
+          const lbl2 = ((25 - scaleMin) / (scaleMax - scaleMin)) * 100;
+          const lbl3 = ((30 - scaleMin) / (scaleMax - scaleMin)) * 100;
+          return (
+            <div className="space-y-1">
+              <div className="relative h-3 flex rounded-full overflow-hidden">
+                <div style={{ width: `${seg1}%` }} className="h-full bg-blue-500" />
+                <div style={{ width: `${seg2}%` }} className="h-full bg-green-500" />
+                <div style={{ width: `${seg3}%` }} className="h-full bg-yellow-500" />
+                <div style={{ width: `${seg4}%` }} className="h-full bg-red-500" />
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 border-background shadow-lg z-10"
+                  style={{
+                    left: `${markerPos}%`,
+                    backgroundColor: 'hsl(var(--foreground))',
+                  }}
+                />
+              </div>
+              <div className="relative h-3">
+                <span className="absolute text-[9px] text-muted-foreground -translate-x-1/2" style={{ left: `${lbl1}%` }}>18.5</span>
+                <span className="absolute text-[9px] text-muted-foreground -translate-x-1/2" style={{ left: `${lbl2}%` }}>25</span>
+                <span className="absolute text-[9px] text-muted-foreground -translate-x-1/2" style={{ left: `${lbl3}%` }}>30</span>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Card>
     </div>
   );
