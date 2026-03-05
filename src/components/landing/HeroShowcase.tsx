@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb } from "lucide-react";
 
 export type ShowcaseSection = "dashboard" | "analyses" | "biomarkers" | "trends" | "state" | "assistant" | "recommendations" | "prescriptions";
@@ -244,12 +244,34 @@ function PrescriptionsContent() {
   );
 }
 
+const SECTION_IDS = sections.map(s => s.id);
+const AUTO_INTERVAL = 4000;
+
 export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
   const [activeSection, setActiveSection] = useState<ShowcaseSection>("dashboard");
+  const [autoPlay, setAutoPlay] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Auto-rotate sections
+  useEffect(() => {
+    if (!autoPlay) return;
+    intervalRef.current = setInterval(() => {
+      setActiveSection(prev => {
+        const idx = SECTION_IDS.indexOf(prev);
+        return SECTION_IDS[(idx + 1) % SECTION_IDS.length];
+      });
+    }, AUTO_INTERVAL);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [autoPlay]);
 
   useEffect(() => {
     onSectionChange?.(activeSection);
   }, [activeSection, onSectionChange]);
+
+  const handleManualSelect = useCallback((id: ShowcaseSection) => {
+    setAutoPlay(false);
+    setActiveSection(id);
+  }, []);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -289,7 +311,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
               {sections.map((section) => (
                 <button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => handleManualSelect(section.id)}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
                     activeSection === section.id
                       ? "bg-primary/20 text-primary font-medium"
@@ -308,7 +330,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
                 {sections.map((section) => (
                   <button
                     key={section.id}
-                    onClick={() => setActiveSection(section.id)}
+                    onClick={() => handleManualSelect(section.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
                       activeSection === section.id
                         ? "bg-primary/20 text-primary font-medium"
