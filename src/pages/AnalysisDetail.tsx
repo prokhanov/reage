@@ -21,6 +21,7 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { getNormalRangeForAge, calculateAge, AgeRanges, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
+import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 
 interface Biomarker {
   id: string;
@@ -748,6 +749,17 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                   </div>
                                 </div>
                               )}
+
+                              {/* 7-segment Range Bar */}
+                              <div className="mb-4">
+                                <BiomarkerRangeBar
+                                  biomarker={value.biomarkers}
+                                  value={value.value}
+                                  age={patientAge}
+                                  gender={patientGender}
+                                  showLabels
+                                />
+                              </div>
 
                               {/* Reference Range */}
                               {min !== null && max !== null && (

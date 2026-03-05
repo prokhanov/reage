@@ -6,15 +6,16 @@ interface BiomarkerRangeBarProps {
   age: number | null;
   gender: string | null;
   unit?: string;
+  showLabels?: boolean;
 }
 
 interface Segment {
-  width: number; // percentage
-  color: string; // CSS variable
+  width: number;
+  color: string;
   label: string;
 }
 
-export function BiomarkerRangeBar({ biomarker, value, age, gender }: BiomarkerRangeBarProps) {
+export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false }: BiomarkerRangeBarProps) {
   const g = (gender === 'male' || gender === 'female') ? gender : 'male';
   const a = age ?? 40;
 
@@ -22,10 +23,8 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender }: BiomarkerRa
   const optimal = getOptimalRangeForAge(biomarker, a, g);
   const critical = getCriticalRangeForAge(biomarker, a, g);
 
-  // We need at least normal range to render
   if (normal.min === null && normal.max === null) return null;
 
-  // Determine actual boundaries for the 7 zones
   const optMin = optimal.min ?? normal.min;
   const optMax = optimal.max ?? normal.max;
   const normMin = normal.min;
@@ -33,8 +32,6 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender }: BiomarkerRa
   const critMin = critical.min;
   const critMax = critical.max;
 
-  // Calculate the full scale range
-  // We extend beyond critical by ~10% for visual padding
   const allValues = [value];
   if (optMin !== null) allValues.push(optMin);
   if (optMax !== null) allValues.push(optMax);
@@ -54,44 +51,42 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender }: BiomarkerRa
 
   const toPercent = (v: number) => ((v - scaleMin) / scaleRange) * 100;
 
-  // Build segments from left to right
-  // Boundaries (sorted): scaleMin, critMin, normMin, optMin, optMax, normMax, critMax, scaleMax
-  const boundaries: { pos: number; color: string }[] = [];
+  // Build boundaries from left to right
+  const boundaries: { pos: number; color: string; labelValue: number | null }[] = [];
 
-  boundaries.push({ pos: scaleMin, color: 'hsl(var(--status-critical))' }); // 🔴 low critical
+  boundaries.push({ pos: scaleMin, color: 'hsl(var(--status-critical))', labelValue: null });
 
   if (critMin !== null && critMin > scaleMin) {
-    boundaries.push({ pos: critMin, color: 'hsl(var(--status-risk))' }); // 🟠 low risk
+    boundaries.push({ pos: critMin, color: 'hsl(var(--status-risk))', labelValue: critMin });
   }
 
   if (normMin !== null) {
-    const effectiveNormMin = normMin;
-    if (effectiveNormMin > (critMin ?? scaleMin)) {
-      boundaries.push({ pos: effectiveNormMin, color: 'hsl(var(--status-acceptable))' }); // 🟡 low acceptable
+    if (normMin > (critMin ?? scaleMin)) {
+      boundaries.push({ pos: normMin, color: 'hsl(var(--status-acceptable))', labelValue: normMin });
     }
   }
 
   if (optMin !== null && optMin !== normMin) {
-    boundaries.push({ pos: optMin, color: 'hsl(var(--status-optimal))' }); // 🟢 optimal
+    boundaries.push({ pos: optMin, color: 'hsl(var(--status-optimal))', labelValue: optMin });
   } else if (normMin !== null) {
-    boundaries.push({ pos: normMin, color: 'hsl(var(--status-optimal))' }); // 🟢 optimal (no separate optimal)
+    boundaries.push({ pos: normMin, color: 'hsl(var(--status-optimal))', labelValue: null });
   }
 
   if (optMax !== null && optMax !== normMax) {
-    boundaries.push({ pos: optMax, color: 'hsl(var(--status-acceptable))' }); // 🟡 high acceptable
+    boundaries.push({ pos: optMax, color: 'hsl(var(--status-acceptable))', labelValue: optMax });
   }
 
   if (normMax !== null) {
-    boundaries.push({ pos: normMax, color: 'hsl(var(--status-risk))' }); // 🟠 high risk
+    boundaries.push({ pos: normMax, color: 'hsl(var(--status-risk))', labelValue: normMax });
   }
 
   if (critMax !== null && critMax < scaleMax) {
-    boundaries.push({ pos: critMax, color: 'hsl(var(--status-critical))' }); // 🔴 high critical
+    boundaries.push({ pos: critMax, color: 'hsl(var(--status-critical))', labelValue: critMax });
   }
 
-  boundaries.push({ pos: scaleMax, color: '' }); // end
+  boundaries.push({ pos: scaleMax, color: '', labelValue: null });
 
-  // Build segment array
+  // Build segments
   const segments: Segment[] = [];
   for (let i = 0; i < boundaries.length - 1; i++) {
     const start = boundaries[i].pos;
@@ -106,11 +101,18 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender }: BiomarkerRa
     }
   }
 
-  // Value marker position
   const markerPos = Math.max(1, Math.min(99, toPercent(value)));
 
+  // Collect boundary labels for display
+  const labelPoints = showLabels
+    ? boundaries.filter(b => b.labelValue !== null).map(b => ({
+        pos: Math.max(2, Math.min(98, toPercent(b.pos))),
+        value: b.labelValue!,
+      }))
+    : [];
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <div className="relative h-3 flex rounded-full overflow-hidden">
         {segments.map((seg, i) => (
           <div
@@ -131,6 +133,19 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender }: BiomarkerRa
           }}
         />
       </div>
+      {showLabels && labelPoints.length > 0 && (
+        <div className="relative h-3">
+          {labelPoints.map((lp, i) => (
+            <span
+              key={i}
+              className="absolute text-[9px] text-muted-foreground -translate-x-1/2 leading-none"
+              style={{ left: `${lp.pos}%` }}
+            >
+              {lp.value}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1221,127 +1221,152 @@ export default function DataManagement() {
               </div>
             </div>
 
-            {/* 4-tier legend */}
-            <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-1">
-              <p className="text-xs font-medium text-muted-foreground mb-1.5">Система 4 уровней статуса:</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                <span><span className="text-status-optimal">🟢 Оптимально</span> — в оптимальном диапазоне</span>
-                <span><span className="text-status-acceptable">🟡 Допустимо</span> — между оптимальным и нормальным</span>
-                <span><span className="text-status-risk">🟠 Риск</span> — между нормальным и критическим</span>
-                <span><span className="text-status-critical">🔴 Критично</span> — за пределами критического</span>
+            {/* 7-segment visual legend */}
+            <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">Шкала 7 сегментов — значения определяют границы между зонами:</p>
+              <div className="flex items-center gap-0.5 h-4 rounded-full overflow-hidden">
+                <div className="h-full flex-1 bg-status-critical" title="Критично низ" />
+                <div className="h-full flex-1 bg-status-risk" title="Риск низ" />
+                <div className="h-full flex-1 bg-status-acceptable" title="Допустимо низ" />
+                <div className="h-full flex-[1.5] bg-status-optimal" title="Оптимально" />
+                <div className="h-full flex-1 bg-status-acceptable" title="Допустимо верх" />
+                <div className="h-full flex-1 bg-status-risk" title="Риск верх" />
+                <div className="h-full flex-1 bg-status-critical" title="Критично верх" />
+              </div>
+              <div className="flex justify-between text-[10px] text-muted-foreground px-1">
+                <span>🔴 Крит.</span>
+                <span>🟠 Риск</span>
+                <span>🟡 Допуст.</span>
+                <span>🟢 Оптимально</span>
+                <span>🟡 Допуст.</span>
+                <span>🟠 Риск</span>
+                <span>🔴 Крит.</span>
               </div>
             </div>
 
-            {/* 🟢 Оптимально */}
-            <div className="space-y-3 rounded-lg border border-status-optimal/30 bg-status-optimal/5 p-4">
-              <Label className="text-sm font-medium text-status-optimal">🟢 Оптимально <span className="text-xs font-normal text-muted-foreground">— идеальные значения</span></Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="optimal_min" className="text-xs text-muted-foreground">Мин (общий)</Label>
-                  <Input id="optimal_min" name="optimal_min" type="number" step="any" defaultValue={editingBiomarker?.optimal_min} placeholder="Опт min" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="optimal_max" className="text-xs text-muted-foreground">Макс (общий)</Label>
-                  <Input id="optimal_max" name="optimal_max" type="number" step="any" defaultValue={editingBiomarker?.optimal_max} placeholder="Опт max" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Мужчины: мин</Label>
-                  <Input name="optimal_min_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_male} placeholder="М опт min" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Мужчины: макс</Label>
-                  <Input name="optimal_max_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_male} placeholder="М опт max" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Женщины: мин</Label>
-                  <Input name="optimal_min_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_female} placeholder="Ж опт min" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Женщины: макс</Label>
-                  <Input name="optimal_max_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_female} placeholder="Ж опт max" />
-                </div>
-              </div>
-            </div>
+            {/* 7-segment boundary inputs — ordered from low critical to high critical */}
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">Укажите границы диапазонов. Каждое значение — граница между двумя зонами на шкале.</p>
 
-            {/* 🟡 Допустимо */}
-            <div className="space-y-3 rounded-lg border border-status-acceptable/30 bg-status-acceptable/5 p-4">
-              <Label className="text-sm font-medium text-status-acceptable">🟡 Допустимо <span className="text-xs font-normal text-muted-foreground">— в пределах нормы, но вне оптимума</span></Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="normal_min" className="text-xs text-muted-foreground">Мин (общий)</Label>
-                  <Input id="normal_min" name="normal_min" type="number" step="any" defaultValue={editingBiomarker?.normal_min} placeholder="Норма min" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="normal_max" className="text-xs text-muted-foreground">Макс (общий)</Label>
-                  <Input id="normal_max" name="normal_max" type="number" step="any" defaultValue={editingBiomarker?.normal_max} placeholder="Норма max" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="normal_min_male" className="text-xs text-muted-foreground">Мужчины: мин</Label>
-                  <Input id="normal_min_male" name="normal_min_male" type="number" step="any" defaultValue={editingBiomarker?.normal_min_male} placeholder="М min" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="normal_max_male" className="text-xs text-muted-foreground">Мужчины: макс</Label>
-                  <Input id="normal_max_male" name="normal_max_male" type="number" step="any" defaultValue={editingBiomarker?.normal_max_male} placeholder="М max" />
+              {/* 🔴 critical_min — boundary between Critical Low and Risk Low */}
+              <div className="rounded-lg border border-status-critical/30 bg-status-critical/5 p-3 space-y-2">
+                <Label className="text-xs font-medium"><span className="text-status-critical">🔴 Критично низ</span> → <span className="text-status-risk">🟠 Риск низ</span></Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <Input name="critical_min" type="number" step="any" defaultValue={editingBiomarker?.critical_min} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Input name="critical_min_male" type="number" step="any" defaultValue={editingBiomarker?.critical_min_male} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Input name="critical_min_female" type="number" step="any" defaultValue={editingBiomarker?.critical_min_female} placeholder="—" />
+                  </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="normal_min_female" className="text-xs text-muted-foreground">Женщины: мин</Label>
-                  <Input id="normal_min_female" name="normal_min_female" type="number" step="any" defaultValue={editingBiomarker?.normal_min_female} placeholder="Ж min" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="normal_max_female" className="text-xs text-muted-foreground">Женщины: макс</Label>
-                  <Input id="normal_max_female" name="normal_max_female" type="number" step="any" defaultValue={editingBiomarker?.normal_max_female} placeholder="Ж max" />
-                </div>
-              </div>
-            </div>
 
-            {/* 🟠 Риск */}
-            <div className="space-y-3 rounded-lg border border-status-risk/30 bg-status-risk/5 p-4">
-              <Label className="text-sm font-medium text-status-risk">🟠 Риск <span className="text-xs font-normal text-muted-foreground">— за пределами нормы, но не критично</span></Label>
-              <p className="text-xs text-muted-foreground">Внешние границы зоны риска. Значения между «Допустимо» и этими границами → Риск. За пределами → Критично.</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Мин (общий)</Label>
-                  <Input name="critical_min" type="number" step="any" defaultValue={editingBiomarker?.critical_min} placeholder="Риск min" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Макс (общий)</Label>
-                  <Input name="critical_max" type="number" step="any" defaultValue={editingBiomarker?.critical_max} placeholder="Риск max" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Мужчины: мин</Label>
-                  <Input name="critical_min_male" type="number" step="any" defaultValue={editingBiomarker?.critical_min_male} placeholder="М риск min" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Мужчины: макс</Label>
-                  <Input name="critical_max_male" type="number" step="any" defaultValue={editingBiomarker?.critical_max_male} placeholder="М риск max" />
+              {/* 🟠 normal_min — boundary between Risk Low and Acceptable Low */}
+              <div className="rounded-lg border border-status-risk/30 bg-status-risk/5 p-3 space-y-2">
+                <Label className="text-xs font-medium"><span className="text-status-risk">🟠 Риск низ</span> → <span className="text-status-acceptable">🟡 Допустимо низ</span></Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <Input id="normal_min" name="normal_min" type="number" step="any" defaultValue={editingBiomarker?.normal_min} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Input id="normal_min_male" name="normal_min_male" type="number" step="any" defaultValue={editingBiomarker?.normal_min_male} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Input id="normal_min_female" name="normal_min_female" type="number" step="any" defaultValue={editingBiomarker?.normal_min_female} placeholder="—" />
+                  </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Женщины: мин</Label>
-                  <Input name="critical_min_female" type="number" step="any" defaultValue={editingBiomarker?.critical_min_female} placeholder="Ж риск min" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Женщины: макс</Label>
-                  <Input name="critical_max_female" type="number" step="any" defaultValue={editingBiomarker?.critical_max_female} placeholder="Ж риск max" />
-                </div>
-              </div>
-            </div>
 
-            {/* 🔴 Критично */}
-            <div className="rounded-lg border border-status-critical/30 bg-status-critical/5 p-4">
-              <Label className="text-sm font-medium text-status-critical">🔴 Критично <span className="text-xs font-normal text-muted-foreground">— за пределами зоны риска</span></Label>
-              <p className="text-xs text-muted-foreground mt-1">Значения ниже минимума или выше максимума зоны риска автоматически получают статус «Критично».</p>
+              {/* 🟡 optimal_min — boundary between Acceptable Low and Optimal */}
+              <div className="rounded-lg border border-status-acceptable/30 bg-status-acceptable/5 p-3 space-y-2">
+                <Label className="text-xs font-medium"><span className="text-status-acceptable">🟡 Допустимо низ</span> → <span className="text-status-optimal">🟢 Оптимально</span></Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <Input id="optimal_min" name="optimal_min" type="number" step="any" defaultValue={editingBiomarker?.optimal_min} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Input name="optimal_min_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_male} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Input name="optimal_min_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_female} placeholder="—" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 🟢 Optimal zone label */}
+              <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-center">
+                <Label className="text-sm font-medium text-status-optimal">🟢 Оптимальная зона</Label>
+                <p className="text-[10px] text-muted-foreground">Значения между optimal_min и optimal_max</p>
+              </div>
+
+              {/* 🟡 optimal_max — boundary between Optimal and Acceptable High */}
+              <div className="rounded-lg border border-status-acceptable/30 bg-status-acceptable/5 p-3 space-y-2">
+                <Label className="text-xs font-medium"><span className="text-status-optimal">🟢 Оптимально</span> → <span className="text-status-acceptable">🟡 Допустимо верх</span></Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <Input id="optimal_max" name="optimal_max" type="number" step="any" defaultValue={editingBiomarker?.optimal_max} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Input name="optimal_max_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_male} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Input name="optimal_max_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_female} placeholder="—" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 🟠 normal_max — boundary between Acceptable High and Risk High */}
+              <div className="rounded-lg border border-status-risk/30 bg-status-risk/5 p-3 space-y-2">
+                <Label className="text-xs font-medium"><span className="text-status-acceptable">🟡 Допустимо верх</span> → <span className="text-status-risk">🟠 Риск верх</span></Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <Input id="normal_max" name="normal_max" type="number" step="any" defaultValue={editingBiomarker?.normal_max} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Input id="normal_max_male" name="normal_max_male" type="number" step="any" defaultValue={editingBiomarker?.normal_max_male} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Input id="normal_max_female" name="normal_max_female" type="number" step="any" defaultValue={editingBiomarker?.normal_max_female} placeholder="—" />
+                  </div>
+                </div>
+              </div>
+
+              {/* 🔴 critical_max — boundary between Risk High and Critical High */}
+              <div className="rounded-lg border border-status-critical/30 bg-status-critical/5 p-3 space-y-2">
+                <Label className="text-xs font-medium"><span className="text-status-risk">🟠 Риск верх</span> → <span className="text-status-critical">🔴 Критично верх</span></Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <Input name="critical_max" type="number" step="any" defaultValue={editingBiomarker?.critical_max} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <Input name="critical_max_male" type="number" step="any" defaultValue={editingBiomarker?.critical_max_male} placeholder="—" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <Input name="critical_max_female" type="number" step="any" defaultValue={editingBiomarker?.critical_max_female} placeholder="—" />
+                  </div>
+                </div>
+              </div>
             </div>
 
 

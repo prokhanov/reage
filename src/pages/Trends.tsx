@@ -468,7 +468,7 @@ export default function Trends() {
                           }}
                         />
                         <Legend />
-                        {/* 4-tier reference zones */}
+                        {/* 7-segment reference zones */}
                         {trendData.length > 0 && trendData[0].refMin != null && trendData[0].refMax != null && (() => {
                           const d = trendData[0];
                           const zones: React.ReactNode[] = [];
@@ -480,12 +480,20 @@ export default function Trends() {
                             );
                           }
                           
-                          // Acceptable zone (yellow) — between normal and optimal
+                          // Acceptable zones (yellow) — between normal and optimal
                           if (d.optimalMin != null && d.refMin != null && d.optimalMin > d.refMin) {
                             zones.push(<ReferenceArea key="acc-lo" y1={d.refMin} y2={d.optimalMin} fill="hsl(var(--status-acceptable))" fillOpacity={0.08} />);
                           }
                           if (d.optimalMax != null && d.refMax != null && d.optimalMax < d.refMax) {
                             zones.push(<ReferenceArea key="acc-hi" y1={d.optimalMax} y2={d.refMax} fill="hsl(var(--status-acceptable))" fillOpacity={0.08} />);
+                          }
+                          
+                          // Risk zones (orange) — between normal and critical
+                          if (d.criticalMin != null && d.refMin != null && d.criticalMin < d.refMin) {
+                            zones.push(<ReferenceArea key="risk-lo" y1={d.criticalMin} y2={d.refMin} fill="hsl(var(--status-risk))" fillOpacity={0.06} />);
+                          }
+                          if (d.criticalMax != null && d.refMax != null && d.criticalMax > d.refMax) {
+                            zones.push(<ReferenceArea key="risk-hi" y1={d.refMax} y2={d.criticalMax} fill="hsl(var(--status-risk))" fillOpacity={0.06} />);
                           }
                           
                           // Normal range lines
@@ -524,7 +532,7 @@ export default function Trends() {
                         <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 rounded-sm bg-status-critical/30 border border-status-critical/50" /> Критично</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Зоны отображают 4-уровневую классификацию показателей с учётом вашего возраста.
+                        Зоны отображают 7-сегментную классификацию показателей с учётом вашего возраста.
                       </p>
                       {patientBirthDate && (
                         <p className="text-xs text-muted-foreground">
