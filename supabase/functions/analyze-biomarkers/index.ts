@@ -1106,10 +1106,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           }
         }
         
-        if (patientGender === 'male' && av.biomarkers.normal_min_male !== null) {
+        if (normalMin === av.biomarkers.normal_min && patientGender === 'male' && av.biomarkers.normal_min_male !== null) {
           normalMin = av.biomarkers.normal_min_male;
           normalMax = av.biomarkers.normal_max_male;
-        } else if (patientGender === 'female' && av.biomarkers.normal_min_female !== null) {
+        } else if (normalMin === av.biomarkers.normal_min && patientGender === 'female' && av.biomarkers.normal_min_female !== null) {
           normalMin = av.biomarkers.normal_min_female;
           normalMax = av.biomarkers.normal_max_female;
         }
@@ -1181,8 +1181,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             if (ageRange) { nMin = ageRange.min; nMax = ageRange.max; }
           }
         }
-        if (patientGender === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
-        else if (patientGender === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
+        if (nMin === av.biomarkers.normal_min && patientGender === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
+        else if (nMin === av.biomarkers.normal_min && patientGender === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
         return nMin !== null && nMax !== null && (nMax - nMin) > 0;
       }).length;
       
@@ -1250,8 +1250,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 if (ageRange) { normalMin = ageRange.min; normalMax = ageRange.max; }
               }
             }
-            if (patientGender === 'male' && av.biomarkers.normal_min_male !== null) { normalMin = av.biomarkers.normal_min_male; normalMax = av.biomarkers.normal_max_male; }
-            else if (patientGender === 'female' && av.biomarkers.normal_min_female !== null) { normalMin = av.biomarkers.normal_min_female; normalMax = av.biomarkers.normal_max_female; }
+            if (normalMin === av.biomarkers.normal_min && patientGender === 'male' && av.biomarkers.normal_min_male !== null) { normalMin = av.biomarkers.normal_min_male; normalMax = av.biomarkers.normal_max_male; }
+            else if (normalMin === av.biomarkers.normal_min && patientGender === 'female' && av.biomarkers.normal_min_female !== null) { normalMin = av.biomarkers.normal_min_female; normalMax = av.biomarkers.normal_max_female; }
             
             return {
               name: av.biomarkers.name,
