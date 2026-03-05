@@ -137,9 +137,15 @@ serve(async (req) => {
               }
 
               const deviation = calculateDeviation(val.value, normalMin, normalMax);
-              let rangeInfo = `норма: ${normalMin}-${normalMax}`;
-              if (optimalMin != null && optimalMax != null) rangeInfo = `оптимум: ${optimalMin}-${optimalMax} | ${rangeInfo}`;
-              if (criticalMin != null || criticalMax != null) rangeInfo += ` | крит: ${criticalMin != null ? '<' + criticalMin : ''}${criticalMin != null && criticalMax != null ? ' / ' : ''}${criticalMax != null ? '>' + criticalMax : ''}`;
+              const rangeInfo = [
+                criticalMin != null ? `🔴 Крит.низ: <${criticalMin}` : null,
+                `🟠 Риск: <${normalMin}`,
+                optimalMin != null ? `🟡 Допуст: <${optimalMin}` : null,
+                optimalMin != null && optimalMax != null ? `🟢 Оптимум: ${optimalMin}-${optimalMax}` : null,
+                optimalMax != null ? `🟡 Допуст: >${optimalMax}` : null,
+                `🟠 Риск: >${normalMax}`,
+                criticalMax != null ? `🔴 Крит.верх: >${criticalMax}` : null,
+              ].filter(Boolean).join(' | ');
 
               userContext += `  * ${biomarker.name} (${biomarker.category}): ${val.value} ${val.unit_override || biomarker.unit} ${status}`;
               if (deviation) {

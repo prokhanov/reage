@@ -520,9 +520,13 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
           }
           
           const rangesText = [
-            optimalMin !== null ? `Оптимум: ${optimalMin}-${optimalMax}` : null,
-            `Норма: ${normalMin || "?"}-${normalMax || "?"}`,
-            criticalMin !== null ? `Крит: <${criticalMin} или >${criticalMax}` : null,
+            criticalMin !== null ? `🔴 Крит.низ: <${criticalMin}` : null,
+            `🟠 Риск низ: <${normalMin || "?"}`,
+            optimalMin !== null ? `🟡 Допуст.низ: <${optimalMin}` : null,
+            optimalMin !== null && optimalMax !== null ? `🟢 Оптимально: ${optimalMin}-${optimalMax}` : null,
+            optimalMax !== null ? `🟡 Допуст.верх: >${optimalMax}` : null,
+            `🟠 Риск верх: >${normalMax || "?"}`,
+            criticalMax !== null ? `🔴 Крит.верх: >${criticalMax}` : null,
           ].filter(Boolean).join(' | ');
           
           return `
