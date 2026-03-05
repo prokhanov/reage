@@ -67,9 +67,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (profile) {
-      fetchAnalysesStats();
-      fetchBodyHeatmapData();
-      fetchNextBooking();
+      Promise.all([
+        fetchAnalysesStats(),
+        fetchBodyHeatmapData(),
+        fetchNextBooking(),
+      ]).finally(() => setLoading(false));
     }
   }, [profile]);
 
@@ -90,31 +92,37 @@ export default function Dashboard() {
     if (!userId) return;
 
     try {
-      // Get total count
-      const { count: totalCount } = await supabase
-        .from('analyses')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
+      // Run all independent queries in parallel
+      const [countResult, allAnalysesResult, latestAnalysisResult, recentAnalysesResult] = await Promise.all([
+        supabase
+          .from('analyses')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId),
+        supabase
+          .from('analyses')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: true }),
+        supabase
+          .from('analyses')
+          .select('id, biological_age, health_index, biomarkers_metadata, date')
+          .eq('user_id', userId)
+          .order('date', { ascending: false })
+          .limit(1)
+          .single(),
+        supabase
+          .from('analyses')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false })
+          .limit(3),
+      ]);
 
-      setAnalysesCount(totalCount || 0);
+      setAnalysesCount(countResult.count || 0);
+      setAllAnalyses(allAnalysesResult.data || []);
+      setRecentAnalyses(recentAnalysesResult.data || []);
 
-      // Get all analyses for trends
-      const { data: allAnalysesData } = await supabase
-        .from('analyses')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: true });
-
-      setAllAnalyses(allAnalysesData || []);
-
-      // Get latest analysis for biological age
-      const { data: latestAnalysis } = await supabase
-        .from('analyses')
-        .select('id, biological_age, health_index, biomarkers_metadata, date')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(1)
-        .single();
+      const latestAnalysis = latestAnalysisResult.data;
 
       if (latestAnalysis) {
         // Validate that this analysis has biomarkers
@@ -123,7 +131,6 @@ export default function Dashboard() {
           .select('*', { count: 'exact', head: true })
           .eq('analysis_id', latestAnalysis.id);
 
-        // Only use biological_age and health_index if biomarkers exist
         if (biomarkerCount && biomarkerCount > 0) {
           if (latestAnalysis.biological_age) {
             setLatestBioAge(latestAnalysis.biological_age);
@@ -134,27 +141,15 @@ export default function Dashboard() {
           if (latestAnalysis.biomarkers_metadata) {
             setLatestBiomarkersMetadata(latestAnalysis.biomarkers_metadata);
           }
-          
         } else {
-          // No biomarkers - clear the values to show warning
           setLatestBioAge(null);
           setLatestHealthIndex(null);
           setLatestBiomarkersMetadata(null);
-          
         }
       }
 
-      // Get recent analyses
-      const { data: analyses } = await supabase
-        .from('analyses')
-        .select('*')
-        .eq('user_id', viewAsUserId)
-        .order('date', { ascending: false })
-        .limit(3);
-
-      setRecentAnalyses(analyses || []);
-
-      // Calculate trend if there are multiple analyses
+      // Calculate trend
+      const analyses = recentAnalysesResult.data;
       if (analyses && analyses.length > 1 && latestAnalysis?.biological_age) {
         const prevAnalysis = analyses[1];
         if (prevAnalysis.biological_age) {
@@ -266,8 +261,7 @@ export default function Dashboard() {
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Only stop loading on error (no profile = no stats to wait for)
     }
   };
 
