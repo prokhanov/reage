@@ -1,53 +1,21 @@
 
 
-# Уведомление демо-пользователей в AI-ассистенте
+## Plan: Show Calculated Optimal Zone in Edit Biomarker Dialog
 
-## Проблема
+Currently line 1309-1312 shows a static label "🟢 Оптимальная зона" with text "Значения между optimal_min и optimal_max". Need to replace this with a dynamic display showing the actual entered values.
 
-Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
+### Change: `src/pages/admin/DataManagement.tsx` (lines 1309-1312)
 
-## Решение
+Replace the static label with a computed display that reads the current form values for optimal_min/optimal_max (general, male, female) and shows:
 
-Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
-
-## Техническая реализация
-
-### Файл: `supabase/functions/health-assistant/index.ts`
-
-1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
-2. После получения профиля проверить `profile.demo_mode_enabled`
-3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
-4. Вместо полного контекста подставить текст:
-
-```
-ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
-
-Твоя задача:
-- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
-- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
-- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
-- Предложи пользователю записаться на анализ
+```text
+🟢 Оптимальная зона
+Общий: 3.5 — 5.2  |  Муж: 4.0 — 5.5  |  Жен: 3.2 — 4.8
 ```
 
-5. Если `false` — оставить текущую логику без изменений
+This requires converting the edit dialog from uncontrolled inputs (defaultValue) to controlled state, OR reading values from the form via refs/state. Since the dialog already uses `editingBiomarker` state, the simplest approach is to use controlled inputs with state for the optimal_min/max fields, updating the display in real-time as the admin types.
 
-### Изменения в коде (псевдокод)
+Alternatively, since all inputs use `name` attributes and are submitted via FormData, we can add a small piece of reactive state just for the optimal zone display, updating it on input change events.
 
-```typescript
-// Текущий SELECT:
-.select('*')
-// Заменить на:
-.select('*, demo_mode_enabled')
-
-// После получения профиля:
-if (profile?.demo_mode_enabled) {
-  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
-  // Формируем упрощённый systemPrompt с уведомлением
-} else {
-  // Существующая логика
-}
-```
-
-### Файлы
-- `supabase/functions/health-assistant/index.ts` — единственное изменение
+**Implementation**: Add `onChange` handlers to the 6 optimal boundary inputs (optimal_min, optimal_max for general/male/female) that update a local display state, then render those values in the green zone block with formatted ranges.
 
