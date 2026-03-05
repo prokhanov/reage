@@ -853,22 +853,84 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       if (!prescriptionsSystemPrompt || !prescriptionsUserPrompt) {
         console.log("Prescriptions prompts not found, skipping prescriptions generation");
       } else {
-        // Собираем аномальные биомаркеры (risk + critical)
+        // Собираем аномальные биомаркеры (risk + critical) с учётом возрастных и гендерных диапазонов
+        const prescPatientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
+        
         const abnormalBiomarkers = analysis.analysis_values
           .filter((av: any) => {
-            const min = av.biomarkers.normal_min;
-            const max = av.biomarkers.normal_max;
-            const critMin = av.biomarkers.critical_min;
-            const critMax = av.biomarkers.critical_max;
-            const isOutsideNormal = (min !== null && av.value < min) || (max !== null && av.value > max);
+            let normalMin = av.biomarkers.normal_min;
+            let normalMax = av.biomarkers.normal_max;
+            let critMin = av.biomarkers.critical_min;
+            let critMax = av.biomarkers.critical_max;
+            
+            // 1. Check age_ranges first
+            if (age && prescPatientGender && av.biomarkers.age_ranges && av.biomarkers.age_ranges[prescPatientGender]) {
+              const ageRange = av.biomarkers.age_ranges[prescPatientGender].find(
+                (r: any) => age >= r.age_from && age <= r.age_to
+              );
+              if (ageRange) {
+                normalMin = ageRange.min ?? normalMin;
+                normalMax = ageRange.max ?? normalMax;
+                critMin = ageRange.critical_min ?? critMin;
+                critMax = ageRange.critical_max ?? critMax;
+              }
+            }
+            
+            // 2. Fallback to gender-specific ranges
+            if (normalMin === null && prescPatientGender === 'male' && av.biomarkers.normal_min_male !== null) {
+              normalMin = av.biomarkers.normal_min_male;
+              normalMax = av.biomarkers.normal_max_male;
+            } else if (normalMin === null && prescPatientGender === 'female' && av.biomarkers.normal_min_female !== null) {
+              normalMin = av.biomarkers.normal_min_female;
+              normalMax = av.biomarkers.normal_max_female;
+            }
+            if (critMin === null && prescPatientGender === 'male' && av.biomarkers.critical_min_male !== null) {
+              critMin = av.biomarkers.critical_min_male;
+              critMax = av.biomarkers.critical_max_male;
+            } else if (critMin === null && prescPatientGender === 'female' && av.biomarkers.critical_min_female !== null) {
+              critMin = av.biomarkers.critical_min_female;
+              critMax = av.biomarkers.critical_max_female;
+            }
+            
+            const isOutsideNormal = (normalMin !== null && av.value < normalMin) || (normalMax !== null && av.value > normalMax);
             const isCritical = (critMin !== null && av.value < critMin) || (critMax !== null && av.value > critMax);
             return isOutsideNormal || isCritical;
           })
           .map((av: any) => {
-            const isCritical = (av.biomarkers.critical_min !== null && av.value < av.biomarkers.critical_min) || 
-                               (av.biomarkers.critical_max !== null && av.value > av.biomarkers.critical_max);
+            let normalMin = av.biomarkers.normal_min;
+            let normalMax = av.biomarkers.normal_max;
+            let critMin = av.biomarkers.critical_min;
+            let critMax = av.biomarkers.critical_max;
+            
+            if (age && prescPatientGender && av.biomarkers.age_ranges && av.biomarkers.age_ranges[prescPatientGender]) {
+              const ageRange = av.biomarkers.age_ranges[prescPatientGender].find(
+                (r: any) => age >= r.age_from && age <= r.age_to
+              );
+              if (ageRange) {
+                normalMin = ageRange.min ?? normalMin;
+                normalMax = ageRange.max ?? normalMax;
+                critMin = ageRange.critical_min ?? critMin;
+                critMax = ageRange.critical_max ?? critMax;
+              }
+            }
+            if (normalMin === null && prescPatientGender === 'male' && av.biomarkers.normal_min_male !== null) {
+              normalMin = av.biomarkers.normal_min_male;
+              normalMax = av.biomarkers.normal_max_male;
+            } else if (normalMin === null && prescPatientGender === 'female' && av.biomarkers.normal_min_female !== null) {
+              normalMin = av.biomarkers.normal_min_female;
+              normalMax = av.biomarkers.normal_max_female;
+            }
+            if (critMin === null && prescPatientGender === 'male' && av.biomarkers.critical_min_male !== null) {
+              critMin = av.biomarkers.critical_min_male;
+              critMax = av.biomarkers.critical_max_male;
+            } else if (critMin === null && prescPatientGender === 'female' && av.biomarkers.critical_min_female !== null) {
+              critMin = av.biomarkers.critical_min_female;
+              critMax = av.biomarkers.critical_max_female;
+            }
+            
+            const isCritical = (critMin !== null && av.value < critMin) || (critMax !== null && av.value > critMax);
             const statusLabel = isCritical ? '🔴 КРИТИЧНО' : '🟠 РИСК';
-            return `${av.biomarkers.name}: ${av.value} ${av.biomarkers.unit} (норма: ${av.biomarkers.normal_min || "?"}-${av.biomarkers.normal_max || "?"}) — ${statusLabel}`;
+            return `${av.biomarkers.name}: ${av.value} ${av.biomarkers.unit} (норма: ${normalMin || "?"}-${normalMax || "?"}) — ${statusLabel}`;
           })
           .join('\n');
 
