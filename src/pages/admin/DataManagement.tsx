@@ -411,6 +411,8 @@ export default function DataManagement() {
       }))
     };
     
+    const isAgeMode = rangeMode === 'age';
+    
     const biomarker = {
       id: editingBiomarker?.id,
       name: formData.get("name") as string,
@@ -418,26 +420,26 @@ export default function DataManagement() {
       unit: formData.get("unit") as string,
       category: formData.get("category") as string,
       description: formData.get("description") as string,
-      normal_min: formData.get("normal_min") ? Number(formData.get("normal_min")) : null,
-      normal_max: formData.get("normal_max") ? Number(formData.get("normal_max")) : null,
-      normal_min_male: formData.get("normal_min_male") ? Number(formData.get("normal_min_male")) : null,
-      normal_max_male: formData.get("normal_max_male") ? Number(formData.get("normal_max_male")) : null,
-      normal_min_female: formData.get("normal_min_female") ? Number(formData.get("normal_min_female")) : null,
-      normal_max_female: formData.get("normal_max_female") ? Number(formData.get("normal_max_female")) : null,
-      optimal_min: formData.get("optimal_min") ? Number(formData.get("optimal_min")) : null,
-      optimal_max: formData.get("optimal_max") ? Number(formData.get("optimal_max")) : null,
-      optimal_min_male: formData.get("optimal_min_male") ? Number(formData.get("optimal_min_male")) : null,
-      optimal_max_male: formData.get("optimal_max_male") ? Number(formData.get("optimal_max_male")) : null,
-      optimal_min_female: formData.get("optimal_min_female") ? Number(formData.get("optimal_min_female")) : null,
-      optimal_max_female: formData.get("optimal_max_female") ? Number(formData.get("optimal_max_female")) : null,
-      critical_min: formData.get("critical_min") ? Number(formData.get("critical_min")) : null,
-      critical_max: formData.get("critical_max") ? Number(formData.get("critical_max")) : null,
-      critical_min_male: formData.get("critical_min_male") ? Number(formData.get("critical_min_male")) : null,
-      critical_max_male: formData.get("critical_max_male") ? Number(formData.get("critical_max_male")) : null,
-      critical_min_female: formData.get("critical_min_female") ? Number(formData.get("critical_min_female")) : null,
-      critical_max_female: formData.get("critical_max_female") ? Number(formData.get("critical_max_female")) : null,
+      normal_min: isAgeMode ? null : (formData.get("normal_min") ? Number(formData.get("normal_min")) : null),
+      normal_max: isAgeMode ? null : (formData.get("normal_max") ? Number(formData.get("normal_max")) : null),
+      normal_min_male: isAgeMode ? null : (formData.get("normal_min_male") ? Number(formData.get("normal_min_male")) : null),
+      normal_max_male: isAgeMode ? null : (formData.get("normal_max_male") ? Number(formData.get("normal_max_male")) : null),
+      normal_min_female: isAgeMode ? null : (formData.get("normal_min_female") ? Number(formData.get("normal_min_female")) : null),
+      normal_max_female: isAgeMode ? null : (formData.get("normal_max_female") ? Number(formData.get("normal_max_female")) : null),
+      optimal_min: isAgeMode ? null : (formData.get("optimal_min") ? Number(formData.get("optimal_min")) : null),
+      optimal_max: isAgeMode ? null : (formData.get("optimal_max") ? Number(formData.get("optimal_max")) : null),
+      optimal_min_male: isAgeMode ? null : (formData.get("optimal_min_male") ? Number(formData.get("optimal_min_male")) : null),
+      optimal_max_male: isAgeMode ? null : (formData.get("optimal_max_male") ? Number(formData.get("optimal_max_male")) : null),
+      optimal_min_female: isAgeMode ? null : (formData.get("optimal_min_female") ? Number(formData.get("optimal_min_female")) : null),
+      optimal_max_female: isAgeMode ? null : (formData.get("optimal_max_female") ? Number(formData.get("optimal_max_female")) : null),
+      critical_min: isAgeMode ? null : (formData.get("critical_min") ? Number(formData.get("critical_min")) : null),
+      critical_max: isAgeMode ? null : (formData.get("critical_max") ? Number(formData.get("critical_max")) : null),
+      critical_min_male: isAgeMode ? null : (formData.get("critical_min_male") ? Number(formData.get("critical_min_male")) : null),
+      critical_max_male: isAgeMode ? null : (formData.get("critical_max_male") ? Number(formData.get("critical_max_male")) : null),
+      critical_min_female: isAgeMode ? null : (formData.get("critical_min_female") ? Number(formData.get("critical_min_female")) : null),
+      critical_max_female: isAgeMode ? null : (formData.get("critical_max_female") ? Number(formData.get("critical_max_female")) : null),
       aging_weight: formData.get("aging_weight") ? Number(formData.get("aging_weight")) : 1.0,
-      age_ranges: (filteredAgeRanges.male.length > 0 || filteredAgeRanges.female.length > 0) ? filteredAgeRanges : null,
+      age_ranges: isAgeMode && (filteredAgeRanges.male.length > 0 || filteredAgeRanges.female.length > 0) ? filteredAgeRanges : null,
     };
     saveBiomarker.mutate(biomarker);
   };
