@@ -389,6 +389,72 @@ export default function DataManagement() {
     (symptomCategories || []).map((cat) => [cat.name, cat.display_order || 0])
   );
 
+  // Validation: check that range boundaries don't overlap
+  const validateBiomarkerRanges = (biomarker: any): string[] => {
+    const errors: string[] = [];
+
+    const checkChain = (label: string, values: { name: string; val: number | null }[]) => {
+      for (let i = 0; i < values.length - 1; i++) {
+        const left = values[i];
+        const right = values[i + 1];
+        if (left.val != null && right.val != null && left.val > right.val) {
+          errors.push(`${label}: ${left.name} (${left.val}) не может быть больше ${right.name} (${right.val})`);
+        }
+      }
+    };
+
+    // General ranges
+    checkChain("Общие", [
+      { name: "Крит. низ", val: biomarker.critical_min },
+      { name: "Норма низ", val: biomarker.normal_min },
+      { name: "Оптимум низ", val: biomarker.optimal_min },
+      { name: "Оптимум верх", val: biomarker.optimal_max },
+      { name: "Норма верх", val: biomarker.normal_max },
+      { name: "Крит. верх", val: biomarker.critical_max },
+    ]);
+
+    // Male ranges
+    checkChain("Мужские", [
+      { name: "Крит. низ", val: biomarker.critical_min_male },
+      { name: "Норма низ", val: biomarker.normal_min_male },
+      { name: "Оптимум низ", val: biomarker.optimal_min_male },
+      { name: "Оптимум верх", val: biomarker.optimal_max_male },
+      { name: "Норма верх", val: biomarker.normal_max_male },
+      { name: "Крит. верх", val: biomarker.critical_max_male },
+    ]);
+
+    // Female ranges
+    checkChain("Женские", [
+      { name: "Крит. низ", val: biomarker.critical_min_female },
+      { name: "Норма низ", val: biomarker.normal_min_female },
+      { name: "Оптимум низ", val: biomarker.optimal_min_female },
+      { name: "Оптимум верх", val: biomarker.optimal_max_female },
+      { name: "Норма верх", val: biomarker.normal_max_female },
+      { name: "Крит. верх", val: biomarker.critical_max_female },
+    ]);
+
+    // Age ranges
+    if (biomarker.age_ranges) {
+      const genderLabels: Record<string, string> = { male: "Муж", female: "Жен" };
+      for (const gender of ["male", "female"] as const) {
+        const ranges = biomarker.age_ranges[gender] || [];
+        for (const r of ranges) {
+          const rangeLabel = `${genderLabels[gender]} ${r.age_from}-${r.age_to}`;
+          checkChain(rangeLabel, [
+            { name: "Крит. низ", val: r.critical_min != null ? Number(r.critical_min) : null },
+            { name: "Норма низ", val: r.min != null ? Number(r.min) : null },
+            { name: "Оптимум низ", val: r.optimal_min != null ? Number(r.optimal_min) : null },
+            { name: "Оптимум верх", val: r.optimal_max != null ? Number(r.optimal_max) : null },
+            { name: "Норма верх", val: r.max != null ? Number(r.max) : null },
+            { name: "Крит. верх", val: r.critical_max != null ? Number(r.critical_max) : null },
+          ]);
+        }
+      }
+    }
+
+    return errors;
+  };
+
   const handleSaveBiomarker = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -440,6 +506,14 @@ export default function DataManagement() {
       age_ranges: (filteredAgeRanges.male.length > 0 || filteredAgeRanges.female.length > 0) ? filteredAgeRanges : editingBiomarker?.age_ranges || null,
       range_mode: rangeMode,
     };
+
+    // Validate range boundaries
+    const validationErrors = validateBiomarkerRanges(biomarker);
+    if (validationErrors.length > 0) {
+      toast.error(validationErrors[0]);
+      return;
+    }
+
     saveBiomarker.mutate(biomarker);
   };
 
