@@ -38,24 +38,20 @@ export function WhyCheckupsFail() {
           </h2>
         </div>
 
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           {problems.map((p, i) => (
             <div
               key={i}
-              className="group rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 border-l-2 border-l-primary p-5 md:p-6 transition-all duration-300 hover:bg-card/80 hover:shadow-lg animate-fade-in"
-              style={{ animationDelay: `${0.1 + i * 0.08}s` }}
+              className="flex gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm animate-fade-in hover:bg-card/80 transition-colors"
+              style={{ animationDelay: `${i * 100}ms` }}
             >
-              <div className="flex items-center gap-3 mb-2.5">
-                <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  {p.icon}
-                </div>
-                <h3 className="text-base md:text-lg font-semibold text-foreground leading-snug">
-                  {p.title}
-                </h3>
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="text-primary">{p.icon}</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed pl-12">
-                {p.description}
-              </p>
+              <div>
+                <h3 className="font-semibold mb-1 text-foreground">{p.title}</h3>
+                <p className="text-sm text-muted-foreground">{p.description}</p>
+              </div>
             </div>
           ))}
         </div>
