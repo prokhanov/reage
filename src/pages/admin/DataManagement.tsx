@@ -1302,6 +1302,12 @@ export default function DataManagement() {
               </div>
             </div>
 
+            {/* Risk zone — auto-derived */}
+            <div className="rounded-lg border border-dashed border-status-risk/40 bg-status-risk/5 p-3">
+              <p className="text-sm font-medium text-status-risk">🟠 Зона риска <span className="text-xs font-normal text-muted-foreground">(определяется автоматически)</span></p>
+              <p className="text-xs text-muted-foreground mt-1">Значения за пределами нормы, но в рамках критических порогов → статус «Риск»</p>
+            </div>
+
             {/* Critical ranges — outermost */}
             <div className="space-y-3">
               <Label className="text-sm font-medium text-status-critical">🔴 Критические диапазоны <span className="text-xs font-normal text-muted-foreground">(граница Риск ↔ Критично)</span></Label>
