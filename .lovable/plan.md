@@ -1,27 +1,36 @@
 
 
-## Анализ: Крайние случаи в структуре биомаркеров
+## Plan: Biomarker Range Validation (No Overlaps)
 
-### Текущее состояние
+### Problem
+Currently there's no validation that the 7-segment boundary values are ordered correctly. An admin could accidentally set `critical_min > normal_min` or `optimal_max > normal_max`, creating nonsensical overlapping zones.
 
-**1. Бинарные маркеры (качественные)** — в справочнике отсутствуют. Все ~70 маркеров количественные. Если в будущем потребуются (например, антитела к ВИЧ, HBsAg, ревматоидный фактор качественный), текущая структура их НЕ поддерживает — нет типа `value_type` (numeric vs qualitative), нет полей для качественных результатов.
+### Validation Rule
+For each column group (general, male, female), when fields are filled, the order must be:
 
-**2. Маркеры только с верхней границей** (normal_min = 0) — ~15 штук (CRP, IL-6, TNF-α, HOMA-IR, Lp(a), базофилы и др.). Текущая логика работает корректно: `min = 0` фактически означает "нижней патологии нет", значение 0 попадает в норму.
+```text
+critical_min ≤ normal_min ≤ optimal_min ≤ optimal_max ≤ normal_max ≤ critical_max
+```
 
-**3. Маркеры без общих диапазонов** (только гендерные) — ~13 штук (ферритин, гемоглобин, тестостерон и др.). Fallback-логика корректно берёт гендерные значения при `normal_min = null`.
+Empty (null) fields are allowed and simply skipped in the chain. Validation only checks pairs where both values are present.
 
-### Проблемы, требующие внимания
+Same rule applies to each age range row in "age" mode.
 
-**Проблема A: normal_min = 0 vs "нет нижней границы"**
-Сейчас `0` и `null` — разные вещи. `0` означает "минимум — ноль", `null` — "нижняя граница не определена". Для маркеров воспаления (CRP, IL-6) значение 0 действительно нормально, так что `min=0` корректно. Но если кто-то по ошибке оставит `null` вместо `0`, система вернёт `acceptable` вместо правильного статуса. **Это не баг, но требует внимания при вводе данных.**
+### Implementation
 
-**Проблема B: Бинарные маркеры (будущее)**
-Если понадобится поддержка качественных маркеров, потребуется:
-- Колонка `value_type` ('numeric' | 'qualitative') в таблице `biomarkers`
-- Поле `text_value` в `analysis_values` (сейчас только `value: double precision`)
-- Обновление UI ввода, оценки статуса, отчётов, графиков
+**File: `src/pages/admin/DataManagement.tsx`**
 
-### Рекомендация
+1. Add a validation function `validateBiomarkerRanges(biomarker)` that:
+   - For each group (general, male, female): collects non-null values in order `[critical_min, normal_min, optimal_min, optimal_max, normal_max, critical_max]`
+   - For each adjacent pair where both are non-null, checks `left ≤ right`
+   - Returns array of error strings (empty = valid)
 
-Текущая структура корректно покрывает все существующие маркеры. Бинарные маркеры — это отдельная большая доработка, которую стоит делать только при реальной потребности. Сейчас никаких изменений не требуется.
+2. For age ranges: same logic per row — `[critical_min, min, optimal_min, optimal_max, max, critical_max]`
+
+3. In `handleSaveBiomarker`: call validation before `saveBiomarker.mutate()`. If errors, show `toast.error()` with the first error and return early.
+
+4. No database changes needed — purely client-side validation.
+
+### Error Messages
+Russian, specific: e.g. "Общие: Критич. низ (X) не может быть больше Нормы низ (Y)" or "Возрастной диапазон Муж 18-45: Норма низ (X) > Оптимум низ (Y)".
 
