@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
 import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
+import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 
@@ -371,47 +372,12 @@ export default function Biomarkers() {
                                 {min !== null || max !== null ? (
                                   biomarker.latest_value !== null ? (
                                     <div className="space-y-1">
-                                      <div className="flex items-center gap-2">
-                                        <div className="flex-1 h-3 bg-secondary rounded-full relative overflow-hidden">
-                                          {/* 4-zone gradient: critical-risk-optimal-risk-critical */}
-                                          <div className="absolute inset-0 bg-gradient-to-r from-status-critical/70 via-status-risk/50 via-status-optimal/70 via-status-risk/50 to-status-critical/70" 
-                                            style={{
-                                              background: `linear-gradient(to right, 
-                                                hsl(var(--status-critical) / 0.7) 0%, 
-                                                hsl(var(--status-risk) / 0.6) 15%, 
-                                                hsl(var(--status-acceptable) / 0.5) 25%, 
-                                                hsl(var(--status-optimal) / 0.7) 40%, 
-                                                hsl(var(--status-optimal) / 0.7) 60%, 
-                                                hsl(var(--status-acceptable) / 0.5) 75%, 
-                                                hsl(var(--status-risk) / 0.6) 85%, 
-                                                hsl(var(--status-critical) / 0.7) 100%)`
-                                            }}
-                                          />
-                                          {(() => {
-                                            const minVal = min ?? 0;
-                                            const maxVal = max ?? biomarker.latest_value * 2;
-                                            const range = maxVal - minVal;
-                                            const value = biomarker.latest_value;
-                                            
-                                            let position = ((value - minVal) / range) * 100;
-                                            position = Math.max(2, Math.min(98, position));
-                                            
-                                            const markerColor = statusInfo 
-                                              ? `bg-[${getStatusHslColor(statusInfo.status).replace('hsl(var(--status-', '').replace('))', '')}]`
-                                              : "bg-primary";
-                                            
-                                            return (
-                                              <div 
-                                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-background shadow-lg z-10"
-                                                style={{ 
-                                                  left: `${position}%`,
-                                                  backgroundColor: statusInfo ? getStatusHslColor(statusInfo.status) : 'hsl(var(--primary))'
-                                                }}
-                                              />
-                                            );
-                                          })()}
-                                        </div>
-                                      </div>
+                                      <BiomarkerRangeBar
+                                        biomarker={biomarker}
+                                        value={biomarker.latest_value}
+                                        age={patientAge}
+                                        gender={patientGender}
+                                      />
                                       <span className="text-xs text-muted-foreground">
                                         {min !== null && max !== null
                                           ? `${min}-${max} ${biomarker.unit}`
