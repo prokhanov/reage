@@ -29,16 +29,26 @@ function getZoneColor(
   if ((critMin !== null && v < critMin) || (critMax !== null && v > critMax)) {
     return STATUS_COLORS.critical;
   }
+
+  // Check optimal BEFORE normal for open-ended ranges
+  if (optMin !== null || optMax !== null) {
+    const inOptimal =
+      (optMin === null || v >= optMin) && (optMax === null || v <= optMax);
+    if (inOptimal) {
+      return STATUS_COLORS.optimal;
+    }
+  }
+
   // Outside normal = risk
   if ((normMin !== null && v < normMin) || (normMax !== null && v > normMax)) {
     return STATUS_COLORS.risk;
   }
-  // Inside optimal
-  const inOptimal =
-    (optMin === null || v >= optMin) && (optMax === null || v <= optMax);
+
+  // Inside normal but outside optimal = acceptable
   if (optMin !== null || optMax !== null) {
-    return inOptimal ? STATUS_COLORS.optimal : STATUS_COLORS.acceptable;
+    return STATUS_COLORS.acceptable;
   }
+
   // No optimal defined — normal = optimal
   return STATUS_COLORS.optimal;
 }
