@@ -1143,20 +1143,16 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           : !isOutsideNormal;
         
         if (isCriticalLow || isCriticalHigh) {
-          penalty = 20 * agingWeight; // Critical
+          penalty = 15 * agingWeight; // Critical
           tier = 'critical';
         } else if (isOutsideNormal) {
-          penalty = 10 * agingWeight; // Risk
+          penalty = 5 * agingWeight; // Risk
           tier = 'risk';
         } else if (!isInOptimal) {
-          penalty = 3 * agingWeight; // Acceptable (within normal but not optimal)
+          penalty = 1 * agingWeight; // Acceptable (within normal but not optimal)
           tier = 'acceptable';
         }
         // Optimal = 0 penalty
-        
-        // Cap individual penalty
-        const MAX_SINGLE_PENALTY = 10;
-        penalty = Math.min(penalty, MAX_SINGLE_PENALTY);
         
         totalPenalty += penalty;
         if (penalty > 0) {
