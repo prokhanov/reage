@@ -328,6 +328,7 @@ export type Database = {
           optimal_min: number | null
           optimal_min_female: number | null
           optimal_min_male: number | null
+          range_mode: string
           unit: string
           updated_at: string
         }
@@ -359,6 +360,7 @@ export type Database = {
           optimal_min?: number | null
           optimal_min_female?: number | null
           optimal_min_male?: number | null
+          range_mode?: string
           unit: string
           updated_at?: string
         }
@@ -390,6 +392,7 @@ export type Database = {
           optimal_min?: number | null
           optimal_min_female?: number | null
           optimal_min_male?: number | null
+          range_mode?: string
           unit?: string
           updated_at?: string
         }

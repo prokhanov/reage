@@ -1,0 +1,1 @@
+ALTER TABLE public.biomarkers ADD COLUMN range_mode text NOT NULL DEFAULT 'general';
