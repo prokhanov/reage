@@ -311,7 +311,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
               {sections.map((section) => (
                 <button
                   key={section.id}
-                  onClick={() => setActiveSection(section.id)}
+                  onClick={() => handleManualSelect(section.id)}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
                     activeSection === section.id
                       ? "bg-primary/20 text-primary font-medium"
@@ -330,7 +330,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
                 {sections.map((section) => (
                   <button
                     key={section.id}
-                    onClick={() => setActiveSection(section.id)}
+                    onClick={() => handleManualSelect(section.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all ${
                       activeSection === section.id
                         ? "bg-primary/20 text-primary font-medium"
