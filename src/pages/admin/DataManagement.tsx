@@ -1424,7 +1424,31 @@ export default function DataManagement() {
                   </div>
                 </div>
               </div>
-...
+
+              {/* 🟢 Optimal zone display */}
+              <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-center">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Общий</Label>
+                    <p className="text-xs font-semibold text-status-optimal">
+                      🟢 {((min: any, max: any) => { if (min == null && max == null) return '—'; if (min == null) return `≤ ${max}`; if (max == null) return `≥ ${min}`; return `${min} — ${max}`; })(editingBiomarker?.optimal_min, editingBiomarker?.optimal_max)}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+                    <p className="text-xs font-semibold text-status-optimal">
+                      🟢 {((min: any, max: any) => { if (min == null && max == null) return '—'; if (min == null) return `≤ ${max}`; if (max == null) return `≥ ${min}`; return `${min} — ${max}`; })(editingBiomarker?.optimal_min_male, editingBiomarker?.optimal_max_male)}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+                    <p className="text-xs font-semibold text-status-optimal">
+                      🟢 {((min: any, max: any) => { if (min == null && max == null) return '—'; if (min == null) return `≤ ${max}`; if (max == null) return `≥ ${min}`; return `${min} — ${max}`; })(editingBiomarker?.optimal_min_female, editingBiomarker?.optimal_max_female)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* 🟡 optimal_max — boundary between Optimal and Acceptable High */}
               <div className="rounded-lg border border-status-acceptable/30 bg-status-acceptable/5 p-3 space-y-2">
                 <Label className="text-xs font-medium"><span className="text-status-optimal">🟢 Оптимально</span> → <span className="text-status-acceptable">🟡 Допустимо верх</span></Label>

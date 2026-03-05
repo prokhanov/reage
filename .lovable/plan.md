@@ -1,41 +1,53 @@
 
 
-## Добавить отображение оптимальной зоны в общем режиме
+# Уведомление демо-пользователей в AI-ассистенте
 
-### Проблема
-В режиме «Общие диапазоны» между полями optimal_min и optimal_max нет визуального блока, показывающего текущую оптимальную зону. В возрастных диапазонах такой блок есть (`🟢 Оптимальная зона: X — Y`).
+## Проблема
 
-### Решение
-Добавить аналогичный блок между секциями optimal_min (строка 1426) и optimal_max (строка 1428) в общем режиме. Блок будет показывать 3 колонки (Общий, Мужчины, Женщины) с динамическим отображением текущих значений из `editingBiomarker`.
+Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
 
-### Изменение: `src/pages/admin/DataManagement.tsx`
+## Решение
 
-Между строками 1426 и 1428 вставить блок:
+Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
 
-```tsx
-<div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-center">
-  <div className="grid grid-cols-3 gap-3">
-    <div>
-      <Label className="text-[10px] text-muted-foreground">Общий</Label>
-      <p className="text-xs font-semibold text-status-optimal">
-        🟢 {fmtRange(editingBiomarker?.optimal_min, editingBiomarker?.optimal_max)}
-      </p>
-    </div>
-    <div>
-      <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
-      <p className="text-xs font-semibold text-status-optimal">
-        🟢 {fmtRange(editingBiomarker?.optimal_min_male, editingBiomarker?.optimal_max_male)}
-      </p>
-    </div>
-    <div>
-      <Label className="text-[10px] text-muted-foreground">Женщины</Label>
-      <p className="text-xs font-semibold text-status-optimal">
-        🟢 {fmtRange(editingBiomarker?.optimal_min_female, editingBiomarker?.optimal_max_female)}
-      </p>
-    </div>
-  </div>
-</div>
+## Техническая реализация
+
+### Файл: `supabase/functions/health-assistant/index.ts`
+
+1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
+2. После получения профиля проверить `profile.demo_mode_enabled`
+3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
+4. Вместо полного контекста подставить текст:
+
+```
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
+
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
 ```
 
-Функция `fmtRange` уже определена в возрастном режиме (строка 1527). Нужно вынести её выше, чтобы она была доступна и в общем режиме, или определить inline-версию.
+5. Если `false` — оставить текущую логику без изменений
+
+### Изменения в коде (псевдокод)
+
+```typescript
+// Текущий SELECT:
+.select('*')
+// Заменить на:
+.select('*, demo_mode_enabled')
+
+// После получения профиля:
+if (profile?.demo_mode_enabled) {
+  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
+  // Формируем упрощённый systemPrompt с уведомлением
+} else {
+  // Существующая логика
+}
+```
+
+### Файлы
+- `supabase/functions/health-assistant/index.ts` — единственное изменение
 
