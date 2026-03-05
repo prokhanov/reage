@@ -25,8 +25,8 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
 
   if (normal.min === null && normal.max === null) return null;
 
-  const optMin = optimal.min ?? normal.min;
-  const optMax = optimal.max ?? normal.max;
+  const optMin = optimal.min;
+  const optMax = optimal.max;
   const normMin = normal.min;
   const normMax = normal.max;
   const critMin = critical.min;
@@ -68,12 +68,18 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
 
   if (optMin !== null && optMin !== normMin) {
     boundaries.push({ pos: optMin, color: 'hsl(var(--status-optimal))', labelValue: optMin });
+  } else if (optMin === null && normMin !== null) {
+    // Open-ended optimal on the low side: optimal starts from the leftmost point
+    boundaries.push({ pos: scaleMin, color: 'hsl(var(--status-optimal))', labelValue: null });
   } else if (normMin !== null) {
     boundaries.push({ pos: normMin, color: 'hsl(var(--status-optimal))', labelValue: null });
   }
 
   if (optMax !== null && optMax !== normMax) {
     boundaries.push({ pos: optMax, color: 'hsl(var(--status-acceptable))', labelValue: optMax });
+  } else if (optMax === null && normMax !== null) {
+    // Open-ended optimal on the high side: optimal extends to the rightmost point
+    // Don't add a boundary here - let optimal color continue
   }
 
   if (normMax !== null) {
