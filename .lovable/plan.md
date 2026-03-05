@@ -1,29 +1,33 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+## Исправление: `getOptimalRangeForAge` и `getCriticalRangeForAge` игнорируют открытые возрастные диапазоны
 
-## Что сделано
+### Проблема
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+В `src/lib/biomarkerNorms.ts`:
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+- **Строка 135**: `if (ageRange && ageRange.optimal_min !== undefined && ageRange.optimal_max !== undefined)` — требует оба поля. Для B12 (optimal_min=400, optimal_max отсутствует) условие false, функция падает на fallback к общим колонкам.
+- **Строка 170**: Аналогичная проблема для critical ranges.
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+Данные в БД корректные. Визуализация в `BiomarkerRangeBar.tsx` тоже корректная. Баг только в этих двух условиях.
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+### Исправление
 
-**ESR:** optimal_min_male/female → NULL
+**Файл**: `src/lib/biomarkerNorms.ts`
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+1. Строка 135: заменить `&&` на `||`:
+```typescript
+if (ageRange && (ageRange.optimal_min !== undefined || ageRange.optimal_max !== undefined)) {
+  return { min: ageRange.optimal_min ?? null, max: ageRange.optimal_max ?? null };
+}
+```
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+2. Строка 170: аналогично:
+```typescript
+if (ageRange && (ageRange.critical_min !== undefined || ageRange.critical_max !== undefined)) {
+  return { min: ageRange.critical_min ?? null, max: ageRange.critical_max ?? null };
+}
+```
+
+Одно изменение в одном файле, две строки.
+
