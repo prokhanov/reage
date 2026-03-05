@@ -1,45 +1,41 @@
 
 
-## Проблема
+## Добавить отображение оптимальной зоны в общем режиме
 
-51 биомаркер остался в режиме `general` без возрастных диапазонов. Многие из них клинически зависят от возраста и пола. Нужно решить: какие из них перевести в `range_mode = 'age'` и заполнить `age_ranges`.
+### Проблема
+В режиме «Общие диапазоны» между полями optimal_min и optimal_max нет визуального блока, показывающего текущую оптимальную зону. В возрастных диапазонах такой блок есть (`🟢 Оптимальная зона: X — Y`).
 
-## Текущее состояние
+### Решение
+Добавить аналогичный блок между секциями optimal_min (строка 1426) и optimal_max (строка 1428) в общем режиме. Блок будет показывать 3 колонки (Общий, Мужчины, Женщины) с динамическим отображением текущих значений из `editingBiomarker`.
 
-**Уже на `age` (28 шт.):** Глюкоза, Инсулин, ЛПВП, Гомоцистеин, Ферритин, Железо, Гемоглобин, RBC, HCT, WBC, PLT, СОЭ, ТТГ, Т4 св., Т3 св., Кортизол, DHEA-S, SHBG, Вит D, NT-proBNP, GGT, ALP, Общий белок, Креатинин, Мочевина, Калий, Кальций, IGF-1.
+### Изменение: `src/pages/admin/DataManagement.tsx`
 
-**Остались на `general` (51 шт.):** HbA1c, HOMA-IR, ЛДГ, CoQ10, MDA, OAS, Mg, B12, B9, Zn, Se, Альбумин, Лактат, TC, LDL, TG, VLDL, ApoA1, ApoB, ApoB/A1, не-HDL, ИА, Lp(a), Cu, MCV, MCH/MCHC, Нейтрофилы, Лимфоциты, Моноциты, Эозинофилы, Базофилы, CD3+, CD4+, CRP, CD8+, IL-6, CD19+, NK, TNF-α, IgM, IgG, Тестостерон, Эстрадиол, Эстрон, Эстриол, ALT, AST, Билирубин, КФК, Трансферрин, Na, Cl.
+Между строками 1426 и 1428 вставить блок:
 
-## Какие маркеры нужно перевести на `age`
+```tsx
+<div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-center">
+  <div className="grid grid-cols-3 gap-3">
+    <div>
+      <Label className="text-[10px] text-muted-foreground">Общий</Label>
+      <p className="text-xs font-semibold text-status-optimal">
+        🟢 {fmtRange(editingBiomarker?.optimal_min, editingBiomarker?.optimal_max)}
+      </p>
+    </div>
+    <div>
+      <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
+      <p className="text-xs font-semibold text-status-optimal">
+        🟢 {fmtRange(editingBiomarker?.optimal_min_male, editingBiomarker?.optimal_max_male)}
+      </p>
+    </div>
+    <div>
+      <Label className="text-[10px] text-muted-foreground">Женщины</Label>
+      <p className="text-xs font-semibold text-status-optimal">
+        🟢 {fmtRange(editingBiomarker?.optimal_min_female, editingBiomarker?.optimal_max_female)}
+      </p>
+    </div>
+  </div>
+</div>
+```
 
-### Обязательно (клинически значимая возрастная зависимость):
-1. **Тестостерон общий** — падает ~1-2%/год после 30
-2. **Эстрадиол (E2)** — резко меняется в менопаузу
-3. **Эстрон (E1)** — аналогично
-4. **Общий холестерин (TC)** — растёт с возрастом
-5. **ЛПНП (LDL)** — растёт с возрастом
-6. **Триглицериды (TG)** — растут с возрастом
-7. **ALT** — нормы выше у молодых
-8. **AST** — аналогично
-9. **Витамин B12** — снижается усвоение после 60
-10. **Альбумин** — снижается после 60
-11. **Креатинкиназа (КФК)** — нормы зависят от возраста и пола
-12. **Трансферрин** — меняется с возрастом
-
-### Желательно:
-13. **Лимфоциты** — иммуностарение
-14. **NK-клетки** — растут с возрастом
-15. **IgG** — меняется
-
-### Можно оставить на `general` (слабая возрастная зависимость):
-- HbA1c, HOMA-IR, CRP, IL-6, TNF-α, Lp(a), MCV, MDA, CoQ10, OAS, Mg, Zn, Se, B9, Cu, Na, Cl, Лактат, VLDL, ApoB, ApoA1, и остальные
-
-## План действий
-
-1. Для ~15 биомаркеров выполнить UPDATE: `range_mode = 'age'`, заполнить `age_ranges` JSONB с полной 7-сегментной структурой (min, max, optimal_min, optimal_max, critical_min, critical_max) по возрастным группам (18-30, 30-45, 45-60, 60+) с разбивкой по полу
-2. Никаких изменений кода — логика в `biomarkerNorms.ts` уже поддерживает `range_mode = 'age'`
-
-## Объём данных
-
-~15 маркеров × 2 пола × 4 возрастные группы × 6 границ = ~720 значений. Выполняется через серию SQL UPDATE через insert tool.
+Функция `fmtRange` уже определена в возрастном режиме (строка 1527). Нужно вынести её выше, чтобы она была доступна и в общем режиме, или определить inline-версию.
 
