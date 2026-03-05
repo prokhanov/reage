@@ -1173,7 +1173,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       // BMI as virtual biomarker
       let bmiMarkerAdded = false;
       if (patientBMI !== null) {
-        const bmiWeight = 1.5;
+        const bmiWeight = 5.0;
         let bmiPenalty = 0;
         let bmiTier = 'optimal';
         
