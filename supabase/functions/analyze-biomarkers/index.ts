@@ -1220,7 +1220,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       const { data: subscription } = await supabase
         .from("subscriptions")
         .select("plan_id")
-        .eq("user_id", userId)
+        .eq("user_id", analysis.user_id)
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1)
