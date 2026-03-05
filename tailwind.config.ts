@@ -56,6 +56,10 @@ export default {
           good: "hsl(var(--status-good))",
           warning: "hsl(var(--status-warning))",
           danger: "hsl(var(--status-danger))",
+          optimal: "hsl(var(--status-optimal))",
+          acceptable: "hsl(var(--status-acceptable))",
+          risk: "hsl(var(--status-risk))",
+          critical: "hsl(var(--status-critical))",
         },
       },
       backgroundImage: {

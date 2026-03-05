@@ -42,6 +42,11 @@ All colors MUST be HSL.
     --status-warning: 38 92% 50%;
     --status-danger: 0 85% 55%;
     
+    --status-optimal: 142 76% 45%;
+    --status-acceptable: 55 80% 45%;
+    --status-risk: 25 90% 55%;
+    --status-critical: 0 85% 55%;
+    
     --border: 270 25% 88%;
     --input: 270 30% 96%;
     --ring: 270 90% 60%;
@@ -97,6 +102,11 @@ All colors MUST be HSL.
     --status-good: 142 76% 56%;
     --status-warning: 38 92% 50%;
     --status-danger: 0 84% 60%;
+    
+    --status-optimal: 142 76% 56%;
+    --status-acceptable: 55 80% 50%;
+    --status-risk: 25 90% 60%;
+    --status-critical: 0 84% 60%;
     
     --border: 260 20% 18%;
     --input: 235 18% 12%;

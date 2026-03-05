@@ -160,24 +160,24 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-status-good";
-    if (score >= 70) return "text-[hsl(45,90%,55%)]";
-    if (score >= 50) return "text-status-warning";
-    return "text-status-danger";
+    if (score >= 85) return "text-status-optimal";
+    if (score >= 70) return "text-status-acceptable";
+    if (score >= 50) return "text-status-risk";
+    return "text-status-critical";
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 85) return "Отлично";
-    if (score >= 70) return "Хорошо";
-    if (score >= 50) return "Умеренно";
-    return "Требует внимания";
+    if (score >= 85) return "Оптимально";
+    if (score >= 70) return "Допустимо";
+    if (score >= 50) return "Риск";
+    return "Критично";
   };
 
   const getProgressColor = (score: number) => {
-    if (score >= 85) return "bg-status-good";
-    if (score >= 70) return "bg-[hsl(45,90%,55%)]";
-    if (score >= 50) return "bg-status-warning";
-    return "bg-status-danger";
+    if (score >= 85) return "bg-status-optimal";
+    if (score >= 70) return "bg-status-acceptable";
+    if (score >= 50) return "bg-status-risk";
+    return "bg-status-critical";
   };
 
   if (!categoryScores || categories.length === 0) {

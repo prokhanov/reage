@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
-import { calculateAge, getNormalRangeForAge } from "@/lib/biomarkerNorms";
+import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 
@@ -26,6 +26,10 @@ interface BiomarkerData {
   normal_max_male: number | null;
   normal_min_female: number | null;
   normal_max_female: number | null;
+  optimal_min?: number | null;
+  optimal_max?: number | null;
+  critical_min?: number | null;
+  critical_max?: number | null;
   latest_value: number | null;
   latest_date: string | null;
   previous_value: number | null;
@@ -46,7 +50,6 @@ export default function Biomarkers() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Wait until demo loading is resolved to avoid triggering real DB fetches prematurely
     if (demoLoading) return;
     loadBiomarkers();
   }, [demoMode, demoData, demoLoading]);
@@ -59,7 +62,6 @@ export default function Biomarkers() {
         return;
       }
       
-      // Load demo biomarkers
       try {
         const { data: categoriesData } = await supabase
           .from("biomarker_categories")
@@ -87,7 +89,6 @@ export default function Biomarkers() {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
 
-      // Load patient data
       const { data: profile } = await supabase
         .from("profiles")
         .select("gender, birth_date")
@@ -99,7 +100,6 @@ export default function Biomarkers() {
         setPatientAge(calculateAge(profile.birth_date));
       }
 
-      // Load category order from database
       const { data: categoriesData } = await supabase
         .from("biomarker_categories")
         .select("name, display_order")
@@ -109,7 +109,6 @@ export default function Biomarkers() {
         (categoriesData || []).map((cat) => [cat.name, cat.display_order])
       );
 
-      // Получаем все биомаркеры
       const { data: biomarkersData, error: biomarkersError } = await supabase
         .from("biomarkers")
         .select("*")
@@ -117,10 +116,8 @@ export default function Biomarkers() {
 
       if (biomarkersError) throw biomarkersError;
 
-      // Для каждого биомаркера получаем последние 2 значения
       const biomarkersWithData = await Promise.all(
         (biomarkersData || []).map(async (biomarker: any) => {
-          // Получаем последние 2 значения этого биомаркера
           const { data: valuesData } = await supabase
             .from("analysis_values")
             .select(`
@@ -150,7 +147,7 @@ export default function Biomarkers() {
           let trend: "up" | "down" | "stable" | null = null;
           if (previousValue !== null) {
             const diff = latestValue - previousValue;
-            const threshold = Math.abs(previousValue) * 0.05; // 5% изменение
+            const threshold = Math.abs(previousValue) * 0.05;
             if (Math.abs(diff) < threshold) {
               trend = "stable";
             } else if (diff > 0) {
@@ -170,7 +167,6 @@ export default function Biomarkers() {
         })
       );
 
-      // Группируем по категориям
       const grouped = biomarkersWithData.reduce((acc, biomarker) => {
         const category = biomarker.category;
         if (!acc[category]) {
@@ -180,7 +176,6 @@ export default function Biomarkers() {
         return acc;
       }, {} as GroupedBiomarkers);
 
-      // Sort categories by display_order
       const sortedGrouped: GroupedBiomarkers = {};
       Object.keys(grouped)
         .sort((a, b) => {
@@ -237,13 +232,10 @@ export default function Biomarkers() {
     return { min: biomarker.normal_min, max: biomarker.normal_max };
   };
 
-  const isInNormalRange = (value: number | null, biomarker: BiomarkerData) => {
+  const getValueStatus = (value: number | null, biomarker: BiomarkerData) => {
     if (value === null) return null;
-    const { min, max } = getNormalRange(biomarker);
-    if (min === null && max === null) return null;
-    if (min !== null && value < min) return false;
-    if (max !== null && value > max) return false;
-    return true;
+    const gender = (patientGender === 'male' || patientGender === 'female') ? patientGender : 'male';
+    return getBiomarkerStatus(value, biomarker, patientAge, gender);
   };
 
   return (
@@ -294,25 +286,30 @@ export default function Biomarkers() {
                         <TableRow className="bg-secondary/50">
                           <TableHead className="font-semibold">Название</TableHead>
                           <TableHead className="font-semibold">Последнее значение</TableHead>
+                          <TableHead className="font-semibold">Статус</TableHead>
                           <TableHead className="font-semibold">Тренд</TableHead>
                           <TableHead className="font-semibold">Дата теста</TableHead>
-                          <TableHead className="font-semibold">Шкала нормы</TableHead>
+                          <TableHead className="font-semibold">Шкала</TableHead>
                           <TableHead className="font-semibold w-16"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {categoryBiomarkers.map((biomarker) => {
-                          const inRange = isInNormalRange(biomarker.latest_value, biomarker);
+                          const statusInfo = getValueStatus(biomarker.latest_value, biomarker);
                           const { min, max } = getNormalRange(biomarker);
 
                           return (
                             <TableRow 
                               key={biomarker.id}
                               className={`${
-                                inRange === false
-                                  ? "bg-destructive/5 hover:bg-destructive/10"
-                                  : inRange === true
-                                  ? "bg-green-500/5 hover:bg-green-500/10"
+                                statusInfo?.status === 'critical'
+                                  ? "bg-status-critical/5 hover:bg-status-critical/10"
+                                  : statusInfo?.status === 'risk'
+                                  ? "bg-status-risk/5 hover:bg-status-risk/10"
+                                  : statusInfo?.status === 'acceptable'
+                                  ? "bg-status-acceptable/5 hover:bg-status-acceptable/10"
+                                  : statusInfo?.status === 'optimal'
+                                  ? "bg-status-optimal/5 hover:bg-status-optimal/10"
                                   : "hover:bg-secondary/50"
                               }`}
                             >
@@ -328,33 +325,24 @@ export default function Biomarkers() {
                                   <span 
                                     className="text-lg font-bold"
                                     style={{
-                                      color: (() => {
-                                        if (min === null && max === null) {
-                                          return "hsl(var(--primary))";
-                                        }
-                                        
-                                        const minVal = min ?? 0;
-                                        const maxVal = max ?? biomarker.latest_value * 2;
-                                        const value = biomarker.latest_value;
-                                        
-                                        let position = (value - minVal) / (maxVal - minVal);
-                                        position = Math.max(0, Math.min(1, position));
-                                        
-                                        let hue: number;
-                                        if (position < 0.5) {
-                                          hue = position * 2 * 120;
-                                        } else {
-                                          hue = 120 - (position - 0.5) * 2 * 120;
-                                        }
-                                        
-                                        return `hsl(${hue}, 70%, 50%)`;
-                                      })()
+                                      color: statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))"
                                     }}
                                   >
                                     {biomarker.latest_value.toFixed(2)} {biomarker.unit}
                                   </span>
                                 ) : (
                                   <span className="text-sm text-muted-foreground italic">Нет данных</span>
+                                )}
+                              </TableCell>
+
+                              <TableCell>
+                                {statusInfo ? (
+                                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.bgClass} ${statusInfo.colorClass} border ${statusInfo.borderClass}`}>
+                                    <span>{statusInfo.emoji}</span>
+                                    <span>{statusInfo.label}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">—</span>
                                 )}
                               </TableCell>
                               
@@ -385,7 +373,20 @@ export default function Biomarkers() {
                                     <div className="space-y-1">
                                       <div className="flex items-center gap-2">
                                         <div className="flex-1 h-3 bg-secondary rounded-full relative overflow-hidden">
-                                          <div className="absolute inset-0 bg-gradient-to-r from-destructive/70 via-green-500/70 to-destructive/70" />
+                                          {/* 4-zone gradient: critical-risk-optimal-risk-critical */}
+                                          <div className="absolute inset-0 bg-gradient-to-r from-status-critical/70 via-status-risk/50 via-status-optimal/70 via-status-risk/50 to-status-critical/70" 
+                                            style={{
+                                              background: `linear-gradient(to right, 
+                                                hsl(var(--status-critical) / 0.7) 0%, 
+                                                hsl(var(--status-risk) / 0.6) 15%, 
+                                                hsl(var(--status-acceptable) / 0.5) 25%, 
+                                                hsl(var(--status-optimal) / 0.7) 40%, 
+                                                hsl(var(--status-optimal) / 0.7) 60%, 
+                                                hsl(var(--status-acceptable) / 0.5) 75%, 
+                                                hsl(var(--status-risk) / 0.6) 85%, 
+                                                hsl(var(--status-critical) / 0.7) 100%)`
+                                            }}
+                                          />
                                           {(() => {
                                             const minVal = min ?? 0;
                                             const maxVal = max ?? biomarker.latest_value * 2;
@@ -395,17 +396,17 @@ export default function Biomarkers() {
                                             let position = ((value - minVal) / range) * 100;
                                             position = Math.max(2, Math.min(98, position));
                                             
-                                            let markerColor = "bg-green-500";
-                                            if (min !== null && value < min) {
-                                              markerColor = "bg-destructive";
-                                            } else if (max !== null && value > max) {
-                                              markerColor = "bg-destructive";
-                                            }
+                                            const markerColor = statusInfo 
+                                              ? `bg-[${getStatusHslColor(statusInfo.status).replace('hsl(var(--status-', '').replace('))', '')}]`
+                                              : "bg-primary";
                                             
                                             return (
                                               <div 
-                                                className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full ${markerColor} border-2 border-background shadow-lg z-10`}
-                                                style={{ left: `${position}%` }}
+                                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-background shadow-lg z-10"
+                                                style={{ 
+                                                  left: `${position}%`,
+                                                  backgroundColor: statusInfo ? getStatusHslColor(statusInfo.status) : 'hsl(var(--primary))'
+                                                }}
                                               />
                                             );
                                           })()}
