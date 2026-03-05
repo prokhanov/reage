@@ -1,36 +1,53 @@
 
 
-## Plan: Biomarker Range Validation (No Overlaps)
+# Уведомление демо-пользователей в AI-ассистенте
 
-### Problem
-Currently there's no validation that the 7-segment boundary values are ordered correctly. An admin could accidentally set `critical_min > normal_min` or `optimal_max > normal_max`, creating nonsensical overlapping zones.
+## Проблема
 
-### Validation Rule
-For each column group (general, male, female), when fields are filled, the order must be:
+Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
 
-```text
-critical_min ≤ normal_min ≤ optimal_min ≤ optimal_max ≤ normal_max ≤ critical_max
+## Решение
+
+Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
+
+## Техническая реализация
+
+### Файл: `supabase/functions/health-assistant/index.ts`
+
+1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
+2. После получения профиля проверить `profile.demo_mode_enabled`
+3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
+4. Вместо полного контекста подставить текст:
+
+```
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
+
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
 ```
 
-Empty (null) fields are allowed and simply skipped in the chain. Validation only checks pairs where both values are present.
+5. Если `false` — оставить текущую логику без изменений
 
-Same rule applies to each age range row in "age" mode.
+### Изменения в коде (псевдокод)
 
-### Implementation
+```typescript
+// Текущий SELECT:
+.select('*')
+// Заменить на:
+.select('*, demo_mode_enabled')
 
-**File: `src/pages/admin/DataManagement.tsx`**
+// После получения профиля:
+if (profile?.demo_mode_enabled) {
+  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
+  // Формируем упрощённый systemPrompt с уведомлением
+} else {
+  // Существующая логика
+}
+```
 
-1. Add a validation function `validateBiomarkerRanges(biomarker)` that:
-   - For each group (general, male, female): collects non-null values in order `[critical_min, normal_min, optimal_min, optimal_max, normal_max, critical_max]`
-   - For each adjacent pair where both are non-null, checks `left ≤ right`
-   - Returns array of error strings (empty = valid)
-
-2. For age ranges: same logic per row — `[critical_min, min, optimal_min, optimal_max, max, critical_max]`
-
-3. In `handleSaveBiomarker`: call validation before `saveBiomarker.mutate()`. If errors, show `toast.error()` with the first error and return early.
-
-4. No database changes needed — purely client-side validation.
-
-### Error Messages
-Russian, specific: e.g. "Общие: Критич. низ (X) не может быть больше Нормы низ (Y)" or "Возрастной диапазон Муж 18-45: Норма низ (X) > Оптимум низ (Y)".
+### Файлы
+- `supabase/functions/health-assistant/index.ts` — единственное изменение
 
