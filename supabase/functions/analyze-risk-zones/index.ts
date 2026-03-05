@@ -337,8 +337,16 @@ serve(async (req) => {
       }
     );
 
+    const agingBlockersPrompt = (promptMap.get("risk_zones_aging_blockers") || "") + `
+
+КРИТИЧЕСКИ ВАЖНЫЕ ПРАВИЛА ДЛЯ ПОЛЯ "evidence":
+1. В массиве "evidence" РАЗРЕШЕНЫ ТОЛЬКО ссылки на конкретные биомаркеры из лабораторных анализов пациента (например: "CRP = 5.2 мг/л — выше нормы", "Витамин D = 18 нг/мл — ниже оптимума").
+2. ЗАПРЕЩЕНО упоминать в evidence: процент соблюдения назначений, симптомы (severity), данные о сне, назначения/рецепты, данные о весе, любые субъективные показатели.
+3. Каждый элемент evidence должен содержать название биомаркера, его значение и статус (норма/отклонение).
+4. Если для блокера нет подтверждающих биомаркеров — НЕ включай этот блокер в список.`;
+
     const agingBlockersData = await callAI(
-      promptMap.get("risk_zones_aging_blockers") || "",
+      agingBlockersPrompt,
       userContext,
       "analyze_aging_blockers",
       {
@@ -351,7 +359,7 @@ serve(async (req) => {
               properties: {
                 name: { type: "string" },
                 impact_score: { type: "number" },
-                evidence: { type: "array", items: { type: "string" } },
+                evidence: { type: "array", items: { type: "string" }, description: "ТОЛЬКО ссылки на конкретные биомаркеры из анализов пациента. Формат: 'Название биомаркера = значение единица — статус'. ЗАПРЕЩЕНЫ ссылки на назначения, симптомы, сон, вес." },
                 recommendation: { type: "string" },
                 expected_effect_years: { type: "number", description: "Ожидаемый эффект от устранения этого блокера в годах биологического возраста (например 0.5, 1.0, 2.0). Оцени реалистично на основе impact_score и научных данных." }
               },
