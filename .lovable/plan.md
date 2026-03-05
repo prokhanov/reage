@@ -1,32 +1,53 @@
 
 
-## Plan: Show 4-Tier System in Edit Biomarker Dialog
+# Уведомление демо-пользователей в AI-ассистенте
 
-### Problem
-The edit biomarker dialog shows 3 sections (Норма, Оптимальные, Критические), but the system has 4 tiers. The user expects to see all 4 levels visually represented: 🟢 Оптимально, 🟡 Допустимо, 🟠 Риск, 🔴 Критично.
+## Проблема
 
-### Key Insight
-Only 3 ranges are configurable (optimal, normal, critical) because the 4th tiers are derived:
-- 🟡 **Допустимо** = between optimal and normal bounds (no separate fields needed)
-- 🟠 **Риск** = between normal and critical bounds (no separate fields needed)
+Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
 
-### Changes in `src/pages/admin/DataManagement.tsx`
+## Решение
 
-1. **Add a 4-tier visual legend** at the top of the ranges section explaining how the tiers work:
+Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
 
-```text
-🟢 Оптимально — значение в оптимальном диапазоне
-🟡 Допустимо  — между оптимальным и нормальным
-🟠 Риск       — между нормальным и критическим  
-🔴 Критично   — за пределами критического
+## Техническая реализация
+
+### Файл: `supabase/functions/health-assistant/index.ts`
+
+1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
+2. После получения профиля проверить `profile.demo_mode_enabled`
+3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
+4. Вместо полного контекста подставить текст:
+
+```
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
+
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
 ```
 
-2. **Relabel the 3 sections** with all 4 emoji indicators to show how they relate:
-   - Current "Нормальные диапазоны" → "🟡 Нормальные диапазоны (граница Допустимо ↔ Риск)"
-   - Keep "🟢 Оптимальные диапазоны (граница Оптимально ↔ Допустимо)"
-   - Keep "🔴 Критические диапазоны (граница Риск ↔ Критично)"
+5. Если `false` — оставить текущую логику без изменений
 
-3. **Reorder sections** logically: 🟢 Оптимальные → 🟡 Нормальные → 🔴 Критические (from inner to outer range)
+### Изменения в коде (псевдокод)
 
-This makes clear that 4 tiers exist even though only 3 boundary ranges need configuration.
+```typescript
+// Текущий SELECT:
+.select('*')
+// Заменить на:
+.select('*, demo_mode_enabled')
+
+// После получения профиля:
+if (profile?.demo_mode_enabled) {
+  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
+  // Формируем упрощённый systemPrompt с уведомлением
+} else {
+  // Существующая логика
+}
+```
+
+### Файлы
+- `supabase/functions/health-assistant/index.ts` — единственное изменение
 
