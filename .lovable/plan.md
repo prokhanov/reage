@@ -1,23 +1,53 @@
 
 
-## Plan: Add visible 🟠 Риск block to Edit Biomarker Dialog
+# Уведомление демо-пользователей в AI-ассистенте
 
-The dialog currently shows 3 sections: 🟢 Оптимальные, 🟡 Нормальные, 🔴 Критические. The user wants all 4 tiers visually present. The 🟠 Риск zone is auto-derived (between normal and critical), so it needs a visual indicator block, not input fields.
+## Проблема
 
-### File: `src/pages/admin/DataManagement.tsx`
+Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
 
-Between the 🟡 Нормальные section (ends line 1303) and 🔴 Критические section (starts line 1305), insert a non-editable visual block:
+## Решение
+
+Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
+
+## Техническая реализация
+
+### Файл: `supabase/functions/health-assistant/index.ts`
+
+1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
+2. После получения профиля проверить `profile.demo_mode_enabled`
+3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
+4. Вместо полного контекста подставить текст:
 
 ```
-🟠 Зона риска (определяется автоматически)
-Значения за пределами нормы, но в рамках критических порогов → статус «Риск»
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
+
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
 ```
 
-Styled with `border-dashed border-status-risk/40 bg-status-risk/5` and `text-status-risk` to visually distinguish it as a derived (non-editable) tier.
+5. Если `false` — оставить текущую логику без изменений
 
-Result: dialog shows all 4 levels top-to-bottom:
-1. 🟢 Оптимальные (editable)
-2. 🟡 Нормальные (editable)
-3. 🟠 Риск (visual indicator)
-4. 🔴 Критические (editable)
+### Изменения в коде (псевдокод)
+
+```typescript
+// Текущий SELECT:
+.select('*')
+// Заменить на:
+.select('*, demo_mode_enabled')
+
+// После получения профиля:
+if (profile?.demo_mode_enabled) {
+  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
+  // Формируем упрощённый systemPrompt с уведомлением
+} else {
+  // Существующая логика
+}
+```
+
+### Файлы
+- `supabase/functions/health-assistant/index.ts` — единственное изменение
 
