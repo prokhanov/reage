@@ -132,8 +132,8 @@ export function getOptimalRangeForAge(
     const ageRange = biomarker.age_ranges[gender].find(
       (range: AgeRange) => age >= range.age_from && age <= range.age_to
     );
-    if (ageRange && ageRange.optimal_min !== undefined && ageRange.optimal_max !== undefined) {
-      return { min: ageRange.optimal_min, max: ageRange.optimal_max };
+    if (ageRange && (ageRange.optimal_min !== undefined || ageRange.optimal_max !== undefined)) {
+      return { min: ageRange.optimal_min ?? null, max: ageRange.optimal_max ?? null };
     }
   }
   
@@ -167,8 +167,8 @@ export function getCriticalRangeForAge(
     const ageRange = biomarker.age_ranges[gender].find(
       (range: AgeRange) => age >= range.age_from && age <= range.age_to
     );
-    if (ageRange && ageRange.critical_min !== undefined && ageRange.critical_max !== undefined) {
-      return { min: ageRange.critical_min, max: ageRange.critical_max };
+    if (ageRange && (ageRange.critical_min !== undefined || ageRange.critical_max !== undefined)) {
+      return { min: ageRange.critical_min ?? null, max: ageRange.critical_max ?? null };
     }
   }
   
