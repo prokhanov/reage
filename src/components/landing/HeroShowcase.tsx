@@ -1,17 +1,22 @@
-import { useState } from "react";
-import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb } from "lucide-react";
 
-type Section = "dashboard" | "biomarkers" | "trends" | "recommendations" | "assistant" | "profile";
+export type ShowcaseSection = "dashboard" | "analyses" | "biomarkers" | "trends" | "state" | "assistant" | "recommendations" | "prescriptions";
 
-const sections: { id: Section; label: string; icon: React.ReactNode }[] = [
+const sections: { id: ShowcaseSection; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Моё здоровье", icon: <Home className="w-4 h-4" /> },
+  { id: "analyses", label: "Анализы", icon: <FlaskConical className="w-4 h-4" /> },
   { id: "biomarkers", label: "Биомаркеры", icon: <Activity className="w-4 h-4" /> },
   { id: "trends", label: "Тренды", icon: <TrendingUp className="w-4 h-4" /> },
-  { id: "recommendations", label: "Рекомендации", icon: <FileText className="w-4 h-4" /> },
+  { id: "state", label: "Моё состояние", icon: <Heart className="w-4 h-4" /> },
   { id: "assistant", label: "AI-ассистент", icon: <MessageSquare className="w-4 h-4" /> },
-  { id: "profile", label: "Профиль", icon: <User className="w-4 h-4" /> },
+  { id: "recommendations", label: "Рекомендации", icon: <Lightbulb className="w-4 h-4" /> },
+  { id: "prescriptions", label: "Назначения", icon: <FileText className="w-4 h-4" /> },
 ];
 
+interface HeroShowcaseProps {
+  onSectionChange?: (section: ShowcaseSection) => void;
+}
 
 function DashboardContent() {
   return (
@@ -72,6 +77,30 @@ function DashboardContent() {
   );
 }
 
+function AnalysesContent() {
+  return (
+    <div className="p-4 space-y-3">
+      <div className="text-sm font-medium text-foreground">История анализов</div>
+      {[
+        { date: "15 фев 2026", markers: 52, status: "Обработан", statusColor: "bg-status-good" },
+        { date: "10 ноя 2025", markers: 48, status: "Обработан", statusColor: "bg-status-good" },
+        { date: "05 авг 2025", markers: 45, status: "Обработан", statusColor: "bg-status-good" },
+      ].map((analysis) => (
+        <div key={analysis.date} className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-border/30">
+          <div>
+            <div className="text-sm font-medium text-foreground">{analysis.date}</div>
+            <div className="text-xs text-muted-foreground">{analysis.markers} маркеров</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${analysis.statusColor}`} />
+            <span className="text-xs text-muted-foreground">{analysis.status}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function BiomarkersContent() {
   return (
     <div className="p-4 space-y-3">
@@ -118,6 +147,28 @@ function TrendsContent() {
         <div className="text-2xl font-bold text-status-good">+22%</div>
         <div className="text-xs text-muted-foreground">улучшение за 8 месяцев</div>
       </div>
+    </div>
+  );
+}
+
+function StateContent() {
+  return (
+    <div className="p-4 space-y-3">
+      <div className="text-sm font-medium text-foreground">Дневник симптомов</div>
+      {[
+        { category: "🧠 Нервная система", symptoms: ["Головная боль", "Усталость"], severity: 2 },
+        { category: "❤️ Сердце", symptoms: ["Норма"], severity: 0 },
+        { category: "🦴 Опорно-двигательная", symptoms: ["Боль в спине"], severity: 1 },
+      ].map((cat) => (
+        <div key={cat.category} className="p-2 bg-card/50 rounded-lg border border-border/30">
+          <div className="text-sm font-medium text-foreground mb-1">{cat.category}</div>
+          <div className="flex flex-wrap gap-1">
+            {cat.symptoms.map((s) => (
+              <span key={s} className="text-xs bg-muted/50 rounded px-2 py-0.5 text-muted-foreground">{s}</span>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -172,54 +223,49 @@ function AssistantContent() {
   );
 }
 
-function ProfileContent() {
+function PrescriptionsContent() {
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-          <span className="text-xl font-bold text-white">АИ</span>
+    <div className="p-4 space-y-3">
+      <div className="text-sm font-medium text-foreground">Назначения врача</div>
+      {[
+        { name: "Витамин D3", dose: "5000 МЕ/день", control: "15 мая 2026", status: "confirmed" },
+        { name: "Омега-3", dose: "2000 мг/день", control: "15 мая 2026", status: "confirmed" },
+        { name: "Магний B6", dose: "400 мг/день", control: "10 апр 2026", status: "on_review" },
+      ].map((rx) => (
+        <div key={rx.name} className="p-2 bg-card/50 rounded-lg border border-border/30">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-sm font-medium text-foreground">{rx.name}</span>
+            <div className={`w-2 h-2 rounded-full ${rx.status === "confirmed" ? "bg-status-good" : "bg-status-warning"}`} />
+          </div>
+          <div className="text-xs text-muted-foreground">{rx.dose} • контроль {rx.control}</div>
         </div>
-        <div>
-          <div className="font-medium text-foreground">Александр Иванов</div>
-          <div className="text-sm text-muted-foreground">35 лет • Москва</div>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card/50 rounded-lg p-3 border border-border/30">
-          <div className="text-xs text-muted-foreground">Рост</div>
-          <div className="text-lg font-medium">178 см</div>
-        </div>
-        <div className="bg-card/50 rounded-lg p-3 border border-border/30">
-          <div className="text-xs text-muted-foreground">Вес</div>
-          <div className="text-lg font-medium">75 кг</div>
-        </div>
-      </div>
-      <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
-        <div className="text-xs text-muted-foreground mb-1">Подписка</div>
-        <div className="text-sm font-medium text-primary">Premium • до 15 дек 2026</div>
-      </div>
+      ))}
     </div>
   );
 }
 
+export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
+  const [activeSection, setActiveSection] = useState<ShowcaseSection>("dashboard");
 
-export function HeroShowcase() {
-  const [activeSection, setActiveSection] = useState<Section>("dashboard");
+  useEffect(() => {
+    onSectionChange?.(activeSection);
+  }, [activeSection, onSectionChange]);
 
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard": return <DashboardContent />;
+      case "analyses": return <AnalysesContent />;
       case "biomarkers": return <BiomarkersContent />;
       case "trends": return <TrendsContent />;
+      case "state": return <StateContent />;
       case "recommendations": return <RecommendationsContent />;
       case "assistant": return <AssistantContent />;
-      case "profile": return <ProfileContent />;
+      case "prescriptions": return <PrescriptionsContent />;
     }
   };
 
   return (
     <div className="relative mt-16 md:mt-24 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-      {/* Main Mockup */}
       <div className="relative max-w-4xl mx-auto px-4">
         {/* Browser Chrome */}
         <div className="bg-card/90 backdrop-blur-xl rounded-t-2xl border border-border/50 border-b-0 p-3 flex items-center gap-2">
@@ -286,7 +332,6 @@ export function HeroShowcase() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
