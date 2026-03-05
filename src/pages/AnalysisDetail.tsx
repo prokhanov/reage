@@ -84,10 +84,10 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
   useEffect(() => {
     // Auto-expand all categories on load
-    const allCategories = Object.keys(groupedBiomarkers);
+    const allCategories = [...new Set(values.map(v => v.biomarkers.category))];
     const expanded = allCategories.reduce((acc, cat) => ({ ...acc, [cat]: true }), {});
     setExpandedCategories(expanded);
-  }, [biomarkers]);
+  }, [values]);
 
   const loadData = async () => {
     if (isDemoAnalysis) {
