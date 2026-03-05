@@ -123,6 +123,7 @@ export default function DataManagement() {
   const [editingCondition, setEditingCondition] = useState<any>(null);
   const [editingSymptom, setEditingSymptom] = useState<any>(null);
   const [ageRanges, setAgeRanges] = useState<any>({ male: [], female: [] });
+  const [rangeMode, setRangeMode] = useState<'general' | 'age'>('general');
   
   // Categories state
   const [categoryDialog, setCategoryDialog] = useState<{
@@ -652,6 +653,7 @@ export default function DataManagement() {
                     onClick={() => {
                       setEditingBiomarker(null);
                       setAgeRanges({ male: [], female: [] });
+                      setRangeMode('general');
                       setBiomarkerDialog(true);
                     }}
                   >
@@ -733,7 +735,9 @@ export default function DataManagement() {
                             size="icon"
                             onClick={() => {
                               setEditingBiomarker(biomarker);
-                              setAgeRanges(biomarker.age_ranges || { male: [], female: [] });
+                              const ar = biomarker.age_ranges || { male: [], female: [] };
+                              setAgeRanges(ar);
+                              setRangeMode((ar.male?.length > 0 || ar.female?.length > 0) ? 'age' : 'general');
                               setBiomarkerDialog(true);
                             }}
                           >
