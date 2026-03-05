@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { calculateAge, getNormalRangeForAge, formatNormalRange } from "@/lib/biomarkerNorms";
+import { calculateAge, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, formatNormalRange, getBiomarkerStatus } from "@/lib/biomarkerNorms";
 
 interface Biomarker {
   id: string;
@@ -126,13 +126,19 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
     return data.values.find((v) => v.biomarkerId === biomarkerId);
   };
 
-  const getNormalRange = (biomarker: Biomarker) => {
-    if (patientGender && patientAge !== null) {
-      const gender = patientGender === 'male' || patientGender === 'female' ? patientGender : 'male';
-      const { min, max } = getNormalRangeForAge(biomarker, patientAge, gender);
-      return `${formatNormalRange(min, max)} ${biomarker.unit}`;
-    }
-    return "не указана";
+  const getRangesDisplay = (biomarker: Biomarker) => {
+    if (!patientGender || patientAge === null) return null;
+    const gender = patientGender === 'male' || patientGender === 'female' ? patientGender : 'male';
+    const normal = getNormalRangeForAge(biomarker, patientAge, gender);
+    const optimal = getOptimalRangeForAge(biomarker, patientAge, gender);
+    const critical = getCriticalRangeForAge(biomarker, patientAge, gender);
+    return { normal, optimal, critical, unit: biomarker.unit };
+  };
+
+  const getValueStatus = (biomarker: Biomarker, value: string) => {
+    if (!value || isNaN(parseFloat(value))) return null;
+    const gender = patientGender === 'male' || patientGender === 'female' ? patientGender : 'male';
+    return getBiomarkerStatus(parseFloat(value), biomarker, patientAge, gender);
   };
 
   const updateValue = (biomarkerId: string, value: string, unitOverride?: string) => {
@@ -191,16 +197,25 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                 <div className="space-y-3 pt-2">
                   {markers.map((biomarker) => {
                     const currentValue = getValue(biomarker.id);
+                    const ranges = getRangesDisplay(biomarker);
+                    const status = currentValue ? getValueStatus(biomarker, currentValue.value) : null;
                     return (
                       <div
                         key={biomarker.id}
-                        className="flex items-start gap-2 p-3 rounded-lg border bg-card"
+                        className={`flex items-start gap-2 p-3 rounded-lg border bg-card ${status ? status.borderClass : ''}`}
                       >
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
-                            <Label className="text-sm font-medium">
-                              {biomarker.name}
-                            </Label>
+                            <div className="flex items-center gap-2">
+                              <Label className="text-sm font-medium">
+                                {biomarker.name}
+                              </Label>
+                              {status && (
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${status.bgClass} ${status.colorClass}`}>
+                                  {status.emoji} {status.label}
+                                </span>
+                              )}
+                            </div>
                             {currentValue && (
                               <Button
                                 variant="ghost"
@@ -212,7 +227,18 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {biomarker.code} • Норма: {getNormalRange(biomarker)}
+                            {biomarker.code}
+                            {ranges && (
+                              <>
+                                {' • '}
+                                {ranges.optimal.min != null && <span className="text-status-optimal">Опт: {formatNormalRange(ranges.optimal.min, ranges.optimal.max)}</span>}
+                                {ranges.optimal.min != null && ' • '}
+                                <span>Норма: {formatNormalRange(ranges.normal.min, ranges.normal.max)}</span>
+                                {ranges.critical.min != null && <span className="text-status-critical"> • Крит: {formatNormalRange(ranges.critical.min, ranges.critical.max)}</span>}
+                                {' '}{ranges.unit}
+                              </>
+                            )}
+                            {!ranges && ' • Норма: не указана'}
                           </p>
                           <div className="flex gap-2">
                             <Input

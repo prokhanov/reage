@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine, ReferenceArea } from "recharts";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
@@ -14,7 +14,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { format } from "date-fns";
 import { TrendChartSkeleton } from "@/components/skeletons/TrendChartSkeleton";
-import { getNormalRangeForAge, calculateAge, AgeRanges } from "@/lib/biomarkerNorms";
+import { getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, calculateAge, AgeRanges } from "@/lib/biomarkerNorms";
 
 interface Biomarker {
   id: string;
@@ -127,6 +127,12 @@ export default function Trends() {
             normal_min, normal_max,
             normal_min_male, normal_max_male,
             normal_min_female, normal_max_female,
+            optimal_min, optimal_max,
+            optimal_min_male, optimal_max_male,
+            optimal_min_female, optimal_max_female,
+            critical_min, critical_max,
+            critical_min_male, critical_max_male,
+            critical_min_female, critical_max_female,
             age_ranges
           )
         `)
@@ -204,6 +210,17 @@ export default function Trends() {
             patientGender || 'male'
           );
           
+          const optimalRange = getOptimalRangeForAge(
+            selectedBiomarkerData,
+            ageAtAnalysis || 40,
+            patientGender || 'male'
+          );
+          const criticalRange = getCriticalRangeForAge(
+            selectedBiomarkerData,
+            ageAtAnalysis || 40,
+            patientGender || 'male'
+          );
+          
           trendData.push({
             date: analysisDate.toLocaleDateString("ru-RU", {
               day: "numeric",
@@ -212,6 +229,10 @@ export default function Trends() {
             value: biomarker.value,
             refMin: normalRange.min,
             refMax: normalRange.max,
+            optimalMin: optimalRange.min,
+            optimalMax: optimalRange.max,
+            criticalMin: criticalRange.min,
+            criticalMax: criticalRange.max,
             age: ageAtAnalysis
           });
         }
@@ -267,6 +288,17 @@ export default function Trends() {
           refMax = range.max;
         }
 
+        // Get optimal/critical ranges
+        let optimalMin = null, optimalMax = null, criticalMin2 = null, criticalMax2 = null;
+        if (ageAtAnalysis !== null && patientGender && selectedBiomarkerData) {
+          const optRange = getOptimalRangeForAge(selectedBiomarkerData, ageAtAnalysis, patientGender);
+          optimalMin = optRange.min;
+          optimalMax = optRange.max;
+          const critRange = getCriticalRangeForAge(selectedBiomarkerData, ageAtAnalysis, patientGender);
+          criticalMin2 = critRange.min;
+          criticalMax2 = critRange.max;
+        }
+
         return {
           date: new Date(item.analyses.date).toLocaleDateString("ru-RU", {
             day: "numeric",
@@ -275,6 +307,10 @@ export default function Trends() {
           value: item.value,
           refMin,
           refMax,
+          optimalMin,
+          optimalMax,
+          criticalMin: criticalMin2,
+          criticalMax: criticalMax2,
           age: ageAtAnalysis,
         };
       });
@@ -432,23 +468,42 @@ export default function Trends() {
                           }}
                         />
                         <Legend />
-                        {/* Dynamic reference lines based on age */}
-                        {trendData.length > 0 && trendData[0].refMin && trendData[0].refMax && (
-                          <>
-                            <ReferenceLine 
-                              y={trendData[0].refMin} 
-                              stroke="hsl(var(--status-good))" 
-                              strokeDasharray="3 3"
-                              label={{ value: "Мин (первый)", position: "insideBottomLeft", fill: "hsl(var(--status-good))", fontSize: 10 }}
-                            />
-                            <ReferenceLine 
-                              y={trendData[0].refMax} 
-                              stroke="hsl(var(--status-good))" 
-                              strokeDasharray="3 3"
-                              label={{ value: "Макс (первый)", position: "insideTopLeft", fill: "hsl(var(--status-good))", fontSize: 10 }}
-                            />
-                          </>
-                        )}
+                        {/* 4-tier reference zones */}
+                        {trendData.length > 0 && trendData[0].refMin != null && trendData[0].refMax != null && (() => {
+                          const d = trendData[0];
+                          const zones: React.ReactNode[] = [];
+                          
+                          // Optimal zone (green)
+                          if (d.optimalMin != null && d.optimalMax != null) {
+                            zones.push(
+                              <ReferenceArea key="optimal" y1={d.optimalMin} y2={d.optimalMax} fill="hsl(var(--status-optimal))" fillOpacity={0.1} />
+                            );
+                          }
+                          
+                          // Acceptable zone (yellow) — between normal and optimal
+                          if (d.optimalMin != null && d.refMin != null && d.optimalMin > d.refMin) {
+                            zones.push(<ReferenceArea key="acc-lo" y1={d.refMin} y2={d.optimalMin} fill="hsl(var(--status-acceptable))" fillOpacity={0.08} />);
+                          }
+                          if (d.optimalMax != null && d.refMax != null && d.optimalMax < d.refMax) {
+                            zones.push(<ReferenceArea key="acc-hi" y1={d.optimalMax} y2={d.refMax} fill="hsl(var(--status-acceptable))" fillOpacity={0.08} />);
+                          }
+                          
+                          // Normal range lines
+                          zones.push(
+                            <ReferenceLine key="min" y={d.refMin} stroke="hsl(var(--status-acceptable))" strokeDasharray="3 3" />,
+                            <ReferenceLine key="max" y={d.refMax} stroke="hsl(var(--status-acceptable))" strokeDasharray="3 3" />
+                          );
+                          
+                          // Critical lines
+                          if (d.criticalMin != null) {
+                            zones.push(<ReferenceLine key="crit-min" y={d.criticalMin} stroke="hsl(var(--status-critical))" strokeDasharray="5 3" />);
+                          }
+                          if (d.criticalMax != null) {
+                            zones.push(<ReferenceLine key="crit-max" y={d.criticalMax} stroke="hsl(var(--status-critical))" strokeDasharray="5 3" />);
+                          }
+                          
+                          return zones;
+                        })()}
                         <Line
                           type="monotone"
                           dataKey="value"
@@ -462,12 +517,14 @@ export default function Trends() {
                     </ResponsiveContainer>
 
                     <div className="mt-4 p-4 rounded-lg bg-muted/30 border border-border space-y-2">
-                      <p className="text-sm font-medium text-foreground">
-                        Возрастные нормы учитываются 💡
-                      </p>
+                      <div className="flex flex-wrap gap-3 mb-2">
+                        <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 rounded-sm bg-status-optimal/30 border border-status-optimal/50" /> Оптимально</span>
+                        <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 rounded-sm bg-status-acceptable/30 border border-status-acceptable/50" /> Допустимо</span>
+                        <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 rounded-sm bg-status-risk/30 border border-status-risk/50" /> Риск</span>
+                        <span className="flex items-center gap-1 text-xs"><span className="w-3 h-3 rounded-sm bg-status-critical/30 border border-status-critical/50" /> Критично</span>
+                      </div>
                       <p className="text-xs text-muted-foreground">
-                        График показывает динамику с учетом вашего возраста на момент каждого анализа. 
-                        Референсные линии показывают норму для возраста первого анализа.
+                        Зоны отображают 4-уровневую классификацию показателей с учётом вашего возраста.
                       </p>
                       {patientBirthDate && (
                         <p className="text-xs text-muted-foreground">

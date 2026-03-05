@@ -411,6 +411,18 @@ export default function DataManagement() {
       normal_max_male: formData.get("normal_max_male") ? Number(formData.get("normal_max_male")) : null,
       normal_min_female: formData.get("normal_min_female") ? Number(formData.get("normal_min_female")) : null,
       normal_max_female: formData.get("normal_max_female") ? Number(formData.get("normal_max_female")) : null,
+      optimal_min: formData.get("optimal_min") ? Number(formData.get("optimal_min")) : null,
+      optimal_max: formData.get("optimal_max") ? Number(formData.get("optimal_max")) : null,
+      optimal_min_male: formData.get("optimal_min_male") ? Number(formData.get("optimal_min_male")) : null,
+      optimal_max_male: formData.get("optimal_max_male") ? Number(formData.get("optimal_max_male")) : null,
+      optimal_min_female: formData.get("optimal_min_female") ? Number(formData.get("optimal_min_female")) : null,
+      optimal_max_female: formData.get("optimal_max_female") ? Number(formData.get("optimal_max_female")) : null,
+      critical_min: formData.get("critical_min") ? Number(formData.get("critical_min")) : null,
+      critical_max: formData.get("critical_max") ? Number(formData.get("critical_max")) : null,
+      critical_min_male: formData.get("critical_min_male") ? Number(formData.get("critical_min_male")) : null,
+      critical_max_male: formData.get("critical_max_male") ? Number(formData.get("critical_max_male")) : null,
+      critical_min_female: formData.get("critical_min_female") ? Number(formData.get("critical_min_female")) : null,
+      critical_max_female: formData.get("critical_max_female") ? Number(formData.get("critical_max_female")) : null,
       aging_weight: formData.get("aging_weight") ? Number(formData.get("aging_weight")) : 1.0,
       age_ranges: (filteredAgeRanges.male.length > 0 || filteredAgeRanges.female.length > 0) ? filteredAgeRanges : null,
     };
@@ -1280,6 +1292,76 @@ export default function DataManagement() {
                     defaultValue={editingBiomarker?.normal_max_female}
                     placeholder="Ж max"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Optimal ranges */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-status-optimal">🟢 Оптимальные диапазоны</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="optimal_min" className="text-xs text-muted-foreground">Оптимум мин (общий)</Label>
+                  <Input id="optimal_min" name="optimal_min" type="number" step="any" defaultValue={editingBiomarker?.optimal_min} placeholder="Опт min" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="optimal_max" className="text-xs text-muted-foreground">Оптимум макс (общий)</Label>
+                  <Input id="optimal_max" name="optimal_max" type="number" step="any" defaultValue={editingBiomarker?.optimal_max} placeholder="Опт max" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Мужчины: опт. мин</Label>
+                  <Input name="optimal_min_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_male} placeholder="М опт min" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Мужчины: опт. макс</Label>
+                  <Input name="optimal_max_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_male} placeholder="М опт max" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Женщины: опт. мин</Label>
+                  <Input name="optimal_min_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_female} placeholder="Ж опт min" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Женщины: опт. макс</Label>
+                  <Input name="optimal_max_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_female} placeholder="Ж опт max" />
+                </div>
+              </div>
+            </div>
+
+            {/* Critical ranges */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-status-critical">🔴 Критические диапазоны</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Крит. мин (общий)</Label>
+                  <Input name="critical_min" type="number" step="any" defaultValue={editingBiomarker?.critical_min} placeholder="Крит min" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Крит. макс (общий)</Label>
+                  <Input name="critical_max" type="number" step="any" defaultValue={editingBiomarker?.critical_max} placeholder="Крит max" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Мужчины: крит. мин</Label>
+                  <Input name="critical_min_male" type="number" step="any" defaultValue={editingBiomarker?.critical_min_male} placeholder="М крит min" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Мужчины: крит. макс</Label>
+                  <Input name="critical_max_male" type="number" step="any" defaultValue={editingBiomarker?.critical_max_male} placeholder="М крит max" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Женщины: крит. мин</Label>
+                  <Input name="critical_min_female" type="number" step="any" defaultValue={editingBiomarker?.critical_min_female} placeholder="Ж крит min" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Женщины: крит. макс</Label>
+                  <Input name="critical_max_female" type="number" step="any" defaultValue={editingBiomarker?.critical_max_female} placeholder="Ж крит max" />
                 </div>
               </div>
             </div>
