@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   DndContext,
   closestCenter,
@@ -454,6 +454,13 @@ export default function DataManagement() {
 
     return errors;
   };
+
+  // Real-time validation errors
+  const rangeErrors = useMemo(() => {
+    if (!editingBiomarker && !biomarkerDialog) return [];
+    const b = editingBiomarker || {};
+    return validateBiomarkerRanges(b);
+  }, [editingBiomarker, biomarkerDialog]);
 
   const handleSaveBiomarker = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -1367,7 +1374,7 @@ export default function DataManagement() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.critical_min_male != null || editingBiomarker?.critical_min_female != null) ? 'opacity-50' : ''}`}>
                     <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.critical_min_male != null || editingBiomarker?.critical_min_female != null) ? ' (fallback)' : ''}</Label>
-                    <Input name="critical_min" type="number" step="any" defaultValue={editingBiomarker?.critical_min} placeholder="—" />
+                    <Input name="critical_min" type="number" step="any" defaultValue={editingBiomarker?.critical_min} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_min: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
@@ -1386,7 +1393,7 @@ export default function DataManagement() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.normal_min_male != null || editingBiomarker?.normal_min_female != null) ? 'opacity-50' : ''}`}>
                     <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.normal_min_male != null || editingBiomarker?.normal_min_female != null) ? ' (fallback)' : ''}</Label>
-                    <Input id="normal_min" name="normal_min" type="number" step="any" defaultValue={editingBiomarker?.normal_min} placeholder="—" />
+                    <Input id="normal_min" name="normal_min" type="number" step="any" defaultValue={editingBiomarker?.normal_min} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_min: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
@@ -1443,7 +1450,7 @@ export default function DataManagement() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.normal_max_male != null || editingBiomarker?.normal_max_female != null) ? 'opacity-50' : ''}`}>
                     <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.normal_max_male != null || editingBiomarker?.normal_max_female != null) ? ' (fallback)' : ''}</Label>
-                    <Input id="normal_max" name="normal_max" type="number" step="any" defaultValue={editingBiomarker?.normal_max} placeholder="—" />
+                    <Input id="normal_max" name="normal_max" type="number" step="any" defaultValue={editingBiomarker?.normal_max} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, normal_max: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
@@ -1462,7 +1469,7 @@ export default function DataManagement() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className={`space-y-1 ${(editingBiomarker?.critical_max_male != null || editingBiomarker?.critical_max_female != null) ? 'opacity-50' : ''}`}>
                     <Label className="text-[10px] text-muted-foreground">Общий{(editingBiomarker?.critical_max_male != null || editingBiomarker?.critical_max_female != null) ? ' (fallback)' : ''}</Label>
-                    <Input name="critical_max" type="number" step="any" defaultValue={editingBiomarker?.critical_max} placeholder="—" />
+                    <Input name="critical_max" type="number" step="any" defaultValue={editingBiomarker?.critical_max} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, critical_max: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
@@ -1641,11 +1648,20 @@ export default function DataManagement() {
             </div>
             )}
 
+            {rangeErrors.length > 0 && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-1">
+                <p className="text-xs font-medium text-destructive">⚠️ Ошибки в диапазонах:</p>
+                {rangeErrors.map((err, i) => (
+                  <p key={i} className="text-xs text-destructive/80">• {err}</p>
+                ))}
+              </div>
+            )}
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setBiomarkerDialog(false)}>
                 Отмена
               </Button>
-              <Button type="submit" disabled={saveBiomarker.isPending}>
+              <Button type="submit" disabled={saveBiomarker.isPending || rangeErrors.length > 0}>
                 {saveBiomarker.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
