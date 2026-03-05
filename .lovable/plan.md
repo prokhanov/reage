@@ -1,53 +1,51 @@
 
 
-# Уведомление демо-пользователей в AI-ассистенте
+## Открытые диапазоны для маркеров
 
-## Проблема
+### Суть
+Разрешить оставлять одну границу оптимума/нормы/критической зоны пустой (NULL). Например, тестостерон: optimal_min = 15, optimal_max = NULL означает "15 и выше --- оптимально". HbA1c: optimal_min = NULL, optimal_max = 5.4 означает "5.4 и ниже --- оптимально".
 
-Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
+### Что уже работает
+- Админка (DataManagement) уже позволяет оставлять поля пустыми --- они сохраняются как NULL
+- Валидация `validateBiomarkerRanges` пропускает NULL (проверяет порядок только между non-null значениями)
+- Клиентская логика `getBiomarkerStatus` в `biomarkerNorms.ts` уже корректно обрабатывает NULL для optimal и critical
 
-## Решение
+### Что нужно поправить
 
-Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
+#### 1. Edge function `analyze-biomarkers/index.ts` (основное)
 
-## Техническая реализация
+Строка 1127: `if (normalMin === null || normalMax === null) continue;` --- пропускает маркеры, у которых одна из границ нормы NULL. Нужно: `if (normalMin === null && normalMax === null) continue;`
 
-### Файл: `supabase/functions/health-assistant/index.ts`
+Строки 1129-1130: `range = normalMax - normalMin; if (range <= 0) continue;` --- ломается при NULL. Нужно обработать односторонний range.
 
-1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
-2. После получения профиля проверить `profile.demo_mode_enabled`
-3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
-4. Вместо полного контекста подставить текст:
-
-```
-ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
-
-Твоя задача:
-- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
-- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
-- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
-- Предложи пользователю записаться на анализ
-```
-
-5. Если `false` — оставить текущую логику без изменений
-
-### Изменения в коде (псевдокод)
-
+Строка 1140: `isOutsideNormal = av.value < normalMin || av.value > normalMax` --- нужно учесть NULL:
 ```typescript
-// Текущий SELECT:
-.select('*')
-// Заменить на:
-.select('*, demo_mode_enabled')
-
-// После получения профиля:
-if (profile?.demo_mode_enabled) {
-  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
-  // Формируем упрощённый systemPrompt с уведомлением
-} else {
-  // Существующая логика
-}
+const isOutsideNormal = 
+  (normalMin !== null && av.value < normalMin) || 
+  (normalMax !== null && av.value > normalMax);
 ```
+
+Строки 1141-1143: `isInOptimal` --- аналогичная правка для NULL:
+```typescript
+const isInOptimal = (optimalMin !== null || optimalMax !== null)
+  ? (optimalMin === null || av.value >= optimalMin) && 
+    (optimalMax === null || av.value <= optimalMax)
+  : !isOutsideNormal;
+```
+
+Строки 1170-1182: `markerCount` фильтр --- та же логика, заменить `||` на `&&` для пропуска, и убрать `range > 0` проверку при одностороннем диапазоне.
+
+#### 2. Клиентский `BiomarkerRangeBar.tsx` (визуализация)
+
+Строка 26: `if (normal.min === null && normal.max === null) return null;` --- уже корректно, пропускает только если обе null.
+
+Строки 28-29: `optMin = optimal.min ?? normal.min; optMax = optimal.max ?? normal.max;` --- при открытом оптимуме fallback на normal.max, что неправильно для declining-маркеров. Нужно оставить NULL как есть и строить шкалу без этой границы.
+
+#### 3. Обновить данные маркеров в БД
+
+Через SQL update убрать верхние границы оптимума для declining-маркеров (TEST, DHEA-S, IGF-1, HDL, B12, B9 и др.) и нижние границы оптимума для increasing-маркеров (HbA1c, GLU, hs-CRP, LDL и др.). А также обновить `age_ranges` JSON для маркеров с `range_mode = 'age'`.
 
 ### Файлы
-- `supabase/functions/health-assistant/index.ts` — единственное изменение
-
+- `supabase/functions/analyze-biomarkers/index.ts` --- NULL-safe penalty logic
+- `src/components/BiomarkerRangeBar.tsx` --- корректная визуализация открытых диапазонов
+- Миграция БД --- обнуление optimal_max/optimal_min для ~25 маркеров
