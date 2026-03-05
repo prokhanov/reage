@@ -3,7 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp, Info, Activity } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -575,224 +579,132 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 </CardContent>
               </Card>
             ) : (
-              Object.entries(groupedValues).map(([category, categoryValues]) => (
-                <Card
-                  key={category}
-                  className="border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <CardHeader 
-                    className="cursor-pointer hover:bg-primary/5 transition-colors rounded-t-lg"
-                    onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
-                          {category}
-                        </CardTitle>
-                        <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
-                          {categoryValues.length}
-                        </span>
-                      </div>
-                      {expandedCategories[category] ? (
-                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                  </CardHeader>
-                  {expandedCategories[category] && (
-                    <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {categoryValues.map((value) => {
-                        const angle = getGaugeAngle(value.value, value.biomarkers);
-                        const color = getGaugeColor(value.value, value.biomarkers);
-                        const { min, max } = getNormalRange(value.biomarkers);
-                        const gender = (patientGender === 'male' || patientGender === 'female') ? patientGender : 'male';
-                        const statusInfo = getBiomarkerStatus(value.value, value.biomarkers, patientAge, gender);
+              <TooltipProvider delayDuration={0}>
+                <Accordion type="multiple" defaultValue={Object.keys(groupedValues)} className="space-y-4">
+                  {Object.entries(groupedValues).map(([category, categoryValues]) => (
+                    <AccordionItem
+                      key={category}
+                      value={category}
+                      className="border border-primary/20 rounded-lg bg-card/50 backdrop-blur-sm overflow-hidden"
+                    >
+                      <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-primary/5">
+                        <div className="flex items-center gap-3">
+                          <Activity className="h-5 w-5 text-primary" />
+                          <span className="text-lg font-semibold">{category}</span>
+                          <Badge variant="secondary" className="ml-2">
+                            {categoryValues.length}
+                          </Badge>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-6 pb-4">
+                        <div className="mt-4 border rounded-lg overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-secondary/50">
+                                <TableHead className="font-semibold">Название</TableHead>
+                                <TableHead className="font-semibold">Значение</TableHead>
+                                <TableHead className="font-semibold">Статус</TableHead>
+                                <TableHead className="font-semibold">Шкала</TableHead>
+                                <TableHead className="font-semibold w-16"></TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {categoryValues.map((value) => {
+                                const { min, max } = getNormalRange(value.biomarkers);
+                                const gender = (patientGender === 'male' || patientGender === 'female') ? patientGender : 'male';
+                                const statusInfo = getBiomarkerStatus(value.value, value.biomarkers, patientAge, gender);
 
-                        return (
-                          <Card
-                            key={value.id}
-                            className="relative overflow-hidden border-border/50 bg-gradient-to-br from-card via-card to-muted/20 hover:border-primary/50 transition-all group"
-                          >
-                            <CardContent className="p-6">
-                              {/* Header with actions */}
-                              <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                  <h4 className="text-lg font-bold text-foreground mb-1">
-                                    {value.biomarkers.name}
-                                  </h4>
-                                  <p className="text-xs text-muted-foreground font-mono">
-                                    {value.biomarkers.code}
-                                  </p>
-                                </div>
-                              </div>
+                                return (
+                                  <TableRow
+                                    key={value.id}
+                                    className={`${
+                                      statusInfo?.status === 'critical'
+                                        ? "bg-status-critical/5 hover:bg-status-critical/10"
+                                        : statusInfo?.status === 'risk'
+                                        ? "bg-status-risk/5 hover:bg-status-risk/10"
+                                        : statusInfo?.status === 'acceptable'
+                                        ? "bg-status-acceptable/5 hover:bg-status-acceptable/10"
+                                        : statusInfo?.status === 'optimal'
+                                        ? "bg-status-optimal/5 hover:bg-status-optimal/10"
+                                        : "hover:bg-secondary/50"
+                                    }`}
+                                  >
+                                    <TableCell className="font-medium">
+                                      <div>
+                                        <div className="font-semibold">{value.biomarkers.name}</div>
+                                        <div className="text-xs text-muted-foreground">{value.biomarkers.code}</div>
+                                      </div>
+                                    </TableCell>
 
-                              {/* Gauge Chart */}
-                              <div className="flex justify-center mb-4">
-                                <div className="relative w-40 h-20">
-                                  <svg viewBox="0 0 120 60" className="w-full h-full">
-                                    {/* Background arc */}
-                                    <path
-                                      d="M 15 55 A 45 45 0 0 1 105 55"
-                                      fill="none"
-                                      stroke="hsl(var(--muted))"
-                                      strokeWidth="10"
-                                      strokeLinecap="round"
-                                      opacity="0.2"
-                                    />
-                                    
-                                    {value.biomarkers.normal_min !== null && value.biomarkers.normal_max !== null ? (
-                                      <>
-                                        {/* Critical zone left */}
-                                        <path
-                                          d="M 15 55 A 45 45 0 0 1 25 35"
-                                          fill="none"
-                                          stroke="hsl(var(--status-critical))"
-                                          strokeWidth="10"
-                                          strokeLinecap="round"
-                                        />
-                                        {/* Risk zone left */}
-                                        <path
-                                          d="M 25 35 A 45 45 0 0 1 35 25"
-                                          fill="none"
-                                          stroke="hsl(var(--status-risk))"
-                                          strokeWidth="10"
-                                        />
-                                        {/* Acceptable zone left */}
-                                        <path
-                                          d="M 35 25 A 45 45 0 0 1 45 20"
-                                          fill="none"
-                                          stroke="hsl(var(--status-acceptable))"
-                                          strokeWidth="10"
-                                        />
-                                        {/* Optimal zone */}
-                                        <path
-                                          d="M 45 20 A 45 45 0 0 1 75 20"
-                                          fill="none"
-                                          stroke="hsl(var(--status-optimal))"
-                                          strokeWidth="10"
-                                        />
-                                        {/* Acceptable zone right */}
-                                        <path
-                                          d="M 75 20 A 45 45 0 0 1 85 25"
-                                          fill="none"
-                                          stroke="hsl(var(--status-acceptable))"
-                                          strokeWidth="10"
-                                        />
-                                        {/* Risk zone right */}
-                                        <path
-                                          d="M 85 25 A 45 45 0 0 1 95 35"
-                                          fill="none"
-                                          stroke="hsl(var(--status-risk))"
-                                          strokeWidth="10"
-                                        />
-                                        {/* Critical zone right */}
-                                        <path
-                                          d="M 95 35 A 45 45 0 0 1 105 55"
-                                          fill="none"
-                                          stroke="hsl(var(--status-critical))"
-                                          strokeWidth="10"
-                                          strokeLinecap="round"
-                                        />
-                                      </>
-                                    ) : null}
-                                    
-                                    {/* Needle with glow */}
-                                    <defs>
-                                      <filter id={`glow-${value.id}`}>
-                                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                                        <feMerge>
-                                          <feMergeNode in="coloredBlur"/>
-                                          <feMergeNode in="SourceGraphic"/>
-                                        </feMerge>
-                                      </filter>
-                                    </defs>
-                                    <line
-                                      x1="60"
-                                      y1="55"
-                                      x2={60 + 40 * Math.cos((angle - 90) * Math.PI / 180)}
-                                      y2={55 + 40 * Math.sin((angle - 90) * Math.PI / 180)}
-                                      stroke="currentColor"
-                                      strokeWidth="3"
-                                      strokeLinecap="round"
-                                      className={color}
-                                      filter={`url(#glow-${value.id})`}
-                                    />
-                                    {/* Center dot */}
-                                    <circle 
-                                      cx="60" 
-                                      cy="55" 
-                                      r="4" 
-                                      fill="currentColor" 
-                                      className={color}
-                                    />
-                                  </svg>
-                                </div>
-                              </div>
+                                    <TableCell>
+                                      <span
+                                        className="text-lg font-bold"
+                                        style={{
+                                          color: statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))"
+                                        }}
+                                      >
+                                        {value.value} {value.biomarkers.unit}
+                                      </span>
+                                    </TableCell>
 
-                              {/* Value Display */}
-                              <div className="text-center mb-4">
-                                <div className={`text-4xl font-bold mb-1 ${color}`}>
-                                  {value.value}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {value.biomarkers.unit}
-                                </div>
-                              </div>
+                                    <TableCell>
+                                      {statusInfo ? (
+                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.bgClass} ${statusInfo.colorClass} border ${statusInfo.borderClass}`}>
+                                          <span>{statusInfo.emoji}</span>
+                                          <span>{statusInfo.label}</span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-sm text-muted-foreground">—</span>
+                                      )}
+                                    </TableCell>
 
-                              {/* Status Badge */}
-                              {(min !== null || max !== null) && (
-                                <div className="flex justify-center mb-4">
-                                  <div className={`px-3 py-1 rounded-full ${statusInfo.bgClass} ${statusInfo.colorClass} text-sm font-medium border ${statusInfo.borderClass}`}>
-                                    {statusInfo.emoji} {statusInfo.label}
-                                  </div>
-                                </div>
-                              )}
+                                    <TableCell className="min-w-[200px]">
+                                      {min !== null || max !== null ? (
+                                        <div className="space-y-1">
+                                          <BiomarkerRangeBar
+                                            biomarker={value.biomarkers}
+                                            value={value.value}
+                                            age={patientAge}
+                                            gender={patientGender}
+                                          />
+                                          <span className="text-xs text-muted-foreground">
+                                            {min !== null && max !== null
+                                              ? `${min}-${max} ${value.biomarkers.unit}`
+                                              : min !== null
+                                              ? `> ${min} ${value.biomarkers.unit}`
+                                              : `< ${max} ${value.biomarkers.unit}`}
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-sm text-muted-foreground">-</span>
+                                      )}
+                                    </TableCell>
 
-                              {/* 7-segment Range Bar */}
-                              <div className="mb-4">
-                                <BiomarkerRangeBar
-                                  biomarker={value.biomarkers}
-                                  value={value.value}
-                                  age={patientAge}
-                                  gender={patientGender}
-                                  showLabels
-                                />
-                              </div>
-
-                              {/* Reference Range */}
-                              {(min !== null || max !== null) && (
-                                <div className="text-center mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
-                                  <div className="text-xs text-muted-foreground mb-1">
-                                    Референсные значения
-                                  </div>
-                                  <div className="text-sm font-semibold text-status-good">
-                                    {min !== null && max !== null
-                                      ? `${min} - ${max} ${value.biomarkers.unit}`
-                                      : min !== null
-                                        ? `≥ ${min} ${value.biomarkers.unit}`
-                                        : `≤ ${max} ${value.biomarkers.unit}`
-                                    }
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Description */}
-                              {value.biomarkers.description && (
-                                <div className="text-sm text-muted-foreground leading-relaxed border-t border-border/30 pt-4">
-                                  {value.biomarkers.description}
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                    </CardContent>
-                  )}
-                </Card>
-              ))
+                                    <TableCell className="text-center">
+                                      {value.biomarkers.description ? (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button className="inline-flex items-center justify-center rounded-full w-7 h-7 bg-primary/10 hover:bg-primary/20 transition-colors">
+                                              <Info className="h-5 w-5 text-primary" />
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent className="max-w-xs" side="top" align="center" sideOffset={8}>
+                                            <p className="text-sm">{value.biomarkers.description}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      ) : null}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </TooltipProvider>
             )}
           </TabsContent>
 
