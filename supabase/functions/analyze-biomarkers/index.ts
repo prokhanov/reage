@@ -464,8 +464,8 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
           let criticalMin = bm.biomarkers.critical_min;
           let criticalMax = bm.biomarkers.critical_max;
           
-          // Check age_ranges first if available
-          if (age && patientGender && bm.biomarkers.age_ranges && bm.biomarkers.age_ranges[patientGender]) {
+          // Check age_ranges first if range_mode is 'age'
+          if (age && patientGender && bm.biomarkers.range_mode === 'age' && bm.biomarkers.age_ranges && bm.biomarkers.age_ranges[patientGender]) {
             const ageRange = bm.biomarkers.age_ranges[patientGender].find(
               (range: any) => age >= range.age_from && age <= range.age_to
             );
@@ -863,8 +863,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             let critMin = av.biomarkers.critical_min;
             let critMax = av.biomarkers.critical_max;
             
-            // 1. Check age_ranges first
-            if (age && prescPatientGender && av.biomarkers.age_ranges && av.biomarkers.age_ranges[prescPatientGender]) {
+            // 1. Check age_ranges first (only if range_mode is 'age')
+            if (age && prescPatientGender && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges && av.biomarkers.age_ranges[prescPatientGender]) {
               const ageRange = av.biomarkers.age_ranges[prescPatientGender].find(
                 (r: any) => age >= r.age_from && age <= r.age_to
               );
@@ -902,7 +902,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             let critMin = av.biomarkers.critical_min;
             let critMax = av.biomarkers.critical_max;
             
-            if (age && prescPatientGender && av.biomarkers.age_ranges && av.biomarkers.age_ranges[prescPatientGender]) {
+            if (age && prescPatientGender && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges && av.biomarkers.age_ranges[prescPatientGender]) {
               const ageRange = av.biomarkers.age_ranges[prescPatientGender].find(
                 (r: any) => age >= r.age_from && age <= r.age_to
               );
@@ -1089,7 +1089,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         let criticalMin = av.biomarkers.critical_min;
         let criticalMax = av.biomarkers.critical_max;
         
-        if (av.biomarkers.age_ranges && patientGender && patientAge !== null) {
+        if (av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges && patientGender && patientAge !== null) {
           const ageRanges = av.biomarkers.age_ranges[patientGender];
           if (ageRanges) {
             const ageRange = ageRanges.find((r: any) => 
@@ -1174,7 +1174,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       const markerCount = biomarkerValues.filter(av => {
         let nMin = av.biomarkers.normal_min;
         let nMax = av.biomarkers.normal_max;
-        if (av.biomarkers.age_ranges && patientGender && patientAge !== null) {
+        if (av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges && patientGender && patientAge !== null) {
           const ageRanges = av.biomarkers.age_ranges[patientGender];
           if (ageRanges) {
             const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
@@ -1243,7 +1243,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             let normalMin = av.biomarkers.normal_min;
             let normalMax = av.biomarkers.normal_max;
             
-            if (av.biomarkers.age_ranges && patientGender && patientAge !== null) {
+            if (av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges && patientGender && patientAge !== null) {
               const ageRanges = av.biomarkers.age_ranges[patientGender];
               if (ageRanges) {
                 const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
