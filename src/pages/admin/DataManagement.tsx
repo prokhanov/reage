@@ -1292,23 +1292,44 @@ export default function DataManagement() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Общий</Label>
-                    <Input id="optimal_min" name="optimal_min" type="number" step="any" defaultValue={editingBiomarker?.optimal_min} placeholder="—" />
+                    <Input id="optimal_min" name="optimal_min" type="number" step="any" defaultValue={editingBiomarker?.optimal_min} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_min: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
-                    <Input name="optimal_min_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_male} placeholder="—" />
+                    <Input name="optimal_min_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_min_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Женщины</Label>
-                    <Input name="optimal_min_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_female} placeholder="—" />
+                    <Input name="optimal_min_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_min_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_min_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
               </div>
 
-              {/* 🟢 Optimal zone label */}
-              <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-center">
+              {/* 🟢 Optimal zone label — dynamic display */}
+              <div className="rounded-lg border border-status-optimal/30 bg-status-optimal/10 p-3 text-center space-y-1">
                 <Label className="text-sm font-medium text-status-optimal">🟢 Оптимальная зона</Label>
-                <p className="text-[10px] text-muted-foreground">Значения между optimal_min и optimal_max</p>
+                <div className="flex flex-wrap justify-center gap-x-4 gap-y-0.5 text-[11px] text-muted-foreground">
+                  {(() => {
+                    const fmt = (min: number | null | undefined, max: number | null | undefined) => {
+                      if (min == null && max == null) return '—';
+                      if (min == null) return `≤ ${max}`;
+                      if (max == null) return `≥ ${min}`;
+                      return `${min} — ${max}`;
+                    };
+                    const b = editingBiomarker;
+                    const general = fmt(b?.optimal_min, b?.optimal_max);
+                    const male = fmt(b?.optimal_min_male, b?.optimal_max_male);
+                    const female = fmt(b?.optimal_min_female, b?.optimal_max_female);
+                    const parts: {label: string; val: string}[] = [];
+                    if (general !== '—') parts.push({label: 'Общий', val: general});
+                    if (male !== '—') parts.push({label: 'Муж', val: male});
+                    if (female !== '—') parts.push({label: 'Жен', val: female});
+                    if (parts.length === 0) return <span>Не задана (будет равна нормальному диапазону)</span>;
+                    return parts.map((p, i) => (
+                      <span key={i} className="text-status-optimal font-medium">{p.label}: {p.val}</span>
+                    ));
+                  })()}
+                </div>
               </div>
 
               {/* 🟡 optimal_max — boundary between Optimal and Acceptable High */}
@@ -1317,15 +1338,15 @@ export default function DataManagement() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Общий</Label>
-                    <Input id="optimal_max" name="optimal_max" type="number" step="any" defaultValue={editingBiomarker?.optimal_max} placeholder="—" />
+                    <Input id="optimal_max" name="optimal_max" type="number" step="any" defaultValue={editingBiomarker?.optimal_max} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_max: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Мужчины</Label>
-                    <Input name="optimal_max_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_male} placeholder="—" />
+                    <Input name="optimal_max_male" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_male} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_max_male: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Женщины</Label>
-                    <Input name="optimal_max_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_female} placeholder="—" />
+                    <Input name="optimal_max_female" type="number" step="any" defaultValue={editingBiomarker?.optimal_max_female} placeholder="—" onChange={(e) => setEditingBiomarker((prev: any) => prev ? {...prev, optimal_max_female: e.target.value ? Number(e.target.value) : null} : prev)} />
                   </div>
                 </div>
               </div>
