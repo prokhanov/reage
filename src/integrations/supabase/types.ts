@@ -306,6 +306,12 @@ export type Database = {
           category: string
           code: string
           created_at: string
+          critical_max: number | null
+          critical_max_female: number | null
+          critical_max_male: number | null
+          critical_min: number | null
+          critical_min_female: number | null
+          critical_min_male: number | null
           description: string | null
           display_order: number
           id: string
@@ -316,6 +322,12 @@ export type Database = {
           normal_min: number | null
           normal_min_female: number | null
           normal_min_male: number | null
+          optimal_max: number | null
+          optimal_max_female: number | null
+          optimal_max_male: number | null
+          optimal_min: number | null
+          optimal_min_female: number | null
+          optimal_min_male: number | null
           unit: string
           updated_at: string
         }
@@ -325,6 +337,12 @@ export type Database = {
           category: string
           code: string
           created_at?: string
+          critical_max?: number | null
+          critical_max_female?: number | null
+          critical_max_male?: number | null
+          critical_min?: number | null
+          critical_min_female?: number | null
+          critical_min_male?: number | null
           description?: string | null
           display_order?: number
           id?: string
@@ -335,6 +353,12 @@ export type Database = {
           normal_min?: number | null
           normal_min_female?: number | null
           normal_min_male?: number | null
+          optimal_max?: number | null
+          optimal_max_female?: number | null
+          optimal_max_male?: number | null
+          optimal_min?: number | null
+          optimal_min_female?: number | null
+          optimal_min_male?: number | null
           unit: string
           updated_at?: string
         }
@@ -344,6 +368,12 @@ export type Database = {
           category?: string
           code?: string
           created_at?: string
+          critical_max?: number | null
+          critical_max_female?: number | null
+          critical_max_male?: number | null
+          critical_min?: number | null
+          critical_min_female?: number | null
+          critical_min_male?: number | null
           description?: string | null
           display_order?: number
           id?: string
@@ -354,6 +384,12 @@ export type Database = {
           normal_min?: number | null
           normal_min_female?: number | null
           normal_min_male?: number | null
+          optimal_max?: number | null
+          optimal_max_female?: number | null
+          optimal_max_male?: number | null
+          optimal_min?: number | null
+          optimal_min_female?: number | null
+          optimal_min_male?: number | null
           unit?: string
           updated_at?: string
         }
