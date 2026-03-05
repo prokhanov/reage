@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
@@ -201,104 +202,118 @@ export default function Analyses() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayAnalyses.map((analysis) => (
-              <Card
-                key={analysis.id}
-                className="hover:shadow-neon-primary hover:border-primary/50 transition-all border-primary/20 bg-gradient-to-br from-card to-primary/5 group relative"
-              >
-                <div
-                  className="cursor-pointer"
-                  onClick={() => {
-                    if (isViewMode) {
-                      setSimPath(`/analyses/${analysis.id}`);
-                    } else {
-                      navigate(`/analyses/${analysis.id}`);
-                    }
-                  }}
-                >
-                  <CardHeader>
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">
-                        {new Date(analysis.date).toLocaleDateString("ru-RU", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
-                      </CardTitle>
-                      <AnalysisStatusBadge status={analysis.status} className="ml-auto" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {analysis.lab_name && (
-                        <p className="text-sm text-muted-foreground">{analysis.lab_name}</p>
-                      )}
-                      {analysis.biomarkers_count && analysis.biomarkers_count > 0 && (
-                        <Badge 
-                          variant="secondary"
-                          className="text-xs"
-                        >
-                          {analysis.biomarkers_count} маркеров
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {analysis.health_index !== null ? (
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Индекс здоровья:</span>
-                          <span className="text-2xl font-bold text-primary">
-                            {analysis.health_index}
+          <Card className="border-primary/20 bg-card/80 backdrop-blur-sm">
+            <div className="rounded-md border-0 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-b border-border/50">
+                    <TableHead className="font-semibold">Дата</TableHead>
+                    <TableHead className="font-semibold">Лаборатория</TableHead>
+                    <TableHead className="font-semibold text-center">Маркеров</TableHead>
+                    <TableHead className="font-semibold text-center">Индекс здоровья</TableHead>
+                    <TableHead className="font-semibold text-center">Био. возраст</TableHead>
+                    <TableHead className="font-semibold text-center">Статус</TableHead>
+                    {isViewMode && hasPatientAccess && (
+                      <TableHead className="font-semibold text-right">Действия</TableHead>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayAnalyses.map((analysis) => (
+                    <TableRow
+                      key={analysis.id}
+                      className="cursor-pointer hover:bg-primary/5 transition-colors border-b border-border/30"
+                      onClick={() => {
+                        if (isViewMode) {
+                          setSimPath(`/analyses/${analysis.id}`);
+                        } else {
+                          navigate(`/analyses/${analysis.id}`);
+                        }
+                      }}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-primary shrink-0" />
+                          <span className="font-medium">
+                            {new Date(analysis.date).toLocaleDateString("ru-RU", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}
                           </span>
                         </div>
-                        {analysis.biological_age !== null && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Био. возраст:</span>
-                            <span className="text-lg font-semibold text-foreground">
-                              {Math.round(analysis.biological_age * 10) / 10} лет
-                            </span>
-                          </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-muted-foreground">
+                          {analysis.lab_name || "—"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {analysis.biomarkers_count && analysis.biomarkers_count > 0 ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {analysis.biomarkers_count}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
                         )}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Нажмите, чтобы добавить показатели
-                      </p>
-                    )}
-                  </CardContent>
-                </div>
-                {isViewMode && hasPatientAccess && (
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-primary/10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAnalysisToEdit(analysis.id);
-                        setEditAnalysisDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAnalysisToDelete(analysis.id);
-                        setDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {analysis.health_index !== null ? (
+                          <span className="text-lg font-bold text-primary">
+                            {analysis.health_index}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {analysis.biological_age !== null ? (
+                          <span className="font-semibold text-foreground">
+                            {Math.round(analysis.biological_age * 10) / 10} лет
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <AnalysisStatusBadge status={analysis.status} />
+                      </TableCell>
+                      {isViewMode && hasPatientAccess && (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-primary/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setAnalysisToEdit(analysis.id);
+                                setEditAnalysisDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setAnalysisToDelete(analysis.id);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
         )}
         </>
       )}
