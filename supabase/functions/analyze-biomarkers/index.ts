@@ -1166,7 +1166,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         }
       }
       
-      // Normalize: avg_penalty × 25
+      // Normalize: avg_penalty × 15
       const markerCount = biomarkerValues.filter(av => {
         let nMin = av.biomarkers.normal_min;
         let nMax = av.biomarkers.normal_max;
@@ -1209,16 +1209,37 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     }
     
     if (totalValues > 0) {
-      // Get total biomarkers count in the system
-      const { count: totalBiomarkersInSystem } = await supabase
-        .from("biomarkers")
-        .select("id", { count: "exact", head: true });
+      // Get biomarkers count from patient's subscription plan (not all system biomarkers)
+      let planBiomarkersCount: number | null = null;
+      
+      const { data: subscription } = await supabase
+        .from("subscriptions")
+        .select("plan_id")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (subscription?.plan_id) {
+        const { count } = await supabase
+          .from("plan_biomarkers")
+          .select("id", { count: "exact", head: true })
+          .eq("plan_id", subscription.plan_id);
+        
+        if (count && count > 0) {
+          planBiomarkersCount = count;
+        }
+      }
+      
+      // Fallback: if no plan found, use submitted marker count (confidence = 1.0)
+      const totalBiomarkersForCoverage = planBiomarkersCount || compositeBiomarkers.values.length;
       
       const healthResult = calculateHealthIndex(
         compositeBiomarkers.values,
         patientAge,
         patientGender,
-        totalBiomarkersInSystem || 71
+        totalBiomarkersForCoverage
       );
       
       health_index = Math.round(healthResult.adjusted);
