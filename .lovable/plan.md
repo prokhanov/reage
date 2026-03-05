@@ -1,28 +1,53 @@
 
 
-## Plan: Restructure Age-Dependent Ranges to 7-Segment Layout
+# Уведомление демо-пользователей в AI-ассистенте
 
-Currently, each age range entry (lines 1432-1490 for male, 1502-1560 for female) uses a flat layout with "Норма Min/Max" on the first row and "Опт. Min/Max, Крит. Min/Max" on the second row. This is inconsistent with the main 7-segment boundary layout above.
+## Проблема
 
-### Change: `src/pages/admin/DataManagement.tsx` (lines 1432-1490 male, 1502-1560 female)
+Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
 
-Restructure each age range entry to match the same 7-segment ordered boundary pattern as the main section:
+## Решение
 
-For each age range block, after the age inputs (От/До лет) and delete button, replace the current 2-row grid with 7 ordered boundary rows:
+Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
 
-```text
-🔴 Крит. низ    → critical_min  (input)
-🟠 Риск низ     → min           (input, currently "Норма Min")
-🟡 Допуст. низ  → optimal_min   (input)
-🟢 Оптимальная зона: {optimal_min} — {optimal_max}  (calculated display)
-🟡 Допуст. верх → optimal_max   (input)
-🟠 Риск верх    → max           (input, currently "Норма Max")
-🔴 Крит. верх   → critical_max  (input)
+## Техническая реализация
+
+### Файл: `supabase/functions/health-assistant/index.ts`
+
+1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
+2. После получения профиля проверить `profile.demo_mode_enabled`
+3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
+4. Вместо полного контекста подставить текст:
+
+```
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
+
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
 ```
 
-Each boundary uses the same color-coded block style (border + bg tint) as the main section, but more compact (single input per row since these are gender-specific already). The green optimal zone row shows the calculated range dynamically, same as the main section.
+5. Если `false` — оставить текущую логику без изменений
 
-The age inputs (От/До лет) stay at the top of each block with the delete button.
+### Изменения в коде (псевдокод)
 
-Apply identically for both male and female sections.
+```typescript
+// Текущий SELECT:
+.select('*')
+// Заменить на:
+.select('*, demo_mode_enabled')
+
+// После получения профиля:
+if (profile?.demo_mode_enabled) {
+  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
+  // Формируем упрощённый systemPrompt с уведомлением
+} else {
+  // Существующая логика
+}
+```
+
+### Файлы
+- `supabase/functions/health-assistant/index.ts` — единственное изменение
 
