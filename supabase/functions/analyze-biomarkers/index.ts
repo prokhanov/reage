@@ -1191,8 +1191,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       const coverage = markerCount / totalBiomarkersInSystem;
       const confidenceFactor = Math.min(1.0, coverage / 0.5);
       
-      // Adjust toward 70 when low coverage
-      const adjustedHealthIndex = 70 + (rawHealthIndex - 70) * confidenceFactor;
+      // Confidence factor is informational only (for UI), does not affect score
+      const adjustedHealthIndex = rawHealthIndex;
       
       return {
         raw: Math.round(rawHealthIndex * 10) / 10,
