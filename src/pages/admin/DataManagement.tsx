@@ -1418,8 +1418,7 @@ export default function DataManagement() {
                 </div>
               </div>
             </div>
-
-
+            </>)}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -1450,9 +1449,9 @@ export default function DataManagement() {
               </div>
             </div>
 
-            {/* Age-dependent ranges */}
+            {rangeMode === 'age' && (
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Возрастные диапазоны (опционально)</Label>
+              <Label className="text-sm font-medium">Возрастные диапазоны</Label>
               <p className="text-xs text-muted-foreground">Укажите нормы для разных возрастных групп</p>
               
               {/* Male age ranges */}
@@ -1583,6 +1582,7 @@ export default function DataManagement() {
                 </Button>
               </div>
             </div>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setBiomarkerDialog(false)}>
