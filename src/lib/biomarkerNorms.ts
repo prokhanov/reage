@@ -88,8 +88,8 @@ export function getNormalRangeForAge(
   age: number,
   gender: 'male' | 'female'
 ): { min: number | null; max: number | null } {
-  // 1. Check age_ranges first
-  if (biomarker.age_ranges?.[gender]) {
+  // 1. Check age_ranges first (only if range_mode is 'age')
+  if (biomarker.range_mode === 'age' && biomarker.age_ranges?.[gender]) {
     const ageRange = biomarker.age_ranges[gender].find(
       (range: AgeRange) => age >= range.age_from && age <= range.age_to
     );
@@ -127,8 +127,8 @@ export function getOptimalRangeForAge(
   age: number,
   gender: 'male' | 'female'
 ): { min: number | null; max: number | null } {
-  // 1. Check age_ranges first
-  if (biomarker.age_ranges?.[gender]) {
+  // 1. Check age_ranges first (only if range_mode is 'age')
+  if (biomarker.range_mode === 'age' && biomarker.age_ranges?.[gender]) {
     const ageRange = biomarker.age_ranges[gender].find(
       (range: AgeRange) => age >= range.age_from && age <= range.age_to
     );
@@ -162,8 +162,8 @@ export function getCriticalRangeForAge(
   age: number,
   gender: 'male' | 'female'
 ): { min: number | null; max: number | null } {
-  // 1. Check age_ranges first
-  if (biomarker.age_ranges?.[gender]) {
+  // 1. Check age_ranges first (only if range_mode is 'age')
+  if (biomarker.range_mode === 'age' && biomarker.age_ranges?.[gender]) {
     const ageRange = biomarker.age_ranges[gender].find(
       (range: AgeRange) => age >= range.age_from && age <= range.age_to
     );

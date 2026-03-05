@@ -1,35 +1,53 @@
 
 
-## Plan: Preserve Both Range Modes, Use Selected for Evaluation
+# Уведомление демо-пользователей в AI-ассистенте
 
-### Problem
-Currently, switching to "age" mode and saving nullifies all general range fields (and vice versa). The user wants both datasets to be preserved in the database — the toggle only determines which mode is used for biomarker evaluation.
+## Проблема
 
-### Solution
+Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
 
-#### 1. Add `range_mode` column to `biomarkers` table
-- **Migration**: `ALTER TABLE biomarkers ADD COLUMN range_mode text NOT NULL DEFAULT 'general';`
-- Stores `'general'` or `'age'` — indicates which mode is active for evaluation
+## Решение
 
-#### 2. Update save logic in `DataManagement.tsx` (lines 414-443)
-- Remove all `isAgeMode ? null :` conditionals — always save both general fields and age_ranges as provided by the form
-- Add `range_mode: rangeMode` to the saved biomarker object
-- Both datasets persist regardless of which mode is selected
+Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
 
-#### 3. Update evaluation logic in `biomarkerNorms.ts`
-- `getNormalRangeForAge`, `getOptimalRangeForAge`, `getCriticalRangeForAge`: check `biomarker.range_mode`
-  - If `range_mode === 'age'` → use current logic (age_ranges first, then gender fallback, then general)
-  - If `range_mode === 'general'` (or undefined for backward compat) → skip age_ranges, go straight to gender-specific → general
+## Техническая реализация
 
-#### 4. Update edge functions
-- `analyze-biomarkers/index.ts` and `analyze-risk-zones/index.ts`: same logic — respect `range_mode` when resolving boundaries
+### Файл: `supabase/functions/health-assistant/index.ts`
 
-#### 5. UI: Initialize `rangeMode` from `biomarker.range_mode` on edit
+1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
+2. После получения профиля проверить `profile.demo_mode_enabled`
+3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
+4. Вместо полного контекста подставить текст:
 
-### Files
-- **Migration**: add `range_mode` column
-- `src/pages/admin/DataManagement.tsx` — save logic + init
-- `src/lib/biomarkerNorms.ts` — respect `range_mode`
-- `supabase/functions/analyze-biomarkers/index.ts` — respect `range_mode`
-- `supabase/functions/analyze-risk-zones/index.ts` — respect `range_mode`
+```
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
+
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
+```
+
+5. Если `false` — оставить текущую логику без изменений
+
+### Изменения в коде (псевдокод)
+
+```typescript
+// Текущий SELECT:
+.select('*')
+// Заменить на:
+.select('*, demo_mode_enabled')
+
+// После получения профиля:
+if (profile?.demo_mode_enabled) {
+  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
+  // Формируем упрощённый systemPrompt с уведомлением
+} else {
+  // Существующая логика
+}
+```
+
+### Файлы
+- `supabase/functions/health-assistant/index.ts` — единственное изменение
 

@@ -98,8 +98,8 @@ serve(async (req) => {
               let criticalMin = biomarker.critical_min;
               let criticalMax = biomarker.critical_max;
 
-              // Age-dependent ranges (highest priority)
-              if (biomarker.age_ranges && patientGender) {
+              // Age-dependent ranges (only if range_mode is 'age')
+              if (biomarker.range_mode === 'age' && biomarker.age_ranges && patientGender) {
                 const ageRanges = biomarker.age_ranges[patientGender];
                 if (ageRanges) {
                   const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
