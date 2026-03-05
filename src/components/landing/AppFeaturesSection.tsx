@@ -206,8 +206,15 @@ export function AppFeaturesSection() {
                     );
                   })}
                 </div>
-              </div>
-            </div>
+          </div>
+
+          {/* Demo CTA */}
+          <div className="mt-10 text-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <Button asChild size="lg" className="rounded-full px-8">
+              <Link to="/register">Попробовать демо бесплатно</Link>
+            </Button>
+          </div>
+        </div>
           </div>
         </div>
       </div>
