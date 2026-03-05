@@ -1170,6 +1170,40 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         }
       }
       
+      // BMI as virtual biomarker
+      let bmiMarkerAdded = false;
+      if (patientBMI !== null) {
+        const bmiWeight = 1.5;
+        let bmiPenalty = 0;
+        let bmiTier = 'optimal';
+        
+        if (patientBMI > 30 || patientBMI < 16) {
+          bmiPenalty = 15 * bmiWeight;
+          bmiTier = 'critical';
+        } else if (patientBMI > 27 || patientBMI < 17) {
+          bmiPenalty = 5 * bmiWeight;
+          bmiTier = 'risk';
+        } else if (patientBMI > 25 || patientBMI < 18.5) {
+          bmiPenalty = 1 * bmiWeight;
+          bmiTier = 'acceptable';
+        }
+        
+        totalPenalty += bmiPenalty;
+        bmiMarkerAdded = true;
+        
+        if (bmiPenalty > 0) {
+          penalties.push({
+            name: 'Индекс массы тела',
+            code: 'BMI',
+            tier: bmiTier,
+            penalty: bmiPenalty,
+            weight: bmiWeight
+          });
+        }
+        
+        console.log(`BMI ${patientBMI}: tier=${bmiTier}, penalty=${bmiPenalty}`);
+      }
+      
       // Normalize: avg_penalty × 15
       const markerCount = biomarkerValues.filter(av => {
         let nMin = av.biomarkers.normal_min;
