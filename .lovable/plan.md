@@ -1,53 +1,107 @@
 
 
-# Уведомление демо-пользователей в AI-ассистенте
+## Plan: 4-Tier Biomarker Status System
 
-## Проблема
+### Problem
+Currently the app only tracks "normal" vs "not normal" (binary). Need to implement 4 status tiers:
+- 🟢 **Оптимально** — value is in the optimal zone (inner range within normal)
+- 🟡 **Допустимо** — value is within normal range but outside optimal
+- 🟠 **Риск** — value is outside normal range but not critically
+- 🔴 **Критично** — value is far outside normal range
 
-Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
+### Scope of Changes
 
-## Решение
+This affects almost every part of the application. Here's the full breakdown:
 
-Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
+---
 
-## Техническая реализация
+### 1. Database: Add optimal/critical range fields to `biomarkers` table
 
-### Файл: `supabase/functions/health-assistant/index.ts`
+Add new columns via migration:
+- `optimal_min` (double precision, nullable)
+- `optimal_max` (double precision, nullable)
+- `optimal_min_male` / `optimal_max_male` (double precision, nullable)
+- `optimal_min_female` / `optimal_max_female` (double precision, nullable)
+- `critical_min` (double precision, nullable) — below this = critical
+- `critical_max` (double precision, nullable) — above this = critical
+- `critical_min_male` / `critical_max_male` (double precision, nullable)
+- `critical_min_female` / `critical_max_female` (double precision, nullable)
 
-1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
-2. После получения профиля проверить `profile.demo_mode_enabled`
-3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
-4. Вместо полного контекста подставить текст:
+Also extend the `age_ranges` JSONB structure to support `optimal_min`, `optimal_max`, `critical_min`, `critical_max` per age band.
 
-```
-ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
+### 2. Core utility: `src/lib/biomarkerNorms.ts`
 
-Твоя задача:
-- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
-- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
-- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
-- Предложи пользователю записаться на анализ
-```
+Add a new function `getBiomarkerStatus()` that returns one of 4 tiers:
+- Checks value against optimal range (optimal_min/max) → 🟢 Оптимально
+- Within normal range (normal_min/max) but outside optimal → 🟡 Допустимо
+- Outside normal but within critical thresholds → 🟠 Риск
+- Beyond critical thresholds → 🔴 Критично
 
-5. Если `false` — оставить текущую логику без изменений
+Add `getOptimalRangeForAge()` and `getCriticalRangeForAge()` functions with same fallback logic as existing `getNormalRangeForAge()`.
 
-### Изменения в коде (псевдокод)
+### 3. CSS: Add new status color variables
 
-```typescript
-// Текущий SELECT:
-.select('*')
-// Заменить на:
-.select('*, demo_mode_enabled')
+In `src/index.css`, add:
+- `--status-optimal` (green, same as good)
+- `--status-acceptable` (yellow-green)
+- `--status-risk` (orange)
+- `--status-critical` (red)
 
-// После получения профиля:
-if (profile?.demo_mode_enabled) {
-  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
-  // Формируем упрощённый systemPrompt с уведомлением
-} else {
-  // Существующая логика
-}
-```
+### 4. UI Components to Update
 
-### Файлы
-- `supabase/functions/health-assistant/index.ts` — единственное изменение
+**Files affected:**
+
+| File | What changes |
+|------|-------------|
+| `src/pages/Biomarkers.tsx` | Replace binary `isInNormalRange` with 4-tier status. Update row colors, value colors, scale bar gradient to show 4 zones |
+| `src/pages/AnalysisDetail.tsx` | Replace "В норме"/"Ниже нормы"/"Выше нормы" badges with 4-tier badges. Update gauge arc to show 4 color zones instead of 3 |
+| `src/pages/Trends.tsx` | Add optimal/critical reference areas on chart (4 colored bands) |
+| `src/pages/Dashboard.tsx` | Health index labels already use 4 tiers (Отлично/Хорошо/Умеренно/Внимание) — review for consistency |
+| `src/components/dashboard/SystemRatingsCard.tsx` | Already has 4-tier scoring — align color names |
+| `src/components/BodyHeatmap.tsx` | Replace "В норме" with appropriate 4-tier status |
+| `src/components/admin/AnalysisStep2.tsx` | Show 4-tier status hint next to biomarker input (optimal/acceptable/risk/critical ranges) |
+| `src/pages/admin/DataManagement.tsx` | Add optimal/critical range columns to biomarker management table, editable fields |
+
+### 5. Edge Function: `analyze-biomarkers`
+
+Update `calculateHealthIndex()` to use the 4-tier system for penalty calculation:
+- Optimal zone: 0 penalty
+- Acceptable zone: small penalty
+- Risk zone: medium penalty  
+- Critical zone: high penalty
+
+### 6. Admin Panel: Data Management
+
+Add columns to the biomarker editing UI for:
+- Optimal min/max (male/female)
+- Critical min/max (male/female)
+- Age-dependent optimal/critical ranges in the Age Ranges tab
+
+### 7. AI Prompts
+
+Update the analyze-biomarkers edge function to pass 4-tier classification info to AI prompts so category analysis and recommendations reference the correct status levels.
+
+---
+
+### Status Label & Color Mapping
+
+| Status | Label | Color Variable | Badge Style |
+|--------|-------|---------------|-------------|
+| 🟢 | Оптимально | `--status-optimal` (142 76% 45%) | `bg-status-optimal/20 text-status-optimal` |
+| 🟡 | Допустимо | `--status-acceptable` (55 80% 50%) | `bg-status-acceptable/20 text-status-acceptable` |
+| 🟠 | Риск | `--status-risk` (25 90% 55%) | `bg-status-risk/20 text-status-risk` |
+| 🔴 | Критично | `--status-critical` (0 85% 55%) | `bg-status-critical/20 text-status-critical` |
+
+---
+
+### Implementation Order
+
+1. Database migration (add columns)
+2. Update `biomarkerNorms.ts` utility
+3. Add CSS variables
+4. Update admin DataManagement UI (so ranges can be configured)
+5. Update patient-facing pages (Biomarkers, AnalysisDetail, Trends)
+6. Update edge function penalty calculation
+7. Update AnalysisStep2 display
+8. Review BodyHeatmap and Dashboard for consistency
 
