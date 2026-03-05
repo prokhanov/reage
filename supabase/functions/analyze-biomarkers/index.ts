@@ -1275,11 +1275,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       // Fallback: if no plan found, use submitted marker count (confidence = 1.0)
       const totalBiomarkersForCoverage = planBiomarkersCount || compositeBiomarkers.values.length;
       
+      const patientBMI = bmi ? Number(bmi) : null;
       const healthResult = calculateHealthIndex(
         compositeBiomarkers.values,
         patientAge,
         patientGender,
-        totalBiomarkersForCoverage
+        totalBiomarkersForCoverage,
+        patientBMI
       );
       
       health_index = Math.round(healthResult.adjusted);
