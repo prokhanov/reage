@@ -1220,7 +1220,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         if (nMin === null && nMax === null) return false;
         if (nMin !== null && nMax !== null && (nMax - nMin) <= 0) return false;
         return true;
-      }).length;
+      }).length + (bmiMarkerAdded ? 1 : 0);
       
       if (markerCount === 0) return { raw: 70, adjusted: 70, coverage: 0, confidenceFactor: 0, penalties: [] };
       
