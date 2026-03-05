@@ -1225,6 +1225,29 @@ export default function DataManagement() {
               </div>
             </div>
 
+            {/* Range mode toggle */}
+            <div className="flex items-center gap-2 p-3 rounded-lg border border-border bg-muted/30">
+              <Label className="text-xs font-medium text-muted-foreground mr-2">Режим диапазонов:</Label>
+              <Button
+                type="button"
+                size="sm"
+                variant={rangeMode === 'general' ? 'default' : 'outline'}
+                onClick={() => setRangeMode('general')}
+                className="text-xs h-7"
+              >
+                Общие диапазоны
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={rangeMode === 'age' ? 'default' : 'outline'}
+                onClick={() => setRangeMode('age')}
+                className="text-xs h-7"
+              >
+                Возрастные диапазоны
+              </Button>
+            </div>
+
             {/* 7-segment visual legend */}
             <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
               <p className="text-xs font-medium text-muted-foreground mb-1.5">Шкала 7 сегментов — значения определяют границы между зонами:</p>
@@ -1247,6 +1270,8 @@ export default function DataManagement() {
                 <span>🔴 Крит.</span>
               </div>
             </div>
+
+            {rangeMode === 'general' && (<>
 
             {/* 7-segment boundary inputs — ordered from low critical to high critical */}
             <div className="space-y-3">
