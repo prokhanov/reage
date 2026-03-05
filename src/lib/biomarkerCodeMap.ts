@@ -7,7 +7,7 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   HB: "Hb",
   HCT: "HCT",
   RBC: "RBC",
-  ESR: "СОЭ",
+  ESR: "ESR",
   FERR: "FERR",
   MCV: "MCV",
   MCHC: "MCH",
