@@ -15,7 +15,7 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -84,10 +84,10 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
   useEffect(() => {
     // Auto-expand all categories on load
-    const allCategories = Object.keys(groupedBiomarkers);
+    const allCategories = [...new Set(values.map(v => v.biomarkers.category))];
     const expanded = allCategories.reduce((acc, cat) => ({ ...acc, [cat]: true }), {});
     setExpandedCategories(expanded);
-  }, [biomarkers]);
+  }, [values]);
 
   const loadData = async () => {
     if (isDemoAnalysis) {
@@ -435,20 +435,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     return statusInfo.colorClass;
   };
 
-  const filteredBiomarkers = biomarkers.filter(
-    (b) =>
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredValues = values.filter(
+    (v) =>
+      v.biomarkers.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.biomarkers.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.biomarkers.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const groupedBiomarkers = filteredBiomarkers.reduce((acc, biomarker) => {
-    if (!acc[biomarker.category]) acc[biomarker.category] = [];
-    acc[biomarker.category].push(biomarker);
-    return acc;
-  }, {} as Record<string, Biomarker[]>);
-
-  const groupedValues = values.reduce((acc, value) => {
+  const groupedValues = filteredValues.reduce((acc, value) => {
     const category = value.biomarkers.category;
     if (!acc[category]) acc[category] = [];
     acc[category].push(value);
@@ -488,9 +482,10 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 </h2>
                 {analysis && <AnalysisStatusBadge status={analysis.status} />}
               </div>
-              {analysis?.lab_name && (
-                <p className="text-muted-foreground">Лаборатория: {analysis.lab_name}</p>
-              )}
+              <p className="text-muted-foreground">
+                Сдано маркеров: {values.length}
+                {analysis?.lab_name && ` · ${analysis.lab_name}`}
+              </p>
             </div>
           </div>
 
@@ -551,25 +546,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="entered" className="space-y-6">
-          {isDemoAnalysis ? (
-            <h3 className="text-lg font-semibold">
-              Введенные значения ({values.length})
-            </h3>
-          ) : (
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="entered">
-                Введенные значения ({values.length})
-              </TabsTrigger>
-              <TabsTrigger value="all">
-                Все показатели ({filteredBiomarkers.length})
-              </TabsTrigger>
-            </TabsList>
-          )}
-
-          {/* Entered Values Tab */}
-          <TabsContent value="entered" className="space-y-6">
+        {/* Entered Values */}
+        <div className="space-y-6">
             {values.length === 0 ? (
               <Card className="border-dashed border-2 border-primary/30">
                 <CardContent className="flex flex-col items-center justify-center py-16">
@@ -706,97 +684,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 </Accordion>
               </TooltipProvider>
             )}
-          </TabsContent>
-
-          {/* All Biomarkers Tab */}
-          <TabsContent value="all" className="space-y-6">
-            {Object.entries(groupedBiomarkers).map(([category, categoryBiomarkers]) => {
-              const enteredCount = categoryBiomarkers.filter(b => 
-                values.some(v => v.biomarker_id === b.id)
-              ).length;
-              
-              return (
-                <Card
-                  key={category}
-                  className="border-primary/20 bg-gradient-to-br from-card to-primary/5 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <CardHeader 
-                    className="cursor-pointer hover:bg-primary/5 transition-colors rounded-t-lg"
-                    onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }))}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-xl bg-gradient-primary bg-clip-text text-transparent">
-                          {category}
-                        </CardTitle>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-accent/20 text-accent border border-accent/30">
-                            {categoryBiomarkers.length} всего
-                          </span>
-                          {enteredCount > 0 && (
-                            <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-primary/20 text-primary border border-primary/30">
-                              {enteredCount} введено
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {expandedCategories[category] ? (
-                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                  </CardHeader>
-                  {expandedCategories[category] && (
-                    <CardContent>
-                  <div className="space-y-3">
-                    {categoryBiomarkers.map((biomarker) => {
-                      const existingValue = values.find((v) => v.biomarker_id === biomarker.id);
-
-                      return (
-                        <div
-                          key={biomarker.id}
-                          className="p-4 rounded-lg bg-muted/20 border border-border hover:border-primary/30 transition-all group"
-                        >
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex-1 space-y-2">
-                              <div className="flex items-start justify-between gap-2">
-                                <div>
-                                  <h4 className="font-semibold text-foreground">{biomarker.name}</h4>
-                                  <p className="text-xs text-muted-foreground">{biomarker.code}</p>
-                                </div>
-                                {existingValue && (
-                                  <span className="text-lg font-bold text-primary">
-                                    {existingValue.value} {biomarker.unit}
-                                  </span>
-                                )}
-                              </div>
-                              {biomarker.description && (
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                  {biomarker.description}
-                                </p>
-                              )}
-                              {biomarker.normal_min !== null && biomarker.normal_max !== null && (
-                                <div className="flex items-center gap-2 text-sm">
-                                  <span className="text-muted-foreground">Референс:</span>
-                                  <span className="font-medium text-status-good">
-                                    {biomarker.normal_min} - {biomarker.normal_max} {biomarker.unit}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                    </CardContent>
-                  )}
-                </Card>
-              );
-            })}
-          </TabsContent>
-        </Tabs>
+        </div>
 
         {id && (
           <>
