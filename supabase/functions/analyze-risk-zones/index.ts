@@ -114,15 +114,15 @@ serve(async (req) => {
                 }
               }
 
-              // Gender-specific fallback
+              // Gender-specific fallback (only if not already set by age-dependent ranges)
               if (patientGender === 'male') {
-                if (biomarker.normal_min_male != null) { normalMin = biomarker.normal_min_male; normalMax = biomarker.normal_max_male; }
-                if (biomarker.optimal_min_male != null) { optimalMin = biomarker.optimal_min_male; optimalMax = biomarker.optimal_max_male; }
-                if (biomarker.critical_min_male != null) { criticalMin = biomarker.critical_min_male; criticalMax = biomarker.critical_max_male; }
+                if (normalMin === biomarker.normal_min && biomarker.normal_min_male != null) { normalMin = biomarker.normal_min_male; normalMax = biomarker.normal_max_male; }
+                if (optimalMin === biomarker.optimal_min && biomarker.optimal_min_male != null) { optimalMin = biomarker.optimal_min_male; optimalMax = biomarker.optimal_max_male; }
+                if (criticalMin === biomarker.critical_min && biomarker.critical_min_male != null) { criticalMin = biomarker.critical_min_male; criticalMax = biomarker.critical_max_male; }
               } else if (patientGender === 'female') {
-                if (biomarker.normal_min_female != null) { normalMin = biomarker.normal_min_female; normalMax = biomarker.normal_max_female; }
-                if (biomarker.optimal_min_female != null) { optimalMin = biomarker.optimal_min_female; optimalMax = biomarker.optimal_max_female; }
-                if (biomarker.critical_min_female != null) { criticalMin = biomarker.critical_min_female; criticalMax = biomarker.critical_max_female; }
+                if (normalMin === biomarker.normal_min && biomarker.normal_min_female != null) { normalMin = biomarker.normal_min_female; normalMax = biomarker.normal_max_female; }
+                if (optimalMin === biomarker.optimal_min && biomarker.optimal_min_female != null) { optimalMin = biomarker.optimal_min_female; optimalMax = biomarker.optimal_max_female; }
+                if (criticalMin === biomarker.critical_min && biomarker.critical_min_female != null) { criticalMin = biomarker.critical_min_female; criticalMax = biomarker.critical_max_female; }
               }
 
               // Determine 4-tier status
