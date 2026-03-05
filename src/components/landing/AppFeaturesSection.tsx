@@ -158,42 +158,52 @@ export function AppFeaturesSection() {
             8 разделов для управления вашим здоровьем — от анализов до AI-ассистента
           </p>
 
-          {/* Interactive Showcase */}
+          {/* Interactive Showcase + integrated description */}
           <HeroShowcase onSectionChange={handleSectionChange} />
 
-          {/* Active feature description */}
-          <div key={activeSection} className="mt-8 max-w-2xl mx-auto text-left animate-fade-in">
-            <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/50 p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg shrink-0`}>
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-foreground">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.subtitle}</p>
-                </div>
-              </div>
+          {/* Feature description — seamlessly attached under the mockup */}
+          <div className="relative max-w-4xl mx-auto px-4">
+            <div
+              key={activeSection}
+              className="relative -mt-1 rounded-b-2xl border border-t-0 border-border/50 bg-card/60 backdrop-blur-xl overflow-hidden animate-fade-in"
+            >
+              {/* Colored accent line */}
+              <div className={`h-0.5 w-full bg-gradient-to-r ${feature.color}`} />
 
-              <p className="text-sm text-muted-foreground mb-4">{feature.description}</p>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {feature.badges.map((badge) => (
-                  <Badge key={badge} variant="secondary" className="text-xs">
-                    {badge}
-                  </Badge>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-border/50 space-y-2">
-                {feature.features.map((f, i) => {
-                  const FeatureIcon = f.icon;
-                  return (
-                    <div key={i} className="flex items-center gap-2 text-sm py-1">
-                      <FeatureIcon className="w-4 h-4 text-primary shrink-0" />
-                      <span className="text-foreground">{f.text}</span>
+              <div className="p-5 md:p-6 flex flex-col md:flex-row gap-5 text-left">
+                {/* Left: title + description */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-md shrink-0`}>
+                      <Icon className="w-4.5 h-4.5 text-white" />
                     </div>
-                  );
-                })}
+                    <div>
+                      <h3 className="font-semibold text-foreground leading-tight">{feature.title}</h3>
+                      <p className="text-xs text-muted-foreground">{feature.subtitle}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">{feature.description}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {feature.badges.map((badge) => (
+                      <Badge key={badge} variant="secondary" className="text-xs px-2 py-0.5">
+                        {badge}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: feature highlights */}
+                <div className="flex flex-col gap-1.5 md:border-l md:border-border/40 md:pl-5 shrink-0">
+                  {feature.features.map((f, i) => {
+                    const FeatureIcon = f.icon;
+                    return (
+                      <div key={i} className="flex items-center gap-2 text-sm py-0.5">
+                        <FeatureIcon className="w-4 h-4 text-primary shrink-0" />
+                        <span className="text-foreground whitespace-nowrap">{f.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
