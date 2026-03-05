@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
 import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
+import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 
