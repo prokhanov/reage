@@ -163,19 +163,54 @@ serve(async (req) => {
             if (!biomarker) return '';
             let normalMin = biomarker.normal_min;
             let normalMax = biomarker.normal_max;
+            let optimalMin = biomarker.optimal_min;
+            let optimalMax = biomarker.optimal_max;
+            let criticalMin = biomarker.critical_min;
+            let criticalMax = biomarker.critical_max;
+
+            // Age-dependent ranges (highest priority)
             if (patientAge && patientGender && biomarker.age_ranges) {
               const ageRanges = biomarker.age_ranges[patientGender];
               if (ageRanges) {
                 const ageRange = ageRanges.find((r: any) => patientAge >= r.age_from && patientAge <= r.age_to);
-                if (ageRange) { normalMin = ageRange.min; normalMax = ageRange.max; }
+                if (ageRange) {
+                  normalMin = ageRange.min;
+                  normalMax = ageRange.max;
+                  if (ageRange.optimal_min != null) optimalMin = ageRange.optimal_min;
+                  if (ageRange.optimal_max != null) optimalMax = ageRange.optimal_max;
+                  if (ageRange.critical_min != null) criticalMin = ageRange.critical_min;
+                  if (ageRange.critical_max != null) criticalMax = ageRange.critical_max;
+                }
               }
             }
-            if (patientGender === 'male' && biomarker.normal_min_male !== null) {
-              normalMin = biomarker.normal_min_male; normalMax = biomarker.normal_max_male;
-            } else if (patientGender === 'female' && biomarker.normal_min_female !== null) {
-              normalMin = biomarker.normal_min_female; normalMax = biomarker.normal_max_female;
+
+            // Gender-specific fallback
+            if (patientGender === 'male') {
+              if (biomarker.normal_min_male != null) { normalMin = biomarker.normal_min_male; normalMax = biomarker.normal_max_male; }
+              if (biomarker.optimal_min_male != null) { optimalMin = biomarker.optimal_min_male; optimalMax = biomarker.optimal_max_male; }
+              if (biomarker.critical_min_male != null) { criticalMin = biomarker.critical_min_male; criticalMax = biomarker.critical_max_male; }
+            } else if (patientGender === 'female') {
+              if (biomarker.normal_min_female != null) { normalMin = biomarker.normal_min_female; normalMax = biomarker.normal_max_female; }
+              if (biomarker.optimal_min_female != null) { optimalMin = biomarker.optimal_min_female; optimalMax = biomarker.optimal_max_female; }
+              if (biomarker.critical_min_female != null) { criticalMin = biomarker.critical_min_female; criticalMax = biomarker.critical_max_female; }
             }
-            return "- " + biomarker.name + ": " + b.value + " " + biomarker.unit + " (норма: " + normalMin + "-" + normalMax + ")";
+
+            // Determine 4-tier status
+            const value = b.value;
+            let status = '🟡 ДОПУСТИМО';
+            if (optimalMin != null && optimalMax != null && value >= optimalMin && value <= optimalMax) {
+              status = '🟢 ОПТИМАЛЬНО';
+            } else if ((criticalMin != null && value < criticalMin) || (criticalMax != null && value > criticalMax)) {
+              status = '🔴 КРИТИЧНО';
+            } else if (value < normalMin || value > normalMax) {
+              status = '🟠 РИСК';
+            }
+
+            let rangeInfo = `норма: ${normalMin}-${normalMax}`;
+            if (optimalMin != null && optimalMax != null) rangeInfo = `оптимум: ${optimalMin}-${optimalMax} | ${rangeInfo}`;
+            if (criticalMin != null || criticalMax != null) rangeInfo += ` | крит: ${criticalMin != null ? '<' + criticalMin : ''}${criticalMin != null && criticalMax != null ? ' / ' : ''}${criticalMax != null ? '>' + criticalMax : ''}`;
+
+            return "- " + biomarker.name + ": " + b.value + " " + biomarker.unit + " " + status + " (" + rangeInfo + ")";
           }).join("\n")
         : "";
 

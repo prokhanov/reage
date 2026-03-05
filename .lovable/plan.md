@@ -1,37 +1,53 @@
 
 
-## Remaining 4-Tier Status Gaps
+# Уведомление демо-пользователей в AI-ассистенте
 
-The core 4-tier system (🟢 Оптимально, 🟡 Допустимо, 🟠 Риск, 🔴 Критично) is already implemented in:
-- `biomarkerNorms.ts` utility (core logic)
-- CSS variables and Tailwind config
-- `Biomarkers.tsx`, `AnalysisDetail.tsx`, `Trends.tsx` (patient UI)
-- `BodyHeatmap.tsx`, `SystemRatingsCard.tsx` (dashboard)
-- `AnalysisStep2.tsx` (admin input)
-- `DataManagement.tsx` (admin config including age ranges)
-- `analyze-biomarkers` edge function (health index + AI prompts)
+## Проблема
 
-**What's still using binary norm/not-norm:**
+Демо-пользователи пишут в AI-ассистент, но у них нет реальных данных. Вместо сложной загрузки демо-данных в контекст — просто сообщить AI, что пользователь в демо-режиме.
 
-### 1. `health-assistant` edge function
-Lines 160-178: Only shows `(норма: min-max)` next to biomarker values. Should add optimal/critical ranges and 4-tier status label like the analyze-biomarkers function does.
+## Решение
 
-### 2. `analyze-risk-zones` edge function
-Lines 93-126: Only calculates deviation from normal range. Should include optimal/critical ranges and pass 4-tier status to the AI context so risk zone analysis accounts for all tiers.
+Добавить проверку `profile.demo_mode_enabled` в edge-функцию `health-assistant`. Если включён — заменить контекст пользователя на короткое сообщение для AI о том, что у пациента пока нет реальных данных и он использует демо-режим.
 
----
+## Техническая реализация
 
-### Implementation
+### Файл: `supabase/functions/health-assistant/index.ts`
 
-**File: `supabase/functions/health-assistant/index.ts`**
-- Extend biomarker context building (lines 160-178) to resolve optimal/critical ranges with same fallback logic (age → gender → general)
-- Add 4-tier status label next to each biomarker: `🟢 ОПТИМАЛЬНО`, `🟡 ДОПУСТИМО`, `🟠 РИСК`, `🔴 КРИТИЧНО`
-- Show expanded range info: `(оптимум: X-Y | норма: X-Y | крит: <X / >Y)`
+1. При запросе профиля добавить поле `demo_mode_enabled` в SELECT
+2. После получения профиля проверить `profile.demo_mode_enabled`
+3. Если `true` — пропустить все запросы к `analyses`, `analysis_values`, `user_symptoms`, `prescriptions`
+4. Вместо полного контекста подставить текст:
 
-**File: `supabase/functions/analyze-risk-zones/index.ts`**
-- Extend biomarker context building (lines 88-128) to resolve optimal/critical ranges
-- Add 4-tier status label and include optimal/critical range info in the AI context
-- Replace simple `[норма для возраста: X-Y]` with full range display
+```
+ВАЖНО: Этот пациент пока не сдавал реальные анализы. Сейчас он находится в демо-режиме и видит примерные данные для ознакомления с платформой.
 
-Both functions will use the same range resolution logic already proven in `analyze-biomarkers`.
+Твоя задача:
+- Вежливо сообщить пользователю, что ты пока не можешь дать персонализированные рекомендации, так как у тебя нет его реальных данных
+- Объяснить, что после сдачи первого анализа ты сможешь анализировать его показатели и давать конкретные советы
+- Можешь отвечать на общие вопросы о здоровье, но подчеркни что без реальных данных это будут общие рекомендации
+- Предложи пользователю записаться на анализ
+```
+
+5. Если `false` — оставить текущую логику без изменений
+
+### Изменения в коде (псевдокод)
+
+```typescript
+// Текущий SELECT:
+.select('*')
+// Заменить на:
+.select('*, demo_mode_enabled')
+
+// После получения профиля:
+if (profile?.demo_mode_enabled) {
+  // Пропускаем запросы к analyses, biomarkers, symptoms, prescriptions
+  // Формируем упрощённый systemPrompt с уведомлением
+} else {
+  // Существующая логика
+}
+```
+
+### Файлы
+- `supabase/functions/health-assistant/index.ts` — единственное изменение
 
