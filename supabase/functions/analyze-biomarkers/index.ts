@@ -456,9 +456,13 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
         const patientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
         
         const biomarkersText = (biomarkers as any[]).map((bm: any) => {
-          // Determine correct normal range based on age and gender
+          // Determine correct ranges based on age and gender
           let normalMin = bm.biomarkers.normal_min;
           let normalMax = bm.biomarkers.normal_max;
+          let optimalMin = bm.biomarkers.optimal_min;
+          let optimalMax = bm.biomarkers.optimal_max;
+          let criticalMin = bm.biomarkers.critical_min;
+          let criticalMax = bm.biomarkers.critical_max;
           
           // Check age_ranges first if available
           if (age && patientGender && bm.biomarkers.age_ranges && bm.biomarkers.age_ranges[patientGender]) {
@@ -468,26 +472,63 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
             if (ageRange) {
               normalMin = ageRange.min;
               normalMax = ageRange.max;
+              if (ageRange.optimal_min !== undefined) optimalMin = ageRange.optimal_min;
+              if (ageRange.optimal_max !== undefined) optimalMax = ageRange.optimal_max;
+              if (ageRange.critical_min !== undefined) criticalMin = ageRange.critical_min;
+              if (ageRange.critical_max !== undefined) criticalMax = ageRange.critical_max;
             }
           }
           
-          // Fallback to gender-specific ranges if no age range found
-          if ((normalMin === null || normalMax === null) && patientGender === 'male' && bm.biomarkers.normal_min_male !== null && bm.biomarkers.normal_max_male !== null) {
+          // Fallback to gender-specific ranges
+          if ((normalMin === null || normalMax === null) && patientGender === 'male' && bm.biomarkers.normal_min_male !== null) {
             normalMin = bm.biomarkers.normal_min_male;
             normalMax = bm.biomarkers.normal_max_male;
-          } else if ((normalMin === null || normalMax === null) && patientGender === 'female' && bm.biomarkers.normal_min_female !== null && bm.biomarkers.normal_max_female !== null) {
+          } else if ((normalMin === null || normalMax === null) && patientGender === 'female' && bm.biomarkers.normal_min_female !== null) {
             normalMin = bm.biomarkers.normal_min_female;
             normalMax = bm.biomarkers.normal_max_female;
           }
+          if (optimalMin === null && patientGender === 'male' && bm.biomarkers.optimal_min_male !== null) {
+            optimalMin = bm.biomarkers.optimal_min_male;
+            optimalMax = bm.biomarkers.optimal_max_male;
+          } else if (optimalMin === null && patientGender === 'female' && bm.biomarkers.optimal_min_female !== null) {
+            optimalMin = bm.biomarkers.optimal_min_female;
+            optimalMax = bm.biomarkers.optimal_max_female;
+          }
+          if (criticalMin === null && patientGender === 'male' && bm.biomarkers.critical_min_male !== null) {
+            criticalMin = bm.biomarkers.critical_min_male;
+            criticalMax = bm.biomarkers.critical_max_male;
+          } else if (criticalMin === null && patientGender === 'female' && bm.biomarkers.critical_min_female !== null) {
+            criticalMin = bm.biomarkers.critical_min_female;
+            criticalMax = bm.biomarkers.critical_max_female;
+          }
           
-          const isLow = normalMin !== null && bm.value < normalMin;
-          const isHigh = normalMax !== null && bm.value > normalMax;
-          const status = isLow ? "⬇️ НИЗКИЙ" : isHigh ? "⬆️ ВЫСОКИЙ" : "✅ НОРМА";
+          // 4-tier status
+          let status = "✅ ОПТИМАЛЬНО";
+          const isCriticalLow = criticalMin !== null && bm.value < criticalMin;
+          const isCriticalHigh = criticalMax !== null && bm.value > criticalMax;
+          const isOutsideNormal = (normalMin !== null && bm.value < normalMin) || (normalMax !== null && bm.value > normalMax);
+          const isInOptimal = optimalMin !== null && optimalMax !== null 
+            ? bm.value >= optimalMin && bm.value <= optimalMax 
+            : !isOutsideNormal;
+          
+          if (isCriticalLow || isCriticalHigh) {
+            status = "🔴 КРИТИЧНО";
+          } else if (isOutsideNormal) {
+            status = "🟠 РИСК";
+          } else if (!isInOptimal) {
+            status = "🟡 ДОПУСТИМО";
+          }
+          
+          const rangesText = [
+            optimalMin !== null ? `Оптимум: ${optimalMin}-${optimalMax}` : null,
+            `Норма: ${normalMin || "?"}-${normalMax || "?"}`,
+            criticalMin !== null ? `Крит: <${criticalMin} или >${criticalMax}` : null,
+          ].filter(Boolean).join(' | ');
           
           return `
 ${bm.biomarkers.name} (${bm.biomarkers.code}):
   Значение: ${bm.value} ${bm.biomarkers.unit}
-  Норма: ${normalMin || "?"} - ${normalMax || "?"} ${bm.biomarkers.unit}
+  ${rangesText} ${bm.biomarkers.unit}
   Статус: ${status}
   ${bm.biomarkers.description ? `Описание: ${bm.biomarkers.description}` : ""}
           `.trim();
