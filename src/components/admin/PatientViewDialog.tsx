@@ -81,7 +81,7 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
         <DialogTitle className="sr-only">Просмотр пациента</DialogTitle>
         <DialogDescription className="sr-only">Режим просмотра пациентского интерфейса</DialogDescription>
         <ViewAsPatientProvider userId={patientId} onExitView={onClose}>
-          <div className="flex h-full w-full bg-gradient-dark">
+          <div className="h-full w-full overflow-hidden bg-gradient-dark">
             <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
             
             {/* Mobile header */}
@@ -99,11 +99,11 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
               </div>
             </header>
             
-            <div className={`flex-1 flex flex-col h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+            <div className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
               <div className="pt-16 lg:pt-0 flex-shrink-0">
                 <AnalysisBookingBanner />
               </div>
-              <main className="flex-1 min-h-0 overflow-y-auto">
+              <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
                 <SimulatedContent />
               </main>
             </div>
