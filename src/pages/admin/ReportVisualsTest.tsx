@@ -88,12 +88,6 @@ export default function ReportVisualsTest() {
 
   useEffect(() => { loadData(); }, []);
 
-  useEffect(() => {
-    if (categoryScores.length > 0) {
-      const timer = setTimeout(captureRadar, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [categoryScores, captureRadar]);
 
   const loadData = async () => {
     try {
