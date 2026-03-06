@@ -573,8 +573,8 @@ export default function Dashboard() {
         <WeightTracker />
 
         {/* Biomarkers & Trends Tabs */}
-        <Card className="border-border bg-card">
-          <CardContent className="p-0">
+        <Card className="border-border bg-card overflow-visible">
+          <CardContent className="p-0 overflow-visible">
             <Tabs defaultValue="biomarkers" className="w-full">
               <div className="px-6 pt-6">
                 <TabsList className="grid w-full max-w-md grid-cols-2">
