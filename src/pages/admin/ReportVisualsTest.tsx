@@ -865,6 +865,15 @@ export default function ReportVisualsTest() {
                   )}
                   {generating ? "Генерация..." : "Сгенерировать"}
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPdf}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  PDF
+                </Button>
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
