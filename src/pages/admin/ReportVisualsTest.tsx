@@ -816,12 +816,20 @@ BMI: 22.7 (норма)
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Демо-промпт</h3>
+        <Button onClick={handleSave} disabled={saving} size="sm" className="gap-2">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {saving ? "Сохранение..." : "Сохранить в БД"}
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">ℹ️ О демо-промпте</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>Это тестовые промпты для раздела «Энергия и восстановление». Они <strong>не влияют</strong> на боевую генерацию отчётов — только для тестирования.</p>
+          <p>Это промпты для раздела «Энергия и восстановление», загруженные из БД. Изменения сохраняются кнопкой «Сохранить в БД».</p>
           <p>Плейсхолдеры, как в боевой функции:</p>
           <div className="flex flex-wrap gap-1.5 mt-1">
             {["{userContext}", "{category}", "{biomarkers}", "{trends}", "{recommendations}"].map(ph => (
