@@ -502,14 +502,21 @@ export default function ReportVisualsTest() {
         }
       });
       pdfContent.push({ canvas: statusBarSegments, width: totalW, height: 10, margin: [0, 0, 0, 5] });
+      // Legend row with colored dots (no emojis — pdfmake font doesn't support them)
       pdfContent.push({
-        text: [
-          { text: `🟢 Оптимально (${trafficLight.optimal.length})  `, fontSize: 8 },
-          { text: `🟡 Допустимо (${trafficLight.acceptable.length})  `, fontSize: 8 },
-          { text: `🟠 Риск (${trafficLight.risk.length})  `, fontSize: 8 },
-          { text: `🔴 Критично (${trafficLight.critical.length})`, fontSize: 8 },
+        columns: [
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.optimal }], width: 12, height: 12 },
+          { text: `Оптимально (${trafficLight.optimal.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 12, 0] },
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.acceptable }], width: 12, height: 12 },
+          { text: `Допустимо (${trafficLight.acceptable.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 12, 0] },
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.risk }], width: 12, height: 12 },
+          { text: `Риск (${trafficLight.risk.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 12, 0] },
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.critical }], width: 12, height: 12 },
+          { text: `Критично (${trafficLight.critical.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 0, 0] },
+          { text: '', width: '*' },
         ],
-        margin: [0, 0, 0, 15], color: '#888',
+        columnGap: 2,
+        margin: [0, 0, 0, 15],
       });
 
       // — General summary —
@@ -566,17 +573,15 @@ export default function ReportVisualsTest() {
             const bm = chunk.code ? catBio.find(b => b.code === chunk.code) : null;
             if (bm) {
               const statusLabel = bm.statusLabel;
-              const emoji = statusEmojiMap[bm.status] || '';
-              // Biomarker header
+              
+              // Biomarker header with colored dot instead of emoji
               pdfContent.push({
-                table: {
-                  widths: ['*', 'auto'],
-                  body: [[
-                    { text: [{ text: `${emoji} `, fontSize: 10 }, { text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], border: [false, false, false, false] },
-                    { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', border: [false, false, false, false] },
-                  ]]
-                },
-                layout: 'noBorders',
+                columns: [
+                  { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 4, r2: 4, color: STATUS_HEX[bm.status] || '#888' }], width: 14, height: 14 },
+                  { text: [{ text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], width: '*', margin: [0, 1, 0, 0] },
+                  { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 1, 0, 0] },
+                ],
+                columnGap: 4,
                 margin: [0, 10, 0, 3],
               });
               // Range bar canvas
@@ -595,14 +600,21 @@ export default function ReportVisualsTest() {
       pdfContent.push({ text: '', pageBreak: 'after' });
       pdfContent.push({ text: 'Приоритеты', style: 'sectionHeader', margin: [0, 0, 0, 10] });
       ([
-        { key: 'critical' as const, emoji: '🔴', label: 'Критично' },
-        { key: 'risk' as const, emoji: '🟠', label: 'Риск' },
-        { key: 'acceptable' as const, emoji: '🟡', label: 'Допустимо' },
-        { key: 'optimal' as const, emoji: '🟢', label: 'Оптимально' },
-      ]).forEach(({ key, emoji, label }) => {
+        { key: 'critical' as const, label: 'Критично' },
+        { key: 'risk' as const, label: 'Риск' },
+        { key: 'acceptable' as const, label: 'Допустимо' },
+        { key: 'optimal' as const, label: 'Оптимально' },
+      ]).forEach(({ key, label }) => {
         const items = trafficLight[key];
         if (items.length === 0) return;
-        pdfContent.push({ text: `${emoji} ${label} (${items.length})`, fontSize: 12, bold: true, color: STATUS_HEX[key], margin: [0, 8, 0, 4] });
+        pdfContent.push({
+          columns: [
+            { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 5, r2: 5, color: STATUS_HEX[key] }], width: 14, height: 14 },
+            { text: `${label} (${items.length})`, fontSize: 12, bold: true, color: STATUS_HEX[key], width: '*', margin: [0, 0, 0, 0] },
+          ],
+          columnGap: 4,
+          margin: [0, 8, 0, 4],
+        });
         const itemTexts = items.map(m => `${m.name}  ${m.value} ${m.unit}`).join('  ·  ');
         pdfContent.push({ text: itemTexts, fontSize: 10, color: '#555', margin: [10, 0, 0, 6] });
       });
