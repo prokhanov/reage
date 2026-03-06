@@ -18,6 +18,8 @@ import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Biomarkers from "@/pages/Biomarkers";
+import Trends from "@/pages/Trends";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -569,6 +571,26 @@ export default function Dashboard() {
 
         {/* Weight Tracker */}
         <WeightTracker />
+
+        {/* Biomarkers & Trends Tabs */}
+        <Card className="border-border bg-card">
+          <CardContent className="p-0">
+            <Tabs defaultValue="biomarkers" className="w-full">
+              <div className="px-6 pt-6">
+                <TabsList className="grid w-full max-w-md grid-cols-2">
+                  <TabsTrigger value="biomarkers">Маркеры</TabsTrigger>
+                  <TabsTrigger value="trends">Тренды</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="biomarkers" className="mt-0">
+                <Biomarkers />
+              </TabsContent>
+              <TabsContent value="trends" className="mt-0">
+                <Trends />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
 
       {/* Analysis Booking Dialog */}
       <AnalysisBookingDialog

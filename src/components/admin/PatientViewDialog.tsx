@@ -11,10 +11,10 @@ import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
 import AnalysisDetail from "@/pages/AnalysisDetail";
-import Biomarkers from "@/pages/Biomarkers";
+
 import Recommendations from "@/pages/Recommendations";
 import Prescriptions from "@/pages/Prescriptions";
-import Trends from "@/pages/Trends";
+
 import MyState from "@/pages/MyState";
 import Subscription from "@/pages/Subscription";
 import HealthAssistant from "@/pages/HealthAssistant";
@@ -35,13 +35,13 @@ function SimulatedContent() {
     case "/analyses":
       return <Analyses />;
     case "/biomarkers":
-      return <Biomarkers />;
+      return <Dashboard />;
     case "/recommendations":
       return <Recommendations />;
     case "/prescriptions":
       return <Prescriptions />;
     case "/trends":
-      return <Trends />;
+      return <Dashboard />;
     case "/my-state":
       return <MyState />;
     case "/subscription":
