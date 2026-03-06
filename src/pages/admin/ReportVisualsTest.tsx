@@ -584,10 +584,6 @@ export default function ReportVisualsTest() {
                 columnGap: 4,
                 margin: [0, 10, 0, 3],
               });
-                },
-                layout: 'noBorders',
-                margin: [0, 10, 0, 3],
-              });
               // Range bar canvas
               const bar = buildRangeBarCanvas(bm, barWidth, barHeight);
               if (bar) pdfContent.push(bar);
