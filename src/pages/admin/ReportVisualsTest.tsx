@@ -99,8 +99,20 @@ export default function ReportVisualsTest() {
   // Generated content for demo category
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [demoGeneratedAt, setDemoGeneratedAt] = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    supabase
+      .from("ai_prompt_settings")
+      .select("updated_at")
+      .eq("key", "demo_report_result")
+      .single()
+      .then(({ data }) => {
+        if (data?.updated_at) setDemoGeneratedAt(data.updated_at);
+      });
+  }, []);
 
 
   const loadData = async () => {
@@ -271,9 +283,9 @@ export default function ReportVisualsTest() {
       .replace("{recommendations}", "Нет предыдущих рекомендаций");
   };
 
+
   const handleGenerate = async () => {
     setGenerating(true);
-    setGeneratedContent(null);
     try {
       const substitutedPrompt = buildSubstitutedPrompt();
       const { data, error } = await supabase.functions.invoke("test-prompt", {
@@ -287,6 +299,7 @@ export default function ReportVisualsTest() {
           .from("ai_prompt_settings")
           .update({ prompt_text: data.content })
           .eq("key", "demo_report_result");
+        setDemoGeneratedAt(new Date().toISOString());
         toast.success("Генерация завершена");
       } else {
         throw new Error("Пустой ответ от модели");
@@ -514,20 +527,27 @@ export default function ReportVisualsTest() {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGenerate}
-                disabled={generating}
-                className="gap-2"
-              >
-                {generating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
+              <div className="flex items-center gap-3">
+                {demoGeneratedAt && (
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(demoGeneratedAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </span>
                 )}
-                {generating ? "Генерация..." : "Сгенерировать"}
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  className="gap-2"
+                >
+                  {generating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  {generating ? "Генерация..." : "Сгенерировать"}
+                </Button>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Тестовая категория: <strong>{categories[0] || "—"}</strong> · Используется демо-промпт из вкладки «Демо-промпт»
