@@ -105,17 +105,19 @@ export default function ReportVisualsTest() {
 
   const loadData = async () => {
     try {
-      // Load prompts from DB
+      // Load demo prompts from DB (separate from production prompts)
       const { data: promptsData } = await supabase
         .from("ai_prompt_settings")
         .select("key, prompt_text")
-        .in("key", ["category_energy_system", "category_energy_user"]);
+        .in("key", ["demo_report_system", "demo_report_user", "demo_report_result"]);
 
       if (promptsData) {
-        const systemRow = promptsData.find(p => p.key === "category_energy_system");
-        const userRow = promptsData.find(p => p.key === "category_energy_user");
+        const systemRow = promptsData.find(p => p.key === "demo_report_system");
+        const userRow = promptsData.find(p => p.key === "demo_report_user");
+        const resultRow = promptsData.find(p => p.key === "demo_report_result");
         if (systemRow) setSystemPrompt(systemRow.prompt_text);
         if (userRow) setUserPrompt(userRow.prompt_text);
+        if (resultRow && resultRow.prompt_text) setGeneratedContent(resultRow.prompt_text);
       }
 
       const { data: analysisData } = await supabase
@@ -280,6 +282,11 @@ export default function ReportVisualsTest() {
       if (error) throw error;
       if (data?.content) {
         setGeneratedContent(data.content);
+        // Save generated result to DB
+        await supabase
+          .from("ai_prompt_settings")
+          .update({ prompt_text: data.content })
+          .eq("key", "demo_report_result");
         toast.success("Генерация завершена");
       } else {
         throw new Error("Пустой ответ от модели");
@@ -770,11 +777,11 @@ function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, 
       const { error: e1 } = await supabase
         .from("ai_prompt_settings")
         .update({ prompt_text: systemPrompt })
-        .eq("key", "category_energy_system");
+        .eq("key", "demo_report_system");
       const { error: e2 } = await supabase
         .from("ai_prompt_settings")
         .update({ prompt_text: userPrompt })
-        .eq("key", "category_energy_user");
+        .eq("key", "demo_report_user");
       if (e1 || e2) throw e1 || e2;
       toast.success("Промпты сохранены в БД");
     } catch (err: any) {
@@ -838,7 +845,7 @@ BMI: 22.7 (норма)
           <CardTitle className="text-base">ℹ️ О демо-промпте</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>Это промпты для раздела «Энергия и восстановление», загруженные из БД. Изменения сохраняются кнопкой «Сохранить в БД».</p>
+          <p>Это <strong>демо-промпты</strong>, отдельные от боевых. Хранятся в БД под ключами <code>demo_report_system</code> / <code>demo_report_user</code>. Изменения сохраняются кнопкой «Сохранить в БД» и не затрагивают боевые промпты.</p>
           <p>Плейсхолдеры, как в боевой функции:</p>
           <div className="flex flex-wrap gap-1.5 mt-1">
             {["{userContext}", "{category}", "{biomarkers}", "{trends}", "{recommendations}"].map(ph => (
