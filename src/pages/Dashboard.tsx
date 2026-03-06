@@ -50,10 +50,6 @@ export default function Dashboard() {
     setLatestBiomarkersMetadata(null);
     setAgeTrend(null);
     setRecentAnalyses([]);
-    setBodyHeatmapData([]);
-    setRiskData(null);
-    setNeedsRefresh(false);
-    setAnalyzing(false);
     
     fetchProfile();
   }, [viewAsUserId]);
