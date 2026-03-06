@@ -324,7 +324,7 @@ export default function ReportVisualsTest() {
     const chunks = splitTextByBiomarkers(text, codes);
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-8">
         {chunks.map((chunk, idx) => {
           if (chunk.type === "text") {
             return (
