@@ -574,14 +574,16 @@ export default function ReportVisualsTest() {
             if (bm) {
               const statusLabel = bm.statusLabel;
               const emoji = statusEmojiMap[bm.status] || '';
-              // Biomarker header
+              // Biomarker header with colored dot instead of emoji
               pdfContent.push({
-                table: {
-                  widths: ['*', 'auto'],
-                  body: [[
-                    { text: [{ text: `${emoji} `, fontSize: 10 }, { text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], border: [false, false, false, false] },
-                    { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', border: [false, false, false, false] },
-                  ]]
+                columns: [
+                  { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 4, r2: 4, color: STATUS_HEX[bm.status] || '#888' }], width: 14, height: 14 },
+                  { text: [{ text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], width: '*', margin: [0, 1, 0, 0] },
+                  { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 1, 0, 0] },
+                ],
+                columnGap: 4,
+                margin: [0, 10, 0, 3],
+              });
                 },
                 layout: 'noBorders',
                 margin: [0, 10, 0, 3],
