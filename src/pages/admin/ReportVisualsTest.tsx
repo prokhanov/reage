@@ -730,9 +730,16 @@ const DEMO_USER_PROMPT = `Твоя задача — написать один р
 • давать полезные инсайты
 • помогать понять направления улучшения здоровья.`;
 
-function PromptDemoTab({ biomarkers, categories }: { biomarkers: BiomarkerData[]; categories: string[] }) {
-  const [systemPrompt, setSystemPrompt] = useState(DEMO_SYSTEM_PROMPT);
-  const [userPrompt, setUserPrompt] = useState(DEMO_USER_PROMPT);
+interface PromptDemoTabProps {
+  biomarkers: BiomarkerData[];
+  categories: string[];
+  systemPrompt: string;
+  setSystemPrompt: (v: string) => void;
+  userPrompt: string;
+  setUserPrompt: (v: string) => void;
+}
+
+function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, userPrompt, setUserPrompt }: PromptDemoTabProps) {
 
   // Build example data for each placeholder
   const exampleCategory = categories[0] || "Энергия и восстановление";
