@@ -18,7 +18,7 @@ import Trends from "@/pages/Trends";
 import MyState from "@/pages/MyState";
 import Subscription from "@/pages/Subscription";
 import HealthAssistant from "@/pages/HealthAssistant";
-
+import HealthStrategy from "@/pages/HealthStrategy";
 function SimulatedContent() {
   const { simPath } = useContext(ViewAsPatientContext);
 
@@ -48,6 +48,8 @@ function SimulatedContent() {
       return <Subscription />;
     case "/health-assistant":
       return <HealthAssistant />;
+    case "/health-strategy":
+      return <HealthStrategy />;
     default:
       return <Dashboard />;
   }

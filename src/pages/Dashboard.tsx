@@ -1,22 +1,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw, Trophy, Calendar, Target, Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { RiskMap } from "@/components/risk-zones/RiskMap";
-import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
-import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
+import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BodyHeatmap } from "@/components/BodyHeatmap";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { WeightTracker } from "@/components/WeightTracker";
 import { format, differenceInDays } from "date-fns";
 import { ru } from "date-fns/locale";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
@@ -40,15 +33,10 @@ export default function Dashboard() {
   
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
-  const [bodyHeatmapData, setBodyHeatmapData] = useState<any[]>([]);
-  const [riskData, setRiskData] = useState<any>(null);
-  const [needsRefresh, setNeedsRefresh] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
   const [nextBooking, setNextBooking] = useState<any>(null);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Reset all state when exiting view mode
     setProfile(null);
     setLoading(true);
     setAnalysesCount(0);
@@ -57,10 +45,6 @@ export default function Dashboard() {
     setLatestBiomarkersMetadata(null);
     setAgeTrend(null);
     setRecentAnalyses([]);
-    setBodyHeatmapData([]);
-    setRiskData(null);
-    setNeedsRefresh(false);
-    setAnalyzing(false);
     
     fetchProfile();
   }, [viewAsUserId]);
@@ -69,30 +53,17 @@ export default function Dashboard() {
     if (profile) {
       Promise.all([
         fetchAnalysesStats(),
-        fetchBodyHeatmapData(),
         fetchNextBooking(),
       ]).finally(() => setLoading(false));
     }
   }, [profile]);
 
-  useEffect(() => {
-    if (demoMode && demoData) {
-      setRiskData(demoData.risk_zones);
-      setNeedsRefresh(false);
-    } else if (!demoMode && profile) {
-      // Clear demo risk data and fetch real data when demo mode is disabled
-      setRiskData(null);
-      fetchRiskZones();
-    }
-  }, [demoMode, demoData, profile]);
-
   const fetchAnalysesStats = async () => {
-    if (demoMode) return; // Skip fetching real data in demo mode
+    if (demoMode) return;
     const userId = await getUserId();
     if (!userId) return;
 
     try {
-      // Run all independent queries in parallel
       const [countResult, allAnalysesResult, latestAnalysisResult, recentAnalysesResult] = await Promise.all([
         supabase
           .from('analyses')
@@ -125,7 +96,6 @@ export default function Dashboard() {
       const latestAnalysis = latestAnalysisResult.data;
 
       if (latestAnalysis) {
-        // Validate that this analysis has biomarkers
         const { count: biomarkerCount } = await supabase
           .from('analysis_values')
           .select('*', { count: 'exact', head: true })
@@ -148,7 +118,6 @@ export default function Dashboard() {
         }
       }
 
-      // Calculate trend
       const analyses = recentAnalysesResult.data;
       if (analyses && analyses.length > 1 && latestAnalysis?.biological_age) {
         const prevAnalysis = analyses[1];
@@ -159,87 +128,6 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Error fetching analyses stats:", error);
-    }
-  };
-
-  const fetchRiskZones = async () => {
-    try {
-      const userId = await getUserId();
-      if (!userId) return;
-
-      // Check if profile needs refresh
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("needs_risk_refresh")
-        .eq("id", userId)
-        .single();
-
-      setNeedsRefresh(profile?.needs_risk_refresh || false);
-
-      // Check for existing analysis (last 24 hours)
-      const { data: existingAnalysis } = await supabase
-        .from("risk_zone_analyses")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (existingAnalysis) {
-        const analysisAge = Date.now() - new Date(existingAnalysis.created_at).getTime();
-        const hoursOld = analysisAge / (1000 * 60 * 60);
-
-        if (hoursOld < 24) {
-          // Use cached analysis
-          setRiskData({
-            risk_map: existingAnalysis.risk_map,
-            aging_blockers: existingAnalysis.aging_blockers,
-            smart_priorities: existingAnalysis.smart_priorities,
-            analysis_date: existingAnalysis.created_at,
-            has_biomarkers: true
-          });
-          return;
-        }
-      }
-
-      // Generate new analysis if no recent one exists
-      await generateAnalysis();
-    } catch (error) {
-      console.error("Error fetching risk zones:", error);
-    }
-  };
-
-  const generateAnalysis = async () => {
-    try {
-      setAnalyzing(true);
-      const userId = await getUserId();
-      if (!userId) return;
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No session");
-
-      const { data, error } = await supabase.functions.invoke("analyze-risk-zones", {
-        body: { userId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      setRiskData(data);
-
-      // Reset needs_refresh flag
-      await supabase
-        .from("profiles")
-        .update({ needs_risk_refresh: false })
-        .eq("id", userId);
-
-      setNeedsRefresh(false);
-    } catch (error: any) {
-      console.error("Error generating analysis:", error);
-    } finally {
-      setAnalyzing(false);
     }
   };
 
@@ -261,7 +149,7 @@ export default function Dashboard() {
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
-      setLoading(false); // Only stop loading on error (no profile = no stats to wait for)
+      setLoading(false);
     }
   };
 
@@ -275,7 +163,6 @@ export default function Dashboard() {
     }
     return age;
   };
-
 
   const fetchNextBooking = async () => {
     if (demoMode) return;
@@ -297,65 +184,6 @@ export default function Dashboard() {
     }
   };
 
-  const fetchBodyHeatmapData = async () => {
-    if (demoMode) return; // Skip fetching real data in demo mode
-    try {
-      const userId = await getUserId();
-      if (!userId) return;
-
-      // Получаем последний анализ
-      const { data: analyses } = await supabase
-        .from("analyses")
-        .select("id")
-        .eq("user_id", userId)
-        .order("date", { ascending: false })
-        .limit(1);
-
-      if (!analyses || analyses.length === 0) return;
-
-      // Получаем биомаркеры последнего анализа с их нормами (включая age_ranges)
-      const { data: biomarkerValues, error } = await supabase
-        .from("analysis_values")
-        .select(`
-          value,
-          biomarkers (
-            name,
-            category,
-            normal_min,
-            normal_max,
-            normal_min_male,
-            normal_max_male,
-            normal_min_female,
-            normal_max_female,
-            age_ranges
-          )
-        `)
-        .eq("analysis_id", analyses[0].id);
-
-      if (error) throw error;
-
-      const formattedDataRaw = biomarkerValues?.map((item: any) => ({
-        category: item.biomarkers.category,
-        name: item.biomarkers.name,
-        value: item.value,
-        normal_min: item.biomarkers.normal_min,
-        normal_max: item.biomarkers.normal_max,
-        normal_min_male: item.biomarkers.normal_min_male,
-        normal_max_male: item.biomarkers.normal_max_male,
-        normal_min_female: item.biomarkers.normal_min_female,
-        normal_max_female: item.biomarkers.normal_max_female,
-        age_ranges: item.biomarkers.age_ranges
-      })) || [];
-
-      // Удаляем возможные дубликаты по названию биомаркера
-      const deduped = Array.from(new Map(formattedDataRaw.map((i: any) => [i.name, i])).values());
-
-      setBodyHeatmapData(deduped);
-    } catch (error) {
-      console.error("Error fetching body heatmap data:", error);
-    }
-  };
-
   if (loading || demoLoading) {
     return (
       <div className="p-4 md:p-8">
@@ -371,22 +199,8 @@ export default function Dashboard() {
   const displayAnalysesCount = demoMode && demoData ? demoData.analyses.length : analysesCount;
   
   const displayBiomarkersMetadata = latestDemoAnalysis?.biomarkers_metadata || latestBiomarkersMetadata;
-  
-  // For body heatmap in demo mode, use latest analysis biomarkers
-  const latestAnalysisIndex = demoMode && demoData ? demoData.analyses.length - 1 : -1;
-  const displayBodyHeatmap = demoMode && demoData 
-    ? demoData.biomarkers
-        .filter((b: any) => (b.analysis_index || 0) === latestAnalysisIndex)
-        .map((b: any) => ({
-          name: b.code,
-          category: b.category,
-          value: b.value,
-          normal_min: null,
-          normal_max: null
-        }))
-    : bodyHeatmapData;
 
-  // Calculate chronological age at the date of the latest analysis (not today) for consistency with the chart
+  // Calculate chronological age at the date of the latest analysis
   const latestAnalysisDate = (() => {
     const ans = demoMode && demoData ? demoData.analyses : allAnalyses;
     if (!ans || ans.length === 0) return null;
@@ -404,44 +218,40 @@ export default function Dashboard() {
     return calculateAge(birthDateStr);
   })();
   const ageDifference = displayBioAge && chronologicalAge ? chronologicalAge - displayBioAge : null;
-  const circleProgress = displayHealthIndex ? displayHealthIndex : 0;
 
   // Calculate progress metrics
   const analyses = demoMode && demoData ? demoData.analyses : allAnalyses;
   let displayRecentChange: number | null = null;
   let displayRecentPeriod: string | null = null;
-   let displayTotalProgress: number | null = null;
-   let displayFirstAnalysisDate: string | null = null;
+  let displayTotalProgress: number | null = null;
+  let displayFirstAnalysisDate: string | null = null;
 
-   if (analyses && analyses.length >= 2) {
-     const sortedAnalyses = [...analyses].sort((a: any, b: any) => 
-       new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
-     );
+  if (analyses && analyses.length >= 2) {
+    const sortedAnalyses = [...analyses].sort((a: any, b: any) => 
+      new Date(a.date || a.analysis_date).getTime() - new Date(b.date || b.analysis_date).getTime()
+    );
 
-     const latest = sortedAnalyses[sortedAnalyses.length - 1];
-     const secondLatest = sortedAnalyses[sortedAnalyses.length - 2];
-     const first = sortedAnalyses[0];
+    const latest = sortedAnalyses[sortedAnalyses.length - 1];
+    const secondLatest = sortedAnalyses[sortedAnalyses.length - 2];
+    const first = sortedAnalyses[0];
 
-     const latestBioAge = latest.biological_age;
-     const secondLatestBioAge = secondLatest.biological_age;
-     const firstBioAge = first.biological_age;
+    const latestBioAge = latest.biological_age;
+    const secondLatestBioAge = secondLatest.biological_age;
+    const firstBioAge = first.biological_age;
 
-     displayRecentChange = latestBioAge && secondLatestBioAge ? latestBioAge - secondLatestBioAge : null;
-     
-     // Calculate period between last two analyses
-     const latestDate = new Date(latest.date || latest.analysis_date);
-     const secondLatestDate = new Date(secondLatest.date || secondLatest.analysis_date);
-     const monthsDiff = Math.round((latestDate.getTime() - secondLatestDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
-     displayRecentPeriod = monthsDiff > 0 ? `за ${monthsDiff} ${monthsDiff === 1 ? 'месяц' : monthsDiff < 5 ? 'месяца' : 'месяцев'}` : null;
+    displayRecentChange = latestBioAge && secondLatestBioAge ? latestBioAge - secondLatestBioAge : null;
+    
+    const latestDate = new Date(latest.date || latest.analysis_date);
+    const secondLatestDate = new Date(secondLatest.date || secondLatest.analysis_date);
+    const monthsDiff = Math.round((latestDate.getTime() - secondLatestDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+    displayRecentPeriod = monthsDiff > 0 ? `за ${monthsDiff} ${monthsDiff === 1 ? 'месяц' : monthsDiff < 5 ? 'месяца' : 'месяцев'}` : null;
 
-     displayTotalProgress = latestBioAge && firstBioAge ? latestBioAge - firstBioAge : null;
-     
-     // Format first analysis date for display
-     const firstDate = new Date(first.date || first.analysis_date);
-     displayFirstAnalysisDate = `с ${format(firstDate, 'LLL yyyy', { locale: ru })}`;
-   }
+    displayTotalProgress = latestBioAge && firstBioAge ? latestBioAge - firstBioAge : null;
+    
+    const firstDate = new Date(first.date || first.analysis_date);
+    displayFirstAnalysisDate = `с ${format(firstDate, 'LLL yyyy', { locale: ru })}`;
+  }
 
-  // Additional display variables
   const displayBiologicalAge = displayBioAge;
   const displayCategoryScores = demoMode && latestDemoAnalysis 
     ? latestDemoAnalysis.biomarkers_metadata?.ai_analysis?.category_scores 
@@ -577,15 +387,13 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Compact Metric Cards - Uniform Height */}
-                    {/* Analyses Count */}
+                    {/* Compact Metric Cards */}
                     <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
                       <Activity className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Анализов</div>
                       <div className="text-3xl font-bold text-foreground">{displayAnalysesCount}</div>
                     </div>
 
-                    {/* Recent Change */}
                     <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
                       <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Последнее изменение</div>
@@ -606,7 +414,6 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Total Progress */}
                     <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
                       <Trophy className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Общий прогресс</div>
@@ -627,7 +434,6 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Next Analysis */}
                     <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
                       <Calendar className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
@@ -761,88 +567,8 @@ export default function Dashboard() {
           analyses={displayAllAnalyses}
         />
 
-        {/* Weight Tracker - Full Width */}
+        {/* Weight Tracker */}
         <WeightTracker />
-
-        {/* Divider - Strategy Section */}
-        <div className="relative py-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border/50"></div>
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
-              СТРАТЕГИЯ ЗДОРОВЬЯ
-            </span>
-          </div>
-        </div>
-
-        {/* Update Strategy Button */}
-        {!demoMode && (
-          <div className="flex justify-end">
-            <Button
-              onClick={generateAnalysis}
-              disabled={analyzing}
-              variant={needsRefresh ? "default" : "outline"}
-            >
-              {analyzing ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Анализируем...
-                </>
-              ) : needsRefresh ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Доступно обновление
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Обновить стратегию
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-
-        {/* Alert if no biomarkers in risk analysis */}
-        {riskData && !riskData.has_biomarkers && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Предварительные рекомендации</AlertTitle>
-            <AlertDescription>
-              Для точной оценки стратегии и формирования персональной карты риска необходимы лабораторные данные. 
-              Сдайте анализы крови для получения полноценной аналитики.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Risk Zones Components */}
-         {riskData?.smart_priorities && (
-           <SmartPriorities data={riskData.smart_priorities} />
-         )}
-
-         {riskData?.risk_map?.categories && (
-           <RiskMap categories={riskData.risk_map.categories} />
-         )}
-
-         {riskData?.aging_blockers?.blockers && (
-           <AgingBlockers blockers={riskData.aging_blockers.blockers} />
-         )}
-
-         {/* Message if no strategy data */}
-         {!riskData && analysesCount > 0 && (
-           <Card className="border-dashed">
-             <CardContent className="py-12 text-center">
-               <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-               <h3 className="text-lg font-semibold mb-2">
-                 Стратегия здоровья не сформирована
-               </h3>
-               <p className="text-muted-foreground mb-4">
-                 Нажмите "Обновить стратегию" для формирования персональной карты здоровья
-               </p>
-             </CardContent>
-           </Card>
-         )}
 
       {/* Analysis Booking Dialog */}
       <AnalysisBookingDialog
