@@ -1,29 +1,31 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+## Проблема
 
-## Что сделано
+Сейчас демо-промпты загружаются из боевых ключей `category_energy_system` / `category_energy_user` и кнопка "Сохранить" пишет обратно в них. Нужно разделить: демо-промпты хранить в отдельных записях в той же таблице `ai_prompt_settings`.
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+## План
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+### 1. Создать записи в БД для демо-промптов
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+Вставить 2 новые строки в `ai_prompt_settings` с ключами:
+- `demo_report_system` — скопировать текущий `DEMO_SYSTEM_PROMPT`
+- `demo_report_user` — скопировать текущий `DEMO_USER_PROMPT`
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+Description: "Демо системный промпт для тестовых отчётов" / "Демо пользовательский промпт для тестовых отчётов"
 
-**ESR:** optimal_min_male/female → NULL
+### 2. Обновить `ReportVisualsTest.tsx`
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+- В `loadData()` загружать из `demo_report_system` и `demo_report_user` вместо `category_energy_*`
+- `handleSave` — писать в `demo_report_system` / `demo_report_user`
+- Обновить текст описания в UI: "Это демо-промпты, отдельные от боевых"
+- Хардкод-константы `DEMO_SYSTEM_PROMPT` / `DEMO_USER_PROMPT` оставить как fallback при первой загрузке
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+Демо-отчёт (generatedContent) тоже сохранять в БД — добавить ключ `demo_report_result` в `ai_prompt_settings` и при генерации записывать туда результат, при загрузке страницы — читать оттуда.
+
+### 3. Итого
+
+- 3 новые записи в `ai_prompt_settings`: `demo_report_system`, `demo_report_user`, `demo_report_result`
+- Код: изменения только в `ReportVisualsTest.tsx` (загрузка, сохранение, описание)
+- Боевые промпты не затрагиваются
+
