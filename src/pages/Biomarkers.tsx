@@ -319,12 +319,29 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                 className="border border-primary/20 rounded-lg bg-card/50 backdrop-blur-sm"
               >
                 <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-primary/5">
-                  <div className="flex items-center gap-3">
-                    <Activity className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-xl flex-shrink-0">{categoryEmojis[category] || "🔬"}</span>
                     <span className="text-lg font-semibold">{category}</span>
-                    <Badge variant="secondary" className="ml-2">
+                    <Badge variant="secondary" className="flex-shrink-0">
                       {categoryBiomarkers.length}
                     </Badge>
+                    {(() => {
+                      const score = getCategoryScore(category);
+                      if (score === null) return null;
+                      return (
+                        <div className="flex items-center gap-2 ml-auto mr-4 flex-shrink-0">
+                          <div className="relative h-2 w-24 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${getProgressColor(score)}`}
+                              style={{ width: `${score}%` }}
+                            />
+                          </div>
+                          <span className={`text-sm font-bold ${getScoreColor(score)}`}>
+                            {score}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
