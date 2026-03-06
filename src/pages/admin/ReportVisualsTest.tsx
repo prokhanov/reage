@@ -90,6 +90,146 @@ function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): { type: 
   return parts;
 }
 
+// ═══ PDF EXPORT HELPERS ═══
+
+const STATUS_HEX: Record<string, string> = {
+  critical: '#EF4444',
+  risk: '#F59E0B',
+  acceptable: '#EAB308',
+  optimal: '#22C55E',
+};
+
+function getZoneColorHex(
+  v: number,
+  normMin: number | null, normMax: number | null,
+  optMin: number | null, optMax: number | null,
+  critMin: number | null, critMax: number | null,
+): string {
+  if ((critMin !== null && v < critMin) || (critMax !== null && v > critMax)) return STATUS_HEX.critical;
+  if (optMin !== null || optMax !== null) {
+    const inOpt = (optMin === null || v >= optMin) && (optMax === null || v <= optMax);
+    if (inOpt) return STATUS_HEX.optimal;
+  }
+  if ((normMin !== null && v < normMin) || (normMax !== null && v > normMax)) return STATUS_HEX.risk;
+  if (optMin !== null || optMax !== null) return STATUS_HEX.acceptable;
+  return STATUS_HEX.optimal;
+}
+
+function buildRangeBarCanvas(bm: BiomarkerData, barWidth: number, barHeight: number): any {
+  const b = bm.biomarker;
+  const g = 'male';
+  const a = 26;
+  const normal = getNormalRangeForAge(b, a, g);
+  const optimal = getOptimalRangeForAge(b, a, g);
+  const critical = getCriticalRangeForAge(b, a, g);
+
+  if (normal.min === null && normal.max === null) return null;
+
+  const normMin = normal.min, normMax = normal.max;
+  const optMin = optimal.min, optMax = optimal.max;
+  const critMin = critical.min, critMax = critical.max;
+
+  const pointSet = new Set<number>();
+  [bm.value, normMin, normMax, optMin, optMax, critMin, critMax].forEach(v => { if (v !== null) pointSet.add(v); });
+  const allPoints = Array.from(pointSet);
+  const dataMin = Math.min(...allPoints);
+  const dataMax = Math.max(...allPoints);
+  const range = dataMax - dataMin;
+  const padding = range * 0.15 || 1;
+  const scaleMin = dataMin - padding;
+  const scaleMax = dataMax + padding;
+  const scaleRange = scaleMax - scaleMin;
+  const toX = (v: number) => ((v - scaleMin) / scaleRange) * barWidth;
+
+  const boundaries = new Set<number>();
+  boundaries.add(scaleMin); boundaries.add(scaleMax);
+  if (critMin !== null) boundaries.add(critMin);
+  if (normMin !== null) boundaries.add(normMin);
+  if (optMin !== null) boundaries.add(optMin);
+  if (optMax !== null) boundaries.add(optMax);
+  if (normMax !== null) boundaries.add(normMax);
+  if (critMax !== null) boundaries.add(critMax);
+
+  const sorted = Array.from(boundaries).sort((a, b) => a - b);
+  const canvasItems: any[] = [];
+
+  // Draw segments
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const start = sorted[i], end = sorted[i + 1];
+    const mid = (start + end) / 2;
+    const x = toX(start);
+    const w = toX(end) - x;
+    if (w > 0.5) {
+      canvasItems.push({
+        type: 'rect', x, y: 0, w, h: barHeight,
+        color: getZoneColorHex(mid, normMin, normMax, optMin, optMax, critMin, critMax),
+        r: i === 0 ? 4 : (i === sorted.length - 2 ? 4 : 0),
+      });
+    }
+  }
+
+  // Value marker
+  const mx = Math.max(3, Math.min(barWidth - 3, toX(bm.value)));
+  canvasItems.push({
+    type: 'ellipse', x: mx, y: barHeight / 2, r1: 5, r2: 5,
+    color: '#1F2937',
+  });
+  canvasItems.push({
+    type: 'ellipse', x: mx, y: barHeight / 2, r1: 3, r2: 3,
+    color: '#FFFFFF',
+  });
+
+  return {
+    canvas: canvasItems,
+    width: barWidth,
+    height: barHeight + 2,
+    margin: [0, 2, 0, 4],
+  };
+}
+
+function parseInlineMarkdownPdf(text: string): any[] {
+  const parts: any[] = [];
+  const regex = /\*\*([^*]+)\*\*/g;
+  let last = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push({ text: text.slice(last, match.index) });
+    parts.push({ text: match[1], bold: true });
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push({ text: text.slice(last) });
+  return parts.length ? parts : [{ text }];
+}
+
+function parseMarkdownToPdfContent(markdown: string): any[] {
+  const content: any[] = [];
+  const cleaned = cleanMarkdownArtifacts(markdown);
+  const lines = cleaned.split('\n');
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) { content.push({ text: ' ', margin: [0, 3, 0, 0] }); continue; }
+    if (trimmed.match(/^[-*_]{3,}$/)) { content.push({ text: ' ', margin: [0, 6, 0, 6] }); continue; }
+    if (trimmed.match(/^[*•]+\s*$/)) continue;
+
+    if (trimmed.startsWith('### ')) {
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('### ', '')), style: 'h3', margin: [0, 6, 0, 3] });
+    } else if (trimmed.startsWith('## ')) {
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('## ', '')), style: 'h2', margin: [0, 10, 0, 5] });
+    } else if (trimmed.startsWith('# ')) {
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('# ', '')), style: 'h1', margin: [0, 12, 0, 6] });
+    } else if (trimmed.match(/^[-*]\s+\S/)) {
+      content.push({ text: [{ text: '• ' }, ...parseInlineMarkdownPdf(trimmed.replace(/^[-*]\s+/, ''))], style: 'listItem', margin: [15, 0, 0, 4] });
+    } else if (trimmed.match(/^\d+\\?\.\s+/)) {
+      const m = trimmed.match(/^(\d+)\\?\.\s+(.*)$/);
+      if (m) content.push({ text: [{ text: `${m[1]}. ` }, ...parseInlineMarkdownPdf(m[2])], style: 'listItem', margin: [15, 0, 0, 4] });
+    } else {
+      content.push({ text: parseInlineMarkdownPdf(trimmed), style: 'paragraph', margin: [0, 0, 0, 8] });
+    }
+  }
+  return content;
+}
+
 export default function ReportVisualsTest() {
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState<any>(null);
