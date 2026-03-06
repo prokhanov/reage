@@ -573,7 +573,7 @@ export default function ReportVisualsTest() {
             const bm = chunk.code ? catBio.find(b => b.code === chunk.code) : null;
             if (bm) {
               const statusLabel = bm.statusLabel;
-              const emoji = statusEmojiMap[bm.status] || '';
+              
               // Biomarker header with colored dot instead of emoji
               pdfContent.push({
                 columns: [
