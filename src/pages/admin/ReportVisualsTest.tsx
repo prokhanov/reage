@@ -302,7 +302,8 @@ export default function ReportVisualsTest() {
 
   // Render interleaved text + biomarker bars
   const renderInterleavedReport = (category: string, overrideText?: string) => {
-    const text = overrideText || recommendations[category];
+    const raw = overrideText || recommendations[category];
+    const text = raw ? normalizeMarkdown(raw) : raw;
     const catBiomarkers = biomarkers.filter((b) => b.category === category);
     if (!text) return null;
 
@@ -315,7 +316,7 @@ export default function ReportVisualsTest() {
           if (chunk.type === "text") {
             return (
               <div key={idx} className="prose prose-sm dark:prose-invert max-w-none">
-                <MarkdownContent content={chunk.content} />
+                <MarkdownContent content={chunk.content} stripLists />
               </div>
             );
           }
@@ -354,7 +355,7 @@ export default function ReportVisualsTest() {
 
               {/* Text for this biomarker (without the header since the card shows it) */}
               <div className="prose prose-sm dark:prose-invert max-w-none pl-2 border-l-2 border-muted">
-                <MarkdownContent content={chunk.content} />
+                <MarkdownContent content={chunk.content} stripLists />
               </div>
             </div>
           );
