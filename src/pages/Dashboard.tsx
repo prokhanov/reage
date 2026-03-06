@@ -583,7 +583,7 @@ export default function Dashboard() {
                 </TabsList>
               </div>
               <TabsContent value="biomarkers" className="mt-0">
-                <Biomarkers />
+                <Biomarkers categoryScores={displayCategoryScores} />
               </TabsContent>
               <TabsContent value="trends" className="mt-0">
                 <Trends />

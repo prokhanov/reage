@@ -13,6 +13,7 @@ import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslCol
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
+import { Progress } from "@/components/ui/progress";
 
 interface BiomarkerData {
   id: string;
@@ -41,19 +42,65 @@ interface GroupedBiomarkers {
   [category: string]: BiomarkerData[];
 }
 
-export default function Biomarkers() {
+interface CategoryScoreValue {
+  score: number;
+  impact?: string;
+  key_markers?: string[];
+}
+
+interface BiomarkersProps {
+  categoryScores?: Record<string, number | CategoryScoreValue | null>;
+}
+
+export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
   const { getUserId } = useViewAsUser();
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<GroupedBiomarkers>({});
   const [loading, setLoading] = useState(true);
   const [patientGender, setPatientGender] = useState<string | null>(null);
   const [patientAge, setPatientAge] = useState<number | null>(null);
+  const [categoryEmojis, setCategoryEmojis] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const getCategoryScore = (categoryName: string): number | null => {
+    if (!categoryScores) return null;
+    const val = categoryScores[categoryName];
+    if (val === null || val === undefined) return null;
+    if (typeof val === 'number') return val;
+    if (typeof val === 'object' && 'score' in val) return (val as CategoryScoreValue).score;
+    return null;
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 85) return "text-status-optimal";
+    if (score >= 70) return "text-status-acceptable";
+    if (score >= 50) return "text-status-risk";
+    return "text-status-critical";
+  };
+
+  const getProgressColor = (score: number) => {
+    if (score >= 85) return "bg-status-optimal";
+    if (score >= 70) return "bg-status-acceptable";
+    if (score >= 50) return "bg-status-risk";
+    return "bg-status-critical";
+  };
 
   useEffect(() => {
     if (demoLoading) return;
     loadBiomarkers();
+    loadCategoryEmojis();
   }, [demoMode, demoData, demoLoading]);
+
+  const loadCategoryEmojis = async () => {
+    const { data } = await supabase
+      .from("biomarker_categories")
+      .select("name, emoji");
+    if (data) {
+      const map: Record<string, string> = {};
+      data.forEach(c => { map[c.name] = c.emoji; });
+      setCategoryEmojis(map);
+    }
+  };
 
   const loadBiomarkers = async () => {
     if (demoMode) {
@@ -272,12 +319,29 @@ export default function Biomarkers() {
                 className="border border-primary/20 rounded-lg bg-card/50 backdrop-blur-sm"
               >
                 <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-primary/5">
-                  <div className="flex items-center gap-3">
-                    <Activity className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-xl flex-shrink-0">{categoryEmojis[category] || "🔬"}</span>
                     <span className="text-lg font-semibold">{category}</span>
-                    <Badge variant="secondary" className="ml-2">
+                    <Badge variant="secondary" className="flex-shrink-0">
                       {categoryBiomarkers.length}
                     </Badge>
+                    {(() => {
+                      const score = getCategoryScore(category);
+                      if (score === null) return null;
+                      return (
+                        <div className="flex items-center gap-2 ml-auto mr-4 flex-shrink-0">
+                          <div className="relative h-2 w-24 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${getProgressColor(score)}`}
+                              style={{ width: `${score}%` }}
+                            />
+                          </div>
+                          <span className={`text-sm font-bold ${getScoreColor(score)}`}>
+                            {score}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">

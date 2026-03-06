@@ -1,24 +1,29 @@
 
 
-## Plan: Move System Rating Bars into Biomarkers Accordion Headers
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-### What changes
+## Что сделано
 
-Move each category's score and progress bar from `SystemRatingsCard` into the corresponding category header in the Biomarkers accordion. Each accordion trigger will show: emoji + category name + badge count + **score (X/100) with colored progress bar**.
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-### Implementation
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-1. **`src/pages/Biomarkers.tsx`** — Accept a new optional prop `categoryScores` (the same object passed to `SystemRatingsCard`). In each `AccordionTrigger`, after the badge, render:
-   - Score number colored by status (optimal/acceptable/risk/critical)
-   - A thin progress bar (same style as `SystemRatingsCard`) showing score out of 100
-   - Replace the generic `Activity` icon with the category emoji from `biomarker_categories`
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-2. **`src/pages/Dashboard.tsx`** — Pass `displayCategoryScores` as a prop to the `<Biomarkers />` component embedded in the tabs section.
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-3. **`src/components/dashboard/SystemRatingsCard.tsx`** — Remove the progress bars per category (keep the card for overall trend display with period selector). Alternatively, remove the entire card if all its info is now in the Biomarkers section.
+**ESR:** optimal_min_male/female → NULL
 
-### Files to modify
-- `src/pages/Biomarkers.tsx` — add `categoryScores` prop, render score + bar in accordion headers, load category emoji
-- `src/pages/Dashboard.tsx` — pass `displayCategoryScores` to `<Biomarkers />`
-- `src/components/dashboard/SystemRatingsCard.tsx` — evaluate removal or simplification
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
