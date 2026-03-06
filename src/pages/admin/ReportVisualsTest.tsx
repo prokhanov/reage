@@ -4,15 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { supabase } from "@/integrations/supabase/client";
-import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
+import { getBiomarkerStatus, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge } from "@/lib/biomarkerNorms";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2, Save } from "lucide-react";
+import { RefreshCw, Loader2, Save, Download } from "lucide-react";
 import { toast } from "sonner";
+import pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+(pdfMake as any).vfs = pdfFonts;
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
 
