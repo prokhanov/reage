@@ -102,7 +102,7 @@ export default function ReportVisualsTest() {
             unit: v.unit_override || b.unit,
             category: b.category,
             biomarker: b,
-            status: status.tier,
+            status: status.status,
             statusLabel: status.label,
             rangeDisplay,
           };
