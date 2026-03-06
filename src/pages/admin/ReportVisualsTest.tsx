@@ -99,6 +99,7 @@ export default function ReportVisualsTest() {
   // Generated content for demo category
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [demoGeneratedAt, setDemoGeneratedAt] = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
