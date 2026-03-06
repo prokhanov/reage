@@ -655,12 +655,45 @@ function PromptDemoTab({ biomarkers, categories }: { biomarkers: BiomarkerData[]
   const [systemPrompt, setSystemPrompt] = useState(DEMO_SYSTEM_PROMPT);
   const [userPrompt, setUserPrompt] = useState(DEMO_USER_PROMPT);
 
-  // Build example of what {biomarkers} would look like for the first category
+  // Build example data for each placeholder
   const exampleCategory = categories[0] || "Энергия и восстановление";
   const catBiomarkers = biomarkers.filter(b => b.category === exampleCategory);
-  const biomarkersPreview = catBiomarkers.map(b => 
-    `- ${b.name} (${b.code}): ${b.value} ${b.unit} — ${b.statusLabel} (оптимум: ${b.rangeDisplay})`
-  ).join("\n");
+  
+  // {biomarkersText} — same format as production: value, 7-segment ranges, 4-tier status
+  const biomarkersPreview = catBiomarkers.map(b => {
+    const statusEmoji = b.status === 'optimal' ? '🟢 ОПТИМАЛЬНО' 
+      : b.status === 'acceptable' ? '🟡 ДОПУСТИМО' 
+      : b.status === 'risk' ? '🟠 РИСК' 
+      : '🔴 КРИТИЧНО';
+    return `${b.name} (${b.code}):\n  Значение: ${b.value} ${b.unit}\n  🟢 Оптимально: ${b.rangeDisplay} ${b.unit}\n  Статус: ${statusEmoji}`;
+  }).join("\n\n");
+
+  // {userContext} — example format matching production
+  const userContextPreview = `ДАННЫЕ ПАЦИЕНТА:
+Имя: Сергей Чагин
+Возраст: 26 лет
+Пол: male
+Рост: 183 см
+Вес: 76 кг
+BMI: 22.7 (норма)
+
+МЕДИЦИНСКИЙ АНАМНЕЗ:
+Не указан
+
+ТЕКУЩИЕ ЖАЛОБЫ И СИМПТОМЫ:
+Не указаны
+
+ТЕКУЩИЕ СИМПТОМЫ (из дневника):
+Нет зафиксированных симптомов
+
+СОБЛЮДЕНИЕ ПРЕДЫДУЩИХ НАЗНАЧЕНИЙ:
+Нет данных о соблюдении`;
+
+  // {trends} — example
+  const trendsPreview = "Нет предыдущих анализов для сравнения";
+
+  // {recommendations} — example
+  const recommendationsPreview = "Нет предыдущих рекомендаций";
 
   return (
     <div className="space-y-6">
@@ -670,7 +703,12 @@ function PromptDemoTab({ biomarkers, categories }: { biomarkers: BiomarkerData[]
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>Это тестовые промпты для раздела «Энергия и восстановление». Они <strong>не влияют</strong> на боевую генерацию отчётов — только для тестирования.</p>
-          <p>Плейсхолдеры <code className="bg-muted px-1 py-0.5 rounded text-xs">{"{category}"}</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">{"{biomarkers}"}</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">{"{previous_biomarkers}"}</code> заменяются реальными данными при вызове AI.</p>
+          <p>Плейсхолдеры, как в боевой функции:</p>
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {["{userContext}", "{category}", "{biomarkersText}", "{trends}", "{recommendations}"].map(ph => (
+              <code key={ph} className="bg-muted px-1.5 py-0.5 rounded text-xs">{ph}</code>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -715,19 +753,35 @@ function PromptDemoTab({ biomarkers, categories }: { biomarkers: BiomarkerData[]
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">{"{category}"} →</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{userContext}"}</Label>
+            <pre className="bg-muted/50 rounded-md p-3 text-xs font-mono whitespace-pre-wrap max-h-[200px] overflow-auto">
+              {userContextPreview}
+            </pre>
+          </div>
+          <Separator />
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{category}"}</Label>
             <div className="bg-muted/50 rounded-md p-3 text-sm font-mono">{exampleCategory}</div>
           </div>
+          <Separator />
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">{"{biomarkers}"} → ({catBiomarkers.length} маркеров)</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{biomarkersText}"} — {catBiomarkers.length} маркеров, формат как в боевой функции (7-сегментные нормы + 4-tier статус)</Label>
             <pre className="bg-muted/50 rounded-md p-3 text-xs font-mono whitespace-pre-wrap max-h-[300px] overflow-auto">
               {biomarkersPreview || "Нет данных для этой категории"}
             </pre>
           </div>
+          <Separator />
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">{"{previous_biomarkers}"} →</Label>
-            <div className="bg-muted/50 rounded-md p-3 text-sm font-mono text-muted-foreground italic">
-              Подставляются из предыдущих анализов (если есть)
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{trends}"}</Label>
+            <div className="bg-muted/50 rounded-md p-3 text-sm font-mono text-muted-foreground">
+              {trendsPreview}
+            </div>
+          </div>
+          <Separator />
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{recommendations}"}</Label>
+            <div className="bg-muted/50 rounded-md p-3 text-sm font-mono text-muted-foreground">
+              {recommendationsPreview}
             </div>
           </div>
         </CardContent>
