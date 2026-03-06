@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
 
@@ -31,20 +32,97 @@ interface CategoryScore {
   key_markers: string[];
 }
 
+// Split report text by biomarker mentions, returning alternating text/code chunks
+function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): { type: "text" | "biomarker"; content: string; code?: string }[] {
+  if (!text || biomarkerCodes.length === 0) return [{ type: "text", content: text }];
+
+  // Build regex to find biomarker headers like **Name (CODE)**: or **Name (CODE)**
+  // The AI text uses pattern: **Общий холестерин (TC)**:
+  const codePattern = biomarkerCodes.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const regex = new RegExp(`(\\*\\*[^*]+\\((?:${codePattern})\\)\\*\\*:?)`, 'g');
+
+  const parts: { type: "text" | "biomarker"; content: string; code?: string }[] = [];
+  let lastIndex = 0;
+  const matches = [...text.matchAll(regex)];
+
+  if (matches.length === 0) return [{ type: "text", content: text }];
+
+  matches.forEach((match, idx) => {
+    const matchStart = match.index!;
+    
+    // Text before this biomarker header
+    if (matchStart > lastIndex) {
+      const beforeText = text.slice(lastIndex, matchStart).trim();
+      if (beforeText) {
+        parts.push({ type: "text", content: beforeText });
+      }
+    }
+
+    // Find the end of this biomarker's section (next biomarker header or end of text)
+    const nextMatch = matches[idx + 1];
+    const sectionEnd = nextMatch ? nextMatch.index! : text.length;
+    const sectionText = text.slice(matchStart, sectionEnd).trim();
+
+    // Extract code from the header
+    const codeMatch = match[0].match(/\(([A-Za-z0-9\-\/+]+)\)/);
+    const code = codeMatch ? codeMatch[1] : undefined;
+
+    parts.push({ type: "biomarker", content: sectionText, code });
+    lastIndex = sectionEnd;
+  });
+
+  // Remaining text after last biomarker
+  if (lastIndex < text.length) {
+    const remaining = text.slice(lastIndex).trim();
+    if (remaining) parts.push({ type: "text", content: remaining });
+  }
+
+  return parts;
+}
+
 export default function ReportVisualsTest() {
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState<any>(null);
   const [biomarkers, setBiomarkers] = useState<BiomarkerData[]>([]);
   const [recommendations, setRecommendations] = useState<Record<string, string>>({});
   const [categoryScores, setCategoryScores] = useState<CategoryScore[]>([]);
+  const [radarImage, setRadarImage] = useState<string | null>(null);
+  const radarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { loadData(); }, []);
+
+  // Capture radar chart as base64 image after render
+  const captureRadar = useCallback(() => {
+    if (!radarRef.current) return;
+    const svg = radarRef.current.querySelector("svg");
+    if (!svg) return;
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    canvas.width = 600;
+    canvas.height = 400;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      setRadarImage(canvas.toDataURL("image/png"));
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+  }, []);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (categoryScores.length > 0) {
+      const timer = setTimeout(captureRadar, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [categoryScores, captureRadar]);
 
   const loadData = async () => {
     try {
-      // Load latest analysis
       const { data: analysisData } = await supabase
         .from("analyses")
         .select("*")
@@ -56,31 +134,24 @@ export default function ReportVisualsTest() {
       if (!analysisData) return;
       setAnalysis(analysisData);
 
-      // Extract category_scores from biomarkers_metadata
       const metadata = analysisData.biomarkers_metadata as any;
       if (metadata?.ai_analysis?.category_scores) {
         const scores = Object.entries(metadata.ai_analysis.category_scores).map(
           ([system, data]: [string, any]) => ({
-            system,
-            score: data.score,
-            fullMark: 100,
-            impact: data.impact,
-            key_markers: data.key_markers || [],
+            system, score: data.score, fullMark: 100,
+            impact: data.impact, key_markers: data.key_markers || [],
           })
         );
         setCategoryScores(scores);
       }
 
-      // Load biomarkers with values
       const { data: valuesData } = await supabase
         .from("analysis_values")
         .select("value, unit_override, biomarker_id, biomarkers!inner(name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
-        .eq("analysis_id", analysisData.id)
-        .order("biomarkers(category)")
-        .order("biomarkers(display_order)");
+        .eq("analysis_id", analysisData.id);
 
       if (valuesData) {
-        const age = 26; // Chagin's age
+        const age = 26;
         const gender = "male" as const;
         const processed = valuesData.map((v: any) => {
           const b = v.biomarkers;
@@ -90,27 +161,17 @@ export default function ReportVisualsTest() {
           const normMin = b.normal_min_male ?? b.normal_min;
           const normMax = b.normal_max_male ?? b.normal_max;
           const rangeDisplay = optMin != null && optMax != null
-            ? `${optMin}–${optMax}`
-            : normMin != null && normMax != null
-              ? `${normMin}–${normMax}`
-              : "";
-
+            ? `${optMin}–${optMax}` : normMin != null && normMax != null
+              ? `${normMin}–${normMax}` : "";
           return {
-            name: b.name,
-            code: b.code,
-            value: v.value,
-            unit: v.unit_override || b.unit,
-            category: b.category,
-            biomarker: b,
-            status: status.status,
-            statusLabel: status.label,
-            rangeDisplay,
+            name: b.name, code: b.code, value: v.value,
+            unit: v.unit_override || b.unit, category: b.category,
+            biomarker: b, status: status.status, statusLabel: status.label, rangeDisplay,
           };
         });
         setBiomarkers(processed);
       }
 
-      // Load recommendations
       const { data: recsData } = await supabase
         .from("recommendations")
         .select("type, text")
@@ -119,9 +180,7 @@ export default function ReportVisualsTest() {
 
       if (recsData) {
         const recs: Record<string, string> = {};
-        recsData.forEach((r: any) => {
-          recs[r.type] = r.text;
-        });
+        recsData.forEach((r: any) => { recs[r.type] = r.text; });
         setRecommendations(recs);
       }
     } finally {
@@ -141,15 +200,13 @@ export default function ReportVisualsTest() {
     );
   }
 
-  if (!analysis) {
-    return <div className="container mx-auto px-4 py-8">Нет данных</div>;
-  }
+  if (!analysis) return <div className="container mx-auto px-4 py-8">Нет данных</div>;
 
   const { biological_age, health_index } = analysis;
   const chronologicalAge = 26;
   const ageDiff = chronologicalAge - (biological_age || 0);
+  const totalMarkers = biomarkers.length;
 
-  // Group biomarkers by status for traffic light
   const trafficLight = {
     critical: biomarkers.filter((b) => b.status === "critical"),
     risk: biomarkers.filter((b) => b.status === "risk"),
@@ -157,7 +214,6 @@ export default function ReportVisualsTest() {
     optimal: biomarkers.filter((b) => b.status === "optimal"),
   };
 
-  // Group biomarkers by category
   const categories = [...new Set(biomarkers.map((b) => b.category))];
 
   const getScoreColor = (score: number) => {
@@ -181,22 +237,93 @@ export default function ReportVisualsTest() {
     optimal: "text-status-optimal",
   };
 
-  const totalMarkers = biomarkers.length;
+  const statusBgMap: Record<string, string> = {
+    critical: "bg-status-critical/10 border-status-critical/30",
+    risk: "bg-status-risk/10 border-status-risk/30",
+    acceptable: "bg-status-acceptable/10 border-status-acceptable/30",
+    optimal: "bg-status-optimal/10 border-status-optimal/30",
+  };
+
+  const statusEmojiMap: Record<string, string> = {
+    critical: "🔴", risk: "🟠", acceptable: "🟡", optimal: "🟢",
+  };
+
+  // Render interleaved text + biomarker bars
+  const renderInterleavedReport = (category: string) => {
+    const text = recommendations[category];
+    const catBiomarkers = biomarkers.filter((b) => b.category === category);
+    if (!text) return null;
+
+    const codes = catBiomarkers.map((b) => b.code);
+    const chunks = splitTextByBiomarkers(text, codes);
+
+    return (
+      <div className="space-y-4">
+        {chunks.map((chunk, idx) => {
+          if (chunk.type === "text") {
+            return (
+              <div key={idx} className="prose prose-sm dark:prose-invert max-w-none">
+                <MarkdownContent content={chunk.content} />
+              </div>
+            );
+          }
+
+          // Biomarker section: render bar + text
+          const bm = chunk.code ? catBiomarkers.find((b) => b.code === chunk.code) : null;
+          return (
+            <div key={idx} className="space-y-3">
+              {/* Visual bar card */}
+              {bm && (
+                <div className={`rounded-lg border p-3 ${statusBgMap[bm.status]}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span>{statusEmojiMap[bm.status]}</span>
+                      <span className="font-semibold text-sm text-foreground">{bm.name}</span>
+                      <span className="text-xs text-muted-foreground">({bm.code})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-bold text-sm ${statusColorMap[bm.status]}`}>
+                        {bm.value} {bm.unit}
+                      </span>
+                      <Badge variant="outline" className={`text-xs ${statusColorMap[bm.status]}`}>
+                        {bm.statusLabel}
+                      </Badge>
+                    </div>
+                  </div>
+                  <BiomarkerRangeBar
+                    biomarker={bm.biomarker}
+                    value={bm.value}
+                    age={26}
+                    gender="male"
+                    showLabels
+                  />
+                </div>
+              )}
+
+              {/* Text for this biomarker (without the header since the card shows it) */}
+              <div className="prose prose-sm dark:prose-invert max-w-none pl-2 border-l-2 border-muted">
+                <MarkdownContent content={chunk.content} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl space-y-10">
       <div>
         <h1 className="text-3xl font-bold mb-1 bg-gradient-primary bg-clip-text text-transparent">
-          Визуальные элементы отчёта
+          Превью отчёта для PDF
         </h1>
         <p className="text-muted-foreground text-sm">
-          Реальные данные: Сергей Чагин · Анализ от {analysis.date} · {totalMarkers} маркеров
+          Сергей Чагин · {analysis.date} · {totalMarkers} маркеров · Интерлейс текста и инфографики
         </p>
       </div>
 
-      {/* ═══ 1. СВОДКА-ДАШБОРД ═══ */}
+      {/* ═══ СВОДКА-ДАШБОРД ═══ */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">1. Сводка-дашборд</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
             <CardContent className="p-5 text-center">
@@ -257,20 +384,17 @@ export default function ReportVisualsTest() {
         </div>
       </section>
 
-      {/* ═══ 2. РАДАР СИСТЕМ ОРГАНИЗМА ═══ */}
+      {/* ═══ РАДАР СИСТЕМ + CAPTURE ═══ */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">2. Радар систем организма</h2>
+        <h2 className="text-xl font-semibold text-foreground">Баланс систем организма</h2>
         <Card>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-              <div className="h-[320px]">
+              <div className="h-[320px]" ref={radarRef}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={categoryScores} cx="50%" cy="50%" outerRadius="75%">
                     <PolarGrid stroke="hsl(var(--border))" />
-                    <PolarAngleAxis
-                      dataKey="system"
-                      tick={{ fill: "hsl(var(--foreground))", fontSize: 11, fontWeight: 500 }}
-                    />
+                    <PolarAngleAxis dataKey="system" tick={{ fill: "hsl(var(--foreground))", fontSize: 11, fontWeight: 500 }} />
                     <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} tickCount={5} />
                     <Radar name="Оценка" dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.2} strokeWidth={2} />
                   </RadarChart>
@@ -293,44 +417,45 @@ export default function ReportVisualsTest() {
                 ))}
               </div>
             </div>
+
+            {/* Show captured radar image for PDF demo */}
+            {radarImage && (
+              <div className="mt-6 pt-4 border-t border-border">
+                <div className="text-xs text-muted-foreground mb-2">📄 Версия для PDF (canvas → base64):</div>
+                <img src={radarImage} alt="Radar chart" className="max-w-[400px] rounded border" />
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>
 
-      {/* ═══ 3. СВЕТОФОР ПРИОРИТЕТОВ ═══ */}
+      {/* ═══ СВЕТОФОР ПРИОРИТЕТОВ ═══ */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">3. Светофор приоритетов</h2>
-        <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-foreground">Приоритеты</h2>
+        <div className="space-y-3">
           {([
-            { key: "critical" as const, emoji: "🔴", label: "Критично", color: "status-critical", variant: "destructive" as const },
-            { key: "risk" as const, emoji: "🟠", label: "Риск", color: "status-risk", variant: "secondary" as const },
-            { key: "acceptable" as const, emoji: "🟡", label: "Допустимо", color: "status-acceptable", variant: "secondary" as const },
-            { key: "optimal" as const, emoji: "🟢", label: "Оптимально", color: "status-optimal", variant: "secondary" as const },
+            { key: "critical" as const, emoji: "🔴", label: "Критично", color: "status-critical" },
+            { key: "risk" as const, emoji: "🟠", label: "Риск", color: "status-risk" },
+            { key: "acceptable" as const, emoji: "🟡", label: "Допустимо", color: "status-acceptable" },
+            { key: "optimal" as const, emoji: "🟢", label: "Оптимально", color: "status-optimal" },
           ]).map(({ key, emoji, label, color }) => {
             const items = trafficLight[key];
             if (items.length === 0) return null;
             return (
               <Card key={key} className={`border-${color}/30 bg-${color}/5`}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <span className="text-lg">{emoji}</span>
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <span>{emoji}</span>
                     <span className={`text-${color} font-semibold`}>{label}</span>
-                    <Badge className={`ml-auto bg-${color}/20 text-${color} border-${color}/30`}>{items.length}</Badge>
+                    <Badge className={`ml-auto bg-${color}/20 text-${color} border-${color}/30 text-xs`}>{items.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <CardContent className="pt-0 pb-3">
+                  <div className="flex flex-wrap gap-2">
                     {items.map((m) => (
-                      <div key={m.code} className="flex items-center justify-between p-3 rounded-lg bg-background/60">
-                        <div>
-                          <span className="font-medium text-sm text-foreground">{m.name}</span>
-                          <span className="text-xs text-muted-foreground ml-2">({m.code})</span>
-                        </div>
-                        <div className="text-right">
-                          <span className={`font-bold ${statusColorMap[key]}`}>{m.value} {m.unit}</span>
-                          {m.rangeDisplay && <div className="text-xs text-muted-foreground">опт: {m.rangeDisplay}</div>}
-                        </div>
-                      </div>
+                      <span key={m.code} className="text-xs px-2 py-1 rounded bg-background/60 text-foreground">
+                        {m.name} <span className={`font-bold ${statusColorMap[key]}`}>{m.value}</span> {m.unit}
+                      </span>
                     ))}
                   </div>
                 </CardContent>
@@ -340,91 +465,34 @@ export default function ReportVisualsTest() {
         </div>
       </section>
 
-      {/* ═══ 4. ПРИМЕР ОТЧЁТА ПО КАТЕГОРИИ ═══ */}
+      <Separator className="my-6" />
+
+      {/* ═══ ОТЧЁТЫ ПО КАТЕГОРИЯМ (ИНТЕРЛЕЙС) ═══ */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">4. Пример отчёта по категории</h2>
+        <h2 className="text-xl font-semibold text-foreground">Отчёт по категориям (интерлейс текст + шкалы)</h2>
         <Tabs defaultValue={categories[0] || ""}>
           <TabsList className="flex-wrap h-auto gap-1">
             {categories.map((cat) => (
-              <TabsTrigger key={cat} value={cat} className="text-xs">
-                {cat}
-              </TabsTrigger>
+              <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
             ))}
           </TabsList>
 
-          {categories.map((cat) => {
-            const catBiomarkers = biomarkers.filter((b) => b.category === cat);
-            const reportText = recommendations[cat];
-
-            return (
-              <TabsContent key={cat} value={cat} className="space-y-6">
-                {/* Biomarker bars for this category */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Шкалы биомаркеров — {cat}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
-                    {catBiomarkers.map((item) => (
-                      <div key={item.code} className="space-y-1.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm text-foreground">{item.name}</span>
-                            <span className="text-xs text-muted-foreground">({item.code})</span>
-                            <Badge variant="outline" className={`text-xs ${statusColorMap[item.status]} border-${item.status === 'optimal' ? 'status-optimal' : item.status === 'acceptable' ? 'status-acceptable' : item.status === 'risk' ? 'status-risk' : 'status-critical'}/30`}>
-                              {item.statusLabel}
-                            </Badge>
-                          </div>
-                          <span className={`text-sm font-bold ${statusColorMap[item.status]}`}>
-                            {item.value} {item.unit}
-                          </span>
-                        </div>
-                        <BiomarkerRangeBar
-                          biomarker={item.biomarker}
-                          value={item.value}
-                          age={26}
-                          gender="male"
-                          showLabels
-                        />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                {/* AI report text */}
-                {reportText && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Текст отчёта — {cat}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <MarkdownContent content={reportText} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            );
-          })}
+          {categories.map((cat) => (
+            <TabsContent key={cat} value={cat}>
+              <Card>
+                <CardContent className="p-6">
+                  {renderInterleavedReport(cat)}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
         </Tabs>
       </section>
 
-      {/* ═══ 5. ОБЩЕЕ РЕЗЮМЕ ═══ */}
-      {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-foreground">5. Общее резюме</h2>
-          <Card>
-            <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-              <MarkdownContent content={recommendations["Общее резюме"]} />
-            </CardContent>
-          </Card>
-        </section>
-      )}
-
-      {/* ═══ 6. ДАННЫЕ ПАЦИЕНТА ═══ */}
+      {/* ═══ ДАННЫЕ ПАЦИЕНТА ═══ */}
       {recommendations["Данные пациента"] && (
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-foreground">6. Данные пациента</h2>
+          <h2 className="text-xl font-semibold text-foreground">Данные пациента</h2>
           <Card>
             <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
               <MarkdownContent content={recommendations["Данные пациента"]} />
