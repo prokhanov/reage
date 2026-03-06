@@ -271,9 +271,22 @@ export default function ReportVisualsTest() {
       .replace("{recommendations}", "Нет предыдущих рекомендаций");
   };
 
+  const [demoGeneratedAt, setDemoGeneratedAt] = useState<string | null>(null);
+
+  // Load demo_report_result updated_at on init
+  useEffect(() => {
+    supabase
+      .from("ai_prompt_settings")
+      .select("updated_at")
+      .eq("key", "demo_report_result")
+      .single()
+      .then(({ data }) => {
+        if (data?.updated_at) setDemoGeneratedAt(data.updated_at);
+      });
+  }, []);
+
   const handleGenerate = async () => {
     setGenerating(true);
-    setGeneratedContent(null);
     try {
       const substitutedPrompt = buildSubstitutedPrompt();
       const { data, error } = await supabase.functions.invoke("test-prompt", {
