@@ -1,30 +1,16 @@
 
 
-## Проблема
+## Problem
 
-Системные промпты всех 5 категорий (`category_*_system`) содержат инструкции форматирования, которые заставляют AI генерировать текст в виде списка с подзаголовками ("Что это", "Зачем нужен", "Интерпретация результата", "Связь с другими показателями"):
+The prompt tab shows hardcoded `DEMO_SYSTEM_PROMPT` / `DEMO_USER_PROMPT` constants. The recent DB updates to `category_energy_system` / `category_energy_user` are not reflected because prompts are never fetched from the database. There is also no way to save edits.
 
-```
-- Для каждого биомаркера использовать вложенный список: сначала `- **Название**`, затем подпункты с двумя пробелами и `-`.
-```
+## Plan
 
-Пользователь хочет:
-1. Единый подробный текст на каждый биомаркер, без подзаголовков-буллетов
-2. "Связь с другими показателями" — только если есть что сказать о конкретных значениях пациента, а не общая справка
-3. Если нечего сказать — не писать
+### Changes in `src/pages/admin/ReportVisualsTest.tsx`
 
-## План
+1. **Load prompts from DB on mount**: In `loadData()`, fetch `category_energy_system` and `category_energy_user` from `ai_prompt_settings`. Use them to initialize `systemPrompt` and `userPrompt` state (fall back to hardcoded constants if not found).
 
-Обновить секцию "Требования к Markdown" во всех 5 системных промптах в БД (`ai_prompt_settings`), заменив инструкции форматирования:
+2. **Add "Save" button to `PromptDemoTab`**: Add a Save button (with `Save` icon) next to each prompt card header (or one shared button at the top). On click, update the corresponding rows in `ai_prompt_settings` via `supabase.from('ai_prompt_settings').update({ prompt_text }).eq('key', ...)`. Show toast on success/error. Track saving state with a `saving` boolean.
 
-**Убрать:**
-- "Для каждого биомаркера использовать вложенный список: сначала `- **Название**`, затем подпункты с двумя пробелами и `-`."
-- "Названия биомаркеров и названия подпунктов выделять жирным"
-
-**Добавить:**
-- Каждый биомаркер начинать с заголовка `## Название (код)`, далее — единый связный подробный текст без подзаголовков и буллет-поинтов внутри описания биомаркера.
-- Не разбивать описание на подпункты типа "Что это", "Зачем нужен", "Интерпретация". Писать как единый экспертный абзац.
-- Связь с другими показателями упоминать только если конкретные значения пациента в сочетании дают клинически значимую картину. Если связь тривиальна или нечего сказать — не писать.
-
-**Затрагиваются:** 5 записей в `ai_prompt_settings` (SQL UPDATE). Код не меняется.
+3. **Remove or keep hardcoded constants as fallback only** -- the constants stay as defaults if DB fetch fails, but prompts are always loaded from DB first.
 
