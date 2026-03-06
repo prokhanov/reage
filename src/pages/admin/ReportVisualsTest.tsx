@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2 } from "lucide-react";
+import { RefreshCw, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
@@ -104,6 +104,19 @@ export default function ReportVisualsTest() {
 
   const loadData = async () => {
     try {
+      // Load prompts from DB
+      const { data: promptsData } = await supabase
+        .from("ai_prompt_settings")
+        .select("key, prompt_text")
+        .in("key", ["category_energy_system", "category_energy_user"]);
+
+      if (promptsData) {
+        const systemRow = promptsData.find(p => p.key === "category_energy_system");
+        const userRow = promptsData.find(p => p.key === "category_energy_user");
+        if (systemRow) setSystemPrompt(systemRow.prompt_text);
+        if (userRow) setUserPrompt(userRow.prompt_text);
+      }
+
       const { data: analysisData } = await supabase
         .from("analyses")
         .select("*")
@@ -740,7 +753,27 @@ interface PromptDemoTabProps {
 }
 
 function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, userPrompt, setUserPrompt }: PromptDemoTabProps) {
+  const [saving, setSaving] = useState(false);
 
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error: e1 } = await supabase
+        .from("ai_prompt_settings")
+        .update({ prompt_text: systemPrompt })
+        .eq("key", "category_energy_system");
+      const { error: e2 } = await supabase
+        .from("ai_prompt_settings")
+        .update({ prompt_text: userPrompt })
+        .eq("key", "category_energy_user");
+      if (e1 || e2) throw e1 || e2;
+      toast.success("Промпты сохранены в БД");
+    } catch (err: any) {
+      toast.error(`Ошибка сохранения: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
   // Build example data for each placeholder
   const exampleCategory = categories[0] || "Энергия и восстановление";
   const catBiomarkers = biomarkers.filter(b => b.category === exampleCategory);
@@ -783,12 +816,20 @@ BMI: 22.7 (норма)
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Демо-промпт</h3>
+        <Button onClick={handleSave} disabled={saving} size="sm" className="gap-2">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {saving ? "Сохранение..." : "Сохранить в БД"}
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">ℹ️ О демо-промпте</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>Это тестовые промпты для раздела «Энергия и восстановление». Они <strong>не влияют</strong> на боевую генерацию отчётов — только для тестирования.</p>
+          <p>Это промпты для раздела «Энергия и восстановление», загруженные из БД. Изменения сохраняются кнопкой «Сохранить в БД».</p>
           <p>Плейсхолдеры, как в боевой функции:</p>
           <div className="flex flex-wrap gap-1.5 mt-1">
             {["{userContext}", "{category}", "{biomarkers}", "{trends}", "{recommendations}"].map(ph => (
