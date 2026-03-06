@@ -282,7 +282,7 @@ export default function ReportVisualsTest() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-10">
+    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
       <div className="text-center space-y-1">
         <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
           Персональный отчёт
@@ -292,194 +292,445 @@ export default function ReportVisualsTest() {
         </p>
       </div>
 
-      {/* ═══ 1. ДАННЫЕ ПАЦИЕНТА ═══ */}
-      {recommendations["Данные пациента"] && (
-        <section className="space-y-3">
-          <Card>
-            <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-              <MarkdownContent content={recommendations["Данные пациента"]} />
-            </CardContent>
-          </Card>
-        </section>
-      )}
+      <Tabs defaultValue="preview" className="w-full">
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="preview">Превью отчёта</TabsTrigger>
+          <TabsTrigger value="prompt">Демо-промпт</TabsTrigger>
+        </TabsList>
 
-      {/* ═══ 2. ОБЩЕЕ РЕЗЮМЕ (дашборд → текст → баланс систем) ═══ */}
-      <section className="space-y-6">
-        <h2 className="text-xl font-semibold text-foreground">Общее резюме</h2>
-
-        {/* Дашборд метрик */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-            <CardContent className="p-5 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Биологический возраст</div>
-              <div className="text-4xl font-bold text-foreground">{biological_age}</div>
-              <div className={`text-sm font-medium mt-1 ${ageDiff > 0 ? "text-status-optimal" : "text-status-critical"}`}>
-                {ageDiff > 0 ? `−${ageDiff.toFixed(1)} лет` : `+${Math.abs(ageDiff).toFixed(1)} лет`}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-primary/20">
-            <CardContent className="p-5 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Индекс здоровья</div>
-              <div className="text-4xl font-bold text-foreground">
-                {health_index}<span className="text-lg text-muted-foreground">/100</span>
-              </div>
-              <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${getProgressBg(health_index)}`} style={{ width: `${health_index}%` }} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-5 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Всего маркеров</div>
-              <div className="text-4xl font-bold text-foreground">{totalMarkers}</div>
-              <div className="text-xs text-muted-foreground mt-1">сдано в анализе</div>
-            </CardContent>
-          </Card>
-
-          <Card className={trafficLight.critical.length > 0 ? "border-status-critical/30 bg-status-critical/5" : "border-status-risk/20"}>
-            <CardContent className="p-5 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Требуют внимания</div>
-              <div className="text-4xl font-bold text-status-critical">
-                {trafficLight.critical.length + trafficLight.risk.length}
-              </div>
-              <div className="flex items-center justify-center gap-2 mt-1">
-                <span className="text-xs">🔴 {trafficLight.critical.length}</span>
-                <span className="text-xs">🟠 {trafficLight.risk.length}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Status breakdown bar */}
-        <div className="flex rounded-full overflow-hidden h-3">
-          <div className="bg-status-optimal h-full" style={{ width: `${(trafficLight.optimal.length / totalMarkers) * 100}%` }} />
-          <div className="bg-status-acceptable h-full" style={{ width: `${(trafficLight.acceptable.length / totalMarkers) * 100}%` }} />
-          <div className="bg-status-risk h-full" style={{ width: `${(trafficLight.risk.length / totalMarkers) * 100}%` }} />
-          <div className="bg-status-critical h-full" style={{ width: `${(trafficLight.critical.length / totalMarkers) * 100}%` }} />
-        </div>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-optimal inline-block" /> Оптимально ({trafficLight.optimal.length})</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-acceptable inline-block" /> Допустимо ({trafficLight.acceptable.length})</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-risk inline-block" /> Риск ({trafficLight.risk.length})</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-critical inline-block" /> Критично ({trafficLight.critical.length})</span>
-        </div>
-
-        {/* AI текст резюме */}
-        {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
-          <Card>
-            <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-              <MarkdownContent content={recommendations["Общее резюме"]} />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Баланс систем организма */}
-        {categoryScores.length > 0 && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Баланс систем организма</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 pt-2 space-y-4">
-              {categoryScores
-                .sort((a, b) => a.score - b.score)
-                .map((item) => (
-                <div key={item.system} className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-foreground">{item.system}</span>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-lg font-bold ${getScoreColor(item.score)}`}>{item.score}</span>
-                      <span className="text-xs text-muted-foreground">/ 100</span>
-                    </div>
-                  </div>
-                  <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${getProgressBg(item.score)}`}
-                      style={{ width: `${item.score}%` }}
-                    />
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Ключевые маркеры: {item.key_markers.join(", ")}
-                  </div>
-                </div>
-              ))}
-              <Separator className="my-3" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-foreground">Средняя оценка</span>
-                <span className={`text-lg font-bold ${getScoreColor(
-                  Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)
-                )}`}>
-                  {Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </section>
-
-      <Separator className="my-6" />
-
-      {/* ═══ 3. ОТЧЁТЫ ПО СИСТЕМАМ (ИНТЕРЛЕЙС) ═══ */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
-        <Tabs defaultValue={categories[0] || ""}>
-          <TabsList className="flex-wrap h-auto gap-1">
-            {categories.map((cat) => (
-              <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
-            ))}
-          </TabsList>
-
-          {categories.map((cat) => (
-            <TabsContent key={cat} value={cat}>
+        <TabsContent value="preview" className="space-y-10 mt-6">
+          {/* ═══ 1. ДАННЫЕ ПАЦИЕНТА ═══ */}
+          {recommendations["Данные пациента"] && (
+            <section className="space-y-3">
               <Card>
-                <CardContent className="p-6">
-                  {renderInterleavedReport(cat)}
+                <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
+                  <MarkdownContent content={recommendations["Данные пациента"]} />
                 </CardContent>
               </Card>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </section>
+            </section>
+          )}
 
-      <Separator className="my-6" />
+          {/* ═══ 2. ОБЩЕЕ РЕЗЮМЕ ═══ */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold text-foreground">Общее резюме</h2>
 
-      {/* ═══ 4. ПРИОРИТЕТЫ (внизу) ═══ */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">Приоритеты</h2>
-        <div className="space-y-3">
-          {([
-            { key: "critical" as const, emoji: "🔴", label: "Критично", color: "status-critical" },
-            { key: "risk" as const, emoji: "🟠", label: "Риск", color: "status-risk" },
-            { key: "acceptable" as const, emoji: "🟡", label: "Допустимо", color: "status-acceptable" },
-            { key: "optimal" as const, emoji: "🟢", label: "Оптимально", color: "status-optimal" },
-          ]).map(({ key, emoji, label, color }) => {
-            const items = trafficLight[key];
-            if (items.length === 0) return null;
-            return (
-              <Card key={key} className={`border-${color}/30 bg-${color}/5`}>
-                <CardHeader className="pb-2 pt-4">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <span>{emoji}</span>
-                    <span className={`text-${color} font-semibold`}>{label}</span>
-                    <Badge className={`ml-auto bg-${color}/20 text-${color} border-${color}/30 text-xs`}>{items.length}</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 pb-3">
-                  <div className="flex flex-wrap gap-2">
-                    {items.map((m) => (
-                      <span key={m.code} className="text-xs px-2 py-1 rounded bg-background/60 text-foreground">
-                        {m.name} <span className={`font-bold ${statusColorMap[key]}`}>{m.value}</span> {m.unit}
-                      </span>
-                    ))}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+                <CardContent className="p-5 text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Биологический возраст</div>
+                  <div className="text-4xl font-bold text-foreground">{biological_age}</div>
+                  <div className={`text-sm font-medium mt-1 ${ageDiff > 0 ? "text-status-optimal" : "text-status-critical"}`}>
+                    {ageDiff > 0 ? `−${ageDiff.toFixed(1)} лет` : `+${Math.abs(ageDiff).toFixed(1)} лет`}
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
-      </section>
+
+              <Card className="border-primary/20">
+                <CardContent className="p-5 text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Индекс здоровья</div>
+                  <div className="text-4xl font-bold text-foreground">
+                    {health_index}<span className="text-lg text-muted-foreground">/100</span>
+                  </div>
+                  <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${getProgressBg(health_index)}`} style={{ width: `${health_index}%` }} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-5 text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Всего маркеров</div>
+                  <div className="text-4xl font-bold text-foreground">{totalMarkers}</div>
+                  <div className="text-xs text-muted-foreground mt-1">сдано в анализе</div>
+                </CardContent>
+              </Card>
+
+              <Card className={trafficLight.critical.length > 0 ? "border-status-critical/30 bg-status-critical/5" : "border-status-risk/20"}>
+                <CardContent className="p-5 text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Требуют внимания</div>
+                  <div className="text-4xl font-bold text-status-critical">
+                    {trafficLight.critical.length + trafficLight.risk.length}
+                  </div>
+                  <div className="flex items-center justify-center gap-2 mt-1">
+                    <span className="text-xs">🔴 {trafficLight.critical.length}</span>
+                    <span className="text-xs">🟠 {trafficLight.risk.length}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex rounded-full overflow-hidden h-3">
+              <div className="bg-status-optimal h-full" style={{ width: `${(trafficLight.optimal.length / totalMarkers) * 100}%` }} />
+              <div className="bg-status-acceptable h-full" style={{ width: `${(trafficLight.acceptable.length / totalMarkers) * 100}%` }} />
+              <div className="bg-status-risk h-full" style={{ width: `${(trafficLight.risk.length / totalMarkers) * 100}%` }} />
+              <div className="bg-status-critical h-full" style={{ width: `${(trafficLight.critical.length / totalMarkers) * 100}%` }} />
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-optimal inline-block" /> Оптимально ({trafficLight.optimal.length})</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-acceptable inline-block" /> Допустимо ({trafficLight.acceptable.length})</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-risk inline-block" /> Риск ({trafficLight.risk.length})</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-critical inline-block" /> Критично ({trafficLight.critical.length})</span>
+            </div>
+
+            {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
+              <Card>
+                <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
+                  <MarkdownContent content={recommendations["Общее резюме"]} />
+                </CardContent>
+              </Card>
+            )}
+
+            {categoryScores.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Баланс систем организма</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 pt-2 space-y-4">
+                  {categoryScores
+                    .sort((a, b) => a.score - b.score)
+                    .map((item) => (
+                    <div key={item.system} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground">{item.system}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-lg font-bold ${getScoreColor(item.score)}`}>{item.score}</span>
+                          <span className="text-xs text-muted-foreground">/ 100</span>
+                        </div>
+                      </div>
+                      <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${getProgressBg(item.score)}`}
+                          style={{ width: `${item.score}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Ключевые маркеры: {item.key_markers.join(", ")}
+                      </div>
+                    </div>
+                  ))}
+                  <Separator className="my-3" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-foreground">Средняя оценка</span>
+                    <span className={`text-lg font-bold ${getScoreColor(
+                      Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)
+                    )}`}>
+                      {Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </section>
+
+          <Separator className="my-6" />
+
+          {/* ═══ 3. ОТЧЁТЫ ПО СИСТЕМАМ ═══ */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
+            <Tabs defaultValue={categories[0] || ""}>
+              <TabsList className="flex-wrap h-auto gap-1">
+                {categories.map((cat) => (
+                  <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
+                ))}
+              </TabsList>
+
+              {categories.map((cat) => (
+                <TabsContent key={cat} value={cat}>
+                  <Card>
+                    <CardContent className="p-6">
+                      {renderInterleavedReport(cat)}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </section>
+
+          <Separator className="my-6" />
+
+          {/* ═══ 4. ПРИОРИТЕТЫ ═══ */}
+          <section className="space-y-3">
+            <h2 className="text-xl font-semibold text-foreground">Приоритеты</h2>
+            <div className="space-y-3">
+              {([
+                { key: "critical" as const, emoji: "🔴", label: "Критично", color: "status-critical" },
+                { key: "risk" as const, emoji: "🟠", label: "Риск", color: "status-risk" },
+                { key: "acceptable" as const, emoji: "🟡", label: "Допустимо", color: "status-acceptable" },
+                { key: "optimal" as const, emoji: "🟢", label: "Оптимально", color: "status-optimal" },
+              ]).map(({ key, emoji, label, color }) => {
+                const items = trafficLight[key];
+                if (items.length === 0) return null;
+                return (
+                  <Card key={key} className={`border-${color}/30 bg-${color}/5`}>
+                    <CardHeader className="pb-2 pt-4">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <span>{emoji}</span>
+                        <span className={`text-${color} font-semibold`}>{label}</span>
+                        <Badge className={`ml-auto bg-${color}/20 text-${color} border-${color}/30 text-xs`}>{items.length}</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 pb-3">
+                      <div className="flex flex-wrap gap-2">
+                        {items.map((m) => (
+                          <span key={m.code} className="text-xs px-2 py-1 rounded bg-background/60 text-foreground">
+                            {m.name} <span className={`font-bold ${statusColorMap[key]}`}>{m.value}</span> {m.unit}
+                          </span>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="prompt" className="space-y-6 mt-6">
+          <PromptDemoTab biomarkers={biomarkers} categories={categories} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Демо-промпт таб — системный + основной промпт для тестирования
+   ═══════════════════════════════════════════════════════════════ */
+
+const DEMO_SYSTEM_PROMPT = `Вы — врач функциональной медицины, специализирующийся на энергетическом метаболизме, гормональной регуляции и митохондриальной функции. Анализируйте биомаркеры с точки зрения производства энергии, окислительного стресса, метаболического здоровья и способности организма к восстановлению.`;
+
+const DEMO_USER_PROMPT = `Твоя задача — написать один раздел отчёта ReAge для клиента на русском языке.
+
+Раздел должен быть:
+— понятным человеку без медицинского образования
+— интересным и персонализированным
+— достаточно подробным, но легко читаемым
+— написанным простым, уверенным, спокойным языком
+— основанным именно на данных клиента
+— без постановки диагнозов
+— без пугающих формулировок
+— без сухого перечисления анализов
+
+Важно:
+не просто объясняй каждый анализ отдельно.
+Показывай связи между показателями и делай выводы о том, как работает система организма клиента.
+Если информации недостаточно для какого-то вывода — не придумывай.
+
+Дополнительные обязательные требования
+• Никогда не упоминайте, что вы ИИ, алгоритм, модель или чат-бот.
+• Не обращайтесь к пациенту по имени.
+• Не используйте прямые обращения «Вы», «Ваш(и)», «тебе», «у вас».
+Используйте нейтральные формулировки: «наблюдается», «отмечается», «имеются признаки», «рекомендуется».
+• Пишите спокойно, вежливо и поддерживающе, как на приёме у врача.
+• Не запугивайте.
+• Не используйте тревожные формулировки: «срочно», «опасно», «критично», «катастрофа».
+• Если показатель выраженно отклонён — описывайте это спокойно и конструктивно.
+• Пишите простым языком.
+• Если используется медицинский термин — сразу объясняйте его простыми словами.
+• Давайте максимально подробный объём объяснений.
+• Не ставьте диагнозы.
+• Не назначайте лекарства.
+• При подозрении болезни мягко рекомендуйте консультацию врача.
+• Не прощайтесь и не пишите завершающих фраз, потому что после этого текста будет следующий блок.
+
+Требования к Markdown (строго соблюдать)
+• Использовать только заголовки уровня ##
+• Не использовать # или ###
+• Использовать только маркированные списки через -
+• Не использовать нумерованные списки
+• Для каждого биомаркера использовать вложенный список:
+  - **Название биомаркера**
+  затем подпункты с двумя пробелами и -
+• Названия биомаркеров и названия подпунктов выделять жирным
+• Не использовать таблицы
+• Не использовать ссылки
+• Не использовать курсив
+• Не использовать цитаты
+• Не использовать кодовые блоки
+• Эмодзи допускаются только в заголовках
+• Отчёт должен быть единообразным по стилю и форматированию
+
+Структура раздела отчёта
+
+🧬 Роль системы организма
+Коротко объясните:
+• за что отвечает эта система
+• как она влияет на энергию, восстановление и метаболизм
+• почему её состояние важно для долгосрочного здоровья
+
+🔬 Интерпретация биомаркеров
+Для каждого биомаркера используйте формат:
+• Название биомаркера
+• Что это
+• Зачем нужен
+• Интерпретация результата
+• Связь с энергетическим обменом
+• Связь с другими показателями
+
+Если имеется отклонение:
+• объясните клиническое значение отклонения
+• опишите влияние на энергетический обмен
+• укажите возможные причины
+• предложите направления коррекции
+
+🧠 Ключевые инсайты организма
+Выделите 3–5 самых интересных выводов из данных.
+Это должны быть наблюдения о физиологии организма, а не просто описание анализов.
+Инсайты должны основываться на сочетании нескольких маркеров.
+
+🛡 Главные сильные стороны организма
+Опишите 2–4 сильные стороны системы.
+Это показатели, которые находятся в оптимальном диапазоне и поддерживают здоровье.
+
+⚠️ Ранние сигналы риска
+Опишите показатели, которые:
+• находятся на границе нормы
+• могут стать проблемой в будущем
+• требуют наблюдения
+Это должны быть ранние сигналы, а не диагнозы.
+
+⏳ Факторы, которые могут ускорять старение системы
+Выделите 2–4 фактора, которые потенциально могут влиять на долгосрочное здоровье:
+• хроническое воспаление
+• дефицит нутриентов
+• гормональные изменения
+• метаболические нарушения
+• окислительный стресс
+
+🔍 Особенности физиологии
+Опишите 1–3 интересные особенности организма, которые выделяются в данных.
+Этот раздел делает отчёт персонализированным.
+
+🔧 Что больше всего улучшит состояние системы
+Выделите 3 действия с наибольшим эффектом:
+• питание
+• физическая активность
+• сон
+• управление стрессом
+• нутрицевтики
+• повторные анализы
+Рекомендации должны быть конкретными и реалистичными.
+
+📊 Самые важные маркеры для отслеживания
+Выделите 3–5 показателей, которые лучше всего отражают состояние системы.
+Кратко объясните, почему именно их важно контролировать.
+
+📈 Динамика показателей
+Если есть предыдущие анализы:
+• сравните прошлые и текущие значения
+• укажите направление изменений
+• объясните возможные причины
+Если прошлых данных нет — пропустите раздел.
+
+Анализ взаимосвязей
+Важно: не анализируйте показатели изолированно.
+Ищите паттерны:
+• гормональные оси
+• метаболические связи
+• воспаление
+• митохондриальную функцию
+• окислительный стресс
+
+Данные для анализа
+
+Проанализируйте следующие биомаркеры категории:
+{category}
+
+Биомаркеры:
+{biomarkers}
+
+Предыдущие результаты (если есть):
+{previous_biomarkers}
+
+Цель текста
+Текст должен выглядеть как раздел отчёта частной клиники функциональной медицины.
+Он должен:
+• объяснять состояние организма
+• показывать взаимосвязи анализов
+• давать полезные инсайты
+• помогать понять направления улучшения здоровья.`;
+
+function PromptDemoTab({ biomarkers, categories }: { biomarkers: BiomarkerData[]; categories: string[] }) {
+  const [systemPrompt, setSystemPrompt] = useState(DEMO_SYSTEM_PROMPT);
+  const [userPrompt, setUserPrompt] = useState(DEMO_USER_PROMPT);
+
+  // Build example of what {biomarkers} would look like for the first category
+  const exampleCategory = categories[0] || "Энергия и восстановление";
+  const catBiomarkers = biomarkers.filter(b => b.category === exampleCategory);
+  const biomarkersPreview = catBiomarkers.map(b => 
+    `- ${b.name} (${b.code}): ${b.value} ${b.unit} — ${b.statusLabel} (оптимум: ${b.rangeDisplay})`
+  ).join("\n");
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">ℹ️ О демо-промпте</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground space-y-2">
+          <p>Это тестовые промпты для раздела «Энергия и восстановление». Они <strong>не влияют</strong> на боевую генерацию отчётов — только для тестирования.</p>
+          <p>Плейсхолдеры <code className="bg-muted px-1 py-0.5 rounded text-xs">{"{category}"}</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">{"{biomarkers}"}</code>, <code className="bg-muted px-1 py-0.5 rounded text-xs">{"{previous_biomarkers}"}</code> заменяются реальными данными при вызове AI.</p>
+        </CardContent>
+      </Card>
+
+      {/* Системный промпт */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">system</Badge>
+            <CardTitle className="text-base">Системный промпт</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            className="min-h-[120px] font-mono text-sm"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Основной промпт */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">user</Badge>
+            <CardTitle className="text-base">Основной промпт</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={userPrompt}
+            onChange={(e) => setUserPrompt(e.target.value)}
+            className="min-h-[600px] font-mono text-sm"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Превью подставляемых данных */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">📋 Превью данных для подстановки</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{category}"} →</Label>
+            <div className="bg-muted/50 rounded-md p-3 text-sm font-mono">{exampleCategory}</div>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{biomarkers}"} → ({catBiomarkers.length} маркеров)</Label>
+            <pre className="bg-muted/50 rounded-md p-3 text-xs font-mono whitespace-pre-wrap max-h-[300px] overflow-auto">
+              {biomarkersPreview || "Нет данных для этой категории"}
+            </pre>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{previous_biomarkers}"} →</Label>
+            <div className="bg-muted/50 rounded-md p-3 text-sm font-mono text-muted-foreground italic">
+              Подставляются из предыдущих анализов (если есть)
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
