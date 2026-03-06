@@ -364,6 +364,11 @@ export default function ReportVisualsTest() {
         <p className="text-muted-foreground text-sm">
           Сергей Чагин · {analysis.date} · {totalMarkers} маркеров
         </p>
+        {lastGeneratedAt && (
+          <p className="text-xs text-muted-foreground">
+            Последняя генерация: {new Date(lastGeneratedAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
       </div>
 
       <Tabs defaultValue="preview" className="w-full">
