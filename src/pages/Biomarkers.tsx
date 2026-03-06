@@ -281,7 +281,7 @@ export default function Biomarkers() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
-                  <div className="mt-4 border rounded-lg overflow-hidden">
+                  <div className="mt-4 border rounded-lg overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-secondary/50">
