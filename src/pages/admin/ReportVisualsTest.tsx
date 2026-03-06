@@ -301,8 +301,11 @@ export default function ReportVisualsTest() {
         </section>
       )}
 
-      {/* ═══ 2. СВОДКА-ДАШБОРД ═══ */}
-      <section className="space-y-3">
+      {/* ═══ 2. ОБЩЕЕ РЕЗЮМЕ (дашборд → текст → баланс систем) ═══ */}
+      <section className="space-y-6">
+        <h2 className="text-xl font-semibold text-foreground">Общее резюме</h2>
+
+        {/* Дашборд метрик */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
             <CardContent className="p-5 text-center">
@@ -361,21 +364,86 @@ export default function ReportVisualsTest() {
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-risk inline-block" /> Риск ({trafficLight.risk.length})</span>
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-status-critical inline-block" /> Критично ({trafficLight.critical.length})</span>
         </div>
-      </section>
 
-      {/* ═══ 3. ОБЩЕЕ РЕЗЮМЕ ═══ */}
-      {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-foreground">Общее резюме</h2>
+        {/* AI текст резюме */}
+        {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
           <Card>
             <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
               <MarkdownContent content={recommendations["Общее резюме"]} />
             </CardContent>
           </Card>
-        </section>
-      )}
+        )}
 
-      {/* ═══ 4. СВЕТОФОР ПРИОРИТЕТОВ ═══ */}
+        {/* Баланс систем организма */}
+        {categoryScores.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Баланс систем организма</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 pt-2 space-y-4">
+              {categoryScores
+                .sort((a, b) => a.score - b.score)
+                .map((item) => (
+                <div key={item.system} className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">{item.system}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-lg font-bold ${getScoreColor(item.score)}`}>{item.score}</span>
+                      <span className="text-xs text-muted-foreground">/ 100</span>
+                    </div>
+                  </div>
+                  <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${getProgressBg(item.score)}`}
+                      style={{ width: `${item.score}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Ключевые маркеры: {item.key_markers.join(", ")}
+                  </div>
+                </div>
+              ))}
+              <Separator className="my-3" />
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">Средняя оценка</span>
+                <span className={`text-lg font-bold ${getScoreColor(
+                  Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)
+                )}`}>
+                  {Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
+      <Separator className="my-6" />
+
+      {/* ═══ 3. ОТЧЁТЫ ПО СИСТЕМАМ (ИНТЕРЛЕЙС) ═══ */}
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
+        <Tabs defaultValue={categories[0] || ""}>
+          <TabsList className="flex-wrap h-auto gap-1">
+            {categories.map((cat) => (
+              <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
+            ))}
+          </TabsList>
+
+          {categories.map((cat) => (
+            <TabsContent key={cat} value={cat}>
+              <Card>
+                <CardContent className="p-6">
+                  {renderInterleavedReport(cat)}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </section>
+
+      <Separator className="my-6" />
+
+      {/* ═══ 4. ПРИОРИТЕТЫ (внизу) ═══ */}
       <section className="space-y-3">
         <h2 className="text-xl font-semibold text-foreground">Приоритеты</h2>
         <div className="space-y-3">
@@ -409,74 +477,6 @@ export default function ReportVisualsTest() {
             );
           })}
         </div>
-      </section>
-
-      <Separator className="my-6" />
-
-      {/* ═══ 5. ОТЧЁТЫ ПО КАТЕГОРИЯМ (ИНТЕРЛЕЙС) ═══ */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
-        <Tabs defaultValue={categories[0] || ""}>
-          <TabsList className="flex-wrap h-auto gap-1">
-            {categories.map((cat) => (
-              <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
-            ))}
-          </TabsList>
-
-          {categories.map((cat) => (
-            <TabsContent key={cat} value={cat}>
-              <Card>
-                <CardContent className="p-6">
-                  {renderInterleavedReport(cat)}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </section>
-
-      <Separator className="my-6" />
-
-      {/* ═══ 6. БАЛАНС СИСТЕМ ОРГАНИЗМА (таблица с прогресс-барами, PDF-friendly) ═══ */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">Баланс систем организма</h2>
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            {categoryScores
-              .sort((a, b) => a.score - b.score)
-              .map((item) => (
-              <div key={item.system} className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">{item.system}</span>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-lg font-bold ${getScoreColor(item.score)}`}>{item.score}</span>
-                    <span className="text-xs text-muted-foreground">/ 100</span>
-                  </div>
-                </div>
-                <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${getProgressBg(item.score)}`}
-                    style={{ width: `${item.score}%` }}
-                  />
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Ключевые маркеры: {item.key_markers.join(", ")}
-                </div>
-              </div>
-            ))}
-
-            {/* Summary bar at the bottom */}
-            <Separator className="my-3" />
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-foreground">Средняя оценка</span>
-              <span className={`text-lg font-bold ${getScoreColor(
-                Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)
-              )}`}>
-                {Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
       </section>
     </div>
   );
