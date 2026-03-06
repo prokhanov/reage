@@ -269,7 +269,7 @@ export default function Biomarkers() {
               <AccordionItem 
                 key={category} 
                 value={category}
-                className="border border-primary/20 rounded-lg bg-card/50 backdrop-blur-sm overflow-hidden"
+                className="border border-primary/20 rounded-lg bg-card/50 backdrop-blur-sm"
               >
                 <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-primary/5">
                   <div className="flex items-center gap-3">
