@@ -91,6 +91,14 @@ export default function ReportVisualsTest() {
   const [recommendations, setRecommendations] = useState<Record<string, string>>({});
   const [categoryScores, setCategoryScores] = useState<CategoryScore[]>([]);
 
+  // Lifted prompt state for sharing between tabs
+  const [systemPrompt, setSystemPrompt] = useState(DEMO_SYSTEM_PROMPT);
+  const [userPrompt, setUserPrompt] = useState(DEMO_USER_PROMPT);
+
+  // Generated content for demo category
+  const [generatedContent, setGeneratedContent] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+
   useEffect(() => { loadData(); }, []);
 
 
