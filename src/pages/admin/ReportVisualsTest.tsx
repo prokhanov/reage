@@ -558,7 +558,14 @@ export default function ReportVisualsTest() {
         </TabsContent>
 
         <TabsContent value="prompt" className="space-y-6 mt-6">
-          <PromptDemoTab biomarkers={biomarkers} categories={categories} />
+          <PromptDemoTab
+            biomarkers={biomarkers}
+            categories={categories}
+            systemPrompt={systemPrompt}
+            setSystemPrompt={setSystemPrompt}
+            userPrompt={userPrompt}
+            setUserPrompt={setUserPrompt}
+          />
         </TabsContent>
       </Tabs>
     </div>
