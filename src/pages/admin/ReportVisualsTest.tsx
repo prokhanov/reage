@@ -458,6 +458,180 @@ export default function ReportVisualsTest() {
     }
   };
 
+  // ═══ PDF EXPORT ═══
+  const handleExportPdf = () => {
+    try {
+      const pdfContent: any[] = [];
+      const barWidth = 515; // A4 width minus margins
+      const barHeight = 10;
+
+      // — Title —
+      pdfContent.push({ text: 'Персональный отчёт', style: 'title', alignment: 'center', margin: [0, 0, 0, 5] });
+      pdfContent.push({ text: `Сергей Чагин · ${analysis.date} · ${totalMarkers} маркеров`, alignment: 'center', fontSize: 10, color: '#888', margin: [0, 0, 0, 25] });
+
+      // — Summary cards as table —
+      pdfContent.push({
+        table: {
+          widths: ['*', '*', '*', '*'],
+          body: [[
+            { text: [{ text: 'Биологический возраст\n', fontSize: 8, color: '#888' }, { text: `${biological_age}`, fontSize: 22, bold: true }, { text: `\n${ageDiff > 0 ? `−${ageDiff.toFixed(1)}` : `+${Math.abs(ageDiff).toFixed(1)}`} лет`, fontSize: 9, color: ageDiff > 0 ? STATUS_HEX.optimal : STATUS_HEX.critical }], alignment: 'center', margin: [0, 8, 0, 8] },
+            { text: [{ text: 'Индекс здоровья\n', fontSize: 8, color: '#888' }, { text: `${health_index}`, fontSize: 22, bold: true }, { text: '/100', fontSize: 12, color: '#888' }], alignment: 'center', margin: [0, 8, 0, 8] },
+            { text: [{ text: 'Всего маркеров\n', fontSize: 8, color: '#888' }, { text: `${totalMarkers}`, fontSize: 22, bold: true }, { text: '\nсдано', fontSize: 9, color: '#888' }], alignment: 'center', margin: [0, 8, 0, 8] },
+            { text: [{ text: 'Требуют внимания\n', fontSize: 8, color: '#888' }, { text: `${trafficLight.critical.length + trafficLight.risk.length}`, fontSize: 22, bold: true, color: STATUS_HEX.critical }, { text: `\n🔴 ${trafficLight.critical.length}  🟠 ${trafficLight.risk.length}`, fontSize: 9 }], alignment: 'center', margin: [0, 8, 0, 8] },
+          ]]
+        },
+        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#E5E7EB', vLineColor: () => '#E5E7EB' },
+        margin: [0, 0, 0, 15],
+      });
+
+      // — Status bar —
+      const statusBarSegments: any[] = [];
+      const totalW = barWidth;
+      const segmentData = [
+        { count: trafficLight.optimal.length, color: STATUS_HEX.optimal },
+        { count: trafficLight.acceptable.length, color: STATUS_HEX.acceptable },
+        { count: trafficLight.risk.length, color: STATUS_HEX.risk },
+        { count: trafficLight.critical.length, color: STATUS_HEX.critical },
+      ];
+      let xOff = 0;
+      segmentData.forEach(s => {
+        const w = (s.count / totalMarkers) * totalW;
+        if (w > 0) {
+          statusBarSegments.push({ type: 'rect', x: xOff, y: 0, w, h: 8, color: s.color, r: 0 });
+          xOff += w;
+        }
+      });
+      pdfContent.push({ canvas: statusBarSegments, width: totalW, height: 10, margin: [0, 0, 0, 5] });
+      pdfContent.push({
+        text: [
+          { text: `🟢 Оптимально (${trafficLight.optimal.length})  `, fontSize: 8 },
+          { text: `🟡 Допустимо (${trafficLight.acceptable.length})  `, fontSize: 8 },
+          { text: `🟠 Риск (${trafficLight.risk.length})  `, fontSize: 8 },
+          { text: `🔴 Критично (${trafficLight.critical.length})`, fontSize: 8 },
+        ],
+        margin: [0, 0, 0, 15], color: '#888',
+      });
+
+      // — General summary —
+      if (recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме") {
+        pdfContent.push({ text: 'Общее резюме', style: 'sectionHeader', margin: [0, 5, 0, 10] });
+        pdfContent.push(...parseMarkdownToPdfContent(recommendations["Общее резюме"]));
+      }
+
+      // — Category scores table —
+      if (categoryScores.length > 0) {
+        pdfContent.push({ text: 'Баланс систем организма', style: 'sectionHeader', margin: [0, 15, 0, 10] });
+        const scoreRows = categoryScores.sort((a, b) => a.score - b.score).map(item => {
+          const scoreColor = item.score >= 85 ? STATUS_HEX.optimal : item.score >= 70 ? STATUS_HEX.acceptable : item.score >= 50 ? STATUS_HEX.risk : STATUS_HEX.critical;
+          const progressBar: any[] = [];
+          const pw = 200;
+          progressBar.push({ type: 'rect', x: 0, y: 0, w: pw, h: 8, color: '#E5E7EB', r: 4 });
+          progressBar.push({ type: 'rect', x: 0, y: 0, w: (item.score / 100) * pw, h: 8, color: scoreColor, r: 4 });
+          return [
+            { text: item.system, fontSize: 10, margin: [0, 2, 0, 0] },
+            { canvas: progressBar, width: pw, height: 10, margin: [0, 2, 0, 0] },
+            { text: `${item.score}`, fontSize: 12, bold: true, color: scoreColor, alignment: 'right', margin: [0, 0, 0, 0] },
+          ];
+        });
+        pdfContent.push({
+          table: { widths: [120, '*', 40], body: scoreRows },
+          layout: 'noBorders',
+          margin: [0, 0, 0, 15],
+        });
+        const avg = Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length);
+        const avgColor = avg >= 85 ? STATUS_HEX.optimal : avg >= 70 ? STATUS_HEX.acceptable : avg >= 50 ? STATUS_HEX.risk : STATUS_HEX.critical;
+        pdfContent.push({
+          columns: [
+            { text: 'Средняя оценка', fontSize: 11, bold: true, width: '*' },
+            { text: `${avg}`, fontSize: 14, bold: true, color: avgColor, alignment: 'right', width: 50 },
+          ],
+          margin: [0, 0, 0, 20],
+        });
+      }
+
+      // — Interleaved report —
+      const reportText = generatedContent || recommendations[categories[0]];
+      if (reportText && categories[0]) {
+        pdfContent.push({ text: '', pageBreak: 'after' });
+        pdfContent.push({ text: `Детальный анализ: ${categories[0]}`, style: 'sectionHeader', margin: [0, 0, 0, 15] });
+
+        const catBio = biomarkers.filter(b => b.category === categories[0]);
+        const codes = catBio.map(b => b.code);
+        const chunks = splitTextByBiomarkers(reportText, codes);
+
+        chunks.forEach(chunk => {
+          if (chunk.type === 'text') {
+            pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
+          } else {
+            const bm = chunk.code ? catBio.find(b => b.code === chunk.code) : null;
+            if (bm) {
+              const statusLabel = bm.statusLabel;
+              const emoji = statusEmojiMap[bm.status] || '';
+              // Biomarker header
+              pdfContent.push({
+                table: {
+                  widths: ['*', 'auto'],
+                  body: [[
+                    { text: [{ text: `${emoji} `, fontSize: 10 }, { text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], border: [false, false, false, false] },
+                    { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', border: [false, false, false, false] },
+                  ]]
+                },
+                layout: 'noBorders',
+                margin: [0, 10, 0, 3],
+              });
+              // Range bar canvas
+              const bar = buildRangeBarCanvas(bm, barWidth, barHeight);
+              if (bar) pdfContent.push(bar);
+            }
+            // Biomarker description text
+            if (chunk.content) {
+              pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
+            }
+          }
+        });
+      }
+
+      // — Traffic light priorities —
+      pdfContent.push({ text: '', pageBreak: 'after' });
+      pdfContent.push({ text: 'Приоритеты', style: 'sectionHeader', margin: [0, 0, 0, 10] });
+      ([
+        { key: 'critical' as const, emoji: '🔴', label: 'Критично' },
+        { key: 'risk' as const, emoji: '🟠', label: 'Риск' },
+        { key: 'acceptable' as const, emoji: '🟡', label: 'Допустимо' },
+        { key: 'optimal' as const, emoji: '🟢', label: 'Оптимально' },
+      ]).forEach(({ key, emoji, label }) => {
+        const items = trafficLight[key];
+        if (items.length === 0) return;
+        pdfContent.push({ text: `${emoji} ${label} (${items.length})`, fontSize: 12, bold: true, color: STATUS_HEX[key], margin: [0, 8, 0, 4] });
+        const itemTexts = items.map(m => `${m.name}  ${m.value} ${m.unit}`).join('  ·  ');
+        pdfContent.push({ text: itemTexts, fontSize: 10, color: '#555', margin: [10, 0, 0, 6] });
+      });
+
+      const docDefinition: any = {
+        content: pdfContent,
+        styles: {
+          title: { fontSize: 20, bold: true },
+          sectionHeader: { fontSize: 15, bold: true, decoration: 'underline' },
+          h1: { fontSize: 14, bold: true },
+          h2: { fontSize: 13, bold: true },
+          h3: { fontSize: 12, bold: true },
+          paragraph: { fontSize: 10.5, lineHeight: 1.5, alignment: 'justify' },
+          listItem: { fontSize: 10.5, lineHeight: 1.4 },
+        },
+        pageSize: 'A4',
+        pageMargins: [40, 50, 40, 50],
+        footer: (page: number) => ({ text: page.toString(), alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0] }),
+        info: { title: `Отчёт ${analysis.date}`, author: 'ReAge' },
+      };
+
+      pdfMake.createPdf(docDefinition).download(`Отчёт_${analysis.date}.pdf`);
+      toast.success('PDF загружен');
+    } catch (err: any) {
+      console.error('PDF export error:', err);
+      toast.error(`Ошибка экспорта: ${err.message}`);
+    }
+  };
+
   // Render interleaved text + biomarker bars
   const renderInterleavedReport = (category: string, overrideText?: string) => {
     const text = overrideText || recommendations[category];
