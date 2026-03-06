@@ -502,14 +502,21 @@ export default function ReportVisualsTest() {
         }
       });
       pdfContent.push({ canvas: statusBarSegments, width: totalW, height: 10, margin: [0, 0, 0, 5] });
+      // Legend row with colored dots (no emojis — pdfmake font doesn't support them)
       pdfContent.push({
-        text: [
-          { text: `🟢 Оптимально (${trafficLight.optimal.length})  `, fontSize: 8 },
-          { text: `🟡 Допустимо (${trafficLight.acceptable.length})  `, fontSize: 8 },
-          { text: `🟠 Риск (${trafficLight.risk.length})  `, fontSize: 8 },
-          { text: `🔴 Критично (${trafficLight.critical.length})`, fontSize: 8 },
+        columns: [
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.optimal }], width: 12, height: 12 },
+          { text: `Оптимально (${trafficLight.optimal.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 12, 0] },
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.acceptable }], width: 12, height: 12 },
+          { text: `Допустимо (${trafficLight.acceptable.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 12, 0] },
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.risk }], width: 12, height: 12 },
+          { text: `Риск (${trafficLight.risk.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 12, 0] },
+          { canvas: [{ type: 'ellipse', x: 5, y: 5, r1: 4, r2: 4, color: STATUS_HEX.critical }], width: 12, height: 12 },
+          { text: `Критично (${trafficLight.critical.length})`, fontSize: 8, color: '#888', width: 'auto', margin: [0, 1, 0, 0] },
+          { text: '', width: '*' },
         ],
-        margin: [0, 0, 0, 15], color: '#888',
+        columnGap: 2,
+        margin: [0, 0, 0, 15],
       });
 
       // — General summary —
