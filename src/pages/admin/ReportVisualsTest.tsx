@@ -4,15 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { supabase } from "@/integrations/supabase/client";
-import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
+import { getBiomarkerStatus, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge } from "@/lib/biomarkerNorms";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2, Save } from "lucide-react";
+import { RefreshCw, Loader2, Save, Download } from "lucide-react";
 import { toast } from "sonner";
+import pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+(pdfMake as any).vfs = pdfFonts;
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
 
@@ -84,6 +88,146 @@ function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): { type: 
   }
 
   return parts;
+}
+
+// ═══ PDF EXPORT HELPERS ═══
+
+const STATUS_HEX: Record<string, string> = {
+  critical: '#EF4444',
+  risk: '#F59E0B',
+  acceptable: '#EAB308',
+  optimal: '#22C55E',
+};
+
+function getZoneColorHex(
+  v: number,
+  normMin: number | null, normMax: number | null,
+  optMin: number | null, optMax: number | null,
+  critMin: number | null, critMax: number | null,
+): string {
+  if ((critMin !== null && v < critMin) || (critMax !== null && v > critMax)) return STATUS_HEX.critical;
+  if (optMin !== null || optMax !== null) {
+    const inOpt = (optMin === null || v >= optMin) && (optMax === null || v <= optMax);
+    if (inOpt) return STATUS_HEX.optimal;
+  }
+  if ((normMin !== null && v < normMin) || (normMax !== null && v > normMax)) return STATUS_HEX.risk;
+  if (optMin !== null || optMax !== null) return STATUS_HEX.acceptable;
+  return STATUS_HEX.optimal;
+}
+
+function buildRangeBarCanvas(bm: BiomarkerData, barWidth: number, barHeight: number): any {
+  const b = bm.biomarker;
+  const g = 'male';
+  const a = 26;
+  const normal = getNormalRangeForAge(b, a, g);
+  const optimal = getOptimalRangeForAge(b, a, g);
+  const critical = getCriticalRangeForAge(b, a, g);
+
+  if (normal.min === null && normal.max === null) return null;
+
+  const normMin = normal.min, normMax = normal.max;
+  const optMin = optimal.min, optMax = optimal.max;
+  const critMin = critical.min, critMax = critical.max;
+
+  const pointSet = new Set<number>();
+  [bm.value, normMin, normMax, optMin, optMax, critMin, critMax].forEach(v => { if (v !== null) pointSet.add(v); });
+  const allPoints = Array.from(pointSet);
+  const dataMin = Math.min(...allPoints);
+  const dataMax = Math.max(...allPoints);
+  const range = dataMax - dataMin;
+  const padding = range * 0.15 || 1;
+  const scaleMin = dataMin - padding;
+  const scaleMax = dataMax + padding;
+  const scaleRange = scaleMax - scaleMin;
+  const toX = (v: number) => ((v - scaleMin) / scaleRange) * barWidth;
+
+  const boundaries = new Set<number>();
+  boundaries.add(scaleMin); boundaries.add(scaleMax);
+  if (critMin !== null) boundaries.add(critMin);
+  if (normMin !== null) boundaries.add(normMin);
+  if (optMin !== null) boundaries.add(optMin);
+  if (optMax !== null) boundaries.add(optMax);
+  if (normMax !== null) boundaries.add(normMax);
+  if (critMax !== null) boundaries.add(critMax);
+
+  const sorted = Array.from(boundaries).sort((a, b) => a - b);
+  const canvasItems: any[] = [];
+
+  // Draw segments
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const start = sorted[i], end = sorted[i + 1];
+    const mid = (start + end) / 2;
+    const x = toX(start);
+    const w = toX(end) - x;
+    if (w > 0.5) {
+      canvasItems.push({
+        type: 'rect', x, y: 0, w, h: barHeight,
+        color: getZoneColorHex(mid, normMin, normMax, optMin, optMax, critMin, critMax),
+        r: i === 0 ? 4 : (i === sorted.length - 2 ? 4 : 0),
+      });
+    }
+  }
+
+  // Value marker
+  const mx = Math.max(3, Math.min(barWidth - 3, toX(bm.value)));
+  canvasItems.push({
+    type: 'ellipse', x: mx, y: barHeight / 2, r1: 5, r2: 5,
+    color: '#1F2937',
+  });
+  canvasItems.push({
+    type: 'ellipse', x: mx, y: barHeight / 2, r1: 3, r2: 3,
+    color: '#FFFFFF',
+  });
+
+  return {
+    canvas: canvasItems,
+    width: barWidth,
+    height: barHeight + 2,
+    margin: [0, 2, 0, 4],
+  };
+}
+
+function parseInlineMarkdownPdf(text: string): any[] {
+  const parts: any[] = [];
+  const regex = /\*\*([^*]+)\*\*/g;
+  let last = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push({ text: text.slice(last, match.index) });
+    parts.push({ text: match[1], bold: true });
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push({ text: text.slice(last) });
+  return parts.length ? parts : [{ text }];
+}
+
+function parseMarkdownToPdfContent(markdown: string): any[] {
+  const content: any[] = [];
+  const cleaned = cleanMarkdownArtifacts(markdown);
+  const lines = cleaned.split('\n');
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) { content.push({ text: ' ', margin: [0, 3, 0, 0] }); continue; }
+    if (trimmed.match(/^[-*_]{3,}$/)) { content.push({ text: ' ', margin: [0, 6, 0, 6] }); continue; }
+    if (trimmed.match(/^[*•]+\s*$/)) continue;
+
+    if (trimmed.startsWith('### ')) {
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('### ', '')), style: 'h3', margin: [0, 6, 0, 3] });
+    } else if (trimmed.startsWith('## ')) {
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('## ', '')), style: 'h2', margin: [0, 10, 0, 5] });
+    } else if (trimmed.startsWith('# ')) {
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('# ', '')), style: 'h1', margin: [0, 12, 0, 6] });
+    } else if (trimmed.match(/^[-*]\s+\S/)) {
+      content.push({ text: [{ text: '• ' }, ...parseInlineMarkdownPdf(trimmed.replace(/^[-*]\s+/, ''))], style: 'listItem', margin: [15, 0, 0, 4] });
+    } else if (trimmed.match(/^\d+\\?\.\s+/)) {
+      const m = trimmed.match(/^(\d+)\\?\.\s+(.*)$/);
+      if (m) content.push({ text: [{ text: `${m[1]}. ` }, ...parseInlineMarkdownPdf(m[2])], style: 'listItem', margin: [15, 0, 0, 4] });
+    } else {
+      content.push({ text: parseInlineMarkdownPdf(trimmed), style: 'paragraph', margin: [0, 0, 0, 8] });
+    }
+  }
+  return content;
 }
 
 export default function ReportVisualsTest() {
@@ -311,6 +455,180 @@ export default function ReportVisualsTest() {
       toast.error(`Ошибка генерации: ${err.message}`);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // ═══ PDF EXPORT ═══
+  const handleExportPdf = () => {
+    try {
+      const pdfContent: any[] = [];
+      const barWidth = 515; // A4 width minus margins
+      const barHeight = 10;
+
+      // — Title —
+      pdfContent.push({ text: 'Персональный отчёт', style: 'title', alignment: 'center', margin: [0, 0, 0, 5] });
+      pdfContent.push({ text: `Сергей Чагин · ${analysis.date} · ${totalMarkers} маркеров`, alignment: 'center', fontSize: 10, color: '#888', margin: [0, 0, 0, 25] });
+
+      // — Summary cards as table —
+      pdfContent.push({
+        table: {
+          widths: ['*', '*', '*', '*'],
+          body: [[
+            { text: [{ text: 'Биологический возраст\n', fontSize: 8, color: '#888' }, { text: `${biological_age}`, fontSize: 22, bold: true }, { text: `\n${ageDiff > 0 ? `−${ageDiff.toFixed(1)}` : `+${Math.abs(ageDiff).toFixed(1)}`} лет`, fontSize: 9, color: ageDiff > 0 ? STATUS_HEX.optimal : STATUS_HEX.critical }], alignment: 'center', margin: [0, 8, 0, 8] },
+            { text: [{ text: 'Индекс здоровья\n', fontSize: 8, color: '#888' }, { text: `${health_index}`, fontSize: 22, bold: true }, { text: '/100', fontSize: 12, color: '#888' }], alignment: 'center', margin: [0, 8, 0, 8] },
+            { text: [{ text: 'Всего маркеров\n', fontSize: 8, color: '#888' }, { text: `${totalMarkers}`, fontSize: 22, bold: true }, { text: '\nсдано', fontSize: 9, color: '#888' }], alignment: 'center', margin: [0, 8, 0, 8] },
+            { text: [{ text: 'Требуют внимания\n', fontSize: 8, color: '#888' }, { text: `${trafficLight.critical.length + trafficLight.risk.length}`, fontSize: 22, bold: true, color: STATUS_HEX.critical }, { text: `\n🔴 ${trafficLight.critical.length}  🟠 ${trafficLight.risk.length}`, fontSize: 9 }], alignment: 'center', margin: [0, 8, 0, 8] },
+          ]]
+        },
+        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#E5E7EB', vLineColor: () => '#E5E7EB' },
+        margin: [0, 0, 0, 15],
+      });
+
+      // — Status bar —
+      const statusBarSegments: any[] = [];
+      const totalW = barWidth;
+      const segmentData = [
+        { count: trafficLight.optimal.length, color: STATUS_HEX.optimal },
+        { count: trafficLight.acceptable.length, color: STATUS_HEX.acceptable },
+        { count: trafficLight.risk.length, color: STATUS_HEX.risk },
+        { count: trafficLight.critical.length, color: STATUS_HEX.critical },
+      ];
+      let xOff = 0;
+      segmentData.forEach(s => {
+        const w = (s.count / totalMarkers) * totalW;
+        if (w > 0) {
+          statusBarSegments.push({ type: 'rect', x: xOff, y: 0, w, h: 8, color: s.color, r: 0 });
+          xOff += w;
+        }
+      });
+      pdfContent.push({ canvas: statusBarSegments, width: totalW, height: 10, margin: [0, 0, 0, 5] });
+      pdfContent.push({
+        text: [
+          { text: `🟢 Оптимально (${trafficLight.optimal.length})  `, fontSize: 8 },
+          { text: `🟡 Допустимо (${trafficLight.acceptable.length})  `, fontSize: 8 },
+          { text: `🟠 Риск (${trafficLight.risk.length})  `, fontSize: 8 },
+          { text: `🔴 Критично (${trafficLight.critical.length})`, fontSize: 8 },
+        ],
+        margin: [0, 0, 0, 15], color: '#888',
+      });
+
+      // — General summary —
+      if (recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме") {
+        pdfContent.push({ text: 'Общее резюме', style: 'sectionHeader', margin: [0, 5, 0, 10] });
+        pdfContent.push(...parseMarkdownToPdfContent(recommendations["Общее резюме"]));
+      }
+
+      // — Category scores table —
+      if (categoryScores.length > 0) {
+        pdfContent.push({ text: 'Баланс систем организма', style: 'sectionHeader', margin: [0, 15, 0, 10] });
+        const scoreRows = categoryScores.sort((a, b) => a.score - b.score).map(item => {
+          const scoreColor = item.score >= 85 ? STATUS_HEX.optimal : item.score >= 70 ? STATUS_HEX.acceptable : item.score >= 50 ? STATUS_HEX.risk : STATUS_HEX.critical;
+          const progressBar: any[] = [];
+          const pw = 200;
+          progressBar.push({ type: 'rect', x: 0, y: 0, w: pw, h: 8, color: '#E5E7EB', r: 4 });
+          progressBar.push({ type: 'rect', x: 0, y: 0, w: (item.score / 100) * pw, h: 8, color: scoreColor, r: 4 });
+          return [
+            { text: item.system, fontSize: 10, margin: [0, 2, 0, 0] },
+            { canvas: progressBar, width: pw, height: 10, margin: [0, 2, 0, 0] },
+            { text: `${item.score}`, fontSize: 12, bold: true, color: scoreColor, alignment: 'right', margin: [0, 0, 0, 0] },
+          ];
+        });
+        pdfContent.push({
+          table: { widths: [120, '*', 40], body: scoreRows },
+          layout: 'noBorders',
+          margin: [0, 0, 0, 15],
+        });
+        const avg = Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length);
+        const avgColor = avg >= 85 ? STATUS_HEX.optimal : avg >= 70 ? STATUS_HEX.acceptable : avg >= 50 ? STATUS_HEX.risk : STATUS_HEX.critical;
+        pdfContent.push({
+          columns: [
+            { text: 'Средняя оценка', fontSize: 11, bold: true, width: '*' },
+            { text: `${avg}`, fontSize: 14, bold: true, color: avgColor, alignment: 'right', width: 50 },
+          ],
+          margin: [0, 0, 0, 20],
+        });
+      }
+
+      // — Interleaved report —
+      const reportText = generatedContent || recommendations[categories[0]];
+      if (reportText && categories[0]) {
+        pdfContent.push({ text: '', pageBreak: 'after' });
+        pdfContent.push({ text: `Детальный анализ: ${categories[0]}`, style: 'sectionHeader', margin: [0, 0, 0, 15] });
+
+        const catBio = biomarkers.filter(b => b.category === categories[0]);
+        const codes = catBio.map(b => b.code);
+        const chunks = splitTextByBiomarkers(reportText, codes);
+
+        chunks.forEach(chunk => {
+          if (chunk.type === 'text') {
+            pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
+          } else {
+            const bm = chunk.code ? catBio.find(b => b.code === chunk.code) : null;
+            if (bm) {
+              const statusLabel = bm.statusLabel;
+              const emoji = statusEmojiMap[bm.status] || '';
+              // Biomarker header
+              pdfContent.push({
+                table: {
+                  widths: ['*', 'auto'],
+                  body: [[
+                    { text: [{ text: `${emoji} `, fontSize: 10 }, { text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], border: [false, false, false, false] },
+                    { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', border: [false, false, false, false] },
+                  ]]
+                },
+                layout: 'noBorders',
+                margin: [0, 10, 0, 3],
+              });
+              // Range bar canvas
+              const bar = buildRangeBarCanvas(bm, barWidth, barHeight);
+              if (bar) pdfContent.push(bar);
+            }
+            // Biomarker description text
+            if (chunk.content) {
+              pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
+            }
+          }
+        });
+      }
+
+      // — Traffic light priorities —
+      pdfContent.push({ text: '', pageBreak: 'after' });
+      pdfContent.push({ text: 'Приоритеты', style: 'sectionHeader', margin: [0, 0, 0, 10] });
+      ([
+        { key: 'critical' as const, emoji: '🔴', label: 'Критично' },
+        { key: 'risk' as const, emoji: '🟠', label: 'Риск' },
+        { key: 'acceptable' as const, emoji: '🟡', label: 'Допустимо' },
+        { key: 'optimal' as const, emoji: '🟢', label: 'Оптимально' },
+      ]).forEach(({ key, emoji, label }) => {
+        const items = trafficLight[key];
+        if (items.length === 0) return;
+        pdfContent.push({ text: `${emoji} ${label} (${items.length})`, fontSize: 12, bold: true, color: STATUS_HEX[key], margin: [0, 8, 0, 4] });
+        const itemTexts = items.map(m => `${m.name}  ${m.value} ${m.unit}`).join('  ·  ');
+        pdfContent.push({ text: itemTexts, fontSize: 10, color: '#555', margin: [10, 0, 0, 6] });
+      });
+
+      const docDefinition: any = {
+        content: pdfContent,
+        styles: {
+          title: { fontSize: 20, bold: true },
+          sectionHeader: { fontSize: 15, bold: true, decoration: 'underline' },
+          h1: { fontSize: 14, bold: true },
+          h2: { fontSize: 13, bold: true },
+          h3: { fontSize: 12, bold: true },
+          paragraph: { fontSize: 10.5, lineHeight: 1.5, alignment: 'justify' },
+          listItem: { fontSize: 10.5, lineHeight: 1.4 },
+        },
+        pageSize: 'A4',
+        pageMargins: [40, 50, 40, 50],
+        footer: (page: number) => ({ text: page.toString(), alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0] }),
+        info: { title: `Отчёт ${analysis.date}`, author: 'ReAge' },
+      };
+
+      pdfMake.createPdf(docDefinition).download(`Отчёт_${analysis.date}.pdf`);
+      toast.success('PDF загружен');
+    } catch (err: any) {
+      console.error('PDF export error:', err);
+      toast.error(`Ошибка экспорта: ${err.message}`);
     }
   };
 
@@ -546,6 +864,15 @@ export default function ReportVisualsTest() {
                     <RefreshCw className="h-4 w-4" />
                   )}
                   {generating ? "Генерация..." : "Сгенерировать"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPdf}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  PDF
                 </Button>
               </div>
             </div>
