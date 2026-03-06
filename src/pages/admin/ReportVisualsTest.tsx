@@ -753,7 +753,27 @@ interface PromptDemoTabProps {
 }
 
 function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, userPrompt, setUserPrompt }: PromptDemoTabProps) {
+  const [saving, setSaving] = useState(false);
 
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error: e1 } = await supabase
+        .from("ai_prompt_settings")
+        .update({ prompt_text: systemPrompt })
+        .eq("key", "category_energy_system");
+      const { error: e2 } = await supabase
+        .from("ai_prompt_settings")
+        .update({ prompt_text: userPrompt })
+        .eq("key", "category_energy_user");
+      if (e1 || e2) throw e1 || e2;
+      toast.success("Промпты сохранены в БД");
+    } catch (err: any) {
+      toast.error(`Ошибка сохранения: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
   // Build example data for each placeholder
   const exampleCategory = categories[0] || "Энергия и восстановление";
   const catBiomarkers = biomarkers.filter(b => b.category === exampleCategory);
