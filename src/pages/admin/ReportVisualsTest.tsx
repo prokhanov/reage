@@ -8,6 +8,8 @@ import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
 
