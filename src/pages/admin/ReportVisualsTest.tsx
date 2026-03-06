@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2 } from "lucide-react";
+import { RefreshCw, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
@@ -104,6 +104,19 @@ export default function ReportVisualsTest() {
 
   const loadData = async () => {
     try {
+      // Load prompts from DB
+      const { data: promptsData } = await supabase
+        .from("ai_prompt_settings")
+        .select("key, prompt_text")
+        .in("key", ["category_energy_system", "category_energy_user"]);
+
+      if (promptsData) {
+        const systemRow = promptsData.find(p => p.key === "category_energy_system");
+        const userRow = promptsData.find(p => p.key === "category_energy_user");
+        if (systemRow) setSystemPrompt(systemRow.prompt_text);
+        if (userRow) setUserPrompt(userRow.prompt_text);
+      }
+
       const { data: analysisData } = await supabase
         .from("analyses")
         .select("*")
