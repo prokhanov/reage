@@ -229,9 +229,55 @@ export default function ReportVisualsTest() {
     critical: "🔴", risk: "🟠", acceptable: "🟡", optimal: "🟢",
   };
 
+  // Build substituted prompt for generation
+  const buildSubstitutedPrompt = () => {
+    const exampleCategory = categories[0] || "Энергия и восстановление";
+    const catBio = biomarkers.filter(b => b.category === exampleCategory);
+    
+    const biomarkersText = catBio.map(b => {
+      const statusEmoji = b.status === 'optimal' ? '🟢 ОПТИМАЛЬНО' 
+        : b.status === 'acceptable' ? '🟡 ДОПУСТИМО' 
+        : b.status === 'risk' ? '🟠 РИСК' 
+        : '🔴 КРИТИЧНО';
+      return `${b.name} (${b.code}):\n  Значение: ${b.value} ${b.unit}\n  🟢 Оптимально: ${b.rangeDisplay} ${b.unit}\n  Статус: ${statusEmoji}`;
+    }).join("\n\n");
+
+    const userContextText = `ДАННЫЕ ПАЦИЕНТА:\nИмя: Сергей Чагин\nВозраст: 26 лет\nПол: male\nРост: 183 см\nВес: 76 кг\nBMI: 22.7 (норма)\n\nМЕДИЦИНСКИЙ АНАМНЕЗ:\nНе указан\n\nТЕКУЩИЕ ЖАЛОБЫ И СИМПТОМЫ:\nНе указаны`;
+
+    return userPrompt
+      .replace("{userContext}", userContextText)
+      .replace("{category}", exampleCategory)
+      .replace("{biomarkers}", biomarkersText)
+      .replace("{trends}", "Нет предыдущих анализов для сравнения")
+      .replace("{recommendations}", "Нет предыдущих рекомендаций");
+  };
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setGeneratedContent(null);
+    try {
+      const substitutedPrompt = buildSubstitutedPrompt();
+      const { data, error } = await supabase.functions.invoke("test-prompt", {
+        body: { systemPrompt, userPrompt: substitutedPrompt },
+      });
+      if (error) throw error;
+      if (data?.content) {
+        setGeneratedContent(data.content);
+        toast.success("Генерация завершена");
+      } else {
+        throw new Error("Пустой ответ от модели");
+      }
+    } catch (err: any) {
+      console.error("Generation error:", err);
+      toast.error(`Ошибка генерации: ${err.message}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   // Render interleaved text + biomarker bars
-  const renderInterleavedReport = (category: string) => {
-    const text = recommendations[category];
+  const renderInterleavedReport = (category: string, overrideText?: string) => {
+    const text = overrideText || recommendations[category];
     const catBiomarkers = biomarkers.filter((b) => b.category === category);
     if (!text) return null;
 
