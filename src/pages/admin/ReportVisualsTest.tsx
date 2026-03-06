@@ -437,24 +437,39 @@ export default function ReportVisualsTest() {
 
           {/* ═══ 3. ОТЧЁТЫ ПО СИСТЕМАМ ═══ */}
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
-            <Tabs defaultValue={categories[0] || ""}>
-              <TabsList className="flex-wrap h-auto gap-1">
-                {categories.map((cat) => (
-                  <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
-                ))}
-              </TabsList>
-
-              {categories.map((cat) => (
-                <TabsContent key={cat} value={cat}>
-                  <Card>
-                    <CardContent className="p-6">
-                      {renderInterleavedReport(cat)}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              ))}
-            </Tabs>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGenerate}
+                disabled={generating}
+                className="gap-2"
+              >
+                {generating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                {generating ? "Генерация..." : "Сгенерировать"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Тестовая категория: <strong>{categories[0] || "—"}</strong> · Используется демо-промпт из вкладки «Демо-промпт»
+            </p>
+            <Card>
+              <CardContent className="p-6">
+                {generatedContent ? (
+                  renderInterleavedReport(categories[0] || "", generatedContent)
+                ) : recommendations[categories[0]] ? (
+                  renderInterleavedReport(categories[0] || "")
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    Нажмите кнопку «Сгенерировать», чтобы протестировать демо-промпт
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </section>
 
           <Separator className="my-6" />
