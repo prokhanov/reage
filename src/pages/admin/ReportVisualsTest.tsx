@@ -365,9 +365,7 @@ export default function ReportVisualsTest() {
               )}
 
               {/* Text for this biomarker (without the header since the card shows it) */}
-              <div className="pl-2 border-l-2 border-muted">
-                <MarkdownContent content={chunk.content} />
-              </div>
+              <MarkdownContent content={chunk.content} />
             </div>
           );
         })}
