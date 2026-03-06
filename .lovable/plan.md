@@ -1,40 +1,29 @@
 
 
-## Проблема
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-Даже если промпт запрещает списки, модель иногда генерирует строки с `- ` или `* `, и `react-markdown` парсит их как `<ul>` с буллетами. Сейчас в `ReportVisualsTest.tsx` контент не проходит через `cleanMarkdownArtifacts()` / `normalizeMarkdown()`. Нужна защита на уровне рендеринга.
+## Что сделано
 
-## План
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-### 1. Применить `normalizeMarkdown` в `ReportVisualsTest.tsx`
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-Обернуть `generatedContent` в `normalizeMarkdown()` перед передачей в `renderInterleavedReport()` — так же, как это делается на боевых страницах.
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-### 2. Добавить strip-списков в `MarkdownContent.tsx`
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-Добавить препроцессинг: конвертировать строки начинающиеся с `- ` или `* ` (которые не являются частью вложенного списка) в обычные параграфы — убирать маркер и добавлять пустую строку перед ними. Это гарантирует, что даже если модель вставит список, рендерер покажет параграфы.
+**ESR:** optimal_min_male/female → NULL
 
-Конкретно — в `MarkdownContent.tsx` перед `<ReactMarkdown>`:
-```
-// Strip top-level list markers → paragraphs
-const cleaned = safeContent.replace(/^[-*]\s+/gm, '');
-```
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
-### 3. Альтернатива (менее агрессивная)
-
-Вместо глобального strip — переопределить `ul` и `li` компоненты в `MarkdownContent` так, чтобы они рендерились как `<p>` без буллетов. Это сохранит структуру но уберёт точки:
-```tsx
-ul: ({ children }) => <div className="space-y-2">{children}</div>,
-li: ({ children }) => <p className="text-foreground leading-relaxed">{children}</p>,
-```
-
-Однако это сломает страницы где списки нужны (Health Assistant, другие отчёты).
-
-### Рекомендация
-
-Вариант 1+2: применить `normalizeMarkdown` + strip маркеров **только в контексте демо-отчёта** (не глобально в `MarkdownContent`). Создать обёртку или передать флаг `stripLists` в `MarkdownContent`.
-
-**Изменения:**
-- `src/components/MarkdownContent.tsx` — добавить проп `stripLists?: boolean`, при `true` убирать `- ` / `* ` маркеры
-- `src/pages/admin/ReportVisualsTest.tsx` — передавать `stripLists` и пропускать контент через `normalizeMarkdown()`
-
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.

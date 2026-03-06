@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeMarkdown } from "@/lib/markdown";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -301,7 +302,8 @@ export default function ReportVisualsTest() {
 
   // Render interleaved text + biomarker bars
   const renderInterleavedReport = (category: string, overrideText?: string) => {
-    const text = overrideText || recommendations[category];
+    const raw = overrideText || recommendations[category];
+    const text = raw ? normalizeMarkdown(raw) : raw;
     const catBiomarkers = biomarkers.filter((b) => b.category === category);
     if (!text) return null;
 
@@ -314,7 +316,7 @@ export default function ReportVisualsTest() {
           if (chunk.type === "text") {
             return (
               <div key={idx} className="prose prose-sm dark:prose-invert max-w-none">
-                <MarkdownContent content={chunk.content} />
+                <MarkdownContent content={chunk.content} stripLists />
               </div>
             );
           }
@@ -353,7 +355,7 @@ export default function ReportVisualsTest() {
 
               {/* Text for this biomarker (without the header since the card shows it) */}
               <div className="prose prose-sm dark:prose-invert max-w-none pl-2 border-l-2 border-muted">
-                <MarkdownContent content={chunk.content} />
+                <MarkdownContent content={chunk.content} stripLists />
               </div>
             </div>
           );
@@ -390,7 +392,7 @@ export default function ReportVisualsTest() {
             <section className="space-y-3">
               <Card>
                 <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-                  <MarkdownContent content={recommendations["Данные пациента"]} />
+                  <MarkdownContent content={recommendations["Данные пациента"]} stripLists />
                 </CardContent>
               </Card>
             </section>
@@ -461,7 +463,7 @@ export default function ReportVisualsTest() {
             {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
               <Card>
                 <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-                  <MarkdownContent content={recommendations["Общее резюме"]} />
+                  <MarkdownContent content={recommendations["Общее резюме"]} stripLists />
                 </CardContent>
               </Card>
             )}
