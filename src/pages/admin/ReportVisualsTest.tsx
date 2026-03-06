@@ -10,6 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
 
@@ -87,6 +90,14 @@ export default function ReportVisualsTest() {
   const [biomarkers, setBiomarkers] = useState<BiomarkerData[]>([]);
   const [recommendations, setRecommendations] = useState<Record<string, string>>({});
   const [categoryScores, setCategoryScores] = useState<CategoryScore[]>([]);
+
+  // Lifted prompt state for sharing between tabs
+  const [systemPrompt, setSystemPrompt] = useState(DEMO_SYSTEM_PROMPT);
+  const [userPrompt, setUserPrompt] = useState(DEMO_USER_PROMPT);
+
+  // Generated content for demo category
+  const [generatedContent, setGeneratedContent] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -218,9 +229,55 @@ export default function ReportVisualsTest() {
     critical: "🔴", risk: "🟠", acceptable: "🟡", optimal: "🟢",
   };
 
+  // Build substituted prompt for generation
+  const buildSubstitutedPrompt = () => {
+    const exampleCategory = categories[0] || "Энергия и восстановление";
+    const catBio = biomarkers.filter(b => b.category === exampleCategory);
+    
+    const biomarkersText = catBio.map(b => {
+      const statusEmoji = b.status === 'optimal' ? '🟢 ОПТИМАЛЬНО' 
+        : b.status === 'acceptable' ? '🟡 ДОПУСТИМО' 
+        : b.status === 'risk' ? '🟠 РИСК' 
+        : '🔴 КРИТИЧНО';
+      return `${b.name} (${b.code}):\n  Значение: ${b.value} ${b.unit}\n  🟢 Оптимально: ${b.rangeDisplay} ${b.unit}\n  Статус: ${statusEmoji}`;
+    }).join("\n\n");
+
+    const userContextText = `ДАННЫЕ ПАЦИЕНТА:\nИмя: Сергей Чагин\nВозраст: 26 лет\nПол: male\nРост: 183 см\nВес: 76 кг\nBMI: 22.7 (норма)\n\nМЕДИЦИНСКИЙ АНАМНЕЗ:\nНе указан\n\nТЕКУЩИЕ ЖАЛОБЫ И СИМПТОМЫ:\nНе указаны`;
+
+    return userPrompt
+      .replace("{userContext}", userContextText)
+      .replace("{category}", exampleCategory)
+      .replace("{biomarkers}", biomarkersText)
+      .replace("{trends}", "Нет предыдущих анализов для сравнения")
+      .replace("{recommendations}", "Нет предыдущих рекомендаций");
+  };
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setGeneratedContent(null);
+    try {
+      const substitutedPrompt = buildSubstitutedPrompt();
+      const { data, error } = await supabase.functions.invoke("test-prompt", {
+        body: { systemPrompt, userPrompt: substitutedPrompt },
+      });
+      if (error) throw error;
+      if (data?.content) {
+        setGeneratedContent(data.content);
+        toast.success("Генерация завершена");
+      } else {
+        throw new Error("Пустой ответ от модели");
+      }
+    } catch (err: any) {
+      console.error("Generation error:", err);
+      toast.error(`Ошибка генерации: ${err.message}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   // Render interleaved text + biomarker bars
-  const renderInterleavedReport = (category: string) => {
-    const text = recommendations[category];
+  const renderInterleavedReport = (category: string, overrideText?: string) => {
+    const text = overrideText || recommendations[category];
     const catBiomarkers = biomarkers.filter((b) => b.category === category);
     if (!text) return null;
 
@@ -426,24 +483,39 @@ export default function ReportVisualsTest() {
 
           {/* ═══ 3. ОТЧЁТЫ ПО СИСТЕМАМ ═══ */}
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
-            <Tabs defaultValue={categories[0] || ""}>
-              <TabsList className="flex-wrap h-auto gap-1">
-                {categories.map((cat) => (
-                  <TabsTrigger key={cat} value={cat} className="text-xs">{cat}</TabsTrigger>
-                ))}
-              </TabsList>
-
-              {categories.map((cat) => (
-                <TabsContent key={cat} value={cat}>
-                  <Card>
-                    <CardContent className="p-6">
-                      {renderInterleavedReport(cat)}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              ))}
-            </Tabs>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGenerate}
+                disabled={generating}
+                className="gap-2"
+              >
+                {generating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                {generating ? "Генерация..." : "Сгенерировать"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Тестовая категория: <strong>{categories[0] || "—"}</strong> · Используется демо-промпт из вкладки «Демо-промпт»
+            </p>
+            <Card>
+              <CardContent className="p-6">
+                {generatedContent ? (
+                  renderInterleavedReport(categories[0] || "", generatedContent)
+                ) : recommendations[categories[0]] ? (
+                  renderInterleavedReport(categories[0] || "")
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    Нажмите кнопку «Сгенерировать», чтобы протестировать демо-промпт
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </section>
 
           <Separator className="my-6" />
@@ -486,7 +558,14 @@ export default function ReportVisualsTest() {
         </TabsContent>
 
         <TabsContent value="prompt" className="space-y-6 mt-6">
-          <PromptDemoTab biomarkers={biomarkers} categories={categories} />
+          <PromptDemoTab
+            biomarkers={biomarkers}
+            categories={categories}
+            systemPrompt={systemPrompt}
+            setSystemPrompt={setSystemPrompt}
+            userPrompt={userPrompt}
+            setUserPrompt={setUserPrompt}
+          />
         </TabsContent>
       </Tabs>
     </div>
@@ -651,9 +730,16 @@ const DEMO_USER_PROMPT = `Твоя задача — написать один р
 • давать полезные инсайты
 • помогать понять направления улучшения здоровья.`;
 
-function PromptDemoTab({ biomarkers, categories }: { biomarkers: BiomarkerData[]; categories: string[] }) {
-  const [systemPrompt, setSystemPrompt] = useState(DEMO_SYSTEM_PROMPT);
-  const [userPrompt, setUserPrompt] = useState(DEMO_USER_PROMPT);
+interface PromptDemoTabProps {
+  biomarkers: BiomarkerData[];
+  categories: string[];
+  systemPrompt: string;
+  setSystemPrompt: (v: string) => void;
+  userPrompt: string;
+  setUserPrompt: (v: string) => void;
+}
+
+function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, userPrompt, setUserPrompt }: PromptDemoTabProps) {
 
   // Build example data for each placeholder
   const exampleCategory = categories[0] || "Энергия и восстановление";
