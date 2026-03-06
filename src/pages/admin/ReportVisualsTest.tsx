@@ -85,33 +85,8 @@ export default function ReportVisualsTest() {
   const [biomarkers, setBiomarkers] = useState<BiomarkerData[]>([]);
   const [recommendations, setRecommendations] = useState<Record<string, string>>({});
   const [categoryScores, setCategoryScores] = useState<CategoryScore[]>([]);
-  const [radarImage, setRadarImage] = useState<string | null>(null);
-  const radarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, []);
-
-  // Capture radar chart as base64 image after render
-  const captureRadar = useCallback(() => {
-    if (!radarRef.current) return;
-    const svg = radarRef.current.querySelector("svg");
-    if (!svg) return;
-
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    canvas.width = 600;
-    canvas.height = 400;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      setRadarImage(canvas.toDataURL("image/png"));
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-  }, []);
 
   useEffect(() => {
     if (categoryScores.length > 0) {
