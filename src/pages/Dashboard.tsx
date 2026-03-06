@@ -5,9 +5,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, TrendingUp, Brain, Heart, AlertCircle, Info, Clock, Sparkles, AlertTriangle, RefreshCw, Trophy, Calendar, Target, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { RiskMap } from "@/components/risk-zones/RiskMap";
-import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
-import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BodyHeatmap } from "@/components/BodyHeatmap";
@@ -40,10 +37,6 @@ export default function Dashboard() {
   
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
-  const [bodyHeatmapData, setBodyHeatmapData] = useState<any[]>([]);
-  const [riskData, setRiskData] = useState<any>(null);
-  const [needsRefresh, setNeedsRefresh] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
   const [nextBooking, setNextBooking] = useState<any>(null);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
