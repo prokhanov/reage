@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 interface MarkdownContentProps {
   content: string;
   className?: string;
+  stripLists?: boolean;
 }
 
 export function MarkdownContent({ content, className = '' }: MarkdownContentProps) {
