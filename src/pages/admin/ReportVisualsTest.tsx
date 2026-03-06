@@ -635,7 +635,7 @@ const DEMO_USER_PROMPT = `Твоя задача — написать один р
 {userContext}
 
 БИОМАРКЕРЫ КАТЕГОРИИ "{category}":
-{biomarkersText}
+{biomarkers}
 
 ИСТОРИЧЕСКИЕ ТРЕНДЫ:
 {trends}
@@ -659,7 +659,7 @@ function PromptDemoTab({ biomarkers, categories }: { biomarkers: BiomarkerData[]
   const exampleCategory = categories[0] || "Энергия и восстановление";
   const catBiomarkers = biomarkers.filter(b => b.category === exampleCategory);
   
-  // {biomarkersText} — same format as production: value, 7-segment ranges, 4-tier status
+  // {biomarkers} — same format as production: value, 7-segment ranges, 4-tier status
   const biomarkersPreview = catBiomarkers.map(b => {
     const statusEmoji = b.status === 'optimal' ? '🟢 ОПТИМАЛЬНО' 
       : b.status === 'acceptable' ? '🟡 ДОПУСТИМО' 
@@ -705,7 +705,7 @@ BMI: 22.7 (норма)
           <p>Это тестовые промпты для раздела «Энергия и восстановление». Они <strong>не влияют</strong> на боевую генерацию отчётов — только для тестирования.</p>
           <p>Плейсхолдеры, как в боевой функции:</p>
           <div className="flex flex-wrap gap-1.5 mt-1">
-            {["{userContext}", "{category}", "{biomarkersText}", "{trends}", "{recommendations}"].map(ph => (
+            {["{userContext}", "{category}", "{biomarkers}", "{trends}", "{recommendations}"].map(ph => (
               <code key={ph} className="bg-muted px-1.5 py-0.5 rounded text-xs">{ph}</code>
             ))}
           </div>
@@ -765,7 +765,7 @@ BMI: 22.7 (норма)
           </div>
           <Separator />
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">{"{biomarkersText}"} — {catBiomarkers.length} маркеров, формат как в боевой функции (7-сегментные нормы + 4-tier статус)</Label>
+            <Label className="text-xs text-muted-foreground mb-1 block">{"{biomarkers}"} — {catBiomarkers.length} маркеров, формат как в боевой функции (7-сегментные нормы + 4-tier статус)</Label>
             <pre className="bg-muted/50 rounded-md p-3 text-xs font-mono whitespace-pre-wrap max-h-[300px] overflow-auto">
               {biomarkersPreview || "Нет данных для этой категории"}
             </pre>
