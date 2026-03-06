@@ -13,6 +13,7 @@ import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslCol
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
+import { Progress } from "@/components/ui/progress";
 
 interface BiomarkerData {
   id: string;
@@ -41,7 +42,17 @@ interface GroupedBiomarkers {
   [category: string]: BiomarkerData[];
 }
 
-export default function Biomarkers() {
+interface CategoryScoreValue {
+  score: number;
+  impact?: string;
+  key_markers?: string[];
+}
+
+interface BiomarkersProps {
+  categoryScores?: Record<string, number | CategoryScoreValue | null>;
+}
+
+export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
   const { getUserId } = useViewAsUser();
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<GroupedBiomarkers>({});
