@@ -59,7 +59,31 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
   const [loading, setLoading] = useState(true);
   const [patientGender, setPatientGender] = useState<string | null>(null);
   const [patientAge, setPatientAge] = useState<number | null>(null);
+  const [categoryEmojis, setCategoryEmojis] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const getCategoryScore = (categoryName: string): number | null => {
+    if (!categoryScores) return null;
+    const val = categoryScores[categoryName];
+    if (val === null || val === undefined) return null;
+    if (typeof val === 'number') return val;
+    if (typeof val === 'object' && 'score' in val) return (val as CategoryScoreValue).score;
+    return null;
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 85) return "text-status-optimal";
+    if (score >= 70) return "text-status-acceptable";
+    if (score >= 50) return "text-status-risk";
+    return "text-status-critical";
+  };
+
+  const getProgressColor = (score: number) => {
+    if (score >= 85) return "bg-status-optimal";
+    if (score >= 70) return "bg-status-acceptable";
+    if (score >= 50) return "bg-status-risk";
+    return "bg-status-critical";
+  };
 
   useEffect(() => {
     if (demoLoading) return;
