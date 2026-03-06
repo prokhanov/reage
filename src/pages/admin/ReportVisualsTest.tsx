@@ -103,6 +103,17 @@ export default function ReportVisualsTest() {
 
   useEffect(() => { loadData(); }, []);
 
+  useEffect(() => {
+    supabase
+      .from("ai_prompt_settings")
+      .select("updated_at")
+      .eq("key", "demo_report_result")
+      .single()
+      .then(({ data }) => {
+        if (data?.updated_at) setDemoGeneratedAt(data.updated_at);
+      });
+  }, []);
+
 
   const loadData = async () => {
     try {
