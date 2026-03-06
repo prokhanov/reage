@@ -3,21 +3,15 @@ import ReactMarkdown from 'react-markdown';
 interface MarkdownContentProps {
   content: string;
   className?: string;
-  stripLists?: boolean;
 }
 
-export function MarkdownContent({ content, className = '', stripLists = false }: MarkdownContentProps) {
+export function MarkdownContent({ content, className = '' }: MarkdownContentProps) {
   // Guard against accidental indented lines (tabs / 4+ spaces) that Markdown
   // interprets as code blocks. We only de-indent lines that start with bold
   // "headers" like "**2. ...:**".
-  let safeContent = content
+  const safeContent = content
     .replace(/\r\n/g, "\n")
     .replace(/^(?:\t| {4,})(?=\*\*)/gm, "");
-
-  // Strip top-level list markers → plain paragraphs (for narrative reports)
-  if (stripLists) {
-    safeContent = safeContent.replace(/^[-*]\s+/gm, '');
-  }
 
   return (
     <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
