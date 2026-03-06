@@ -99,7 +99,7 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
               </div>
             </header>
             
-            <div className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+            <div className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
               <div className="pt-16 lg:pt-0 flex-shrink-0">
                 <AnalysisBookingBanner />
               </div>
