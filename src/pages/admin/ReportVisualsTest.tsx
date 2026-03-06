@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,40 +85,9 @@ export default function ReportVisualsTest() {
   const [biomarkers, setBiomarkers] = useState<BiomarkerData[]>([]);
   const [recommendations, setRecommendations] = useState<Record<string, string>>({});
   const [categoryScores, setCategoryScores] = useState<CategoryScore[]>([]);
-  const [radarImage, setRadarImage] = useState<string | null>(null);
-  const radarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, []);
 
-  // Capture radar chart as base64 image after render
-  const captureRadar = useCallback(() => {
-    if (!radarRef.current) return;
-    const svg = radarRef.current.querySelector("svg");
-    if (!svg) return;
-
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    canvas.width = 600;
-    canvas.height = 400;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      setRadarImage(canvas.toDataURL("image/png"));
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-  }, []);
-
-  useEffect(() => {
-    if (categoryScores.length > 0) {
-      const timer = setTimeout(captureRadar, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [categoryScores, captureRadar]);
 
   const loadData = async () => {
     try {
@@ -313,16 +281,27 @@ export default function ReportVisualsTest() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl space-y-10">
-      <div>
-        <h1 className="text-3xl font-bold mb-1 bg-gradient-primary bg-clip-text text-transparent">
-          Превью отчёта для PDF
+      <div className="text-center space-y-1">
+        <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          Персональный отчёт
         </h1>
         <p className="text-muted-foreground text-sm">
-          Сергей Чагин · {analysis.date} · {totalMarkers} маркеров · Интерлейс текста и инфографики
+          Сергей Чагин · {analysis.date} · {totalMarkers} маркеров
         </p>
       </div>
 
-      {/* ═══ СВОДКА-ДАШБОРД ═══ */}
+      {/* ═══ 1. ДАННЫЕ ПАЦИЕНТА ═══ */}
+      {recommendations["Данные пациента"] && (
+        <section className="space-y-3">
+          <Card>
+            <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
+              <MarkdownContent content={recommendations["Данные пациента"]} />
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {/* ═══ 2. СВОДКА-ДАШБОРД ═══ */}
       <section className="space-y-3">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
@@ -384,52 +363,19 @@ export default function ReportVisualsTest() {
         </div>
       </section>
 
-      {/* ═══ РАДАР СИСТЕМ + CAPTURE ═══ */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">Баланс систем организма</h2>
-        <Card>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-              <div className="h-[320px]" ref={radarRef}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={categoryScores} cx="50%" cy="50%" outerRadius="75%">
-                    <PolarGrid stroke="hsl(var(--border))" />
-                    <PolarAngleAxis dataKey="system" tick={{ fill: "hsl(var(--foreground))", fontSize: 11, fontWeight: 500 }} />
-                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} tickCount={5} />
-                    <Radar name="Оценка" dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.2} strokeWidth={2} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="space-y-4">
-                {categoryScores.map((item) => (
-                  <div key={item.system}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-foreground">{item.system}</span>
-                      <span className={`text-sm font-bold ${getScoreColor(item.score)}`}>{item.score}</span>
-                    </div>
-                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${getProgressBg(item.score)}`} style={{ width: `${item.score}%` }} />
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      Ключевые: {item.key_markers.join(", ")}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* ═══ 3. ОБЩЕЕ РЕЗЮМЕ ═══ */}
+      {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold text-foreground">Общее резюме</h2>
+          <Card>
+            <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
+              <MarkdownContent content={recommendations["Общее резюме"]} />
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
-            {/* Show captured radar image for PDF demo */}
-            {radarImage && (
-              <div className="mt-6 pt-4 border-t border-border">
-                <div className="text-xs text-muted-foreground mb-2">📄 Версия для PDF (canvas → base64):</div>
-                <img src={radarImage} alt="Radar chart" className="max-w-[400px] rounded border" />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* ═══ СВЕТОФОР ПРИОРИТЕТОВ ═══ */}
+      {/* ═══ 4. СВЕТОФОР ПРИОРИТЕТОВ ═══ */}
       <section className="space-y-3">
         <h2 className="text-xl font-semibold text-foreground">Приоритеты</h2>
         <div className="space-y-3">
@@ -467,9 +413,9 @@ export default function ReportVisualsTest() {
 
       <Separator className="my-6" />
 
-      {/* ═══ ОТЧЁТЫ ПО КАТЕГОРИЯМ (ИНТЕРЛЕЙС) ═══ */}
+      {/* ═══ 5. ОТЧЁТЫ ПО КАТЕГОРИЯМ (ИНТЕРЛЕЙС) ═══ */}
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold text-foreground">Отчёт по категориям (интерлейс текст + шкалы)</h2>
+        <h2 className="text-xl font-semibold text-foreground">Детальный анализ по системам</h2>
         <Tabs defaultValue={categories[0] || ""}>
           <TabsList className="flex-wrap h-auto gap-1">
             {categories.map((cat) => (
@@ -489,17 +435,49 @@ export default function ReportVisualsTest() {
         </Tabs>
       </section>
 
-      {/* ═══ ДАННЫЕ ПАЦИЕНТА ═══ */}
-      {recommendations["Данные пациента"] && (
-        <section className="space-y-3">
-          <h2 className="text-xl font-semibold text-foreground">Данные пациента</h2>
-          <Card>
-            <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-              <MarkdownContent content={recommendations["Данные пациента"]} />
-            </CardContent>
-          </Card>
-        </section>
-      )}
+      <Separator className="my-6" />
+
+      {/* ═══ 6. БАЛАНС СИСТЕМ ОРГАНИЗМА (таблица с прогресс-барами, PDF-friendly) ═══ */}
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold text-foreground">Баланс систем организма</h2>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            {categoryScores
+              .sort((a, b) => a.score - b.score)
+              .map((item) => (
+              <div key={item.system} className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">{item.system}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-lg font-bold ${getScoreColor(item.score)}`}>{item.score}</span>
+                    <span className="text-xs text-muted-foreground">/ 100</span>
+                  </div>
+                </div>
+                <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${getProgressBg(item.score)}`}
+                    style={{ width: `${item.score}%` }}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Ключевые маркеры: {item.key_markers.join(", ")}
+                </div>
+              </div>
+            ))}
+
+            {/* Summary bar at the bottom */}
+            <Separator className="my-3" />
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-foreground">Средняя оценка</span>
+              <span className={`text-lg font-bold ${getScoreColor(
+                Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)
+              )}`}>
+                {Math.round(categoryScores.reduce((s, c) => s + c.score, 0) / categoryScores.length)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }
