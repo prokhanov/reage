@@ -392,7 +392,7 @@ export default function ReportVisualsTest() {
             <section className="space-y-3">
               <Card>
                 <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-                  <MarkdownContent content={recommendations["Данные пациента"]} />
+                  <MarkdownContent content={recommendations["Данные пациента"]} stripLists />
                 </CardContent>
               </Card>
             </section>
@@ -463,7 +463,7 @@ export default function ReportVisualsTest() {
             {recommendations["Общее резюме"] && recommendations["Общее резюме"] !== "Не удалось сгенерировать общее резюме" && (
               <Card>
                 <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none">
-                  <MarkdownContent content={recommendations["Общее резюме"]} />
+                  <MarkdownContent content={recommendations["Общее резюме"]} stripLists />
                 </CardContent>
               </Card>
             )}
