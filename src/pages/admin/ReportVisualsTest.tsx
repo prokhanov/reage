@@ -89,6 +89,7 @@ export default function ReportVisualsTest() {
   const [analysis, setAnalysis] = useState<any>(null);
   const [biomarkers, setBiomarkers] = useState<BiomarkerData[]>([]);
   const [recommendations, setRecommendations] = useState<Record<string, string>>({});
+  const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null);
   const [categoryScores, setCategoryScores] = useState<CategoryScore[]>([]);
 
   // Lifted prompt state for sharing between tabs
@@ -168,14 +169,17 @@ export default function ReportVisualsTest() {
 
       const { data: recsData } = await supabase
         .from("recommendations")
-        .select("type, text")
+        .select("type, text, created_at")
         .eq("analysis_id", analysisData.id)
         .eq("user_id", CHAGIN_USER_ID);
 
-      if (recsData) {
+      if (recsData && recsData.length > 0) {
         const recs: Record<string, string> = {};
         recsData.forEach((r: any) => { recs[r.type] = r.text; });
         setRecommendations(recs);
+        // Find the latest created_at among all recommendations
+        const latest = recsData.reduce((max: string, r: any) => r.created_at > max ? r.created_at : max, recsData[0].created_at);
+        setLastGeneratedAt(latest);
       }
     } finally {
       setLoading(false);
@@ -360,6 +364,11 @@ export default function ReportVisualsTest() {
         <p className="text-muted-foreground text-sm">
           Сергей Чагин · {analysis.date} · {totalMarkers} маркеров
         </p>
+        {lastGeneratedAt && (
+          <p className="text-xs text-muted-foreground">
+            Последняя генерация: {new Date(lastGeneratedAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
       </div>
 
       <Tabs defaultValue="preview" className="w-full">
