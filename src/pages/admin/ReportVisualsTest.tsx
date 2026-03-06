@@ -313,7 +313,7 @@ export default function ReportVisualsTest() {
         {chunks.map((chunk, idx) => {
           if (chunk.type === "text") {
             return (
-              <div key={idx} className="prose prose-sm dark:prose-invert max-w-none">
+              <div key={idx}>
                 <MarkdownContent content={chunk.content} />
               </div>
             );
@@ -352,7 +352,7 @@ export default function ReportVisualsTest() {
               )}
 
               {/* Text for this biomarker (without the header since the card shows it) */}
-              <div className="prose prose-sm dark:prose-invert max-w-none pl-2 border-l-2 border-muted">
+              <div className="pl-2 border-l-2 border-muted">
                 <MarkdownContent content={chunk.content} />
               </div>
             </div>
