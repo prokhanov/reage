@@ -18,6 +18,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Analyses from "./pages/Analyses";
 import AnalysisDetail from "./pages/AnalysisDetail";
+import { Navigate } from "react-router-dom";
 import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
 import Prescriptions from "./pages/Prescriptions";
@@ -88,10 +89,10 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/analyses" element={<PatientRoute><Analyses /></PatientRoute>} />
               <Route path="/analyses/:id" element={<PatientRoute><AnalysisDetail /></PatientRoute>} />
-              <Route path="/biomarkers" element={<PatientRoute><Biomarkers /></PatientRoute>} />
+              <Route path="/biomarkers" element={<Navigate to="/dashboard" replace />} />
               <Route path="/recommendations" element={<PatientRoute><Recommendations /></PatientRoute>} />
               <Route path="/prescriptions" element={<PatientRoute><Prescriptions /></PatientRoute>} />
-              <Route path="/trends" element={<PatientRoute><Trends /></PatientRoute>} />
+              <Route path="/trends" element={<Navigate to="/dashboard" replace />} />
               <Route path="/my-state" element={<PatientRoute><MyState /></PatientRoute>} />
               <Route path="/health-assistant" element={<PatientRoute><HealthAssistant /></PatientRoute>} />
               <Route path="/subscription" element={<PatientRoute><Subscription /></PatientRoute>} />
