@@ -88,7 +88,19 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
   useEffect(() => {
     if (demoLoading) return;
     loadBiomarkers();
+    loadCategoryEmojis();
   }, [demoMode, demoData, demoLoading]);
+
+  const loadCategoryEmojis = async () => {
+    const { data } = await supabase
+      .from("biomarker_categories")
+      .select("name, emoji");
+    if (data) {
+      const map: Record<string, string> = {};
+      data.forEach(c => { map[c.name] = c.emoji; });
+      setCategoryEmojis(map);
+    }
+  };
 
   const loadBiomarkers = async () => {
     if (demoMode) {
