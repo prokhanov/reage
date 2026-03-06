@@ -25,6 +25,7 @@ import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
 import HealthAssistant from "./pages/HealthAssistant";
 import Subscription from "./pages/Subscription";
+import HealthStrategy from "./pages/HealthStrategy";
 
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
@@ -83,6 +84,7 @@ const App = () => (
             >
               {/* Patient routes */}
               <Route path="/dashboard" element={<PatientRoute><Dashboard /></PatientRoute>} />
+              <Route path="/health-strategy" element={<PatientRoute><HealthStrategy /></PatientRoute>} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/analyses" element={<PatientRoute><Analyses /></PatientRoute>} />
               <Route path="/analyses/:id" element={<PatientRoute><AnalysisDetail /></PatientRoute>} />
