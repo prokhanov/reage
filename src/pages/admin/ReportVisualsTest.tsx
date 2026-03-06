@@ -65,13 +65,15 @@ function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): { type: 
     // Find the end of this biomarker's section (next biomarker header or end of text)
     const nextMatch = matches[idx + 1];
     const sectionEnd = nextMatch ? nextMatch.index! : text.length;
-    const sectionText = text.slice(matchStart, sectionEnd).trim();
-
     // Extract code from the header
-    const codeMatch = match[0].match(/\(([A-Za-z0-9\-\/+]+)\)/);
+    const codeMatch = match[1].match(/\(([A-Za-z0-9\-\/+]+)\)/);
     const code = codeMatch ? codeMatch[1] : undefined;
 
-    parts.push({ type: "biomarker", content: sectionText, code });
+    // Remove header (and list marker) from content — card already shows the name
+    const headerEnd = matchStart + match[0].length;
+    const contentAfterHeader = text.slice(headerEnd, sectionEnd).trim();
+
+    parts.push({ type: "biomarker", content: contentAfterHeader, code });
     lastIndex = sectionEnd;
   });
 
