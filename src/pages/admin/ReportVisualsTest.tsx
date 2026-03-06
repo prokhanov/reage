@@ -41,9 +41,9 @@ function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): { type: 
   if (!text || biomarkerCodes.length === 0) return [{ type: "text", content: text }];
 
   // Build regex to find biomarker headers like **Name (CODE)**: or **Name (CODE)**
-  // The AI text uses pattern: **Общий холестерин (TC)**:
+  // Also capture optional leading list markers (- , * , • ) before the header
   const codePattern = biomarkerCodes.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-  const regex = new RegExp(`(\\*\\*[^*]+\\((?:${codePattern})\\)\\*\\*:?)`, 'g');
+  const regex = new RegExp(`(?:^[ \\t]*[-*•]\\s+)?(\\*\\*[^*]+\\((?:${codePattern})\\)\\*\\*:?)`, 'gm');
 
   const parts: { type: "text" | "biomarker"; content: string; code?: string }[] = [];
   let lastIndex = 0;
