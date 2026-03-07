@@ -68,7 +68,8 @@ serve(async (req) => {
       "Сердечно-сосудистая система": "cardiovascular",
       "Воспалительная и иммунная система": "inflammation",
       "Эндокринная и стрессовая система": "endocrine",
-      "Обмен веществ и детоксикация": "metabolism"
+      "Обмен веществ и детоксикация": "metabolism",
+      "Почки и водно-солевой баланс": "kidneys"
     };
 
     // Получаем анализ с биомаркерами
@@ -539,7 +540,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         }).join("\n\n");
 
         // Получаем промпты из БД с fallback на дефолтные
-        const categoryKey = CATEGORY_KEY_MAP[category];
+        const categoryKey = CATEGORY_KEY_MAP[category] || category.toLowerCase().replace(/\s+/g, '_');
         const userPromptKey = `category_${categoryKey}_user`;
         const systemPromptKey = `category_${categoryKey}_system`;
 
