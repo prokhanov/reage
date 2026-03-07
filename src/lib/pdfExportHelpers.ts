@@ -242,11 +242,8 @@ export function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): {
   return parts;
 }
 
-// ═══ Build interleaved PDF content for a category section ═══
-// Delegates to unified anchorRenderer (supports both anchor tags and legacy format)
-
-export { buildInterleavedPdf as buildInterleavedPdfSection } from "@/lib/anchorRenderer";
-export { renderInterleavedWeb } from "@/lib/anchorRenderer";
+// ═══ Interleaved rendering moved to anchorRenderer.tsx ═══
+// Import buildInterleavedPdf / renderInterleavedWeb from "@/lib/anchorRenderer" directly
 
 // ═══ Standard PDF styles ═══
 
