@@ -11,7 +11,6 @@ import {
   STATUS_HEX,
   buildRangeBarCanvas,
   parseMarkdownToPdfContent,
-  buildInterleavedPdfSection,
   splitTextByBiomarkers,
   PDF_STYLES,
 } from "@/lib/pdfExportHelpers";
