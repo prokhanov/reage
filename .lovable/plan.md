@@ -1,29 +1,74 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+# Создание anchorParser и унификация рендеринга
 
-## Что сделано
+## Что сейчас
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+Три места дублируют одну и ту же логику парсинга/рендеринга с разными regex:
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+1. **`pdfExportHelpers.ts`** — `splitTextByBiomarkers` (regex по `**Name (CODE)**` / `## Name (CODE)`) + `buildInterleavedPdfSection` (regex для «Краткое резюме»)
+2. **`ReportVisualsTest.tsx`** — дублирует PDF-логику для веб-превью (строки 282-357 для PDF, 379-454 для веб) с собственным regex для резюме
+3. **`Recommendations.tsx`** — вообще **не** делает интерлейс на вебе (строки 722-725), только в PDF через `buildInterleavedPdfSection`
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+## План
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+### 1. Создать `src/lib/anchorParser.ts`
 
-**ESR:** optimal_min_male/female → NULL
+Единая функция `parseAnchors(text, biomarkerCodes)`:
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+```typescript
+type AnchorBlock =
+  | { type: 'text'; content: string }
+  | { type: 'summary'; content: string }
+  | { type: 'biomarker'; code: string; content: string }
+  | { type: 'section'; name: string; content: string }  // insights, strengths, risks, etc.
+  | { type: 'spacer' }
+  | { type: 'pagebreak' };
+```
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+Логика:
+- Ищет `<!-- anchor:TYPE DATA -->` ... `<!-- anchor:TYPE_end -->` парами
+- Между парами — блоки `{ type: 'text' }`
+- **Fallback**: если ни одного `<!-- anchor:` нет → делегирует в существующий `splitTextByBiomarkers` для обратной совместимости со старыми отчетами
+- `spacer` и `pagebreak` — одиночные теги без `_end`
+
+### 2. Создать `src/lib/anchorRenderer.tsx`
+
+Две функции, использующие один и тот же `parseAnchors`:
+
+**`renderInterleavedWeb(blocks, biomarkers, age, gender)`** — возвращает JSX:
+- `summary` → рамка `bg-primary/5` с `MarkdownContent`
+- `biomarker` → карточка с `BiomarkerRangeBar` + `MarkdownContent`
+- `section` → `MarkdownContent` (как есть)
+- `spacer` → `<div className="h-8" />`
+- `pagebreak` → невидим на вебе
+- `text` → `MarkdownContent`
+
+**`buildInterleavedPdf(blocks, biomarkers, barWidth, barHeight, age, gender)`** — возвращает pdfmake content[]:
+- `summary` → таблица с фиолетовой рамкой (существующий стиль)
+- `biomarker` → заголовок + range bar canvas + текст
+- `spacer` → `{ text: '', margin: [0,15,0,0] }`
+- `pagebreak` → `{ text: '', pageBreak: 'after' }`
+
+### 3. Рефакторинг потребителей
+
+**`pdfExportHelpers.ts`**:
+- `splitTextByBiomarkers` остается (для fallback внутри `parseAnchors`)
+- `buildInterleavedPdfSection` переписывается: вызывает `parseAnchors` → `buildInterleavedPdf`
+
+**`ReportVisualsTest.tsx`**:
+- `renderInterleavedReport` → вызывает `parseAnchors` → `renderInterleavedWeb`
+- PDF-экспорт → вызывает `parseAnchors` → `buildInterleavedPdf`
+- Удаляется дублированный код (~80 строк)
+
+**`Recommendations.tsx`**:
+- Веб-рендеринг категорий (строки 713-728) → использует `renderInterleavedWeb` вместо простого `MarkdownContent` (добавляет интерлейс на веб)
+- PDF-экспорт уже вызывает `buildInterleavedPdfSection` — будет работать через новый парсер автоматически
+
+### 4. Итог
+
+- Одна точка парсинга (`anchorParser.ts`)
+- Две функции рендеринга в одном файле (`anchorRenderer.tsx`) — веб и PDF
+- Старые отчеты без якорей → fallback через `splitTextByBiomarkers`
+- Новые отчеты с якорями → точный парсинг без regex-угадывания
+
