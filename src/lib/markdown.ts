@@ -120,8 +120,11 @@ export function cleanMarkdownArtifacts(text: string): string {
   // Remove lone asterisks at end of lines
   result = result.replace(/\s+\*\s*$/gm, '');
   
-  // Clean up multiple consecutive empty lines
-  result = result.replace(/\n{3,}/g, '\n\n');
+  // Preserve extra blank lines as spacer paragraphs (&nbsp;)
+  result = result.replace(/\n{3,}/g, (match) => {
+    const extraLines = match.split('\n').length - 3;
+    return '\n\n' + '&nbsp;\n\n'.repeat(Math.max(extraLines, 0));
+  });
   
   return result;
 }
