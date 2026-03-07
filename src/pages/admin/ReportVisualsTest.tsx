@@ -566,9 +566,31 @@ export default function ReportVisualsTest() {
         const codes = catBio.map(b => b.code);
         const chunks = splitTextByBiomarkers(reportText, codes);
 
+        let isFirstTextChunk = true;
         chunks.forEach(chunk => {
           if (chunk.type === 'text') {
-            pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
+            const parsed = parseMarkdownToPdfContent(chunk.content);
+            if (isFirstTextChunk) {
+              // Wrap first text chunk (summary) in a bordered box
+              pdfContent.push({
+                table: { widths: ['*'], body: [[ { stack: parsed, margin: [8, 8, 8, 8] } ]] },
+                layout: {
+                  hLineWidth: () => 0.8,
+                  vLineWidth: () => 0.8,
+                  hLineColor: () => '#C4B5FD',
+                  vLineColor: () => '#C4B5FD',
+                  fillColor: () => '#F5F3FF',
+                  paddingLeft: () => 4,
+                  paddingRight: () => 4,
+                  paddingTop: () => 4,
+                  paddingBottom: () => 4,
+                },
+                margin: [0, 0, 0, 12],
+              });
+              isFirstTextChunk = false;
+            } else {
+              pdfContent.push(...parsed);
+            }
           } else {
             const bm = chunk.code ? catBio.find(b => b.code === chunk.code) : null;
             if (bm) {
@@ -657,8 +679,10 @@ export default function ReportVisualsTest() {
       <div className="space-y-12">
         {chunks.map((chunk, idx) => {
           if (chunk.type === "text") {
+            // First text chunk (summary before first biomarker) gets a styled frame
+            const isFirstSummary = idx === 0;
             return (
-              <div key={idx}>
+              <div key={idx} className={isFirstSummary ? "rounded-xl border border-primary/15 bg-primary/5 p-5" : ""}>
                 <MarkdownContent content={chunk.content} />
               </div>
             );
