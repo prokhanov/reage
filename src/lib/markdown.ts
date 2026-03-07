@@ -162,8 +162,11 @@ export function normalizeMarkdown(text: string): string {
     processed = processed.replace(`___CODE_BLOCK_${index}___`, block);
   });
 
-  // Step 4: Collapse triple+ newlines to double newlines
-  processed = processed.replace(/\n{3,}/g, '\n\n');
+  // Step 4: Collapse triple+ newlines but preserve NBSP spacers
+  processed = processed.replace(/\n{3,}/g, (match) => {
+    const extraLines = match.split('\n').length - 3;
+    return '\n\n' + '\u00A0\n\n'.repeat(Math.max(extraLines, 0));
+  });
 
   return processed;
 }
