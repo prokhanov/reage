@@ -208,7 +208,7 @@ function parseMarkdownToPdfContent(markdown: string): any[] {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) { content.push({ text: ' ', margin: [0, 3, 0, 0] }); continue; }
+    if (!trimmed) { content.push({ text: ' ', margin: [0, 1, 0, 0] }); continue; }
     if (trimmed.match(/^[-*_]{3,}$/)) { content.push({ text: ' ', margin: [0, 6, 0, 6] }); continue; }
     if (trimmed.match(/^[*•]+\s*$/)) continue;
 
@@ -224,7 +224,7 @@ function parseMarkdownToPdfContent(markdown: string): any[] {
       const m = trimmed.match(/^(\d+)\\?\.\s+(.*)$/);
       if (m) content.push({ text: [{ text: `${m[1]}. ` }, ...parseInlineMarkdownPdf(m[2])], style: 'listItem', margin: [15, 0, 0, 4] });
     } else {
-      content.push({ text: parseInlineMarkdownPdf(trimmed), style: 'paragraph', margin: [0, 0, 0, 8] });
+      content.push({ text: parseInlineMarkdownPdf(trimmed), style: 'paragraph', margin: [0, 0, 0, 3] });
     }
   }
   return content;
