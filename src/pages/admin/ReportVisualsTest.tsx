@@ -211,7 +211,7 @@ function parseMarkdownToPdfContent(markdown: string): any[] {
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) { content.push({ text: ' ', margin: [0, 1, 0, 0] }); continue; }
-    if (trimmed === '&nbsp;' || trimmed === '\u00A0') { content.push({ text: ' ', margin: [0, 6, 0, 6] }); continue; }
+    if (trimmed === '&nbsp;' || trimmed === '\u00A0') { content.push({ text: ' ', margin: [0, 8, 0, 8] }); continue; }
     if (trimmed.match(/^[-*_]{3,}$/)) { content.push({ text: ' ', margin: [0, 6, 0, 6] }); continue; }
     if (trimmed.match(/^[*•]+\s*$/)) continue;
 
