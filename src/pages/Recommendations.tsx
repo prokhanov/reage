@@ -25,6 +25,13 @@ import { RecommendationsSkeleton } from "@/components/skeletons/RecommendationsS
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;
+import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
+import {
+  PdfBiomarkerData,
+  buildInterleavedPdfSection,
+  parseMarkdownToPdfContent,
+  PDF_STYLES,
+} from "@/lib/pdfExportHelpers";
 
 interface Recommendation {
   id: string;
