@@ -31,17 +31,8 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
 const CHAGIN_USER_ID = "d950e0d2-7379-4bc0-8294-fee699f3146d";
 
-interface BiomarkerData {
-  name: string;
-  code: string;
-  value: number;
-  unit: string;
-  category: string;
-  biomarker: any;
-  status: string;
-  statusLabel: string;
-  rangeDisplay: string;
-}
+// BiomarkerData type alias — use PdfBiomarkerData from shared helpers
+type BiomarkerData = PdfBiomarkerData;
 
 interface CategoryScore {
   system: string;
