@@ -851,6 +851,17 @@ export default function ReportVisualsTest() {
                   onChange={(val) => setGeneratedContent(val || "")}
                   height={600}
                   preview="live"
+                  previewOptions={{
+                    components: {
+                      p: ({ children }) => {
+                        const text = typeof children === 'string' ? children.trim() : '';
+                        if (text === '\u00A0' || text === '') {
+                          return <div style={{ height: '1em' }} />;
+                        }
+                        return <p>{children}</p>;
+                      }
+                    }
+                  }}
                 />
               </div>
             ) : (
