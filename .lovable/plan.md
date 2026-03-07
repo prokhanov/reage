@@ -1,29 +1,22 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+## Markdown-редактор для сгенерированного текста
 
-## Что сделано
+### Проблема
+Сейчас сгенерированный текст отображается только для чтения через `MarkdownContent`. Нужна возможность отредактировать markdown перед экспортом в PDF.
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+### Решение
+Использовать уже установленную библиотеку `@uiw/react-md-editor` — популярный markdown-редактор с превью, тулбаром и поддержкой dark mode.
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+### Изменения в `src/pages/admin/ReportVisualsTest.tsx`
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+1. **Добавить состояние редактирования**: `isEditing` (boolean) для переключения между режимом просмотра (interleaved report с биомаркерами) и режимом редактирования (markdown-редактор).
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+2. **Кнопка «Редактировать»** рядом с кнопками «Сгенерировать» и «PDF». При нажатии — переключается в режим редактирования, показывая `MDEditor` с `generatedContent`. При повторном нажатии — возвращается в превью.
 
-**ESR:** optimal_min_male/female → NULL
+3. **Режим редактирования**: вместо `renderInterleavedReport` показывать `MDEditor` с `value={generatedContent}` и `onChange` обновляющим `setGeneratedContent`. Редактор в режиме `live` (split-view: markdown + превью).
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+4. **Сохранение**: при переключении обратно в превью — обновлённый `generatedContent` сразу используется в `renderInterleavedReport` и при экспорте PDF. Отдельная кнопка сохранения не нужна — состояние уже актуально.
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+5. **Dark mode**: `@uiw/react-md-editor` поддерживает `data-color-mode` атрибут — подключить через текущую тему.
+
