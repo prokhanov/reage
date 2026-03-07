@@ -1010,6 +1010,8 @@ interface PromptDemoTabProps {
   setSystemPrompt: (v: string) => void;
   userPrompt: string;
   setUserPrompt: (v: string) => void;
+  biomarkersOverride: string | null;
+  setBiomarkersOverride: (v: string | null) => void;
 }
 
 function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, userPrompt, setUserPrompt, biomarkersOverride, setBiomarkersOverride }: PromptDemoTabProps) {
