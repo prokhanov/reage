@@ -3,7 +3,8 @@ export const CATEGORY_KEY_MAP: Record<string, string> = {
   "Сердечно-сосудистая система": "cardiovascular",
   "Воспалительная и иммунная система": "inflammation",
   "Эндокринная и стрессовая система": "endocrine",
-  "Обмен веществ и детоксикация": "metabolism"
+  "Обмен веществ и детоксикация": "metabolism",
+  "Почки и водно-солевой баланс": "kidneys"
 };
 
 export function getCategoryKey(categoryName: string): string {

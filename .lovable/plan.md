@@ -1,48 +1,29 @@
 
 
-## Problem
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-The new category "Почки и водно-солевой баланс" (Kidneys & Water-Salt Balance) was added to the database but is **not integrated** into the codebase. There are two critical places with hardcoded `CATEGORY_KEY_MAP` that only know 5 categories:
+## Что сделано
 
-1. **`src/lib/categoryKeyMap.ts`** (line 1-7) — used by AI Settings page to find prompt keys
-2. **`supabase/functions/analyze-biomarkers/index.ts`** (lines 66-72) — used during report generation to look up prompts
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-When `getCategoryKey("Почки и водно-солевой баланс")` is called, it falls back to `почки_и_водно-солевой_баланс` (via `.toLowerCase().replace(/\s+/g, '_')`). But the hyphen makes an ugly key, and the edge function uses a **direct map lookup** (line 542) that returns `undefined`, causing prompt keys `category_undefined_user` / `category_undefined_system`.
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-### Impact
-- **AI Settings page**: Can't find/edit prompts for this category (keys mismatch)
-- **Report generation**: Category biomarkers are silently skipped ("No specialization" warning) or use fallback prompts with wrong keys
-- **Everything else** (dashboard, analysis detail, biomarker selector, risk zones) loads categories dynamically from DB — those are fine
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-## Plan
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-### 1. Add "Почки и водно-солевой баланс" to both `CATEGORY_KEY_MAP` instances
+**ESR:** optimal_min_male/female → NULL
 
-**`src/lib/categoryKeyMap.ts`** — Add entry:
-```ts
-"Почки и водно-солевой баланс": "kidneys"
-```
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
-**`supabase/functions/analyze-biomarkers/index.ts`** (line 66-72) — Add same entry to the hardcoded map, plus add a **fallback** so unknown future categories don't silently break:
-```ts
-"Почки и водно-солевой баланс": "kidneys"
-```
-
-Also fix line 542 to use a fallback like the frontend does:
-```ts
-const categoryKey = CATEGORY_KEY_MAP[category] || category.toLowerCase().replace(/\s+/g, '_');
-```
-
-### 2. Create AI prompt templates for the new category
-
-**Database migration**: Insert `category_kidneys_system` and `category_kidneys_user` prompts into `ai_prompt_settings`, matching the pattern of existing categories.
-
-### 3. Update `validate_recommendation_type` trigger
-
-The DB function `validate_recommendation_type` dynamically reads from `biomarker_categories`, so it already handles the new category — no change needed.
-
-### Summary of files changed
-- `src/lib/categoryKeyMap.ts` — add 1 line
-- `supabase/functions/analyze-biomarkers/index.ts` — add 1 line to map + add fallback on line 542
-- New migration — insert 2 prompt rows for `category_kidneys_system` and `category_kidneys_user`
-
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
