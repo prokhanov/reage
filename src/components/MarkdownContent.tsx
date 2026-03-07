@@ -30,9 +30,19 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
             <h4 className="text-base font-semibold mb-2 mt-3 text-foreground">{children}</h4>
           ),
           p: ({ children }) => {
-            const text = typeof children === 'string' ? children.trim() : '';
-            if (text === '\u00A0' || text === '') {
-              return <div style={{ height: '1em' }} />;
+            // Only treat as spacer if children is literally a string that is empty/NBSP
+            if (typeof children === 'string') {
+              const text = children.trim();
+              if (text === '\u00A0' || text === '') {
+                return <div style={{ height: '1em' }} />;
+              }
+            }
+            // Check for array with single NBSP string child
+            if (Array.isArray(children) && children.length === 1 && typeof children[0] === 'string') {
+              const text = children[0].trim();
+              if (text === '\u00A0' || text === '') {
+                return <div style={{ height: '1em' }} />;
+              }
             }
             return <p className="mb-4 text-foreground leading-relaxed">{children}</p>;
           },
