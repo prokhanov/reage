@@ -347,7 +347,7 @@ export default function ReportVisualsTest() {
                 margin: [0, 10, 0, 3],
               });
               // Range bar canvas
-              const bar = buildRangeBarCanvas(bm, barWidth, barHeight);
+              const bar = buildRangeBarCanvas(bm, barWidth, barHeight, 26, 'male');
               if (bar) pdfContent.push(bar);
             }
             // Biomarker description text
