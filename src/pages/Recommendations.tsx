@@ -402,13 +402,19 @@ export default function Recommendations() {
       
       // Пустая строка
       if (!trimmedLine) {
-        content.push({ text: ' ', margin: [0, 5, 0, 0] });
+        content.push({ text: ' ', margin: [0, 0, 0, 0], fontSize: 1 });
         continue;
       }
       
-      // Горизонтальные разделители (---, ***, ___ и с пробелами * * *) — пропускаем или добавляем отступ
+      // Spacer (NBSP)
+      if (trimmedLine === '\u00A0' || trimmedLine === '&nbsp;') {
+        content.push({ text: ' ', margin: [0, 3, 0, 3] });
+        continue;
+      }
+      
+      // Горизонтальные разделители
       if (trimmedLine.match(/^[-*_]{3,}$/) || trimmedLine.match(/^[\*\-_](\s+[\*\-_]){2,}$/)) {
-        content.push({ text: ' ', margin: [0, 10, 0, 10] });
+        content.push({ text: ' ', margin: [0, 4, 0, 4] });
         continue;
       }
       
@@ -428,27 +434,25 @@ export default function Recommendations() {
       // Заголовки уровня 4-6 (#### и глубже) — обрабатываем как h3
       if (trimmedLine.match(/^#{4,}\s+/)) {
         const headerText = cleanMarkdownEscapes(trimmedLine.replace(/^#{4,}\s+/, ''));
-        content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 6, 0, 3] });
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 8, 0, 2] });
       }
-      // Заголовки (проверяем по trimmedLine для корректной работы с отступами)
       else if (trimmedLine.startsWith('### ')) {
         const headerText = cleanMarkdownEscapes(trimmedLine.replace('### ', ''));
-        content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 6, 0, 3] });
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h3', margin: [0, 8, 0, 2] });
       } else if (trimmedLine.startsWith('## ')) {
         const headerText = cleanMarkdownEscapes(trimmedLine.replace('## ', ''));
-        content.push({ text: parseInlineMarkdown(headerText), style: 'h2', margin: [0, 8, 0, 4] });
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h2', margin: [0, 10, 0, 3] });
       } else if (trimmedLine.startsWith('# ')) {
         const headerText = cleanMarkdownEscapes(trimmedLine.replace('# ', ''));
-        content.push({ text: parseInlineMarkdown(headerText), style: 'h1', margin: [0, 10, 0, 5] });
+        content.push({ text: parseInlineMarkdown(headerText), style: 'h1', margin: [0, 12, 0, 4] });
       }
-      // Маркированные списки (проверяем по trimmedLine для поддержки отступов типа "  * пункт")
       else if (trimmedLine.match(/^[-*]\s+\S/)) {
         const listText = cleanMarkdownEscapes(trimmedLine.replace(/^[-*]\s+/, ''));
         const parsedText = parseInlineMarkdown(listText);
         content.push({ 
           text: [{ text: '• ' }, ...parsedText],
           style: 'listItem', 
-          margin: [20, 0, 0, 5] 
+          margin: [20, 0, 0, 2] 
         });
       }
       // Нумерованные списки (1., 2., etc.) — включая экранированные точки (1\.)
