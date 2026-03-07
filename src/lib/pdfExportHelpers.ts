@@ -242,80 +242,8 @@ export function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): {
   return parts;
 }
 
-// ═══ Build interleaved PDF content for a category section ═══
-
-export function buildInterleavedPdfSection(
-  reportText: string,
-  catBiomarkers: PdfBiomarkerData[],
-  barWidth: number,
-  barHeight: number,
-  age: number,
-  gender: 'male' | 'female',
-): any[] {
-  const pdfContent: any[] = [];
-  const codes = catBiomarkers.map(b => b.code);
-  const chunks = splitTextByBiomarkers(reportText, codes);
-
-  let isFirstTextChunk = true;
-  chunks.forEach(chunk => {
-    if (chunk.type === 'text') {
-      if (isFirstTextChunk) {
-        isFirstTextChunk = false;
-        // Match summary block with ## or ### or **Краткое резюме** (bold)
-        const summaryMatch = chunk.content.match(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n([\s\S]*?)(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/);
-        if (summaryMatch) {
-          const summaryParsed = parseMarkdownToPdfContent(summaryMatch[1].trim());
-          pdfContent.push({
-            table: { widths: ['*'], body: [[ { stack: summaryParsed, margin: [8, 8, 8, 8] } ]] },
-            layout: {
-              hLineWidth: () => 0.8,
-              vLineWidth: () => 0.8,
-              hLineColor: () => '#C4B5FD',
-              vLineColor: () => '#C4B5FD',
-              fillColor: () => '#F5F3FF',
-              paddingLeft: () => 4,
-              paddingRight: () => 4,
-              paddingTop: () => 4,
-              paddingBottom: () => 4,
-            },
-            margin: [0, 0, 0, 12],
-          });
-          const restContent = chunk.content
-            .replace(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n[\s\S]*?(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/, '')
-            .trim();
-          if (restContent) pdfContent.push(...parseMarkdownToPdfContent(restContent));
-        } else {
-          pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
-        }
-      } else {
-        pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
-      }
-    } else {
-      const bm = chunk.code ? catBiomarkers.find(b => b.code === chunk.code) : null;
-      if (bm) {
-        // Biomarker header with colored dot
-        pdfContent.push({
-          columns: [
-            { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 4, r2: 4, color: STATUS_HEX[bm.status] || '#888' }], width: 14, height: 14 },
-            { text: [{ text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], width: '*', margin: [0, 1, 0, 0] },
-            { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: bm.statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 1, 0, 0] },
-          ],
-          columnGap: 4,
-          margin: [0, 10, 0, 3],
-        });
-        // Range bar
-        const bar = buildRangeBarCanvas(bm, barWidth, barHeight, age, gender);
-        if (bar) pdfContent.push(bar);
-      }
-      // Biomarker description text
-      if (chunk.content) {
-        pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
-      }
-    }
-  });
-
-  return pdfContent;
-}
+// ═══ Interleaved rendering moved to anchorRenderer.tsx ═══
+// Import buildInterleavedPdf / renderInterleavedWeb from "@/lib/anchorRenderer" directly
 
 // ═══ Standard PDF styles ═══
 

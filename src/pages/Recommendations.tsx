@@ -28,10 +28,10 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import {
   PdfBiomarkerData,
-  buildInterleavedPdfSection,
   parseMarkdownToPdfContent,
   PDF_STYLES,
 } from "@/lib/pdfExportHelpers";
+import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 
 interface Recommendation {
   id: string;
@@ -459,7 +459,7 @@ export default function Recommendations() {
         if (isCategory && pdfBiomarkers.length > 0) {
           const catBio = pdfBiomarkers.filter(b => b.category === section.type);
           if (catBio.length > 0) {
-            return buildInterleavedPdfSection(section.content, catBio, barWidth, barHeight, patientAge, patientGender);
+            return buildInterleavedPdf(section.content, catBio, barWidth, barHeight, patientAge, patientGender);
           }
         }
         return parseMarkdownToPdfContent(section.content);
@@ -721,7 +721,7 @@ export default function Recommendations() {
                               </div>
                               {recs.map((rec) => (
                                 <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                  <MarkdownContent content={cleanMarkdownArtifacts(rec.text)} />
+                                  {renderInterleavedWeb(cleanMarkdownArtifacts(rec.text), [], 40, 'male')}
                                 </div>
                               ))}
                             </div>
