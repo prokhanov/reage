@@ -569,27 +569,38 @@ export default function ReportVisualsTest() {
         let isFirstTextChunk = true;
         chunks.forEach(chunk => {
           if (chunk.type === 'text') {
-            const parsed = parseMarkdownToPdfContent(chunk.content);
             if (isFirstTextChunk) {
-              // Wrap first text chunk (summary) in a bordered box
-              pdfContent.push({
-                table: { widths: ['*'], body: [[ { stack: parsed, margin: [8, 8, 8, 8] } ]] },
-                layout: {
-                  hLineWidth: () => 0.8,
-                  vLineWidth: () => 0.8,
-                  hLineColor: () => '#C4B5FD',
-                  vLineColor: () => '#C4B5FD',
-                  fillColor: () => '#F5F3FF',
-                  paddingLeft: () => 4,
-                  paddingRight: () => 4,
-                  paddingTop: () => 4,
-                  paddingBottom: () => 4,
-                },
-                margin: [0, 0, 0, 12],
-              });
               isFirstTextChunk = false;
+              // Extract only the "Краткое резюме" block for the bordered box
+              const summaryMatch = chunk.content.match(/##\s*Краткое резюме\s*\n([\s\S]*?)(?=\n##|\n🧬|\n🔬|$)/);
+              if (summaryMatch) {
+                const summaryParsed = parseMarkdownToPdfContent(summaryMatch[1].trim());
+                pdfContent.push({
+                  table: { widths: ['*'], body: [[ { stack: summaryParsed, margin: [8, 8, 8, 8] } ]] },
+                  layout: {
+                    hLineWidth: () => 0.8,
+                    vLineWidth: () => 0.8,
+                    hLineColor: () => '#C4B5FD',
+                    vLineColor: () => '#C4B5FD',
+                    fillColor: () => '#F5F3FF',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                    paddingTop: () => 4,
+                    paddingBottom: () => 4,
+                  },
+                  margin: [0, 0, 0, 12],
+                });
+                const restContent = chunk.content
+                  .replace(/##\s*Краткое резюме\s*\n[\s\S]*?(?=\n##|\n🧬|\n🔬|$)/, '')
+                  .trim();
+                if (restContent) {
+                  pdfContent.push(...parseMarkdownToPdfContent(restContent));
+                }
+              } else {
+                pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
+              }
             } else {
-              pdfContent.push(...parsed);
+              pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
             }
           } else {
             const bm = chunk.code ? catBio.find(b => b.code === chunk.code) : null;
@@ -679,10 +690,26 @@ export default function ReportVisualsTest() {
       <div className="space-y-12">
         {chunks.map((chunk, idx) => {
           if (chunk.type === "text") {
-            // First text chunk (summary before first biomarker) gets a styled frame
-            const isFirstSummary = idx === 0;
+            // Extract "Краткое резюме" block if present in first chunk
+            if (idx === 0) {
+              const summaryMatch = chunk.content.match(/##\s*Краткое резюме\s*\n([\s\S]*?)(?=\n##|\n🧬|\n🔬|$)/);
+              if (summaryMatch) {
+                const summaryContent = summaryMatch[1].trim();
+                const restContent = chunk.content
+                  .replace(/##\s*Краткое резюме\s*\n[\s\S]*?(?=\n##|\n🧬|\n🔬|$)/, '')
+                  .trim();
+                return (
+                  <div key={idx}>
+                    <div className="rounded-xl border border-primary/15 bg-primary/5 p-5 mb-6">
+                      <MarkdownContent content={summaryContent} />
+                    </div>
+                    {restContent && <MarkdownContent content={restContent} />}
+                  </div>
+                );
+              }
+            }
             return (
-              <div key={idx} className={isFirstSummary ? "rounded-xl border border-primary/15 bg-primary/5 p-5" : ""}>
+              <div key={idx}>
                 <MarkdownContent content={chunk.content} />
               </div>
             );
