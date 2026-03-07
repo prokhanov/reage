@@ -1,29 +1,18 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+## Проблема
 
-## Что сделано
+MDEditor показывает пустые строки в панели кода (левая часть), но в превью (правая часть) markdown по спецификации схлопывает любое количество пустых строк в один разрыв абзаца. Текущий `previewOptions` ищет `\u00A0` в параграфах, но MDEditor не конвертирует пустые строки в `\u00A0` — это делает только `cleanMarkdownArtifacts`, который не вызывается для превью редактора.
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+## Решение
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+Использовать проп `previewOptions.source` (или `transformSource`) в MDEditor, чтобы перед рендером превью прогонять текст через функцию-трансформер, которая заменяет тройные+ переносы строк на `\n\n\u00A0\n\n` — то же, что делает `cleanMarkdownArtifacts`.
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+### Изменения в `src/pages/admin/ReportVisualsTest.tsx`
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+1. Добавить функцию `transformForPreview(source: string)` которая заменяет `\n{3,}` на spacer-параграфы с `\u00A0`
+2. Передать её в MDEditor через проп `previewOptions={{ source: transformForPreview(generatedContent) }}` — это заставит превью-панель рендерить обработанный markdown вместо сырого
+3. Оставить текущий custom `p` компонент для рендера `\u00A0` как пустого div с высотой
 
-**ESR:** optimal_min_male/female → NULL
+Итого: пользователь вводит пустые строки в редакторе → в превью они отображаются как вертикальные отступы → при экспорте в PDF `cleanMarkdownArtifacts` делает то же самое.
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
-
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
