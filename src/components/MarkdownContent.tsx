@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import { cleanMarkdownArtifacts } from '@/lib/markdown';
 
 interface MarkdownContentProps {
   content: string;
@@ -12,6 +13,8 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
   const safeContent = content
     .replace(/\r\n/g, "\n")
     .replace(/^(?:\t| {4,})(?=\*\*)/gm, "");
+
+  const processed = cleanMarkdownArtifacts(safeContent);
 
   return (
     <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
@@ -74,7 +77,7 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
           ),
         }}
       >
-        {safeContent}
+        {processed}
       </ReactMarkdown>
     </div>
   );
