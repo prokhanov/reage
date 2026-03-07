@@ -99,4 +99,31 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   MPV_CODE: "MPV",
   PCTT: "PCT-t",
   PDW: "PDW",
+  
+  // Коагулограмма
+  FIB: "FIB",
+  PT: "PT",
+  TT: "TT",
+  INR_CODE: "INR",
+  APTT: "APTT",
+  
+  // Витамины
+  VITA: "VitA",
+  VITE: "VitE",
+  VITK1: "VitK1",
+  
+  // Минералы
+  PHOS: "P",
+  
+  // Маркеры мочи
+  PHU: "pH-U",
+  PROU: "PRO-U",
+  GLUU: "GLU-U",
+  KETU: "KET-U",
+  UBG: "UBG",
+  BILU: "BIL-U",
+  HBU: "HB-U",
+  NITU: "NIT-U",
+  LEUU: "LEU-U",
+  RBCU: "RBC-U",
 };
