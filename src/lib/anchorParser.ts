@@ -47,10 +47,13 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
 
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
-    const tag = match[1]; // e.g. "summary_start", "biomarker", "spacer", "pagebreak"
-    const data = match[2]; // e.g. biomarker code
+    const tag = match[1];
+    const data = match[2];
     const tagStart = match.index!;
     const tagEnd = tagStart + match[0].length;
+
+    // Skip matches already consumed by a previous block
+    if (tagStart < lastIndex) continue;
 
     // Text before this tag
     const beforeText = text.slice(lastIndex, tagStart).trim();
@@ -65,26 +68,22 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
       blocks.push({ type: 'pagebreak' });
       lastIndex = tagEnd;
     } else if (tag === 'summary_start') {
-      const endTag = findEndTag(text, 'summary_end', tagEnd);
-      const content = text.slice(tagEnd, endTag.start).trim();
+      const endPos = findEndTagPos(text, 'summary_end', tagEnd);
+      const content = text.slice(tagEnd, endPos.start).trim();
       if (content) blocks.push({ type: 'summary', content });
-      lastIndex = endTag.end;
-      i = skipToMatchIndex(matches, endTag.matchIdx, i);
+      lastIndex = endPos.end;
     } else if (tag === 'biomarker' && data) {
-      const endTag = findEndTag(text, 'biomarker_end', tagEnd);
-      const content = text.slice(tagEnd, endTag.start).trim();
+      const endPos = findEndTagPos(text, 'biomarker_end', tagEnd);
+      const content = text.slice(tagEnd, endPos.start).trim();
       blocks.push({ type: 'biomarker', code: data, content });
-      lastIndex = endTag.end;
-      i = skipToMatchIndex(matches, endTag.matchIdx, i);
+      lastIndex = endPos.end;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');
       if (SECTION_NAMES.has(baseName)) {
-        const endTagName = `${baseName}_end`;
-        const endTag = findEndTag(text, endTagName, tagEnd);
-        const content = text.slice(tagEnd, endTag.start).trim();
+        const endPos = findEndTagPos(text, `${baseName}_end`, tagEnd);
+        const content = text.slice(tagEnd, endPos.start).trim();
         if (content) blocks.push({ type: 'section', name: baseName, content });
-        lastIndex = endTag.end;
-        i = skipToMatchIndex(matches, endTag.matchIdx, i);
+        lastIndex = endPos.end;
       } else {
         lastIndex = tagEnd;
       }
@@ -107,29 +106,15 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
 
 // ═══ Helpers ═══
 
-interface EndTagResult {
-  start: number;  // position of end tag start in text
-  end: number;    // position after end tag
-  matchIdx: number; // index in matches array, or -1 if not found
-}
-
-function findEndTag(text: string, endTagName: string, afterPos: number): EndTagResult {
+function findEndTagPos(text: string, endTagName: string, afterPos: number): { start: number; end: number } {
   const pattern = new RegExp(`<!--\\s*anchor:${endTagName}\\s*-->`, 'g');
   pattern.lastIndex = afterPos;
   const m = pattern.exec(text);
   if (m) {
-    // Find which match index this corresponds to (approximate)
-    return { start: m.index!, end: m.index! + m[0].length, matchIdx: -1 };
+    return { start: m.index!, end: m.index! + m[0].length };
   }
   // No end tag found — use rest of text
-  return { start: text.length, end: text.length, matchIdx: -1 };
-}
-
-function skipToMatchIndex(matches: RegExpExecArray[], endTagMatchIdx: number, currentI: number): number {
-  // Skip matches array forward past the end tag position
-  // Since we use findEndTag separately, we need to skip any matches that fall within the consumed range
-  // This is handled by lastIndex tracking, so just return currentI
-  return currentI;
+  return { start: text.length, end: text.length };
 }
 
 // ═══ Legacy fallback ═══
