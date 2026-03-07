@@ -12,7 +12,9 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2, Save, Download } from "lucide-react";
+import { RefreshCw, Loader2, Save, Download, Pencil, Eye } from "lucide-react";
+import MDEditor from '@uiw/react-md-editor';
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -246,6 +248,8 @@ export default function ReportVisualsTest() {
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [demoGeneratedAt, setDemoGeneratedAt] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => { loadData(); }, []);
 
@@ -814,6 +818,17 @@ export default function ReportVisualsTest() {
                   )}
                   {generating ? "Генерация..." : "Сгенерировать"}
                 </Button>
+                {generatedContent && (
+                  <Button
+                    variant={isEditing ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="gap-2"
+                  >
+                    {isEditing ? <Eye className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+                    {isEditing ? "Превью" : "Редактировать"}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -828,19 +843,30 @@ export default function ReportVisualsTest() {
             <p className="text-xs text-muted-foreground">
               Тестовая категория: <strong>{categories[0] || "—"}</strong> · Используется демо-промпт из вкладки «Демо-промпт»
             </p>
-            <Card>
-              <CardContent className="p-6">
-                {generatedContent ? (
-                  renderInterleavedReport(categories[0] || "", generatedContent)
-                ) : recommendations[categories[0]] ? (
-                  renderInterleavedReport(categories[0] || "")
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    Нажмите кнопку «Сгенерировать», чтобы протестировать демо-промпт
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {isEditing && generatedContent ? (
+              <div data-color-mode={theme === 'dark' ? 'dark' : 'light'}>
+                <MDEditor
+                  value={generatedContent}
+                  onChange={(val) => setGeneratedContent(val || "")}
+                  height={600}
+                  preview="live"
+                />
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  {generatedContent ? (
+                    renderInterleavedReport(categories[0] || "", generatedContent)
+                  ) : recommendations[categories[0]] ? (
+                    renderInterleavedReport(categories[0] || "")
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      Нажмите кнопку «Сгенерировать», чтобы протестировать демо-промпт
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </section>
 
           <Separator className="my-6" />
