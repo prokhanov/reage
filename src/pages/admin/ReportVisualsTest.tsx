@@ -4,8 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { supabase } from "@/integrations/supabase/client";
-import { getBiomarkerStatus, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge } from "@/lib/biomarkerNorms";
+import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
+import {
+  PdfBiomarkerData,
+  STATUS_HEX,
+  buildRangeBarCanvas,
+  parseMarkdownToPdfContent,
+  buildInterleavedPdfSection,
+  splitTextByBiomarkers,
+  PDF_STYLES,
+} from "@/lib/pdfExportHelpers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
