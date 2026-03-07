@@ -245,6 +245,9 @@ export default function ReportVisualsTest() {
   const [systemPrompt, setSystemPrompt] = useState(DEMO_SYSTEM_PROMPT);
   const [userPrompt, setUserPrompt] = useState(DEMO_USER_PROMPT);
 
+  // Editable biomarkers text override
+  const [biomarkersOverride, setBiomarkersOverride] = useState<string | null>(null);
+
   // Generated content for demo category
   const [generatedContent, setGeneratedContent] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -416,13 +419,15 @@ export default function ReportVisualsTest() {
     const exampleCategory = categories[0] || "Энергия и восстановление";
     const catBio = biomarkers.filter(b => b.category === exampleCategory);
     
-    const biomarkersText = catBio.map(b => {
+    const defaultBiomarkersText = catBio.map(b => {
       const statusEmoji = b.status === 'optimal' ? '🟢 ОПТИМАЛЬНО' 
         : b.status === 'acceptable' ? '🟡 ДОПУСТИМО' 
         : b.status === 'risk' ? '🟠 РИСК' 
         : '🔴 КРИТИЧНО';
       return `${b.name} (${b.code}):\n  Значение: ${b.value} ${b.unit}\n  🟢 Оптимально: ${b.rangeDisplay} ${b.unit}\n  Статус: ${statusEmoji}`;
     }).join("\n\n");
+
+    const biomarkersText = biomarkersOverride !== null ? biomarkersOverride : defaultBiomarkersText;
 
     const userContextText = `ДАННЫЕ ПАЦИЕНТА:\nИмя: Сергей Чагин\nВозраст: 26 лет\nПол: male\nРост: 183 см\nВес: 76 кг\nBMI: 22.7 (норма)\n\nМЕДИЦИНСКИЙ АНАМНЕЗ:\nНе указан\n\nТЕКУЩИЕ ЖАЛОБЫ И СИМПТОМЫ:\nНе указаны`;
 
@@ -936,6 +941,8 @@ export default function ReportVisualsTest() {
             setSystemPrompt={setSystemPrompt}
             userPrompt={userPrompt}
             setUserPrompt={setUserPrompt}
+            biomarkersOverride={biomarkersOverride}
+            setBiomarkersOverride={setBiomarkersOverride}
           />
         </TabsContent>
       </Tabs>
@@ -1003,9 +1010,11 @@ interface PromptDemoTabProps {
   setSystemPrompt: (v: string) => void;
   userPrompt: string;
   setUserPrompt: (v: string) => void;
+  biomarkersOverride: string | null;
+  setBiomarkersOverride: (v: string | null) => void;
 }
 
-function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, userPrompt, setUserPrompt }: PromptDemoTabProps) {
+function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, userPrompt, setUserPrompt, biomarkersOverride, setBiomarkersOverride }: PromptDemoTabProps) {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -1145,10 +1154,19 @@ BMI: 22.7 (норма)
           </div>
           <Separator />
           <div>
-            <Label className="text-xs text-muted-foreground mb-1 block">{"{biomarkers}"} — {catBiomarkers.length} маркеров, формат как в боевой функции (7-сегментные нормы + 4-tier статус)</Label>
-            <pre className="bg-muted/50 rounded-md p-3 text-xs font-mono whitespace-pre-wrap max-h-[300px] overflow-auto">
-              {biomarkersPreview || "Нет данных для этой категории"}
-            </pre>
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-xs text-muted-foreground">{"{biomarkers}"} — {catBiomarkers.length} маркеров, формат как в боевой функции (7-сегментные нормы + 4-tier статус)</Label>
+              {biomarkersOverride !== null && (
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setBiomarkersOverride(null)}>
+                  Сбросить
+                </Button>
+              )}
+            </div>
+            <Textarea
+              value={biomarkersOverride !== null ? biomarkersOverride : (biomarkersPreview || "Нет данных для этой категории")}
+              onChange={(e) => setBiomarkersOverride(e.target.value)}
+              className="min-h-[300px] font-mono text-xs"
+            />
           </div>
           <Separator />
           <div>
