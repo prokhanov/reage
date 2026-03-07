@@ -537,28 +537,6 @@ export default function ReportVisualsTest() {
         });
       }
 
-      // — Traffic light priorities —
-      pdfContent.push({ text: '', pageBreak: 'after' });
-      pdfContent.push({ text: 'Приоритеты', style: 'sectionHeader', margin: [0, 0, 0, 10] });
-      ([
-        { key: 'critical' as const, label: 'Критично' },
-        { key: 'risk' as const, label: 'Риск' },
-        { key: 'acceptable' as const, label: 'Допустимо' },
-        { key: 'optimal' as const, label: 'Оптимально' },
-      ]).forEach(({ key, label }) => {
-        const items = trafficLight[key];
-        if (items.length === 0) return;
-        pdfContent.push({
-          columns: [
-            { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 5, r2: 5, color: STATUS_HEX[key] }], width: 14, height: 14 },
-            { text: `${label} (${items.length})`, fontSize: 12, bold: true, color: STATUS_HEX[key], width: '*', margin: [0, 0, 0, 0] },
-          ],
-          columnGap: 4,
-          margin: [0, 8, 0, 4],
-        });
-        const itemTexts = items.map(m => `${m.name}  ${m.value} ${m.unit}`).join('  ·  ');
-        pdfContent.push({ text: itemTexts, fontSize: 10, color: '#555', margin: [10, 0, 0, 6] });
-      });
 
       const docDefinition: any = {
         content: pdfContent,
