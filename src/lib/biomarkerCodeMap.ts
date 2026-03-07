@@ -91,4 +91,12 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   INS: "INS",
   IGF1: "IGF-1",
   HOMAIR: "HOMA-IR",
+  CARO: "Caro",
+  ANTITPO: "Anti-TPO",
+  TRAB: "TRAb",
+  MCHC_CODE: "MCHC",
+  RDW: "RDW",
+  MPV_CODE: "MPV",
+  PCTT: "PCT-t",
+  PDW: "PDW",
 };
