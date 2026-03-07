@@ -43,10 +43,6 @@ interface CategoryScore {
 }
 
 // Local PDF helpers removed — now using shared pdfExportHelpers
-    }
-  }
-  return content;
-}
 
 export default function ReportVisualsTest() {
   const [loading, setLoading] = useState(true);
