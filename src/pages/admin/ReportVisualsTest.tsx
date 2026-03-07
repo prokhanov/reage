@@ -361,15 +361,7 @@ export default function ReportVisualsTest() {
 
       const docDefinition: any = {
         content: pdfContent,
-        styles: {
-          title: { fontSize: 20, bold: true },
-          sectionHeader: { fontSize: 15, bold: true, decoration: 'underline' },
-          h1: { fontSize: 14, bold: true },
-          h2: { fontSize: 13, bold: true },
-          h3: { fontSize: 12, bold: true },
-          paragraph: { fontSize: 10, lineHeight: 1.45, alignment: 'justify' },
-          listItem: { fontSize: 10, lineHeight: 1.4 },
-        },
+        styles: PDF_STYLES,
         pageSize: 'A4',
         pageMargins: [40, 50, 40, 50],
         footer: (page: number) => ({ text: page.toString(), alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0] }),
