@@ -8,12 +8,9 @@ import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import {
   PdfBiomarkerData,
-  STATUS_HEX,
-  buildRangeBarCanvas,
-  parseMarkdownToPdfContent,
-  splitTextByBiomarkers,
   PDF_STYLES,
 } from "@/lib/pdfExportHelpers";
+import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -282,79 +279,14 @@ export default function ReportVisualsTest() {
   const handleExportPdf = () => {
     try {
       const pdfContent: any[] = [];
-      const barWidth = 515; // A4 width minus margins
+      const barWidth = 515;
       const barHeight = 10;
 
-      // — Interleaved report (only system analysis) —
       const reportText = generatedContent || recommendations[categories[0]];
       if (reportText && categories[0]) {
         pdfContent.push({ text: `Детальный анализ: ${categories[0]}`, style: 'sectionHeader', margin: [0, 0, 0, 15] });
-
         const catBio = biomarkers.filter(b => b.category === categories[0]);
-        const codes = catBio.map(b => b.code);
-        const chunks = splitTextByBiomarkers(reportText, codes);
-
-        let isFirstTextChunk = true;
-        chunks.forEach(chunk => {
-          if (chunk.type === 'text') {
-            if (isFirstTextChunk) {
-              isFirstTextChunk = false;
-              // Extract only the "Краткое резюме" block for the bordered box
-              const summaryMatch = chunk.content.match(/##\s*Краткое резюме\s*\n([\s\S]*?)(?=\n##|\n🧬|\n🔬|$)/);
-              if (summaryMatch) {
-                const summaryParsed = parseMarkdownToPdfContent(summaryMatch[1].trim());
-                pdfContent.push({
-                  table: { widths: ['*'], body: [[ { stack: summaryParsed, margin: [8, 8, 8, 8] } ]] },
-                  layout: {
-                    hLineWidth: () => 0.8,
-                    vLineWidth: () => 0.8,
-                    hLineColor: () => '#C4B5FD',
-                    vLineColor: () => '#C4B5FD',
-                    fillColor: () => '#F5F3FF',
-                    paddingLeft: () => 4,
-                    paddingRight: () => 4,
-                    paddingTop: () => 4,
-                    paddingBottom: () => 4,
-                  },
-                  margin: [0, 0, 0, 12],
-                });
-                const restContent = chunk.content
-                  .replace(/##\s*Краткое резюме\s*\n[\s\S]*?(?=\n##|\n🧬|\n🔬|$)/, '')
-                  .trim();
-                if (restContent) {
-                  pdfContent.push(...parseMarkdownToPdfContent(restContent));
-                }
-              } else {
-                pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
-              }
-            } else {
-              pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
-            }
-          } else {
-            const bm = chunk.code ? catBio.find(b => b.code === chunk.code) : null;
-            if (bm) {
-              const statusLabel = bm.statusLabel;
-              
-              // Biomarker header with colored dot instead of emoji
-              pdfContent.push({
-                columns: [
-                  { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 4, r2: 4, color: STATUS_HEX[bm.status] || '#888' }], width: 14, height: 14 },
-                  { text: [{ text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], width: '*', margin: [0, 1, 0, 0] },
-                  { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 1, 0, 0] },
-                ],
-                columnGap: 4,
-                margin: [0, 10, 0, 3],
-              });
-              // Range bar canvas
-              const bar = buildRangeBarCanvas(bm, barWidth, barHeight, 26, 'male');
-              if (bar) pdfContent.push(bar);
-            }
-            // Biomarker description text
-            if (chunk.content) {
-              pdfContent.push(...parseMarkdownToPdfContent(chunk.content));
-            }
-          }
-        });
+        pdfContent.push(...buildInterleavedPdf(reportText, catBio, barWidth, barHeight, 26, 'male'));
       }
 
 
@@ -375,83 +307,11 @@ export default function ReportVisualsTest() {
     }
   };
 
-  // Render interleaved text + biomarker bars
   const renderInterleavedReport = (category: string, overrideText?: string) => {
     const text = overrideText || recommendations[category];
     const catBiomarkers = biomarkers.filter((b) => b.category === category);
     if (!text) return null;
-
-    const codes = catBiomarkers.map((b) => b.code);
-    const chunks = splitTextByBiomarkers(text, codes);
-
-    return (
-      <div className="space-y-12">
-        {chunks.map((chunk, idx) => {
-          if (chunk.type === "text") {
-            // Extract "Краткое резюме" block if present in first chunk
-            if (idx === 0) {
-              const summaryMatch = chunk.content.match(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n([\s\S]*?)(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/);
-              if (summaryMatch) {
-                const summaryContent = summaryMatch[1].trim();
-                const restContent = chunk.content
-                  .replace(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n[\s\S]*?(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/, '')
-                  .trim();
-                return (
-                  <div key={idx}>
-                    <div className="rounded-xl border border-primary/15 bg-primary/5 p-5 mb-6">
-                      <MarkdownContent content={summaryContent} />
-                    </div>
-                    {restContent && <MarkdownContent content={restContent} />}
-                  </div>
-                );
-              }
-            }
-            return (
-              <div key={idx}>
-                <MarkdownContent content={chunk.content} />
-              </div>
-            );
-          }
-
-          // Biomarker section: render bar + text
-          const bm = chunk.code ? catBiomarkers.find((b) => b.code === chunk.code) : null;
-          return (
-            <div key={idx} className="space-y-3">
-              {/* Visual bar card */}
-              {bm && (
-                <div className={`rounded-lg border p-3 ${statusBgMap[bm.status]}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span>{statusEmojiMap[bm.status]}</span>
-                      <span className="font-semibold text-sm text-foreground">{bm.name}</span>
-                      <span className="text-xs text-muted-foreground">({bm.code})</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold text-sm ${statusColorMap[bm.status]}`}>
-                        {bm.value} {bm.unit}
-                      </span>
-                      <Badge variant="outline" className={`text-xs ${statusColorMap[bm.status]}`}>
-                        {bm.statusLabel}
-                      </Badge>
-                    </div>
-                  </div>
-                  <BiomarkerRangeBar
-                    biomarker={bm.biomarker}
-                    value={bm.value}
-                    age={26}
-                    gender="male"
-                    showLabels
-                  />
-                </div>
-              )}
-
-              {/* Text for this biomarker (without the header since the card shows it) */}
-              <MarkdownContent content={chunk.content} />
-            </div>
-          );
-        })}
-      </div>
-    );
+    return renderInterleavedWeb(text, catBiomarkers, 26, 'male');
   };
 
   return (
