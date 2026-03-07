@@ -143,12 +143,23 @@ export function parseMarkdownToPdfContent(markdown: string): any[] {
   const cleaned = cleanMarkdownArtifacts(markdown);
   const lines = cleaned.split('\n');
 
+  // Track blank lines for paragraph separation
+  let prevWasBlank = false;
+
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) { content.push({ text: ' ', margin: [0, 0, 0, 0], fontSize: 1 }); continue; }
-    if (trimmed === '&nbsp;' || trimmed === '\u00A0') { content.push({ text: ' ', margin: [0, 3, 0, 3] }); continue; }
-    if (trimmed.match(/^[-*_]{3,}$/) || trimmed.match(/^[\*\-_](\s+[\*\-_]){2,}$/)) { content.push({ text: ' ', margin: [0, 4, 0, 4] }); continue; }
+    if (!trimmed) {
+      prevWasBlank = true;
+      content.push({ text: ' ', margin: [0, 0, 0, 0], fontSize: 1 });
+      continue;
+    }
+    if (trimmed === '&nbsp;' || trimmed === '\u00A0') { prevWasBlank = true; content.push({ text: ' ', margin: [0, 3, 0, 3] }); continue; }
+    if (trimmed.match(/^[-*_]{3,}$/) || trimmed.match(/^[\*\-_](\s+[\*\-_]){2,}$/)) { prevWasBlank = true; content.push({ text: ' ', margin: [0, 4, 0, 4] }); continue; }
     if (trimmed.match(/^[*•]+\s*$/)) continue;
+
+    // Extra top margin if preceded by a blank line (paragraph break)
+    const paraBreakMargin = prevWasBlank ? 6 : 0;
+    prevWasBlank = false;
 
     // List-style subheadings (* **Name**: or - **Name**:)
     if (trimmed.match(/^[*\-]\s+\*\*.+\*\*:?\s*$/)) {
@@ -181,7 +192,7 @@ export function parseMarkdownToPdfContent(markdown: string): any[] {
         }
       }
     } else {
-      content.push({ text: parseInlineMarkdownPdf(cleanMarkdownEscapes(trimmed)), style: 'paragraph', margin: [0, 0, 0, 4] });
+      content.push({ text: parseInlineMarkdownPdf(cleanMarkdownEscapes(trimmed)), style: 'paragraph', margin: [0, paraBreakMargin, 0, 4] });
     }
   }
   return content;
@@ -193,7 +204,13 @@ export function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): {
   if (!text || biomarkerCodes.length === 0) return [{ type: "text", content: text }];
 
   const codePattern = biomarkerCodes.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-  const regex = new RegExp(`(?:^[ \\t]*[-*•]\\s+)?(\\*\\*[^*]+\\((?:${codePattern})\\)\\*\\*:?)`, 'gm');
+  // Match biomarker headers in multiple formats:
+  // 1. **Name (CODE)** or **Name (CODE)**:  (bold)
+  // 2. ## Name (CODE) or ### Name (CODE)  (markdown headers)
+  // 3. Optional leading list markers (- * •)
+  const boldPattern = `(?:^[ \\t]*[-*•]\\s+)?\\*\\*[^*]+\\((?:${codePattern})\\)\\*\\*:?`;
+  const headerPattern = `^#{2,4}\\s+[^\\n]*\\((?:${codePattern})\\)`;
+  const regex = new RegExp(`(${boldPattern}|${headerPattern})`, 'gm');
 
   const parts: { type: "text" | "biomarker"; content: string; code?: string }[] = [];
   let lastIndex = 0;
@@ -209,7 +226,7 @@ export function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): {
     }
     const nextMatch = matches[idx + 1];
     const sectionEnd = nextMatch ? nextMatch.index! : text.length;
-    const codeMatch = match[1].match(/\(([A-Za-z0-9\-\/+]+)\)/);
+    const codeMatch = match[0].match(/\(([A-Za-z0-9\-\/+_.]+)\)/);
     const code = codeMatch ? codeMatch[1] : undefined;
     const headerEnd = matchStart + match[0].length;
     const contentAfterHeader = text.slice(headerEnd, sectionEnd).trim();
