@@ -345,7 +345,7 @@ export default function Recommendations() {
         type !== "Общее резюме" && type !== "Данные пациента"
       );
 
-      // Загружаем назначения для PDF
+      // Load prescriptions
       let prescriptions: Prescription[] = [];
       if (selectedReport.analysisId) {
         const { data } = await supabase
@@ -359,6 +359,54 @@ export default function Recommendations() {
           : (data || []).filter(p => p.status === "confirmed");
       }
 
+      // Load biomarker data for range bars
+      let pdfBiomarkers: PdfBiomarkerData[] = [];
+      let patientAge = 40;
+      let patientGender: 'male' | 'female' = 'male';
+
+      if (selectedReport.analysisId) {
+        // Load patient profile for age/gender
+        const userId = await getUserId();
+        if (userId) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("birth_date, gender")
+            .eq("id", userId)
+            .single();
+          if (profile) {
+            patientGender = (profile.gender === 'female') ? 'female' : 'male';
+            const birth = new Date(profile.birth_date);
+            patientAge = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+          }
+        }
+
+        // Load analysis values with biomarker metadata
+        const { data: valuesData } = await supabase
+          .from("analysis_values")
+          .select("value, unit_override, biomarker_id, biomarkers!inner(name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
+          .eq("analysis_id", selectedReport.analysisId);
+
+        if (valuesData) {
+          pdfBiomarkers = valuesData.map((v: any) => {
+            const b = v.biomarkers;
+            const statusInfo = getBiomarkerStatus(v.value, b, patientAge, patientGender);
+            const optMin = patientGender === 'female' ? (b.optimal_min_female ?? b.optimal_min) : (b.optimal_min_male ?? b.optimal_min);
+            const optMax = patientGender === 'female' ? (b.optimal_max_female ?? b.optimal_max) : (b.optimal_max_male ?? b.optimal_max);
+            const normMin = patientGender === 'female' ? (b.normal_min_female ?? b.normal_min) : (b.normal_min_male ?? b.normal_min);
+            const normMax = patientGender === 'female' ? (b.normal_max_female ?? b.normal_max) : (b.normal_max_male ?? b.normal_max);
+            const rangeDisplay = optMin != null && optMax != null
+              ? `${optMin}–${optMax}` : normMin != null && normMax != null
+                ? `${normMin}–${normMax}` : "";
+            return {
+              name: b.name, code: b.code, value: v.value,
+              unit: v.unit_override || b.unit, category: b.category,
+              biomarker: b, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
+            };
+          });
+        }
+      }
+
+      // Build sections
       const sections = [
         ...(patientData ? [{ 
           id: 'patient-data', 
@@ -401,121 +449,55 @@ export default function Recommendations() {
         )
       ];
 
-      // Определяем структуру документа для pdfmake
+      const barWidth = 515; // A4 width minus margins
+      const barHeight = 10;
+
+      // Build PDF content with interleaved biomarker bars for category sections
+      const buildSectionContent = (section: typeof sections[0]): any[] => {
+        // For category sections (not patient-data, summary, prescriptions), use interleaving
+        const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions';
+        if (isCategory && pdfBiomarkers.length > 0) {
+          const catBio = pdfBiomarkers.filter(b => b.category === section.type);
+          if (catBio.length > 0) {
+            return buildInterleavedPdfSection(section.content, catBio, barWidth, barHeight, patientAge, patientGender);
+          }
+        }
+        return parseMarkdownToPdfContent(section.content);
+      };
+
       const docDefinition: any = {
         content: [
-          // Заголовок
-          {
-            text: 'Персональный отчет',
-            style: 'header',
-            alignment: 'center',
-            margin: [0, 0, 0, 10]
-          },
+          { text: 'Персональный отчет', style: 'header', alignment: 'center', margin: [0, 0, 0, 10] },
           {
             text: selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
               ? format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })
               : 'Дата не указана',
-            style: 'date',
-            alignment: 'center',
-            margin: [0, 0, 0, 30]
+            style: 'date', alignment: 'center', margin: [0, 0, 0, 30]
           },
-          
-          // Содержание
-          {
-            text: 'Содержание',
-            style: 'tocHeader',
-            margin: [0, 0, 0, 15]
-          },
+          { text: 'Содержание', style: 'tocHeader', margin: [0, 0, 0, 15] },
           ...sections.map((section, idx) => ({
             text: `${idx + 1}. ${section.label}`,
-            style: 'tocItem',
-            margin: [0, 0, 0, 8]
+            style: 'tocItem', margin: [0, 0, 0, 8]
           })),
-          
-          // Разрыв страницы после содержания
           { text: '', pageBreak: 'after' },
-          
-          // Секции с контентом
           ...sections.flatMap((section, idx) => [
             ...(idx > 0 ? [{ text: '', pageBreak: 'before' }] : []),
-            {
-              text: section.label,
-              style: 'sectionHeader',
-              margin: [0, 0, 0, 15]
-            },
-            ...parseMarkdownToPdfMake(section.content)
+            { text: section.label, style: 'sectionHeader', margin: [0, 0, 0, 15] },
+            ...buildSectionContent(section)
           ])
         ],
-        
-        // Стили
-        styles: {
-          header: {
-            fontSize: 22,
-            bold: true,
-            color: '#000000'
-          },
-          date: {
-            fontSize: 12,
-            color: '#666666'
-          },
-          tocHeader: {
-            fontSize: 16,
-            bold: true,
-            color: '#000000'
-          },
-          tocItem: {
-            fontSize: 11,
-            color: '#000000'
-          },
-          sectionHeader: {
-            fontSize: 16,
-            bold: true,
-            color: '#000000',
-            decoration: 'underline'
-          },
-          h1: {
-            fontSize: 14,
-            bold: true
-          },
-          h2: {
-            fontSize: 13,
-            bold: true
-          },
-          h3: {
-            fontSize: 12,
-            bold: true
-          },
-          paragraph: {
-            fontSize: 10,
-            lineHeight: 1.45,
-            alignment: 'justify'
-          },
-          listItem: {
-            fontSize: 10,
-            lineHeight: 1.4
-          }
-        },
-        
-        // Настройки страницы
+        styles: PDF_STYLES,
         pageSize: 'A4',
-        pageMargins: [40, 60, 40, 60],
-        
-        // Номера страниц
-        footer: function(currentPage: number) {
-          return {
-            text: currentPage.toString(),
-            alignment: 'center',
-            fontSize: 9,
-            margin: [0, 20, 0, 0]
-          };
-        },
-        
-        // Настройки документа
+        pageMargins: [40, 50, 40, 50],
+        footer: (currentPage: number) => ({
+          text: currentPage.toString(),
+          alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0]
+        }),
         info: {
           title: selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
             ? `Отчет ${format(new Date(selectedReport.date), "dd-MM-yyyy")}`
             : 'Отчет',
-          author: 'Health System',
+          author: 'ReAge',
           subject: 'Персональный отчет',
         }
       };
