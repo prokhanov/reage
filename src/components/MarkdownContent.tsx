@@ -29,9 +29,13 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
           h4: ({ children }) => (
             <h4 className="text-base font-semibold mb-2 mt-3 text-foreground">{children}</h4>
           ),
-          p: ({ children }) => (
-            <p className="mb-4 text-foreground leading-relaxed">{children}</p>
-          ),
+          p: ({ children }) => {
+            const text = typeof children === 'string' ? children.trim() : '';
+            if (text === '\u00A0' || text === '') {
+              return <div style={{ height: '1em' }} />;
+            }
+            return <p className="mb-4 text-foreground leading-relaxed">{children}</p>;
+          },
           ul: ({ children }) => (
             <ul className="list-disc list-outside pl-6 mb-4 space-y-2 text-foreground">
               {children}
