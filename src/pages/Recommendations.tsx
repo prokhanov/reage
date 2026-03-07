@@ -459,7 +459,7 @@ export default function Recommendations() {
         if (isCategory && pdfBiomarkers.length > 0) {
           const catBio = pdfBiomarkers.filter(b => b.category === section.type);
           if (catBio.length > 0) {
-            return buildInterleavedPdfSection(section.content, catBio, barWidth, barHeight, patientAge, patientGender);
+            return buildInterleavedPdf(section.content, catBio, barWidth, barHeight, patientAge, patientGender);
           }
         }
         return parseMarkdownToPdfContent(section.content);
