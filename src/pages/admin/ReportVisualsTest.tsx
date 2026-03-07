@@ -845,18 +845,22 @@ export default function ReportVisualsTest() {
               Тестовая категория: <strong>{categories[0] || "—"}</strong> · Используется демо-промпт из вкладки «Демо-промпт»
             </p>
             {isEditing && generatedContent ? (
-              <div data-color-mode={theme === 'dark' ? 'dark' : 'light'}>
-                <MDEditor
-                  value={generatedContent}
-                  onChange={(val) => setGeneratedContent(val || "")}
-                  height={600}
-                  preview="live"
-                  previewOptions={{
-                    source: generatedContent.replace(/\n{3,}/g, (match) => {
+              <div data-color-mode={theme === 'dark' ? 'dark' : 'light'} className="flex gap-4">
+                <div className="flex-1 min-w-0">
+                  <MDEditor
+                    value={generatedContent}
+                    onChange={(val) => setGeneratedContent(val || "")}
+                    height={600}
+                    preview="edit"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 overflow-auto border rounded-md p-6 bg-background" style={{ maxHeight: 600 }}>
+                  <MDEditor.Markdown
+                    source={generatedContent.replace(/\n{3,}/g, (match) => {
                       const extra = match.split('\n').length - 2;
                       return '\n\n' + '\u00A0\n\n'.repeat(Math.max(extra - 1, 1));
-                    }),
-                    components: {
+                    })}
+                    components={{
                       p: ({ children }) => {
                         const text = typeof children === 'string' ? children.trim() : '';
                         if (text === '\u00A0' || text === '') {
@@ -864,12 +868,10 @@ export default function ReportVisualsTest() {
                         }
                         return <p>{children}</p>;
                       }
-                    }
-                  }}
-                />
+                    }}
+                  />
+                </div>
               </div>
-            ) : (
-              <Card>
                 <CardContent className="p-6">
                   {generatedContent ? (
                     renderInterleavedReport(categories[0] || "", generatedContent)
