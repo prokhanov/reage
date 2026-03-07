@@ -872,6 +872,8 @@ export default function ReportVisualsTest() {
                   />
                 </div>
               </div>
+            ) : (
+              <Card>
                 <CardContent className="p-6">
                   {generatedContent ? (
                     renderInterleavedReport(categories[0] || "", generatedContent)
