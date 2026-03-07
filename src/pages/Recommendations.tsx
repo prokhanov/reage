@@ -468,16 +468,14 @@ export default function Recommendations() {
             !/[.!?:;,]$/.test(listText.trim());
           
           if (isSubheading) {
-            // Рендерим как заголовок без номера
             const parsedText = parseInlineMarkdown(listText);
-            content.push({ text: parsedText, style: 'h3', margin: [0, 10, 0, 5] });
+            content.push({ text: parsedText, style: 'h3', margin: [0, 8, 0, 2] });
           } else {
-            // Обычный пункт списка
             const parsedText = parseInlineMarkdown(listText);
             content.push({ 
               text: [{ text: `${number}. ` }, ...parsedText],
               style: 'listItem', 
-              margin: [20, 0, 0, 5] 
+              margin: [20, 0, 0, 2] 
             });
           }
         }
@@ -489,7 +487,7 @@ export default function Recommendations() {
         content.push({ 
           text: parsedText, 
           style: 'paragraph', 
-          margin: [0, 0, 0, 10] 
+          margin: [0, 0, 0, 4] 
         });
       }
     }
@@ -649,13 +647,13 @@ export default function Recommendations() {
             bold: true
           },
           paragraph: {
-            fontSize: 11,
-            lineHeight: 1.5,
+            fontSize: 10,
+            lineHeight: 1.45,
             alignment: 'justify'
           },
           listItem: {
-            fontSize: 11,
-            lineHeight: 1.5
+            fontSize: 10,
+            lineHeight: 1.4
           }
         },
         

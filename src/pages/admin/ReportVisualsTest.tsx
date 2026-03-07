@@ -210,24 +210,24 @@ function parseMarkdownToPdfContent(markdown: string): any[] {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) { content.push({ text: ' ', margin: [0, 1, 0, 0] }); continue; }
-    if (trimmed === '&nbsp;' || trimmed === '\u00A0') { content.push({ text: ' ', margin: [0, 8, 0, 8] }); continue; }
-    if (trimmed.match(/^[-*_]{3,}$/)) { content.push({ text: ' ', margin: [0, 6, 0, 6] }); continue; }
+    if (!trimmed) { content.push({ text: ' ', margin: [0, 0, 0, 0], fontSize: 1 }); continue; }
+    if (trimmed === '&nbsp;' || trimmed === '\u00A0') { content.push({ text: ' ', margin: [0, 3, 0, 3] }); continue; }
+    if (trimmed.match(/^[-*_]{3,}$/)) { content.push({ text: ' ', margin: [0, 4, 0, 4] }); continue; }
     if (trimmed.match(/^[*•]+\s*$/)) continue;
 
     if (trimmed.startsWith('### ')) {
-      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('### ', '')), style: 'h3', margin: [0, 6, 0, 3] });
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('### ', '')), style: 'h3', margin: [0, 8, 0, 2] });
     } else if (trimmed.startsWith('## ')) {
-      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('## ', '')), style: 'h2', margin: [0, 10, 0, 5] });
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('## ', '')), style: 'h2', margin: [0, 10, 0, 3] });
     } else if (trimmed.startsWith('# ')) {
-      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('# ', '')), style: 'h1', margin: [0, 12, 0, 6] });
+      content.push({ text: parseInlineMarkdownPdf(trimmed.replace('# ', '')), style: 'h1', margin: [0, 12, 0, 4] });
     } else if (trimmed.match(/^[-*]\s+\S/)) {
-      content.push({ text: [{ text: '• ' }, ...parseInlineMarkdownPdf(trimmed.replace(/^[-*]\s+/, ''))], style: 'listItem', margin: [15, 0, 0, 4] });
+      content.push({ text: [{ text: '• ' }, ...parseInlineMarkdownPdf(trimmed.replace(/^[-*]\s+/, ''))], style: 'listItem', margin: [15, 0, 0, 2] });
     } else if (trimmed.match(/^\d+\\?\.\s+/)) {
       const m = trimmed.match(/^(\d+)\\?\.\s+(.*)$/);
-      if (m) content.push({ text: [{ text: `${m[1]}. ` }, ...parseInlineMarkdownPdf(m[2])], style: 'listItem', margin: [15, 0, 0, 4] });
+      if (m) content.push({ text: [{ text: `${m[1]}. ` }, ...parseInlineMarkdownPdf(m[2])], style: 'listItem', margin: [15, 0, 0, 2] });
     } else {
-      content.push({ text: parseInlineMarkdownPdf(trimmed), style: 'paragraph', margin: [0, 0, 0, 3] });
+      content.push({ text: parseInlineMarkdownPdf(trimmed), style: 'paragraph', margin: [0, 0, 0, 4] });
     }
   }
   return content;
@@ -551,8 +551,8 @@ export default function ReportVisualsTest() {
           h1: { fontSize: 14, bold: true },
           h2: { fontSize: 13, bold: true },
           h3: { fontSize: 12, bold: true },
-          paragraph: { fontSize: 10.5, lineHeight: 1.5, alignment: 'justify' },
-          listItem: { fontSize: 10.5, lineHeight: 1.4 },
+          paragraph: { fontSize: 10, lineHeight: 1.45, alignment: 'justify' },
+          listItem: { fontSize: 10, lineHeight: 1.4 },
         },
         pageSize: 'A4',
         pageMargins: [40, 50, 40, 50],
