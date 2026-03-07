@@ -93,9 +93,11 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   HOMAIR: "HOMA-IR",
   CARO: "Caro",
   ANTITPO: "Anti-TPO",
+  ANTITG: "Anti-TG",
   TRAB: "TRAb",
   MCHC_CODE: "MCHC",
   RDW: "RDW",
+  RDWSD: "RDW-SD",
   MPV_CODE: "MPV",
   PCTT: "PCT-t",
   PDW: "PDW",
@@ -117,6 +119,7 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   
   // Маркеры мочи
   PHU: "pH-U",
+  SGU: "SG",
   PROU: "PRO-U",
   GLUU: "GLU-U",
   KETU: "KET-U",
@@ -126,4 +129,11 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   NITU: "NIT-U",
   LEUU: "LEU-U",
   RBCU: "RBC-U",
+
+  // Абсолютные значения лейкоцитарной формулы
+  NEUTABS: "NEUT-ABS",
+  LYMPHABS: "LYMPH-ABS",
+  MONOABS: "MONO-ABS",
+  EOSABS: "EOS-ABS",
+  BASOABS: "BASO-ABS",
 };
