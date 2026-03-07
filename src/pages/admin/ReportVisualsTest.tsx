@@ -852,6 +852,10 @@ export default function ReportVisualsTest() {
                   height={600}
                   preview="live"
                   previewOptions={{
+                    source: generatedContent.replace(/\n{3,}/g, (match) => {
+                      const extra = match.split('\n').length - 2;
+                      return '\n\n' + '\u00A0\n\n'.repeat(Math.max(extra - 1, 1));
+                    }),
                     components: {
                       p: ({ children }) => {
                         const text = typeof children === 'string' ? children.trim() : '';
