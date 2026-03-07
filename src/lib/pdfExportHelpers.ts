@@ -261,8 +261,8 @@ export function buildInterleavedPdfSection(
     if (chunk.type === 'text') {
       if (isFirstTextChunk) {
         isFirstTextChunk = false;
-        // Extract "Краткое резюме" block for bordered box
-        const summaryMatch = chunk.content.match(/##\s*Краткое резюме\s*\n([\s\S]*?)(?=\n##|\n🧬|\n🔬|$)/);
+        // Match summary block with ## or ### or **Краткое резюме** (bold)
+        const summaryMatch = chunk.content.match(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n([\s\S]*?)(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/);
         if (summaryMatch) {
           const summaryParsed = parseMarkdownToPdfContent(summaryMatch[1].trim());
           pdfContent.push({
