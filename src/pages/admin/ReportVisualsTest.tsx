@@ -390,11 +390,11 @@ export default function ReportVisualsTest() {
           if (chunk.type === "text") {
             // Extract "Краткое резюме" block if present in first chunk
             if (idx === 0) {
-              const summaryMatch = chunk.content.match(/##\s*Краткое резюме\s*\n([\s\S]*?)(?=\n##|\n🧬|\n🔬|$)/);
+              const summaryMatch = chunk.content.match(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n([\s\S]*?)(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/);
               if (summaryMatch) {
                 const summaryContent = summaryMatch[1].trim();
                 const restContent = chunk.content
-                  .replace(/##\s*Краткое резюме\s*\n[\s\S]*?(?=\n##|\n🧬|\n🔬|$)/, '')
+                  .replace(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n[\s\S]*?(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/, '')
                   .trim();
                 return (
                   <div key={idx}>

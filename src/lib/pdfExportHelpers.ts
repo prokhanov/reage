@@ -281,7 +281,7 @@ export function buildInterleavedPdfSection(
             margin: [0, 0, 0, 12],
           });
           const restContent = chunk.content
-            .replace(/##\s*Краткое резюме\s*\n[\s\S]*?(?=\n##|\n🧬|\n🔬|$)/, '')
+            .replace(/(?:#{2,4}\s*Краткое резюме|\*\*Краткое резюме\*\*)\s*:?\s*\n[\s\S]*?(?=\n#{2,4}\s|\n🧬|\n🔬|\n\*\*[А-ЯЁA-Z]|$)/, '')
             .trim();
           if (restContent) pdfContent.push(...parseMarkdownToPdfContent(restContent));
         } else {
