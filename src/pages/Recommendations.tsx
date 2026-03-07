@@ -28,11 +28,10 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import {
   PdfBiomarkerData,
-  buildInterleavedPdfSection,
   parseMarkdownToPdfContent,
   PDF_STYLES,
 } from "@/lib/pdfExportHelpers";
-import { renderInterleavedWeb } from "@/lib/anchorRenderer";
+import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 
 interface Recommendation {
   id: string;
