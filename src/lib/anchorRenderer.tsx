@@ -61,31 +61,31 @@ export function renderInterleavedWeb(
             return (
               <div key={idx} className="space-y-3">
                 {bm && (
-                  <div className="relative rounded-lg overflow-hidden h-7">
-                    {/* Full-width range bar as background */}
-                    <div className="absolute inset-0">
-                      <BiomarkerRangeBar
-                        biomarker={bm.biomarker}
-                        value={bm.value}
-                        age={age}
-                        gender={gender}
-                        fillHeight
-                      />
+                  <div className="rounded-xl border border-border/40 bg-card/50 shadow-sm p-3 space-y-2">
+                    {/* Row 1: value + name + status */}
+                    <div className="flex items-baseline justify-between">
+                      <div className="flex items-baseline gap-2">
+                        <span className={`text-lg font-bold tracking-tight ${statusColorMap[bm.status]}`}>
+                          {bm.value}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{bm.unit}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-muted-foreground">●</span>
+                        <span className={`text-xs font-medium ${statusColorMap[bm.status]}`}>{bm.statusLabel}</span>
+                      </div>
                     </div>
-                    {/* Text overlay */}
-                    <div className="relative z-10 flex items-center justify-between h-full px-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-xs text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{bm.name}</span>
-                        <span className="text-[10px] text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">({bm.code})</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-xs text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
-                          {bm.value} {bm.unit}
-                        </span>
-                        <span className="text-[10px] text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
-                          {bm.statusLabel}
-                        </span>
-                      </div>
+                    {/* Row 2: range bar */}
+                    <BiomarkerRangeBar
+                      biomarker={bm.biomarker}
+                      value={bm.value}
+                      age={age}
+                      gender={gender}
+                    />
+                    {/* Row 3: name */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-foreground/70">{bm.name}</span>
+                      <span className="text-[10px] text-muted-foreground">({bm.code})</span>
                     </div>
                   </div>
                 )}
