@@ -164,6 +164,8 @@ export function buildInterleavedPdf(
 
       case 'biomarker': {
         const bm = biomarkers.find(b => b.code === block.code);
+        const cardStack: any[] = [];
+
         if (bm) {
           const tallBarHeight = 20;
           const bar = buildRangeBarCanvas(bm, barWidth, tallBarHeight, age, gender);
@@ -180,13 +182,31 @@ export function buildInterleavedPdf(
                 relativePosition: { x: 0, y: -(tallBarHeight + 2) + 3 },
               },
             ],
-            margin: [0, 6, 0, 2],
+            margin: [0, 0, 0, 4],
           };
-          pdfContent.push(barWithOverlay);
+          cardStack.push(barWithOverlay);
         }
         if (block.content) {
-          pdfContent.push(...parseMarkdownToPdfContent(block.content));
+          cardStack.push(...parseMarkdownToPdfContent(block.content));
         }
+
+        // Wrap in a bordered card
+        const borderColor = bm ? (STATUS_HEX[bm.status] || '#D1D5DB') : '#D1D5DB';
+        pdfContent.push({
+          table: { widths: ['*'], body: [[{ stack: cardStack, margin: [6, 6, 6, 6] }]] },
+          layout: {
+            hLineWidth: () => 0.6,
+            vLineWidth: () => 0.6,
+            hLineColor: () => borderColor,
+            vLineColor: () => borderColor,
+            fillColor: () => '#FAFAFA',
+            paddingLeft: () => 4,
+            paddingRight: () => 4,
+            paddingTop: () => 4,
+            paddingBottom: () => 4,
+          },
+          margin: [0, 6, 0, 6],
+        });
         break;
       }
 
