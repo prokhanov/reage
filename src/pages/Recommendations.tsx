@@ -788,7 +788,7 @@ export default function Recommendations() {
                               </div>
                               {recs.map((rec) => (
                                 <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                  {renderInterleavedWeb(cleanMarkdownArtifacts(rec.text), [], 40, 'male')}
+                                  {renderInterleavedWeb(cleanMarkdownArtifacts(rec.text), webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
                                 </div>
                               ))}
                             </div>
