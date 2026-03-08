@@ -222,6 +222,54 @@ export default function Recommendations() {
     }
     setBiomarkersLoading(true);
     try {
+      // --- Demo mode: build biomarkers from demoData + DB metadata ---
+      if (demoMode && demoData && analysisId.startsWith('demo-analysis-')) {
+        const analysisIndex = parseInt(analysisId.split('-')[2]) || 0;
+        const age = demoData.profile?.chronological_age || 40;
+        const gender: 'male' | 'female' = demoData.profile?.gender === 'female' ? 'female' : 'male';
+        setPatientAge(age);
+        setPatientGender(gender);
+
+        // Filter demo biomarkers for this analysis and map codes
+        const analysisBiomarkers = demoData.biomarkers
+          .filter((b: any) => (b.analysis_index || 0) === analysisIndex)
+          .map((b: any) => ({ ...b, code: DEMO_TO_DB_CODE[b.code] || b.code }));
+
+        const uniqueCodes = [...new Set(analysisBiomarkers.map((b: any) => b.code))];
+
+        const { data: biomarkersMetadata } = await supabase
+          .from('biomarkers')
+          .select('*')
+          .in('code', uniqueCodes);
+
+        const metadataMap = new Map((biomarkersMetadata || []).map((b: any) => [b.code, b]));
+
+        const biomarkers = analysisBiomarkers
+          .map((b: any) => {
+            const meta = metadataMap.get(b.code);
+            if (!meta) return null;
+            const statusInfo = getBiomarkerStatus(b.value, meta, age, gender);
+            const optMin = gender === 'female' ? (meta.optimal_min_female ?? meta.optimal_min) : (meta.optimal_min_male ?? meta.optimal_min);
+            const optMax = gender === 'female' ? (meta.optimal_max_female ?? meta.optimal_max) : (meta.optimal_max_male ?? meta.optimal_max);
+            const normMin = gender === 'female' ? (meta.normal_min_female ?? meta.normal_min) : (meta.normal_min_male ?? meta.normal_min);
+            const normMax = gender === 'female' ? (meta.normal_max_female ?? meta.normal_max) : (meta.normal_max_male ?? meta.normal_max);
+            const rangeDisplay = optMin != null && optMax != null
+              ? `${optMin}–${optMax}` : normMin != null && normMax != null
+                ? `${normMin}–${normMax}` : "";
+            return {
+              name: meta.name, code: meta.code, value: b.value,
+              unit: b.unit || meta.unit, category: meta.category,
+              biomarker: meta, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
+            };
+          })
+          .filter(Boolean) as PdfBiomarkerData[];
+
+        setWebBiomarkers(biomarkers);
+        setBiomarkersLoading(false);
+        return;
+      }
+
+      // --- Production mode: load from DB ---
       let age = 40;
       let gender: 'male' | 'female' = 'male';
 
