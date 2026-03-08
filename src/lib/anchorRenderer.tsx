@@ -215,8 +215,6 @@ export function buildInterleavedPdf(
             paddingRight: () => 4,
             paddingTop: () => 4,
             paddingBottom: () => 4,
-            hLineStyle: () => ({ dash: { length: 0 } }),
-            vLineStyle: () => ({ dash: { length: 0 } }),
           },
           margin: [0, 6, 0, 6],
         });
