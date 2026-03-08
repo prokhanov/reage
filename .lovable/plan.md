@@ -1,25 +1,29 @@
 
 
-## Проблема
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-В biomarker-блоке `content` начинается с `• **Название (CODE)** — описание...` или `**Название (CODE)**\nописание...`. Карточка уже показывает название — получается дубль.
+## Что сделано
 
-## Решение
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-В `anchorParser.ts`, строка 94-95: после извлечения `content` для biomarker-блока, strip первую строку/буллет, содержащую код маркера.
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-```typescript
-// После строки 94:
-const content = processedText.slice(tagEnd, endPos.start).trim();
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-// Добавить очистку:
-const cleanedContent = stripLeadingBiomarkerName(content, data);
-blocks.push({ type: 'biomarker', code: data, content: cleanedContent });
-```
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-Новая функция `stripLeadingBiomarkerName(content, code)`:
-- Регекс: `^[\s•\-*]*\*{0,2}[^(\n]*\(CODE\)\*{0,2}\s*[—–\-:]?\s*` — удаляет первую строку вида `• **Аспартатаминотрансфераза (AST)** —` или `**AST**`
-- Если после удаления остался пустой текст — вернуть оригинал (защита)
+**ESR:** optimal_min_male/female → NULL
 
-Одна функция + одна строка замены в `anchorParser.ts`.
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.

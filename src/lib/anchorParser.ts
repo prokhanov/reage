@@ -92,7 +92,7 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
     } else if (tag === 'biomarker' && data) {
       const endPos = findEndTagPos(processedText, 'biomarker_end', tagEnd);
       const content = processedText.slice(tagEnd, endPos.start).trim();
-      blocks.push({ type: 'biomarker', code: data, content });
+      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data) });
       lastIndex = endPos.end;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');
@@ -204,6 +204,14 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[]): string {
 }
 
 // ═══ Helpers ═══
+
+/** Strip leading redundant biomarker name+code from content (e.g. "• **Название (CODE)** — ...") */
+function stripLeadingBiomarkerName(content: string, code: string): string {
+  const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escaped}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
+  const cleaned = content.replace(re, '').trim();
+  return cleaned || content;
+}
 
 function findEndTagPos(text: string, endTagName: string, afterPos: number): { start: number; end: number } {
   const pattern = new RegExp(`<!--\\s*anchor:${endTagName}\\s*-->`, 'g');
