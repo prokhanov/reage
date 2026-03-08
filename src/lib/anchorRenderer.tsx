@@ -61,28 +61,32 @@ export function renderInterleavedWeb(
             return (
               <div key={idx} className="space-y-3">
                 {bm && (
-                  <div className={`rounded-lg border px-3 py-2 ${statusBgMap[bm.status]}`}>
-                    <div className="flex items-center justify-between mb-1">
+                  <div className="relative rounded-lg overflow-hidden h-7">
+                    {/* Full-width range bar as background */}
+                    <div className="absolute inset-0">
+                      <BiomarkerRangeBar
+                        biomarker={bm.biomarker}
+                        value={bm.value}
+                        age={age}
+                        gender={gender}
+                        fillHeight
+                      />
+                    </div>
+                    {/* Text overlay */}
+                    <div className="relative z-10 flex items-center justify-between h-full px-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs">{statusEmojiMap[bm.status]}</span>
-                        <span className="font-semibold text-xs text-foreground">{bm.name}</span>
-                        <span className="text-[10px] text-muted-foreground">({bm.code})</span>
+                        <span className="font-semibold text-xs text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">{bm.name}</span>
+                        <span className="text-[10px] text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">({bm.code})</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className={`font-bold text-xs ${statusColorMap[bm.status]}`}>
+                        <span className="font-bold text-xs text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
                           {bm.value} {bm.unit}
                         </span>
-                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${statusColorMap[bm.status]}`}>
+                        <span className="text-[10px] text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
                           {bm.statusLabel}
-                        </Badge>
+                        </span>
                       </div>
                     </div>
-                    <BiomarkerRangeBar
-                      biomarker={bm.biomarker}
-                      value={bm.value}
-                      age={age}
-                      gender={gender}
-                    />
                   </div>
                 )}
                 {block.content && <MarkdownContent content={block.content} />}
