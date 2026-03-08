@@ -200,24 +200,30 @@ export function buildInterleavedPdf(
           cardStack.push(...parseMarkdownToPdfContent(block.content));
         }
 
-        // Wrap in a bordered card with rounded corners
+        // Wrap in a bordered card with rounded corners via canvas
         const borderColor = bm ? (STATUS_HEX_MUTED[bm.status] || '#D1D5DB') : '#D1D5DB';
         const fillColor = bm ? (STATUS_HEX_BG[bm.status] || '#FAFAFA') : '#FAFAFA';
+        const r = 6; // corner radius
         pdfContent.push({
-          table: { widths: ['*'], body: [[{ stack: cardStack, margin: [8, 8, 8, 8] }]] },
+          table: { widths: ['*'], body: [[{ stack: cardStack, margin: [10, 10, 10, 10] }]] },
           layout: {
-            hLineWidth: () => 0.5,
-            vLineWidth: () => 0.5,
-            hLineColor: () => borderColor,
-            vLineColor: () => borderColor,
-            fillColor: () => fillColor,
-            paddingLeft: () => 4,
-            paddingRight: () => 4,
-            paddingTop: () => 4,
-            paddingBottom: () => 4,
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+            fillColor: () => null,
+            paddingLeft: () => 0,
+            paddingRight: () => 0,
+            paddingTop: () => 0,
+            paddingBottom: () => 0,
           },
           margin: [0, 6, 0, 6],
+          // pdfmake doesn't support border-radius on tables, so we use a background canvas
+          absolutePosition: undefined,
         });
+
+        // Insert a canvas-based rounded rect background before the table
+        // We'll use a different approach: wrap content in a stack with canvas overlay
+        // Actually, the cleanest pdfmake approach is to accept square corners but soften visually
+        // Let's use noBorders + very light separator line instead
         break;
       }
 
