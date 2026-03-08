@@ -281,11 +281,20 @@ export default function ReportVisualsTest() {
   };
 
   // ═══ PDF EXPORT ═══
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     try {
+      // Load cover assets
+      const [bgBase64, logoBase64] = await Promise.all([
+        imageToBase64(coverBgUrl),
+        imageToBase64(logoUrl),
+      ]);
+
       const pdfContent: any[] = [];
       const barWidth = 515;
       const barHeight = 10;
+
+      // Cover page (full-bleed, no margins)
+      pdfContent.push(...buildCoverPageContent('Сергей Чагин', analysis.date, totalMarkers, logoBase64));
 
       const reportText = generatedContent || recommendations[categories[0]];
       if (reportText && categories[0]) {
@@ -294,13 +303,13 @@ export default function ReportVisualsTest() {
         pdfContent.push(...buildInterleavedPdf(reportText, catBio, barWidth, barHeight, 26, 'male'));
       }
 
-
       const docDefinition: any = {
         content: pdfContent,
         styles: PDF_STYLES,
         pageSize: 'A4',
-        pageMargins: [40, 50, 40, 50],
-        footer: (page: number) => ({ text: page.toString(), alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0] }),
+        pageMargins: (page: number) => page === 1 ? [0, 0, 0, 0] as any : [40, 50, 40, 50] as any,
+        background: buildCoverBackground(bgBase64),
+        footer: (page: number) => page === 1 ? null : ({ text: (page - 1).toString(), alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0] }),
         info: { title: `Отчёт ${analysis.date}`, author: 'ReAge' },
       };
 
