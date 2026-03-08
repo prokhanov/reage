@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   PdfBiomarkerData,
   STATUS_HEX,
+  STATUS_HEX_MUTED,
+  STATUS_HEX_BG,
   buildRangeBarCanvas,
   parseMarkdownToPdfContent,
 } from "@/lib/pdfExportHelpers";
@@ -167,7 +169,7 @@ export function buildInterleavedPdf(
         const cardStack: any[] = [];
 
         if (bm) {
-          const statusColor = STATUS_HEX[bm.status] || '#6B7280';
+          const statusColor = STATUS_HEX_MUTED[bm.status] || '#9CA3AF';
           const tallBarHeight = 14;
           const bar = buildRangeBarCanvas(bm, barWidth, tallBarHeight, age, gender);
 
@@ -188,7 +190,7 @@ export function buildInterleavedPdf(
           // Row 3: Value + status
           cardStack.push({
             columns: [
-              { text: [{ text: `${bm.value} `, bold: true, fontSize: 11, color: statusColor }, { text: bm.unit, fontSize: 8, color: '#6B7280' }], width: '*' },
+              { text: [{ text: `${bm.value} `, bold: true, fontSize: 11, color: statusColor }, { text: bm.unit, fontSize: 8, color: '#9CA3AF' }], width: '*' },
               { text: [{ text: '● ', fontSize: 8, color: statusColor }, { text: bm.statusLabel, bold: true, fontSize: 9, color: statusColor }], alignment: 'right', width: 'auto' },
             ],
             margin: [0, 0, 0, 0],
@@ -198,20 +200,23 @@ export function buildInterleavedPdf(
           cardStack.push(...parseMarkdownToPdfContent(block.content));
         }
 
-        // Wrap in a bordered card
-        const borderColor = bm ? (STATUS_HEX[bm.status] || '#D1D5DB') : '#D1D5DB';
+        // Wrap in a bordered card with rounded corners
+        const borderColor = bm ? (STATUS_HEX_MUTED[bm.status] || '#D1D5DB') : '#D1D5DB';
+        const fillColor = bm ? (STATUS_HEX_BG[bm.status] || '#FAFAFA') : '#FAFAFA';
         pdfContent.push({
-          table: { widths: ['*'], body: [[{ stack: cardStack, margin: [6, 6, 6, 6] }]] },
+          table: { widths: ['*'], body: [[{ stack: cardStack, margin: [8, 8, 8, 8] }]] },
           layout: {
-            hLineWidth: () => 0.6,
-            vLineWidth: () => 0.6,
+            hLineWidth: () => 0.5,
+            vLineWidth: () => 0.5,
             hLineColor: () => borderColor,
             vLineColor: () => borderColor,
-            fillColor: () => '#FAFAFA',
+            fillColor: () => fillColor,
             paddingLeft: () => 4,
             paddingRight: () => 4,
             paddingTop: () => 4,
             paddingBottom: () => 4,
+            hLineStyle: () => ({ dash: { length: 0 } }),
+            vLineStyle: () => ({ dash: { length: 0 } }),
           },
           margin: [0, 6, 0, 6],
         });
