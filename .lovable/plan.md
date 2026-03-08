@@ -1,48 +1,29 @@
 
 
-## Гибридная обложка PDF в демо-отчёте
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-### Суть
-Добавить градиентную обложку (загруженная картинка) как первую страницу PDF в `ReportVisualsTest.tsx`. Обложка рендерится через **html2canvas** → Base64 PNG → вставляется в **pdfmake** как изображение на полную страницу A4.
+## Что сделано
 
-### Изменения
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-**1. Сохранить картинку градиента**
-- `src/assets/pdf-cover-bg.jpg` — загруженное изображение
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-**2. `src/lib/pdfExportHelpers.ts` — добавить утилиты обложки**
-- `imageToBase64(url: string): Promise<string>` — загружает изображение и возвращает data URI
-- `buildCoverPageContent(patientName, date, logoBase64): any[]` — возвращает массив pdfmake-элементов для обложки (имя, дата, белым текстом, центрировано, `pageBreak: 'after'`)
-- `buildCoverBackground(bgBase64): (page) => any[]` — функция для `background` в docDefinition, на странице 1 рисует фоновое изображение 595×842pt
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-**3. `src/pages/admin/ReportVisualsTest.tsx` — интеграция**
-- Импортировать `html2canvas` НЕ нужен — загрузка картинки через `imageToBase64` напрямую (это статичный JPG, не DOM-рендер)
-- В `handleExportPdf`:
-  1. Загрузить `pdf-cover-bg.jpg` и `reage-logo.png` через `imageToBase64`
-  2. Вставить `buildCoverPageContent(...)` в начало `pdfContent`
-  3. Добавить `background: buildCoverBackground(bgBase64)` в docDefinition
-  4. Убрать `pageMargins` для первой страницы (через `pageMargins` как функцию: стр.1 → [0,0,0,0], остальные → [40,50,40,50])
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-**4. Зависимости**
-- Никаких новых — `imageToBase64` реализуется через `fetch` + `canvas.toDataURL` или `FileReader`
+**ESR:** optimal_min_male/female → NULL
 
-### Структура обложки (белый текст на градиенте)
-```text
-┌─────────────────────────┐
-│                         │
-│     [ReAge logo]        │
-│                         │
-│   Персональный отчёт    │
-│   здоровья и старения   │
-│                         │
-│   Сергей Чагин          │
-│   12.03.2025            │
-│                         │
-│   79 биомаркеров        │
-│                         │
-└─────────────────────────┘
-```
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
-### Объём
-~50 строк в `pdfExportHelpers.ts`, ~15 строк изменений в `ReportVisualsTest.tsx`.
-
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
