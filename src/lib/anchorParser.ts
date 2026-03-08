@@ -27,9 +27,15 @@ const SECTION_NAMES = new Set([
 export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBlock[] {
   if (!text) return [];
 
-  // Detect anchor presence
-  if (!text.includes('<!-- anchor:')) {
-    return [{ type: 'text', content: text }];
+  // If no explicit anchors, auto-inject them from ## Name (CODE) headers
+  let processedText = text;
+  if (!text.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
+    processedText = autoInjectAnchors(text, biomarkerCodes);
+  }
+
+  // If still no anchors after injection, return as single text block
+  if (!processedText.includes('<!-- anchor:')) {
+    return [{ type: 'text', content: processedText }];
   }
 
   const blocks: AnchorBlock[] = [];
