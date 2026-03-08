@@ -71,7 +71,7 @@ export function renderInterleavedWeb(
                         <span className="text-xs text-muted-foreground">{bm.unit}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-muted-foreground">●</span>
+                        <span className={`text-[10px] ${statusColorMap[bm.status]}`}>●</span>
                         <span className={`text-xs font-medium ${statusColorMap[bm.status]}`}>{bm.statusLabel}</span>
                       </div>
                     </div>
