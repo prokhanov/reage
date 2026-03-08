@@ -167,24 +167,32 @@ export function buildInterleavedPdf(
         const cardStack: any[] = [];
 
         if (bm) {
-          const tallBarHeight = 20;
+          const statusColor = STATUS_HEX[bm.status] || '#6B7280';
+          const tallBarHeight = 14;
           const bar = buildRangeBarCanvas(bm, barWidth, tallBarHeight, age, gender);
-          // Full-width bar with text overlaid via relativePosition
-          const barWithOverlay: any = {
-            stack: [
-              bar ? { ...bar, height: tallBarHeight + 2, margin: [0, 0, 0, 0] } : { text: '' },
-              {
-                columns: [
-                  { text: [{ text: bm.name, bold: true, fontSize: 9, color: '#FFFFFF' }, { text: ` (${bm.code})`, fontSize: 7, color: 'rgba(255,255,255,0.8)' }], width: '*' },
-                  { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 9, color: '#FFFFFF' }, { text: bm.statusLabel, fontSize: 7, color: 'rgba(255,255,255,0.85)' }], alignment: 'right', width: 'auto' },
-                ],
-                margin: [6, 0, 6, 0],
-                relativePosition: { x: 0, y: -(tallBarHeight + 2) + 3 },
-              },
+
+          // Row 1: Name (code)
+          cardStack.push({
+            text: [
+              { text: bm.name, bold: true, fontSize: 10, color: '#1F2937' },
+              { text: ` (${bm.code})`, fontSize: 8, color: '#6B7280' },
             ],
             margin: [0, 0, 0, 4],
-          };
-          cardStack.push(barWithOverlay);
+          });
+
+          // Row 2: Range bar (clean, no overlay text)
+          if (bar) {
+            cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
+          }
+
+          // Row 3: Value + status
+          cardStack.push({
+            columns: [
+              { text: [{ text: `${bm.value} `, bold: true, fontSize: 11, color: statusColor }, { text: bm.unit, fontSize: 8, color: '#6B7280' }], width: '*' },
+              { text: [{ text: '● ', fontSize: 8, color: statusColor }, { text: bm.statusLabel, bold: true, fontSize: 9, color: statusColor }], alignment: 'right', width: 'auto' },
+            ],
+            margin: [0, 0, 0, 0],
+          });
         }
         if (block.content) {
           cardStack.push(...parseMarkdownToPdfContent(block.content));
