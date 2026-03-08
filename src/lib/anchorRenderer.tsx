@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   PdfBiomarkerData,
   STATUS_HEX,
+  STATUS_HEX_MUTED,
+  STATUS_HEX_BG,
   buildRangeBarCanvas,
   parseMarkdownToPdfContent,
 } from "@/lib/pdfExportHelpers";
