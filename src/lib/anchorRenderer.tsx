@@ -59,9 +59,9 @@ export function renderInterleavedWeb(
           case 'biomarker': {
             const bm = biomarkers.find(b => b.code === block.code);
             return (
-              <div key={idx} className="space-y-3">
+              <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
-                  <div className="rounded-xl border border-border/40 bg-card/50 shadow-sm p-3 space-y-2">
+                  <div className="space-y-2">
                     {/* Row 1: value + name + status */}
                     <div className="flex items-baseline justify-between">
                       <div className="flex items-baseline gap-2">
@@ -89,7 +89,11 @@ export function renderInterleavedWeb(
                     </div>
                   </div>
                 )}
-                {block.content && <MarkdownContent content={block.content} />}
+                {block.content && (
+                  <div className="pt-1 border-t border-border/20">
+                    <MarkdownContent content={block.content} />
+                  </div>
+                )}
               </div>
             );
           }
