@@ -31,7 +31,12 @@ import {
   PdfBiomarkerData,
   parseMarkdownToPdfContent,
   PDF_STYLES,
+  imageToBase64,
+  buildCoverPageContent,
+  buildCoverBackground,
 } from "@/lib/pdfExportHelpers";
+import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
+import logoLightUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 
 interface Recommendation {
