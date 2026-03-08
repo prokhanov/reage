@@ -426,48 +426,8 @@ export default function Recommendations() {
           : (data || []).filter(p => p.status === "confirmed");
       }
 
-      // Load biomarker data for range bars
-      let pdfBiomarkers: PdfBiomarkerData[] = [];
-      let patientAge = 40;
-      let patientGender: 'male' | 'female' = 'male';
-
-      if (selectedReport.analysisId) {
-        // Load patient profile for age/gender
-        const userId = await getUserId();
-        if (userId) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("birth_date, gender")
-            .eq("id", userId)
-            .single();
-          if (profile) {
-            patientGender = (profile.gender === 'female') ? 'female' : 'male';
-            const birth = new Date(profile.birth_date);
-            patientAge = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
-          }
-        }
-
-        // Load analysis values with biomarker metadata
-        const { data: valuesData } = await supabase
-          .from("analysis_values")
-          .select("value, unit_override, biomarker_id, biomarkers!inner(name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
-          .eq("analysis_id", selectedReport.analysisId);
-
-        if (valuesData) {
-          pdfBiomarkers = valuesData.map((v: any) => {
-            const b = v.biomarkers;
-            const statusInfo = getBiomarkerStatus(v.value, b, patientAge, patientGender);
-            const optMin = patientGender === 'female' ? (b.optimal_min_female ?? b.optimal_min) : (b.optimal_min_male ?? b.optimal_min);
-            const optMax = patientGender === 'female' ? (b.optimal_max_female ?? b.optimal_max) : (b.optimal_max_male ?? b.optimal_max);
-            const normMin = patientGender === 'female' ? (b.normal_min_female ?? b.normal_min) : (b.normal_min_male ?? b.normal_min);
-            const normMax = patientGender === 'female' ? (b.normal_max_female ?? b.normal_max) : (b.normal_max_male ?? b.normal_max);
-            const rangeDisplay = optMin != null && optMax != null
-              ? `${optMin}–${optMax}` : normMin != null && normMax != null
-                ? `${normMin}–${normMax}` : "";
-            return {
-              name: b.name, code: b.code, value: v.value,
-              unit: v.unit_override || b.unit, category: b.category,
-              biomarker: b, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
+      // Reuse already-loaded biomarker data from state
+      const pdfBiomarkers = webBiomarkers;
             };
           });
         }
