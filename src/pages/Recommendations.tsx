@@ -76,6 +76,10 @@ export default function Recommendations() {
   const [selectedReport, setSelectedReport] = useState<RecommendationReport | null>(null);
   const [selectedPrescriptions, setSelectedPrescriptions] = useState<Prescription[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const [webBiomarkers, setWebBiomarkers] = useState<PdfBiomarkerData[]>([]);
+  const [patientAge, setPatientAge] = useState(40);
+  const [patientGender, setPatientGender] = useState<'male' | 'female'>('male');
+  const [biomarkersLoading, setBiomarkersLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
