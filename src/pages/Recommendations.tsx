@@ -428,10 +428,7 @@ export default function Recommendations() {
 
       // Reuse already-loaded biomarker data from state
       const pdfBiomarkers = webBiomarkers;
-            };
-          });
-        }
-      }
+
 
       // Build sections
       const sections = [
