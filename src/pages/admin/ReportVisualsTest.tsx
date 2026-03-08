@@ -307,7 +307,7 @@ export default function ReportVisualsTest() {
         content: pdfContent,
         styles: PDF_STYLES,
         pageSize: 'A4',
-        pageMargins: (page: number) => page === 1 ? [0, 0, 0, 0] as any : [40, 50, 40, 50] as any,
+        pageMargins: [40, 50, 40, 50],
         background: buildCoverBackground(bgBase64),
         footer: (page: number) => page === 1 ? null : ({ text: (page - 1).toString(), alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0] }),
         info: { title: `Отчёт ${analysis.date}`, author: 'ReAge' },
