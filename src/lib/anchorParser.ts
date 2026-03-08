@@ -108,6 +108,45 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
   return blocks;
 }
 
+// ═══ Auto-inject anchors from ## Name (CODE) headers ═══
+
+function autoInjectAnchors(text: string, biomarkerCodes: string[]): string {
+  if (biomarkerCodes.length === 0) return text;
+
+  const codePattern = biomarkerCodes.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  // Match headers like: ## Название (CODE) or ## Название маркера (CODE)
+  const headerRegex = new RegExp(
+    `^(#{2,4})\\s+(.+?)\\s*\\((${codePattern})\\)\\s*$`,
+    'gm'
+  );
+
+  const matches = [...text.matchAll(headerRegex)];
+  if (matches.length === 0) return text;
+
+  // Process in reverse to preserve indices
+  let result = text;
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const match = matches[i];
+    const code = match[3];
+    const headerStart = match.index!;
+    const headerEnd = headerStart + match[0].length;
+
+    // Find where this biomarker section ends (next header of same or higher level, or end)
+    const level = match[1].length; // number of #
+    const nextHeaderRegex = new RegExp(`^#{1,${level}}\\s+`, 'gm');
+    nextHeaderRegex.lastIndex = headerEnd;
+    const nextMatch = nextHeaderRegex.exec(result);
+    const sectionEnd = nextMatch ? nextMatch.index! : result.length;
+
+    // Insert end anchor before next section
+    result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
+    // Insert start anchor before header, removing the header itself (it's now part of the card)
+    result = result.slice(0, headerStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(headerEnd);
+  }
+
+  return result;
+}
+
 // ═══ Helpers ═══
 
 function findEndTagPos(text: string, endTagName: string, afterPos: number): { start: number; end: number } {
