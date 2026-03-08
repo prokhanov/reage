@@ -265,7 +265,7 @@ export default function ReportVisualsTest() {
         // Save generated result to DB
         await supabase
           .from("ai_prompt_settings")
-          .update({ prompt_text: data.content })
+          .update({ prompt_text: data.content, updated_at: new Date().toISOString() })
           .eq("key", "demo_report_result");
         setDemoGeneratedAt(new Date().toISOString());
         toast.success("Генерация завершена");
