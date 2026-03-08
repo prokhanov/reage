@@ -24,10 +24,10 @@ const statusColorMap: Record<string, string> = {
 };
 
 const statusBgMap: Record<string, string> = {
-  critical: "bg-status-critical/10 border-status-critical/30",
-  risk: "bg-status-risk/10 border-status-risk/30",
-  acceptable: "bg-status-acceptable/10 border-status-acceptable/30",
-  optimal: "bg-status-optimal/10 border-status-optimal/30",
+  critical: "bg-status-critical/5 border-status-critical/15",
+  risk: "bg-status-risk/5 border-status-risk/15",
+  acceptable: "bg-status-acceptable/5 border-status-acceptable/15",
+  optimal: "bg-status-optimal/5 border-status-optimal/15",
 };
 
 const statusEmojiMap: Record<string, string> = {
