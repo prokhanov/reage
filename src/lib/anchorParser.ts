@@ -38,7 +38,7 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
   const matches = [...text.matchAll(anchorRegex)];
 
   if (matches.length === 0) {
-    return legacyFallback(text, biomarkerCodes);
+    return [{ type: 'text', content: text }];
   }
 
   let lastIndex = 0;
