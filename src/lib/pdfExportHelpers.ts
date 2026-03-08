@@ -245,6 +245,48 @@ export function splitTextByBiomarkers(text: string, biomarkerCodes: string[]): {
 // ═══ Interleaved rendering moved to anchorRenderer.tsx ═══
 // Import buildInterleavedPdf / renderInterleavedWeb from "@/lib/anchorRenderer" directly
 
+// ═══ Image → Base64 ═══
+
+export async function imageToBase64(url: string): Promise<string> {
+  const resp = await fetch(url);
+  const blob = await resp.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ═══ Cover page ═══
+
+export function buildCoverPageContent(
+  patientName: string,
+  date: string,
+  markerCount: number,
+  logoBase64: string,
+): any[] {
+  return [
+    { text: '', margin: [0, 180, 0, 0] },
+    { image: logoBase64, width: 160, alignment: 'center', margin: [0, 0, 0, 30] },
+    { text: 'Персональный отчёт', fontSize: 28, bold: true, color: '#FFFFFF', alignment: 'center', margin: [0, 0, 0, 6] },
+    { text: 'здоровья и старения', fontSize: 20, color: '#FFFFFF', alignment: 'center', opacity: 0.85, margin: [0, 0, 0, 40] },
+    { text: patientName, fontSize: 18, bold: true, color: '#FFFFFF', alignment: 'center', margin: [0, 0, 0, 6] },
+    { text: date, fontSize: 14, color: '#FFFFFF', alignment: 'center', opacity: 0.8, margin: [0, 0, 0, 20] },
+    { text: `${markerCount} биомаркеров`, fontSize: 13, color: '#FFFFFF', alignment: 'center', opacity: 0.7 },
+    { text: '', pageBreak: 'after' },
+  ];
+}
+
+export function buildCoverBackground(bgBase64: string): (currentPage: number) => any[] {
+  return (currentPage: number) => {
+    if (currentPage === 1) {
+      return [{ image: bgBase64, width: 595, height: 842, absolutePosition: { x: 0, y: 0 } }];
+    }
+    return [];
+  };
+}
+
 // ═══ Standard PDF styles ═══
 
 export const PDF_STYLES = {

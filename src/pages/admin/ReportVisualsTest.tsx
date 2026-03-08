@@ -9,7 +9,12 @@ import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import {
   PdfBiomarkerData,
   PDF_STYLES,
+  imageToBase64,
+  buildCoverPageContent,
+  buildCoverBackground,
 } from "@/lib/pdfExportHelpers";
+import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
+import logoUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
