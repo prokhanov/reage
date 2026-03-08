@@ -159,19 +159,20 @@ export function buildInterleavedPdf(
       case 'biomarker': {
         const bm = biomarkers.find(b => b.code === block.code);
         if (bm) {
-          // Biomarker header with colored dot
+          // Single-line: dot + name + range bar + value/status
+          const inlineBarWidth = barWidth * 0.45;
+          const bar = buildRangeBarCanvas(bm, inlineBarWidth, barHeight, age, gender);
           pdfContent.push({
             columns: [
               { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 4, r2: 4, color: STATUS_HEX[bm.status] || '#888' }], width: 14, height: 14 },
-              { text: [{ text: bm.name, bold: true, fontSize: 11 }, { text: ` (${bm.code})`, fontSize: 9, color: '#888' }], width: '*', margin: [0, 1, 0, 0] },
-              { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 11, color: STATUS_HEX[bm.status] || '#333' }, { text: bm.statusLabel, fontSize: 9, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 1, 0, 0] },
+              { text: [{ text: bm.name, bold: true, fontSize: 9 }, { text: ` (${bm.code})`, fontSize: 8, color: '#888' }], width: 'auto', margin: [0, 2, 0, 0] },
+              bar ? { ...bar, width: inlineBarWidth, margin: [0, 1, 0, 0] } : { text: '', width: '*' },
+              { text: '', width: '*' },
+              { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 9, color: STATUS_HEX[bm.status] || '#333' }, { text: bm.statusLabel, fontSize: 8, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 2, 0, 0] },
             ],
             columnGap: 4,
-            margin: [0, 10, 0, 3],
+            margin: [0, 8, 0, 2],
           });
-          // Range bar
-          const bar = buildRangeBarCanvas(bm, barWidth, barHeight, age, gender);
-          if (bar) pdfContent.push(bar);
         }
         // Biomarker description text
         if (block.content) {
