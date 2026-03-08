@@ -28,6 +28,21 @@ export const STATUS_HEX: Record<string, string> = {
   optimal: '#22C55E',
 };
 
+// Muted/softer versions for PDF card indicators
+export const STATUS_HEX_MUTED: Record<string, string> = {
+  critical: '#F87171',
+  risk: '#FBBF24',
+  acceptable: '#FDE047',
+  optimal: '#4ADE80',
+};
+
+export const STATUS_HEX_BG: Record<string, string> = {
+  critical: '#FEF2F2',
+  risk: '#FFFBEB',
+  acceptable: '#FEFCE8',
+  optimal: '#F0FDF4',
+};
+
 function getZoneColorHex(
   v: number,
   normMin: number | null, normMax: number | null,
