@@ -266,14 +266,16 @@ export function buildCoverPageContent(
   markerCount: number,
   logoBase64: string,
 ): any[] {
+  // Compensate for page margins (40 left/right, 50 top/bottom) with negative margins
+  // so cover content is visually centered on the full page
   return [
-    { text: '', margin: [0, 180, 0, 0] },
+    { text: '', margin: [0, 130, 0, 0] },
     { image: logoBase64, width: 160, alignment: 'center', margin: [0, 0, 0, 30] },
     { text: 'Персональный отчёт', fontSize: 28, bold: true, color: '#FFFFFF', alignment: 'center', margin: [0, 0, 0, 6] },
-    { text: 'здоровья и старения', fontSize: 20, color: '#FFFFFF', alignment: 'center', opacity: 0.85, margin: [0, 0, 0, 40] },
+    { text: 'здоровья и старения', fontSize: 20, color: '#FFFFFF', alignment: 'center', margin: [0, 0, 0, 40] },
     { text: patientName, fontSize: 18, bold: true, color: '#FFFFFF', alignment: 'center', margin: [0, 0, 0, 6] },
-    { text: date, fontSize: 14, color: '#FFFFFF', alignment: 'center', opacity: 0.8, margin: [0, 0, 0, 20] },
-    { text: `${markerCount} биомаркеров`, fontSize: 13, color: '#FFFFFF', alignment: 'center', opacity: 0.7 },
+    { text: date, fontSize: 14, color: '#FFFFFF', alignment: 'center', margin: [0, 0, 0, 20] },
+    { text: `${markerCount} биомаркеров`, fontSize: 13, color: '#FFFFFF', alignment: 'center' },
     { text: '', pageBreak: 'after' },
   ];
 }
