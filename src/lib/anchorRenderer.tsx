@@ -61,30 +61,28 @@ export function renderInterleavedWeb(
             return (
               <div key={idx} className="space-y-3">
                 {bm && (
-                  <div className={`rounded-lg border p-2.5 ${statusBgMap[bm.status]}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-sm">{statusEmojiMap[bm.status]}</span>
+                  <div className={`rounded-lg border px-3 py-2 ${statusBgMap[bm.status]}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs">{statusEmojiMap[bm.status]}</span>
                         <span className="font-semibold text-xs text-foreground">{bm.name}</span>
                         <span className="text-[10px] text-muted-foreground">({bm.code})</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <BiomarkerRangeBar
-                          biomarker={bm.biomarker}
-                          value={bm.value}
-                          age={age}
-                          gender={gender}
-                        />
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1.5">
                         <span className={`font-bold text-xs ${statusColorMap[bm.status]}`}>
                           {bm.value} {bm.unit}
                         </span>
-                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${statusColorMap[bm.status]}`}>
+                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 ${statusColorMap[bm.status]}`}>
                           {bm.statusLabel}
                         </Badge>
                       </div>
                     </div>
+                    <BiomarkerRangeBar
+                      biomarker={bm.biomarker}
+                      value={bm.value}
+                      age={age}
+                      gender={gender}
+                    />
                   </div>
                 )}
                 {block.content && <MarkdownContent content={block.content} />}
@@ -159,20 +157,19 @@ export function buildInterleavedPdf(
       case 'biomarker': {
         const bm = biomarkers.find(b => b.code === block.code);
         if (bm) {
-          // Single-line: dot + name + range bar + value/status
-          const inlineBarWidth = barWidth * 0.45;
-          const bar = buildRangeBarCanvas(bm, inlineBarWidth, barHeight, age, gender);
+          // Row 1: dot + name + value/status
           pdfContent.push({
             columns: [
               { canvas: [{ type: 'ellipse', x: 5, y: 6, r1: 4, r2: 4, color: STATUS_HEX[bm.status] || '#888' }], width: 14, height: 14 },
-              { text: [{ text: bm.name, bold: true, fontSize: 9 }, { text: ` (${bm.code})`, fontSize: 8, color: '#888' }], width: 'auto', margin: [0, 2, 0, 0] },
-              bar ? { ...bar, width: inlineBarWidth, margin: [0, 1, 0, 0] } : { text: '', width: '*' },
-              { text: '', width: '*' },
-              { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 9, color: STATUS_HEX[bm.status] || '#333' }, { text: bm.statusLabel, fontSize: 8, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 2, 0, 0] },
+              { text: [{ text: bm.name, bold: true, fontSize: 10 }, { text: ` (${bm.code})`, fontSize: 8, color: '#888' }], width: '*', margin: [0, 1, 0, 0] },
+              { text: [{ text: `${bm.value} ${bm.unit} `, bold: true, fontSize: 10, color: STATUS_HEX[bm.status] || '#333' }, { text: bm.statusLabel, fontSize: 8, color: STATUS_HEX[bm.status] || '#888' }], alignment: 'right', width: 'auto', margin: [0, 1, 0, 0] },
             ],
             columnGap: 4,
-            margin: [0, 8, 0, 2],
+            margin: [0, 8, 0, 1],
           });
+          // Row 2: full-width range bar
+          const bar = buildRangeBarCanvas(bm, barWidth, barHeight, age, gender);
+          if (bar) pdfContent.push({ ...bar, margin: [0, 0, 0, 2] });
         }
         // Biomarker description text
         if (block.content) {
