@@ -7,6 +7,7 @@ import { Eye, Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
+import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
