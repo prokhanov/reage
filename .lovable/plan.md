@@ -1,28 +1,29 @@
 
 
-## Проблема
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-Когда текст **не содержит якорей** (`<!-- anchor:...`), `parseAnchors` вызывает `legacyFallback`, который через `splitTextByBiomarkers` ищет паттерны вроде `**Name (CODE)**` в обычном тексте и ошибочно вставляет шкалы биомаркеров.
+## Что сделано
 
-Пользователь хочет: **если якорей нет — текст рендерится как есть, без автодетекта маркеров**.
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-## Исправление
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-**`src/lib/anchorParser.ts`** — убрать legacy fallback:
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-```typescript
-// Было:
-if (!text.includes('<!-- anchor:')) {
-  return legacyFallback(text, biomarkerCodes);
-}
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-// Станет:
-if (!text.includes('<!-- anchor:')) {
-  return [{ type: 'text', content: text }];
-}
-```
+**ESR:** optimal_min_male/female → NULL
 
-Удалить функцию `legacyFallback` и импорт `splitTextByBiomarkers`.
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
-`splitTextByBiomarkers` в `pdfExportHelpers.ts` остаётся как экспорт (на случай если используется где-то напрямую), но больше не вызывается из конвейера рендеринга.
-
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.

@@ -2,8 +2,6 @@
  * Unified anchor-based parser for AI-generated reports.
  * Parses <!-- anchor:TYPE DATA --> tags; falls back to legacy splitTextByBiomarkers.
  */
-import { splitTextByBiomarkers } from "@/lib/pdfExportHelpers";
-
 // ═══ Types ═══
 
 export type AnchorBlock =
@@ -31,7 +29,7 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
 
   // Detect anchor presence
   if (!text.includes('<!-- anchor:')) {
-    return legacyFallback(text, biomarkerCodes);
+    return [{ type: 'text', content: text }];
   }
 
   const blocks: AnchorBlock[] = [];
@@ -40,7 +38,7 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
   const matches = [...text.matchAll(anchorRegex)];
 
   if (matches.length === 0) {
-    return legacyFallback(text, biomarkerCodes);
+    return [{ type: 'text', content: text }];
   }
 
   let lastIndex = 0;
@@ -117,14 +115,3 @@ function findEndTagPos(text: string, endTagName: string, afterPos: number): { st
   return { start: text.length, end: text.length };
 }
 
-// ═══ Legacy fallback ═══
-
-function legacyFallback(text: string, biomarkerCodes: string[]): AnchorBlock[] {
-  const chunks = splitTextByBiomarkers(text, biomarkerCodes);
-  return chunks.map(chunk => {
-    if (chunk.type === 'biomarker' && chunk.code) {
-      return { type: 'biomarker' as const, code: chunk.code, content: chunk.content };
-    }
-    return { type: 'text' as const, content: chunk.content };
-  });
-}
