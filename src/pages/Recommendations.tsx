@@ -31,7 +31,12 @@ import {
   PdfBiomarkerData,
   parseMarkdownToPdfContent,
   PDF_STYLES,
+  imageToBase64,
+  buildCoverPageContent,
+  buildCoverBackground,
 } from "@/lib/pdfExportHelpers";
+import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
+import logoLightUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 
 interface Recommendation {
@@ -454,6 +459,26 @@ export default function Recommendations() {
     if (!selectedReport) return;
 
     try {
+      // Load cover assets in parallel
+      const [bgBase64, logoBase64] = await Promise.all([
+        imageToBase64(coverBgUrl),
+        imageToBase64(logoLightUrl),
+      ]);
+
+      // Get patient name
+      let patientName = '';
+      const userId = await getUserId();
+      if (userId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", userId)
+          .single();
+        if (profile) {
+          patientName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
+        }
+      }
+
       const grouped = groupByType(selectedReport.recommendations);
       const patientData = grouped["Данные пациента"]?.[0];
       const summary = grouped["Общее резюме"]?.[0];
@@ -477,7 +502,6 @@ export default function Recommendations() {
 
       // Reuse already-loaded biomarker data from state
       const pdfBiomarkers = webBiomarkers;
-
 
       // Build sections
       const sections = [
@@ -522,12 +546,10 @@ export default function Recommendations() {
         )
       ];
 
-      const barWidth = 515; // A4 width minus margins
+      const barWidth = 515;
       const barHeight = 10;
 
-      // Build PDF content with interleaved biomarker bars for category sections
       const buildSectionContent = (section: typeof sections[0]): any[] => {
-        // For category sections (not patient-data, summary, prescriptions), use interleaving
         const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions';
         if (isCategory && pdfBiomarkers.length > 0) {
           const catBio = pdfBiomarkers.filter(b => b.category === section.type);
@@ -538,15 +560,13 @@ export default function Recommendations() {
         return parseMarkdownToPdfContent(section.content);
       };
 
+      const dateFormatted = selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
+        ? format(new Date(selectedReport.date), "dd.MM.yyyy")
+        : '';
+
       const docDefinition: any = {
         content: [
-          { text: 'Персональный отчет', style: 'header', alignment: 'center', margin: [0, 0, 0, 10] },
-          {
-            text: selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
-              ? format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })
-              : 'Дата не указана',
-            style: 'date', alignment: 'center', margin: [0, 0, 0, 30]
-          },
+          ...buildCoverPageContent(patientName, dateFormatted, pdfBiomarkers.length, logoBase64),
           { text: 'Содержание', style: 'tocHeader', margin: [0, 0, 0, 15] },
           ...sections.map((section, idx) => ({
             text: `${idx + 1}. ${section.label}`,
@@ -559,25 +579,25 @@ export default function Recommendations() {
             ...buildSectionContent(section)
           ])
         ],
+        background: buildCoverBackground(bgBase64),
         styles: PDF_STYLES,
         pageSize: 'A4',
         pageMargins: [40, 50, 40, 50],
-        footer: (currentPage: number) => ({
-          text: currentPage.toString(),
-          alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0]
-        }),
+        footer: (currentPage: number) => {
+          if (currentPage === 1) return null;
+          return {
+            text: (currentPage - 1).toString(),
+            alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0]
+          };
+        },
         info: {
-          title: selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
-            ? `Отчет ${format(new Date(selectedReport.date), "dd-MM-yyyy")}`
-            : 'Отчет',
+          title: dateFormatted ? `Отчет ${dateFormatted}` : 'Отчет',
           author: 'ReAge',
           subject: 'Персональный отчет',
         }
       };
 
-      const fileName = selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
-        ? `Отчет_${format(new Date(selectedReport.date), "dd-MM-yyyy")}.pdf`
-        : 'Отчет.pdf';
+      const fileName = dateFormatted ? `Отчет_${dateFormatted}.pdf` : 'Отчет.pdf';
       pdfMake.createPdf(docDefinition).download(fileName);
       
       toast({
