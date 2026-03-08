@@ -61,29 +61,30 @@ export function renderInterleavedWeb(
             return (
               <div key={idx} className="space-y-3">
                 {bm && (
-                  <div className={`rounded-lg border p-3 ${statusBgMap[bm.status]}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span>{statusEmojiMap[bm.status]}</span>
-                        <span className="font-semibold text-sm text-foreground">{bm.name}</span>
-                        <span className="text-xs text-muted-foreground">({bm.code})</span>
+                  <div className={`rounded-lg border p-2.5 ${statusBgMap[bm.status]}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-sm">{statusEmojiMap[bm.status]}</span>
+                        <span className="font-semibold text-xs text-foreground">{bm.name}</span>
+                        <span className="text-[10px] text-muted-foreground">({bm.code})</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className={`font-bold text-sm ${statusColorMap[bm.status]}`}>
+                      <div className="flex-1 min-w-0">
+                        <BiomarkerRangeBar
+                          biomarker={bm.biomarker}
+                          value={bm.value}
+                          age={age}
+                          gender={gender}
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`font-bold text-xs ${statusColorMap[bm.status]}`}>
                           {bm.value} {bm.unit}
                         </span>
-                        <Badge variant="outline" className={`text-xs ${statusColorMap[bm.status]}`}>
+                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${statusColorMap[bm.status]}`}>
                           {bm.statusLabel}
                         </Badge>
                       </div>
                     </div>
-                    <BiomarkerRangeBar
-                      biomarker={bm.biomarker}
-                      value={bm.value}
-                      age={age}
-                      gender={gender}
-                      showLabels
-                    />
                   </div>
                 )}
                 {block.content && <MarkdownContent content={block.content} />}
