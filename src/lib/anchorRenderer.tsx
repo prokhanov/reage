@@ -200,21 +200,24 @@ export function buildInterleavedPdf(
           cardStack.push(...parseMarkdownToPdfContent(block.content));
         }
 
-        // Wrap in a bordered card with rounded corners
-        const borderColor = bm ? (STATUS_HEX_MUTED[bm.status] || '#D1D5DB') : '#D1D5DB';
+        // Wrap in a visually soft card — no border lines, colored fill, left accent bar
+        const accentColor = bm ? (STATUS_HEX_MUTED[bm.status] || '#D1D5DB') : '#D1D5DB';
         const fillColor = bm ? (STATUS_HEX_BG[bm.status] || '#FAFAFA') : '#FAFAFA';
         pdfContent.push({
-          table: { widths: ['*'], body: [[{ stack: cardStack, margin: [8, 8, 8, 8] }]] },
+          table: {
+            widths: [3, '*'],
+            body: [[
+              { text: '', fillColor: accentColor },
+              { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
+            ]],
+          },
           layout: {
-            hLineWidth: () => 0.5,
-            vLineWidth: () => 0.5,
-            hLineColor: () => borderColor,
-            vLineColor: () => borderColor,
-            fillColor: () => fillColor,
-            paddingLeft: () => 4,
-            paddingRight: () => 4,
-            paddingTop: () => 4,
-            paddingBottom: () => 4,
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+            paddingLeft: () => 0,
+            paddingRight: () => 0,
+            paddingTop: () => 0,
+            paddingBottom: () => 0,
           },
           margin: [0, 6, 0, 6],
         });
