@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthBackground } from "@/components/AuthBackground";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, ArrowLeft } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 
 // Функция для определения посадочной страницы по ролям
@@ -45,6 +45,9 @@ const getDefaultRouteForUser = async (userId: string): Promise<string> => {
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -121,6 +124,32 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({
+        title: "Письмо отправлено",
+        description: "Проверьте почту — мы отправили ссылку для сброса пароля",
+      });
+      setForgotMode(false);
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось отправить письмо",
+        variant: "destructive",
+      });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   if (session) {
     return null;
   }
@@ -136,81 +165,135 @@ export default function Auth() {
             <ThemedLogo className="h-32 w-auto animate-hue-shift" />
           </div>
           <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
-            Добро пожаловать
+            {forgotMode ? "Сброс пароля" : "Добро пожаловать"}
           </h1>
-          <p className="text-muted-foreground text-lg">Войдите в свой аккаунт ReAge</p>
+          <p className="text-muted-foreground text-lg">
+            {forgotMode ? "Введите email для восстановления" : "Войдите в свой аккаунт ReAge"}
+          </p>
         </div>
 
-        {/* Login Card */}
+        {/* Card */}
         <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
-          {/* Card Glow Effect */}
           <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
           
           <div className="relative z-10">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-primary" />
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-primary" />
-                  Пароль
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                  className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium" 
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Загрузка...
-                  </span>
-                ) : (
-                  "Войти"
-                )}
-              </Button>
-            </form>
+            {forgotMode ? (
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-email" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-primary" />
+                    Email
+                  </Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    required
+                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium" 
+                  disabled={forgotLoading}
+                >
+                  {forgotLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Отправка...
+                    </span>
+                  ) : (
+                    "Отправить ссылку"
+                  )}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setForgotMode(false)}
+                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
+                >
+                  <ArrowLeft className="h-3 w-3" />
+                  Вернуться к входу
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-primary" />
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-primary" />
+                      Пароль
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => { setForgotMode(true); setForgotEmail(formData.email); }}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Забыли пароль?
+                    </button>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Загрузка...
+                    </span>
+                  ) : (
+                    "Войти"
+                  )}
+                </Button>
+              </form>
+            )}
           </div>
         </Card>
 
         {/* Register Link */}
-        <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <p className="text-sm text-muted-foreground">
-            Нет аккаунта?{" "}
-            <button
-              type="button"
-              onClick={() => navigate('/register')}
-              className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
-            >
-              Зарегистрируйтесь
-            </button>
-          </p>
-        </div>
+        {!forgotMode && (
+          <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+            <p className="text-sm text-muted-foreground">
+              Нет аккаунта?{" "}
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
+              >
+                Зарегистрируйтесь
+              </button>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

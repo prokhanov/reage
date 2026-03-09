@@ -22,20 +22,14 @@ interface EmailTemplate {
 
 const TEMPLATE_TABS = [
   { type: "signup", label: "Регистрация" },
-  { type: "recovery", label: "Восстановление" },
-  { type: "magiclink", label: "Magic Link" },
+  { type: "recovery", label: "Восстановление пароля" },
   { type: "invite", label: "Приглашение" },
-  { type: "email_change", label: "Смена email" },
-  { type: "reauthentication", label: "Код подтверждения" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
-  signup: "Будет отправлен именно шаблон регистрации",
+  signup: "Будет отправлен шаблон регистрации",
   recovery: "Будет отправлен шаблон сброса пароля",
-  magiclink: "Будет отправлен шаблон Magic Link",
   invite: "Будет отправлен шаблон приглашения",
-  email_change: "Будет отправлен шаблон смены email",
-  reauthentication: "Будет отправлен шаблон кода подтверждения",
 };
 
 export default function EmailSettings() {
