@@ -211,6 +211,13 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
             <AnalysisStep1
               data={wizardData.step1}
               onChange={(data) => setWizardData({ ...wizardData, step1: data })}
+              onMockGenerate={(values) => {
+                setWizardData((prev) => ({
+                  ...prev,
+                  step2: { values },
+                }));
+                setCurrentStep(2);
+              }}
             />
           )}
 
