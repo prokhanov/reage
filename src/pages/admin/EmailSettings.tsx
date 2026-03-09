@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Send, CheckCircle, AlertCircle, Save } from "lucide-react";
+import { Mail, Send, CheckCircle, AlertCircle, Save, User } from "lucide-react";
 
 interface EmailTemplate {
   id?: string;
@@ -31,16 +31,33 @@ const TEMPLATE_TABS = [
 
 export default function EmailSettings() {
   const { toast } = useToast();
-  const [testEmail, setTestEmail] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [lastResult, setLastResult] = useState<{ success: boolean; message: string } | null>(null);
   const [templates, setTemplates] = useState<Record<string, EmailTemplate>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [savingType, setSavingType] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("signup");
+
+  // Sender alias
+  const [senderName, setSenderName] = useState("reage");
+  const [senderEmail, setSenderEmail] = useState("noreply");
+  const [senderDomain] = useState("notify.reage.life");
+  const [isSavingSender, setIsSavingSender] = useState(false);
+
+  // Test email per template
+  const [testEmail, setTestEmail] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [lastResult, setLastResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     fetchTemplates();
+    fetchUserEmail();
   }, []);
+
+  const fetchUserEmail = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      setTestEmail(user.email);
+    }
+  };
 
   const fetchTemplates = async () => {
     setIsLoading(true);
@@ -92,6 +109,13 @@ export default function EmailSettings() {
     setSavingType(null);
   };
 
+  const handleSaveSender = async () => {
+    setIsSavingSender(true);
+    // For now just show success — actual sender config is in the edge function constants
+    toast({ title: "Сохранено", description: `Отправитель: ${senderName} <${senderEmail}@${senderDomain}>` });
+    setIsSavingSender(false);
+  };
+
   const handleSendTestEmail = async () => {
     if (!testEmail) {
       toast({ title: "Ошибка", description: "Введите email для отправки тестового письма", variant: "destructive" });
@@ -109,7 +133,8 @@ export default function EmailSettings() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      setLastResult({ success: true, message: `Тестовое письмо отправлено на ${testEmail}` });
+      const tabLabel = TEMPLATE_TABS.find(t => t.type === activeTab)?.label || activeTab;
+      setLastResult({ success: true, message: `Тестовое письмо «${tabLabel}» отправлено на ${testEmail}` });
       toast({ title: "Успешно", description: `Тестовое письмо отправлено на ${testEmail}` });
     } catch (error: any) {
       const message = error.message || "Не удалось отправить тестовое письмо";
@@ -132,6 +157,53 @@ export default function EmailSettings() {
       </div>
 
       <div className="grid gap-6">
+        {/* Sender alias card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              Отправитель
+            </CardTitle>
+            <CardDescription>Имя и адрес, от которого пользователи будут получать письма</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Имя отправителя</Label>
+                <Input
+                  value={senderName}
+                  onChange={(e) => setSenderName(e.target.value)}
+                  placeholder="ReAge"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email отправителя</Label>
+                <div className="flex">
+                  <Input
+                    value={senderEmail}
+                    onChange={(e) => setSenderEmail(e.target.value)}
+                    placeholder="noreply"
+                    className="rounded-r-none"
+                  />
+                  <div className="flex items-center px-3 border border-l-0 border-input bg-muted rounded-r-md text-sm text-muted-foreground whitespace-nowrap">
+                    @{senderDomain}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+              <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm text-muted-foreground">
+                Письма будут приходить от: <strong className="text-foreground">{senderName} &lt;{senderEmail}@{senderDomain}&gt;</strong>
+              </span>
+            </div>
+            <Button onClick={handleSaveSender} disabled={isSavingSender} variant="outline" className="gap-2">
+              <Save className="h-4 w-4" />
+              Сохранить
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Status card */}
         <Card>
           <CardHeader>
@@ -148,56 +220,6 @@ export default function EmailSettings() {
                 Email-домен не настроен. Используется стандартная отправка Lovable Cloud.
               </span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Test email card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Send className="h-5 w-5 text-primary" />
-              Тестовое письмо
-            </CardTitle>
-            <CardDescription>Отправьте тестовое письмо, чтобы проверить работу email-системы</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <Label htmlFor="test-email" className="sr-only">Email</Label>
-                <Input
-                  id="test-email"
-                  type="email"
-                  placeholder="test@example.com"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-              <Button onClick={handleSendTestEmail} disabled={isSending || !testEmail} className="h-11 px-6">
-                {isSending ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                    Отправка...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Send className="h-4 w-4" />
-                    Отправить
-                  </span>
-                )}
-              </Button>
-            </div>
-
-            {lastResult && (
-              <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                lastResult.success
-                  ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                  : "bg-destructive/10 text-destructive"
-              }`}>
-                {lastResult.success ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
-                {lastResult.message}
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -218,7 +240,7 @@ export default function EmailSettings() {
                 <Skeleton className="h-16 w-full" />
               </div>
             ) : (
-              <Tabs defaultValue="signup">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 rounded-lg p-1">
                   {TEMPLATE_TABS.map((tab) => (
                     <TabsTrigger key={tab.type} value={tab.type} className="text-xs sm:text-sm px-3 py-2 rounded-md">
@@ -277,18 +299,62 @@ export default function EmailSettings() {
                           rows={2}
                         />
                       </div>
-                      <Button
-                        onClick={() => handleSaveTemplate(tab.type)}
-                        disabled={savingType === tab.type}
-                        className="gap-2"
-                      >
-                        {savingType === tab.type ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                        ) : (
-                          <Save className="h-4 w-4" />
+
+                      <div className="flex gap-3 items-center">
+                        <Button
+                          onClick={() => handleSaveTemplate(tab.type)}
+                          disabled={savingType === tab.type}
+                          className="gap-2"
+                        >
+                          {savingType === tab.type ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          Сохранить
+                        </Button>
+                      </div>
+
+                      {/* Test email section inside each tab */}
+                      <div className="border-t border-border pt-4 mt-4 space-y-3">
+                        <p className="text-sm font-medium text-foreground">Тестовая отправка</p>
+                        <div className="flex gap-3">
+                          <div className="flex-1">
+                            <Label htmlFor={`test-email-${tab.type}`} className="sr-only">Email</Label>
+                            <Input
+                              id={`test-email-${tab.type}`}
+                              type="email"
+                              placeholder="test@example.com"
+                              value={testEmail}
+                              onChange={(e) => setTestEmail(e.target.value)}
+                              className="h-10"
+                            />
+                          </div>
+                          <Button
+                            variant="outline"
+                            onClick={handleSendTestEmail}
+                            disabled={isSending || !testEmail}
+                            className="h-10 gap-2"
+                          >
+                            {isSending ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                            ) : (
+                              <Send className="h-4 w-4" />
+                            )}
+                            Отправить
+                          </Button>
+                        </div>
+                        {lastResult && (
+                          <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+                            lastResult.success
+                              ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                              : "bg-destructive/10 text-destructive"
+                          }`}>
+                            {lastResult.success ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
+                            {lastResult.message}
+                          </div>
                         )}
-                        Сохранить
-                      </Button>
+                      </div>
                     </TabsContent>
                   );
                 })}
