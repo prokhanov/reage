@@ -101,17 +101,18 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
     try {
       // Create analysis with retry
-      const { data: analysis, error: analysisError } = await retryFetch(() =>
+      const { data: analysis, error: analysisError } = await retryFetch<any>(() =>
         supabase
           .from("analyses")
           .insert({
             user_id: viewAsUserId,
             date: wizardData.step1.date,
             lab_name: wizardData.step1.labName || null,
-            status: "on_review",
+            status: "on_review" as const,
           })
           .select()
           .single()
+          .then(res => res)
       );
 
       if (analysisError) throw analysisError;
