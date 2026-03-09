@@ -436,13 +436,25 @@ export default function Patients() {
                           </TableCell>
                           <TableCell>
                             {patient.email ? (
-                              <div className="flex items-center gap-2">
-                                <Mail className="w-4 h-4 text-muted-foreground" />
-                                <span className="text-sm">{patient.email}</span>
-                                <EmailConfirmationBadge
-                                  email={patient.email}
-                                  isConfirmed={patient.emailConfirmed}
-                                />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Mail className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-sm">{patient.email}</span>
+                                  {patient.emailConfirmed && (
+                                    <EmailConfirmationBadge
+                                      email={patient.email}
+                                      isConfirmed={true}
+                                    />
+                                  )}
+                                </div>
+                                {!patient.emailConfirmed && (
+                                  <div className="mt-1 ml-6">
+                                    <EmailConfirmationBadge
+                                      email={patient.email}
+                                      isConfirmed={false}
+                                    />
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <span className="text-muted-foreground">—</span>
