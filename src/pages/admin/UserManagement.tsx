@@ -558,6 +558,7 @@ export default function UserManagement() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Пользователь</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>Роль</TableHead>
                         <TableHead>Статус</TableHead>
                         <TableHead>Доступы к модулям</TableHead>
