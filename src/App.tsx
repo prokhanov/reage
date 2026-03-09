@@ -39,6 +39,7 @@ import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import ReportVisualsTest from "./pages/admin/ReportVisualsTest";
 import EmailSettings from "./pages/admin/EmailSettings";
 import RegisterStaff from "./pages/RegisterStaff";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register-staff" element={<RegisterStaff />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/onboarding"
               element={
