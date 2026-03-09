@@ -50,14 +50,19 @@ const SAMPLE_DATA: Record<string, object> = {
   reauthentication: { token: '123456' },
 }
 
+function getSupabaseAdmin() {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabaseUrl || !serviceRoleKey) return null
+  return createClient(supabaseUrl, serviceRoleKey)
+}
+
 // Fetch custom template content from DB
 async function fetchCustomTemplate(templateType: string): Promise<Record<string, string> | null> {
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    if (!supabaseUrl || !serviceRoleKey) return null
+    const supabase = getSupabaseAdmin()
+    if (!supabase) return null
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
     const { data, error } = await supabase
       .from('email_templates')
       .select('subject, heading, body_text, button_label, footer_text')
@@ -69,6 +74,29 @@ async function fetchCustomTemplate(templateType: string): Promise<Record<string,
   } catch {
     return null
   }
+}
+
+// Fetch sender settings from DB
+async function fetchSenderSettings(): Promise<{ name: string; email: string; domain: string }> {
+  try {
+    const supabase = getSupabaseAdmin()
+    if (!supabase) return { name: SITE_NAME, email: 'noreply', domain: FROM_DOMAIN }
+
+    const { data } = await supabase
+      .from('email_sender_settings')
+      .select('sender_name, sender_email, sender_domain')
+      .limit(1)
+      .maybeSingle()
+
+    if (data) {
+      return {
+        name: data.sender_name || SITE_NAME,
+        email: data.sender_email || 'noreply',
+        domain: data.sender_domain || FROM_DOMAIN,
+      }
+    }
+  } catch {}
+  return { name: SITE_NAME, email: 'noreply', domain: FROM_DOMAIN }
 }
 
 function buildCustomProps(dbTemplate: Record<string, string> | null): Record<string, string> {
