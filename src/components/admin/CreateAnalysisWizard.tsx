@@ -101,8 +101,8 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
     try {
       // Create analysis with retry
-      const { data: analysis, error: analysisError } = await retryFetch<any>(() =>
-        supabase
+      const { data: analysis, error: analysisError } = await retryFetch<any>(async () => {
+        const res = await supabase
           .from("analyses")
           .insert({
             user_id: viewAsUserId,
@@ -111,9 +111,9 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
             status: "on_review" as const,
           })
           .select()
-          .single()
-          .then(res => res)
-      );
+          .single();
+        return res;
+      });
 
       if (analysisError) throw analysisError;
 
