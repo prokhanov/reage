@@ -14,6 +14,8 @@ import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
 import { useMyAssignmentsCount } from "@/hooks/useMyAssignmentsCount";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEmailConfirmation } from "@/hooks/useEmailConfirmation";
+import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 
 interface AppSidebarProps {
   isOpen: boolean;
