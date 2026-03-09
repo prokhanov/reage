@@ -55,12 +55,18 @@ const queryClient = new QueryClient({
   },
 });
 
+function EmailVerificationListener() {
+  useEmailVerificationHandler();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <EmailVerificationListener />
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
