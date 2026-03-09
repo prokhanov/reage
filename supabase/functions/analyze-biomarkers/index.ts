@@ -985,17 +985,35 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           })
           .join('\n');
 
-        // Извлекаем ключевые находки из сгенерированных отчетов
+        // Извлекаем ключевые находки из сгенерированных отчетов (3000 символов на категорию)
         const keyFindings = Object.entries(categoryReports)
-          .map(([category, report]) => `${category}: ${report.substring(0, 300)}...`)
+          .map(([category, report]) => `${category}: ${report.substring(0, 3000)}...`)
           .join('\n\n');
+
+        // Извлекаем рекомендательные секции из отчётов (между anchor:recommendations_start и anchor:recommendations_end)
+        const categoryRecommendations = Object.entries(categoryReports)
+          .map(([category, report]) => {
+            const recStart = report.indexOf('<!-- anchor:actions_start -->');
+            const recEnd = report.indexOf('<!-- anchor:actions_end -->');
+            if (recStart !== -1 && recEnd !== -1 && recEnd > recStart) {
+              const recContent = report.substring(recStart + '<!-- anchor:actions_start -->'.length, recEnd).trim();
+              if (recContent) return `${category}:\n${recContent}`;
+            }
+            // Fallback: ищем секцию с рекомендациями по заголовку
+            const actionMatch = report.match(/#{2,3}\s+🎯[^\n]*\n([\s\S]*?)(?=\n#{2,3}\s+|$)/);
+            if (actionMatch) return `${category}:\n${actionMatch[1].trim()}`;
+            return null;
+          })
+          .filter(Boolean)
+          .join('\n\n---\n\n');
 
         // Формируем финальный промпт
         const finalPrescriptionsPrompt = prescriptionsUserPrompt.prompt_text
           .replace('{userContext}', userContext)
           .replace('{keyFindings}', keyFindings)
           .replace('{abnormalBiomarkers}', abnormalBiomarkers || 'Все показатели в пределах нормы')
-          .replace('{allBiomarkers}', globalBiomarkersSummary);
+          .replace('{allBiomarkers}', globalBiomarkersSummary)
+          .replace('{categoryRecommendations}', categoryRecommendations || 'Нет извлечённых рекомендаций');
 
         console.log("Starting prescriptions generation...");
 
