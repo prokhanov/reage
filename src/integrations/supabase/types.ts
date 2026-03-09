@@ -568,6 +568,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          body_text: string
+          button_label: string | null
+          footer_text: string
+          heading: string
+          id: string
+          subject: string
+          template_type: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          body_text: string
+          button_label?: string | null
+          footer_text: string
+          heading: string
+          id?: string
+          subject: string
+          template_type: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          body_text?: string
+          button_label?: string | null
+          footer_text?: string
+          heading?: string
+          id?: string
+          subject?: string
+          template_type?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       invite_tokens: {
         Row: {
           created_at: string

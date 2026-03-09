@@ -17,6 +17,10 @@ import {
 interface MagicLinkEmailProps {
   siteName: string
   confirmationUrl: string
+  customHeading?: string
+  customBodyText?: string
+  customButtonLabel?: string
+  customFooterText?: string
 }
 
 const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
@@ -24,6 +28,10 @@ const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/publ
 export const MagicLinkEmail = ({
   siteName,
   confirmationUrl,
+  customHeading,
+  customBodyText,
+  customButtonLabel,
+  customFooterText,
 }: MagicLinkEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head />
@@ -31,15 +39,15 @@ export const MagicLinkEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>Вход в ReAge</Heading>
+        <Heading style={h1}>{customHeading || 'Вход в ReAge'}</Heading>
         <Text style={text}>
-          Нажмите на кнопку ниже, чтобы войти в ваш аккаунт ReAge. Ссылка действительна ограниченное время.
+          {customBodyText || 'Нажмите на кнопку ниже, чтобы войти в ваш аккаунт ReAge. Ссылка действительна ограниченное время.'}
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Войти
+          {customButtonLabel || 'Войти'}
         </Button>
         <Text style={footer}>
-          Если вы не запрашивали эту ссылку, просто проигнорируйте это письмо.
+          {customFooterText || 'Если вы не запрашивали эту ссылку, просто проигнорируйте это письмо.'}
         </Text>
       </Container>
     </Body>

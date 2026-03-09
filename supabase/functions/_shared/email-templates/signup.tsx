@@ -20,6 +20,10 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  customHeading?: string
+  customBodyText?: string
+  customButtonLabel?: string
+  customFooterText?: string
 }
 
 const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
@@ -29,6 +33,10 @@ export const SignupEmail = ({
   siteUrl,
   recipient,
   confirmationUrl,
+  customHeading,
+  customBodyText,
+  customButtonLabel,
+  customFooterText,
 }: SignupEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head />
@@ -36,26 +44,21 @@ export const SignupEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>Добро пожаловать в ReAge!</Heading>
+        <Heading style={h1}>{customHeading || 'Добро пожаловать в ReAge!'}</Heading>
         <Text style={text}>
-          Спасибо за регистрацию в{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>ReAge</strong>
-          </Link>
-          .
-        </Text>
-        <Text style={text}>
-          Подтвердите ваш email (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ), нажав на кнопку ниже:
+          {customBodyText || (
+            <>
+              Спасибо за регистрацию в{' '}
+              <Link href={siteUrl} style={link}><strong>ReAge</strong></Link>.
+              {' '}Подтвердите ваш email ({recipient}), нажав на кнопку ниже:
+            </>
+          )}
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Подтвердить email
+          {customButtonLabel || 'Подтвердить email'}
         </Button>
         <Text style={footer}>
-          Если вы не создавали аккаунт, просто проигнорируйте это письмо.
+          {customFooterText || 'Если вы не создавали аккаунт, просто проигнорируйте это письмо.'}
         </Text>
       </Container>
     </Body>
