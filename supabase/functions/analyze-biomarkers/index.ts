@@ -438,6 +438,49 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
 
     console.log(`Starting detailed analysis for ${Object.keys(categorizedBiomarkers).length} categories`);
 
+    // === ГЛОБАЛЬНАЯ СВОДКА ВСЕХ СДАННЫХ БИОМАРКЕРОВ (для межкатегорийного контекста) ===
+    const patientGenderForSummary = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
+    const globalBiomarkersSummary = analysis.analysis_values.map((av: any) => {
+      let nMin = av.biomarkers.normal_min;
+      let nMax = av.biomarkers.normal_max;
+      let oMin = av.biomarkers.optimal_min;
+      let oMax = av.biomarkers.optimal_max;
+      let cMin = av.biomarkers.critical_min;
+      let cMax = av.biomarkers.critical_max;
+
+      if (age && patientGenderForSummary && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges?.[patientGenderForSummary]) {
+        const ar = av.biomarkers.age_ranges[patientGenderForSummary].find((r: any) => age >= r.age_from && age <= r.age_to);
+        if (ar) { nMin = ar.min; nMax = ar.max; if (ar.optimal_min !== undefined) oMin = ar.optimal_min; if (ar.optimal_max !== undefined) oMax = ar.optimal_max; if (ar.critical_min !== undefined) cMin = ar.critical_min; if (ar.critical_max !== undefined) cMax = ar.critical_max; }
+      }
+      if ((nMin === null || nMax === null) && patientGenderForSummary === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
+      else if ((nMin === null || nMax === null) && patientGenderForSummary === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
+      if (oMin === null && patientGenderForSummary === 'male' && av.biomarkers.optimal_min_male !== null) { oMin = av.biomarkers.optimal_min_male; oMax = av.biomarkers.optimal_max_male; }
+      else if (oMin === null && patientGenderForSummary === 'female' && av.biomarkers.optimal_min_female !== null) { oMin = av.biomarkers.optimal_min_female; oMax = av.biomarkers.optimal_max_female; }
+
+      const isCritLow = cMin !== null && av.value < cMin;
+      const isCritHigh = cMax !== null && av.value > cMax;
+      const isOutNorm = (nMin !== null && av.value < nMin) || (nMax !== null && av.value > nMax);
+      const isInOpt = (oMin !== null || oMax !== null) ? (oMin === null || av.value >= oMin) && (oMax === null || av.value <= oMax) : !isOutNorm;
+
+      let status = "🟢 ОПТИМАЛЬНО";
+      if (isCritLow || isCritHigh) status = "🔴 КРИТИЧНО";
+      else if (isOutNorm) status = "🟠 РИСК";
+      else if (!isInOpt) status = "🟡 ДОПУСТИМО";
+
+      return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — ${status} [${av.biomarkers.category}]`;
+    }).join('\n');
+
+    const globalBiomarkersContext = `
+ПОЛНЫЙ СПИСОК ВСЕХ СДАННЫХ БИОМАРКЕРОВ ПАЦИЕНТА (все категории):
+${globalBiomarkersSummary}
+
+ВАЖНО: 
+- НЕ рекомендуй сдавать анализы на биомаркеры, которые уже есть в списке выше. Вместо этого ссылайся на их значения.
+- При описании связей между системами, используй конкретные значения из списка выше.
+`.trim();
+
+    console.log(`Built global biomarkers context: ${analysis.analysis_values.length} markers`);
+
     // Параллельные запросы для каждой категории
     const categoryReports: Record<string, string> = {};
     const categoryStatuses: Record<string, any> = {};
@@ -604,7 +647,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .replace(/{biomarkersText}/g, biomarkersText)
           .replace(/{biomarkers}/g, biomarkersText)
           .replace(/{trends}/g, getCategoryTrends(category))
-          .replace(/{recommendations}/g, getCategoryRecommendations(category));
+          .replace(/{recommendations}/g, getCategoryRecommendations(category))
+          + "\n\n" + globalBiomarkersContext;
 
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
@@ -747,7 +791,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     let summaryReport = "";
     try {
       const allReportsText = Object.entries(categoryReports).map(([cat, report]) => 
-        `=== ${cat} ===\n${report.substring(0, 2000)}...`
+        `=== ${cat} ===\n${report.substring(0, 5000)}${report.length > 5000 ? '...' : ''}`
       ).join("\n\n");
 
       const summaryUserPromptTemplate = prompts['summary_user'];
@@ -779,7 +823,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           messages: [
             {
               role: "system",
-              content: summarySystemPrompt
+              content: summarySystemPrompt + "\n\nВАЖНО: Твоё резюме ДОЛЖНО быть согласовано с детальными разделами. Если в разделе по эндокринной системе выявлены проблемы — не пиши в резюме, что всё в порядке. Используй выводы из каждого раздела как источник истины. Не противоречь детальным разделам."
             },
             {
               role: "user",
