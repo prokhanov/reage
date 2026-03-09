@@ -42,6 +42,14 @@ const standaloneSections = [
     description: 'Промпт для генерации текстового описания трендов биомаркеров',
     promptKey: 'trends_summary_prompt',
     group: 'trends'
+  },
+  {
+    id: 'global_biomarkers',
+    name: 'Контекст биомаркеров',
+    emoji: '🔬',
+    description: 'Инструкции для AI при работе с полным списком маркеров (кросс-ссылки, запрет противоречий)',
+    promptKey: 'global_biomarkers_instructions',
+    group: 'report'
   }
 ];
 
