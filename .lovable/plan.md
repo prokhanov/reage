@@ -1,29 +1,35 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+## Fix: Cyrillic Encoding in Email Button Text
 
-## Что сделано
+### Problem
+The `Button` component from `@react-email/components@0.0.22` generates VML markup for Outlook compatibility. The VML `<a>` tag inside the button doesn't handle multi-byte (Cyrillic) characters correctly, resulting in broken characters like "Подтвердит�� email".
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+The `<Head />` component renders empty without a `<meta charset>` tag, so email clients may misinterpret the encoding.
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+### Fix
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+**All 6 email templates** need two changes:
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+1. **Add explicit `<meta charSet="utf-8" />` inside `<Head>`** to ensure email clients interpret the HTML as UTF-8:
+   ```tsx
+   <Head>
+     <meta charSet="utf-8" />
+   </Head>
+   ```
 
-**ESR:** optimal_min_male/female → NULL
+2. After applying, **redeploy** the `auth-email-hook` edge function.
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+### Files to Modify
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+| File | Change |
+|------|--------|
+| `supabase/functions/_shared/email-templates/signup.tsx` | `<Head />` → `<Head><meta charSet="utf-8" /></Head>` |
+| `supabase/functions/_shared/email-templates/recovery.tsx` | Same |
+| `supabase/functions/_shared/email-templates/invite.tsx` | Same |
+| `supabase/functions/_shared/email-templates/magic-link.tsx` | Same |
+| `supabase/functions/_shared/email-templates/email-change.tsx` | Same |
+| `supabase/functions/_shared/email-templates/reauthentication.tsx` | Same |
+
+Then redeploy `auth-email-hook`.
+
