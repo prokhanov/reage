@@ -53,6 +53,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
   const { data: scheduledCount = 0 } = useScheduledBookingsCount();
   const { data: myAssignmentsCount = 0 } = useMyAssignmentsCount();
+  const { data: emailStatus } = useEmailConfirmation();
   const [patientName, setPatientName] = useState<string>("");
   const [patientEmail, setPatientEmail] = useState<string>("");
 
