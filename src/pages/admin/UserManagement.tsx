@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2, RefreshCw, CheckCircle, Eye } from "lucide-react";
+import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
