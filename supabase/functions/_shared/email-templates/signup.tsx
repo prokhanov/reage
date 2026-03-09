@@ -39,7 +39,7 @@ export const SignupEmail = ({
   customFooterText,
 }: SignupEmailProps) => (
   <Html lang="ru" dir="ltr">
-    <Head />
+    <Head><meta charSet="utf-8" /></Head>
     <Preview>Подтвердите ваш email для ReAge</Preview>
     <Body style={main}>
       <Container style={container}>

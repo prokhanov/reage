@@ -34,7 +34,7 @@ export const MagicLinkEmail = ({
   customFooterText,
 }: MagicLinkEmailProps) => (
   <Html lang="ru" dir="ltr">
-    <Head />
+    <Head><meta charSet="utf-8" /></Head>
     <Preview>Ссылка для входа в ReAge</Preview>
     <Body style={main}>
       <Container style={container}>

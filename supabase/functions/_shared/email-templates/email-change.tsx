@@ -39,7 +39,7 @@ export const EmailChangeEmail = ({
   customFooterText,
 }: EmailChangeEmailProps) => (
   <Html lang="ru" dir="ltr">
-    <Head />
+    <Head><meta charSet="utf-8" /></Head>
     <Preview>Подтвердите смену email в ReAge</Preview>
     <Body style={main}>
       <Container style={container}>
