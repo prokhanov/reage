@@ -37,7 +37,7 @@ export const InviteEmail = ({
   customFooterText,
 }: InviteEmailProps) => (
   <Html lang="ru" dir="ltr">
-    <Head />
+    <Head><meta charSet="utf-8" /></Head>
     <Preview>Вас пригласили в ReAge</Preview>
     <Body style={main}>
       <Container style={container}>

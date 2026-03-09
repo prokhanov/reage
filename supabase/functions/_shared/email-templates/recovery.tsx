@@ -34,7 +34,7 @@ export const RecoveryEmail = ({
   customFooterText,
 }: RecoveryEmailProps) => (
   <Html lang="ru" dir="ltr">
-    <Head />
+    <Head><meta charSet="utf-8" /></Head>
     <Preview>Сброс пароля ReAge</Preview>
     <Body style={main}>
       <Container style={container}>

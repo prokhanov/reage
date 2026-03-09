@@ -29,7 +29,7 @@ export const ReauthenticationEmail = ({
   customFooterText,
 }: ReauthenticationEmailProps) => (
   <Html lang="ru" dir="ltr">
-    <Head />
+    <Head><meta charSet="utf-8" /></Head>
     <Preview>Ваш код подтверждения ReAge</Preview>
     <Body style={main}>
       <Container style={container}>
