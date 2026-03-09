@@ -75,6 +75,18 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
+  const retryFetch = async <T,>(fn: () => Promise<{ data: T; error: any }>, retries = 3): Promise<{ data: T; error: any }> => {
+    for (let i = 0; i < retries; i++) {
+      const result = await fn();
+      if (result.error && result.error.message?.includes("Load failed") && i < retries - 1) {
+        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+        continue;
+      }
+      return result;
+    }
+    return fn();
+  };
+
   const handleSave = async () => {
     if (!viewAsUserId) {
       toast({
@@ -88,17 +100,20 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
     setLoading(true);
 
     try {
-      // Create analysis
-      const { data: analysis, error: analysisError } = await supabase
-        .from("analyses")
-        .insert({
-          user_id: viewAsUserId,
-          date: wizardData.step1.date,
-          lab_name: wizardData.step1.labName || null,
-          status: "on_review",
-        })
-        .select()
-        .single();
+      // Create analysis with retry
+      const { data: analysis, error: analysisError } = await retryFetch<any>(async () => {
+        const res = await supabase
+          .from("analyses")
+          .insert({
+            user_id: viewAsUserId,
+            date: wizardData.step1.date,
+            lab_name: wizardData.step1.labName || null,
+            status: "on_review" as const,
+          })
+          .select()
+          .single();
+        return res;
+      });
 
       if (analysisError) throw analysisError;
 
