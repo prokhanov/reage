@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify auth
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -37,7 +36,6 @@ Deno.serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    // Check superadmin role
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -57,7 +55,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email } = await req.json();
+    const { email, template_type } = await req.json();
 
     if (!email) {
       return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -66,10 +64,60 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Use resetPasswordForEmail to actually trigger email delivery
-    const { error: sendError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-      redirectTo: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || 'https://reage.lovable.app'}/auth`,
-    });
+    const type = template_type || 'recovery';
+    const redirectUrl = 'https://reage.lovable.app/auth';
+
+    let sendError: any = null;
+
+    switch (type) {
+      case 'signup': {
+        // Signup = send OTP signup email
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'signup',
+          email,
+          options: { redirectTo: redirectUrl },
+        });
+        sendError = error;
+        break;
+      }
+      case 'recovery': {
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+          redirectTo: redirectUrl,
+        });
+        sendError = error;
+        break;
+      }
+      case 'magiclink': {
+        const { error } = await supabaseAdmin.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false },
+        });
+        sendError = error;
+        break;
+      }
+      case 'invite': {
+        const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+          redirectTo: redirectUrl,
+        });
+        sendError = error;
+        break;
+      }
+      case 'email_change':
+      case 'reauthentication': {
+        // These can't be triggered externally easily, fall back to recovery
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+          redirectTo: redirectUrl,
+        });
+        sendError = error;
+        break;
+      }
+      default: {
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+          redirectTo: redirectUrl,
+        });
+        sendError = error;
+      }
+    }
 
     if (sendError) {
       console.error('Error sending test email:', sendError);
@@ -79,10 +127,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Test email sent to:', email);
+    console.log(`Test email (${type}) sent to: ${email}`);
 
     return new Response(
-      JSON.stringify({ success: true, message: `Test email sent to ${email}` }),
+      JSON.stringify({ success: true, message: `Test email (${type}) sent to ${email}` }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

@@ -29,6 +29,15 @@ const TEMPLATE_TABS = [
   { type: "reauthentication", label: "Код подтверждения" },
 ];
 
+const TEST_NOTES: Record<string, string> = {
+  signup: "Будет отправлено письмо подтверждения регистрации",
+  recovery: "Будет отправлено письмо сброса пароля",
+  magiclink: "Будет отправлена magic link для входа",
+  invite: "Будет отправлено приглашение",
+  email_change: "Тип не поддерживает тестовую отправку — будет отправлен сброс пароля",
+  reauthentication: "Тип не поддерживает тестовую отправку — будет отправлен сброс пароля",
+};
+
 export default function EmailSettings() {
   const { toast } = useToast();
   const [templates, setTemplates] = useState<Record<string, EmailTemplate>>({});
@@ -39,8 +48,9 @@ export default function EmailSettings() {
   // Sender alias
   const [senderName, setSenderName] = useState("reage");
   const [senderEmail, setSenderEmail] = useState("noreply");
-  const [senderDomain] = useState("notify.reage.life");
+  const [senderDomain, setSenderDomain] = useState("notify.reage.life");
   const [isSavingSender, setIsSavingSender] = useState(false);
+  const [senderId, setSenderId] = useState<string | null>(null);
 
   // Test email per template
   const [testEmail, setTestEmail] = useState("");
@@ -49,6 +59,7 @@ export default function EmailSettings() {
 
   useEffect(() => {
     fetchTemplates();
+    fetchSenderSettings();
     fetchUserEmail();
   }, []);
 
@@ -56,6 +67,21 @@ export default function EmailSettings() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user?.email) {
       setTestEmail(user.email);
+    }
+  };
+
+  const fetchSenderSettings = async () => {
+    const { data, error } = await supabase
+      .from("email_sender_settings")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+    if (data) {
+      setSenderId(data.id);
+      setSenderName(data.sender_name);
+      setSenderEmail(data.sender_email);
+      setSenderDomain(data.sender_domain);
     }
   };
 
@@ -111,8 +137,24 @@ export default function EmailSettings() {
 
   const handleSaveSender = async () => {
     setIsSavingSender(true);
-    // For now just show success — actual sender config is in the edge function constants
-    toast({ title: "Сохранено", description: `Отправитель: ${senderName} <${senderEmail}@${senderDomain}>` });
+
+    if (senderId) {
+      const { error } = await supabase
+        .from("email_sender_settings")
+        .update({
+          sender_name: senderName,
+          sender_email: senderEmail,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", senderId);
+
+      if (error) {
+        toast({ title: "Ошибка", description: "Не удалось сохранить настройки отправителя", variant: "destructive" });
+      } else {
+        toast({ title: "Сохранено", description: `Отправитель: ${senderName} <${senderEmail}@${senderDomain}>` });
+      }
+    }
+
     setIsSavingSender(false);
   };
 
@@ -127,7 +169,7 @@ export default function EmailSettings() {
 
     try {
       const { data, error } = await supabase.functions.invoke("send-test-email", {
-        body: { email: testEmail },
+        body: { email: testEmail, template_type: activeTab },
       });
 
       if (error) throw error;
@@ -198,7 +240,11 @@ export default function EmailSettings() {
               </span>
             </div>
             <Button onClick={handleSaveSender} disabled={isSavingSender} variant="outline" className="gap-2">
-              <Save className="h-4 w-4" />
+              {isSavingSender ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
               Сохранить
             </Button>
           </CardContent>
@@ -240,7 +286,7 @@ export default function EmailSettings() {
                 <Skeleton className="h-16 w-full" />
               </div>
             ) : (
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setLastResult(null); }}>
                 <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 rounded-lg p-1">
                   {TEMPLATE_TABS.map((tab) => (
                     <TabsTrigger key={tab.type} value={tab.type} className="text-xs sm:text-sm px-3 py-2 rounded-md">
@@ -300,24 +346,25 @@ export default function EmailSettings() {
                         />
                       </div>
 
-                      <div className="flex gap-3 items-center">
-                        <Button
-                          onClick={() => handleSaveTemplate(tab.type)}
-                          disabled={savingType === tab.type}
-                          className="gap-2"
-                        >
-                          {savingType === tab.type ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                          ) : (
-                            <Save className="h-4 w-4" />
-                          )}
-                          Сохранить
-                        </Button>
-                      </div>
+                      <Button
+                        onClick={() => handleSaveTemplate(tab.type)}
+                        disabled={savingType === tab.type}
+                        className="gap-2"
+                      >
+                        {savingType === tab.type ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        Сохранить
+                      </Button>
 
-                      {/* Test email section inside each tab */}
+                      {/* Test email */}
                       <div className="border-t border-border pt-4 mt-4 space-y-3">
-                        <p className="text-sm font-medium text-foreground">Тестовая отправка</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-foreground">Тестовая отправка</p>
+                          <p className="text-xs text-muted-foreground">{TEST_NOTES[tab.type]}</p>
+                        </div>
                         <div className="flex gap-3">
                           <div className="flex-1">
                             <Label htmlFor={`test-email-${tab.type}`} className="sr-only">Email</Label>
