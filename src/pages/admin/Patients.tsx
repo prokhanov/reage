@@ -439,6 +439,10 @@ export default function Patients() {
                               <div className="flex items-center gap-2">
                                 <Mail className="w-4 h-4 text-muted-foreground" />
                                 <span className="text-sm">{patient.email}</span>
+                                <EmailConfirmationBadge
+                                  email={patient.email}
+                                  isConfirmed={patient.emailConfirmed}
+                                />
                               </div>
                             ) : (
                               <span className="text-muted-foreground">—</span>
