@@ -69,64 +69,39 @@ Deno.serve(async (req) => {
 
     let sendError: any = null;
 
-    switch (type) {
-      case 'signup': {
-        const { error } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'signup',
-          email,
-          options: { redirectTo: redirectUrl },
-        });
-        if (error?.code === 'email_exists') {
-          // User already exists — fall back to magic link to still trigger the email hook
-          const { error: fallbackError } = await supabaseAdmin.auth.signInWithOtp({
-            email,
-            options: { shouldCreateUser: false },
-          });
-          sendError = fallbackError;
-        } else {
-          sendError = error;
-        }
-        break;
-      }
-      case 'recovery': {
-        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+    // For all template types, use resetPasswordForEmail as it reliably triggers
+    // the auth-email-hook for any existing user. The hook will use the template
+    // content from the DB regardless of the auth event type.
+    // For signup of new users, try generateLink first.
+    if (type === 'signup') {
+      const { error } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'signup',
+        email,
+        options: { redirectTo: redirectUrl },
+      });
+      if (error) {
+        // User exists — fall back to recovery which always works
+        const { error: fallbackError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
           redirectTo: redirectUrl,
         });
-        sendError = error;
-        break;
+        sendError = fallbackError;
       }
-      case 'magiclink': {
-        const { error } = await supabaseAdmin.auth.signInWithOtp({
-          email,
-          options: { shouldCreateUser: false },
-        });
-        sendError = error;
-        break;
-      }
-      case 'invite': {
-        const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+    } else if (type === 'invite') {
+      const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        redirectTo: redirectUrl,
+      });
+      if (error) {
+        const { error: fallbackError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
           redirectTo: redirectUrl,
         });
-        if (error?.code === 'email_exists') {
-          const { error: fallbackError } = await supabaseAdmin.auth.signInWithOtp({
-            email,
-            options: { shouldCreateUser: false },
-          });
-          sendError = fallbackError;
-        } else {
-          sendError = error;
-        }
-        break;
+        sendError = fallbackError;
       }
-      case 'email_change':
-      case 'reauthentication':
-      default: {
-        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectUrl,
-        });
-        sendError = error;
-        break;
-      }
+    } else {
+      // recovery, magiclink, email_change, reauthentication — all use recovery
+      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+      sendError = error;
     }
 
     if (sendError) {
