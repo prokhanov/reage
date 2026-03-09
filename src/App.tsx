@@ -37,6 +37,7 @@ import AnalysisBookings from "./pages/admin/AnalysisBookings";
 import MyAssignments from "./pages/admin/MyAssignments";
 import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import ReportVisualsTest from "./pages/admin/ReportVisualsTest";
+import EmailSettings from "./pages/admin/EmailSettings";
 import RegisterStaff from "./pages/RegisterStaff";
 import NotFound from "./pages/NotFound";
 
@@ -182,6 +183,14 @@ const App = () => (
                 element={
                   <SuperAdminRoute>
                     <ReportVisualsTest />
+                  </SuperAdminRoute>
+                } 
+              />
+              <Route 
+                path="/admin/email-settings" 
+                element={
+                  <SuperAdminRoute>
+                    <EmailSettings />
                   </SuperAdminRoute>
                 } 
               />

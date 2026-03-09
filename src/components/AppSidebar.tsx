@@ -39,6 +39,7 @@ const adminNavItems = [
   { to: "/admin/subscription-plans", label: "Управление тарифами", icon: CreditCard, requiresSuperAdmin: true },
   { to: "/admin/report-visuals", label: "Визуалы отчёта", icon: Eye, requiresSuperAdmin: true },
   { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings },
+  { to: "/admin/email-settings", label: "Email рассылки", icon: Mail, requiresSuperAdmin: true },
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical },
 ];
 
