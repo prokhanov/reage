@@ -1,29 +1,62 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+## Plan: Email Template Editor in Admin Settings
 
-## Что сделано
+### Approach
+Store editable template fields (subject, heading, body text, button label, footer) in a database table. The EmailSettings page gets a tabbed UI for editing each template. The `auth-email-hook` edge function reads from the DB at send time, falling back to defaults if no custom content exists.
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+### Step 1 — Create `email_templates` database table
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+```sql
+CREATE TABLE public.email_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  template_type TEXT NOT NULL UNIQUE, -- signup, recovery, magiclink, invite, email_change, reauthentication
+  subject TEXT NOT NULL,
+  heading TEXT NOT NULL,
+  body_text TEXT NOT NULL,
+  button_label TEXT,
+  footer_text TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID REFERENCES auth.users(id)
+);
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+ALTER TABLE public.email_templates ENABLE ROW LEVEL SECURITY;
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+-- Only superadmins can read/write
+CREATE POLICY "Superadmins manage email templates"
+  ON public.email_templates FOR ALL TO authenticated
+  USING (public.has_role(auth.uid(), 'superadmin'))
+  WITH CHECK (public.has_role(auth.uid(), 'superadmin'));
 
-**ESR:** optimal_min_male/female → NULL
+-- Edge function reads via service role, no RLS needed for that
+```
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+Seed with default values matching current template content (all 6 types).
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+### Step 2 — Build template editor UI
+
+Refactor `EmailSettings.tsx`:
+- Add **Tabs** component with 6 tabs: Регистрация, Восстановление пароля, Magic Link, Приглашение, Смена email, Повторная авторизация
+- Each tab shows a form with editable fields: Тема письма, Заголовок, Текст, Текст кнопки, Подпись
+- "Сохранить" button per template that upserts to `email_templates`
+- Loading skeleton while fetching
+- Keep existing Status and Test Email cards at the top
+
+### Step 3 — Update `auth-email-hook` to use DB content
+
+Modify the edge function to:
+1. Fetch the template row from `email_templates` by `template_type` using the service role client
+2. If found, pass the custom fields to a modified template component
+3. If not found, use hardcoded defaults (current behavior)
+4. Use `subject` from DB instead of hardcoded `EMAIL_SUBJECTS`
+
+### Step 4 — Redeploy edge function
+
+Deploy updated `auth-email-hook`.
+
+### File changes
+- **New migration**: Create `email_templates` table + seed defaults
+- **Edit** `src/pages/admin/EmailSettings.tsx`: Add tabs with template editor forms
+- **Edit** `supabase/functions/auth-email-hook/index.ts`: Read from DB, use custom content
+- **Edit** each template in `_shared/email-templates/*.tsx`: Accept optional content overrides as props
+
