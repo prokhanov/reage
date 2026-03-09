@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, AlertCircle, Send, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Send, Loader2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +23,21 @@ import { useToast } from "@/hooks/use-toast";
 interface EmailConfirmationBadgeProps {
   email: string | null;
   isConfirmed: boolean;
+  /** Allow editing email (for unconfirmed users changing their own email) */
+  allowEmailChange?: boolean;
+  /** Callback after email was changed */
+  onEmailChanged?: () => void;
 }
 
-export function EmailConfirmationBadge({ email, isConfirmed }: EmailConfirmationBadgeProps) {
+export function EmailConfirmationBadge({ 
+  email, 
+  isConfirmed, 
+  allowEmailChange = false,
+  onEmailChanged,
+}: EmailConfirmationBadgeProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resendEmail, setResendEmail] = useState(email || "");
+  const [isEditing, setIsEditing] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
@@ -35,16 +45,24 @@ export function EmailConfirmationBadge({ email, isConfirmed }: EmailConfirmation
     if (!resendEmail) return;
     setIsSending(true);
     try {
+      const emailChanged = resendEmail !== email;
       const { data, error } = await supabase.functions.invoke('resend-confirmation', {
-        body: { email: resendEmail },
+        body: { 
+          email: email, 
+          ...(emailChanged ? { newEmail: resendEmail } : {})
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      
       toast({
-        title: "Письмо отправлено",
+        title: emailChanged ? "Email изменён и письмо отправлено" : "Письмо отправлено",
         description: `Письмо с подтверждением отправлено на ${resendEmail}`,
       });
       setDialogOpen(false);
+      if (emailChanged && onEmailChanged) {
+        onEmailChanged();
+      }
     } catch (err: any) {
       toast({
         title: "Ошибка отправки",
@@ -77,6 +95,7 @@ export function EmailConfirmationBadge({ email, isConfirmed }: EmailConfirmation
         onClick={(e) => {
           e.stopPropagation();
           setResendEmail(email || "");
+          setIsEditing(false);
           setDialogOpen(true);
         }}
       >
@@ -89,22 +108,48 @@ export function EmailConfirmationBadge({ email, isConfirmed }: EmailConfirmation
           <DialogHeader>
             <DialogTitle>Email не подтверждён</DialogTitle>
             <DialogDescription>
-              Пользователь не подтвердил свой email. Вы можете отправить повторное письмо с подтверждением.
+              {allowEmailChange 
+                ? "Вы можете изменить email или отправить повторное письмо с подтверждением."
+                : "Вы можете отправить повторное письмо с подтверждением."
+              }
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email для отправки</label>
-              <Input
-                value={resendEmail}
-                onChange={(e) => setResendEmail(e.target.value)}
-                placeholder="user@example.com"
-                type="email"
-              />
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Email для отправки</label>
+                {allowEmailChange && !isEditing && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Pencil className="w-3 h-3 mr-1" />
+                    Изменить
+                  </Button>
+                )}
+              </div>
+              {isEditing || !allowEmailChange ? (
+                <Input
+                  value={resendEmail}
+                  onChange={(e) => setResendEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  type="email"
+                  readOnly={!allowEmailChange && !isEditing}
+                />
+              ) : (
+                <p className="text-sm bg-muted px-3 py-2 rounded-md">{email}</p>
+              )}
             </div>
+            {allowEmailChange && isEditing && resendEmail !== email && (
+              <p className="text-xs text-orange-500">
+                ⚠️ Email будет изменён на новый. Письмо подтверждения придёт на новый адрес.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
-              Письмо будет отправлено на указанный адрес. Пользователь должен перейти по ссылке в письме для подтверждения.
+              Нажмите по ссылке в письме для подтверждения email.
             </p>
           </div>
 
@@ -118,7 +163,7 @@ export function EmailConfirmationBadge({ email, isConfirmed }: EmailConfirmation
               ) : (
                 <Send className="w-4 h-4 mr-2" />
               )}
-              Отправить повторно
+              {isEditing && resendEmail !== email ? "Сохранить и отправить" : "Отправить повторно"}
             </Button>
           </DialogFooter>
         </DialogContent>
