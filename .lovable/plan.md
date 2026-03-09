@@ -1,29 +1,55 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+# Вынос хардкод-промптов в AI Settings
 
-## Что сделано
+## Что захардкожено сейчас
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+В `analyze-biomarkers/index.ts` есть два блока текста, которые не редактируются через AI Settings:
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+### 1. `globalBiomarkersContext` (строки 473-482)
+Инструкции для AI: «не рекомендуй сдавать маркеры которые есть», «запрет противоречий» и т.д. Сейчас это строковый литерал в коде. Нужно вынести в `ai_prompt_settings` с ключом `global_biomarkers_instructions`.
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+### 2. Инструкция формата JSON для назначений (строка 930)
+Текст `"Важно: Верни ТОЛЬКО валидный JSON..."` — дописывается к системному промпту назначений. Этот блок технический (формат ответа), его логичнее оставить в коде, т.к. изменение формата сломает парсер.
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+## План
 
-**ESR:** optimal_min_male/female → NULL
+### A. Создать запись `global_biomarkers_instructions` в `ai_prompt_settings`
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+INSERT с текстом из текущего хардкода (инструкции про кросс-ссылки, запрет противоречий, проверку дефицитов).
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+### B. Обновить edge function
+
+Заменить хардкод `globalBiomarkersContext` на загрузку из `prompts['global_biomarkers_instructions']` с fallback на текущий текст.
+
+Формат:
+```typescript
+const globalBiomarkersInstructions = prompts['global_biomarkers_instructions'] || `ВАЖНО: ...`;
+
+const globalBiomarkersContext = `
+ПОЛНЫЙ СПИСОК ВСЕХ СДАННЫХ БИОМАРКЕРОВ ПАЦИЕНТА:
+${globalBiomarkersSummary}
+
+${globalBiomarkersInstructions}
+`.trim();
+```
+
+### C. Добавить в AISettings.tsx секцию для этого промпта
+
+Добавить в `standaloneSections` новый элемент:
+```typescript
+{
+  id: 'global_biomarkers',
+  name: 'Контекст биомаркеров',
+  emoji: '🔬',
+  description: 'Инструкции для AI при работе с полным списком маркеров (кросс-ссылки, запрет противоречий)',
+  promptKey: 'global_biomarkers_instructions',
+  group: 'report'
+}
+```
+
+### Объём
+- 1 INSERT в `ai_prompt_settings`
+- 1 правка в edge function (3 строки)
+- 1 правка в AISettings.tsx (добавить секцию)
+
