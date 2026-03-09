@@ -176,7 +176,8 @@ export default function EmailSettings() {
       if (data?.error) throw new Error(data.error);
 
       const tabLabel = TEMPLATE_TABS.find(t => t.type === activeTab)?.label || activeTab;
-      setLastResult({ success: true, message: `Тестовое письмо «${tabLabel}» отправлено на ${testEmail}` });
+      const message = data?.message || `Тестовое письмо «${tabLabel}» отправлено на ${testEmail}`;
+      setLastResult({ success: true, message });
       toast({ title: "Успешно", description: `Тестовое письмо отправлено на ${testEmail}` });
     } catch (error: any) {
       const message = error.message || "Не удалось отправить тестовое письмо";
