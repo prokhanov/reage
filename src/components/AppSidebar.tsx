@@ -148,18 +148,20 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                   <p className="text-xs text-muted-foreground truncate">
                     {viewAsUserId ? patientEmail : userEmail}
                   </p>
-                  {!viewAsUserId && emailStatus && !emailStatus.isConfirmed && (
+                  {!viewAsUserId && emailStatus?.isConfirmed && (
+                    <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
+                  )}
+                </div>
+                {!viewAsUserId && emailStatus && !emailStatus.isConfirmed && (
+                  <div className="mt-1">
                     <EmailConfirmationBadge
                       email={emailStatus.email || userEmail}
                       isConfirmed={false}
                       allowEmailChange={true}
                       onEmailChanged={() => queryClient.invalidateQueries({ queryKey: ["email-confirmation-status"] })}
                     />
-                  )}
-                  {!viewAsUserId && emailStatus?.isConfirmed && (
-                    <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
-                  )}
-                </div>
+                  </div>
+                )}
                 <p className="text-xs text-primary/70 font-medium mt-0.5">
                   {viewAsUserId ? "Пациент" : userRole}
                 </p>
