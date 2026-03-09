@@ -250,24 +250,6 @@ export default function EmailSettings() {
           </CardContent>
         </Card>
 
-        {/* Status card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-primary" />
-              Статус email-сервиса
-            </CardTitle>
-            <CardDescription>Текущее состояние системы отправки писем</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse" />
-              <span className="text-sm text-muted-foreground">
-                Email-домен не настроен. Используется стандартная отправка Lovable Cloud.
-              </span>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Template editor */}
         <Card>
