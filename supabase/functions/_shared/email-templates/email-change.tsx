@@ -20,6 +20,10 @@ interface EmailChangeEmailProps {
   email: string
   newEmail: string
   confirmationUrl: string
+  customHeading?: string
+  customBodyText?: string
+  customButtonLabel?: string
+  customFooterText?: string
 }
 
 const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
@@ -29,6 +33,10 @@ export const EmailChangeEmail = ({
   email,
   newEmail,
   confirmationUrl,
+  customHeading,
+  customBodyText,
+  customButtonLabel,
+  customFooterText,
 }: EmailChangeEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head />
@@ -36,26 +44,22 @@ export const EmailChangeEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>Смена email</Heading>
+        <Heading style={h1}>{customHeading || 'Смена email'}</Heading>
         <Text style={text}>
-          Вы запросили смену email в ReAge с{' '}
-          <Link href={`mailto:${email}`} style={link}>
-            {email}
-          </Link>{' '}
-          на{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>
-            {newEmail}
-          </Link>
-          .
-        </Text>
-        <Text style={text}>
-          Нажмите на кнопку ниже, чтобы подтвердить изменение:
+          {customBodyText || (
+            <>
+              Вы запросили смену email в ReAge с{' '}
+              <Link href={`mailto:${email}`} style={link}>{email}</Link>{' '}на{' '}
+              <Link href={`mailto:${newEmail}`} style={link}>{newEmail}</Link>.
+              {' '}Нажмите на кнопку ниже, чтобы подтвердить изменение:
+            </>
+          )}
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Подтвердить смену email
+          {customButtonLabel || 'Подтвердить смену email'}
         </Button>
         <Text style={footer}>
-          Если вы не запрашивали смену email, немедленно обезопасьте ваш аккаунт.
+          {customFooterText || 'Если вы не запрашивали смену email, немедленно обезопасьте ваш аккаунт.'}
         </Text>
       </Container>
     </Body>

@@ -17,6 +17,10 @@ import {
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
+  customHeading?: string
+  customBodyText?: string
+  customButtonLabel?: string
+  customFooterText?: string
 }
 
 const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
@@ -24,6 +28,10 @@ const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/publ
 export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
+  customHeading,
+  customBodyText,
+  customButtonLabel,
+  customFooterText,
 }: RecoveryEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head />
@@ -31,15 +39,15 @@ export const RecoveryEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>Сброс пароля</Heading>
+        <Heading style={h1}>{customHeading || 'Сброс пароля'}</Heading>
         <Text style={text}>
-          Мы получили запрос на сброс пароля для вашего аккаунта ReAge. Нажмите на кнопку ниже, чтобы задать новый пароль.
+          {customBodyText || 'Мы получили запрос на сброс пароля для вашего аккаунта ReAge. Нажмите на кнопку ниже, чтобы задать новый пароль.'}
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Сбросить пароль
+          {customButtonLabel || 'Сбросить пароль'}
         </Button>
         <Text style={footer}>
-          Если вы не запрашивали сброс пароля, проигнорируйте это письмо. Ваш пароль не будет изменён.
+          {customFooterText || 'Если вы не запрашивали сброс пароля, проигнорируйте это письмо. Ваш пароль не будет изменён.'}
         </Text>
       </Container>
     </Body>

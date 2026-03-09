@@ -19,6 +19,10 @@ interface InviteEmailProps {
   siteName: string
   siteUrl: string
   confirmationUrl: string
+  customHeading?: string
+  customBodyText?: string
+  customButtonLabel?: string
+  customFooterText?: string
 }
 
 const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
@@ -27,6 +31,10 @@ export const InviteEmail = ({
   siteName,
   siteUrl,
   confirmationUrl,
+  customHeading,
+  customBodyText,
+  customButtonLabel,
+  customFooterText,
 }: InviteEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head />
@@ -34,19 +42,21 @@ export const InviteEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>Вас пригласили в ReAge</Heading>
+        <Heading style={h1}>{customHeading || 'Вас пригласили в ReAge'}</Heading>
         <Text style={text}>
-          Вы получили приглашение присоединиться к{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>ReAge</strong>
-          </Link>
-          . Нажмите на кнопку ниже, чтобы принять приглашение и создать аккаунт.
+          {customBodyText || (
+            <>
+              Вы получили приглашение присоединиться к{' '}
+              <Link href={siteUrl} style={link}><strong>ReAge</strong></Link>.
+              {' '}Нажмите на кнопку ниже, чтобы принять приглашение и создать аккаунт.
+            </>
+          )}
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Принять приглашение
+          {customButtonLabel || 'Принять приглашение'}
         </Button>
         <Text style={footer}>
-          Если вы не ожидали этого приглашения, просто проигнорируйте это письмо.
+          {customFooterText || 'Если вы не ожидали этого приглашения, просто проигнорируйте это письмо.'}
         </Text>
       </Container>
     </Body>

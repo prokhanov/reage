@@ -15,22 +15,30 @@ import {
 
 interface ReauthenticationEmailProps {
   token: string
+  customHeading?: string
+  customBodyText?: string
+  customFooterText?: string
 }
 
 const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
 
-export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
+export const ReauthenticationEmail = ({
+  token,
+  customHeading,
+  customBodyText,
+  customFooterText,
+}: ReauthenticationEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head />
     <Preview>Ваш код подтверждения ReAge</Preview>
     <Body style={main}>
       <Container style={container}>
         <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>Код подтверждения</Heading>
-        <Text style={text}>Используйте код ниже для подтверждения вашей личности:</Text>
+        <Heading style={h1}>{customHeading || 'Код подтверждения'}</Heading>
+        <Text style={text}>{customBodyText || 'Используйте код ниже для подтверждения вашей личности:'}</Text>
         <Text style={codeStyle}>{token}</Text>
         <Text style={footer}>
-          Код действителен ограниченное время. Если вы не запрашивали его, проигнорируйте это письмо.
+          {customFooterText || 'Код действителен ограниченное время. Если вы не запрашивали его, проигнорируйте это письмо.'}
         </Text>
       </Container>
     </Body>
