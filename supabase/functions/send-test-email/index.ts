@@ -1,49 +1,8 @@
-import * as React from 'npm:react@18.3.1';
-import { renderAsync } from 'npm:@react-email/components@0.0.22';
-import { sendLovableEmail } from 'npm:@lovable.dev/email-js';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.79.0';
-import { SignupEmail } from '../_shared/email-templates/signup.tsx';
-import { InviteEmail } from '../_shared/email-templates/invite.tsx';
-import { MagicLinkEmail } from '../_shared/email-templates/magic-link.tsx';
-import { RecoveryEmail } from '../_shared/email-templates/recovery.tsx';
-import { EmailChangeEmail } from '../_shared/email-templates/email-change.tsx';
-import { ReauthenticationEmail } from '../_shared/email-templates/reauthentication.tsx';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-
-const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
-  signup: SignupEmail,
-  invite: InviteEmail,
-  magiclink: MagicLinkEmail,
-  recovery: RecoveryEmail,
-  email_change: EmailChangeEmail,
-  reauthentication: ReauthenticationEmail,
-};
-
-const DEFAULT_SUBJECTS: Record<string, string> = {
-  signup: 'Подтвердите ваш email',
-  invite: 'Вас пригласили в ReAge',
-  magiclink: 'Ссылка для входа в ReAge',
-  recovery: 'Сброс пароля ReAge',
-  email_change: 'Подтвердите смену email в ReAge',
-  reauthentication: 'Ваш код подтверждения ReAge',
-};
-
-const SITE_NAME = 'reage';
-const ROOT_DOMAIN = 'reage.life';
-const SENDER_DOMAIN = 'notify.reage.life';
-const SAMPLE_URL = 'https://reage.lovable.app/auth';
-
-// Map template_type to generateLink type
-const LINK_TYPE_MAP: Record<string, string> = {
-  signup: 'signup',
-  recovery: 'recovery',
-  magiclink: 'magiclink',
-  invite: 'invite',
-  email_change: 'email_change',
 };
 
 Deno.serve(async (req) => {
@@ -106,83 +65,85 @@ Deno.serve(async (req) => {
     }
 
     const type = template_type || 'recovery';
-    const EmailTemplate = EMAIL_TEMPLATES[type];
-    if (!EmailTemplate) {
-      return new Response(JSON.stringify({ error: `Unknown template type: ${type}` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const redirectUrl = 'https://reage.lovable.app/auth';
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
+    let actualType = type;
+    let warning = '';
+
+    switch (type) {
+      case 'signup': {
+        // Try signup with anon key (service role auto-confirms, bypassing the hook)
+        const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': anonKey,
+            'Authorization': `Bearer ${anonKey}`,
+          },
+          body: JSON.stringify({ email, password: crypto.randomUUID() }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.code === 'user_already_exists' || data.msg === '422: User already registered') {
+          // User exists — send magiclink instead (closest to "confirmation" flow)
+          const { error } = await supabaseAdmin.auth.signInWithOtp({ email });
+          if (error) throw error;
+          actualType = 'magiclink';
+          warning = 'Пользователь уже существует — отправлен шаблон «Magic Link». Для теста регистрации используйте незарегистрированный email.';
+        }
+        break;
+      }
+
+      case 'recovery': {
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+        if (error) throw error;
+        break;
+      }
+
+      case 'magiclink': {
+        const { error } = await supabaseAdmin.auth.signInWithOtp({ email });
+        if (error) throw error;
+        break;
+      }
+
+      case 'invite': {
+        const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: redirectUrl });
+        if (error) {
+          // User exists — send magiclink instead
+          const { error: fallbackError } = await supabaseAdmin.auth.signInWithOtp({ email });
+          if (fallbackError) throw fallbackError;
+          actualType = 'magiclink';
+          warning = 'Пользователь уже существует — отправлен шаблон «Magic Link». Для теста приглашения используйте незарегистрированный email.';
+        }
+        break;
+      }
+
+      case 'email_change': {
+        // Can't trigger email_change externally, use magiclink as closest alternative
+        const { error } = await supabaseAdmin.auth.signInWithOtp({ email });
+        if (error) throw error;
+        actualType = 'magiclink';
+        warning = 'Тип «Смена email» нельзя отправить тестово — отправлен шаблон «Magic Link».';
+        break;
+      }
+
+      case 'reauthentication': {
+        // Can't trigger reauthentication externally, use recovery
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+        if (error) throw error;
+        actualType = 'recovery';
+        warning = 'Тип «Код подтверждения» нельзя отправить тестово — отправлен шаблон «Восстановление пароля».';
+        break;
+      }
+
+      default: {
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+        if (error) throw error;
+        actualType = 'recovery';
+      }
     }
-
-    // Fetch custom template content and sender settings from DB
-    const [templateData, senderData] = await Promise.all([
-      supabaseAdmin
-        .from('email_templates')
-        .select('subject, heading, body_text, button_label, footer_text')
-        .eq('template_type', type)
-        .maybeSingle(),
-      supabaseAdmin
-        .from('email_sender_settings')
-        .select('sender_name, sender_email, sender_domain')
-        .limit(1)
-        .maybeSingle(),
-    ]);
-
-    const dbTemplate = templateData.data;
-    const senderSettings = senderData.data;
-
-    const senderName = senderSettings?.sender_name || SITE_NAME;
-    const senderEmail = senderSettings?.sender_email || 'noreply';
-    const senderDomain = senderSettings?.sender_domain || SENDER_DOMAIN;
-
-    const customProps: Record<string, string> = {};
-    if (dbTemplate) {
-      if (dbTemplate.heading) customProps.customHeading = dbTemplate.heading;
-      if (dbTemplate.body_text) customProps.customBodyText = dbTemplate.body_text;
-      if (dbTemplate.button_label) customProps.customButtonLabel = dbTemplate.button_label;
-      if (dbTemplate.footer_text) customProps.customFooterText = dbTemplate.footer_text;
-    }
-
-    const emailSubject = dbTemplate?.subject || DEFAULT_SUBJECTS[type] || 'Тестовое письмо';
-
-    // Build template props with sample data
-    const templateProps: Record<string, any> = {
-      siteName: SITE_NAME,
-      siteUrl: `https://${ROOT_DOMAIN}`,
-      recipient: email,
-      confirmationUrl: SAMPLE_URL,
-      token: '123456',
-      email: email,
-      newEmail: 'new-' + email,
-      ...customProps,
-    };
-
-    // Render template
-    const html = await renderAsync(React.createElement(EmailTemplate, templateProps));
-    const text = await renderAsync(React.createElement(EmailTemplate, templateProps), { plainText: true });
-
-    // Send via Lovable Email API
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const result = await sendLovableEmail(
-      {
-        run_id: `test_${crypto.randomUUID()}`,
-        to: email,
-        from: `${senderName} <${senderEmail}@${senderDomain}>`,
-        sender_domain: SENDER_DOMAIN,
-        subject: `[Тест] ${emailSubject}`,
-        html,
-        text,
-        purpose: 'transactional',
-      },
-      { apiKey }
-    );
 
     const tabLabels: Record<string, string> = {
       signup: 'Регистрация',
@@ -193,13 +154,13 @@ Deno.serve(async (req) => {
       reauthentication: 'Код подтверждения',
     };
 
-    console.log(`Test email (${type}) sent directly to: ${email}`, { message_id: result.message_id });
+    console.log(`Test email (${type}) sent to: ${email}${actualType !== type ? ` (actual: ${actualType})` : ''}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Тестовое письмо «${tabLabels[type] || type}» отправлено на ${email}`,
-        actual_type: type,
+        message: warning || `Тестовое письмо «${tabLabels[type] || type}» отправлено на ${email}`,
+        actual_type: actualType,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
