@@ -793,118 +793,36 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     // Ждем завершения всех категорий
     await Promise.all(categoryPromises);
 
-    // Формируем общее резюме на основе всех отчетов
-    let summaryReport = "";
-    try {
-      const allReportsText = Object.entries(categoryReports).map(([cat, report]) => 
-        `=== ${cat} ===\n${report.substring(0, 5000)}${report.length > 5000 ? '...' : ''}`
-      ).join("\n\n");
+    // ====== ГЕНЕРАЦИЯ НАЗНАЧЕНИЙ (ДО РЕЗЮМЕ, чтобы резюме могло на них ссылаться) ======
+    console.log("All category reports saved. Starting prescriptions generation...");
 
-      const summaryUserPromptTemplate = prompts['summary_user'];
-      
-      if (!summaryUserPromptTemplate) {
-        console.error("Summary user prompt not found in database");
-        throw new Error("Промпт для общего резюме не найден в настройках");
-      }
-
-      const summaryPrompt = summaryUserPromptTemplate
-        .replace(/{userContext}/g, userContext)
-        .replace(/{allReportsText}/g, allReportsText);
-
-      const summarySystemPrompt = prompts['summary_system'];
-      
-      if (!summarySystemPrompt) {
-        console.error("Summary system prompt not found in database");
-        throw new Error("Системный промпт для общего резюме не найден в настройках");
-      }
-
-      const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${lovableApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: summarySystemPrompt
-            },
-            {
-              role: "user",
-              content: summaryPrompt
-            }
-          ],
-          max_completion_tokens: 16000
-        }),
-      });
-
-      if (summaryResponse.ok) {
-        const summaryData = await summaryResponse.json();
-        const summaryFinishReason = summaryData.choices[0].finish_reason;
-        summaryReport = summaryData.choices[0].message.content;
-        const summaryPromptTokens = summaryData.usage?.prompt_tokens || 0;
-        const summaryCompletionTokens = summaryData.usage?.completion_tokens || 0;
-        const summaryTokens = summaryData.usage?.total_tokens || 0;
-        const summaryContentLen = summaryReport?.length || 0;
-        
-        console.log(`Summary: finish_reason=${summaryFinishReason}, prompt_tokens=${summaryPromptTokens}, completion_tokens=${summaryCompletionTokens}, total_tokens=${summaryTokens}, content_length=${summaryContentLen}`);
-        
-        // Проверка на обрыв резюме
-        if (summaryFinishReason === "length") {
-          console.warn("WARNING: Summary was truncated at token limit");
-          summaryReport += "\n\n[⚠️ ВНИМАНИЕ: Резюме было сокращено из-за ограничения по длине. Рекомендуется перегенерировать.]";
-        }
-        
-        totalTokens += summaryTokens;
-      } else {
-        console.error("Failed to generate summary");
-        summaryReport = "Не удалось сгенерировать общее резюме";
-      }
-    } catch (error: any) {
-      console.error("Error generating summary:", error);
-      summaryReport = "Ошибка при генерации общего резюме";
-    }
-
-    // Сохраняем только Общее резюме (Данные пациента и категории уже сохранены выше)
-    let prescriptionRecommendationId: string | null = null;
-
-    if (summaryReport) {
-      const { data: summaryInserted, error: summaryInsertError } = await supabase
-        .from("recommendations")
-        .insert({
-          user_id: analysis.user_id,
-          analysis_id: analysisId,
-          type: "Общее резюме",
-          text: summaryReport
-        })
-        .select("id")
-        .single();
-
-      if (summaryInsertError) {
-        console.error("Error inserting summary:", summaryInsertError);
-      } else {
-        prescriptionRecommendationId = summaryInserted?.id || null;
-        console.log(`Saved: Общее резюме (id: ${prescriptionRecommendationId})`);
-      }
-    }
-
-    console.log("All recommendations saved. Starting prescriptions generation...");
-
-    // Генерация назначений
     let prescriptionsCreated = 0;
     let prescriptionsStatus = "skipped";
+    let prescriptionsToCreateFinal: Array<{ prescription: string; reason: string; effect: string; duration_months: number }> = [];
+
+    // Извлекаем рекомендательные секции из отчётов (между anchor:actions_start и anchor:actions_end)
+    const categoryRecommendations = Object.entries(categoryReports)
+      .map(([category, report]) => {
+        const recStart = report.indexOf('<!-- anchor:actions_start -->');
+        const recEnd = report.indexOf('<!-- anchor:actions_end -->');
+        if (recStart !== -1 && recEnd !== -1 && recEnd > recStart) {
+          const recContent = report.substring(recStart + '<!-- anchor:actions_start -->'.length, recEnd).trim();
+          if (recContent) return `${category}:\n${recContent}`;
+        }
+        const actionMatch = report.match(/#{2,3}\s+🎯[^\n]*\n([\s\S]*?)(?=\n#{2,3}\s+|$)/);
+        if (actionMatch) return `${category}:\n${actionMatch[1].trim()}`;
+        return null;
+      })
+      .filter(Boolean)
+      .join('\n\n---\n\n');
 
     try {
-      // Загружаем промпты для назначений
       const prescriptionsSystemPrompt = promptSettings?.find(p => p.key === 'prescriptions_system');
       const prescriptionsUserPrompt = promptSettings?.find(p => p.key === 'prescriptions_user');
 
       if (!prescriptionsSystemPrompt || !prescriptionsUserPrompt) {
         console.log("Prescriptions prompts not found, skipping prescriptions generation");
       } else {
-        // Собираем аномальные биомаркеры (risk + critical) с учётом возрастных и гендерных диапазонов
         const prescPatientGender = profile?.gender === 'male' ? 'male' : profile?.gender === 'female' ? 'female' : null;
         
         const abnormalBiomarkers = analysis.analysis_values
@@ -914,7 +832,6 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             let critMin = av.biomarkers.critical_min;
             let critMax = av.biomarkers.critical_max;
             
-            // 1. Check age_ranges first (only if range_mode is 'age')
             if (age && prescPatientGender && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges && av.biomarkers.age_ranges[prescPatientGender]) {
               const ageRange = av.biomarkers.age_ranges[prescPatientGender].find(
                 (r: any) => age >= r.age_from && age <= r.age_to
@@ -927,7 +844,6 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               }
             }
             
-            // 2. Fallback to gender-specific ranges
             if (normalMin === null && prescPatientGender === 'male' && av.biomarkers.normal_min_male !== null) {
               normalMin = av.biomarkers.normal_min_male;
               normalMax = av.biomarkers.normal_max_male;
@@ -985,29 +901,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           })
           .join('\n');
 
-        // Извлекаем ключевые находки из сгенерированных отчетов (3000 символов на категорию)
         const keyFindings = Object.entries(categoryReports)
           .map(([category, report]) => `${category}: ${report.substring(0, 3000)}...`)
           .join('\n\n');
 
-        // Извлекаем рекомендательные секции из отчётов (между anchor:recommendations_start и anchor:recommendations_end)
-        const categoryRecommendations = Object.entries(categoryReports)
-          .map(([category, report]) => {
-            const recStart = report.indexOf('<!-- anchor:actions_start -->');
-            const recEnd = report.indexOf('<!-- anchor:actions_end -->');
-            if (recStart !== -1 && recEnd !== -1 && recEnd > recStart) {
-              const recContent = report.substring(recStart + '<!-- anchor:actions_start -->'.length, recEnd).trim();
-              if (recContent) return `${category}:\n${recContent}`;
-            }
-            // Fallback: ищем секцию с рекомендациями по заголовку
-            const actionMatch = report.match(/#{2,3}\s+🎯[^\n]*\n([\s\S]*?)(?=\n#{2,3}\s+|$)/);
-            if (actionMatch) return `${category}:\n${actionMatch[1].trim()}`;
-            return null;
-          })
-          .filter(Boolean)
-          .join('\n\n---\n\n');
-
-        // Формируем финальный промпт
         const finalPrescriptionsPrompt = prescriptionsUserPrompt.prompt_text
           .replace('{userContext}', userContext)
           .replace('{keyFindings}', keyFindings)
@@ -1015,9 +912,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .replace('{allBiomarkers}', globalBiomarkersSummary)
           .replace('{categoryRecommendations}', categoryRecommendations || 'Нет извлечённых рекомендаций');
 
-        console.log("Starting prescriptions generation...");
+        console.log("Starting prescriptions AI call...");
 
-        // Вызываем AI для генерации назначений (без tool calling, только JSON)
         const prescriptionsResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -1043,10 +939,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           const prescriptionsData = await prescriptionsResponse.json();
           const content = prescriptionsData.choices?.[0]?.message?.content || "";
           
-          console.log(`Got model content snippet: ${content.substring(0, 200)}...`);
+          console.log(`Got prescriptions content snippet: ${content.substring(0, 200)}...`);
 
           try {
-            // Извлекаем JSON из ответа
             const jsonStart = content.indexOf('{');
             const jsonEnd = content.lastIndexOf('}') + 1;
             if (jsonStart === -1 || jsonEnd <= jsonStart) {
@@ -1055,10 +950,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             
             const jsonStr = content.substring(jsonStart, jsonEnd);
             const parsed = JSON.parse(jsonStr);
-            let prescriptionsToCreate = parsed.prescriptions || [];
-            
-            // Валидация и очистка данных
-            prescriptionsToCreate = prescriptionsToCreate
+            prescriptionsToCreateFinal = (parsed.prescriptions || [])
               .filter((p: any) => p.prescription && p.prescription.trim())
               .map((p: any) => ({
                 prescription: p.prescription.trim().substring(0, 5000),
@@ -1067,44 +959,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
               }));
             
-            console.log(`Parsed ${prescriptionsToCreate.length} valid prescriptions`);
-            
-            // Сохраняем назначения в БД
-            if (prescriptionsToCreate.length > 0) {
-              const analysisDate = new Date(analysis.date);
-              
-              for (const prescription of prescriptionsToCreate) {
-                const controlDate = new Date(analysisDate);
-                controlDate.setMonth(controlDate.getMonth() + prescription.duration_months);
-                
-                const { error: prescriptionError } = await supabase
-                  .from("prescriptions")
-                  .insert({
-                    user_id: analysis.user_id,
-                    analysis_id: analysisId,
-                    recommendation_id: prescriptionRecommendationId,
-                    prescription: prescription.prescription,
-                    reason: prescription.reason,
-                    effect: prescription.effect,
-                    control_date: controlDate.toISOString().split('T')[0],
-                    status: "on_review",
-                    is_archived: false,
-                    created_by: null
-                  });
-                
-                if (prescriptionError) {
-                  console.error("Error creating prescription:", prescriptionError);
-                } else {
-                  prescriptionsCreated++;
-                }
-              }
-              
-              prescriptionsStatus = "success";
-              console.log(`Successfully created ${prescriptionsCreated} prescriptions in database`);
-            } else {
-              prescriptionsStatus = "success";
-              console.log("No prescriptions were needed based on analysis");
-            }
+            console.log(`Parsed ${prescriptionsToCreateFinal.length} valid prescriptions`);
+            prescriptionsStatus = "success";
           } catch (parseError) {
             console.error("Failed to parse prescriptions JSON:", parseError, "Content:", content);
             prescriptionsStatus = "error";
@@ -1118,7 +974,145 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     } catch (error: any) {
       console.error("Error generating prescriptions:", error);
       prescriptionsStatus = "error";
-      // Не блокируем основной анализ при ошибке генерации назначений
+    }
+
+    // ====== ФОРМИРУЕМ ОБЩЕЕ РЕЗЮМЕ (ПОСЛЕ НАЗНАЧЕНИЙ — видит конкретные назначения) ======
+    let summaryReport = "";
+    try {
+      const allReportsText = Object.entries(categoryReports).map(([cat, report]) => 
+        `=== ${cat} ===\n${report.substring(0, 8000)}${report.length > 8000 ? '...' : ''}`
+      ).join("\n\n");
+
+      // Формируем список назначений для передачи в резюме
+      const prescriptionsList = prescriptionsToCreateFinal.length > 0
+        ? prescriptionsToCreateFinal.map((p, i) => `${i + 1}. ${p.prescription} — ${p.reason}`).join('\n')
+        : 'Назначения не сгенерированы';
+
+      const summaryUserPromptTemplate = prompts['summary_user'];
+      
+      if (!summaryUserPromptTemplate) {
+        console.error("Summary user prompt not found in database");
+        throw new Error("Промпт для общего резюме не найден в настройках");
+      }
+
+      const summaryPrompt = summaryUserPromptTemplate
+        .replace(/{userContext}/g, userContext)
+        .replace(/{allReportsText}/g, allReportsText)
+        .replace(/{globalBiomarkers}/g, globalBiomarkersSummary)
+        .replace(/{categoryRecommendations}/g, categoryRecommendations || 'Нет извлечённых рекомендаций')
+        .replace(/{prescriptionsList}/g, prescriptionsList);
+
+      const summarySystemPrompt = prompts['summary_system'];
+      
+      if (!summarySystemPrompt) {
+        console.error("Summary system prompt not found in database");
+        throw new Error("Системный промпт для общего резюме не найден в настройках");
+      }
+
+      const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: summarySystemPrompt
+            },
+            {
+              role: "user",
+              content: summaryPrompt
+            }
+          ],
+          max_completion_tokens: 16000
+        }),
+      });
+
+      if (summaryResponse.ok) {
+        const summaryData = await summaryResponse.json();
+        const summaryFinishReason = summaryData.choices[0].finish_reason;
+        summaryReport = summaryData.choices[0].message.content;
+        const summaryPromptTokens = summaryData.usage?.prompt_tokens || 0;
+        const summaryCompletionTokens = summaryData.usage?.completion_tokens || 0;
+        const summaryTokens = summaryData.usage?.total_tokens || 0;
+        const summaryContentLen = summaryReport?.length || 0;
+        
+        console.log(`Summary: finish_reason=${summaryFinishReason}, prompt_tokens=${summaryPromptTokens}, completion_tokens=${summaryCompletionTokens}, total_tokens=${summaryTokens}, content_length=${summaryContentLen}`);
+        
+        if (summaryFinishReason === "length") {
+          console.warn("WARNING: Summary was truncated at token limit");
+          summaryReport += "\n\n[⚠️ ВНИМАНИЕ: Резюме было сокращено из-за ограничения по длине. Рекомендуется перегенерировать.]";
+        }
+        
+        totalTokens += summaryTokens;
+      } else {
+        console.error("Failed to generate summary");
+        summaryReport = "Не удалось сгенерировать общее резюме";
+      }
+    } catch (error: any) {
+      console.error("Error generating summary:", error);
+      summaryReport = "Ошибка при генерации общего резюме";
+    }
+
+    // Сохраняем Общее резюме
+    let prescriptionRecommendationId: string | null = null;
+
+    if (summaryReport) {
+      const { data: summaryInserted, error: summaryInsertError } = await supabase
+        .from("recommendations")
+        .insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: "Общее резюме",
+          text: summaryReport
+        })
+        .select("id")
+        .single();
+
+      if (summaryInsertError) {
+        console.error("Error inserting summary:", summaryInsertError);
+      } else {
+        prescriptionRecommendationId = summaryInserted?.id || null;
+        console.log(`Saved: Общее резюме (id: ${prescriptionRecommendationId})`);
+      }
+    }
+
+    // Сохраняем назначения в БД (после резюме, чтобы иметь prescriptionRecommendationId)
+    if (prescriptionsToCreateFinal.length > 0) {
+      const analysisDate = new Date(analysis.date);
+      
+      for (const prescription of prescriptionsToCreateFinal) {
+        const controlDate = new Date(analysisDate);
+        controlDate.setMonth(controlDate.getMonth() + prescription.duration_months);
+        
+        const { error: prescriptionError } = await supabase
+          .from("prescriptions")
+          .insert({
+            user_id: analysis.user_id,
+            analysis_id: analysisId,
+            recommendation_id: prescriptionRecommendationId,
+            prescription: prescription.prescription,
+            reason: prescription.reason,
+            effect: prescription.effect,
+            control_date: controlDate.toISOString().split('T')[0],
+            status: "on_review",
+            is_archived: false,
+            created_by: null
+          });
+        
+        if (prescriptionError) {
+          console.error("Error creating prescription:", prescriptionError);
+        } else {
+          prescriptionsCreated++;
+        }
+      }
+      
+      console.log(`Successfully created ${prescriptionsCreated} prescriptions in database`);
+    } else if (prescriptionsStatus === "success") {
+      console.log("No prescriptions were needed based on analysis");
     }
 
     // ============== STANDARDIZED BIOLOGICAL AGE CALCULATION ==============
