@@ -14,6 +14,8 @@ import { useScheduledBookingsCount } from "@/hooks/useScheduledBookingsCount";
 import { useMyAssignmentsCount } from "@/hooks/useMyAssignmentsCount";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEmailConfirmation } from "@/hooks/useEmailConfirmation";
+import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -51,6 +53,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { data: roleData, isLoading: isLoadingRoles } = useUserRole();
   const { data: scheduledCount = 0 } = useScheduledBookingsCount();
   const { data: myAssignmentsCount = 0 } = useMyAssignmentsCount();
+  const { data: emailStatus } = useEmailConfirmation();
   const [patientName, setPatientName] = useState<string>("");
   const [patientEmail, setPatientEmail] = useState<string>("");
 
@@ -141,9 +144,22 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {viewAsUserId ? patientEmail : userEmail}
-                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <p className="text-xs text-muted-foreground truncate">
+                    {viewAsUserId ? patientEmail : userEmail}
+                  </p>
+                  {!viewAsUserId && emailStatus && !emailStatus.isConfirmed && (
+                    <EmailConfirmationBadge
+                      email={emailStatus.email || userEmail}
+                      isConfirmed={false}
+                      allowEmailChange={true}
+                      onEmailChanged={() => queryClient.invalidateQueries({ queryKey: ["email-confirmation-status"] })}
+                    />
+                  )}
+                  {!viewAsUserId && emailStatus?.isConfirmed && (
+                    <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
+                  )}
+                </div>
                 <p className="text-xs text-primary/70 font-medium mt-0.5">
                   {viewAsUserId ? "Пациент" : userRole}
                 </p>
