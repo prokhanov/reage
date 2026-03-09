@@ -1,4 +1,4 @@
-import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle, ChevronLeft, ChevronRight, Target } from "lucide-react";
+import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle, ChevronLeft, ChevronRight, Target, Mail } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,7 @@ const adminNavItems = [
   { to: "/admin/subscription-plans", label: "Управление тарифами", icon: CreditCard, requiresSuperAdmin: true },
   { to: "/admin/report-visuals", label: "Визуалы отчёта", icon: Eye, requiresSuperAdmin: true },
   { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings },
+  { to: "/admin/email-settings", label: "Email рассылки", icon: Mail, requiresSuperAdmin: true },
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical },
 ];
 
