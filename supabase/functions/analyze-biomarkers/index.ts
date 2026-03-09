@@ -791,7 +791,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     let summaryReport = "";
     try {
       const allReportsText = Object.entries(categoryReports).map(([cat, report]) => 
-        `=== ${cat} ===\n${report.substring(0, 2000)}...`
+        `=== ${cat} ===\n${report.substring(0, 5000)}${report.length > 5000 ? '...' : ''}`
       ).join("\n\n");
 
       const summaryUserPromptTemplate = prompts['summary_user'];
