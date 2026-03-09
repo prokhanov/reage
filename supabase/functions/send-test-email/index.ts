@@ -76,13 +76,14 @@ Deno.serve(async (req) => {
     // Use actual email-sending Auth API endpoints (not generateLink which doesn't send)
     switch (type) {
       case 'signup': {
-        // Try to sign up — this sends confirmation email for new users
+        // Use anon key so the normal email confirmation flow triggers (service role auto-confirms)
+        const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
         const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': serviceRoleKey,
-            'Authorization': `Bearer ${serviceRoleKey}`,
+            'apikey': anonKey,
+            'Authorization': `Bearer ${anonKey}`,
           },
           body: JSON.stringify({ email, password: crypto.randomUUID() }),
         });
