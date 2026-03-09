@@ -647,7 +647,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .replace(/{biomarkersText}/g, biomarkersText)
           .replace(/{biomarkers}/g, biomarkersText)
           .replace(/{trends}/g, getCategoryTrends(category))
-          .replace(/{recommendations}/g, getCategoryRecommendations(category));
+          .replace(/{recommendations}/g, getCategoryRecommendations(category))
+          + "\n\n" + globalBiomarkersContext;
 
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
