@@ -1548,6 +1548,13 @@ export type Database = {
           total_capacity: number
         }[]
       }
+      get_users_email_confirmed: {
+        Args: { user_ids: string[] }
+        Returns: {
+          email_confirmed_at: string
+          user_id: string
+        }[]
+      }
       has_admin_permission: {
         Args: {
           _module: Database["public"]["Enums"]["admin_module"]
