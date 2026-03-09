@@ -19,14 +19,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabase = createClient(
+    // Verify caller identity
+    const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       { global: { headers: { Authorization: authHeader } } }
     );
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -35,13 +36,13 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
+    // Check superadmin
     const { data: roles } = await supabaseAdmin
       .from('user_roles')
       .select('role')
@@ -66,67 +67,57 @@ Deno.serve(async (req) => {
 
     const type = template_type || 'recovery';
     const redirectUrl = 'https://reage.lovable.app/auth';
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    let sendError: any = null;
     let actualType = type;
     let warning = '';
 
+    // Use actual email-sending Auth API endpoints (not generateLink which doesn't send)
     switch (type) {
       case 'signup': {
-        const { error } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'signup',
-          email,
-          password: crypto.randomUUID(), // temp password for link generation
-          options: { redirectTo: redirectUrl },
+        // Try to sign up — this sends confirmation email for new users
+        const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': serviceRoleKey,
+            'Authorization': `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({ email, password: crypto.randomUUID() }),
         });
-        if (error) {
-          // User exists — can't send signup, send recovery instead and note it
-          const { error: fallbackError } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'recovery',
-            email,
-            options: { redirectTo: redirectUrl },
-          });
-          sendError = fallbackError;
+        const data = await res.json();
+        
+        if (!res.ok || data.code === 'user_already_exists' || data.code === 'email_exists') {
+          // User exists — fall back to recovery
+          const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+          if (error) throw error;
           actualType = 'recovery';
-          warning = 'Пользователь уже существует — отправлен шаблон «Восстановление пароля». Для теста шаблона регистрации используйте email, не зарегистрированный в системе.';
+          warning = 'Пользователь уже существует — отправлен шаблон «Восстановление пароля». Для теста регистрации используйте незарегистрированный email.';
         }
         break;
       }
 
       case 'recovery': {
-        const { error } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'recovery',
-          email,
-          options: { redirectTo: redirectUrl },
-        });
-        sendError = error;
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+        if (error) throw error;
         break;
       }
 
       case 'magiclink': {
-        const { error } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'magiclink',
-          email,
-        });
-        sendError = error;
+        const { error } = await supabaseAdmin.auth.signInWithOtp({ email });
+        if (error) throw error;
         break;
       }
 
       case 'invite': {
-        const { error } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'invite',
-          email,
-          options: { redirectTo: redirectUrl },
-        });
+        const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: redirectUrl });
         if (error) {
-          const { error: fallbackError } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'recovery',
-            email,
-            options: { redirectTo: redirectUrl },
-          });
-          sendError = fallbackError;
+          // User exists — fall back to recovery
+          const { error: fallbackError } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+          if (fallbackError) throw fallbackError;
           actualType = 'recovery';
-          warning = 'Пользователь уже существует — отправлен шаблон «Восстановление пароля». Для теста шаблона приглашения используйте email, не зарегистрированный в системе.';
+          warning = 'Пользователь уже существует — отправлен шаблон «Восстановление пароля». Для теста приглашения используйте незарегистрированный email.';
         }
         break;
       }
@@ -134,12 +125,9 @@ Deno.serve(async (req) => {
       case 'email_change':
       case 'reauthentication':
       default: {
-        const { error } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'recovery',
-          email,
-          options: { redirectTo: redirectUrl },
-        });
-        sendError = error;
+        // These can't be triggered externally, use recovery
+        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+        if (error) throw error;
         actualType = 'recovery';
         if (type !== 'recovery') {
           warning = `Тип «${type}» нельзя отправить тестово — отправлен шаблон «Восстановление пароля».`;
@@ -147,19 +135,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (sendError) {
-      console.error('Error sending test email:', sendError);
-      return new Response(JSON.stringify({ error: sendError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     console.log(`Test email (${type}) sent to: ${email}${actualType !== type ? ` (actual: ${actualType})` : ''}`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: warning || `Тестовое письмо «${type}» отправлено на ${email}`,
         actual_type: actualType,
       }),
