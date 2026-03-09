@@ -144,9 +144,22 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {viewAsUserId ? patientEmail : userEmail}
-                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <p className="text-xs text-muted-foreground truncate">
+                    {viewAsUserId ? patientEmail : userEmail}
+                  </p>
+                  {!viewAsUserId && emailStatus && !emailStatus.isConfirmed && (
+                    <EmailConfirmationBadge
+                      email={emailStatus.email || userEmail}
+                      isConfirmed={false}
+                      allowEmailChange={true}
+                      onEmailChanged={() => queryClient.invalidateQueries({ queryKey: ["email-confirmation-status"] })}
+                    />
+                  )}
+                  {!viewAsUserId && emailStatus?.isConfirmed && (
+                    <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
+                  )}
+                </div>
                 <p className="text-xs text-primary/70 font-medium mt-0.5">
                   {viewAsUserId ? "Пациент" : userRole}
                 </p>
