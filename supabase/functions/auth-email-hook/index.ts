@@ -226,8 +226,29 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  const emailType = payload.data.action_type
+  let emailType = payload.data.action_type
   console.log('Received auth event', { emailType, email: payload.data.email, run_id })
+
+  // Check if there's a test override for this email (from send-test-email function)
+  try {
+    const supabase = getSupabaseAdmin()
+    if (supabase) {
+      const { data: override } = await supabase
+        .from('test_email_overrides')
+        .select('template_type')
+        .eq('email', payload.data.email)
+        .maybeSingle()
+
+      if (override?.template_type) {
+        console.log(`Test override found: rendering "${override.template_type}" instead of "${emailType}"`)
+        emailType = override.template_type
+        // Delete the override (one-time use)
+        await supabase.from('test_email_overrides').delete().eq('email', payload.data.email)
+      }
+    }
+  } catch (err) {
+    console.error('Error checking test override:', err)
+  }
 
   const EmailTemplate = EMAIL_TEMPLATES[emailType]
   if (!EmailTemplate) {

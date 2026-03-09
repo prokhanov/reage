@@ -19,7 +19,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify caller identity
     const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -66,83 +65,20 @@ Deno.serve(async (req) => {
 
     const type = template_type || 'recovery';
     const redirectUrl = 'https://reage.lovable.app/auth';
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 
-    let actualType = type;
-    let warning = '';
+    // Step 1: Write desired template type to override table
+    // This tells auth-email-hook to render THIS template regardless of actual auth event type
+    await supabaseAdmin
+      .from('test_email_overrides')
+      .upsert({ email, template_type: type }, { onConflict: 'email' });
 
-    switch (type) {
-      case 'signup': {
-        // Try signup with anon key (service role auto-confirms, bypassing the hook)
-        const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': anonKey,
-            'Authorization': `Bearer ${anonKey}`,
-          },
-          body: JSON.stringify({ email, password: crypto.randomUUID() }),
-        });
-        const data = await res.json();
-
-        if (!res.ok || data.code === 'user_already_exists' || data.msg === '422: User already registered') {
-          // User exists — send magiclink instead (closest to "confirmation" flow)
-          const { error } = await supabaseAdmin.auth.signInWithOtp({ email });
-          if (error) throw error;
-          actualType = 'magiclink';
-          warning = 'Пользователь уже существует — отправлен шаблон «Magic Link». Для теста регистрации используйте незарегистрированный email.';
-        }
-        break;
-      }
-
-      case 'recovery': {
-        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
-        if (error) throw error;
-        break;
-      }
-
-      case 'magiclink': {
-        const { error } = await supabaseAdmin.auth.signInWithOtp({ email });
-        if (error) throw error;
-        break;
-      }
-
-      case 'invite': {
-        const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: redirectUrl });
-        if (error) {
-          // User exists — send magiclink instead
-          const { error: fallbackError } = await supabaseAdmin.auth.signInWithOtp({ email });
-          if (fallbackError) throw fallbackError;
-          actualType = 'magiclink';
-          warning = 'Пользователь уже существует — отправлен шаблон «Magic Link». Для теста приглашения используйте незарегистрированный email.';
-        }
-        break;
-      }
-
-      case 'email_change': {
-        // Can't trigger email_change externally, use magiclink as closest alternative
-        const { error } = await supabaseAdmin.auth.signInWithOtp({ email });
-        if (error) throw error;
-        actualType = 'magiclink';
-        warning = 'Тип «Смена email» нельзя отправить тестово — отправлен шаблон «Magic Link».';
-        break;
-      }
-
-      case 'reauthentication': {
-        // Can't trigger reauthentication externally, use recovery
-        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
-        if (error) throw error;
-        actualType = 'recovery';
-        warning = 'Тип «Код подтверждения» нельзя отправить тестово — отправлен шаблон «Восстановление пароля».';
-        break;
-      }
-
-      default: {
-        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
-        if (error) throw error;
-        actualType = 'recovery';
-      }
+    // Step 2: Always trigger recovery — it works for any existing user
+    // The auth-email-hook will check test_email_overrides and render the correct template
+    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+    if (error) {
+      // Clean up override on failure
+      await supabaseAdmin.from('test_email_overrides').delete().eq('email', email);
+      throw error;
     }
 
     const tabLabels: Record<string, string> = {
@@ -154,13 +90,12 @@ Deno.serve(async (req) => {
       reauthentication: 'Код подтверждения',
     };
 
-    console.log(`Test email (${type}) sent to: ${email}${actualType !== type ? ` (actual: ${actualType})` : ''}`);
+    console.log(`Test email (${type}) sent to: ${email}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: warning || `Тестовое письмо «${tabLabels[type] || type}» отправлено на ${email}`,
-        actual_type: actualType,
+        message: `Тестовое письмо «${tabLabels[type] || type}» отправлено на ${email}`,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
