@@ -568,6 +568,33 @@ export type Database = {
         }
         Relationships: []
       }
+      email_sender_settings: {
+        Row: {
+          id: string
+          sender_domain: string
+          sender_email: string
+          sender_name: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          sender_domain?: string
+          sender_email?: string
+          sender_name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          sender_domain?: string
+          sender_email?: string
+          sender_name?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           body_text: string
