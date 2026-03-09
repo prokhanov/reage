@@ -216,22 +216,9 @@ export default function Patients() {
       // Фильтруем: показываем только пациентов
       const patientsList = profilesWithStats.filter(p => p.role === "patient");
 
-      // Fetch email confirmation status for all patients
-      const patientIds = patientsList.map(p => p.id);
-      let confirmationMap: Record<string, boolean> = {};
-      if (patientIds.length > 0) {
-        const { data: confirmationData } = await supabase.rpc('get_users_email_confirmed', {
-          user_ids: patientIds
-        });
-        confirmationMap = (confirmationData || []).reduce((acc: Record<string, boolean>, row: any) => {
-          acc[row.user_id] = !!row.email_confirmed_at;
-          return acc;
-        }, {});
-      }
-
       return patientsList.map(p => ({
         ...p,
-        emailConfirmed: confirmationMap[p.id] ?? false,
+        emailConfirmed: p.email_verified === true,
       }));
     },
   });

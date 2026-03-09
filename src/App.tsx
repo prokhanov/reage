@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { useEmailVerificationHandler } from "@/hooks/useEmailVerificationHandler";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
@@ -54,12 +55,18 @@ const queryClient = new QueryClient({
   },
 });
 
+function EmailVerificationListener() {
+  useEmailVerificationHandler();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <EmailVerificationListener />
         <BrowserRouter>
           <Routes>
             {/* Public routes */}

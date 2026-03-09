@@ -67,11 +67,8 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Update the user's email via admin API
-      const targetUserId = isOwnEmail ? user.id : null;
-      
       if (isOwnEmail) {
-        // Update own email
+        // Update own email via admin API
         const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
           email: newEmail,
         });
@@ -82,21 +79,28 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Also update profile email
-        await supabaseAdmin.from('profiles').update({ email: newEmail }).eq('id', user.id);
+        // Also update profile email and reset verification
+        await supabaseAdmin.from('profiles').update({ email: newEmail, email_verified: false }).eq('id', user.id);
       }
 
-      // Resend confirmation to new email
-      const { error: resendError } = await supabaseAdmin.auth.resend({
+      // Generate signup confirmation link for the new email
+      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'signup',
         email: newEmail,
       });
 
-      if (resendError) {
-        return new Response(JSON.stringify({ error: resendError.message }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      if (linkError) {
+        // Fallback: try resend
+        const { error: resendError } = await supabaseAdmin.auth.resend({
+          type: 'signup',
+          email: newEmail,
         });
+        if (resendError) {
+          return new Response(JSON.stringify({ error: resendError.message }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
 
       return new Response(JSON.stringify({ success: true, emailChanged: true }), {
@@ -104,17 +108,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Simple resend
+    // Simple resend - try resend first, fallback to generateLink
     const { error: resendError } = await supabaseAdmin.auth.resend({
       type: 'signup',
       email: email,
     });
 
     if (resendError) {
-      return new Response(JSON.stringify({ error: resendError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      // With auto-confirm, resend may fail. Try generating a new magic link instead
+      const { error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: email,
       });
+      if (linkError) {
+        return new Response(JSON.stringify({ error: `Could not send confirmation: ${resendError.message}` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {

@@ -983,6 +983,7 @@ export type Database = {
           created_at: string
           demo_mode_enabled: boolean | null
           email: string | null
+          email_verified: boolean | null
           first_name: string
           gender: string
           height: number | null
@@ -999,6 +1000,7 @@ export type Database = {
           created_at?: string
           demo_mode_enabled?: boolean | null
           email?: string | null
+          email_verified?: boolean | null
           first_name: string
           gender: string
           height?: number | null
@@ -1015,6 +1017,7 @@ export type Database = {
           created_at?: string
           demo_mode_enabled?: boolean | null
           email?: string | null
+          email_verified?: boolean | null
           first_name?: string
           gender?: string
           height?: number | null
