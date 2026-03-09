@@ -641,14 +641,20 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         `.trim();
 
         // Подставляем данные в шаблон
-        const categoryPrompt = userPromptTemplate
+        let categoryPrompt = userPromptTemplate
           .replace(/{userContext}/g, userContext)
           .replace(/{category}/g, category)
           .replace(/{biomarkersText}/g, biomarkersText)
           .replace(/{biomarkers}/g, biomarkersText)
           .replace(/{trends}/g, getCategoryTrends(category))
-          .replace(/{recommendations}/g, getCategoryRecommendations(category))
-          + "\n\n" + globalBiomarkersContext;
+          .replace(/{recommendations}/g, getCategoryRecommendations(category));
+        
+        // Подставляем глобальный контекст биомаркеров через плейсхолдер или fallback
+        if (categoryPrompt.includes("{globalBiomarkers}")) {
+          categoryPrompt = categoryPrompt.replace(/{globalBiomarkers}/g, globalBiomarkersContext);
+        } else {
+          categoryPrompt += "\n\n" + globalBiomarkersContext;
+        }
 
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
@@ -823,7 +829,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           messages: [
             {
               role: "system",
-              content: summarySystemPrompt + "\n\nВАЖНО: Твоё резюме ДОЛЖНО быть согласовано с детальными разделами. Если в разделе по эндокринной системе выявлены проблемы — не пиши в резюме, что всё в порядке. Используй выводы из каждого раздела как источник истины. Не противоречь детальным разделам."
+              content: summarySystemPrompt
             },
             {
               role: "user",
