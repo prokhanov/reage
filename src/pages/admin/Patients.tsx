@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe, Trash2, RefreshCw } from "lucide-react";
+import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import {
   Table,
   TableBody,
@@ -213,9 +214,25 @@ export default function Patients() {
       );
 
       // Фильтруем: показываем только пациентов
-      return profilesWithStats.filter(p => {
-        return p.role === "patient";
-      });
+      const patientsList = profilesWithStats.filter(p => p.role === "patient");
+
+      // Fetch email confirmation status for all patients
+      const patientIds = patientsList.map(p => p.id);
+      let confirmationMap: Record<string, boolean> = {};
+      if (patientIds.length > 0) {
+        const { data: confirmationData } = await supabase.rpc('get_users_email_confirmed', {
+          user_ids: patientIds
+        });
+        confirmationMap = (confirmationData || []).reduce((acc: Record<string, boolean>, row: any) => {
+          acc[row.user_id] = !!row.email_confirmed_at;
+          return acc;
+        }, {});
+      }
+
+      return patientsList.map(p => ({
+        ...p,
+        emailConfirmed: confirmationMap[p.id] ?? false,
+      }));
     },
   });
 
@@ -422,6 +439,10 @@ export default function Patients() {
                               <div className="flex items-center gap-2">
                                 <Mail className="w-4 h-4 text-muted-foreground" />
                                 <span className="text-sm">{patient.email}</span>
+                                <EmailConfirmationBadge
+                                  email={patient.email}
+                                  isConfirmed={patient.emailConfirmed}
+                                />
                               </div>
                             ) : (
                               <span className="text-muted-foreground">—</span>

@@ -1,64 +1,29 @@
 
 
-## Plan: Email Confirmation Status in Admin UI
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-### Problem
-Admin pages (Patients, UserManagement) don't show whether a user's email is confirmed. Need to display confirmation status with a badge/icon, and allow resending confirmation emails.
+## Что сделано
 
-### Key Challenge
-`email_confirmed_at` lives in `auth.users` (not accessible from client SDK). Need a server-side solution to expose this data.
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-### Approach
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-**1. Create a database function (SECURITY DEFINER) to get email confirmation status**
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-A function `get_users_email_confirmed` that accepts an array of user IDs, queries `auth.users` for `email_confirmed_at`, and returns the results. Only accessible to staff/superadmins.
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-```sql
-CREATE OR REPLACE FUNCTION public.get_users_email_confirmed(user_ids uuid[])
-RETURNS TABLE(user_id uuid, email_confirmed_at timestamptz)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
-AS $$
-  SELECT au.id, au.email_confirmed_at
-  FROM auth.users au
-  WHERE au.id = ANY(user_ids)
-$$;
-```
+**ESR:** optimal_min_male/female → NULL
 
-**2. Create an edge function `resend-confirmation` to resend confirmation email**
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
-- Accepts `{ email }` in body
-- Uses `supabaseAdmin.auth.resend({ type: 'signup', email })` to resend the confirmation
-- Checks caller is superadmin/admin
-
-**3. Create `EmailConfirmationBadge` component**
-
-- If confirmed: small green checkmark icon (CheckCircle) next to email, with tooltip "Email подтвержден"
-- If not confirmed: orange "Не подтверждён" badge, clickable
-- On click: opens dialog with:
-  - Current email display
-  - Input to change email (optional)
-  - "Отправить повторно" button that calls the edge function
-  - Brief instructions
-
-**4. Update Patients page (`src/pages/admin/Patients.tsx`)**
-
-- After fetching patients, call `get_users_email_confirmed` RPC with all patient IDs
-- Pass confirmation status to email column
-- Show `EmailConfirmationBadge` next to email
-
-**5. Update UserManagement page (`src/pages/admin/UserManagement.tsx`)**
-
-- Same approach for active users (not pending)
-- Add email column to the table if not present, or show badge next to user name
-
-### Files to Create/Modify
-
-| File | Action |
-|------|--------|
-| Migration SQL | Create `get_users_email_confirmed` function |
-| `supabase/functions/resend-confirmation/index.ts` | New edge function |
-| `src/components/admin/EmailConfirmationBadge.tsx` | New component (badge + dialog) |
-| `src/pages/admin/Patients.tsx` | Fetch confirmation status, show badge in email column |
-| `src/pages/admin/UserManagement.tsx` | Add email column with confirmation badge |
-
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.

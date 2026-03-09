@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2, RefreshCw, CheckCircle, Eye } from "lucide-react";
+import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -133,6 +134,19 @@ export default function UserManagement() {
         permissionsMap[userId] = Array.from(permissionsMap[userId]);
       });
 
+      // Fetch email confirmation status for active users
+      const activeIds = (profiles || []).map(p => p.id);
+      let confirmationMap: Record<string, boolean> = {};
+      if (activeIds.length > 0) {
+        const { data: confirmationData } = await supabase.rpc('get_users_email_confirmed', {
+          user_ids: activeIds
+        });
+        confirmationMap = (confirmationData || []).reduce((acc: Record<string, boolean>, row: any) => {
+          acc[row.user_id] = !!row.email_confirmed_at;
+          return acc;
+        }, {});
+      }
+
       const activeUsers = (profiles || []).map((profile) => {
         const userRoleData = rolesMap[profile.id] || { role: "user", custom_role: null, hasCustomRole: false };
 
@@ -144,6 +158,7 @@ export default function UserManagement() {
           permissions: permissionsMap[profile.id] || [],
           status: "active" as const,
           type: "active" as const,
+          emailConfirmed: confirmationMap[profile.id] ?? false,
         };
       });
 
@@ -543,6 +558,7 @@ export default function UserManagement() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Пользователь</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>Роль</TableHead>
                         <TableHead>Статус</TableHead>
                         <TableHead>Доступы к модулям</TableHead>
@@ -583,6 +599,21 @@ export default function UserManagement() {
                                   </p>
                                 </div>
                               </div>
+                            </TableCell>
+                            <TableCell>
+                              {user.email ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm">{user.email}</span>
+                                  {user.type === "active" && (
+                                    <EmailConfirmationBadge
+                                      email={user.email}
+                                      isConfirmed={(user as any).emailConfirmed}
+                                    />
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               {user.custom_role ? (
