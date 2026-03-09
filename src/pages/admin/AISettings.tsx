@@ -410,14 +410,13 @@ export default function AISettings() {
         )}
 
         {/* Раздел: Промпты разделов отчёта */}
-        {filteredReportPrompts.length > 0 && (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Промпты разделов отчёта</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Промпты для генерации ключевых разделов финального отчёта: назначения и общее резюме
-            </p>
-            <Accordion type="multiple" className="space-y-4">
-              {filteredReportPrompts.map((rp) => (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Промпты разделов отчёта</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Промпты для генерации всех разделов отчёта: назначения, резюме, контекст биомаркеров и категории
+          </p>
+          <Accordion type="multiple" className="space-y-4">
+            {filteredReportPrompts.map((rp) => (
                 <AccordionItem 
                   key={rp.section.id} 
                   value={rp.section.id}
