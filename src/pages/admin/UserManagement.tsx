@@ -602,13 +602,23 @@ export default function UserManagement() {
                             </TableCell>
                             <TableCell>
                               {user.email ? (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm">{user.email}</span>
-                                  {user.type === "active" && (
-                                    <EmailConfirmationBadge
-                                      email={user.email}
-                                      isConfirmed={(user as any).emailConfirmed}
-                                    />
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm">{user.email}</span>
+                                    {user.type === "active" && (user as any).emailConfirmed && (
+                                      <EmailConfirmationBadge
+                                        email={user.email}
+                                        isConfirmed={true}
+                                      />
+                                    )}
+                                  </div>
+                                  {user.type === "active" && !(user as any).emailConfirmed && (
+                                    <div className="mt-1">
+                                      <EmailConfirmationBadge
+                                        email={user.email}
+                                        isConfirmed={false}
+                                      />
+                                    </div>
                                   )}
                                 </div>
                               ) : (
