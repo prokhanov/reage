@@ -238,8 +238,11 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // Fetch custom content from DB
-  const dbTemplate = await fetchCustomTemplate(emailType)
+  // Fetch custom content and sender settings from DB
+  const [dbTemplate, senderSettings] = await Promise.all([
+    fetchCustomTemplate(emailType),
+    fetchSenderSettings(),
+  ])
   const customProps = buildCustomProps(dbTemplate)
   const emailSubject = dbTemplate?.subject || DEFAULT_SUBJECTS[emailType] || 'Notification'
 
@@ -271,7 +274,7 @@ async function handleWebhook(req: Request): Promise<Response> {
       {
         run_id,
         to: payload.data.email,
-        from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+        from: `${senderSettings.name} <${senderSettings.email}@${senderSettings.domain}>`,
         sender_domain: SENDER_DOMAIN,
         subject: emailSubject,
         html,
