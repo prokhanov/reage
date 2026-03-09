@@ -75,7 +75,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const retryFetch = async <T>(fn: () => Promise<{ data: T; error: any }>, retries = 3): Promise<{ data: T; error: any }> => {
+  const retryFetch = async <T,>(fn: () => Promise<{ data: T; error: any }>, retries = 3): Promise<{ data: T; error: any }> => {
     for (let i = 0; i < retries; i++) {
       const result = await fn();
       if (result.error && result.error.message?.includes("Load failed") && i < retries - 1) {
