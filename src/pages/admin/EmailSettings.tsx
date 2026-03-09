@@ -30,12 +30,12 @@ const TEMPLATE_TABS = [
 ];
 
 const TEST_NOTES: Record<string, string> = {
-  signup: "Отправит письмо с шаблоном регистрации (тестовые ссылки)",
-  recovery: "Отправит письмо с шаблоном сброса пароля",
-  magiclink: "Отправит письмо с шаблоном magic link",
-  invite: "Отправит письмо с шаблоном приглашения",
-  email_change: "Отправит письмо с шаблоном смены email",
-  reauthentication: "Отправит письмо с шаблоном кода подтверждения",
+  signup: "Для нового email — регистрация. Для существующего — восстановление пароля",
+  recovery: "Будет отправлено письмо сброса пароля",
+  magiclink: "Будет отправлена magic link для входа",
+  invite: "Для нового email — приглашение. Для существующего — восстановление пароля",
+  email_change: "Будет отправлено как восстановление пароля (тестовая отправка)",
+  reauthentication: "Будет отправлено как восстановление пароля (тестовая отправка)",
 };
 
 export default function EmailSettings() {
@@ -176,7 +176,8 @@ export default function EmailSettings() {
       if (data?.error) throw new Error(data.error);
 
       const tabLabel = TEMPLATE_TABS.find(t => t.type === activeTab)?.label || activeTab;
-      setLastResult({ success: true, message: `Тестовое письмо «${tabLabel}» отправлено на ${testEmail}` });
+      const message = data?.message || `Тестовое письмо «${tabLabel}» отправлено на ${testEmail}`;
+      setLastResult({ success: true, message });
       toast({ title: "Успешно", description: `Тестовое письмо отправлено на ${testEmail}` });
     } catch (error: any) {
       const message = error.message || "Не удалось отправить тестовое письмо";
