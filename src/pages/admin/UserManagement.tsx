@@ -601,6 +601,21 @@ export default function UserManagement() {
                               </div>
                             </TableCell>
                             <TableCell>
+                              {user.email ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm">{user.email}</span>
+                                  {user.type === "active" && (
+                                    <EmailConfirmationBadge
+                                      email={user.email}
+                                      isConfirmed={(user as any).emailConfirmed}
+                                    />
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
                               {user.custom_role ? (
                                 <Badge variant={user.role === "superadmin" ? "destructive" : "default"}>
                                   {user.custom_role.display_name}
