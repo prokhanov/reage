@@ -1402,6 +1402,24 @@ export type Database = {
         }
         Relationships: []
       }
+      test_email_overrides: {
+        Row: {
+          created_at: string
+          email: string
+          template_type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          template_type: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          template_type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
