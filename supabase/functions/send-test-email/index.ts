@@ -68,40 +68,100 @@ Deno.serve(async (req) => {
     const redirectUrl = 'https://reage.lovable.app/auth';
 
     let sendError: any = null;
+    let actualType = type;
 
-    // For all template types, use resetPasswordForEmail as it reliably triggers
-    // the auth-email-hook for any existing user. The hook will use the template
-    // content from the DB regardless of the auth event type.
-    // For signup of new users, try generateLink first.
-    if (type === 'signup') {
-      const { error } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'signup',
-        email,
-        options: { redirectTo: redirectUrl },
-      });
-      if (error) {
-        // User exists — fall back to recovery which always works
-        const { error: fallbackError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectUrl,
+    // Each type triggers the matching auth action so auth-email-hook 
+    // receives the correct event type and renders the right template
+    switch (type) {
+      case 'signup': {
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'signup',
+          email,
+          options: { redirectTo: redirectUrl },
         });
-        sendError = fallbackError;
+        if (error) {
+          // For existing users, signup link can't be generated.
+          // Use magiclink as closest alternative (also a "login" flow)
+          const { error: mlError } = await supabaseAdmin.auth.admin.generateLink({
+            type: 'magiclink',
+            email,
+          });
+          sendError = mlError;
+          actualType = 'magiclink';
+        }
+        break;
       }
-    } else if (type === 'invite') {
-      const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-        redirectTo: redirectUrl,
-      });
-      if (error) {
-        const { error: fallbackError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectUrl,
+
+      case 'recovery': {
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'recovery',
+          email,
+          options: { redirectTo: redirectUrl },
         });
-        sendError = fallbackError;
+        sendError = error;
+        break;
       }
-    } else {
-      // recovery, magiclink, email_change, reauthentication — all use recovery
-      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
-      });
-      sendError = error;
+
+      case 'magiclink': {
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'magiclink',
+          email,
+        });
+        sendError = error;
+        break;
+      }
+
+      case 'invite': {
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'invite',
+          email,
+          options: { redirectTo: redirectUrl },
+        });
+        if (error) {
+          // Existing user can't be re-invited, use magiclink
+          const { error: mlError } = await supabaseAdmin.auth.admin.generateLink({
+            type: 'magiclink',
+            email,
+          });
+          sendError = mlError;
+          actualType = 'magiclink';
+        }
+        break;
+      }
+
+      case 'email_change': {
+        // email_change can't be triggered externally, closest is recovery
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'recovery',
+          email,
+          options: { redirectTo: redirectUrl },
+        });
+        sendError = error;
+        actualType = 'recovery';
+        break;
+      }
+
+      case 'reauthentication': {
+        // reauthentication can't be triggered externally, closest is recovery
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'recovery',
+          email,
+          options: { redirectTo: redirectUrl },
+        });
+        sendError = error;
+        actualType = 'recovery';
+        break;
+      }
+
+      default: {
+        const { error } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'recovery',
+          email,
+          options: { redirectTo: redirectUrl },
+        });
+        sendError = error;
+        actualType = 'recovery';
+      }
     }
 
     if (sendError) {
@@ -112,10 +172,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Test email (${type}) sent to: ${email}`);
+    console.log(`Test email (${type}) sent to: ${email}${actualType !== type ? ` (actual: ${actualType})` : ''}`);
+
+    const warning = actualType !== type
+      ? ` (отправлен как «${actualType}», т.к. «${type}» нельзя вызвать для этого пользователя)`
+      : '';
 
     return new Response(
-      JSON.stringify({ success: true, message: `Test email (${type}) sent to ${email}` }),
+      JSON.stringify({ 
+        success: true, 
+        message: `Тестовое письмо отправлено на ${email}${warning}`,
+        actual_type: actualType,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
