@@ -994,7 +994,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const finalPrescriptionsPrompt = prescriptionsUserPrompt.prompt_text
           .replace('{userContext}', userContext)
           .replace('{keyFindings}', keyFindings)
-          .replace('{abnormalBiomarkers}', abnormalBiomarkers || 'Все показатели в пределах нормы');
+          .replace('{abnormalBiomarkers}', abnormalBiomarkers || 'Все показатели в пределах нормы')
+          .replace('{allBiomarkers}', globalBiomarkersSummary);
 
         console.log("Starting prescriptions generation...");
 
