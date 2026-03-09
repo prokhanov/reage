@@ -134,6 +134,19 @@ export default function UserManagement() {
         permissionsMap[userId] = Array.from(permissionsMap[userId]);
       });
 
+      // Fetch email confirmation status for active users
+      const activeIds = (profiles || []).map(p => p.id);
+      let confirmationMap: Record<string, boolean> = {};
+      if (activeIds.length > 0) {
+        const { data: confirmationData } = await supabase.rpc('get_users_email_confirmed', {
+          user_ids: activeIds
+        });
+        confirmationMap = (confirmationData || []).reduce((acc: Record<string, boolean>, row: any) => {
+          acc[row.user_id] = !!row.email_confirmed_at;
+          return acc;
+        }, {});
+      }
+
       const activeUsers = (profiles || []).map((profile) => {
         const userRoleData = rolesMap[profile.id] || { role: "user", custom_role: null, hasCustomRole: false };
 
@@ -145,6 +158,7 @@ export default function UserManagement() {
           permissions: permissionsMap[profile.id] || [],
           status: "active" as const,
           type: "active" as const,
+          emailConfirmed: confirmationMap[profile.id] ?? false,
         };
       });
 
