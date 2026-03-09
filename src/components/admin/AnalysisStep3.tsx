@@ -25,7 +25,7 @@ export function AnalysisStep3({ data, onChange }: AnalysisStep3Props) {
           htmlFor="generateReport"
           className="text-base font-medium cursor-pointer"
         >
-          Сгенерировать AI-отчет
+          Сгенерировать персональный отчет
         </Label>
       </div>
 
