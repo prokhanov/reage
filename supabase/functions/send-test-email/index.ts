@@ -71,13 +71,21 @@ Deno.serve(async (req) => {
 
     switch (type) {
       case 'signup': {
-        // Signup = send OTP signup email
         const { error } = await supabaseAdmin.auth.admin.generateLink({
           type: 'signup',
           email,
           options: { redirectTo: redirectUrl },
         });
-        sendError = error;
+        if (error?.code === 'email_exists') {
+          // User already exists — fall back to magic link to still trigger the email hook
+          const { error: fallbackError } = await supabaseAdmin.auth.signInWithOtp({
+            email,
+            options: { shouldCreateUser: false },
+          });
+          sendError = fallbackError;
+        } else {
+          sendError = error;
+        }
         break;
       }
       case 'recovery': {
@@ -99,23 +107,25 @@ Deno.serve(async (req) => {
         const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
           redirectTo: redirectUrl,
         });
-        sendError = error;
+        if (error?.code === 'email_exists') {
+          const { error: fallbackError } = await supabaseAdmin.auth.signInWithOtp({
+            email,
+            options: { shouldCreateUser: false },
+          });
+          sendError = fallbackError;
+        } else {
+          sendError = error;
+        }
         break;
       }
       case 'email_change':
-      case 'reauthentication': {
-        // These can't be triggered externally easily, fall back to recovery
-        const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-          redirectTo: redirectUrl,
-        });
-        sendError = error;
-        break;
-      }
+      case 'reauthentication':
       default: {
         const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
           redirectTo: redirectUrl,
         });
         sendError = error;
+        break;
       }
     }
 
