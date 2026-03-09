@@ -66,10 +66,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Use Supabase Auth to send a magic link as a test email
-    const { error: sendError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email,
+    // Use resetPasswordForEmail to actually trigger email delivery
+    const { error: sendError } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+      redirectTo: `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app') || 'https://reage.lovable.app'}/auth`,
     });
 
     if (sendError) {
