@@ -178,7 +178,7 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
               <div className="flex items-center gap-3 mb-4">
                 <Icon className="w-6 h-6 text-white" />
                 <span className="text-white/70 text-sm font-medium uppercase tracking-widest">
-                  Система {index + 1}/5
+                  Система {index + 1}/6
                 </span>
               </div>
               
