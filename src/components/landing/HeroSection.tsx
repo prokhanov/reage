@@ -70,15 +70,15 @@ export function HeroSection() {
                 }}
               >
                 <div
-                  className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-card/20 border border-border/10 backdrop-blur-sm shadow-md animate-fade-in opacity-50"
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border border-primary/10 animate-fade-in opacity-30"
                   style={{ animationDelay: `${0.4 + i * 0.1}s` }}
                 >
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-[18px] h-[18px] text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-primary/40" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-foreground leading-none">{card.value}</div>
-                    <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">{card.label}</div>
+                    <div className="text-xs font-semibold text-foreground/40 leading-none">{card.value}</div>
+                    <div className="text-[10px] text-muted-foreground/40 leading-tight mt-0.5">{card.label}</div>
                   </div>
                 </div>
               </div>
