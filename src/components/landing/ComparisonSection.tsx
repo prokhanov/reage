@@ -159,18 +159,38 @@ export function ComparisonSection() {
 
 }
 
+function MobileComparisonCard({ feature, reage, labs, genetics }: ComparisonRowProps) {
+  const renderMobileValue = (value: boolean | string, label: string, isHighlight?: boolean) => {
+    const display = typeof value === "string" ? value :
+      value ? <Check className={`w-4 h-4 ${isHighlight ? "text-primary" : "text-muted-foreground"}`} /> :
+      <X className="w-4 h-4 text-muted-foreground/40" />;
+
+    return (
+      <div className="flex items-center justify-between py-1.5">
+        <span className="text-sm text-muted-foreground">{label}</span>
+        <span className={`text-sm font-medium ${isHighlight ? "text-primary" : "text-foreground"}`}>{display}</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="rounded-xl bg-card/50 border border-border/50 p-4">
+      <h4 className="font-medium text-foreground mb-3">{feature}</h4>
+      <div className="space-y-1">
+        {renderMobileValue(reage, "ReAge", true)}
+        {renderMobileValue(labs, "Лаборатории")}
+        {renderMobileValue(genetics, "Генетика")}
+      </div>
+    </div>
+  );
+}
+
 function DifferentiatorCard({
   emoji,
   title,
   description,
   isHighlighted,
   delay
-
-
-
-
-
-
 }: {emoji: string;title: string;description: string;isHighlighted?: boolean;delay: number;}) {
   return (
     <div
@@ -191,5 +211,4 @@ function DifferentiatorCard({
         {description}
       </p>
     </div>);
-
 }
