@@ -160,6 +160,38 @@ export function HeroSection() {
         />
       </div>
 
+      {/* Parallax floating stat cards — dark glassmorphic */}
+      {!isMobile && (
+        <div className="absolute inset-0 pointer-events-none z-[1]">
+          {floatingCardsData.map((card, i) => {
+            const yOffset = scrollY * card.speed;
+            return (
+              <div
+                key={i}
+                className="absolute"
+                style={{
+                  left: card.x,
+                  top: card.y,
+                  transform: `translateY(${yOffset}px) rotate(${card.rotate}deg)`,
+                  willChange: 'transform',
+                }}
+              >
+                <div
+                  className="px-4 py-3.5 rounded-2xl border animate-fade-in opacity-[0.15]"
+                  style={{
+                    animationDelay: `${0.4 + i * 0.1}s`,
+                    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.75) 100%)',
+                    borderColor: 'rgba(148, 163, 184, 0.15)',
+                    boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {card.content}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Logo */}
       <ThemedLogo className="absolute top-4 left-8 z-10 h-20 w-auto animate-hue-shift" />
