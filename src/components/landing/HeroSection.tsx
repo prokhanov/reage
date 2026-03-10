@@ -8,14 +8,14 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 
 const floatingCards = [
-  { icon: Heart, value: "62", label: "уд/мин", x: "-2%", y: "10%", speed: 0.15, rotate: -6 },
-  { icon: Droplets, value: "5.2", label: "ммоль/л", x: "88%", y: "6%", speed: 0.22, rotate: 4 },
-  { icon: Brain, value: "98%", label: "когнитив", x: "-4%", y: "45%", speed: 0.12, rotate: -3 },
-  { icon: Shield, value: "Норма", label: "иммунитет", x: "90%", y: "42%", speed: 0.18, rotate: 5 },
-  { icon: TrendingUp, value: "+12%", label: "прогресс", x: "-1%", y: "78%", speed: 0.25, rotate: -8 },
-  { icon: Dna, value: "32", label: "био-возраст", x: "87%", y: "76%", speed: 0.2, rotate: 7 },
-  { icon: Zap, value: "8.4", label: "энергия", x: "85%", y: "24%", speed: 0.16, rotate: -5 },
-  { icon: Eye, value: "1.2", label: "D3 мкг/л", x: "1%", y: "28%", speed: 0.19, rotate: 3 },
+  { icon: Heart, value: "62", label: "уд/мин", x: "6%", y: "14%", speed: 0.15, rotate: -6 },
+  { icon: Droplets, value: "5.2", label: "ммоль/л", x: "80%", y: "8%", speed: 0.22, rotate: 4 },
+  { icon: Brain, value: "98%", label: "когнитив", x: "2%", y: "52%", speed: 0.12, rotate: -3 },
+  { icon: Shield, value: "Норма", label: "иммунитет", x: "86%", y: "46%", speed: 0.18, rotate: 5 },
+  { icon: TrendingUp, value: "+12%", label: "прогресс", x: "4%", y: "82%", speed: 0.25, rotate: -8 },
+  { icon: Dna, value: "32", label: "био-возраст", x: "83%", y: "80%", speed: 0.2, rotate: 7 },
+  { icon: Zap, value: "8.4", label: "энергия", x: "76%", y: "28%", speed: 0.16, rotate: -5 },
+  { icon: Eye, value: "1.2", label: "D3 мкг/л", x: "12%", y: "34%", speed: 0.19, rotate: 3 },
 ];
 
 export function HeroSection() {
