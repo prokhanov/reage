@@ -70,9 +70,9 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <HeroSection />
+      <HowItWorksSection />
       {/* <PainPointsSection /> */}
       <WhyCheckupsFail />
-      <HowItWorksSection />
       
       <ReportShowcaseSection />
       <AppFeaturesSection />
