@@ -1,29 +1,47 @@
 
 
-# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
+## Проблема: два источника веса, отчёты берут устаревший
 
-## Что сделано
+### Как это работает сейчас
 
-### 1. Edge function `analyze-biomarkers/index.ts`
-- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
-- `range` при одностороннем диапазоне = 1 (не ломается)
-- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
-- `markerCount` фильтр обновлён аналогично
+Вес хранится в **двух местах**:
+1. **`profiles.weight`** — статичное поле, заполняется при регистрации и обновляется при добавлении веса через WeightTracker
+2. **`weight_history`** — таблица с историей измерений, каждая запись = одно взвешивание
 
-### 2. `BiomarkerRangeBar.tsx`
-- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
-- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
+**Дашборд (WeightTracker)** берёт последнюю запись из `weight_history` → показывает **51 кг**.
 
-### 3. Данные в БД (~25 маркеров)
-**optimal_max → NULL (выше = лучше):**
-TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
+**Админка (PatientProfile, PatientInfoDialog)** берёт `profiles.weight` → показывает **2 кг**.
 
-**optimal_min → NULL (ниже = лучше):**
-HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
+**Отчёты (analyze-biomarkers, analyze-risk-zones, health-assistant)** тоже берут `profiles.weight` → в отчёт попадает **2 кг**.
 
-**ESR:** optimal_min_male/female → NULL
+### Почему разошлись данные
 
-**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+Скорее всего, 2 кг было введено при регистрации (опечатка). Потом 51 кг добавили через WeightTracker или админом напрямую в `weight_history`, но `profiles.weight` не обновился (ошибка сохранения, или запись была вставлена напрямую в БД).
 
-### Бонусные баллы за "молодые" показатели
-Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
+WeightTracker при сохранении обновляет оба места, но если вес попал в `weight_history` другим путём (например, через админку или напрямую в БД), `profiles.weight` остаётся старым.
+
+### План исправления
+
+**1. Edge function `analyze-biomarkers/index.ts`** (~строки 114-118, 254-257, 315-317, 358-360)
+- После получения профиля — дополнительно запросить последний вес из `weight_history`
+- Использовать `latestWeight ?? profile.weight` для BMI и всех текстов отчёта
+
+**2. Edge function `analyze-risk-zones/index.ts`** (строка 78)
+- Уже загружает `weight_history` (строка 64), но НЕ использует
+- Заменить `profile?.weight` на `weightHistory[0]?.weight ?? profile?.weight` в строке 78
+
+**3. Edge function `health-assistant/index.ts`** (строка 231)
+- Добавить запрос `weight_history` (последняя запись)
+- Использовать `latestWeight ?? profile.weight`
+
+**4. Админка: `PatientProfile.tsx`** (строка 293) и `PatientInfoDialog.tsx`** (строка 330)
+- Загружать последний вес из `weight_history` и показывать его вместо `profiles.weight`
+
+**5. Исправить данные Алины**
+- SQL-миграция: обновить `profiles.weight` на актуальный вес из последней записи `weight_history` для всех пользователей, у которых эти значения расходятся
+
+**6. Добавить триггер синхронизации** (предотвращение повторения проблемы)
+- DB trigger на `weight_history` INSERT: автоматически обновляет `profiles.weight` последним значением
+
+### Итого: 3 edge functions + 2 UI-компонента + 1 миграция с триггером
+
