@@ -37,7 +37,7 @@ const steps = [
   },
   {
     icon: <TrendingUp className="w-7 h-7 text-white" />,
-    num: "04",
+    num: "4",
     title: "Отслеживаем изменения в динамике",
     items: [
       "Анализы повторяются 4 раза в год",
