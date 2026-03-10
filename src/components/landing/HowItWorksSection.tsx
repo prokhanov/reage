@@ -94,17 +94,6 @@ export function HowItWorksSection() {
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
-          <Button
-            size="lg"
-            onClick={() => navigate("/register")}
-            className="text-lg px-10 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
-          >
-            Начать мониторинг
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </div>
       </div>
     </section>
   );
