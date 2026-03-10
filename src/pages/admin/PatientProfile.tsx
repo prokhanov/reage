@@ -248,8 +248,9 @@ export default function PatientProfile() {
   }
 
   const age = profile.birth_date ? calculateAge(profile.birth_date) : null;
+  const displayWeight = latestWeight ?? (profile.weight ? Number(profile.weight) : null);
   const bmi = calculateBMI(
-    profile.weight ? Number(profile.weight) : null,
+    displayWeight,
     profile.height ? Number(profile.height) : null
   );
 
