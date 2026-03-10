@@ -177,7 +177,7 @@ export function HeroSection() {
                 }}
               >
                 <div
-                  className="px-4 py-3.5 rounded-2xl border animate-fade-in opacity-[0.15]"
+                  className="px-4 py-3.5 rounded-2xl border animate-fade-in opacity-[0.07]"
                   style={{
                     animationDelay: `${0.4 + i * 0.1}s`,
                     background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.75) 100%)',
