@@ -70,7 +70,7 @@ export function HeroSection() {
                 }}
               >
                 <div
-                  className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-card/30 border border-border/20 backdrop-blur-md shadow-lg animate-fade-in"
+                  className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-card/20 border border-border/10 backdrop-blur-sm shadow-md animate-fade-in opacity-50"
                   style={{ animationDelay: `${0.4 + i * 0.1}s` }}
                 >
                   <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
