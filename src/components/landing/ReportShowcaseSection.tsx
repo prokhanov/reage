@@ -208,7 +208,7 @@ export function ReportShowcaseSection() {
 
           {/* Right: Features and CTA */}
           <div className="space-y-8">
-            <div className="grid gap-6">
+            <div className="grid gap-3">
               {reportFeatures.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
