@@ -13,7 +13,6 @@ interface BiomarkerCategory {
 interface PricingCardProps {
   name: string;
   price: string;
-  yearPrice: string;
   period: string;
   description: string;
   biomarkers: string;
@@ -26,7 +25,7 @@ interface PricingCardProps {
   delay: number;
 }
 
-function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay }: PricingCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -59,7 +58,6 @@ function PricingCard({ name, price, yearPrice, period, description, biomarkers, 
             </span>
             <span className="text-muted-foreground">/{period}</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">(или {yearPrice}/год)</p>
         </div>
 
         {/* Key metrics */}
@@ -161,10 +159,9 @@ const premiumBiomarkers: BiomarkerCategory[] = [
 export function PricingSection() {
   const plans = [
   {
-    name: "Standard",
-    price: "10 000₽",
-    yearPrice: "120 000₽",
-    period: "мес",
+    name: "Базовый",
+    price: "75 000₽",
+    period: "год",
     description: "Базовый, но умный чек-ап. 46 показателей крови и мочи, которые показывают, как работает обмен веществ, сердце, печень, почки, гормоны и воспаление. Подходит для регулярного трекинга здоровья и раннего выявления рисков — до появления симптомов.",
     badge: "Старт",
     biomarkers: "30",
@@ -175,10 +172,9 @@ export function PricingSection() {
     delay: 0.1
   },
   {
-    name: "Plus",
-    price: "13 300₽",
-    yearPrice: "160 000₽",
-    period: "мес",
+    name: "Плюс",
+    price: "135 000₽",
+    period: "год",
     description: "Углублённый уровень поверх Стандарта. Добавляет расширенную оценку сердечно-сосудистых рисков, дефицитов, гормонального баланса и обмена железа — для более точного понимания причин усталости, снижения энергии и скрытых рисков.",
     badge: "Популярный",
     isPopular: true,
@@ -190,10 +186,9 @@ export function PricingSection() {
     delay: 0.2
   },
   {
-    name: "Premium",
-    price: "20 000₽",
-    yearPrice: "240 000₽",
-    period: "мес",
+    name: "Премиум",
+    price: "220 000₽",
+    period: "год",
     description: "Максимальный уровень глубины анализа. Дополняет Стандарт и Плюс оценкой митохондриальной функции, окислительного стресса, низкоуровневого воспаления и ранних изменений со стороны сердца — для тех, кто хочет понимать процессы старения на самом глубоком уровне.",
     badge: "VIP",
     biomarkers: "70+",
