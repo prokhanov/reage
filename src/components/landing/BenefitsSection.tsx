@@ -100,15 +100,12 @@ export function BenefitsSection() {
             <span className="text-sm font-medium text-primary">Что входит в сервис?</span>
           </div>
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Всё для </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
               управления здоровьем в одном сервисе  
             </span>
           </h2>
-          <p className="text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.15s' }}>
-            Выявляем 100+ рисков на ранней стадии, анализируя биомаркеры и находя скрытые угрозы до появления симптомов
-          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
