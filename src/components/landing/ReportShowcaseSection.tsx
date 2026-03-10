@@ -97,7 +97,7 @@ export function ReportShowcaseSection() {
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Ваш{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              персональный отчёт
+              персональный отчёт на понятном языке   
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
