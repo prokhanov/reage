@@ -45,7 +45,8 @@ export function ComparisonSection() {
   { feature: "Забор на дому", reage: true, labs: false, genetics: false },
   { feature: "Анализ систем организма", reage: "5 систем", labs: "Частично", genetics: "Риски" },
   { feature: "Персональный план", reage: true, labs: false, genetics: "Общий" },
-  { feature: "Время до результата", reage: "5 дней", labs: "1-3 дня", genetics: "2-4 недели" },
+  { feature: "Консультации врача", reage: true, labs: false, genetics: false },
+  { feature: "Учёт взаимосвязей", reage: true, labs: false, genetics: false },
   { feature: "Регулярный мониторинг", reage: true, labs: false, genetics: false },
   { feature: "Цена за год", reage: "от 75 000₽", labs: "~80 000₽*", genetics: "~80 000₽" }];
 
