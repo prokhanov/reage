@@ -78,7 +78,7 @@ export function HowItWorksSection() {
                   <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25">
                     {step.icon}
                   </div>
-                  <span className="text-5xl font-black bg-gradient-to-br from-primary/40 to-accent/30 bg-clip-text text-transparent"><span className="text-2xl font-bold">шаг</span> {step.num}</span>
+                  <span className="text-5xl font-black bg-gradient-to-br from-primary/40 to-accent/30 bg-clip-text text-transparent">Шаг {step.num}</span>
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">{step.title}</h3>
                 <ul className="space-y-2.5">
