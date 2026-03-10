@@ -244,7 +244,7 @@ export function PricingSection() {
         {/* Trust badges */}
         <div className="flex flex-wrap justify-center gap-6 mt-12 animate-fade-in" style={{ animationDelay: '0.5s' }}>
           <TrustBadge icon="🔒" text="Безопасная оплата" />
-          <TrustBadge icon="↩️" text="Возврат за 14 дней" />
+          
           
         </div>
       </div>
