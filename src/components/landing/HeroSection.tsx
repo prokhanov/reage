@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { ThemedLogo } from "@/components/ThemedLogo";
-import { HeroMetricsMarquee } from "@/components/landing/HeroMetricsMarquee";
+import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 export function HeroSection() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
