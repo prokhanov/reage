@@ -71,13 +71,11 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <HeroSection />
       <HowItWorksSection />
-      {/* <PainPointsSection /> */}
       <WhyCheckupsFail />
-      
-      <ReportShowcaseSection />
-      <AppFeaturesSection />
       <BenefitsSection />
       <BiomarkersDeepDiveSection />
+      <ReportShowcaseSection />
+      <AppFeaturesSection />
       <HealthRisksSection />
       <ComparisonSection />
       <StatsMarqueeSection />
