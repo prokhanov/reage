@@ -1,4 +1,4 @@
-import { Syringe, FileText, Stethoscope, TrendingUp, ArrowRight, ChevronRight } from "lucide-react";
+import { Syringe, FileText, Stethoscope, TrendingUp, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
