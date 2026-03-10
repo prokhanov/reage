@@ -58,7 +58,6 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
             </span>
             <span className="text-muted-foreground">/{period}</span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">(или {yearPrice}/год)</p>
         </div>
 
         {/* Key metrics */}
