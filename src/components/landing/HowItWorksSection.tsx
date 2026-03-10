@@ -1,36 +1,47 @@
-import { FlaskConical, FileText, UserCheck, ArrowRight, RefreshCw } from "lucide-react";
+import { Syringe, FileText, Stethoscope, TrendingUp, ArrowRight, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 const steps = [
   {
-    icon: <FlaskConical className="w-7 h-7 text-white" />,
-    title: "Сдаёте анализ",
+    icon: <Syringe className="w-7 h-7 text-white" />,
+    title: "Берём анализы у вас дома",
     items: [
       "Оформляете заявку онлайн",
-      "Медсестра приезжает к вам домой",
-      "Забор крови за 15 минут",
+      "Медсестра приезжает в удобное время",
+      "Забор крови занимает около 15 минут",
       "Материал доставляется в лабораторию",
     ],
   },
   {
     icon: <FileText className="w-7 h-7 text-white" />,
-    title: "Предоставляем отчёт",
+    title: "Готовим подробный медицинский отчёт",
     items: [
-      "Лаборатория исследует 85+ показателей",
-      "AI рассчитывает биологический возраст",
-      "Формируем отчёт по 5 системам организма",
-      "Результат готов через 5 дней",
+      "Лаборатория исследует более 85 показателей",
+      "Рассчитываем биологический возраст",
+      "Оцениваем состояние ключевых систем организма",
+      "Врач-эндокринолог анализирует результаты",
+      "Вы получаете подробный отчёт с полной расшифровкой показателей и объяснением их влияния на здоровье",
+    ],
+    footer: "Отчёт готовится в среднем за 5–7 дней",
+  },
+  {
+    icon: <Stethoscope className="w-7 h-7 text-white" />,
+    title: "Получаете конкретные рекомендации",
+    items: [
+      "Врач-эндокринолог формирует персональные рекомендации",
+      "Подбор витаминов и минералов при необходимости",
+      "Приоритетный план действий для улучшения показателей",
+      "Возможность задать вопросы врачу по результатам отчёта",
     ],
   },
   {
-    icon: <UserCheck className="w-7 h-7 text-white" />,
-    title: "Рассказываем что делать",
+    icon: <TrendingUp className="w-7 h-7 text-white" />,
+    title: "Отслеживаем изменения",
     items: [
-      "Персональные рекомендации от AI",
-      "Консультация с экспертом",
-      "План действий по приоритетам",
-      "Назначения и контроль выполнения",
+      "Повторные анализы проводятся 4 раза в год",
+      "Сравниваем показатели и отслеживаем динамику",
+      "Корректируем рекомендации по мере изменений",
     ],
   },
 ];
@@ -48,56 +59,47 @@ export function HowItWorksSection() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
-            <span className="text-sm font-medium text-primary">3 простых шага</span>
+            <span className="text-sm font-medium text-primary">4 простых шага</span>
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Как это </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">работает</span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            От записи до персонального плана действий — всего 5 дней
-          </p>
         </div>
 
-        {/* 3 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-16">
+        {/* 4 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5 mb-16">
           {steps.map((step, i) => (
             <div key={i} className="group relative animate-fade-in" style={{ animationDelay: `${0.1 + i * 0.1}s` }}>
               <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-b from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 p-8 transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-2">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25">
+              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 p-7 transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-2">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25">
                     {step.icon}
                   </div>
                   <span className="text-5xl font-black text-muted/20">0{i + 1}</span>
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground mb-5">{step.title}</h3>
-                <ul className="space-y-3">
+                <h3 className="text-lg md:text-xl font-bold text-foreground mb-4">{step.title}</h3>
+                <ul className="space-y-2.5">
                   {step.items.map((item, j) => (
-                    <li key={j} className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <li key={j} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                      <ChevronRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
+                {step.footer && (
+                  <div className="mt-4 pt-3 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground/70 italic">{step.footer}</p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Repeat cycle */}
-        <div className="relative rounded-3xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 p-8 md:p-10 text-center animate-fade-in" style={{ animationDelay: '0.5s' }}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/20">
-              <RefreshCw className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-xl md:text-2xl font-bold text-foreground">
-              Через 3 месяца — повторяем
-            </h3>
-          </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
-            Регулярный мониторинг позволяет отслеживать динамику, корректировать рекомендации и видеть реальный прогресс вашего здоровья.
-          </p>
+        {/* CTA */}
+        <div className="text-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
           <Button
             size="lg"
             onClick={() => navigate("/register")}
