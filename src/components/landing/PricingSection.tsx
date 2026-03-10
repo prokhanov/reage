@@ -13,7 +13,6 @@ interface BiomarkerCategory {
 interface PricingCardProps {
   name: string;
   price: string;
-  yearPrice: string;
   period: string;
   description: string;
   biomarkers: string;
