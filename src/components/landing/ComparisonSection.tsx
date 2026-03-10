@@ -79,55 +79,46 @@ export function ComparisonSection() {
           </p>
         </div>
 
-        {/* Desktop Comparison Table */}
-        <div className="hidden md:block max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          {/* Table Header */}
-          <div className="grid grid-cols-4 gap-4 mb-2">
-            <div />
-            
-            {/* ReAge Column Header */}
-            <div className="relative">
-              <div className="absolute -inset-2 -top-4 rounded-t-3xl bg-gradient-to-b from-primary/20 to-transparent" />
-              <div className="relative text-center py-6">
-                <div className="text-lg font-bold text-foreground">ReAge</div>
-                <div className="text-sm text-muted-foreground"></div>
+        {/* Comparison Table — horizontal scroll on mobile */}
+        <div className="max-w-4xl mx-auto animate-fade-in overflow-x-auto scrollbar-hide" style={{ animationDelay: '0.3s' }}>
+          <div className="min-w-[600px]">
+            {/* Table Header */}
+            <div className="grid grid-cols-4 gap-4 mb-2">
+              <div />
+              
+              {/* ReAge Column Header */}
+              <div className="relative">
+                <div className="absolute -inset-2 -top-4 rounded-t-3xl bg-gradient-to-b from-primary/20 to-transparent" />
+                <div className="relative text-center py-6">
+                  <div className="text-lg font-bold text-foreground">ReAge</div>
+                </div>
+              </div>
+              
+              {/* Labs Column Header */}
+              <div className="text-center py-6">
+                <div className="text-lg font-bold text-foreground">Лаборатории</div>
+              </div>
+              
+              {/* Genetics Column Header */}
+              <div className="text-center py-6">
+                <div className="text-lg font-bold text-foreground">Генетика</div>
               </div>
             </div>
-            
-            {/* Labs Column Header */}
-            <div className="text-center py-6">
-              <div className="text-lg font-bold text-foreground">Лаборатории</div>
-            </div>
-            
-            {/* Genetics Column Header */}
-            <div className="text-center py-6">
-              <div className="text-lg font-bold text-foreground">Генетика</div>
-            </div>
-          </div>
 
-          {/* Table Body */}
-          <div className="relative">
-            {/* Highlight column for ReAge */}
-            <div className="absolute left-1/4 right-1/2 -inset-y-4 bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25% - 0.5rem)', right: 'calc(50% + 0.5rem)' }} />
-            
-            <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
-              {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />
-              )}
+            {/* Table Body */}
+            <div className="relative">
+              {/* Highlight column for ReAge */}
+              <div className="absolute left-1/4 right-1/2 -inset-y-4 bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25% - 0.5rem)', right: 'calc(50% + 0.5rem)' }} />
+              
+              <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
+                {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />
+                )}
+              </div>
             </div>
           </div>
 
           {/* Footnote */}
           <p className="text-xs text-muted-foreground text-center mt-6">
-            * При регулярной сдаче расширенных панелей 4 раза в год
-          </p>
-        </div>
-
-        {/* Mobile Comparison Cards */}
-        <div className="md:hidden space-y-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          {comparisons.map((row, index) => (
-            <MobileComparisonCard key={index} {...row} />
-          ))}
-          <p className="text-xs text-muted-foreground text-center mt-4">
             * При регулярной сдаче расширенных панелей 4 раза в год
           </p>
         </div>
