@@ -3,7 +3,7 @@ import { Syringe, FileText, Stethoscope, TrendingUp, ChevronRight } from "lucide
 const steps = [
   {
     icon: <Syringe className="w-7 h-7 text-white" />,
-    num: "01",
+    num: "1",
     title: "Берём анализы у вас дома",
     items: [
       "Оформляете заявку онлайн",
@@ -14,7 +14,7 @@ const steps = [
   },
   {
     icon: <FileText className="w-7 h-7 text-white" />,
-    num: "02",
+    num: "2",
     title: "Подготавливаем подробный отчёт",
     items: [
       "Лаборатория исследует более 85 показателей",
@@ -26,7 +26,7 @@ const steps = [
   },
   {
     icon: <Stethoscope className="w-7 h-7 text-white" />,
-    num: "03",
+    num: "3",
     title: "Даём конкретные рекомендации",
     items: [
       "Врач формирует персональные рекомендации",
@@ -37,7 +37,7 @@ const steps = [
   },
   {
     icon: <TrendingUp className="w-7 h-7 text-white" />,
-    num: "04",
+    num: "4",
     title: "Отслеживаем изменения в динамике",
     items: [
       "Анализы повторяются 4 раза в год",
