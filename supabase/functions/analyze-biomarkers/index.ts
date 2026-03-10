@@ -359,7 +359,7 @@ ${adherenceText}
 - **Возраст:** ${age || 'Не указано'} лет
 - **Пол:** ${profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : 'Не указано'}
 - **Рост:** ${profile?.height ? `${profile.height} см` : 'Не указано'}
-- **Вес:** ${profile?.weight ? `${profile.weight} кг` : 'Не указано'}
+- **Вес:** ${actualWeight ? `${actualWeight} кг` : 'Не указано'}
 - **Индекс массы тела (BMI):** ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
 
 ## Медицинская история

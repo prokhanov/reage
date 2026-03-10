@@ -329,7 +329,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                           <Weight className="w-4 h-4" /> Вес:
                         </span>
                         <span className="font-medium">
-                          {patientData.profile.weight ? `${patientData.profile.weight} кг` : "Не указан"}
+                          {patientData.actualWeight ? `${patientData.actualWeight} кг` : "Не указан"}
                         </span>
                       </div>
                     </CardContent>

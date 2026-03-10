@@ -239,7 +239,7 @@ serve(async (req) => {
         "- Пол: " + (profile?.gender === 'male' ? 'мужской' : 'женский') + "\n" +
         "- Возраст: " + (patientAge || "Не указан") + " лет\n" +
         "- Рост: " + (profile?.height || "Не указан") + " см\n" +
-        "- Вес: " + (profile?.weight || "Не указан") + " кг\n" +
+        "- Вес: " + (actualWeight || "Не указан") + " кг\n" +
         (biomarkerLines ? "\nПоследние показатели биомаркеров:\n" + biomarkerLines + "\n" : "") +
         (symptomLines ? "\nПоследние симптомы:\n" + symptomLines + "\n" : "") +
         (prescriptionLines ? "\nАктивные назначения:\n" + prescriptionLines + "\n" : "") +

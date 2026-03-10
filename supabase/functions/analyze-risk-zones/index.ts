@@ -75,7 +75,8 @@ serve(async (req) => {
     // Build user context
     let userContext = `ДАННЫЕ ПАЦИЕНТА:\n\n`;
     const patientAge = calculateAge(profile?.birth_date);
-    userContext += `Профиль:\n- Возраст: ${patientAge} лет\n- Пол: ${profile?.gender === 'male' ? 'мужской' : 'женский'}\n- Рост: ${profile?.height || "не указан"}\n- Вес: ${profile?.weight || "не указан"}\n\n`;
+    const actualWeight = weightHistory.length > 0 ? weightHistory[0].weight : profile?.weight;
+    userContext += `Профиль:\n- Возраст: ${patientAge} лет\n- Пол: ${profile?.gender === 'male' ? 'мужской' : 'женский'}\n- Рост: ${profile?.height || "не указан"}\n- Вес: ${actualWeight || "не указан"}\n\n`;
 
     if (analyses.length > 0) {
       userContext += `ПОСЛЕДНИЕ АНАЛИЗЫ (${analyses.length}):\n`;
