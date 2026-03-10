@@ -94,20 +94,19 @@ export function ReportShowcaseSection() {
       
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16 animate-fade-in">
-          <Badge className="mb-4 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm">
+        <div className="text-center mb-16 md:mb-20 animate-fade-in">
+          <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm">
             <Sparkles className="w-4 h-4 mr-2 inline" />
             Что я получу?
           </Badge>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            Ваш{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              персональный отчёт на понятном языке   
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            <span className="text-foreground">Ваш </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">
+              персональный отчёт на понятном языке
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
             50+ страниц глубокого анализа вашего здоровья, подготовленного и проверенного врачом
-
           </p>
         </div>
 

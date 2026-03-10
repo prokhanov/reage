@@ -149,14 +149,14 @@ export function AppFeaturesSection() {
 
       <div className="container mx-auto px-4">
         {/* Section header */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Всё в одном приложении —{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+        <div className="text-center mb-16 md:mb-20 animate-fade-in">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            <span className="text-foreground">Всё в одном приложении — </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">
               полный контроль
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
             8 разделов для управления вашим здоровьем — от анализов до AI-ассистента
           </p>
 

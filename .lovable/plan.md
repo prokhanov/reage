@@ -1,58 +1,29 @@
 
 
-## Design Consistency Audit & Fix Plan
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-### Issues Found
+## Что сделано
 
-After reviewing all 11 landing sections, here are the inconsistencies:
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-**1. Heading gradient (CRITICAL)**
-- Most sections: `bg-gradient-hero bg-clip-text text-transparent` (proper purple-to-pink gradient)
-- **BiomarkersDeepDive**: `bg-gradient-to-r from-primary to-primary/60` (fades to transparent pink)
-- **ReportShowcase**: `bg-gradient-to-r from-primary via-primary/80 to-primary` (solid pink, no gradient)
-- **AppFeatures**: `bg-gradient-to-r from-primary via-primary/80 to-primary` (same solid pink)
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-**2. Heading font sizes**
-- Standard (most sections): `text-3xl sm:text-4xl md:text-5xl`
-- **BiomarkersDeepDive**: `text-4xl md:text-6xl` (too large)
-- **ReportShowcase**: `text-4xl md:text-5xl lg:text-6xl` (too large)
-- **AppFeatures**: `text-4xl md:text-5xl` (missing `sm:text-4xl`, missing `text-3xl` base)
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-**3. Section padding**
-- Standard: `py-20 md:py-28`
-- **BiomarkersDeepDive**: `py-20 md:py-32` (4rem more bottom)
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
-**4. Header-to-content margin**
-- Standard: `mb-16 md:mb-20`
-- **WhyCheckupsFail**: `mb-12 md:mb-16` (smaller)
-- **BiomarkersDeepDive**: `mb-16` (no responsive step)
-- **PreventiveMedicine**: `mb-16` (no responsive step)
+**ESR:** optimal_min_male/female → NULL
 
-**5. Subtitle text size**
-- Standard: `text-lg md:text-xl`
-- **ReportShowcase**: `text-xl` (no responsive, slightly bigger on mobile)
-- **AppFeatures**: `text-xl` (same)
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
 
-**6. Badge pill presence** — Some sections lack the top pill badge that most others have. Not all need one, but for consistency the sections with a natural label should have it. Missing on: WhyCheckupsFail, BiomarkersDeepDive, ComparisonSection.
-
-### Plan
-
-Fix all 5 inconsistent files to match the standard pattern:
-
-| Property | Standard Value |
-|---|---|
-| Section padding | `py-20 md:py-28` |
-| Header margin | `mb-16 md:mb-20` |
-| h2 size | `text-3xl sm:text-4xl md:text-5xl` |
-| Gradient text | `bg-gradient-hero bg-clip-text text-transparent` |
-| Subtitle size | `text-lg md:text-xl` |
-
-**Files to edit:**
-1. `BiomarkersDeepDiveSection.tsx` — fix heading gradient, h2 size, section padding, header margin
-2. `ReportShowcaseSection.tsx` — fix heading gradient, h2 size, subtitle size
-3. `AppFeaturesSection.tsx` — fix heading gradient, h2 size, subtitle size
-4. `WhyCheckupsFail.tsx` — fix header margin
-5. `PreventiveMedicineSection.tsx` — fix header margin
-
-No structural or content changes. Pure formatting alignment across all sections.
-
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
