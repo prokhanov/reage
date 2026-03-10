@@ -67,15 +67,15 @@ export function HeroSection() {
             </span>
           </h1>
 
-          {/* Value bullets */}
-          <div className="animate-fade-in w-full" style={{ animationDelay: '0.15s' }}>
-            <HeroMetricsMarquee />
-          </div>
-
           {/* Subheading */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
             Регулярно берём анализы у вас дома и предоставляем самый глубокий отчёт по системам организма, факторам риска и биологическому возрасту — в динамике и с сопровождением.
           </p>
+
+          {/* Value bullets */}
+          <div className="animate-fade-in w-full" style={{ animationDelay: '0.3s' }}>
+            <HeroBullets />
+          </div>
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
