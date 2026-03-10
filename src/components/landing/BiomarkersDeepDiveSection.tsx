@@ -153,12 +153,12 @@ export function BiomarkersDeepDiveSection() {
 
         {/* Tab navigation */}
         <div className="flex justify-center mb-12">
-          <div className="inline-flex gap-1.5 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/40">
+          <div className="inline-flex gap-1.5 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/40 overflow-x-auto max-w-full scrollbar-hide">
             {biomarkerCategories.map((c, i) => (
               <button
                 key={c.id}
                 onClick={() => go(i)}
-                className={`relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                className={`relative px-3 md:px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shrink-0 ${
                   active === i ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
