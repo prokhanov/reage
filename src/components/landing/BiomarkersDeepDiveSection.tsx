@@ -130,7 +130,7 @@ export function BiomarkersDeepDiveSection() {
   const next = useCallback(() => { setDirection(1); setActive(a => (a + 1) % biomarkerCategories.length); }, []);
 
   return (
-    <section className="relative py-20 md:py-32 overflow-hidden">
+    <section className="relative py-20 md:py-28 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/[0.04] rounded-full blur-[180px]" />
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-[150px]" />
