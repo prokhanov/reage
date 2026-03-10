@@ -111,12 +111,14 @@ serve(async (req) => {
     // Сохраняем "Данные пациента" сразу (чтобы клиент видел прогресс)
     // Будет вставлен ниже после формирования patientDataSection
 
-    // Получаем профиль пользователя
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", analysis.user_id)
-      .single();
+    // Получаем профиль пользователя и последний вес из weight_history
+    const [{ data: profile }, { data: latestWeightRecord }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", analysis.user_id).single(),
+      supabase.from("weight_history").select("weight").eq("user_id", analysis.user_id).order("measured_at", { ascending: false }).limit(1).single()
+    ]);
+
+    // Актуальный вес: приоритет weight_history, fallback на profiles.weight
+    const actualWeight = latestWeightRecord?.weight ? Number(latestWeightRecord.weight) : (profile?.weight ? Number(profile.weight) : null);
 
     // Получаем медицинскую историю
     const { data: medicalHistory } = await supabase
