@@ -1,84 +1,84 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FileDown, 
-  FileText, 
-  Target, 
-  TrendingUp, 
-  Pill, 
+import {
+  FileDown,
+  FileText,
+  Target,
+  TrendingUp,
+  Pill,
   CheckCircle2,
   Sparkles,
   ArrowRight,
   ChevronLeft,
-  ChevronRight
-} from "lucide-react";
+  ChevronRight } from
+"lucide-react";
 
 const reportPages = [
-  {
-    title: "Общее резюме",
-    description: "Главные выводы о вашем здоровье",
-    color: "from-blue-500/20 to-cyan-500/20",
-    borderColor: "border-blue-500/30"
-  },
-  {
-    title: "Анализ систем",
-    description: "Детальный разбор 5 систем организма",
-    color: "from-purple-500/20 to-pink-500/20",
-    borderColor: "border-purple-500/30"
-  },
-  {
-    title: "Биомаркеры",
-    description: "Расшифровка каждого показателя",
-    color: "from-amber-500/20 to-orange-500/20",
-    borderColor: "border-amber-500/30"
-  },
-  {
-    title: "Зоны риска",
-    description: "Карта проблемных областей",
-    color: "from-rose-500/20 to-red-500/20",
-    borderColor: "border-rose-500/30"
-  },
-  {
-    title: "Персональные назначения",
-    description: "Конкретные действия для улучшения",
-    color: "from-emerald-500/20 to-teal-500/20",
-    borderColor: "border-emerald-500/30"
-  }
-];
+{
+  title: "Общее резюме",
+  description: "Главные выводы о вашем здоровье",
+  color: "from-blue-500/20 to-cyan-500/20",
+  borderColor: "border-blue-500/30"
+},
+{
+  title: "Анализ систем",
+  description: "Детальный разбор 5 систем организма",
+  color: "from-purple-500/20 to-pink-500/20",
+  borderColor: "border-purple-500/30"
+},
+{
+  title: "Биомаркеры",
+  description: "Расшифровка каждого показателя",
+  color: "from-amber-500/20 to-orange-500/20",
+  borderColor: "border-amber-500/30"
+},
+{
+  title: "Зоны риска",
+  description: "Карта проблемных областей",
+  color: "from-rose-500/20 to-red-500/20",
+  borderColor: "border-rose-500/30"
+},
+{
+  title: "Персональные назначения",
+  description: "Конкретные действия для улучшения",
+  color: "from-emerald-500/20 to-teal-500/20",
+  borderColor: "border-emerald-500/30"
+}];
+
 
 const reportFeatures = [
-  {
-    icon: FileText,
-    title: "Детальный анализ",
-    description: "Подробный разбор каждого биомаркера с объяснением значений"
-  },
-  {
-    icon: Target,
-    title: "Зоны риска",
-    description: "Визуальная карта проблемных областей организма"
-  },
-  {
-    icon: TrendingUp,
-    title: "Динамика здоровья",
-    description: "Графики изменений показателей между анализами"
-  },
-  {
-    icon: Pill,
-    title: "Назначения врача",
-    description: "Персональный план: добавки, препараты, образ жизни"
-  }
-];
+{
+  icon: FileText,
+  title: "Детальный анализ",
+  description: "Подробный разбор каждого биомаркера с объяснением значений"
+},
+{
+  icon: Target,
+  title: "Зоны риска",
+  description: "Визуальная карта проблемных областей организма"
+},
+{
+  icon: TrendingUp,
+  title: "Динамика здоровья",
+  description: "Графики изменений показателей между анализами"
+},
+{
+  icon: Pill,
+  title: "Назначения врача",
+  description: "Персональный план: добавки, препараты, образ жизни"
+}];
+
 
 export function ReportShowcaseSection() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handlePrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? reportPages.length - 1 : prev - 1));
+    setActiveIndex((prev) => prev === 0 ? reportPages.length - 1 : prev - 1);
   };
 
   const handleNext = () => {
-    setActiveIndex((prev) => (prev === reportPages.length - 1 ? 0 : prev + 1));
+    setActiveIndex((prev) => prev === reportPages.length - 1 ? 0 : prev + 1);
   };
 
   return (
@@ -101,7 +101,8 @@ export function ReportShowcaseSection() {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            20+ страниц глубокого анализа вашего здоровья, подготовленного AI и проверенного врачом
+            20+ страниц глубокого анализа вашего здоровья, подготовленного и проверенного врачом
+
           </p>
         </div>
 
@@ -115,10 +116,9 @@ export function ReportShowcaseSection() {
             
             {/* Stacked report pages with animation */}
             <div className="relative h-[450px] flex items-center justify-center">
-              {reportPages.map((page, index) => {
-                // Calculate position relative to active index
+              {reportPages.map((page, index) => {// Calculate position relative to active index
                 const position = (index - activeIndex + reportPages.length) % reportPages.length;
-                
+
                 return (
                   <div
                     key={page.title}
@@ -133,10 +133,10 @@ export function ReportShowcaseSection() {
                         scale(${1 - position * 0.05})
                       `,
                       zIndex: reportPages.length - position,
-                      opacity: position === 0 ? 1 : 0.7 - position * 0.15,
+                      opacity: position === 0 ? 1 : 0.7 - position * 0.15
                     }}
-                    onClick={() => setActiveIndex(index)}
-                  >
+                    onClick={() => setActiveIndex(index)}>
+                    
                     <div className="h-full flex flex-col">
                       {/* Page header mockup */}
                       <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/30">
@@ -163,8 +163,8 @@ export function ReportShowcaseSection() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
+                  </div>);
+
               })}
             </div>
 
@@ -172,30 +172,30 @@ export function ReportShowcaseSection() {
             <div className="flex items-center justify-center gap-4 mt-4">
               <button
                 onClick={handlePrev}
-                className="w-10 h-10 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 group"
-              >
+                className="w-10 h-10 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 group">
+                
                 <ChevronLeft className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </button>
               
               {/* Dots indicator */}
               <div className="flex items-center gap-2">
-                {reportPages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === activeIndex 
-                        ? 'w-6 bg-primary' 
-                        : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                    }`}
-                  />
-                ))}
+                {reportPages.map((_, index) =>
+                <button
+                  key={index}
+                  onClick={() => setActiveIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  index === activeIndex ?
+                  'w-6 bg-primary' :
+                  'bg-muted-foreground/30 hover:bg-muted-foreground/50'}`
+                  } />
+
+                )}
               </div>
               
               <button
                 onClick={handleNext}
-                className="w-10 h-10 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 group"
-              >
+                className="w-10 h-10 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 group">
+                
                 <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </button>
             </div>
@@ -210,8 +210,8 @@ export function ReportShowcaseSection() {
                   <div
                     key={feature.title}
                     className="flex gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm animate-fade-in hover:bg-card/80 transition-colors"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
+                    style={{ animationDelay: `${index * 100}ms` }}>
+                    
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
@@ -219,8 +219,8 @@ export function ReportShowcaseSection() {
                       <h4 className="font-semibold mb-1">{feature.title}</h4>
                       <p className="text-sm text-muted-foreground">{feature.description}</p>
                     </div>
-                  </div>
-                );
+                  </div>);
+
               })}
             </div>
 
@@ -237,8 +237,8 @@ export function ReportShowcaseSection() {
                 href="/sample-report.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block w-full"
-              >
+                className="inline-block w-full">
+                
                 <Button size="lg" className="w-full group">
                   <FileDown className="w-5 h-5 mr-2" />
                   Скачать пример отчёта (PDF)
@@ -249,6 +249,6 @@ export function ReportShowcaseSection() {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
