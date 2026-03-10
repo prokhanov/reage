@@ -316,7 +316,7 @@ serve(async (req) => {
 Возраст: ${age || "Не указано"} лет
 Пол: ${profile?.gender || "Не указано"}
 Рост: ${profile?.height ? `${profile.height} см` : "Не указано"}
-Вес: ${profile?.weight ? `${profile.weight} кг` : "Не указано"}
+Вес: ${actualWeight ? `${actualWeight} кг` : "Не указано"}
 BMI: ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
 
 МЕДИЦИНСКИЙ АНАМНЕЗ:
