@@ -1,14 +1,14 @@
-import { 
-  Activity, 
-  HeartPulse, 
-  FileText, 
-  Stethoscope, 
-  Pill, 
+import {
+  Activity,
+  HeartPulse,
+  FileText,
+  Stethoscope,
+  Pill,
   Search,
   Apple,
   TrendingUp,
-  Sparkles
-} from "lucide-react";
+  Sparkles } from
+"lucide-react";
 
 interface BenefitCardProps {
   icon: React.ReactNode;
@@ -19,10 +19,10 @@ interface BenefitCardProps {
 
 function BenefitCard({ icon, title, description, delay }: BenefitCardProps) {
   return (
-    <div 
+    <div
       className="group relative animate-fade-in"
-      style={{ animationDelay: `${delay}s` }}
-    >
+      style={{ animationDelay: `${delay}s` }}>
+      
       <div className="relative h-full rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6 transition-all duration-500 hover:bg-card/80 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1">
         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 mb-4 group-hover:scale-110 transition-transform duration-300">
           {icon}
@@ -30,61 +30,61 @@ function BenefitCard({ icon, title, description, delay }: BenefitCardProps) {
         <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 export function BenefitsSection() {
   const benefits = [
-    {
-      icon: <Activity className="w-6 h-6 text-primary" />,
-      title: "85 биомаркеров здоровья",
-      description: "Расширенный анализ крови, который позволяет оценить состояние систем организма и ключевые факторы риска.",
-      delay: 0.1,
-    },
-    {
-      icon: <HeartPulse className="w-6 h-6 text-primary" />,
-      title: "Биологический возраст организма",
-      description: "Расчёт биологического возраста на основе показателей крови и их изменений во времени.",
-      delay: 0.15,
-    },
-    {
-      icon: <FileText className="w-6 h-6 text-primary" />,
-      title: "Подробный отчёт по всем показателям",
-      description: "Полная расшифровка результатов и объяснение того, как показатели связаны между собой и влияют на здоровье.",
-      delay: 0.2,
-    },
-    {
-      icon: <Stethoscope className="w-6 h-6 text-primary" />,
-      title: "Конкретные рекомендации врача",
-      description: "Персональный план от эндокринолога: витамины и минералы с указанием формы, дозировки, кратности и длительности приёма.",
-      delay: 0.25,
-    },
-    {
-      icon: <Pill className="w-6 h-6 text-primary" />,
-      title: "Коррекция выявленных дефицитов",
-      description: "Отдельные рекомендации по нутрицевтикам на основе результатов анализов и обнаруженных дефицитов.",
-      delay: 0.3,
-    },
-    {
-      icon: <Search className="w-6 h-6 text-primary" />,
-      title: "Рекомендации по дополнительным обследованиям",
-      description: "При необходимости указываем, какие анализы или консультации врачей помогут уточнить риски.",
-      delay: 0.35,
-    },
-    {
-      icon: <Apple className="w-6 h-6 text-primary" />,
-      title: "Изменения питания и образа жизни",
-      description: "Практические рекомендации по питанию, сну, физической активности и другим факторам здоровья.",
-      delay: 0.4,
-    },
-    {
-      icon: <TrendingUp className="w-6 h-6 text-primary" />,
-      title: "Контроль изменений в динамике",
-      description: "Анализы 4 раза в год позволяют отслеживать изменения показателей и корректировать рекомендации по мере динамики.",
-      delay: 0.45,
-    },
-  ];
+  {
+    icon: <Activity className="w-6 h-6 text-primary" />,
+    title: "85 биомаркеров здоровья",
+    description: "Расширенный анализ крови, который позволяет оценить состояние систем организма и ключевые факторы риска.",
+    delay: 0.1
+  },
+  {
+    icon: <HeartPulse className="w-6 h-6 text-primary" />,
+    title: "Биологический возраст организма",
+    description: "Расчёт биологического возраста на основе показателей крови и их изменений во времени.",
+    delay: 0.15
+  },
+  {
+    icon: <FileText className="w-6 h-6 text-primary" />,
+    title: "Подробный отчёт по всем показателям",
+    description: "Полная расшифровка результатов и объяснение того, как показатели связаны между собой и влияют на здоровье.",
+    delay: 0.2
+  },
+  {
+    icon: <Stethoscope className="w-6 h-6 text-primary" />,
+    title: "Конкретные рекомендации врача",
+    description: "Персональный план от эндокринолога: витамины и минералы с указанием формы, дозировки, кратности и длительности приёма.",
+    delay: 0.25
+  },
+  {
+    icon: <Pill className="w-6 h-6 text-primary" />,
+    title: "Коррекция выявленных дефицитов",
+    description: "Отдельные рекомендации по нутрицевтикам на основе результатов анализов и обнаруженных дефицитов.",
+    delay: 0.3
+  },
+  {
+    icon: <Search className="w-6 h-6 text-primary" />,
+    title: "Рекомендации по дополнительным обследованиям",
+    description: "При необходимости указываем, какие анализы или консультации врачей помогут уточнить риски.",
+    delay: 0.35
+  },
+  {
+    icon: <Apple className="w-6 h-6 text-primary" />,
+    title: "Изменения питания и образа жизни",
+    description: "Практические рекомендации по питанию, сну, физической активности и другим факторам здоровья.",
+    delay: 0.4
+  },
+  {
+    icon: <TrendingUp className="w-6 h-6 text-primary" />,
+    title: "Контроль изменений в динамике",
+    description: "Анализы 4 раза в год позволяют отслеживать изменения показателей и корректировать рекомендации по мере динамики.",
+    delay: 0.45
+  }];
+
 
   return (
     <section className="relative py-20 md:py-28 overflow-hidden">
@@ -103,17 +103,17 @@ export function BenefitsSection() {
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Всё для </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              управления здоровьем!
+              управления здоровьем в одном сервисе  
             </span>
           </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {benefits.map((benefit, index) => (
-            <BenefitCard key={index} {...benefit} />
-          ))}
+          {benefits.map((benefit, index) =>
+          <BenefitCard key={index} {...benefit} />
+          )}
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
