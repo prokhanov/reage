@@ -92,14 +92,15 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
     queryFn: async () => {
       if (!patientId) return null;
 
-      // Основная информация профиля
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", patientId)
-        .single();
+      // Основная информация профиля + последний вес
+      const [{ data: profile, error: profileError }, { data: latestWeightRecord }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", patientId).single(),
+        supabase.from("weight_history").select("weight").eq("user_id", patientId).order("measured_at", { ascending: false }).limit(1).single()
+      ]);
 
       if (profileError) throw profileError;
+      
+      const actualWeight = latestWeightRecord?.weight ? Number(latestWeightRecord.weight) : profile?.weight;
 
       // Подписка с информацией о тарифе
       const { data: subscription } = await supabase
