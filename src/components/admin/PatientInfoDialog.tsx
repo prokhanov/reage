@@ -162,6 +162,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
 
       return {
         profile,
+        actualWeight,
         subscription,
         booking,
         complaints,
