@@ -138,15 +138,15 @@ export function BiomarkersDeepDiveSection() {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary mb-4 animate-fade-in">
+        <div className="text-center mb-16 md:mb-20">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fade-in">
             6 систем · 85+ маркеров
-          </p>
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight animate-fade-in">
-            Что мы{" "}
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">измеряем</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in">
+            <span className="text-foreground">Что мы </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">измеряем</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in">
             Все системы взаимосвязаны — мы анализируем их комплексно
           </p>
         </div>

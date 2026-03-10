@@ -31,7 +31,7 @@ export function WhyCheckupsFail() {
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
       <div className="relative z-10 container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight animate-fade-in">
             <span className="text-foreground">Почему обычные чекапы </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">не работают</span>
