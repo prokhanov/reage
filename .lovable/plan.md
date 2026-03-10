@@ -1,16 +1,29 @@
 
 
-## Fix: Horizontal overflow + ReportShowcase mobile issues
+# Открытые диапазоны для биомаркеров — РЕАЛИЗОВАНО ✅
 
-### Root Problems
+## Что сделано
 
-1. **`Index.tsx` (line 72)** — root wrapper `<div className="min-h-screen bg-background">` has no `overflow-x-hidden`, so any child overflow leaks to the entire page as horizontal scroll
-2. **`PricingSection.tsx` (line 204)** — explicitly uses `overflow-visible`, allowing its large decorative orbs (`w-[500px]`, `w-[400px]`) to bleed outside the viewport on mobile
+### 1. Edge function `analyze-biomarkers/index.ts`
+- Изменён skip condition: `||` → `&&` (пропускаем только если ОБА null)
+- `range` при одностороннем диапазоне = 1 (не ломается)
+- `isOutsideNormal` и `isInOptimal` корректно обрабатывают NULL границы
+- `markerCount` фильтр обновлён аналогично
 
-The ReportShowcase section itself renders correctly on mobile (verified via screenshots) — cards are sized at 220×300px, navigation works, features stack properly. No changes needed there.
+### 2. `BiomarkerRangeBar.tsx`
+- Убран fallback `optimal.min ?? normal.min` / `optimal.max ?? normal.max`
+- Открытый оптимум корректно визуализируется (зелёная зона до края шкалы)
 
-### Plan (2 files)
+### 3. Данные в БД (~25 маркеров)
+**optimal_max → NULL (выше = лучше):**
+TEST, DHEA-S, IGF-1, CoQ10, HDL, B12, B9, Se, Zn, fT3
 
-1. **`src/pages/Index.tsx`** line 72 — add `overflow-x-hidden` to the root div
-2. **`src/components/landing/PricingSection.tsx`** line 204 — change `overflow-visible` to `overflow-hidden`
+**optimal_min → NULL (ниже = лучше):**
+HbA1c, GLU, INS, HCY, LDL, ApoB, TG, VLDL (+ уже были NULL: HOMA-IR, hs-CRP, IL-6, TNF-α, Lp(a))
 
+**ESR:** optimal_min_male/female → NULL
+
+**age_ranges JSON** обновлён для всех маркеров с range_mode='age': B12, DHEA-S, IGF-1, HDL, fT3, TEST, GLU, INS, HCY, LDL, TG, ESR
+
+### Бонусные баллы за "молодые" показатели
+Реализуются через AI-промпт биологического возраста (Вариант Б), а не формулу. AI видит маркеры выше возрастного оптимума и корректирует биовозраст на -1…-3 года.
