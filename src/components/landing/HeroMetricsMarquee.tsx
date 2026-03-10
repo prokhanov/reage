@@ -35,8 +35,8 @@ export function HeroBullets() {
             {b.icon}
           </div>
           <div className="space-y-1">
-            <div className="text-[13px] md:text-sm font-semibold text-foreground leading-snug">{b.title}</div>
-            <div className="text-[11px] md:text-xs text-muted-foreground leading-snug">{b.subtitle}</div>
+            <div className="text-sm md:text-[15px] font-semibold text-foreground leading-snug">{b.title}</div>
+            <div className="text-xs md:text-[13px] text-muted-foreground leading-snug">{b.subtitle}</div>
           </div>
         </div>
       ))}
