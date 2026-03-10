@@ -1,30 +1,20 @@
 import { useState } from "react";
-import { StatsMarqueeSection } from "@/components/landing/StatsMarqueeSection";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Zap, 
-  Heart, 
-  Shield, 
-  Dna, 
-  RefreshCw,
-  Droplets,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle2,
-  FileText,
-  Target,
-  TrendingUp,
-  Pill
-} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import systemEnergy from "@/assets/system-energy.png";
+import systemHeart from "@/assets/system-heart.png";
+import systemImmune from "@/assets/system-immune.png";
+import systemEndocrine from "@/assets/system-endocrine.png";
+import systemMetabolism from "@/assets/system-metabolism.png";
+import systemKidneys from "@/assets/system-kidneys.png";
 
 const biomarkerCategories = [
   {
     id: "energy",
     emoji: "⚡",
-    icon: Zap,
     name: "Энергия и восстановление",
-    gradient: "from-[hsl(230,45%,55%)] to-[hsl(195,50%,50%)]",
+    image: systemEnergy,
     markers: ["Глюкоза", "HbA1c", "Инсулин", "HOMA-IR", "ЛДГ", "Коэнзим Q10", "Малоновый диальдегид", "Антиоксидантный статус", "Магний", "B12", "B9 (фолат)", "Цинк", "Селен", "Альбумин", "Лактат", "Бета-каротин", "Витамин A", "Витамин E"],
     insights: [
       "Откуда берётся постоянная усталость",
@@ -37,9 +27,8 @@ const biomarkerCategories = [
   {
     id: "cardio",
     emoji: "❤️",
-    icon: Heart,
     name: "Сердечно-сосудистая система",
-    gradient: "from-[hsl(220,50%,50%)] to-[hsl(260,40%,55%)]",
+    image: systemHeart,
     markers: ["Общий холестерин", "ЛПВП", "ЛПНП", "Триглицериды", "ЛПОНП", "ApoA1", "ApoB", "ApoB/ApoA1", "не-HDL холестерин", "Индекс атерогенности", "Гомоцистеин", "Lp(a)", "Ферритин", "Железо", "Трансферрин", "Медь", "NT-proBNP", "КФК"],
     insights: [
       "Как выглядит ваш липидный профиль в деталях",
@@ -52,9 +41,8 @@ const biomarkerCategories = [
   {
     id: "immune",
     emoji: "🛡️",
-    icon: Shield,
     name: "Воспалительная и иммунная система",
-    gradient: "from-[hsl(200,45%,50%)] to-[hsl(175,40%,48%)]",
+    image: systemImmune,
     markers: ["Гемоглобин", "Эритроциты", "Гематокрит", "MCV", "MCH", "MCHC", "RDW", "RDW-SD", "Лейкоциты", "Нейтрофилы", "Нейтрофилы (абс.)", "Лимфоциты", "Лимфоциты (абс.)", "Моноциты", "Моноциты (абс.)", "Эозинофилы", "Эозинофилы (абс.)", "Базофилы", "Базофилы (абс.)", "Тромбоциты", "MPV", "PDW", "PCT", "CD3+", "CD4+", "CD8+", "CD19+", "NK-клетки", "СОЭ", "CRP", "IL-6", "TNF-α", "IgM", "IgG", "Фибриноген", "Протромбиновое время", "Тромбиновое время", "МНО", "АЧТВ"],
     insights: [
       "Как работает иммунная защита организма",
@@ -67,9 +55,8 @@ const biomarkerCategories = [
   {
     id: "endocrine",
     emoji: "🧬",
-    icon: Dna,
     name: "Эндокринная и стрессовая система",
-    gradient: "from-[hsl(245,40%,55%)] to-[hsl(210,45%,50%)]",
+    image: systemEndocrine,
     markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Анти-ТПО", "Анти-ТГ", "TRAb", "Тестостерон", "Эстрадиол", "Эстрон", "Эстриол", "SHBG", "Кортизол", "DHEA-S", "Витамин D", "IGF-1"],
     insights: [
       "Полная картина гормонального баланса",
@@ -82,9 +69,8 @@ const biomarkerCategories = [
   {
     id: "metabolism",
     emoji: "🔄",
-    icon: RefreshCw,
     name: "Обмен веществ и детоксикация",
-    gradient: "from-[hsl(215,48%,52%)] to-[hsl(185,42%,48%)]",
+    image: systemMetabolism,
     markers: ["ALT", "AST", "GGT", "Билирубин", "ALP", "Общий белок", "Трансферрин", "Мочевая кислота", "Витамин K1"],
     insights: [
       "Насколько эффективно работает печень",
@@ -97,9 +83,8 @@ const biomarkerCategories = [
   {
     id: "kidneys",
     emoji: "💧",
-    icon: Droplets,
     name: "Почки и водно-солевой баланс",
-    gradient: "from-[hsl(190,45%,50%)] to-[hsl(210,40%,55%)]",
+    image: systemKidneys,
     markers: ["Креатинин", "Мочевина", "Цистатин С", "Натрий", "Калий", "Хлор", "Кальций", "Фосфор", "pH", "Удельный вес", "Белок", "Глюкоза", "Кетоны", "Уробилиноген", "Билирубин", "Гемоглобин", "Нитриты", "Лейкоциты", "Эритроциты"],
     insights: [
       "Насколько хорошо работают почки",
@@ -111,173 +96,248 @@ const biomarkerCategories = [
   }
 ];
 
-const serviceSections = [
-  {
-    icon: Target,
-    title: "Резюме на 1 странице",
-    items: [
-      "Биологический возраст vs паспортный",
-      "Индекс здоровья (0-100)",
-      "Топ-3 зоны внимания",
-      "Топ-3 сильные стороны"
-    ]
-  },
-  {
-    icon: TrendingUp,
-    title: "Детальный анализ по системам",
-    items: [
-      "Оценка каждой системы (0-100 баллов)",
-      "Маркеры в норме / отклонения",
-      "Объяснение простым языком"
-    ]
-  },
-  {
-    icon: FileText,
-    title: "Персональные рекомендации",
-    items: [
-      "Питание (конкретные продукты)",
-      "Добавки и БАДы (дозировки, длительность)",
-      "Образ жизни (сон, активность)",
-      "Что проверить дополнительно"
-    ]
-  },
-  {
-    icon: Pill,
-    title: "Назначения врача",
-    items: [
-      "Препараты (если нужны)",
-      "Сроки контроля",
-      "Критерии эффективности"
-    ]
-  }
-];
-
-function CategoryCard({ category, index }: { category: typeof biomarkerCategories[0]; index: number }) {
-  const Icon = category.icon;
-  const isEven = index % 2 === 0;
-
-  return (
-    <div
-      className="group relative animate-fade-in"
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
-      {/* Outer glow on hover */}
-      <div className={`absolute -inset-px rounded-2xl bg-gradient-to-r ${category.gradient} opacity-0 group-hover:opacity-20 blur-xl transition-all duration-700`} />
-
-      <div className="relative rounded-2xl bg-card/40 backdrop-blur-xl border border-border/40 overflow-hidden transition-all duration-500 group-hover:border-border/80 group-hover:bg-card/60">
-        <div className="flex flex-col md:flex-row">
-          
-          {/* Visual side */}
-          <div className={`relative md:w-80 shrink-0 p-8 md:p-10 flex flex-col justify-center bg-gradient-to-br ${category.gradient} overflow-hidden`}>
-            {/* Large decorative emoji */}
-            <div className="absolute -bottom-6 -right-6 text-[120px] leading-none opacity-[0.15] select-none pointer-events-none">
-              {category.emoji}
-            </div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <Icon className="w-6 h-6 text-white" />
-                <span className="text-white/70 text-sm font-medium uppercase tracking-widest">
-                  Система {index + 1}/6
-                </span>
-              </div>
-              
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">
-                {category.name}
-              </h3>
-              
-              <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20">
-                <span className="text-white font-semibold text-sm">{category.markers.length}</span>
-                <span className="text-white/80 text-sm">маркеров</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Content side */}
-          <div className="flex-1 p-6 md:p-8 space-y-6">
-            {/* Insights */}
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Что узнаете</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {category.insights.map((insight, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-sm">
-                    <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${category.gradient} mt-1.5 shrink-0`} />
-                    <span className="text-foreground/80">{insight}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Markers cloud */}
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Биомаркеры</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {category.markers.map((marker) => (
-                  <span
-                    key={marker}
-                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-muted/60 text-foreground/70 border border-border/40 transition-colors duration-200 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-                  >
-                    {marker}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Risks */}
-            <div className="pt-4 border-t border-border/30">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Выявляемые риски</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {category.risks.map((risk) => (
-                  <span
-                    key={risk}
-                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-destructive/5 text-destructive/80 border border-destructive/15"
-                  >
-                    {risk}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 400 : -400, opacity: 0, scale: 0.95 }),
+  center: { x: 0, opacity: 1, scale: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? -400 : 400, opacity: 0, scale: 0.95 }),
+};
 
 export function BiomarkersDeepDiveSection() {
-  return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
+  const [active, setActive] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const cat = biomarkerCategories[active];
 
-      <div className="container mx-auto px-4">
-        {/* Section header */}
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+  const go = (idx: number) => {
+    setDirection(idx > active ? 1 : -1);
+    setActive(idx);
+  };
+
+  const prev = () => { setDirection(-1); setActive(a => (a - 1 + biomarkerCategories.length) % biomarkerCategories.length); };
+  const next = () => { setDirection(1); setActive(a => (a + 1) % biomarkerCategories.length); };
+
+  return (
+    <section className="relative py-20 md:py-32 overflow-hidden">
+      {/* Ambient bg */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/[0.04] rounded-full blur-[180px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-[150px]" />
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-sm font-semibold uppercase tracking-[0.2em] text-primary mb-4"
+          >
+            6 систем · 85+ маркеров
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-6xl font-bold mb-6 tracking-tight"
+          >
             Что мы{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               измеряем
             </span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Все системы взаимосвязаны — мы анализируем их комплексно. 85+ биомаркеров, сгруппированных в{" "}
-            <span className="text-foreground font-medium">6 систем организма</span>
-            — от энергии до гормонов
-          </p>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-muted-foreground max-w-2xl mx-auto"
+          >
+            Все системы взаимосвязаны — мы анализируем их комплексно
+          </motion.p>
         </div>
 
-
-        {/* Category cards */}
-        <div className="space-y-6 mb-20">
-          {biomarkerCategories.map((category, index) => (
-            <CategoryCard key={category.id} category={category} index={index} />
-          ))}
+        {/* Tab navigation */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex gap-1.5 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/40">
+            {biomarkerCategories.map((c, i) => (
+              <button
+                key={c.id}
+                onClick={() => go(i)}
+                className={`relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  active === i
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {active === i && (
+                  <motion.div
+                    layoutId="biomarker-tab"
+                    className="absolute inset-0 bg-primary rounded-xl shadow-lg"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <span className="text-base">{c.emoji}</span>
+                  <span className="hidden md:inline">{c.name.split(" ")[0]}</span>
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* Main gallery card */}
+        <div className="relative max-w-6xl mx-auto">
+          {/* Navigation arrows */}
+          <button
+            onClick={prev}
+            className="absolute -left-4 md:-left-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute -right-4 md:-right-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
 
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={cat.id}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
+              className="rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 overflow-hidden shadow-2xl shadow-primary/[0.03]"
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr]">
+                {/* Image side */}
+                <div className="relative flex items-center justify-center p-8 lg:p-12 bg-gradient-to-br from-muted/80 via-muted/40 to-transparent">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] to-transparent" />
+                  <div className="relative">
+                    <motion.img
+                      key={cat.id + "-img"}
+                      initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.15, duration: 0.5 }}
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-48 h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 object-contain drop-shadow-2xl"
+                    />
+                  </div>
+                  {/* Floating counter */}
+                  <div className="absolute bottom-6 left-6 lg:bottom-8 lg:left-8">
+                    <div className="flex items-baseline gap-1.5 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/40 shadow-lg">
+                      <span className="text-3xl font-bold text-foreground">{cat.markers.length}</span>
+                      <span className="text-sm text-muted-foreground">маркеров</span>
+                    </div>
+                  </div>
+                  {/* System number */}
+                  <div className="absolute top-6 right-6 lg:top-8 lg:right-8">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                      {active + 1} / {biomarkerCategories.length}
+                    </span>
+                  </div>
+                </div>
 
+                {/* Content side */}
+                <div className="p-6 md:p-8 lg:p-10 space-y-6">
+                  {/* Title */}
+                  <div>
+                    <motion.h3
+                      key={cat.id + "-title"}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="text-2xl md:text-3xl font-bold text-foreground mb-1"
+                    >
+                      {cat.emoji} {cat.name}
+                    </motion.h3>
+                  </div>
 
+                  {/* Insights */}
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">
+                      Что узнаете
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {cat.insights.map((insight, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.15 + i * 0.05 }}
+                          className="flex items-start gap-2.5"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 shrink-0" />
+                          <span className="text-sm text-foreground/80">{insight}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Biomarkers cloud */}
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">
+                      Биомаркеры
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {cat.markers.map((marker, i) => (
+                        <motion.span
+                          key={marker}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.2 + i * 0.015 }}
+                          className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-muted/60 text-foreground/70 border border-border/30 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors cursor-default"
+                        >
+                          {marker}
+                        </motion.span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Risks */}
+                  <div className="pt-4 border-t border-border/30">
+                    <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">
+                      Выявляемые риски
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {cat.risks.map((risk, i) => (
+                        <motion.span
+                          key={risk}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.25 + i * 0.02 }}
+                          className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-destructive/5 text-destructive/80 border border-destructive/15"
+                        >
+                          {risk}
+                        </motion.span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Bottom dots */}
+          <div className="flex justify-center gap-2 mt-8">
+            {biomarkerCategories.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => go(i)}
+                className={`transition-all duration-300 rounded-full ${
+                  active === i
+                    ? "w-8 h-2 bg-primary"
+                    : "w-2 h-2 bg-muted-foreground/20 hover:bg-muted-foreground/40"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
