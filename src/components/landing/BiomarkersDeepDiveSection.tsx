@@ -8,6 +8,7 @@ import {
   Shield, 
   Dna, 
   RefreshCw,
+  Droplets,
   ChevronDown,
   ChevronUp,
   CheckCircle2,
