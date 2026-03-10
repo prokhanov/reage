@@ -3,7 +3,7 @@ import { Syringe, FileText, Stethoscope, TrendingUp, ChevronRight } from "lucide
 const steps = [
   {
     icon: <Syringe className="w-7 h-7 text-white" />,
-    num: "01",
+    num: "1",
     title: "Берём анализы у вас дома",
     items: [
       "Оформляете заявку онлайн",
