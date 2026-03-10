@@ -254,7 +254,7 @@ serve(async (req) => {
     };
 
     const bmi = calculateBMI(
-      profile?.weight ? Number(profile.weight) : null,
+      actualWeight,
       profile?.height ? Number(profile.height) : null
     );
 
