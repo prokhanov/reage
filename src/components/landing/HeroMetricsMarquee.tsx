@@ -1,25 +1,25 @@
-import { Activity, TrendingUp, Brain, CalendarCheck } from "lucide-react";
+import { CalendarCheck, Activity, FileText, Stethoscope } from "lucide-react";
 
 const bullets = [
   {
-    icon: <Activity className="w-5 h-5 text-primary" />,
-    title: "85+ биомаркеров",
-    subtitle: "глубокий анализ крови",
-  },
-  {
-    icon: <TrendingUp className="w-5 h-5 text-primary" />,
-    title: "5 систем организма",
-    subtitle: "комплексный контроль",
-  },
-  {
-    icon: <Brain className="w-5 h-5 text-primary" />,
-    title: "Расшифровка + план",
-    subtitle: "от эндокринолога",
-  },
-  {
     icon: <CalendarCheck className="w-5 h-5 text-primary" />,
-    title: "4 раза в год",
-    subtitle: "динамика и тренды",
+    title: "Анализы 4 раза в год",
+    subtitle: "Берём кровь у вас дома и отслеживаем изменения показателей",
+  },
+  {
+    icon: <Activity className="w-5 h-5 text-primary" />,
+    title: "85 ключевых показателей",
+    subtitle: "Один из самых глубоких анализов состояния организма",
+  },
+  {
+    icon: <FileText className="w-5 h-5 text-primary" />,
+    title: "Понятная расшифровка",
+    subtitle: "Объясняем взаимосвязи, что происходит с организмом и почему",
+  },
+  {
+    icon: <Stethoscope className="w-5 h-5 text-primary" />,
+    title: "Рекомендации врача",
+    subtitle: "Подбор витаминов и минералов эндокринологом",
   },
 ];
 
