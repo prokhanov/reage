@@ -5,44 +5,27 @@ import { useNavigate } from "react-router-dom";
 const steps = [
   {
     icon: <Syringe className="w-7 h-7 text-white" />,
+    num: "01",
     title: "Берём анализы у вас дома",
-    items: [
-      "Оформляете заявку онлайн",
-      "Медсестра приезжает в удобное время",
-      "Забор крови занимает около 15 минут",
-      "Материал доставляется в лабораторию",
-    ],
+    text: "Оформляете заявку онлайн. Медсестра приезжает в удобное время и проводит забор крови за 10–15 минут. Материал доставляется в лабораторию для исследования.",
   },
   {
     icon: <FileText className="w-7 h-7 text-white" />,
-    title: "Готовим подробный медицинский отчёт",
-    items: [
-      "Лаборатория исследует более 85 показателей",
-      "Рассчитываем биологический возраст",
-      "Оцениваем состояние ключевых систем организма",
-      "Врач-эндокринолог анализирует результаты",
-      "Вы получаете подробный отчёт с полной расшифровкой показателей и объяснением их влияния на здоровье",
-    ],
-    footer: "Отчёт готовится в среднем за 5–7 дней",
+    num: "02",
+    title: "Подготавливаем подробный отчёт",
+    text: "Лаборатория исследует более 85 показателей. Врач-эндокринолог анализирует результаты, оценивает состояние систем организма, факторы риска и биологический возраст. Вы получаете подробный отчёт с полной расшифровкой всех показателей и объяснением их влияния на здоровье.",
   },
   {
     icon: <Stethoscope className="w-7 h-7 text-white" />,
-    title: "Получаете конкретные рекомендации",
-    items: [
-      "Врач-эндокринолог формирует персональные рекомендации",
-      "Подбор витаминов и минералов при необходимости",
-      "Приоритетный план действий для улучшения показателей",
-      "Возможность задать вопросы врачу по результатам отчёта",
-    ],
+    num: "03",
+    title: "Даём конкретные рекомендации",
+    text: "На основе результатов врач формирует персональные рекомендации: подбор витаминов и минералов, приоритетный план действий для улучшения показателей. Вы можете задать врачу вопросы и получить разъяснения по отчёту.",
   },
   {
     icon: <TrendingUp className="w-7 h-7 text-white" />,
-    title: "Отслеживаем изменения",
-    items: [
-      "Повторные анализы проводятся 4 раза в год",
-      "Сравниваем показатели и отслеживаем динамику",
-      "Корректируем рекомендации по мере изменений",
-    ],
+    num: "04",
+    title: "Отслеживаем изменения в динамике",
+    text: "Анализы повторяются 4 раза в год. Мы сравниваем результаты с предыдущими исследованиями, показываем изменения показателей и при необходимости корректируем рекомендации.",
   },
 ];
 
@@ -67,32 +50,20 @@ export function HowItWorksSection() {
           </h2>
         </div>
 
-        {/* 4 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5 mb-16">
+        {/* 4 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-16">
           {steps.map((step, i) => (
             <div key={i} className="group relative animate-fade-in" style={{ animationDelay: `${0.1 + i * 0.1}s` }}>
               <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-b from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 p-7 transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-2">
+              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 p-8 transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
                 <div className="flex items-center gap-4 mb-5">
                   <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25">
                     {step.icon}
                   </div>
-                  <span className="text-5xl font-black text-muted/20">0{i + 1}</span>
+                  <span className="text-5xl font-black text-muted/20">{step.num}</span>
                 </div>
-                <h3 className="text-lg md:text-xl font-bold text-foreground mb-4">{step.title}</h3>
-                <ul className="space-y-2.5">
-                  {step.items.map((item, j) => (
-                    <li key={j} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                      <ChevronRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                {step.footer && (
-                  <div className="mt-4 pt-3 border-t border-border/50">
-                    <p className="text-xs text-muted-foreground/70 italic">{step.footer}</p>
-                  </div>
-                )}
+                <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">{step.title}</h3>
+                <p className="text-[15px] leading-relaxed text-muted-foreground">{step.text}</p>
               </div>
             </div>
           ))}
