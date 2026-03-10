@@ -13,18 +13,18 @@ function ComparisonRow({ feature, reage, labs, genetics }: ComparisonRowProps) {
       return (
         <span className={`text-sm font-medium ${isHighlight ? "text-primary" : "text-muted-foreground"}`}>
           {value}
-        </span>
-      );
+        </span>);
+
     }
-    return value ? (
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isHighlight ? "bg-primary/20" : "bg-muted"}`}>
+    return value ?
+    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isHighlight ? "bg-primary/20" : "bg-muted"}`}>
         <Check className={`w-4 h-4 ${isHighlight ? "text-primary" : "text-muted-foreground"}`} />
-      </div>
-    ) : (
-      <div className="w-6 h-6 rounded-full bg-muted/50 flex items-center justify-center">
+      </div> :
+
+    <div className="w-6 h-6 rounded-full bg-muted/50 flex items-center justify-center">
         <X className="w-4 h-4 text-muted-foreground/50" />
-      </div>
-    );
+      </div>;
+
   };
 
   return (
@@ -33,22 +33,22 @@ function ComparisonRow({ feature, reage, labs, genetics }: ComparisonRowProps) {
       <div className="flex justify-center">{renderValue(reage, true)}</div>
       <div className="flex justify-center">{renderValue(labs)}</div>
       <div className="flex justify-center">{renderValue(genetics)}</div>
-    </div>
-  );
+    </div>);
+
 }
 
 export function ComparisonSection() {
   const comparisons: ComparisonRowProps[] = [
-    { feature: "Биологический возраст", reage: true, labs: false, genetics: false },
-    { feature: "Тренды здоровья", reage: "4× в год", labs: false, genetics: false },
-    { feature: "AI-рекомендации", reage: true, labs: false, genetics: false },
-    { feature: "Забор на дому", reage: true, labs: false, genetics: false },
-    { feature: "Анализ систем организма", reage: "5 систем", labs: "Частично", genetics: "Риски" },
-    { feature: "Персональный план", reage: true, labs: false, genetics: "Общий" },
-    { feature: "Время до результата", reage: "5 дней", labs: "1-3 дня", genetics: "2-4 недели" },
-    { feature: "Регулярный мониторинг", reage: true, labs: false, genetics: false },
-    { feature: "Цена за год", reage: "от 75 000₽", labs: "~80 000₽*", genetics: "~80 000₽" },
-  ];
+  { feature: "Биологический возраст", reage: true, labs: false, genetics: false },
+  { feature: "Тренды здоровья", reage: "4× в год", labs: false, genetics: false },
+  { feature: "AI-рекомендации", reage: true, labs: false, genetics: false },
+  { feature: "Забор на дому", reage: true, labs: false, genetics: false },
+  { feature: "Анализ систем организма", reage: "5 систем", labs: "Частично", genetics: "Риски" },
+  { feature: "Персональный план", reage: true, labs: false, genetics: "Общий" },
+  { feature: "Время до результата", reage: "5 дней", labs: "1-3 дня", genetics: "2-4 недели" },
+  { feature: "Регулярный мониторинг", reage: true, labs: false, genetics: false },
+  { feature: "Цена за год", reage: "от 75 000₽", labs: "~80 000₽*", genetics: "~80 000₽" }];
+
 
   return (
     <section className="relative py-20 md:py-28 overflow-hidden">
@@ -93,14 +93,15 @@ export function ComparisonSection() {
                   Рекомендуем
                 </div>
                 <div className="text-lg font-bold text-foreground">ReAge</div>
-                <div className="text-sm text-muted-foreground">Мониторинг</div>
+                <div className="text-sm text-muted-foreground">
+</div>
               </div>
             </div>
             
             {/* Labs Column Header */}
             <div className="text-center py-6">
               <div className="text-lg font-bold text-foreground">Лаборатории</div>
-              <div className="text-sm text-muted-foreground">Инвитро, Гемотест</div>
+              
             </div>
             
             {/* Genetics Column Header */}
@@ -116,9 +117,8 @@ export function ComparisonSection() {
             <div className="absolute left-1/4 right-1/2 -inset-y-4 bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25% - 0.5rem)', right: 'calc(50% + 0.5rem)' }} />
             
             <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
-              {comparisons.map((row, index) => (
-                <ComparisonRow key={index} {...row} />
-              ))}
+              {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />
+              )}
             </div>
           </div>
 
@@ -134,51 +134,51 @@ export function ComparisonSection() {
             emoji="🔬"
             title="Лаборатории"
             description="Дают цифры без контекста. Вы не знаете, что делать с результатами."
-            delay={0.4}
-          />
+            delay={0.4} />
+          
           <DifferentiatorCard
             emoji="🧬"
             title="Генетика"
             description="Показывает риски, но не текущее состояние. Делается один раз."
-            delay={0.5}
-          />
+            delay={0.5} />
+          
           <DifferentiatorCard
             emoji="📊"
             title="ReAge"
             description="Показывает динамику, даёт план действий и отслеживает прогресс."
             isHighlighted
-            delay={0.6}
-          />
+            delay={0.6} />
+          
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 }
 
-function DifferentiatorCard({ 
-  emoji, 
-  title, 
-  description, 
+function DifferentiatorCard({
+  emoji,
+  title,
+  description,
   isHighlighted,
-  delay 
-}: { 
-  emoji: string; 
-  title: string; 
-  description: string; 
-  isHighlighted?: boolean;
-  delay: number;
-}) {
+  delay
+
+
+
+
+
+
+}: {emoji: string;title: string;description: string;isHighlighted?: boolean;delay: number;}) {
   return (
-    <div 
+    <div
       className={`
         relative rounded-2xl p-6 transition-all duration-300 animate-fade-in
-        ${isHighlighted 
-          ? "bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/30 shadow-lg shadow-primary/10" 
-          : "bg-card/50 border border-border/50"
-        }
-      `}
-      style={{ animationDelay: `${delay}s` }}
-    >
+        ${isHighlighted ?
+      "bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/30 shadow-lg shadow-primary/10" :
+      "bg-card/50 border border-border/50"}
+      `
+      }
+      style={{ animationDelay: `${delay}s` }}>
+      
       <div className="text-3xl mb-3">{emoji}</div>
       <h4 className={`text-lg font-bold mb-2 ${isHighlighted ? "text-primary" : "text-foreground"}`}>
         {title}
@@ -186,6 +186,6 @@ function DifferentiatorCard({
       <p className="text-sm text-muted-foreground leading-relaxed">
         {description}
       </p>
-    </div>
-  );
+    </div>);
+
 }
