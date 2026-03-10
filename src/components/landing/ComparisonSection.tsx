@@ -79,8 +79,8 @@ export function ComparisonSection() {
           </p>
         </div>
 
-        {/* Comparison Table */}
-        <div className="max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        {/* Desktop Comparison Table */}
+        <div className="hidden md:block max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
           {/* Table Header */}
           <div className="grid grid-cols-4 gap-4 mb-2">
             <div />
@@ -89,26 +89,19 @@ export function ComparisonSection() {
             <div className="relative">
               <div className="absolute -inset-2 -top-4 rounded-t-3xl bg-gradient-to-b from-primary/20 to-transparent" />
               <div className="relative text-center py-6">
-                
-
-
-                
                 <div className="text-lg font-bold text-foreground">ReAge</div>
-                <div className="text-sm text-muted-foreground">
-</div>
+                <div className="text-sm text-muted-foreground"></div>
               </div>
             </div>
             
             {/* Labs Column Header */}
             <div className="text-center py-6">
               <div className="text-lg font-bold text-foreground">Лаборатории</div>
-              
             </div>
             
             {/* Genetics Column Header */}
             <div className="text-center py-6">
               <div className="text-lg font-bold text-foreground">Генетика</div>
-              
             </div>
           </div>
 
@@ -125,6 +118,16 @@ export function ComparisonSection() {
 
           {/* Footnote */}
           <p className="text-xs text-muted-foreground text-center mt-6">
+            * При регулярной сдаче расширенных панелей 4 раза в год
+          </p>
+        </div>
+
+        {/* Mobile Comparison Cards */}
+        <div className="md:hidden space-y-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          {comparisons.map((row, index) => (
+            <MobileComparisonCard key={index} {...row} />
+          ))}
+          <p className="text-xs text-muted-foreground text-center mt-4">
             * При регулярной сдаче расширенных панелей 4 раза в год
           </p>
         </div>
