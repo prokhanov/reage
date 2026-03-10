@@ -26,7 +26,7 @@ const steps = [
   },
   {
     icon: <Stethoscope className="w-7 h-7 text-white" />,
-    num: "03",
+    num: "3",
     title: "Даём конкретные рекомендации",
     items: [
       "Врач формирует персональные рекомендации",
