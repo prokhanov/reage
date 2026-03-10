@@ -1,129 +1,21 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Moon, Sun, Heart, Activity, Brain, Shield, TrendingUp, Dna, AlertTriangle, CheckCircle2, ListChecks } from "lucide-react";
+import { ArrowRight, Moon, Sun, Heart, Droplets, Brain, Shield, TrendingUp, Dna, Zap, Eye } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 
-type FloatingCardData = {
-  x: string;
-  y: string;
-  speed: number;
-  rotate: number;
-  content: React.ReactNode;
-};
-
-function MiniBar({ percent, color }: { percent: number; color: string }) {
-  return (
-    <div className="w-full h-1 rounded-full bg-white/10 mt-1.5">
-      <div className="h-full rounded-full" style={{ width: `${percent}%`, background: color }} />
-    </div>
-  );
-}
-
-function StatCardContent({ icon: Icon, title, value, sub, barPercent, barColor }: {
-  icon: typeof Heart; title: string; value: string; sub?: string;
-  barPercent?: number; barColor?: string;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="w-4 h-4 text-emerald-400" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-[11px] text-slate-400 leading-none">{title}</div>
-        <div className="text-sm font-bold text-white leading-tight mt-1">{value}</div>
-        {sub && <div className="text-[10px] text-slate-500 mt-0.5">{sub}</div>}
-        {barPercent !== undefined && barColor && <MiniBar percent={barPercent} color={barColor} />}
-      </div>
-    </div>
-  );
-}
-
-const floatingCardsData: FloatingCardData[] = [
-  {
-    x: "3%", y: "12%", speed: 0.15, rotate: -4,
-    content: <StatCardContent icon={ListChecks} title="Рекомендации" value="12 персональных" />,
-  },
-  {
-    x: "82%", y: "6%", speed: 0.22, rotate: 3,
-    content: <StatCardContent icon={Shield} title="Системы" value="4/5" sub="●●●●○" />,
-  },
-  {
-    x: "1%", y: "48%", speed: 0.12, rotate: -2,
-    content: (
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-          <Dna className="w-4 h-4 text-purple-400" />
-        </div>
-        <div>
-          <div className="text-[11px] text-slate-400 leading-none">Биовозраст</div>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-lg font-bold text-white leading-none">32</span>
-          </div>
-          <div className="text-[10px] text-emerald-400 mt-0.5">−3 от паспортного</div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    x: "84%", y: "44%", speed: 0.18, rotate: 4,
-    content: (
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-          <TrendingUp className="w-4 h-4 text-green-400" />
-        </div>
-        <div>
-          <div className="text-[11px] text-slate-400 leading-none">Темп старения</div>
-          <div className="text-sm font-bold text-emerald-400 leading-tight mt-1">0.85x</div>
-          <div className="text-[10px] text-slate-500 mt-0.5">замедлен</div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    x: "2%", y: "80%", speed: 0.25, rotate: -6,
-    content: (
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-          <Activity className="w-4 h-4 text-blue-400" />
-        </div>
-        <div className="w-24">
-          <div className="text-[11px] text-slate-400 leading-none">Индекс здоровья</div>
-          <div className="flex items-baseline gap-1.5 mt-1">
-            <span className="text-sm font-bold text-white leading-none">87%</span>
-          </div>
-          <MiniBar percent={87} color="#22c55e" />
-          <div className="text-[10px] text-emerald-400 mt-1">Отлично</div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    x: "80%", y: "78%", speed: 0.2, rotate: 5,
-    content: <StatCardContent icon={CheckCircle2} title="Витамин D" value="Оптимум" barPercent={75} barColor="#22c55e" />,
-  },
-  {
-    x: "78%", y: "25%", speed: 0.16, rotate: -3,
-    content: (
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-          <AlertTriangle className="w-4 h-4 text-amber-400" />
-        </div>
-        <div className="w-20">
-          <div className="text-[11px] text-slate-400 leading-none">Гомоцистеин</div>
-          <div className="text-sm font-bold text-amber-400 leading-tight mt-1">Отклонение</div>
-          <MiniBar percent={92} color="#f59e0b" />
-        </div>
-      </div>
-    ),
-  },
-  {
-    x: "10%", y: "32%", speed: 0.19, rotate: 2,
-    content: <StatCardContent icon={Heart} title="Ферритин" value="Норма" barPercent={55} barColor="#22c55e" />,
-  },
+const floatingCards = [
+  { icon: Heart, value: "62", label: "уд/мин", x: "6%", y: "14%", speed: 0.15, rotate: -6 },
+  { icon: Droplets, value: "5.2", label: "ммоль/л", x: "80%", y: "8%", speed: 0.22, rotate: 4 },
+  { icon: Brain, value: "98%", label: "когнитив", x: "2%", y: "52%", speed: 0.12, rotate: -3 },
+  { icon: Shield, value: "Норма", label: "иммунитет", x: "86%", y: "46%", speed: 0.18, rotate: 5 },
+  { icon: TrendingUp, value: "+12%", label: "прогресс", x: "4%", y: "82%", speed: 0.25, rotate: -8 },
+  { icon: Dna, value: "32", label: "био-возраст", x: "83%", y: "80%", speed: 0.2, rotate: 7 },
+  { icon: Zap, value: "8.4", label: "энергия", x: "76%", y: "28%", speed: 0.16, rotate: -5 },
+  { icon: Eye, value: "1.2", label: "D3 мкг/л", x: "12%", y: "34%", speed: 0.19, rotate: 3 },
 ];
 
 export function HeroSection() {
@@ -160,10 +52,11 @@ export function HeroSection() {
         />
       </div>
 
-      {/* Parallax floating stat cards — dark glassmorphic */}
+      {/* Parallax floating stat cards */}
       {!isMobile && (
         <div className="absolute inset-0 pointer-events-none z-[1]">
-          {floatingCardsData.map((card, i) => {
+          {floatingCards.map((card, i) => {
+            const Icon = card.icon;
             const yOffset = scrollY * card.speed;
             return (
               <div
@@ -177,15 +70,16 @@ export function HeroSection() {
                 }}
               >
                 <div
-                  className="px-4 py-3.5 rounded-2xl border animate-fade-in opacity-[0.07]"
-                  style={{
-                    animationDelay: `${0.4 + i * 0.1}s`,
-                    background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.75) 100%)',
-                    borderColor: 'rgba(148, 163, 184, 0.15)',
-                    boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-                  }}
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl border border-primary/10 animate-fade-in opacity-30"
+                  style={{ animationDelay: `${0.4 + i * 0.1}s` }}
                 >
-                  {card.content}
+                  <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-primary/40" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-foreground/40 leading-none">{card.value}</div>
+                    <div className="text-[10px] text-muted-foreground/40 leading-tight mt-0.5">{card.label}</div>
+                  </div>
                 </div>
               </div>
             );
