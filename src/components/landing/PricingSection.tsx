@@ -82,7 +82,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
     </div>);
 }
 
-function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean }) {
+function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: {biomarkers: string;biomarkersBySystem: BiomarkerCategory[];isPopular?: boolean;}) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -100,27 +100,27 @@ function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { bi
       <PopoverContent className="w-80 p-4" align="center">
         <h4 className="text-sm font-semibold text-foreground mb-3">Биомаркеры по системам</h4>
         <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-          {biomarkersBySystem.map((cat, i) => (
-            <div key={i}>
+          {biomarkersBySystem.map((cat, i) =>
+          <div key={i}>
               <div className="flex items-center gap-2 mb-1.5">
                 <span>{cat.emoji}</span>
                 <span className="text-xs font-semibold text-foreground">{cat.name}</span>
                 <span className="text-xs text-muted-foreground">({cat.markers.length})</span>
               </div>
               <div className="flex flex-wrap gap-1">
-                {cat.markers.map((m, j) => (
-                  <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
-                ))}
+                {cat.markers.map((m, j) =>
+              <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
+              )}
               </div>
             </div>
-          ))}
+          )}
         </div>
       </PopoverContent>
-    </Popover>
-  );
+    </Popover>);
+
 }
 
-function MetricRow({ icon, label, value, isPopular }: { icon: React.ReactNode; label: string; value: string; isPopular?: boolean }) {
+function MetricRow({ icon, label, value, isPopular }: {icon: React.ReactNode;label: string;value: string;isPopular?: boolean;}) {
   return (
     <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -128,33 +128,33 @@ function MetricRow({ icon, label, value, isPopular }: { icon: React.ReactNode; l
         <span>{label}</span>
       </div>
       <span className={`text-sm font-bold ${isPopular ? "text-primary" : "text-foreground"}`}>{value}</span>
-    </div>
-  );
+    </div>);
+
 }
 
 const standardBiomarkers: BiomarkerCategory[] = [
-  { emoji: "⚡", name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо"] },
-  { emoji: "❤️", name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ"] },
-  { emoji: "🛡️", name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы"] },
-  { emoji: "🧬", name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Кортизол", "Инсулин"] },
-  { emoji: "🔄", name: "Обмен веществ и детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий"] },
-];
+{ emoji: "⚡", name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо"] },
+{ emoji: "❤️", name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ"] },
+{ emoji: "🛡️", name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы"] },
+{ emoji: "🧬", name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Кортизол", "Инсулин"] },
+{ emoji: "🔄", name: "Обмен веществ и детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий"] }];
+
 
 const plusBiomarkers: BiomarkerCategory[] = [
-  { emoji: "⚡", name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо", "Витамин D", "Магний", "Цинк"] },
-  { emoji: "❤️", name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ", "Аполипопротеин B", "Липопротеин(а)", "Гомоцистеин"] },
-  { emoji: "🛡️", name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы", "Интерлейкин-6", "Фибриноген"] },
-  { emoji: "🧬", name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Кортизол", "Инсулин", "ДГЭА-сульфат", "Тестостерон общий", "ГСПГ"] },
-  { emoji: "🔄", name: "Обмен веществ и детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий", "Трансферрин", "ОЖСС", "HbA1c"] },
-];
+{ emoji: "⚡", name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо", "Витамин D", "Магний", "Цинк"] },
+{ emoji: "❤️", name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ", "Аполипопротеин B", "Липопротеин(а)", "Гомоцистеин"] },
+{ emoji: "🛡️", name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы", "Интерлейкин-6", "Фибриноген"] },
+{ emoji: "🧬", name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Кортизол", "Инсулин", "ДГЭА-сульфат", "Тестостерон общий", "ГСПГ"] },
+{ emoji: "🔄", name: "Обмен веществ и детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий", "Трансферрин", "ОЖСС", "HbA1c"] }];
+
 
 const premiumBiomarkers: BiomarkerCategory[] = [
-  { emoji: "⚡", name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо", "Витамин D", "Магний", "Цинк", "Коэнзим Q10", "Селен", "Медь"] },
-  { emoji: "❤️", name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ", "Аполипопротеин B", "Липопротеин(а)", "Гомоцистеин", "NT-proBNP", "hs-CRP", "Фосфолипиды"] },
-  { emoji: "🛡️", name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы", "Интерлейкин-6", "Фибриноген", "TNF-α", "Иммуноглобулин G", "Иммуноглобулин A"] },
-  { emoji: "🧬", name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Кортизол", "Инсулин", "ДГЭА-сульфат", "Тестостерон общий", "ГСПГ", "Эстрадиол", "Прогестерон", "ИФР-1", "Мелатонин"] },
-  { emoji: "🔄", name: "Обмен веществ и детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий", "Трансферрин", "ОЖСС", "HbA1c", "Глутатион", "8-OHdG", "МДА"] },
-];
+{ emoji: "⚡", name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо", "Витамин D", "Магний", "Цинк", "Коэнзим Q10", "Селен", "Медь"] },
+{ emoji: "❤️", name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ", "Аполипопротеин B", "Липопротеин(а)", "Гомоцистеин", "NT-proBNP", "hs-CRP", "Фосфолипиды"] },
+{ emoji: "🛡️", name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы", "Интерлейкин-6", "Фибриноген", "TNF-α", "Иммуноглобулин G", "Иммуноглобулин A"] },
+{ emoji: "🧬", name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Кортизол", "Инсулин", "ДГЭА-сульфат", "Тестостерон общий", "ГСПГ", "Эстрадиол", "Прогестерон", "ИФР-1", "Мелатонин"] },
+{ emoji: "🔄", name: "Обмен веществ и детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий", "Трансферрин", "ОЖСС", "HbA1c", "Глутатион", "8-OHdG", "МДА"] }];
+
 
 export function PricingSection() {
   const plans = [
@@ -245,7 +245,7 @@ export function PricingSection() {
         <div className="flex flex-wrap justify-center gap-6 mt-12 animate-fade-in" style={{ animationDelay: '0.5s' }}>
           <TrustBadge icon="🔒" text="Безопасная оплата" />
           <TrustBadge icon="↩️" text="Возврат за 14 дней" />
-          <TrustBadge icon="📞" text="Поддержка 24/7" />
+          
         </div>
       </div>
     </section>);
