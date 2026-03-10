@@ -113,6 +113,21 @@ export default function PatientProfile() {
     enabled: !!userId,
   });
 
+  const { data: latestWeight } = useQuery({
+    queryKey: ["patient-latest-weight", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("weight_history")
+        .select("weight")
+        .eq("user_id", userId!)
+        .order("measured_at", { ascending: false })
+        .limit(1)
+        .single();
+      return data?.weight ? Number(data.weight) : null;
+    },
+    enabled: !!userId,
+  });
+
   const { data: medicalHistory } = useQuery({
     queryKey: ["patient-medical-history", userId],
     queryFn: async () => {
