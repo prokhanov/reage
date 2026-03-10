@@ -25,18 +25,18 @@ const bullets = [
 
 export function HeroBullets() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 w-full max-w-4xl mx-auto">
       {bullets.map((b, i) => (
         <div
           key={i}
-          className="flex flex-col items-center text-center gap-2.5 p-4 py-5 rounded-xl bg-card/30 backdrop-blur-sm border border-border/30 hover:border-primary/20 transition-all duration-300"
+          className="flex flex-col items-center text-center gap-3 px-3 py-5 md:py-6 rounded-2xl bg-card/40 backdrop-blur-md border border-border/20 hover:border-primary/30 hover:bg-card/60 transition-all duration-300"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             {b.icon}
           </div>
-          <div>
-            <div className="text-sm font-semibold text-foreground leading-tight">{b.title}</div>
-            <div className="text-xs text-muted-foreground mt-1">{b.subtitle}</div>
+          <div className="space-y-1">
+            <div className="text-[13px] md:text-sm font-semibold text-foreground leading-snug">{b.title}</div>
+            <div className="text-[11px] md:text-xs text-muted-foreground leading-snug">{b.subtitle}</div>
           </div>
         </div>
       ))}

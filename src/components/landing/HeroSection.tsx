@@ -73,7 +73,7 @@ export function HeroSection() {
           </p>
 
           {/* Value bullets */}
-          <div className="animate-fade-in w-full" style={{ animationDelay: '0.3s' }}>
+          <div className="animate-fade-in w-full px-2 md:px-0" style={{ animationDelay: '0.3s' }}>
             <HeroBullets />
           </div>
 
