@@ -49,7 +49,6 @@ const steps = [
 ];
 
 export function HowItWorksSection() {
-  const navigate = useNavigate();
 
   return (
     <section className="relative py-20 md:py-28 overflow-hidden">
