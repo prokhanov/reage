@@ -223,16 +223,16 @@ function CategoryCard({ category, index }: { category: typeof biomarkerCategorie
               </div>
             </div>
 
-            {/* Symptoms */}
+            {/* Risks */}
             <div className="pt-4 border-t border-border/30">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Признаки нарушений</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Выявляемые риски</h4>
               <div className="flex flex-wrap gap-1.5">
-                {category.symptoms.map((symptom) => (
+                {category.risks.map((risk) => (
                   <span
-                    key={symptom}
+                    key={risk}
                     className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-destructive/5 text-destructive/80 border border-destructive/15"
                   >
-                    {symptom}
+                    {risk}
                   </span>
                 ))}
               </div>
