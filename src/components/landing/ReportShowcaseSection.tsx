@@ -101,7 +101,7 @@ export function ReportShowcaseSection() {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            20+ страниц глубокого анализа вашего здоровья, подготовленного и проверенного врачом
+            50+ страниц глубокого анализа вашего здоровья, подготовленного и проверенного врачом
 
           </p>
         </div>
