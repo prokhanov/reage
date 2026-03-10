@@ -119,20 +119,18 @@ export function ReportShowcaseSection() {
             <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/15 rounded-full blur-2xl" />
             
             {/* Stacked report pages with animation */}
-            <div className="relative h-[450px] flex items-center justify-center">
+            <div className="relative h-[350px] md:h-[450px] flex items-center justify-center">
               {reportPages.map((page, index) => {// Calculate position relative to active index
                 const position = (index - activeIndex + reportPages.length) % reportPages.length;
 
                 return (
                   <div
                     key={page.title}
-                    className={`absolute bg-gradient-to-br ${page.color} backdrop-blur-sm border ${page.borderColor} rounded-2xl p-6 shadow-2xl transition-all duration-500 ease-out cursor-pointer`}
+                    className={`absolute bg-gradient-to-br ${page.color} backdrop-blur-sm border ${page.borderColor} rounded-2xl p-4 md:p-6 shadow-2xl transition-all duration-500 ease-out cursor-pointer w-[220px] h-[300px] md:w-[280px] md:h-[380px]`}
                     style={{
-                      width: '280px',
-                      height: '380px',
                       transform: `
-                        translateX(${position * 30}px) 
-                        translateY(${position * -15}px) 
+                        translateX(${position * 20}px) 
+                        translateY(${position * -10}px) 
                         rotate(${-3 + position * 3}deg)
                         scale(${1 - position * 0.05})
                       `,

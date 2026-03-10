@@ -44,7 +44,7 @@ export function HeroSection() {
       </div>
 
       {/* Logo - top left */}
-      <ThemedLogo className="absolute top-4 left-8 z-10 h-20 w-auto animate-hue-shift" />
+      <ThemedLogo className="absolute top-4 left-4 md:left-8 z-10 h-16 md:h-20 w-auto animate-hue-shift" />
 
       {/* Theme Toggle */}
       {mounted && <button onClick={() => setTheme(isDark ? "light" : "dark")} className="fixed top-4 right-4 z-50 p-3 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg" aria-label={isDark ? "Светлая тема" : "Тёмная тема"}>
@@ -56,7 +56,7 @@ export function HeroSection() {
         <div className="max-w-5xl mx-auto text-center flex flex-col items-center gap-8 md:gap-10">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-            <span className="text-sm font-medium text-primary">85 биомаркеров • Анализы не выходя из дома • Результат за 5 дней • Отслеживание трендов</span>
+            <span className="text-xs sm:text-sm font-medium text-primary text-center leading-relaxed">85 биомаркеров • Анализы не выходя из дома • Результат за 5 дней • Отслеживание трендов</span>
           </div>
 
           {/* Main Heading */}

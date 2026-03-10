@@ -153,12 +153,12 @@ export function BiomarkersDeepDiveSection() {
 
         {/* Tab navigation */}
         <div className="flex justify-center mb-12">
-          <div className="inline-flex gap-1.5 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/40">
+          <div className="inline-flex gap-1.5 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/40 overflow-x-auto max-w-full scrollbar-hide">
             {biomarkerCategories.map((c, i) => (
               <button
                 key={c.id}
                 onClick={() => go(i)}
-                className={`relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                className={`relative px-3 md:px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shrink-0 ${
                   active === i ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -182,13 +182,13 @@ export function BiomarkersDeepDiveSection() {
         <div className="relative max-w-6xl mx-auto">
           <button
             onClick={prev}
-            className="absolute -left-4 md:-left-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
+            className="hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={next}
-            className="absolute -right-4 md:-right-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
+            className="hidden md:flex absolute -right-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
