@@ -111,12 +111,14 @@ serve(async (req) => {
     // Сохраняем "Данные пациента" сразу (чтобы клиент видел прогресс)
     // Будет вставлен ниже после формирования patientDataSection
 
-    // Получаем профиль пользователя
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", analysis.user_id)
-      .single();
+    // Получаем профиль пользователя и последний вес из weight_history
+    const [{ data: profile }, { data: latestWeightRecord }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", analysis.user_id).single(),
+      supabase.from("weight_history").select("weight").eq("user_id", analysis.user_id).order("measured_at", { ascending: false }).limit(1).single()
+    ]);
+
+    // Актуальный вес: приоритет weight_history, fallback на profiles.weight
+    const actualWeight = latestWeightRecord?.weight ? Number(latestWeightRecord.weight) : (profile?.weight ? Number(profile.weight) : null);
 
     // Получаем медицинскую историю
     const { data: medicalHistory } = await supabase
@@ -252,7 +254,7 @@ serve(async (req) => {
     };
 
     const bmi = calculateBMI(
-      profile?.weight ? Number(profile.weight) : null,
+      actualWeight,
       profile?.height ? Number(profile.height) : null
     );
 
@@ -314,7 +316,7 @@ serve(async (req) => {
 Возраст: ${age || "Не указано"} лет
 Пол: ${profile?.gender || "Не указано"}
 Рост: ${profile?.height ? `${profile.height} см` : "Не указано"}
-Вес: ${profile?.weight ? `${profile.weight} кг` : "Не указано"}
+Вес: ${actualWeight ? `${actualWeight} кг` : "Не указано"}
 BMI: ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
 
 МЕДИЦИНСКИЙ АНАМНЕЗ:
@@ -357,7 +359,7 @@ ${adherenceText}
 - **Возраст:** ${age || 'Не указано'} лет
 - **Пол:** ${profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : 'Не указано'}
 - **Рост:** ${profile?.height ? `${profile.height} см` : 'Не указано'}
-- **Вес:** ${profile?.weight ? `${profile.weight} кг` : 'Не указано'}
+- **Вес:** ${actualWeight ? `${actualWeight} кг` : 'Не указано'}
 - **Индекс массы тела (BMI):** ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
 
 ## Медицинская история

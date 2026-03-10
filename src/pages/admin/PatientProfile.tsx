@@ -113,6 +113,21 @@ export default function PatientProfile() {
     enabled: !!userId,
   });
 
+  const { data: latestWeight } = useQuery({
+    queryKey: ["patient-latest-weight", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("weight_history")
+        .select("weight")
+        .eq("user_id", userId!)
+        .order("measured_at", { ascending: false })
+        .limit(1)
+        .single();
+      return data?.weight ? Number(data.weight) : null;
+    },
+    enabled: !!userId,
+  });
+
   const { data: medicalHistory } = useQuery({
     queryKey: ["patient-medical-history", userId],
     queryFn: async () => {
@@ -233,8 +248,9 @@ export default function PatientProfile() {
   }
 
   const age = profile.birth_date ? calculateAge(profile.birth_date) : null;
+  const displayWeight = latestWeight ?? (profile.weight ? Number(profile.weight) : null);
   const bmi = calculateBMI(
-    profile.weight ? Number(profile.weight) : null,
+    displayWeight,
     profile.height ? Number(profile.height) : null
   );
 
@@ -290,7 +306,7 @@ export default function PatientProfile() {
                     <Weight className="w-4 h-4 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">Вес</p>
-                      <p className="font-medium">{profile.weight ? `${profile.weight} кг` : "—"}</p>
+                      <p className="font-medium">{displayWeight ? `${displayWeight} кг` : "—"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

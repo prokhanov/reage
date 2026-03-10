@@ -121,6 +121,17 @@ serve(async (req) => {
       const patientAge = profile?.birth_date ? calculateAge(profile.birth_date) : null;
       const patientGender = profile?.gender as 'male' | 'female' | null;
 
+      // Get latest weight from weight_history
+      const { data: latestWeightRecord } = await supabase
+        .from("weight_history")
+        .select("weight")
+        .eq("user_id", user.id)
+        .order("measured_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      const actualWeight = latestWeightRecord?.weight ? Number(latestWeightRecord.weight) : (profile?.weight ? Number(profile.weight) : null);
+
       // Get latest analyses
       const { data: analyses } = await supabase
         .from("analyses")
@@ -228,7 +239,7 @@ serve(async (req) => {
         "- Пол: " + (profile?.gender === 'male' ? 'мужской' : 'женский') + "\n" +
         "- Возраст: " + (patientAge || "Не указан") + " лет\n" +
         "- Рост: " + (profile?.height || "Не указан") + " см\n" +
-        "- Вес: " + (profile?.weight || "Не указан") + " кг\n" +
+        "- Вес: " + (actualWeight || "Не указан") + " кг\n" +
         (biomarkerLines ? "\nПоследние показатели биомаркеров:\n" + biomarkerLines + "\n" : "") +
         (symptomLines ? "\nПоследние симптомы:\n" + symptomLines + "\n" : "") +
         (prescriptionLines ? "\nАктивные назначения:\n" + prescriptionLines + "\n" : "") +
