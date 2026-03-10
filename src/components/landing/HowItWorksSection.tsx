@@ -14,7 +14,7 @@ const steps = [
   },
   {
     icon: <FileText className="w-7 h-7 text-white" />,
-    num: "02",
+    num: "2",
     title: "Подготавливаем подробный отчёт",
     items: [
       "Лаборатория исследует более 85 показателей",
