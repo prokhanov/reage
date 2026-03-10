@@ -25,7 +25,7 @@ interface PricingCardProps {
   delay: number;
 }
 
-function PricingCard({ name, price, yearPrice, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay }: PricingCardProps) {
   const navigate = useNavigate();
 
   return (
