@@ -79,9 +79,7 @@ const Index = () => {
       <AppFeaturesSection />
       <ComparisonSection />
       <PricingSection />
-      <PricingSection />
       <PreventiveMedicineSection />
-      <PersonasSection />
       <TestimonialsSection />
       <FAQSection />
       <CTASection />
