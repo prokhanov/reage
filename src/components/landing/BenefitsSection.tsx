@@ -28,7 +28,7 @@ function BenefitCard({ icon, title, description, delay }: BenefitCardProps) {
           {icon}
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{description}</p>
       </div>
     </div>);
 
@@ -45,7 +45,7 @@ export function BenefitsSection() {
   {
     icon: <HeartPulse className="w-6 h-6 text-primary" />,
     title: "Биологический возраст организма",
-    description: "Расчёт биологического возраста на основе показателей крови и их изменений во времени.",
+    description: "Расчёт биологического возраста на основе показателей крови и их изменений во времени.\n\nЭто не просто цифра, а ключевой показатель\nэффективности вашего образа жизни",
     delay: 0.15
   },
   {
@@ -75,12 +75,12 @@ export function BenefitsSection() {
   {
     icon: <Apple className="w-6 h-6 text-primary" />,
     title: "Изменения питания и образа жизни",
-    description: "Практические рекомендации по питанию, сну, физической активности и другим факторам здоровья.",
+    description: "Практические рекомендации по питанию, сну, физической активности и другим факторам здоровья, которые позволят улучшить ваши\nпоказатели и самочувствие.",
     delay: 0.4
   },
   {
     icon: <TrendingUp className="w-6 h-6 text-primary" />,
-    title: "Контроль изменений в динамике",
+    title: "Контроль динамики и прогресса",
     description: "Анализы 4 раза в год позволяют отслеживать изменения показателей и корректировать рекомендации по мере динамики.",
     delay: 0.45
   }];
