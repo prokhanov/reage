@@ -46,7 +46,7 @@ export function HeroSection() {
   const isDark = theme === "dark";
 
   return (
-    <section ref={sectionRef} onMouseMove={handleMouseMove} className="relative flex items-center justify-center overflow-hidden bg-background">
+    <section ref={sectionRef} className="relative flex items-center justify-center overflow-hidden bg-background">
       {/* Ambient light gradient */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
