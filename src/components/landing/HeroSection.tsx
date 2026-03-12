@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Moon, Sun, Heart, Zap, Shield, Brain, Droplets, Activity } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 
