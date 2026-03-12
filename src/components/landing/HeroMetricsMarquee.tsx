@@ -3,7 +3,7 @@ import { CalendarCheck, Activity, FileText, Stethoscope } from "lucide-react";
 const bullets = [
   {
     icon: <CalendarCheck className="w-5 h-5 text-primary" />,
-    title: "Анализы 4 раза в год",
+    title: "Чекап 4 раза в год",
     subtitle: "Берём кровь у вас дома и отслеживаем изменения показателей",
   },
   {
