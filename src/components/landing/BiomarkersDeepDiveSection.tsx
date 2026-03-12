@@ -164,14 +164,19 @@ export function BiomarkersDeepDiveSection() {
         </div>
 
         {/* Tab navigation */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex gap-1.5 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/40 overflow-x-auto max-w-full scrollbar-hide">
+        <div className="flex flex-col items-center gap-3 mb-12">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <ChevronLeft className="w-4 h-4 animate-pulse" />
+            <span className="font-medium">Выберите систему организма</span>
+            <ChevronRight className="w-4 h-4 animate-pulse" />
+          </div>
+          <div className="inline-flex gap-1.5 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/40 overflow-x-auto max-w-full scrollbar-hide shadow-md">
             {biomarkerCategories.map((c, i) => (
               <button
                 key={c.id}
-                onClick={() => go(i)}
+                onClick={() => go(i, true)}
                 className={`relative px-3 md:px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shrink-0 ${
-                  active === i ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  active === i ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
                 {active === i && (
