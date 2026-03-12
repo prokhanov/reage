@@ -85,7 +85,9 @@ export function HeroSection() {
         <div className="absolute inset-0 pointer-events-none z-[5]">
           {biomarkerCards.map((card, i) => {
             const ty = scrollY * card.speed;
-            const opacity = Math.max(0, 0.45 - scrollProgress * 0.8);
+            const opacity = Math.max(0, 0.5 - scrollProgress * 0.8);
+            const isGood = card.status === "good";
+            const TrendIcon = card.trend === "up" ? TrendingUp : card.trend === "down" ? TrendingDown : Minus;
             return (
               <div
                 key={i}
@@ -96,13 +98,18 @@ export function HeroSection() {
                   right: card.right,
                   bottom: card.bottom,
                   opacity,
-                  transform: `translateY(${-ty}px)`,
+                  transform: `translateY(${-ty}px) rotate(${card.rotate}deg)`,
                 }}
               >
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/30 border border-border/20 backdrop-blur-md">
                   <div className="text-left">
                     <div className="text-xs font-semibold text-foreground/60 leading-none">{card.label}</div>
-                    <div className="text-[10px] text-muted-foreground/50 leading-none mt-1">{card.value} {card.unit}</div>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={`text-[10px] font-medium leading-none ${isGood ? "text-emerald-400/70" : "text-red-400/70"}`}>
+                        {card.value} {card.unit}
+                      </span>
+                      <TrendIcon className={`w-3 h-3 ${isGood ? "text-emerald-400/60" : "text-red-400/60"}`} />
+                    </div>
                   </div>
                 </div>
               </div>
