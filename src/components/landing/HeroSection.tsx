@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Moon, Sun } from "lucide-react";
+import { ArrowRight, Moon, Sun, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useRef } from "react";
