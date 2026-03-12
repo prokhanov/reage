@@ -22,8 +22,19 @@ export function HeroSection() {
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const sectionRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMouse({ x, y });
   }, []);
   const isDark = theme === "dark";
 
