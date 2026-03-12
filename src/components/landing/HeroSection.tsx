@@ -1,20 +1,32 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Moon, Sun, Heart, Zap, Shield, Brain, Droplets, Activity } from "lucide-react";
+import { ArrowRight, Moon, Sun } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 
-const floatingCards = [
-  { icon: Heart, value: "62", label: "уд/мин", top: "18%", left: "5%", depth: 0.03 },
-  { icon: Zap, value: "5.2", label: "ммоль/л", top: "8%", right: "4%", depth: 0.05 },
-  { icon: Shield, value: "Норма", label: "иммунитет", top: "45%", right: "2%", depth: 0.02 },
-  { icon: Activity, value: "+12%", label: "биовозраст", bottom: "12%", left: "3%", depth: 0.04 },
-  { icon: Brain, value: "98%", label: "когнитив", top: "50%", left: "1%", depth: 0.035 },
-  { icon: Droplets, value: "32", label: "нмоль/л", bottom: "8%", right: "5%", depth: 0.025 },
-  { icon: Zap, value: "⚡", label: "энергия", top: "25%", right: "8%", depth: 0.045 },
+// Real biomarker names with sample values, spread across hero edges
+const biomarkerCards = [
+  // Left side
+  { value: "4.8", label: "Глюкоза", unit: "ммоль/л", top: "12%", left: "2%", depth: 0.15 },
+  { value: "62", label: "ЧСС покоя", unit: "уд/мин", top: "30%", left: "1%", depth: 0.08 },
+  { value: "98%", label: "Витамин D", unit: "нг/мл", top: "48%", left: "3%", depth: 0.12 },
+  { value: "5.1", label: "HbA1c", unit: "%", top: "66%", left: "1%", depth: 0.06 },
+  { value: "1.2", label: "ЛПНП", unit: "ммоль/л", bottom: "10%", left: "4%", depth: 0.1 },
+  // Right side
+  { value: "142", label: "Ферритин", unit: "мкг/л", top: "10%", right: "2%", depth: 0.1 },
+  { value: "2.1", label: "TSH", unit: "мЕд/л", top: "28%", right: "1%", depth: 0.18 },
+  { value: "Норма", label: "Иммуноглобулин", unit: "IgG", top: "46%", right: "3%", depth: 0.07 },
+  { value: "32", label: "Тестостерон", unit: "нмоль/л", top: "64%", right: "1%", depth: 0.14 },
+  { value: "85", label: "Креатинин", unit: "мкмоль/л", bottom: "8%", right: "3%", depth: 0.09 },
+  // Top center-ish
+  { value: "4.2", label: "Кортизол", unit: "нмоль/л", top: "5%", left: "25%", depth: 0.2 },
+  { value: "1.8", label: "Гомоцистеин", unit: "мкмоль/л", top: "5%", right: "22%", depth: 0.11 },
+  // Bottom center-ish  
+  { value: "+12%", label: "Биовозраст", unit: "тренд", bottom: "5%", left: "20%", depth: 0.16 },
+  { value: "7.2", label: "Инсулин", unit: "мкЕд/мл", bottom: "5%", right: "18%", depth: 0.13 },
 ];
 
 export function HeroSection() {
@@ -22,19 +34,14 @@ export function HeroSection() {
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [scrollY, setScrollY] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!sectionRef.current) return;
-    const rect = sectionRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMouse({ x, y });
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
   const isDark = theme === "dark";
 
