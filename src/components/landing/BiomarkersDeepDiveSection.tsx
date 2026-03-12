@@ -248,17 +248,31 @@ export function BiomarkersDeepDiveSection() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Dots */}
-          <div className="flex justify-center gap-2 mt-8">
-            {biomarkerCategories.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => go(i)}
-                className={`transition-all duration-300 rounded-full ${
-                  active === i ? "w-8 h-2 bg-primary" : "w-2 h-2 bg-muted-foreground/20 hover:bg-muted-foreground/40"
-                }`}
-              />
-            ))}
+          {/* Dots with arrows */}
+          <div className="flex items-center justify-center gap-3 mt-8">
+            <button
+              onClick={prev}
+              className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="flex gap-2">
+              {biomarkerCategories.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => go(i, true)}
+                  className={`transition-all duration-300 rounded-full ${
+                    active === i ? "w-8 h-2 bg-primary" : "w-2 h-2 bg-muted-foreground/20 hover:bg-muted-foreground/40"
+                  }`}
+                />
+              ))}
+            </div>
+            <button
+              onClick={next}
+              className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
