@@ -56,6 +56,20 @@ export function WhyCheckupsFail() {
             </div>
           ))}
         </div>
+
+        <div className="max-w-3xl mx-auto mt-12 md:mt-16 text-center animate-fade-in" style={{ animationDelay: '500ms' }}>
+          <div className="relative p-6 md:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card/80 to-primary/5 backdrop-blur-sm">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/10 via-transparent to-primary/10 opacity-50" />
+            <div className="relative z-10">
+              <p className="text-lg md:text-xl font-semibold text-foreground mb-3">
+                В <span className="bg-gradient-hero bg-clip-text text-transparent">ReAge</span> мы подходим к чекапу иначе.
+              </p>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                Мы анализируем все показатели в системе, сравниваем с оптимальными диапазонами, показываем динамику и&nbsp;даём конкретный план действий&nbsp;— не просто цифры, а&nbsp;дорожную карту вашего здоровья.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
