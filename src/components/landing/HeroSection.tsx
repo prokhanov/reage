@@ -8,29 +8,30 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 
 // Real biomarker names from the database, with realistic sample values
-const biomarkerCards: { label: string; value: string; unit: string; top?: string; left?: string; right?: string; bottom?: string; speed: number }[] = [
-  // Left side — organic scattered positions
-  { label: "Глюкоза", value: "4.8", unit: "ммоль/л", top: "12%", left: "2%", speed: 0.12 },
-  { label: "Инсулин", value: "7.2", unit: "мкМЕ/мл", top: "26%", left: "5%", speed: 0.06 },
-  { label: "Витамин B12", value: "485", unit: "пг/мл", top: "40%", left: "1%", speed: 0.15 },
-  { label: "Гемоглобин", value: "142", unit: "г/л", top: "55%", left: "4%", speed: 0.09 },
-  { label: "Кортизол", value: "412", unit: "нмоль/л", top: "70%", left: "2%", speed: 0.18 },
-  { label: "Фолиевая кислота", value: "12.5", unit: "нг/мл", top: "84%", left: "5%", speed: 0.07 },
-  // Right side — organic scattered positions
-  { label: "Ферритин", value: "142", unit: "нг/мл", top: "10%", right: "3%", speed: 0.1 },
-  { label: "Тиреотропный гормон", value: "2.1", unit: "мМЕ/л", top: "24%", right: "1%", speed: 0.16 },
-  { label: "Общий холестерин", value: "4.9", unit: "ммоль/л", top: "38%", right: "5%", speed: 0.08 },
-  { label: "Витамин D", value: "52", unit: "нг/мл", top: "52%", right: "2%", speed: 0.14 },
-  { label: "Тестостерон общий", value: "18.5", unit: "нмоль/л", top: "66%", right: "4%", speed: 0.05 },
-  { label: "Интерлейкин-6", value: "1.8", unit: "пг/мл", top: "80%", right: "1%", speed: 0.11 },
+// Real biomarker names, sample values, trend direction, and rotation for organic feel
+const biomarkerCards: { label: string; value: string; unit: string; top?: string; left?: string; right?: string; bottom?: string; speed: number; rotate: number; trend: "up" | "down" | "stable"; status: "good" | "bad" }[] = [
+  // Left side
+  { label: "Глюкоза", value: "4.8", unit: "ммоль/л", top: "12%", left: "2%", speed: 0.12, rotate: -3, trend: "stable", status: "good" },
+  { label: "Инсулин", value: "7.2", unit: "мкМЕ/мл", top: "28%", left: "5%", speed: 0.06, rotate: 4, trend: "down", status: "good" },
+  { label: "Витамин B12", value: "485", unit: "пг/мл", top: "42%", left: "1%", speed: 0.15, rotate: -6, trend: "up", status: "good" },
+  { label: "Гемоглобин", value: "142", unit: "г/л", top: "57%", left: "4%", speed: 0.09, rotate: 2, trend: "stable", status: "good" },
+  { label: "Кортизол", value: "612", unit: "нмоль/л", top: "72%", left: "2%", speed: 0.18, rotate: -5, trend: "up", status: "bad" },
+  { label: "Фолиевая кислота", value: "4.1", unit: "нг/мл", top: "86%", left: "5%", speed: 0.07, rotate: 3, trend: "down", status: "bad" },
+  // Right side
+  { label: "Ферритин", value: "142", unit: "нг/мл", top: "10%", right: "3%", speed: 0.1, rotate: 5, trend: "up", status: "good" },
+  { label: "Тиреотропный гормон", value: "2.1", unit: "мМЕ/л", top: "26%", right: "1%", speed: 0.16, rotate: -4, trend: "stable", status: "good" },
+  { label: "Общий холестерин", value: "6.2", unit: "ммоль/л", top: "40%", right: "5%", speed: 0.08, rotate: 3, trend: "up", status: "bad" },
+  { label: "Витамин D", value: "52", unit: "нг/мл", top: "54%", right: "2%", speed: 0.14, rotate: -7, trend: "up", status: "good" },
+  { label: "Тестостерон общий", value: "18.5", unit: "нмоль/л", top: "68%", right: "4%", speed: 0.05, rotate: 2, trend: "down", status: "bad" },
+  { label: "Интерлейкин-6", value: "1.8", unit: "пг/мл", top: "82%", right: "1%", speed: 0.11, rotate: -3, trend: "stable", status: "good" },
   // Top area
-  { label: "Лейкоциты", value: "5.8", unit: "×10⁹/л", top: "4%", left: "20%", speed: 0.2 },
-  { label: "Триглицериды", value: "0.9", unit: "ммоль/л", top: "6%", right: "18%", speed: 0.1 },
+  { label: "Лейкоциты", value: "5.8", unit: "×10⁹/л", top: "4%", left: "20%", speed: 0.2, rotate: 6, trend: "stable", status: "good" },
+  { label: "Триглицериды", value: "1.9", unit: "ммоль/л", top: "6%", right: "18%", speed: 0.1, rotate: -5, trend: "up", status: "bad" },
   // Bottom area
-  { label: "Калий", value: "4.3", unit: "ммоль/л", bottom: "6%", left: "18%", speed: 0.08 },
-  { label: "Железо сывороточное", value: "18.2", unit: "мкмоль/л", bottom: "8%", right: "14%", speed: 0.14 },
-  { label: "Магний", value: "0.91", unit: "ммоль/л", bottom: "14%", left: "7%", speed: 0.19 },
-  { label: "Селен", value: "95", unit: "мкг/л", bottom: "16%", right: "6%", speed: 0.07 },
+  { label: "Калий", value: "4.3", unit: "ммоль/л", bottom: "6%", left: "18%", speed: 0.08, rotate: 4, trend: "stable", status: "good" },
+  { label: "Железо сывороточное", value: "18.2", unit: "мкмоль/л", bottom: "8%", right: "14%", speed: 0.14, rotate: -6, trend: "down", status: "good" },
+  { label: "Магний", value: "0.72", unit: "ммоль/л", bottom: "16%", left: "7%", speed: 0.19, rotate: 3, trend: "down", status: "bad" },
+  { label: "Селен", value: "95", unit: "мкг/л", bottom: "18%", right: "6%", speed: 0.07, rotate: -4, trend: "up", status: "good" },
 ];
 
 export function HeroSection() {
