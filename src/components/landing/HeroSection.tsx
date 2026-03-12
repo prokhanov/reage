@@ -69,31 +69,28 @@ export function HeroSection() {
         />
       </div>
 
-      {/* Parallax biomarker cards — desktop only */}
+      {/* Parallax biomarker cards — scroll-based, desktop only */}
       {!isMobile && (
         <div className="absolute inset-0 pointer-events-none z-[5]">
-          {floatingCards.map((card, i) => {
-            const tx = mouse.x * card.depth * 1000;
-            const ty = mouse.y * card.depth * 1000;
+          {biomarkerCards.map((card, i) => {
+            const ty = scrollY * card.depth;
             return (
               <div
                 key={i}
-                className="absolute opacity-60 transition-transform duration-700 ease-out"
+                className="absolute transition-transform duration-100 ease-out"
                 style={{
                   top: card.top,
                   left: card.left,
                   right: card.right,
                   bottom: card.bottom,
-                  transform: `translate(${tx}px, ${ty}px)`,
+                  opacity: Math.max(0, 0.55 - scrollY * 0.0008),
+                  transform: `translateY(${-ty}px)`,
                 }}
               >
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/30 border border-border/20 backdrop-blur-md">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <card.icon className="w-4 h-4 text-primary/70" />
-                  </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/25 border border-border/15 backdrop-blur-sm">
                   <div className="text-left">
-                    <div className="text-sm font-bold text-foreground/70 leading-none">{card.value}</div>
-                    <div className="text-[11px] text-muted-foreground/70 leading-none mt-0.5">{card.label}</div>
+                    <div className="text-xs font-semibold text-foreground/60 leading-none">{card.value} <span className="font-normal text-muted-foreground/50">{card.unit}</span></div>
+                    <div className="text-[10px] text-primary/50 leading-none mt-0.5">{card.label}</div>
                   </div>
                 </div>
               </div>
