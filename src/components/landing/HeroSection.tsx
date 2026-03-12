@@ -98,9 +98,11 @@ export function HeroSection() {
                   transform: `translateY(${-ty}px)`,
                 }}
               >
-                <div className="px-2.5 py-1.5 rounded-lg bg-card/20 border border-border/10 backdrop-blur-[2px]">
-                  <div className="text-[11px] font-medium text-foreground/50 leading-none">{card.label}</div>
-                  <div className="text-[10px] text-muted-foreground/40 leading-none mt-1">{card.value} {card.unit}</div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/30 border border-border/20 backdrop-blur-md">
+                  <div className="text-left">
+                    <div className="text-xs font-semibold text-foreground/60 leading-none">{card.label}</div>
+                    <div className="text-[10px] text-muted-foreground/50 leading-none mt-1">{card.value} {card.unit}</div>
+                  </div>
                 </div>
               </div>
             );
