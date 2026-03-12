@@ -119,15 +119,27 @@ function CategoryContent({ cat }: { cat: typeof biomarkerCategories[0] }) {
 export function BiomarkersDeepDiveSection() {
   const [active, setActive] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [userInteracted, setUserInteracted] = useState(false);
   const cat = biomarkerCategories[active];
 
-  const go = useCallback((idx: number) => {
+  const go = useCallback((idx: number, isUser = false) => {
+    if (isUser) setUserInteracted(true);
     setDirection(idx > active ? 1 : -1);
     setActive(idx);
   }, [active]);
 
-  const prev = useCallback(() => { setDirection(-1); setActive(a => (a - 1 + biomarkerCategories.length) % biomarkerCategories.length); }, []);
-  const next = useCallback(() => { setDirection(1); setActive(a => (a + 1) % biomarkerCategories.length); }, []);
+  const prev = useCallback(() => { setUserInteracted(true); setDirection(-1); setActive(a => (a - 1 + biomarkerCategories.length) % biomarkerCategories.length); }, []);
+  const next = useCallback(() => { setUserInteracted(true); setDirection(1); setActive(a => (a + 1) % biomarkerCategories.length); }, []);
+
+  // Auto-rotate every 5s until user interacts
+  useEffect(() => {
+    if (userInteracted) return;
+    const timer = setInterval(() => {
+      setDirection(1);
+      setActive(a => (a + 1) % biomarkerCategories.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [userInteracted]);
 
   return (
     <section className="relative py-20 md:py-28 overflow-hidden">
