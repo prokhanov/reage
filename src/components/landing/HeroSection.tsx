@@ -39,7 +39,7 @@ export function HeroSection() {
   const isDark = theme === "dark";
 
   return (
-    <section className="relative flex items-center justify-center overflow-hidden bg-background">
+    <section ref={sectionRef} onMouseMove={handleMouseMove} className="relative flex items-center justify-center overflow-hidden bg-background">
       {/* Ambient light gradient */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
@@ -62,34 +62,36 @@ export function HeroSection() {
         />
       </div>
 
-      {/* Floating biomarker cards — desktop only */}
+      {/* Parallax biomarker cards — desktop only */}
       {!isMobile && (
         <div className="absolute inset-0 pointer-events-none z-[5]">
-          {floatingCards.map((card, i) => (
-            <div
-              key={i}
-              className="absolute animate-float opacity-0"
-              style={{
-                top: card.top,
-                left: card.left,
-                right: card.right,
-                bottom: card.bottom,
-                animationDelay: card.delay,
-                animationFillMode: 'forwards',
-                animation: `float 6s ease-in-out ${card.delay} infinite, fade-in 0.8s ease-out ${card.delay} forwards`,
-              }}
-            >
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/40 border border-border/30 backdrop-blur-md shadow-lg">
-                <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                  <card.icon className="w-4 h-4 text-primary" />
-                </div>
-                <div className="text-left">
-                  <div className="text-sm font-bold text-foreground leading-none">{card.value}</div>
-                  <div className="text-[11px] text-muted-foreground leading-none mt-0.5">{card.label}</div>
+          {floatingCards.map((card, i) => {
+            const tx = mouse.x * card.depth * 1000;
+            const ty = mouse.y * card.depth * 1000;
+            return (
+              <div
+                key={i}
+                className="absolute opacity-60 transition-transform duration-700 ease-out"
+                style={{
+                  top: card.top,
+                  left: card.left,
+                  right: card.right,
+                  bottom: card.bottom,
+                  transform: `translate(${tx}px, ${ty}px)`,
+                }}
+              >
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card/30 border border-border/20 backdrop-blur-md">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <card.icon className="w-4 h-4 text-primary/70" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-foreground/70 leading-none">{card.value}</div>
+                    <div className="text-[11px] text-muted-foreground/70 leading-none mt-0.5">{card.label}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
