@@ -8,13 +8,13 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 
 const floatingCards = [
-  { icon: Heart, value: "62", label: "уд/мин", top: "18%", left: "5%", delay: "0s" },
-  { icon: Zap, value: "5.2", label: "ммоль/л", top: "8%", right: "4%", delay: "0.5s" },
-  { icon: Shield, value: "Норма", label: "иммунитет", top: "45%", right: "2%", delay: "1s" },
-  { icon: Activity, value: "+12%", label: "биовозраст", bottom: "12%", left: "3%", delay: "1.5s" },
-  { icon: Brain, value: "98%", label: "когнитив", top: "50%", left: "1%", delay: "2s" },
-  { icon: Droplets, value: "32", label: "нмоль/л", bottom: "8%", right: "5%", delay: "0.8s" },
-  { icon: Zap, value: "⚡", label: "энергия", top: "25%", right: "8%", delay: "1.3s" },
+  { icon: Heart, value: "62", label: "уд/мин", top: "18%", left: "5%", depth: 0.03 },
+  { icon: Zap, value: "5.2", label: "ммоль/л", top: "8%", right: "4%", depth: 0.05 },
+  { icon: Shield, value: "Норма", label: "иммунитет", top: "45%", right: "2%", depth: 0.02 },
+  { icon: Activity, value: "+12%", label: "биовозраст", bottom: "12%", left: "3%", depth: 0.04 },
+  { icon: Brain, value: "98%", label: "когнитив", top: "50%", left: "1%", depth: 0.035 },
+  { icon: Droplets, value: "32", label: "нмоль/л", bottom: "8%", right: "5%", depth: 0.025 },
+  { icon: Zap, value: "⚡", label: "энергия", top: "25%", right: "8%", depth: 0.045 },
 ];
 
 export function HeroSection() {
