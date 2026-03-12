@@ -28,7 +28,7 @@ function BenefitCard({ icon, title, description, delay }: BenefitCardProps) {
           {icon}
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{description}</p>
       </div>
     </div>);
 
