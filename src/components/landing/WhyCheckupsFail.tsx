@@ -33,7 +33,8 @@ export function WhyCheckupsFail() {
       <div className="relative z-10 container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight animate-fade-in">
-            <span className="text-foreground">Почему обычные чекапы </span>
+            <span className="text-foreground">Почему обычные чекапы</span>
+            <br />
             <span className="bg-gradient-hero bg-clip-text text-transparent">не работают</span>
           </h2>
         </div>
