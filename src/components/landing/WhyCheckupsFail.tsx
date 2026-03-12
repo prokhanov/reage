@@ -51,7 +51,7 @@ export function WhyCheckupsFail() {
               </div>
               <div>
                 <h3 className="font-semibold mb-1 text-foreground">{p.title}</h3>
-                <p className="text-sm text-muted-foreground">{p.description}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{p.description}</p>
               </div>
             </div>
           ))}
