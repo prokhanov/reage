@@ -9,7 +9,7 @@ const bullets = [
   {
     icon: <Activity className="w-5 h-5 text-primary" />,
     title: "85 ключевых показателей",
-    subtitle: "Один из самых глубоких анализов состояния организма",
+    subtitle: "Проводим расширенную диагностику: витамины и минералы, гормоны, липиды, маркеры воспаления и щитовидной железы",
   },
   {
     icon: <FileText className="w-5 h-5 text-primary" />,
