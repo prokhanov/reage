@@ -80,7 +80,7 @@ export function BenefitsSection() {
   },
   {
     icon: <TrendingUp className="w-6 h-6 text-primary" />,
-    title: "Контроль изменений в динамике",
+    title: "Контроль динамики и прогресса",
     description: "Анализы 4 раза в год позволяют отслеживать изменения показателей и корректировать рекомендации по мере динамики.",
     delay: 0.45
   }];
