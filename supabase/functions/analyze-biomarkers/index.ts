@@ -904,6 +904,19 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     // Ждем завершения всех категорий
     await Promise.all(categoryPromises);
 
+    // === SCAN FOR CONTRADICTIONS in generated reports ===
+    const detectedContradictions = scanContradictions(categoryReports, analysis.analysis_values);
+    if (detectedContradictions.length > 0) {
+      console.warn(`⚠️ Detected ${detectedContradictions.length} contradictions in category reports:`);
+      detectedContradictions.forEach(c => console.warn(`  ${c}`));
+    } else {
+      console.log("No contradictions detected in category reports");
+    }
+
+    const contradictionsBlock = detectedContradictions.length > 0
+      ? `\n⚠️ ОБНАРУЖЕНЫ ПРОТИВОРЕЧИЯ В КАТЕГОРИЙНЫХ ОТЧЁТАХ — НЕ ПОВТОРЯЙ ИХ В РЕЗЮМЕ:\n${detectedContradictions.map(c => `- ${c}`).join('\n')}\nИспользуй ТОЛЬКО фактические данные из списка биомаркеров выше.\n`
+      : '';
+
     // ====== ГЕНЕРАЦИЯ НАЗНАЧЕНИЙ (ДО РЕЗЮМЕ, чтобы резюме могло на них ссылаться) ======
     console.log("All category reports saved. Starting prescriptions generation...");
 
