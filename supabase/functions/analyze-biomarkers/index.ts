@@ -496,6 +496,97 @@ ${globalBiomarkersInstructions}
 
     console.log(`Built global biomarkers context: ${analysis.analysis_values.length} markers`);
 
+    // === BUILD CRITICAL GUARD — explicit prohibition block for 🔴/🟠 markers ===
+    function buildCriticalGuard(analysisValues: any[]): string {
+      const criticalMarkers = analysisValues.map((av: any) => {
+        let nMin = av.biomarkers.normal_min;
+        let nMax = av.biomarkers.normal_max;
+        if (age && patientGenderForSummary && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges?.[patientGenderForSummary]) {
+          const ar = av.biomarkers.age_ranges[patientGenderForSummary].find((r: any) => age >= r.age_from && age <= r.age_to);
+          if (ar) { nMin = ar.min; nMax = ar.max; }
+        }
+        if ((nMin === null || nMax === null) && patientGenderForSummary === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
+        else if ((nMin === null || nMax === null) && patientGenderForSummary === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
+
+        const isHigh = nMax !== null && av.value > nMax;
+        const isLow = nMin !== null && av.value < nMin;
+        if (!isHigh && !isLow) return null;
+
+        const direction = isHigh ? 'ВЫСОКАЯ' : 'НИЗКАЯ';
+        const antiDirection = isHigh
+          ? 'НЕ ПИШИ что она снижена, понижена, дефицит, недостаточность'
+          : 'НЕ ПИШИ что она повышена, избыток, превышение';
+        const boundaryStr = isHigh ? `норма до ${nMax}` : `норма от ${nMin}`;
+
+        return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — КРИТИЧЕСКИ/РИСКОВО ${direction} (${boundaryStr}). ${antiDirection}.`;
+      }).filter(Boolean);
+
+      if (criticalMarkers.length === 0) return '';
+      return `\n⚠️ КРИТИЧЕСКИЕ ФАКТЫ — НЕ ПРОТИВОРЕЧЬ:\n${criticalMarkers.join('\n')}\n`;
+    }
+
+    const criticalGuardBlock = buildCriticalGuard(analysis.analysis_values);
+    console.log(`Critical guard: ${criticalGuardBlock ? criticalGuardBlock.split('\n').length - 2 + ' markers' : 'none'}`);
+
+    // === SCAN CONTRADICTIONS — post-generation regex scanner ===
+    function scanContradictions(
+      reports: Record<string, string>,
+      analysisValues: any[]
+    ): string[] {
+      const contradictions: string[] = [];
+
+      // Build lookup: marker name/code → actual direction
+      const markerDirections = new Map<string, { name: string; direction: 'high' | 'low' | 'normal'; value: number }>();
+      for (const av of analysisValues) {
+        let nMin = av.biomarkers.normal_min;
+        let nMax = av.biomarkers.normal_max;
+        if (age && patientGenderForSummary && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges?.[patientGenderForSummary]) {
+          const ar = av.biomarkers.age_ranges[patientGenderForSummary].find((r: any) => age >= r.age_from && age <= r.age_to);
+          if (ar) { nMin = ar.min; nMax = ar.max; }
+        }
+        if ((nMin === null || nMax === null) && patientGenderForSummary === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
+        else if ((nMin === null || nMax === null) && patientGenderForSummary === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
+
+        const isHigh = nMax !== null && av.value > nMax;
+        const isLow = nMin !== null && av.value < nMin;
+        const dir = isHigh ? 'high' : isLow ? 'low' : 'normal';
+        
+        // Index by name and code (lowercase for matching)
+        const entry = { name: av.biomarkers.name, direction: dir as 'high' | 'low' | 'normal', value: av.value };
+        markerDirections.set(av.biomarkers.name.toLowerCase(), entry);
+        markerDirections.set(av.biomarkers.code.toLowerCase(), entry);
+      }
+
+      const lowPatterns = /(?:снижен|пониженн?|дефицит|недостаточ|нехватк|низк(?:ий|ая|ое|ого|им))/i;
+      const highPatterns = /(?:повышен|избыт(?:ок|очн)|превышен|высок(?:ий|ая|ое|ого|им)|чрезмерн)/i;
+
+      for (const [category, report] of Object.entries(reports)) {
+        // Check each marker
+        for (const [key, info] of markerDirections) {
+          if (info.direction === 'normal') continue;
+          
+          // Find mentions of this marker in the report
+          const nameRegex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          const matches = [...report.matchAll(nameRegex)];
+          
+          for (const match of matches) {
+            // Get surrounding context (200 chars around the match)
+            const start = Math.max(0, (match.index || 0) - 100);
+            const end = Math.min(report.length, (match.index || 0) + key.length + 100);
+            const context = report.substring(start, end);
+            
+            if (info.direction === 'high' && lowPatterns.test(context)) {
+              contradictions.push(`[${category}] ${info.name}: значение ${info.value} ВЫШЕ нормы, но в тексте упоминается как сниженное/дефицит`);
+            } else if (info.direction === 'low' && highPatterns.test(context)) {
+              contradictions.push(`[${category}] ${info.name}: значение ${info.value} НИЖЕ нормы, но в тексте упоминается как повышенное/избыток`);
+            }
+          }
+        }
+      }
+
+      return contradictions;
+    }
+
     // Параллельные запросы для каждой категории
     const categoryReports: Record<string, string> = {};
     const categoryStatuses: Record<string, any> = {};
