@@ -469,7 +469,16 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
       else if (isOutNorm) status = "🟠 РИСК";
       else if (!isInOpt) status = "🟡 ДОПУСТИМО";
 
-      return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — ${status} [${av.biomarkers.category}]`;
+      // Determine direction relative to normal range
+      let direction = "В НОРМЕ";
+      if (isCritHigh || (nMax !== null && av.value > nMax)) direction = "ВЫШЕ НОРМЫ";
+      else if (isCritLow || (nMin !== null && av.value < nMin)) direction = "НИЖЕ НОРМЫ";
+
+      // Build ranges string for context
+      const normalRangeStr = `норма: ${nMin ?? '—'}–${nMax ?? '—'}`;
+      const optimalRangeStr = (oMin !== null || oMax !== null) ? `, оптимум: ${oMin ?? '—'}–${oMax ?? '—'}` : '';
+
+      return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — ${status} ${direction} (${normalRangeStr}${optimalRangeStr}) [${av.biomarkers.category}]`;
     }).join('\n');
 
     const globalBiomarkersInstructions = prompts['global_biomarkers_instructions'] || `ВАЖНО: 
@@ -486,6 +495,97 @@ ${globalBiomarkersInstructions}
 `.trim();
 
     console.log(`Built global biomarkers context: ${analysis.analysis_values.length} markers`);
+
+    // === BUILD CRITICAL GUARD — explicit prohibition block for 🔴/🟠 markers ===
+    function buildCriticalGuard(analysisValues: any[]): string {
+      const criticalMarkers = analysisValues.map((av: any) => {
+        let nMin = av.biomarkers.normal_min;
+        let nMax = av.biomarkers.normal_max;
+        if (age && patientGenderForSummary && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges?.[patientGenderForSummary]) {
+          const ar = av.biomarkers.age_ranges[patientGenderForSummary].find((r: any) => age >= r.age_from && age <= r.age_to);
+          if (ar) { nMin = ar.min; nMax = ar.max; }
+        }
+        if ((nMin === null || nMax === null) && patientGenderForSummary === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
+        else if ((nMin === null || nMax === null) && patientGenderForSummary === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
+
+        const isHigh = nMax !== null && av.value > nMax;
+        const isLow = nMin !== null && av.value < nMin;
+        if (!isHigh && !isLow) return null;
+
+        const direction = isHigh ? 'ВЫСОКАЯ' : 'НИЗКАЯ';
+        const antiDirection = isHigh
+          ? 'НЕ ПИШИ что она снижена, понижена, дефицит, недостаточность'
+          : 'НЕ ПИШИ что она повышена, избыток, превышение';
+        const boundaryStr = isHigh ? `норма до ${nMax}` : `норма от ${nMin}`;
+
+        return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — КРИТИЧЕСКИ/РИСКОВО ${direction} (${boundaryStr}). ${antiDirection}.`;
+      }).filter(Boolean);
+
+      if (criticalMarkers.length === 0) return '';
+      return `\n⚠️ КРИТИЧЕСКИЕ ФАКТЫ — НЕ ПРОТИВОРЕЧЬ:\n${criticalMarkers.join('\n')}\n`;
+    }
+
+    const criticalGuardBlock = buildCriticalGuard(analysis.analysis_values);
+    console.log(`Critical guard: ${criticalGuardBlock ? criticalGuardBlock.split('\n').length - 2 + ' markers' : 'none'}`);
+
+    // === SCAN CONTRADICTIONS — post-generation regex scanner ===
+    function scanContradictions(
+      reports: Record<string, string>,
+      analysisValues: any[]
+    ): string[] {
+      const contradictions: string[] = [];
+
+      // Build lookup: marker name/code → actual direction
+      const markerDirections = new Map<string, { name: string; direction: 'high' | 'low' | 'normal'; value: number }>();
+      for (const av of analysisValues) {
+        let nMin = av.biomarkers.normal_min;
+        let nMax = av.biomarkers.normal_max;
+        if (age && patientGenderForSummary && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges?.[patientGenderForSummary]) {
+          const ar = av.biomarkers.age_ranges[patientGenderForSummary].find((r: any) => age >= r.age_from && age <= r.age_to);
+          if (ar) { nMin = ar.min; nMax = ar.max; }
+        }
+        if ((nMin === null || nMax === null) && patientGenderForSummary === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
+        else if ((nMin === null || nMax === null) && patientGenderForSummary === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
+
+        const isHigh = nMax !== null && av.value > nMax;
+        const isLow = nMin !== null && av.value < nMin;
+        const dir = isHigh ? 'high' : isLow ? 'low' : 'normal';
+        
+        // Index by name and code (lowercase for matching)
+        const entry = { name: av.biomarkers.name, direction: dir as 'high' | 'low' | 'normal', value: av.value };
+        markerDirections.set(av.biomarkers.name.toLowerCase(), entry);
+        markerDirections.set(av.biomarkers.code.toLowerCase(), entry);
+      }
+
+      const lowPatterns = /(?:снижен|пониженн?|дефицит|недостаточ|нехватк|низк(?:ий|ая|ое|ого|им))/i;
+      const highPatterns = /(?:повышен|избыт(?:ок|очн)|превышен|высок(?:ий|ая|ое|ого|им)|чрезмерн)/i;
+
+      for (const [category, report] of Object.entries(reports)) {
+        // Check each marker
+        for (const [key, info] of markerDirections) {
+          if (info.direction === 'normal') continue;
+          
+          // Find mentions of this marker in the report
+          const nameRegex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          const matches = [...report.matchAll(nameRegex)];
+          
+          for (const match of matches) {
+            // Get surrounding context (200 chars around the match)
+            const start = Math.max(0, (match.index || 0) - 100);
+            const end = Math.min(report.length, (match.index || 0) + key.length + 100);
+            const context = report.substring(start, end);
+            
+            if (info.direction === 'high' && lowPatterns.test(context)) {
+              contradictions.push(`[${category}] ${info.name}: значение ${info.value} ВЫШЕ нормы, но в тексте упоминается как сниженное/дефицит`);
+            } else if (info.direction === 'low' && highPatterns.test(context)) {
+              contradictions.push(`[${category}] ${info.name}: значение ${info.value} НИЖЕ нормы, но в тексте упоминается как повышенное/избыток`);
+            }
+          }
+        }
+      }
+
+      return contradictions;
+    }
 
     // Параллельные запросы для каждой категории
     const categoryReports: Record<string, string> = {};
@@ -662,6 +762,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryPrompt += "\n\n" + globalBiomarkersContext;
         }
 
+        // Inject critical guard block (explicit prohibition for misinterpreted markers)
+        if (criticalGuardBlock) {
+          categoryPrompt += "\n" + criticalGuardBlock;
+        }
+
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
@@ -798,6 +903,19 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
     // Ждем завершения всех категорий
     await Promise.all(categoryPromises);
+
+    // === SCAN FOR CONTRADICTIONS in generated reports ===
+    const detectedContradictions = scanContradictions(categoryReports, analysis.analysis_values);
+    if (detectedContradictions.length > 0) {
+      console.warn(`⚠️ Detected ${detectedContradictions.length} contradictions in category reports:`);
+      detectedContradictions.forEach(c => console.warn(`  ${c}`));
+    } else {
+      console.log("No contradictions detected in category reports");
+    }
+
+    const contradictionsBlock = detectedContradictions.length > 0
+      ? `\n⚠️ ОБНАРУЖЕНЫ ПРОТИВОРЕЧИЯ В КАТЕГОРИЙНЫХ ОТЧЁТАХ — НЕ ПОВТОРЯЙ ИХ В РЕЗЮМЕ:\n${detectedContradictions.map(c => `- ${c}`).join('\n')}\nИспользуй ТОЛЬКО фактические данные из списка биомаркеров выше.\n`
+      : '';
 
     // ====== ГЕНЕРАЦИЯ НАЗНАЧЕНИЙ (ДО РЕЗЮМЕ, чтобы резюме могло на них ссылаться) ======
     console.log("All category reports saved. Starting prescriptions generation...");
@@ -1001,12 +1119,17 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         throw new Error("Промпт для общего резюме не найден в настройках");
       }
 
-      const summaryPrompt = summaryUserPromptTemplate
+      let summaryPrompt = summaryUserPromptTemplate
         .replace(/{userContext}/g, userContext)
         .replace(/{allReportsText}/g, allReportsText)
         .replace(/{globalBiomarkers}/g, globalBiomarkersSummary)
         .replace(/{categoryRecommendations}/g, categoryRecommendations || 'Нет извлечённых рекомендаций')
         .replace(/{prescriptionsList}/g, prescriptionsList);
+
+      // Inject contradictions warning into summary prompt
+      if (contradictionsBlock) {
+        summaryPrompt += "\n" + contradictionsBlock;
+      }
 
       const summarySystemPrompt = prompts['summary_system'];
       
