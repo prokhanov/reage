@@ -762,6 +762,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryPrompt += "\n\n" + globalBiomarkersContext;
         }
 
+        // Inject critical guard block (explicit prohibition for misinterpreted markers)
+        if (criticalGuardBlock) {
+          categoryPrompt += "\n" + criticalGuardBlock;
+        }
+
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
