@@ -469,7 +469,16 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
       else if (isOutNorm) status = "🟠 РИСК";
       else if (!isInOpt) status = "🟡 ДОПУСТИМО";
 
-      return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — ${status} [${av.biomarkers.category}]`;
+      // Determine direction relative to normal range
+      let direction = "В НОРМЕ";
+      if (isCritHigh || (nMax !== null && av.value > nMax)) direction = "ВЫШЕ НОРМЫ";
+      else if (isCritLow || (nMin !== null && av.value < nMin)) direction = "НИЖЕ НОРМЫ";
+
+      // Build ranges string for context
+      const normalRangeStr = `норма: ${nMin ?? '—'}–${nMax ?? '—'}`;
+      const optimalRangeStr = (oMin !== null || oMax !== null) ? `, оптимум: ${oMin ?? '—'}–${oMax ?? '—'}` : '';
+
+      return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — ${status} ${direction} (${normalRangeStr}${optimalRangeStr}) [${av.biomarkers.category}]`;
     }).join('\n');
 
     const globalBiomarkersInstructions = prompts['global_biomarkers_instructions'] || `ВАЖНО: 
