@@ -1119,12 +1119,17 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         throw new Error("Промпт для общего резюме не найден в настройках");
       }
 
-      const summaryPrompt = summaryUserPromptTemplate
+      let summaryPrompt = summaryUserPromptTemplate
         .replace(/{userContext}/g, userContext)
         .replace(/{allReportsText}/g, allReportsText)
         .replace(/{globalBiomarkers}/g, globalBiomarkersSummary)
         .replace(/{categoryRecommendations}/g, categoryRecommendations || 'Нет извлечённых рекомендаций')
         .replace(/{prescriptionsList}/g, prescriptionsList);
+
+      // Inject contradictions warning into summary prompt
+      if (contradictionsBlock) {
+        summaryPrompt += "\n" + contradictionsBlock;
+      }
 
       const summarySystemPrompt = prompts['summary_system'];
       
