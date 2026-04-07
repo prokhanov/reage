@@ -30,8 +30,8 @@ const appFeatures: Record<ShowcaseSection, {
   dashboard: {
     icon: LayoutDashboard,
     title: "Моё здоровье",
-    subtitle: "Главный экран",
-    description: "Все ключевые метрики на одном экране — биовозраст, индекс здоровья, тренды по системам",
+    subtitle: "Контрольная панель",
+    description: "Все ключевые метрики на одном экране — биологический возраст, индекс здоровья, тренды по 5 системам организма",
     badges: ["Биовозраст", "Индекс здоровья"],
     features: [
       { icon: ThermometerSun, text: "Тепловая карта тела" },
