@@ -108,7 +108,7 @@ const appFeatures: Record<ShowcaseSection, {
   recommendations: {
     icon: Lightbulb,
     title: "Рекомендации",
-    subtitle: "AI-генерированные отчёты",
+    subtitle: "",
     description: "Персональные рекомендации по питанию, добавкам и образу жизни",
     badges: ["Питание", "Добавки", "Образ жизни"],
     features: [
