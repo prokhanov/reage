@@ -191,6 +191,21 @@ function RecommendationsContent() {
           <span className="text-sm text-foreground">{rec.text}</span>
         </div>
       ))}
+
+      <div className="text-sm font-medium text-foreground mt-4">Назначения врача</div>
+      {[
+        { name: "Витамин D3", dose: "5000 МЕ/день", control: "15 мая 2026", status: "confirmed" },
+        { name: "Омега-3", dose: "2000 мг/день", control: "15 мая 2026", status: "confirmed" },
+        { name: "Магний B6", dose: "400 мг/день", control: "10 апр 2026", status: "on_review" },
+      ].map((rx) => (
+        <div key={rx.name} className="p-2 bg-card/50 rounded-lg border border-border/30">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-sm font-medium text-foreground">{rx.name}</span>
+            <div className={`w-2 h-2 rounded-full ${rx.status === "confirmed" ? "bg-status-good" : "bg-status-warning"}`} />
+          </div>
+          <div className="text-xs text-muted-foreground">{rx.dose} • контроль {rx.control}</div>
+        </div>
+      ))}
     </div>
   );
 }
