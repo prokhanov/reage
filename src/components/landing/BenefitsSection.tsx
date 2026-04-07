@@ -27,7 +27,7 @@ function BenefitCard({ icon, title, description, delay }: BenefitCardProps) {
         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 mb-4 group-hover:scale-110 transition-transform duration-300">
           {icon}
         </div>
-        <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
+        <h3 className="text-lg font-bold text-foreground mb-2 mx-0 px-0 whitespace-pre-line">{title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{description}</p>
       </div>
     </div>);
@@ -80,7 +80,7 @@ export function BenefitsSection() {
   },
   {
     icon: <NotebookText className="w-6 h-6 text-primary" />,
-    title: "Простой и понятный личный кабинет",
+    title: "Простой и понятный\nличный кабинет",
     description: "Результаты анализов, динамика показателей, отчет с персональными рекомендациями и дневник самочувствия — всё в одном сервисе",
     delay: 0.45
   }];
