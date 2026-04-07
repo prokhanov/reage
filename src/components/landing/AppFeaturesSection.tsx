@@ -109,7 +109,7 @@ const appFeatures: Record<ShowcaseSection, {
     icon: Lightbulb,
     title: "Рекомендации",
     subtitle: "",
-    description: "Персональные рекомендации по питанию, добавкам и образу жизни",
+    description: "Все рекомендации от врача в одном месте с дозировками и сроками контроля",
     badges: ["Питание", "Добавки", "Образ жизни"],
     features: [
       { icon: Sparkles, text: "AI-анализ" },
