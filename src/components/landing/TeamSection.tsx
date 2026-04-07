@@ -44,9 +44,9 @@ export function TeamSection() {
                 <p className="text-primary font-medium mb-4">
                   Основатель и CEO ReAge
                 </p>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Серийный стартапер из Москвы. Увлекается превентивной медициной
-                  и хорсингом. Создал ReAge, чтобы каждый мог управлять своим
+                <p className="text-sm text-muted-foreground mb-6 whitespace-pre-line">
+                  Серийный стартапер из Москвы. Увлекается превентивной медициной и
+                  {"\n"}Хобби-Хорсингом. Создал ReAge, чтобы каждый мог управлять своим
                   здоровьем осознанно — на основе данных, а не догадок.
                 </p>
 
