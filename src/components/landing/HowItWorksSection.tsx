@@ -1,4 +1,4 @@
-import { Syringe, FileText, Stethoscope, TrendingUp, ChevronRight } from "lucide-react";
+import { Syringe, FileText, Stethoscope, TrendingUp } from "lucide-react";
 
 const steps = [
   {
@@ -85,8 +85,7 @@ export function HowItWorksSection() {
                 <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">{step.title}</h3>
                 <ul className="space-y-2.5">
                   {step.items.map((item, j) => (
-                    <li key={j} className="flex items-start gap-2.5 text-[15px] text-muted-foreground">
-                      <ChevronRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <li key={j} className="text-[15px] text-muted-foreground">
                       <span>{item}</span>
                     </li>
                   ))}
