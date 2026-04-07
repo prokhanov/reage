@@ -118,19 +118,6 @@ const appFeatures: Record<ShowcaseSection, {
     ],
     color: "from-yellow-500 to-amber-500",
   },
-  prescriptions: {
-    icon: FileText,
-    title: "Назначения",
-    subtitle: "Назначения врача",
-    description: "Все назначения от врача в одном месте с дозировками и сроками контроля",
-    badges: ["Препараты", "Контроль"],
-    features: [
-      { icon: Clock, text: "Сроки контроля" },
-      { icon: FileText, text: "Дозировки" },
-      { icon: Activity, text: "Критерии эффективности" },
-    ],
-    color: "from-green-500 to-emerald-500",
-  },
 };
 
 export function AppFeaturesSection() {

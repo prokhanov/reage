@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb } from "lucide-react";
 
-export type ShowcaseSection = "dashboard" | "analyses" | "biomarkers" | "trends" | "state" | "assistant" | "recommendations" | "prescriptions";
+export type ShowcaseSection = "dashboard" | "analyses" | "biomarkers" | "trends" | "state" | "assistant" | "recommendations";
 
 const sections: { id: ShowcaseSection; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Моё здоровье", icon: <Home className="w-4 h-4" /> },
@@ -11,7 +11,7 @@ const sections: { id: ShowcaseSection; label: string; icon: React.ReactNode }[] 
   { id: "state", label: "Моё состояние", icon: <Heart className="w-4 h-4" /> },
   { id: "assistant", label: "AI-ассистент", icon: <MessageSquare className="w-4 h-4" /> },
   { id: "recommendations", label: "Рекомендации", icon: <Lightbulb className="w-4 h-4" /> },
-  { id: "prescriptions", label: "Назначения", icon: <FileText className="w-4 h-4" /> },
+  
 ];
 
 interface HeroShowcaseProps {
@@ -222,26 +222,6 @@ function AssistantContent() {
   );
 }
 
-function PrescriptionsContent() {
-  return (
-    <div className="p-4 space-y-3">
-      <div className="text-sm font-medium text-foreground">Назначения врача</div>
-      {[
-        { name: "Витамин D3", dose: "5000 МЕ/день", control: "15 мая 2026", status: "confirmed" },
-        { name: "Омега-3", dose: "2000 мг/день", control: "15 мая 2026", status: "confirmed" },
-        { name: "Магний B6", dose: "400 мг/день", control: "10 апр 2026", status: "on_review" },
-      ].map((rx) => (
-        <div key={rx.name} className="p-2 bg-card/50 rounded-lg border border-border/30">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-medium text-foreground">{rx.name}</span>
-            <div className={`w-2 h-2 rounded-full ${rx.status === "confirmed" ? "bg-status-good" : "bg-status-warning"}`} />
-          </div>
-          <div className="text-xs text-muted-foreground">{rx.dose} • контроль {rx.control}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 const SECTION_IDS = sections.map(s => s.id);
 const AUTO_INTERVAL = 4000;
@@ -281,7 +261,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
       case "state": return <StateContent />;
       case "recommendations": return <RecommendationsContent />;
       case "assistant": return <AssistantContent />;
-      case "prescriptions": return <PrescriptionsContent />;
+      
     }
   };
 
