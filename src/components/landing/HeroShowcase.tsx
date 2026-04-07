@@ -178,9 +178,9 @@ function RecommendationsContent() {
     <div className="p-4 space-y-3">
       <div className="text-sm font-medium text-foreground">Персональные рекомендации</div>
       {[
-        { name: "Витамин D3", dose: "5000 МЕ/день", control: "15 мая 2026", status: "confirmed" },
-        { name: "Омега-3", dose: "2000 мг/день", control: "15 мая 2026", status: "confirmed" },
-        { name: "Магний B6", dose: "400 мг/день", control: "10 апр 2026", status: "on_review" },
+        { name: "Витамин D3 ", dose: "1 раз в день во время завтрака, 5000 МЕ/день, длительность 2 мес.", control: "15 мая 2026", status: "confirmed" },
+        { name: "Омега-3", dose: "1 раз в день во время завтрака, 2000 мг/день", control: "15 мая 2026", status: "confirmed" },
+        { name: "Магний B6 ", dose: "Глицинат магния за 30 минут до сна, 400 мг/день , длительность 3 мес.", control: "10 апр 2026", status: "on_review" },
       ].map((rx) => (
         <div key={rx.name} className="p-2 bg-card/50 rounded-lg border border-border/30">
           <div className="flex justify-between items-center mb-1">
