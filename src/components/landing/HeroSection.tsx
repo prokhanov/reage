@@ -76,7 +76,7 @@ export function HeroSection() {
             style={{ animationDelay: '0.1s' }}>
             
             <span className="block text-foreground">Ваше здоровье в цифрах,</span>
-            <span className="block mt-2 bg-gradient-hero bg-clip-text text-transparent">
+            <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
               динамике и рекомендациях
             </span>
           </h1>
