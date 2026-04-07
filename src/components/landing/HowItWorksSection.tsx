@@ -1,4 +1,4 @@
-import { Syringe, FileText, Stethoscope, TrendingUp, ChevronRight } from "lucide-react";
+import { Syringe, FileText, Stethoscope, TrendingUp } from "lucide-react";
 
 const steps = [
   {
