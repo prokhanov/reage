@@ -112,9 +112,9 @@ const appFeatures: Record<ShowcaseSection, {
     description: "Все рекомендации от врача в одном месте с дозировками и сроками контроля",
     badges: ["Питание", "Добавки", "Образ жизни"],
     features: [
-      { icon: Sparkles, text: "AI-анализ" },
-      { icon: FileText, text: "Конкретные продукты" },
-      { icon: Activity, text: "Дозировки и сроки" },
+      { icon: Sparkles, text: "Формы витаминов " },
+      { icon: FileText, text: "Длительность приема" },
+      { icon: Activity, text: "Дозировки" },
     ],
     color: "from-yellow-500 to-amber-500",
   },
