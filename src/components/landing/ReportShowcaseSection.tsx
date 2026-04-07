@@ -106,7 +106,7 @@ export function ReportShowcaseSection() {
             </span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            50+ страниц глубокого анализа вашего здоровья, подготовленного и проверенного врачом
+            Дорожная карта вашего здоровья: расшифровка всех показателей и рекомендации нашего врача
           </p>
         </div>
 
