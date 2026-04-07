@@ -233,7 +233,7 @@ export function ReportShowcaseSection() {
                 <span className="font-semibold">Хотите увидеть пример?</span>
               </div>
               <p className="text-muted-foreground mb-6">
-                Скачайте образец отчёта и убедитесь в качестве нашей аналитики
+                Скачайте образец отчёта и убедитесь в качестве нашего сервиса
               </p>
               <a
                 href="/sample-report.pdf"
