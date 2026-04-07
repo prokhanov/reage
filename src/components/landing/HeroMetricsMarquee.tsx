@@ -3,8 +3,8 @@ import { CalendarCheck, Activity, FileText, Stethoscope } from "lucide-react";
 const bullets = [
   {
     icon: <CalendarCheck className="w-5 h-5 text-primary" />,
-    title: "Чекап 4 раза в год",
-    subtitle: "Берём кровь у вас дома и отслеживаем изменения показателей",
+    title: "Чекап 4 раза\n в год",
+    subtitle: "Берём кровь на анализ у вас дома и отслеживаем изменения показателей здоровья",
   },
   {
     icon: <Activity className="w-5 h-5 text-primary" />,
@@ -13,7 +13,7 @@ const bullets = [
   },
   {
     icon: <FileText className="w-5 h-5 text-primary" />,
-    title: "Понятная расшифровка",
+    title: "Понятная\nрасшифровка",
     subtitle: "Объясняем все показатели и взаимосвязи – что происходит с организмом и почему",
   },
   {
@@ -35,7 +35,7 @@ export function HeroBullets() {
             {b.icon}
           </div>
           <div className="space-y-1">
-            <div className="text-[15px] md:text-base font-semibold text-foreground leading-snug">{b.title}</div>
+            <div className="text-[15px] md:text-base font-semibold text-foreground leading-snug whitespace-pre-line">{b.title}</div>
             <div className="text-[13px] md:text-sm text-muted-foreground leading-snug">{b.subtitle}</div>
           </div>
         </div>
