@@ -62,7 +62,7 @@ export function WhyCheckupsFail() {
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/10 via-transparent to-primary/10 opacity-50" />
             <div className="relative z-10">
               <p className="text-lg md:text-xl font-semibold text-foreground mb-3">
-                В <span className="bg-gradient-hero bg-clip-text text-transparent">ReAge</span> мы подходим к чекапу иначе.
+                В <span className="bg-gradient-hero bg-clip-text text-transparent">ReAge</span> мы подходим к чекапу иначе
               </p>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                 Мы анализируем все показатели в системе, сравниваем с оптимальными диапазонами, показываем динамику и&nbsp;даём конкретный план действий&nbsp;— не просто цифры, а&nbsp;дорожную карту вашего здоровья.
