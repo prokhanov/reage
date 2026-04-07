@@ -178,22 +178,6 @@ function RecommendationsContent() {
     <div className="p-4 space-y-3">
       <div className="text-sm font-medium text-foreground">Персональные рекомендации</div>
       {[
-        { priority: "high", text: "Увеличить приём витамина D до 5000 МЕ/день" },
-        { priority: "high", text: "Снизить потребление насыщенных жиров" },
-        { priority: "medium", text: "Добавить 30 мин кардио 3 раза в неделю" },
-        { priority: "low", text: "Контроль холестерина через 3 месяца" },
-      ].map((rec, i) => (
-        <div key={i} className="flex gap-3 p-2 bg-card/50 rounded-lg border border-border/30">
-          <div className={`w-1 rounded-full ${
-            rec.priority === "high" ? "bg-status-danger" :
-            rec.priority === "medium" ? "bg-status-warning" : "bg-status-good"
-          }`} />
-          <span className="text-sm text-foreground">{rec.text}</span>
-        </div>
-      ))}
-
-      <div className="text-sm font-medium text-foreground mt-4">Назначения врача</div>
-      {[
         { name: "Витамин D3", dose: "5000 МЕ/день", control: "15 мая 2026", status: "confirmed" },
         { name: "Омега-3", dose: "2000 мг/день", control: "15 мая 2026", status: "confirmed" },
         { name: "Магний B6", dose: "400 мг/день", control: "10 апр 2026", status: "on_review" },
