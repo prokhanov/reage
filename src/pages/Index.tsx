@@ -10,7 +10,7 @@ import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSectio
 import { BiomarkersDeepDiveSection } from "@/components/landing/BiomarkersDeepDiveSection";
 import { HealthRisksSection } from "@/components/landing/HealthRisksSection";
 import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
-import { TeamSection } from "@/components/landing/TeamSection";
+
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { PersonasSection } from "@/components/landing/PersonasSection";
@@ -78,7 +78,7 @@ const Index = () => {
       <BiomarkersDeepDiveSection />
       <ReportShowcaseSection />
       <AppFeaturesSection />
-      <TeamSection />
+      
       <ComparisonSection />
       <PricingSection />
       <PreventiveMedicineSection />
