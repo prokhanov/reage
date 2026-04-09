@@ -332,7 +332,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
     switch (activeSection) {
       case "dashboard": return <DashboardContent />;
       case "analyses": return <AnalysesContent />;
-      case "biomarkers": return <BiomarkersContent />;
+      case "reports": return <ReportsContent />;
       case "trends": return <TrendsContent />;
       case "state": return <StateContent />;
       case "recommendations": return <RecommendationsContent />;
