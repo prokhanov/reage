@@ -29,6 +29,7 @@ const navItems = [
   { to: "/prescriptions", label: "Назначения", icon: FileText },
   { to: "/my-state", label: "Мое состояние", icon: Heart },
   { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
+  { to: "/health-strategy", label: "Стратегия здоровья", icon: Target },
 ];
 
 const adminNavItems = [
