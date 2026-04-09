@@ -96,7 +96,7 @@ const appFeatures: Record<ShowcaseSection, {
     icon: Lightbulb,
     title: "Рекомендации",
     subtitle: "",
-    description: "Все рекомендации от врача в одном месте с дозировками и сроками контроля",
+    description: "Персональный план по приему витаминов и минералов, питанию и образу жизни",
     badges: ["Питание", "Добавки", "Образ жизни"],
     features: [
       { icon: Sparkles, text: "Формы витаминов " },
