@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb, Download, X } from "lucide-react";
 
 
-export type ShowcaseSection = "dashboard" | "analyses" | "biomarkers" | "trends" | "state" | "assistant" | "recommendations";
+export type ShowcaseSection = "dashboard" | "analyses" | "reports" | "trends" | "state" | "assistant" | "recommendations";
 
 const sections: { id: ShowcaseSection; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Моё здоровье", icon: <Home className="w-4 h-4" /> },
   { id: "analyses", label: "Анализы", icon: <FlaskConical className="w-4 h-4" /> },
-  { id: "biomarkers", label: "Биомаркеры", icon: <Activity className="w-4 h-4" /> },
+  { id: "reports", label: "Персональные отчёты", icon: <FileText className="w-4 h-4" /> },
   { id: "trends", label: "Тренды", icon: <TrendingUp className="w-4 h-4" /> },
   { id: "state", label: "Моё состояние", icon: <Heart className="w-4 h-4" /> },
   { id: "assistant", label: "AI-ассистент", icon: <MessageSquare className="w-4 h-4" /> },
   { id: "recommendations", label: "Рекомендации", icon: <Lightbulb className="w-4 h-4" /> },
-  
 ];
 
 interface HeroShowcaseProps {
@@ -102,29 +101,95 @@ function AnalysesContent() {
   );
 }
 
-function BiomarkersContent() {
+function ReportsContent() {
+  const reportSections = [
+    "Данные пациента",
+    "Общее резюме",
+    "Почки и водно-солевой баланс",
+    "Сердечно-сосудистая система",
+    "Воспалительная и иммунная система",
+    "Эндокринная и стрессовая система",
+    "Обмен веществ и детоксикация",
+    "Энергия и восстановление",
+    "Назначения",
+  ];
+
   return (
-    <div className="p-4 space-y-3">
-      <div className="text-sm font-medium text-foreground">Результаты анализов</div>
-      {[
-        { name: "Гемоглобин", value: "145", unit: "г/л", status: "normal" },
-        { name: "Глюкоза", value: "5.2", unit: "ммоль/л", status: "normal" },
-        { name: "Холестерин", value: "6.1", unit: "ммоль/л", status: "warning" },
-        { name: "Витамин D", value: "28", unit: "нг/мл", status: "low" },
-        { name: "Ферритин", value: "89", unit: "мкг/л", status: "normal" },
-      ].map((marker) => (
-        <div key={marker.name} className="flex items-center justify-between p-2 bg-card/50 rounded-lg border border-border/30">
-          <span className="text-sm text-foreground">{marker.name}</span>
+    <div className="flex h-full min-h-[400px]">
+      {/* Report Sidebar */}
+      <div className="w-[160px] border-r border-border/30 p-3 space-y-1 overflow-y-auto flex-shrink-0 hidden md:block">
+        <div className="text-xs font-semibold text-primary mb-1">Содержание</div>
+        <div className="text-[10px] text-muted-foreground mb-2">23 марта 2026</div>
+        {reportSections.map((section, i) => (
+          <div
+            key={section}
+            className={`text-[11px] py-1 px-1.5 rounded cursor-default leading-tight ${
+              i === 0
+                ? "text-foreground font-medium"
+                : "text-muted-foreground"
+            }`}
+          >
+            {section}
+          </div>
+        ))}
+      </div>
+
+      {/* Report Content */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Report Header */}
+        <div className="flex items-start justify-between p-4 pb-2">
+          <div>
+            <h3 className="text-base font-semibold text-primary">Персональный отчёт</h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Детальный анализ здоровья • 8 разделов</p>
+          </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{marker.value}</span>
-            <span className="text-xs text-muted-foreground">{marker.unit}</span>
-            <div className={`w-2 h-2 rounded-full ${
-              marker.status === "normal" ? "bg-status-good" : 
-              marker.status === "warning" ? "bg-status-warning" : "bg-status-danger"
-            }`} />
+            <div className="flex items-center gap-1 text-[11px] text-primary cursor-default">
+              <Download className="w-3 h-3" />
+              <span>Скачать PDF</span>
+            </div>
+            <X className="w-3.5 h-3.5 text-muted-foreground" />
           </div>
         </div>
-      ))}
+
+        {/* Patient Data Card */}
+        <div className="px-4 pb-4">
+          <div className="bg-card/60 border border-border/40 rounded-lg p-4 space-y-3">
+            <h4 className="text-sm font-bold text-foreground uppercase tracking-wide">Данные пациента</h4>
+
+            <div className="space-y-2">
+              <h5 className="text-xs font-semibold text-foreground">Персональная информация</h5>
+              <div className="space-y-1 text-xs">
+                <div><span className="font-semibold text-foreground">Имя:</span> <span className="text-muted-foreground">Алина Дарбинян</span></div>
+                <div><span className="font-semibold text-foreground">Возраст:</span> <span className="text-muted-foreground">38 лет</span></div>
+                <div><span className="font-semibold text-foreground">Пол:</span> <span className="text-muted-foreground">Женский</span></div>
+                <div><span className="font-semibold text-foreground">Рост:</span> <span className="text-muted-foreground">164 см</span></div>
+                <div><span className="font-semibold text-foreground">Вес:</span> <span className="text-muted-foreground">51 кг</span></div>
+                <div><span className="font-semibold text-foreground">Индекс массы тела (BMI):</span> <span className="text-muted-foreground">19.0 (норма)</span></div>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <h5 className="text-xs font-semibold text-foreground">Медицинская история</h5>
+              <p className="text-xs text-muted-foreground">Не указана</p>
+            </div>
+
+            <div className="space-y-1">
+              <h5 className="text-xs font-semibold text-foreground">Основные жалобы и симптомы</h5>
+              <p className="text-xs text-muted-foreground">Не указаны</p>
+            </div>
+
+            <div className="space-y-1">
+              <h5 className="text-xs font-semibold text-foreground">Образ жизни</h5>
+              <p className="text-xs text-muted-foreground">Не указан</p>
+            </div>
+
+            <div className="space-y-1">
+              <h5 className="text-xs font-semibold text-foreground">Цели</h5>
+              <p className="text-xs text-muted-foreground">Не указаны</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -267,7 +332,7 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
     switch (activeSection) {
       case "dashboard": return <DashboardContent />;
       case "analyses": return <AnalysesContent />;
-      case "biomarkers": return <BiomarkersContent />;
+      case "reports": return <ReportsContent />;
       case "trends": return <TrendsContent />;
       case "state": return <StateContent />;
       case "recommendations": return <RecommendationsContent />;
