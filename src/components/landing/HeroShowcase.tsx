@@ -176,10 +176,10 @@ function StateContent() {
 
 function RecommendationsContent() {
   return (
-    <div className="p-3 space-y-2 overflow-y-auto max-h-[420px]">
-      <div className="text-sm font-medium text-foreground mb-1">Персональные рекомендации</div>
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-primary leading-snug">Витамин D3</h3>
+    <div className="p-4 space-y-3 overflow-y-auto max-h-[420px] text-left">
+      <div className="text-sm font-medium text-foreground mb-2">Персональные рекомендации</div>
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold text-primary leading-snug">Витамин D3</h3>
         <p className="text-xs text-muted-foreground leading-relaxed">
           <span className="font-medium text-foreground">Форма:</span> холекальциферол
         </p>
@@ -192,16 +192,16 @@ function RecommendationsContent() {
         <p className="text-xs text-muted-foreground leading-relaxed">
           <span className="font-medium text-foreground">Длительность:</span> 3 месяца
         </p>
-        <div className="p-2 rounded-md bg-primary/5 border border-primary/10">
+        <div className="p-3 rounded-md bg-primary/5 border border-primary/10 mt-2">
           <p className="text-xs text-foreground leading-relaxed">
             <span className="font-medium">Причина:</span> Витамин D (25-OH D): 44.12 нг/мл (оптимум: 40–70) — Текущий уровень витамина D находится в допустимой зоне, но ближе к нижней границе оптимума. Для поддержания иммунитета, борьбы с усталостью и улучшения общего состояния необходима превентивная поддержка.
           </p>
         </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed mt-1">
           <span className="font-medium text-foreground">На что это влияет:</span> Витамин D3 играет ключевую роль в регуляции иммунной системы, поддерживает здоровье костей, участвует в энергетическом метаболизме и снижает хроническую усталость. Поддержание оптимального уровня витамина D способствует укреплению иммунитета и улучшению настроения. Холекальциферол в масляной форме обеспечивает максимальное усвоение, поскольку является жирорастворимым витамином. Первые улучшения в самочувствии могут быть заметны через 1-2 месяца.
         </p>
-        <div className="pt-2 border-t border-border/30">
-          <span className="text-[10px] text-muted-foreground">Создано: 9 апр. 2026</span>
+        <div className="pt-3 border-t border-border/30">
+          <span className="text-xs text-muted-foreground">Создано: 9 апр. 2026</span>
         </div>
       </div>
     </div>
