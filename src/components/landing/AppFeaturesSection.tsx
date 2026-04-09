@@ -82,7 +82,7 @@ const appFeatures: Record<ShowcaseSection, {
   assistant: {
     icon: MessageSquare,
     title: "AI Ассистент",
-    subtitle: "Персональный врач 24/7",
+    subtitle: "Персональный помощник 24/7",
     description: "Задавайте вопросы о здоровье — AI учитывает все ваши данные и анализы",
     badges: ["24/7", "AI"],
     features: [
