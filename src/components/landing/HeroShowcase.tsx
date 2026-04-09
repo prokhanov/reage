@@ -2,16 +2,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb, Download, X } from "lucide-react";
 
 
-export type ShowcaseSection = "dashboard" | "analyses" | "reports" | "trends" | "state" | "assistant" | "recommendations";
+export type ShowcaseSection = "dashboard" | "analyses" | "reports" | "recommendations" | "state" | "assistant";
 
 const sections: { id: ShowcaseSection; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Моё здоровье", icon: <Home className="w-4 h-4" /> },
   { id: "analyses", label: "Анализы", icon: <FlaskConical className="w-4 h-4" /> },
   { id: "reports", label: "Отчёты", icon: <FileText className="w-4 h-4" /> },
-  { id: "trends", label: "Тренды", icon: <TrendingUp className="w-4 h-4" /> },
+  { id: "recommendations", label: "Рекомендации", icon: <Lightbulb className="w-4 h-4" /> },
   { id: "state", label: "Моё состояние", icon: <Heart className="w-4 h-4" /> },
   { id: "assistant", label: "AI-ассистент", icon: <MessageSquare className="w-4 h-4" /> },
-  { id: "recommendations", label: "Рекомендации", icon: <Lightbulb className="w-4 h-4" /> },
 ];
 
 interface HeroShowcaseProps {
@@ -183,28 +182,6 @@ function ReportsContent() {
   );
 }
 
-function TrendsContent() {
-  return (
-    <div className="p-4 space-y-4">
-      <div className="text-sm font-medium text-foreground">Динамика показателей</div>
-      <div className="h-32 flex items-end justify-between gap-1 px-2">
-        {[65, 72, 68, 75, 82, 78, 85, 87].map((val, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1">
-            <div 
-              className="w-full bg-gradient-to-t from-primary to-primary/50 rounded-t"
-              style={{ height: `${val}%` }}
-            />
-            <span className="text-[10px] text-muted-foreground">{["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг"][i]}</span>
-          </div>
-        ))}
-      </div>
-      <div className="text-center">
-        <div className="text-2xl font-bold text-status-good">+22%</div>
-        <div className="text-xs text-muted-foreground">улучшение за 8 месяцев</div>
-      </div>
-    </div>
-  );
-}
 
 function StateContent() {
   return (
@@ -322,7 +299,6 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
       case "dashboard": return <DashboardContent />;
       case "analyses": return <AnalysesContent />;
       case "reports": return <ReportsContent />;
-      case "trends": return <TrendsContent />;
       case "state": return <StateContent />;
       case "recommendations": return <RecommendationsContent />;
       case "assistant": return <AssistantContent />;
