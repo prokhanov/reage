@@ -7,7 +7,7 @@ export type ShowcaseSection = "dashboard" | "analyses" | "reports" | "trends" | 
 const sections: { id: ShowcaseSection; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Моё здоровье", icon: <Home className="w-4 h-4" /> },
   { id: "analyses", label: "Анализы", icon: <FlaskConical className="w-4 h-4" /> },
-  { id: "reports", label: "Персональные отчёты", icon: <FileText className="w-4 h-4" /> },
+  { id: "reports", label: "Отчёты", icon: <FileText className="w-4 h-4" /> },
   { id: "trends", label: "Тренды", icon: <TrendingUp className="w-4 h-4" /> },
   { id: "state", label: "Моё состояние", icon: <Heart className="w-4 h-4" /> },
   { id: "assistant", label: "AI-ассистент", icon: <MessageSquare className="w-4 h-4" /> },
@@ -118,8 +118,6 @@ function ReportsContent() {
     <div className="flex h-full min-h-[400px]">
       {/* Report Sidebar */}
       <div className="w-[160px] border-r border-border/30 p-3 space-y-1 overflow-y-auto flex-shrink-0 hidden md:block">
-        <div className="text-xs font-semibold text-primary mb-1">Содержание</div>
-        <div className="text-[10px] text-muted-foreground mb-2">23 марта 2026</div>
         {reportSections.map((section, i) => (
           <div
             key={section}
@@ -135,20 +133,11 @@ function ReportsContent() {
       </div>
 
       {/* Report Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto text-left">
         {/* Report Header */}
-        <div className="flex items-start justify-between p-4 pb-2">
-          <div>
-            <h3 className="text-base font-semibold text-primary">Персональный отчёт</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Детальный анализ здоровья • 8 разделов</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-[11px] text-primary cursor-default">
-              <Download className="w-3 h-3" />
-              <span>Скачать PDF</span>
-            </div>
-            <X className="w-3.5 h-3.5 text-muted-foreground" />
-          </div>
+        <div className="p-4 pb-2">
+          <h3 className="text-base font-semibold text-primary">Персональный отчёт</h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Детальный анализ здоровья • 8 разделов</p>
         </div>
 
         {/* Patient Data Card */}
@@ -159,7 +148,7 @@ function ReportsContent() {
             <div className="space-y-2">
               <h5 className="text-xs font-semibold text-foreground">Персональная информация</h5>
               <div className="space-y-1 text-xs">
-                <div><span className="font-semibold text-foreground">Имя:</span> <span className="text-muted-foreground">Алина Дарбинян</span></div>
+                <div><span className="font-semibold text-foreground">Имя:</span> <span className="text-muted-foreground">Елена</span></div>
                 <div><span className="font-semibold text-foreground">Возраст:</span> <span className="text-muted-foreground">38 лет</span></div>
                 <div><span className="font-semibold text-foreground">Пол:</span> <span className="text-muted-foreground">Женский</span></div>
                 <div><span className="font-semibold text-foreground">Рост:</span> <span className="text-muted-foreground">164 см</span></div>
