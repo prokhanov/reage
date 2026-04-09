@@ -186,10 +186,10 @@ function ReportsContent() {
 function StateContent() {
   const severityOptions = ["Нет", "Легко", "Средне", "Сильно"];
   const symptoms = [
-    { name: "Тревожность", selected: 0 },
-    { name: "Раздражительность", selected: 0 },
+    { name: "Тревожность", selected: 1 },
+    { name: "Раздражительность", selected: 1 },
     { name: "Депрессия", selected: 0 },
-    { name: "Стресс", selected: 0 },
+    { name: "Стресс", selected: 3 },
   ];
 
   return (
