@@ -15,7 +15,7 @@ import {
   Sparkles,
   Clock,
   BarChart3,
-  HouseHeart,
+  HeartPulse,
 } from "lucide-react";
 
 const appFeatures: Record<ShowcaseSection, {
@@ -34,7 +34,7 @@ const appFeatures: Record<ShowcaseSection, {
     description: "Все ключевые метрики на одном экране — биологический возраст, индекс здоровья, тренды по 5 системам организма",
     badges: ["Биовозраст", "Индекс здоровья"],
     features: [
-      { icon: HouseHeart, text: "Биологический возраст" },
+      { icon: HeartPulse, text: "Биологический возраст" },
       { icon: TrendingUp, text: "Тренды по 5 системам" },
       { icon: BarChart3, text: "История изменений" },
     ],
