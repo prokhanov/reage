@@ -45,7 +45,7 @@ const appFeatures: Record<ShowcaseSection, {
     title: "Анализы",
     subtitle: "История исследований",
     description: "Все ваши анализы в одном разделе с удобной навигацией и статусами",
-    badges: ["Карточки анализов", "Статусы"],
+    badges: ["Карточки анализов", "Статусы", "Тренды"],
     features: [
       { icon: FileText, text: "Ваши показатели" },
       { icon: Clock, text: "Оптимальные диапазоны" },
