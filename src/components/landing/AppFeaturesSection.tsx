@@ -66,19 +66,6 @@ const appFeatures: Record<ShowcaseSection, {
     ],
     color: "from-amber-500 to-orange-500",
   },
-  trends: {
-    icon: TrendingUp,
-    title: "Тренды",
-    subtitle: "Динамика во времени",
-    description: "Отслеживайте изменения любого показателя на графиках с референсными линиями",
-    badges: ["Графики", "Период"],
-    features: [
-      { icon: BarChart3, text: "Выбор периода" },
-      { icon: Activity, text: "Референсные линии" },
-      { icon: TrendingUp, text: "Сравнение анализов" },
-    ],
-    color: "from-violet-500 to-purple-500",
-  },
   state: {
     icon: Heart,
     title: "Моё состояние",
@@ -144,7 +131,7 @@ export function AppFeaturesSection() {
             </span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto whitespace-pre-line">
-            8 разделов для управления вашим здоровьем — от расшифровки анализов до
+            6 разделов для управления вашим здоровьем — от расшифровки анализов до
             {"\n"}AI-ассистента
           </p>
 
