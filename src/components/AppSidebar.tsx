@@ -361,6 +361,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               </NavLink>
             )}
 
+            {viewAsUserId ? (
               <button
                 onClick={handleExitViewMode}
                 className={cn(
