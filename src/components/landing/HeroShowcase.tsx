@@ -176,27 +176,13 @@ function StateContent() {
 
 function RecommendationsContent() {
   return (
-    <div className="p-4 space-y-3">
-      <div className="text-sm font-medium text-foreground">Персональные рекомендации</div>
-      <div className="p-3 bg-card/50 rounded-lg border border-border/30 space-y-2">
-        <div className="text-sm font-semibold text-primary">Витамин D3</div>
-        <div className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Форма:</span> холекальциферол</div>
-        <div className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Дозировка:</span> 5000 МЕ</div>
-        <div className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Как принимать:</span> 1 капсула ежедневно утром с жирной пищей</div>
-        <div className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Длительность:</span> 3 месяца</div>
-        <div className="p-2 rounded bg-primary/5 border border-primary/10">
-          <p className="text-xs text-foreground leading-relaxed">
-            <span className="font-medium">Причина:</span> Витамин D (25-OH D): 44.12 нг/мл (оптимум: 40–70) — уровень в допустимой зоне, но ближе к нижней границе оптимума.
-          </p>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">На что это влияет:</span> иммунная система, здоровье костей, энергетический метаболизм
-        </div>
-        <div className="flex items-center gap-3 pt-1 border-t border-border/30">
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium">Подтверждено</span>
-          <span className="text-[10px] text-muted-foreground">Создано: 9 апр. 2026</span>
-        </div>
-      </div>
+    <div className="p-2">
+      <div className="text-sm font-medium text-foreground mb-2 px-2">Персональные рекомендации</div>
+      <img 
+        src={recommendationCard} 
+        alt="Пример карточки рекомендации — Витамин D3" 
+        className="w-full rounded-lg"
+      />
     </div>
   );
 }
