@@ -116,7 +116,7 @@ function ReportsContent() {
   return (
     <div className="flex h-full min-h-[400px]">
       {/* Report Sidebar */}
-      <div className="w-[160px] border-r border-border/30 p-3 space-y-1 overflow-y-auto flex-shrink-0 hidden md:block">
+      <div className="w-[160px] border-r border-border/30 p-3 space-y-1 overflow-y-auto flex-shrink-0 hidden md:block text-left">
         {reportSections.map((section, i) => (
           <div
             key={section}
