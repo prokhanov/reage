@@ -112,14 +112,14 @@ function getSegments(status: string) {
 
 function AnalysesContent() {
   return (
-    <div className="p-3 space-y-0 text-left">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="p-4 space-y-0 text-left">
+      <div className="flex items-center gap-2 mb-3">
         <Activity className="w-4 h-4 text-primary" />
         <span className="text-sm font-semibold text-foreground">Энергия и восстановление</span>
-        <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground font-medium">{biomarkers.length}</span>
+        <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground font-medium">19</span>
       </div>
       {/* Table header */}
-      <div className="grid grid-cols-[1fr_auto_auto_1fr] gap-x-3 px-2 py-1.5 text-[10px] text-primary font-medium border-b border-border/40">
+      <div className="grid grid-cols-[minmax(100px,1.2fr)_minmax(70px,0.8fr)_minmax(60px,0.6fr)_minmax(80px,1fr)] gap-x-4 px-3 py-2 text-[10px] text-primary font-semibold border-b border-border/50 uppercase tracking-wide">
         <span>Название</span>
         <span>Значение</span>
         <span>Статус</span>
@@ -128,17 +128,19 @@ function AnalysesContent() {
       {/* Rows */}
       <div className="divide-y divide-border/30">
         {biomarkers.map((b) => (
-          <div key={b.code} className="grid grid-cols-[1fr_auto_auto_1fr] gap-x-3 items-center px-2 py-2">
+          <div key={b.code} className="grid grid-cols-[minmax(100px,1.2fr)_minmax(70px,0.8fr)_minmax(60px,0.6fr)_minmax(80px,1fr)] gap-x-4 items-center px-3 py-2.5">
             <div className="min-w-0">
-              <div className="text-[11px] font-medium text-foreground leading-tight truncate">{b.name}</div>
-              <div className="text-[9px] text-muted-foreground">{b.code}</div>
+              <div className="text-[11px] font-semibold text-foreground leading-tight truncate">{b.name}</div>
+              <div className="text-[9px] text-muted-foreground mt-0.5">{b.code}</div>
             </div>
-            <div className="text-[11px] font-bold text-foreground whitespace-nowrap">{b.value} <span className="font-normal text-muted-foreground">{b.unit}</span></div>
-            <div className="flex items-center gap-1">
-              <div className={`w-2 h-2 rounded-full ${b.statusColor} shrink-0`} />
+            <div className="text-[12px] font-bold text-foreground whitespace-nowrap">
+              {b.value} <span className="font-normal text-muted-foreground text-[10px]">{b.unit}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className={`w-2.5 h-2.5 rounded-full ${b.statusColor} shrink-0`} />
               <span className={`text-[10px] font-medium ${b.textColor} whitespace-nowrap`}>{b.status}</span>
             </div>
-            <div className="space-y-0.5 min-w-[80px]">
+            <div className="space-y-0.5">
               <RangeBar segments={getSegments(b.status)} markerPos={b.markerPos} />
               <div className="text-[8px] text-muted-foreground">{b.range}</div>
             </div>
