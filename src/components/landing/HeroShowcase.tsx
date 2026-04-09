@@ -76,26 +76,75 @@ function DashboardContent() {
   );
 }
 
+function RangeBar({ segments, markerPos }: { segments: { color: string; flex: number }[]; markerPos: number }) {
+  return (
+    <div className="relative h-2 rounded-full overflow-hidden flex">
+      {segments.map((s, i) => (
+        <div key={i} className={`h-full ${s.color}`} style={{ flex: s.flex }} />
+      ))}
+      <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-foreground border-2 border-background shadow" style={{ left: `${markerPos}%` }} />
+    </div>
+  );
+}
+
+const biomarkers = [
+  { name: "Витамин A (ретинол)", code: "VitA", value: "0.35", unit: "мг/л", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "0.3-0.7 мг/л", markerPos: 28 },
+  { name: "Малоновый диальдегид", code: "MDA", value: "2.86", unit: "мкмоль/л", status: "Риск", statusColor: "bg-status-risk", textColor: "text-status-risk", range: "0-2.5 мкмоль/л", markerPos: 72 },
+  { name: "Селен", code: "Se", value: "87.07", unit: "мкг/л", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "70-150 мкг/л", markerPos: 30 },
+  { name: "Глюкоза", code: "GLU", value: "4.76", unit: "ммоль/л", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "3.5-5 ммоль/л", markerPos: 45 },
+  { name: "Витамин B12", code: "B12", value: "1338.7", unit: "пг/мл", status: "Критично", statusColor: "bg-status-critical", textColor: "text-status-critical", range: "200-900 пг/мл", markerPos: 88 },
+  { name: "Индекс Каро", code: "Caro", value: "0.35", unit: "индекс", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "> 0.33 индекс", markerPos: 38 },
+  { name: "Инсулин", code: "INS", value: "8.85", unit: "мкМЕ/мл", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "2.5-12 мкМЕ/мл", markerPos: 48 },
+  { name: "Фолиевая кислота", code: "B9", value: "3.16", unit: "нг/мл", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "3-17 нг/мл", markerPos: 22 },
+  { name: "Альбумин", code: "ALB", value: "36.24", unit: "г/л", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "35-52 г/л", markerPos: 25 },
+  { name: "Коэнзим Q10", code: "CoQ10", value: "0.63", unit: "мкг/мл", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "0.5-2.5 мкг/мл", markerPos: 24 },
+  { name: "Индекс инсулинорезистентности", code: "HOMA-IR", value: "0.08", unit: "индекс", status: "Оптимально", statusColor: "bg-status-good", textColor: "text-status-good", range: "0-2.7 индекс", markerPos: 15 },
+];
+
+function getSegments(status: string) {
+  if (status === "Критично") return [
+    { color: "bg-status-critical", flex: 1 }, { color: "bg-status-risk", flex: 1 }, { color: "bg-status-warning", flex: 1 }, { color: "bg-status-good", flex: 2 }, { color: "bg-status-warning", flex: 1 }, { color: "bg-status-risk", flex: 1 }, { color: "bg-status-critical", flex: 1 },
+  ];
+  return [
+    { color: "bg-status-critical", flex: 1 }, { color: "bg-status-risk", flex: 1 }, { color: "bg-status-warning", flex: 1 }, { color: "bg-status-good", flex: 2 }, { color: "bg-status-warning", flex: 1 }, { color: "bg-status-risk", flex: 1 }, { color: "bg-status-critical", flex: 1 },
+  ];
+}
+
 function AnalysesContent() {
   return (
-    <div className="p-4 space-y-3">
-      <div className="text-sm font-medium text-foreground">История анализов</div>
-      {[
-        { date: "15 фев 2026", markers: 52, status: "Обработан", statusColor: "bg-status-good" },
-        { date: "10 ноя 2025", markers: 48, status: "Обработан", statusColor: "bg-status-good" },
-        { date: "05 авг 2025", markers: 45, status: "Обработан", statusColor: "bg-status-good" },
-      ].map((analysis) => (
-        <div key={analysis.date} className="flex items-center justify-between p-3 bg-card/50 rounded-lg border border-border/30">
-          <div>
-            <div className="text-sm font-medium text-foreground">{analysis.date}</div>
-            <div className="text-xs text-muted-foreground">{analysis.markers} маркеров</div>
+    <div className="p-3 space-y-0 text-left">
+      <div className="flex items-center gap-2 mb-2">
+        <Activity className="w-4 h-4 text-primary" />
+        <span className="text-sm font-semibold text-foreground">Энергия и восстановление</span>
+        <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground font-medium">{biomarkers.length}</span>
+      </div>
+      {/* Table header */}
+      <div className="grid grid-cols-[1fr_auto_auto_1fr] gap-x-3 px-2 py-1.5 text-[10px] text-primary font-medium border-b border-border/40">
+        <span>Название</span>
+        <span>Значение</span>
+        <span>Статус</span>
+        <span>Шкала</span>
+      </div>
+      {/* Rows */}
+      <div className="divide-y divide-border/30">
+        {biomarkers.map((b) => (
+          <div key={b.code} className="grid grid-cols-[1fr_auto_auto_1fr] gap-x-3 items-center px-2 py-2">
+            <div className="min-w-0">
+              <div className="text-[11px] font-medium text-foreground leading-tight truncate">{b.name}</div>
+              <div className="text-[9px] text-muted-foreground">{b.code}</div>
+            </div>
+            <div className="text-[11px] font-bold text-foreground whitespace-nowrap">{b.value} <span className="font-normal text-muted-foreground">{b.unit}</span></div>
+            <div className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${b.statusColor} shrink-0`} />
+              <span className={`text-[10px] font-medium ${b.textColor} whitespace-nowrap`}>{b.status}</span>
+            </div>
+            <div className="space-y-0.5 min-w-[80px]">
+              <RangeBar segments={getSegments(b.status)} markerPos={b.markerPos} />
+              <div className="text-[8px] text-muted-foreground">{b.range}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${analysis.statusColor}`} />
-            <span className="text-xs text-muted-foreground">{analysis.status}</span>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
