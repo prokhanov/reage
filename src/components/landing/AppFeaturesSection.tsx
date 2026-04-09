@@ -58,7 +58,7 @@ const appFeatures: Record<ShowcaseSection, {
     title: "Персональные отчёты",
     subtitle: "Детальный анализ",
     description: "Полный отчёт по каждому показателю с разбором по системам организма",
-    badges: ["Биомаркеры", "Факторы риска"],
+    badges: ["Биомаркеры", "Факторы риска", "PDF"],
     features: [
       { icon: FileText, text: "Разбор по системам" },
       { icon: Activity, text: "Расшифровка анализов" },
