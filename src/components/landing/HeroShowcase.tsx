@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb, Download, X } from "lucide-react";
 
 
-export type ShowcaseSection = "dashboard" | "analyses" | "biomarkers" | "trends" | "state" | "assistant" | "recommendations";
+export type ShowcaseSection = "dashboard" | "analyses" | "reports" | "trends" | "state" | "assistant" | "recommendations";
 
 const sections: { id: ShowcaseSection; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Моё здоровье", icon: <Home className="w-4 h-4" /> },
   { id: "analyses", label: "Анализы", icon: <FlaskConical className="w-4 h-4" /> },
-  { id: "biomarkers", label: "Биомаркеры", icon: <Activity className="w-4 h-4" /> },
+  { id: "reports", label: "Персональные отчёты", icon: <FileText className="w-4 h-4" /> },
   { id: "trends", label: "Тренды", icon: <TrendingUp className="w-4 h-4" /> },
   { id: "state", label: "Моё состояние", icon: <Heart className="w-4 h-4" /> },
   { id: "assistant", label: "AI-ассистент", icon: <MessageSquare className="w-4 h-4" /> },
   { id: "recommendations", label: "Рекомендации", icon: <Lightbulb className="w-4 h-4" /> },
-  
 ];
 
 interface HeroShowcaseProps {
