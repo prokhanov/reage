@@ -44,7 +44,7 @@ const appFeatures: Record<ShowcaseSection, {
     icon: FlaskConical,
     title: "Анализы",
     subtitle: "История исследований",
-    description: "Все ваши анализы в одном разделе с удобной навигацией и статусами",
+    description: "Все ваши анализы в одном разделе с удобной навигацией и динамикой показателей",
     badges: ["Карточки анализов", "Статусы", "Тренды"],
     features: [
       { icon: FileText, text: "Ваши показатели" },
