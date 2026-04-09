@@ -922,7 +922,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
     let prescriptionsCreated = 0;
     let prescriptionsStatus = "skipped";
-    let prescriptionsToCreateFinal: Array<{ prescription: string; reason: string; effect: string; duration_months: number }> = [];
+    let prescriptionsToCreateFinal: Array<{ name: string; form: string; dosage: string; how_to_take: string; duration: string; prescription: string; reason: string; effect: string; duration_months: number }> = [];
 
     // Извлекаем рекомендательные секции из отчётов (между anchor:actions_start и anchor:actions_end)
     const categoryRecommendations = Object.entries(categoryReports)
@@ -1049,7 +1049,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             messages: [
               { 
                 role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"prescription\": \"текст\", \"reason\": \"причина с биомаркером\", \"effect\": \"текст\", \"duration_months\": число}]}. Никакого дополнительного текста!"
+                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"name\": \"короткое название (например Витамин D3)\", \"form\": \"биодоступная форма (например холекальциферол)\", \"dosage\": \"дозировка (например 5000 МЕ)\", \"how_to_take\": \"схема приёма (например 1 капсула ежедневно утром с едой)\", \"duration\": \"длительность курса (например 6 месяцев)\", \"prescription\": \"полный текст назначения\", \"reason\": \"причина с биомаркером\", \"effect\": \"на что это влияет\", \"duration_months\": число}]}. Никакого дополнительного текста!"
               },
               { 
                 role: "user", 
@@ -1075,9 +1075,14 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             const jsonStr = content.substring(jsonStart, jsonEnd);
             const parsed = JSON.parse(jsonStr);
             prescriptionsToCreateFinal = (parsed.prescriptions || [])
-              .filter((p: any) => p.prescription && p.prescription.trim())
+              .filter((p: any) => (p.name || p.prescription) && (p.name || p.prescription).trim())
               .map((p: any) => ({
-                prescription: p.prescription.trim().substring(0, 5000),
+                name: (p.name || "").trim().substring(0, 500),
+                form: (p.form || "").trim().substring(0, 500),
+                dosage: (p.dosage || "").trim().substring(0, 500),
+                how_to_take: (p.how_to_take || "").trim().substring(0, 1000),
+                duration: (p.duration || "").trim().substring(0, 500),
+                prescription: (p.prescription || p.name || "").trim().substring(0, 5000),
                 reason: (p.reason || "").trim().substring(0, 2000),
                 effect: (p.effect || "").trim().substring(0, 5000),
                 duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
