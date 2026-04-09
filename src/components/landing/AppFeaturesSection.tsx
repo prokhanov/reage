@@ -95,7 +95,7 @@ const appFeatures: Record<ShowcaseSection, {
   recommendations: {
     icon: Lightbulb,
     title: "Рекомендации",
-    subtitle: "",
+    subtitle: "Простое руководство к действию",
     description: "Персональный план по приему витаминов и минералов, питанию и образу жизни",
     badges: ["Питание", "Добавки", "Образ жизни"],
     features: [
