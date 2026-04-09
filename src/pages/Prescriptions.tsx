@@ -149,7 +149,7 @@ export default function Prescriptions() {
         >
           {/* Назначение */}
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold leading-relaxed">
+            <h3 className="text-lg font-semibold leading-relaxed text-primary">
               {prescription.name || prescription.prescription}
             </h3>
 
@@ -203,14 +203,6 @@ export default function Prescriptions() {
                 </div>
               )}
               
-              {prescription.control_date && !isNaN(new Date(prescription.control_date).getTime()) && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-primary/70" />
-                  <span className="text-sm font-medium">
-                    {format(new Date(prescription.control_date), "d MMMM yyyy", { locale: ru })}
-                  </span>
-                </div>
-              )}
 
               {prescription.created_at && !isNaN(new Date(prescription.created_at).getTime()) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
