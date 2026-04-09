@@ -184,23 +184,72 @@ function ReportsContent() {
 
 
 function StateContent() {
+  const severityOptions = ["Нет", "Легко", "Средне", "Сильно"];
+  const symptoms = [
+    { name: "Тревожность", selected: 0 },
+    { name: "Раздражительность", selected: 0 },
+    { name: "Депрессия", selected: 0 },
+    { name: "Стресс", selected: 0 },
+  ];
+
   return (
-    <div className="p-4 space-y-3">
-      <div className="text-sm font-medium text-foreground">Дневник симптомов</div>
-      {[
-        { category: "🧠 Нервная система", symptoms: ["Головная боль", "Усталость"], severity: 2 },
-        { category: "❤️ Сердце", symptoms: ["Норма"], severity: 0 },
-        { category: "🦴 Опорно-двигательная", symptoms: ["Боль в спине"], severity: 1 },
-      ].map((cat) => (
-        <div key={cat.category} className="p-2 bg-card/50 rounded-lg border border-border/30">
-          <div className="text-sm font-medium text-foreground mb-1">{cat.category}</div>
-          <div className="flex flex-wrap gap-1">
-            {cat.symptoms.map((s) => (
-              <span key={s} className="text-xs bg-muted/50 rounded px-2 py-0.5 text-muted-foreground">{s}</span>
-            ))}
-          </div>
+    <div className="p-4 space-y-3 text-left">
+      {/* Tabs */}
+      <div className="flex gap-0 rounded-full overflow-hidden border border-border/40 w-fit mx-auto">
+        <div className="px-4 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">Опросник</div>
+        <div className="px-4 py-1.5 text-xs text-muted-foreground">История</div>
+      </div>
+
+      {/* Progress */}
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>Шаг 4 из 6</span>
+        <span>67%</span>
+      </div>
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className="h-full bg-primary rounded-full" style={{ width: "67%" }} />
+      </div>
+
+      {/* Category Header */}
+      <div className="flex items-center gap-2 mt-2">
+        <span className="text-lg">😊</span>
+        <div>
+          <div className="text-sm font-semibold text-foreground">Настроение</div>
+          <div className="text-[11px] text-muted-foreground">Отметьте все симптомы, которые вы испытываете</div>
         </div>
-      ))}
+      </div>
+
+      {/* Symptom Rows */}
+      <div className="space-y-2.5">
+        {symptoms.map((symptom) => (
+          <div key={symptom.name} className="border border-border/40 rounded-lg p-2.5">
+            <div className="text-xs font-medium text-foreground mb-2">{symptom.name}</div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {severityOptions.map((option, i) => (
+                <div
+                  key={option}
+                  className={`text-center py-1.5 rounded-md text-[11px] border ${
+                    i === symptom.selected
+                      ? "bg-primary/15 border-primary/40 text-primary font-medium"
+                      : "border-border/30 text-muted-foreground"
+                  }`}
+                >
+                  {option}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Navigation */}
+      <div className="grid grid-cols-2 gap-2 pt-1">
+        <div className="flex items-center justify-center gap-1 py-1.5 rounded-lg border border-border/40 text-xs text-muted-foreground">
+          <span>‹</span> Назад
+        </div>
+        <div className="flex items-center justify-center gap-1 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium">
+          Далее <span>›</span>
+        </div>
+      </div>
     </div>
   );
 }
