@@ -226,9 +226,9 @@ export default function Prescriptions() {
           <>
             <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Назначения</h1>
+            <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Рекомендации</h1>
             <p className="text-muted-foreground">
-              Рекомендации и назначения врача
+              {"\n"}
             </p>
           </div>
           {isViewMode && hasPatientAccess && viewAsUserId && (
