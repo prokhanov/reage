@@ -24,13 +24,11 @@ interface AppSidebarProps {
 
 const navItems = [
   { to: "/dashboard", label: "Моё здоровье", icon: Home },
-  { to: "/health-strategy", label: "Стратегия здоровья", icon: Target },
   { to: "/analyses", label: "Анализы", icon: FlaskConical },
-  { to: "/my-state", label: "Мое состояние", icon: Heart },
-  { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
   { to: "/recommendations", label: "Персональные отчёты", icon: Lightbulb },
   { to: "/prescriptions", label: "Назначения", icon: FileText },
-  { to: "/subscription", label: "Подписка", icon: CreditCard },
+  { to: "/my-state", label: "Мое состояние", icon: Heart },
+  { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
 ];
 
 const adminNavItems = [
@@ -328,7 +326,41 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 {isOpen && <span className="font-medium">Профиль</span>}
               </NavLink>
             )}
-            
+
+            {/* Subscription */}
+            {viewAsUserId ? (
+              <button
+                onClick={() => { setSimPath("/subscription"); closeSidebarOnMobile(); }}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
+                  "hover:bg-primary/10 hover:text-primary",
+                  simPath === "/subscription" && "bg-primary/15 text-primary border border-primary/20",
+                  isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
+                )}
+                title={!isOpen ? "Подписка" : undefined}
+              >
+                <CreditCard className="h-5 w-5 flex-shrink-0" />
+                {isOpen && <span className="font-medium">Подписка</span>}
+              </button>
+            ) : (
+              <NavLink
+                to="/subscription"
+                onClick={closeSidebarOnMobile}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 rounded-lg transition-all duration-200 text-sm",
+                    "hover:bg-primary/10 hover:text-primary",
+                    isActive && "bg-primary/15 text-primary border border-primary/20",
+                    isOpen ? "px-3 py-3" : "w-12 h-12 justify-center mx-auto"
+                  )
+                }
+                title={!isOpen ? "Подписка" : undefined}
+              >
+                <CreditCard className="h-5 w-5 flex-shrink-0" />
+                {isOpen && <span className="font-medium">Подписка</span>}
+              </NavLink>
+            )}
+
             {viewAsUserId ? (
               <button
                 onClick={handleExitViewMode}
