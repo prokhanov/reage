@@ -179,7 +179,6 @@ export default function Prescriptions() {
 
             {prescription.reason && (
               <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mt-2">
-                <span className="text-primary mt-0.5">📊</span>
                 <p className="text-sm text-foreground leading-relaxed">
                   <span className="font-medium">Причина:</span> {prescription.reason}
                 </p>
