@@ -26,7 +26,7 @@ const navItems = [
   { to: "/dashboard", label: "Моё здоровье", icon: Home },
   { to: "/analyses", label: "Анализы", icon: FlaskConical },
   { to: "/recommendations", label: "Персональные отчёты", icon: Lightbulb },
-  { to: "/prescriptions", label: "Назначения", icon: FileText },
+  { to: "/prescriptions", label: "Рекомендации", icon: FileText },
   { to: "/my-state", label: "Мое состояние", icon: Heart },
   { to: "/health-assistant", label: "AI Ассистент", icon: MessageSquare },
   { to: "/health-strategy", label: "Стратегия здоровья", icon: Target },
