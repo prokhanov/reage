@@ -30,6 +30,11 @@ import {
 type Prescription = {
   id: string;
   prescription: string;
+  name: string | null;
+  form: string | null;
+  dosage: string | null;
+  how_to_take: string | null;
+  duration: string | null;
   reason: string | null;
   effect: string | null;
   control_date: string | null;
@@ -143,21 +148,47 @@ export default function Prescriptions() {
           className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 space-y-4 hover:border-primary/30 transition-colors"
         >
           {/* Назначение */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <h3 className="text-lg font-semibold leading-relaxed">
-              {prescription.prescription}
+              {prescription.name || prescription.prescription}
             </h3>
+
+            {prescription.form && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">Форма:</span> {prescription.form}
+              </p>
+            )}
+
+            {prescription.dosage && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">Дозировка:</span> {prescription.dosage}
+              </p>
+            )}
+
+            {prescription.how_to_take && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">Как принимать:</span> {prescription.how_to_take}
+              </p>
+            )}
+
+            {prescription.duration && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <span className="font-medium text-foreground">Длительность:</span> {prescription.duration}
+              </p>
+            )}
+
             {prescription.reason && (
-              <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10">
+              <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mt-2">
                 <span className="text-primary mt-0.5">📊</span>
                 <p className="text-sm text-foreground leading-relaxed">
                   <span className="font-medium">Причина:</span> {prescription.reason}
                 </p>
               </div>
             )}
+
             {prescription.effect && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground">Эффект:</span> {prescription.effect}
+              <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                <span className="font-medium text-foreground">На что это влияет:</span> {prescription.effect}
               </p>
             )}
           </div>

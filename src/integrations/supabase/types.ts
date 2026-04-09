@@ -918,9 +918,14 @@ export type Database = {
           control_date: string | null
           created_at: string
           created_by: string | null
+          dosage: string | null
+          duration: string | null
           effect: string | null
+          form: string | null
+          how_to_take: string | null
           id: string
           is_archived: boolean
+          name: string | null
           prescription: string
           reason: string | null
           recommendation_id: string | null
@@ -934,9 +939,14 @@ export type Database = {
           control_date?: string | null
           created_at?: string
           created_by?: string | null
+          dosage?: string | null
+          duration?: string | null
           effect?: string | null
+          form?: string | null
+          how_to_take?: string | null
           id?: string
           is_archived?: boolean
+          name?: string | null
           prescription: string
           reason?: string | null
           recommendation_id?: string | null
@@ -950,9 +960,14 @@ export type Database = {
           control_date?: string | null
           created_at?: string
           created_by?: string | null
+          dosage?: string | null
+          duration?: string | null
           effect?: string | null
+          form?: string | null
+          how_to_take?: string | null
           id?: string
           is_archived?: boolean
+          name?: string | null
           prescription?: string
           reason?: string | null
           recommendation_id?: string | null
