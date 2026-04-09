@@ -32,7 +32,7 @@ const appFeatures: Record<ShowcaseSection, {
     title: "Моё здоровье",
     subtitle: "Контрольная панель",
     description: "Все ключевые метрики на одном экране — биологический возраст, индекс здоровья, тренды по 5 системам организма",
-    badges: ["Биовозраст", "Индекс здоровья"],
+    badges: ["Индекс здоровья", "ИМТ"],
     features: [
       { icon: HeartPulse, text: "Биологический возраст" },
       { icon: TrendingUp, text: "Тренды по 5 системам" },
