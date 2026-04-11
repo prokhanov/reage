@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
+import { Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
