@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
+import { Trash2, Brain, Download, Sparkles, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
@@ -626,7 +626,7 @@ export default function Recommendations() {
           Персональные отчёты
         </h2>
         <p className="text-muted-foreground">
-          AI-генерированные отчёты на основе ваших анализов
+          Персонализированные отчёты на основе ваших анализов
         </p>
       </div>
 
@@ -642,7 +642,7 @@ export default function Recommendations() {
               </h3>
               <p className="text-muted-foreground text-center max-w-md leading-relaxed">
                 После добавления и анализа ваших медицинских показателей, 
-                AI сгенерирует персональные отчёты для улучшения здоровья.
+                система сгенерирует персональные отчёты для улучшения здоровья.
               </p>
             </CardContent>
           </Card>
@@ -658,7 +658,11 @@ export default function Recommendations() {
               </TableHeader>
               <TableBody>
                 {reports.map((report) => (
-                  <TableRow key={report.date}>
+                  <TableRow 
+                    key={report.date} 
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleView(report)}
+                  >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         {report.date && !isNaN(new Date(report.date).getTime()) 
@@ -673,14 +677,7 @@ export default function Recommendations() {
                       <Badge variant="secondary">{report.count}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleView(report)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                      <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         {hasPatientAccess && isViewMode && report.analysisId && (
                           <Button
                             variant="ghost"
