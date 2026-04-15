@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Sparkles,
   ArrowRight,
+  ShieldAlert,
 } from "lucide-react";
 
 const reportFeatures = [
@@ -31,6 +32,11 @@ const reportFeatures = [
     icon: Pill,
     title: "Биологический возраст",
     description: "Рассчитываем ваш биологический возраст и показываем факторы, ускоряющие старение",
+  },
+  {
+    icon: ShieldAlert,
+    title: "Ранние сигналы риска",
+    description: "Выявляем скрытые отклонения до появления симптомов — когда коррекция ещё проста и эффективна",
   },
   {
     icon: CheckCircle2,
