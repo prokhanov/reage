@@ -377,7 +377,6 @@ export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
   }, [activeSection, onSectionChange]);
 
   const handleManualSelect = useCallback((id: ShowcaseSection) => {
-    setAutoPlay(false);
     setActiveSection(id);
   }, []);
 
