@@ -68,7 +68,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
         </div>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1">{description}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1 whitespace-pre-line">{description}</p>
         
         <Button
           className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
