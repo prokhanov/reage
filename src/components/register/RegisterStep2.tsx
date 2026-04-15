@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { BirthDatePicker } from "@/components/BirthDatePicker";
 import { RegisterFormData } from "@/pages/Register";
+import genderMale from "@/assets/gender-male.png";
+import genderFemale from "@/assets/gender-female.png";
 
 interface RegisterStep2Props {
   formData: RegisterFormData;
@@ -40,7 +42,7 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
                 htmlFor="male"
                 className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
               >
-                <span className="text-2xl mb-2">♂</span>
+                <img src={genderMale} alt="Мужчина" className="w-10 h-10 mb-2" />
                 <span className="font-medium">Мужчина</span>
               </Label>
             </div>
@@ -50,7 +52,7 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
                 htmlFor="female"
                 className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
               >
-                <span className="text-2xl mb-2">♀</span>
+                <img src={genderFemale} alt="Женщина" className="w-10 h-10 mb-2" />
                 <span className="font-medium">Женщина</span>
               </Label>
             </div>
