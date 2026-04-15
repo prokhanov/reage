@@ -173,21 +173,6 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
                   </div>
                 </div>
 
-                <div className="space-y-1.5 mt-auto">
-                  {plan.features.slice(0, 4).map((feature, i) => (
-                    <div key={i} className="flex items-start gap-1.5 text-xs">
-                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                        <Check className="h-2.5 w-2.5 text-primary" />
-                      </div>
-                      <span className="text-muted-foreground leading-relaxed">{feature}</span>
-                    </div>
-                  ))}
-                  {plan.features.length > 4 && (
-                    <div className="text-xs text-muted-foreground pl-5">
-                      +{plan.features.length - 4} ещё
-                    </div>
-                  )}
-                </div>
               </Card>
             );
           })}
