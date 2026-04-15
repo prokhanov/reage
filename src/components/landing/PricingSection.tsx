@@ -165,7 +165,7 @@ export function PricingSection() {
     description: "Базовый, но умный чек-ап. 46 показателей крови и мочи, которые показывают, как работает обмен веществ, сердце, печень, почки, гормоны и воспаление. Подходит для регулярного трекинга здоровья и раннего выявления рисков — до появления симптомов.",
     badge: "Старт",
     biomarkers: "30",
-    analyses: "2 раза в год",
+    analyses: "3 раза в год",
     consultations: "3",
     biomarkersBySystem: standardBiomarkers,
     glowColor: "linear-gradient(135deg, hsl(175, 70%, 55%), hsl(165, 65%, 50%))",
