@@ -42,21 +42,21 @@ const steps = [
   },
   { 
     id: 2, 
+    title: "Подписка", 
+    description: "Оформление",
+    icon: Lock 
+  },
+  { 
+    id: 3, 
     title: "О вас", 
     description: "Расскажите о себе",
     icon: User 
   },
   { 
-    id: 3, 
+    id: 4, 
     title: "Здоровье", 
     description: "История болезней",
     icon: Heart 
-  },
-  { 
-    id: 4, 
-    title: "Подписка", 
-    description: "Оформление",
-    icon: Lock 
   }
 ];
 
@@ -300,18 +300,17 @@ export default function Register() {
               
               <div className={`transition-all duration-500 ${currentStep === 2 ? 'animate-fade-in' : 'hidden'}`}>
                 {currentStep === 2 && (
-                  <RegisterStep2 
-                    formData={formData} 
-                    updateFormData={updateFormData}
-                    onNext={handleNext}
+                  <RegisterStep5 
+                    onSubmit={() => handleNext()}
                     onBack={handlePrevious}
+                    isSubmitting={false}
                   />
                 )}
               </div>
               
               <div className={`transition-all duration-500 ${currentStep === 3 ? 'animate-fade-in' : 'hidden'}`}>
                 {currentStep === 3 && (
-                  <RegisterStep3 
+                  <RegisterStep2 
                     formData={formData} 
                     updateFormData={updateFormData}
                     onNext={handleNext}
@@ -322,10 +321,11 @@ export default function Register() {
               
               <div className={`transition-all duration-500 ${currentStep === 4 ? 'animate-fade-in' : 'hidden'}`}>
                 {currentStep === 4 && (
-                  <RegisterStep5 
-                    onSubmit={handleFinalSubmit}
+                  <RegisterStep3 
+                    formData={formData} 
+                    updateFormData={updateFormData}
+                    onNext={() => handleFinalSubmit({ cardNumber: '', cardName: '', expiryDate: '', cvv: '', skipPayment: true })}
                     onBack={handlePrevious}
-                    isSubmitting={isSubmitting}
                   />
                 )}
               </div>
