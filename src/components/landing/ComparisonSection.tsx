@@ -28,7 +28,7 @@ function ComparisonRow({ feature, reage, labs, genetics }: ComparisonRowProps) {
   };
 
   return (
-    <div className="grid gap-2 sm:gap-4 py-4 border-b border-border/50 last:border-0 items-center" style={{ gridTemplateColumns: '1.2fr 1fr 1fr 1fr' }}>
+    <div className="grid grid-cols-4 gap-4 py-4 border-b border-border/50 last:border-0 items-center">
       <div className="text-sm text-foreground font-medium pr-4">{feature}</div>
       <div className="flex justify-center">{renderValue(reage, true)}</div>
       <div className="flex justify-center">{renderValue(labs)}</div>
@@ -83,10 +83,10 @@ export function ComparisonSection() {
         <div className="max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
           <div className="relative">
             {/* Unified ReAge column highlight */}
-            <div className="absolute bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25% - 0.5rem)', right: 'calc(50% + 0.5rem)', top: '-1rem', bottom: '-1rem' }} />
+            <div className="absolute bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25%)', width: 'calc(25%)', top: '-1rem', bottom: '-1rem' }} />
 
             {/* Table Header */}
-            <div className="relative grid gap-2 sm:gap-4 mb-2" style={{ gridTemplateColumns: '1.2fr 1fr 1fr 1fr' }}>
+            <div className="relative grid grid-cols-4 gap-4 mb-2">
               <div />
               
               {/* ReAge Column Header */}
