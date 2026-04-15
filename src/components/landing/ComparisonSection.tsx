@@ -83,17 +83,17 @@ export function ComparisonSection() {
 
         {/* Comparison Table */}
         <div className="max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div>
+          <div className="relative">
+            {/* Unified ReAge column highlight */}
+            <div className="absolute bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25% - 0.5rem)', right: 'calc(50% + 0.5rem)', top: '-1rem', bottom: '-1rem' }} />
+
             {/* Table Header */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-2">
+            <div className="relative grid grid-cols-4 gap-2 sm:gap-4 mb-2">
               <div />
               
               {/* ReAge Column Header */}
-              <div className="relative">
-                <div className="absolute -inset-2 -top-4 rounded-t-3xl bg-gradient-to-b from-primary/20 to-transparent" />
-                <div className="relative text-center py-6">
-                  <div className="text-lg font-bold text-foreground">ReAge</div>
-                </div>
+              <div className="text-center py-6">
+                <div className="text-lg font-bold text-foreground">ReAge</div>
               </div>
               
               {/* Labs Column Header */}
@@ -108,14 +108,9 @@ export function ComparisonSection() {
             </div>
 
             {/* Table Body */}
-            <div className="relative">
-              {/* Highlight column for ReAge */}
-              <div className="absolute left-1/4 right-1/2 -inset-y-4 bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25% - 0.5rem)', right: 'calc(50% + 0.5rem)' }} />
-              
-              <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
-                {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />
-                )}
-              </div>
+            <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
+              {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />
+              )}
             </div>
           </div>
 
