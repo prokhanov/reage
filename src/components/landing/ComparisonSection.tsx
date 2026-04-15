@@ -41,12 +41,12 @@ export function ComparisonSection() {
   const comparisons: ComparisonRowProps[] = [
   { feature: "Расшифровка показателей", reage: true, labs: false, genetics: false },
   { feature: "Рекомендации врача", reage: true, labs: false, genetics: false },
+  { feature: "Динамика показателей", reage: "3× в год", labs: false, genetics: false },
   { feature: "Биологический возраст", reage: true, labs: false, genetics: false },
   { feature: "Анализ систем организма", reage: "5 систем", labs: "Частично", genetics: "Риски" },
   { feature: "Персональный план", reage: true, labs: false, genetics: "Общий" },
   { feature: "AI-ассистент", reage: true, labs: false, genetics: false },
   { feature: "Учет взаимосвязей", reage: true, labs: false, genetics: false },
-  { feature: "Динамика показателей", reage: "3× в год", labs: false, genetics: false },
   { feature: "Цена за год", reage: "от 75 000₽", labs: "~80 000₽*", genetics: "~80 000₽" }];
 
 
@@ -100,7 +100,7 @@ export function ComparisonSection() {
               </div>
               
               {/* Genetics Column Header */}
-              <div className="text-center py-6">
+              <div className="text-center py-6 -ml-3">
                 <div className="text-lg font-bold text-foreground">Генетика</div>
               </div>
             </div>
@@ -114,7 +114,7 @@ export function ComparisonSection() {
 
           {/* Footnote */}
           <p className="text-sm text-muted-foreground mt-6 text-center">
-            * При регулярной сдаче расширенных панелей 4 раза в год
+            * При регулярной сдаче расширенных панелей 3 раза в год
           </p>
         </div>
 
