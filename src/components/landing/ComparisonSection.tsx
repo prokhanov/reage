@@ -100,8 +100,8 @@ export function ComparisonSection() {
               </div>
               
               {/* Genetics Column Header */}
-              <div className="text-center py-6 -ml-3">
-                <div className="text-lg font-bold text-foreground">Генетика</div>
+              <div className="text-center py-6">
+                <div className="text-lg font-bold text-foreground -translate-x-2">Генетика</div>
               </div>
             </div>
 
