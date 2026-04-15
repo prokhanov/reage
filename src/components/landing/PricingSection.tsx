@@ -230,7 +230,7 @@ export function PricingSection() {
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Годовая подписка с регулярными анализами.             
+            Годовая подписка: анализы, расшифровка и рекомендации
           </p>
         </div>
 
