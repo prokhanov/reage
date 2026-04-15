@@ -227,7 +227,7 @@ export default function Register() {
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground />
       
-      <div className="w-full max-w-2xl relative z-10">
+      <div className={cn("w-full relative z-10", currentStep === 2 ? "max-w-5xl" : "max-w-2xl")}>
         <div className="w-full">
           {/* Header */}
           <div className="text-center mb-8 animate-fade-in pt-6">
