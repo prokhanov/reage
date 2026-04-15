@@ -30,7 +30,7 @@ export function CTASection() {
                 </h2>
                 
                 <p className="text-lg md:text-xl text-muted-foreground mb-8">
-                  Начните мониторинг здоровья сегодня. Первый анализ со скидкой 20%.
+                  Начните мониторинг здоровья сегодня
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -39,7 +39,7 @@ export function CTASection() {
                     onClick={() => navigate("/register")}
                     className="text-lg px-10 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
                   >
-                    Начать бесплатно
+                    Оформитьподписку
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                   <Button 
@@ -54,7 +54,7 @@ export function CTASection() {
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
-                  Нет привязки карты • Отмена в любой момент • Поддержка 24/7
+                  {"\n"}
                 </p>
               </div>
             </div>
