@@ -180,7 +180,7 @@ export function PricingSection() {
       isPopular: true,
       biomarkers: "60",
       analyses: "3 раза в год",
-      consultations: "4",
+      consultations: "3",
       biomarkersBySystem: plusBiomarkers,
       glowColor: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))",
       delay: 0.2
@@ -193,7 +193,7 @@ export function PricingSection() {
       badge: "VIP",
       biomarkers: "85",
       analyses: "4 раза в год",
-      consultations: "6",
+      consultations: "4",
       biomarkersBySystem: premiumBiomarkers,
       glowColor: "linear-gradient(135deg, hsl(210, 75%, 60%), hsl(220, 70%, 55%))",
       delay: 0.3
