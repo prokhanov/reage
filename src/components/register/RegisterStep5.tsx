@@ -1,167 +1,135 @@
-import { CreditCard, Check, ChevronRight, SkipForward, Sparkles, Shield, TrendingUp, Brain, Activity, MessageSquare } from "lucide-react";
+import { Sparkles, Loader2, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { PlanCard } from "@/components/subscription/PlanCard";
+
+export interface SelectedPlanData {
+  planId: string;
+  pricingId: string;
+  amount: number;
+  period: string;
+  durationMonths: number;
+  skipPayment: boolean;
+}
 
 interface RegisterStep5Props {
-  onSubmit: (paymentData: { cardNumber: string; cardName: string; expiryDate: string; cvv: string; skipPayment: boolean }) => void;
+  onSubmit: (data: SelectedPlanData) => void;
   onBack: () => void;
   isSubmitting: boolean;
 }
 
-const features = [
-  { icon: Activity, text: "Персональный AI-ассистент здоровья" },
-  { icon: TrendingUp, text: "Анализ биомаркеров и трендов" },
-  { icon: Brain, text: "Рекомендации на основе ИИ" },
-  { icon: MessageSquare, text: "Безлимитные консультации" },
-  { icon: Shield, text: "Защита данных на уровне медицины" },
-  { icon: Sparkles, text: "Регулярные обновления функций" },
+const allPeriods = [
+  { value: 'monthly', label: 'Месяц' },
+  { value: 'quarterly', label: 'Квартал' },
+  { value: 'semiannual', label: 'Полгода' },
+  { value: 'annual', label: 'Год' }
 ];
 
 export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5Props) {
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
+  const { data: plans, isLoading } = useSubscriptionPlans();
 
-  const formatCardNumber = (value: string) => {
-    const cleaned = value.replace(/\s/g, "");
-    const formatted = cleaned.match(/.{1,4}/g)?.join(" ") || cleaned;
-    return formatted.substring(0, 19);
-  };
+  const availablePeriods = useMemo(() =>
+    allPeriods.filter(period =>
+      plans?.some(plan => plan.pricing.some(p => p.period === period.value))
+    ),
+    [plans]
+  );
 
-  const formatExpiryDate = (value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length >= 2) {
-      return cleaned.substring(0, 2) + "/" + cleaned.substring(2, 4);
+  useEffect(() => {
+    if (availablePeriods.length > 0 && !availablePeriods.find(p => p.value === selectedPeriod)) {
+      setSelectedPeriod(availablePeriods[0].value);
     }
-    return cleaned;
-  };
+  }, [availablePeriods, selectedPeriod]);
 
-  const isValid = 
-    cardNumber.replace(/\s/g, "").length === 16 &&
-    cardName.trim().length > 0 &&
-    expiryDate.length === 5 &&
-    cvv.length === 3;
+  const handleSelectPlan = (planId: string, pricingId: string) => {
+    const pricing = plans
+      ?.flatMap(p => p.pricing)
+      .find(p => p.id === pricingId);
 
-  const handleSubmit = () => {
-    onSubmit({ cardNumber, cardName, expiryDate, cvv, skipPayment: false });
+    if (!pricing) return;
+
+    onSubmit({
+      planId,
+      pricingId,
+      amount: pricing.amount,
+      period: pricing.period,
+      durationMonths: pricing.duration_months,
+      skipPayment: false
+    });
   };
 
   const handleSkip = () => {
-    onSubmit({ cardNumber: "", cardName: "", expiryDate: "", cvv: "", skipPayment: true });
+    onSubmit({
+      planId: '',
+      pricingId: '',
+      amount: 0,
+      period: '',
+      durationMonths: 0,
+      skipPayment: true
+    });
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary mb-4">
-          <CreditCard className="h-10 w-10 text-white" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary mb-2">
+          <Sparkles className="h-8 w-8 text-white" />
         </div>
-        <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          Оформление подписки
+        <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          Выберите подписку
         </h2>
-        <p className="text-muted-foreground text-lg">
-          Получите полный доступ ко всем возможностям ReAge
+        <p className="text-muted-foreground">
+          Оформите подписку ReAge для доступа к персональной медицине нового поколения
         </p>
       </div>
 
-      {/* Price Card */}
-      <Card className="p-6 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border-primary/20">
-        <div className="text-center space-y-4">
-          <div className="space-y-2">
-            <div className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              120 000 ₽
-            </div>
-            <div className="text-muted-foreground text-lg">
-              за год подписки
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Всего 10 000 ₽ в месяц
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Features */}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-lg">Что входит в подписку:</h3>
-        <div className="grid gap-3">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={index}
-                className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-sm font-medium">{feature.text}</span>
-              </div>
-            );
-          })}
-        </div>
+      {/* Period Selector */}
+      <div className="flex flex-col items-center gap-3">
+        <ToggleGroup
+          type="single"
+          value={selectedPeriod}
+          onValueChange={(value) => value && setSelectedPeriod(value)}
+          className="inline-flex rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+        >
+          {availablePeriods.map(period => (
+            <ToggleGroupItem
+              key={period.value}
+              value={period.value}
+              className="rounded-md px-4 md:px-6 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              {period.label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
       </div>
 
-      {/* Payment Form */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-primary" />
-          Данные карты
-        </h3>
-        
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Номер карты</Label>
-            <Input
-              placeholder="0000 0000 0000 0000"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-              maxLength={19}
-              className="h-12 text-base font-mono"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Имя на карте</Label>
-            <Input
-              placeholder="IVAN IVANOV"
-              value={cardName}
-              onChange={(e) => setCardName(e.target.value.toUpperCase())}
-              className="h-12 text-base"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Срок действия</Label>
-              <Input
-                placeholder="MM/YY"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                maxLength={5}
-                className="h-12 text-base font-mono"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>CVV</Label>
-              <Input
-                type="password"
-                placeholder="000"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").substring(0, 3))}
-                maxLength={3}
-                className="h-12 text-base font-mono"
-              />
-            </div>
-          </div>
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </div>
+      )}
 
-      <div className="flex gap-3 pt-4">
+      {/* Plans Grid */}
+      {!isLoading && plans && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {plans.map((plan, index) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              selectedPeriod={selectedPeriod}
+              isRecommended={index === 1}
+              onSelect={handleSelectPlan}
+              isLoading={isSubmitting}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
@@ -181,15 +149,11 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
           <SkipForward className="h-4 w-4 mr-2" />
           Оплатить позже
         </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!isValid || isSubmitting}
-          className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
-        >
-          {isSubmitting ? "Обработка..." : "Оплатить"}
-          <Check className="ml-2 h-5 w-5" />
-        </Button>
       </div>
+
+      <p className="text-center text-xs text-muted-foreground">
+        🔒 Безопасная оплата • Отмена в любое время
+      </p>
     </div>
   );
 }
