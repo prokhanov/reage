@@ -370,27 +370,13 @@ const AUTO_INTERVAL = 4000;
 
 export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
   const [activeSection, setActiveSection] = useState<ShowcaseSection>("analyses");
-  const [autoPlay, setAutoPlay] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Auto-rotate sections
-  useEffect(() => {
-    if (!autoPlay) return;
-    intervalRef.current = setInterval(() => {
-      setActiveSection(prev => {
-        const idx = SECTION_IDS.indexOf(prev);
-        return SECTION_IDS[(idx + 1) % SECTION_IDS.length];
-      });
-    }, AUTO_INTERVAL);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [autoPlay]);
 
   useEffect(() => {
     onSectionChange?.(activeSection);
   }, [activeSection, onSectionChange]);
 
   const handleManualSelect = useCallback((id: ShowcaseSection) => {
-    setAutoPlay(false);
     setActiveSection(id);
   }, []);
 
