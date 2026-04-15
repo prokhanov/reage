@@ -46,7 +46,7 @@ export function ComparisonSection() {
   { feature: "Персональный план", reage: true, labs: false, genetics: "Общий" },
   { feature: "AI-ассистент", reage: true, labs: false, genetics: false },
   { feature: "Учет взаимосвязей", reage: true, labs: false, genetics: false },
-  { feature: "Динамика показателей", reage: "3✕ в год", labs: false, genetics: false },
+  { feature: "Динамика показателей", reage: "3× в год", labs: false, genetics: false },
   { feature: "Цена за год", reage: "от 75 000 ₽", labs: "~80 000 ₽", genetics: "~80 000 ₽" }];
 
 
