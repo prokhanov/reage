@@ -68,9 +68,9 @@ export function ComparisonSection() {
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">Почему не просто </span>
+            <span className="text-foreground">Почему ReAge — это не </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
-              сдать анализы?
+              просто анализы?
             </span>
           </h2>
           
