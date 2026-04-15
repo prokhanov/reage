@@ -47,6 +47,7 @@ export function ComparisonSection() {
   { feature: "Персональный план", reage: true, labs: false, genetics: "Общий" },
   { feature: "Интегративный анализ", reage: true, labs: false, genetics: false },
   { feature: "AI-ассистент", reage: true, labs: false, genetics: false },
+  { feature: "Учет взаимосвязей", reage: true, labs: false, genetics: false },
   { feature: "Динамика показателей", reage: "3x в год", labs: false, genetics: false },
   { feature: "Забор анализов на дому", reage: true, labs: false, genetics: true }];
 
