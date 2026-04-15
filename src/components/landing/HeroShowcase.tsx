@@ -369,7 +369,7 @@ const SECTION_IDS = sections.map(s => s.id);
 const AUTO_INTERVAL = 4000;
 
 export function HeroShowcase({ onSectionChange }: HeroShowcaseProps) {
-  const [activeSection, setActiveSection] = useState<ShowcaseSection>("dashboard");
+  const [activeSection, setActiveSection] = useState<ShowcaseSection>("analyses");
   const [autoPlay, setAutoPlay] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
