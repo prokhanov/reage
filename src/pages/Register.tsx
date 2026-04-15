@@ -100,7 +100,7 @@ export default function Register() {
     }
   };
 
-  const handleFinalSubmit = async (paymentData: { cardNumber: string; cardName: string; expiryDate: string; cvv: string; skipPayment: boolean }) => {
+  const handleFinalSubmit = async () => {
     setIsSubmitting(true);
 
     try {
@@ -168,20 +168,34 @@ export default function Register() {
       }
 
       // 4. Save subscription
-      const subscriptionStatus = paymentData.skipPayment ? 'pending' : 'active';
-      const { error: subscriptionError } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: authData.user.id,
-          status: subscriptionStatus,
-          plan_type: 'annual',
-          amount: 120000,
-          start_date: paymentData.skipPayment ? null : new Date().toISOString(),
-          end_date: paymentData.skipPayment ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          payment_method: paymentData.skipPayment ? null : 'card'
-        });
-
-      if (subscriptionError) throw subscriptionError;
+      if (selectedPlan && !selectedPlan.skipPayment) {
+        const startDate = new Date();
+        const endDate = addMonths(startDate, selectedPlan.durationMonths);
+        const { error: subscriptionError } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: authData.user.id,
+            status: 'active',
+            plan_id: selectedPlan.planId,
+            pricing_id: selectedPlan.pricingId,
+            plan_type: selectedPlan.period,
+            amount: selectedPlan.amount,
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            payment_method: 'card'
+          });
+        if (subscriptionError) throw subscriptionError;
+      } else {
+        const { error: subscriptionError } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: authData.user.id,
+            status: 'pending',
+            plan_type: 'none',
+            amount: 0,
+          });
+        if (subscriptionError) throw subscriptionError;
+      }
 
       // Celebrate with confetti!
       confetti({
