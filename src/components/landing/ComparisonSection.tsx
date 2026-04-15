@@ -121,28 +121,6 @@ export function ComparisonSection() {
           {/* Footnote */}
         </div>
 
-        {/* Bottom cards - key differentiators */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
-          <DifferentiatorCard
-            emoji="🔬"
-            title="Лаборатории"
-            description="Дают цифры без контекста. Вы не знаете, что делать с результатами."
-            delay={0.4} />
-          
-          <DifferentiatorCard
-            emoji="🧬"
-            title="Генетика"
-            description="Показывает риски, но не текущее состояние. Делается один раз."
-            delay={0.5} />
-          
-          <DifferentiatorCard
-            emoji="📊"
-            title="ReAge"
-            description="Показывает динамику, даёт план действий и отслеживает прогресс."
-            isHighlighted
-            delay={0.6} />
-          
-        </div>
       </div>
     </section>);
 
