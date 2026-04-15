@@ -39,7 +39,7 @@ export function CTASection() {
                     onClick={() => navigate("/register")}
                     className="text-lg px-10 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
                   >
-                    Оформитьподписку
+                    Оформить подписку
                     <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                   <Button 
