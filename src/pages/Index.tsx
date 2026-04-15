@@ -14,7 +14,7 @@ import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { PersonasSection } from "@/components/landing/PersonasSection";
-import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+
 import { PricingSection } from "@/components/landing/PricingSection";
 import { PreventiveMedicineSection } from "@/components/landing/PreventiveMedicineSection";
 import { FAQSection } from "@/components/landing/FAQSection";
@@ -82,7 +82,7 @@ const Index = () => {
       <ComparisonSection />
       <PricingSection />
       <PreventiveMedicineSection />
-      <TestimonialsSection />
+      
       <FAQSection />
       <CTASection />
       <Footer />
