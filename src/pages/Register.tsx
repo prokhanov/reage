@@ -301,7 +301,7 @@ export default function Register() {
               <div className={`transition-all duration-500 ${currentStep === 2 ? 'animate-fade-in' : 'hidden'}`}>
                 {currentStep === 2 && (
                   <RegisterStep5 
-                    onSubmit={handleNext}
+                    onSubmit={() => handleNext()}
                     onBack={handlePrevious}
                     isSubmitting={false}
                   />
@@ -324,7 +324,7 @@ export default function Register() {
                   <RegisterStep3 
                     formData={formData} 
                     updateFormData={updateFormData}
-                    onNext={handleFinalSubmit}
+                    onNext={() => handleFinalSubmit({ cardNumber: '', cardName: '', expiryDate: '', cvv: '', skipPayment: true })}
                     onBack={handlePrevious}
                   />
                 )}
