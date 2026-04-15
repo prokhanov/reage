@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Sparkles,
   ArrowRight,
+  ShieldAlert,
 } from "lucide-react";
 
 const reportFeatures = [
