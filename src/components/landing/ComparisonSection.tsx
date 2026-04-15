@@ -113,6 +113,9 @@ export function ComparisonSection() {
           </div>
 
           {/* Footnote */}
+          <p className="text-sm text-muted-foreground mt-6 text-center">
+            * При регулярной сдаче расширенных панелей 4 раза в год
+          </p>
         </div>
 
       </div>
