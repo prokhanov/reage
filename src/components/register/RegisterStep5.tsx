@@ -1,9 +1,12 @@
-import { Sparkles, Loader2, SkipForward } from "lucide-react";
+import { Sparkles, Loader2, SkipForward, Check, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect, useMemo } from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
-import { PlanCard } from "@/components/subscription/PlanCard";
+import { useSubscriptionPlans, calculateMonthlyEquivalent, calculateSavings } from "@/hooks/useSubscriptionPlans";
+import { cn } from "@/lib/utils";
 
 export interface SelectedPlanData {
   planId: string;
@@ -20,43 +23,60 @@ interface RegisterStep5Props {
   isSubmitting: boolean;
 }
 
-const allPeriods = [
-  { value: 'monthly', label: 'Месяц' },
-  { value: 'quarterly', label: 'Квартал' },
-  { value: 'semiannual', label: 'Полгода' },
-  { value: 'annual', label: 'Год' }
-];
-
 export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5Props) {
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const { data: plans, isLoading } = useSubscriptionPlans();
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState("");
 
-  const availablePeriods = useMemo(() =>
-    allPeriods.filter(period =>
-      plans?.some(plan => plan.pricing.some(p => p.period === period.value))
-    ),
-    [plans]
-  );
-
+  // Auto-select recommended (second) plan
   useEffect(() => {
-    if (availablePeriods.length > 0 && !availablePeriods.find(p => p.value === selectedPeriod)) {
-      setSelectedPeriod(availablePeriods[0].value);
+    if (plans && plans.length > 1 && !selectedPlanId) {
+      setSelectedPlanId(plans[1].id);
+    } else if (plans && plans.length === 1 && !selectedPlanId) {
+      setSelectedPlanId(plans[0].id);
     }
-  }, [availablePeriods, selectedPeriod]);
+  }, [plans, selectedPlanId]);
 
-  const handleSelectPlan = (planId: string, pricingId: string) => {
-    const pricing = plans
-      ?.flatMap(p => p.pricing)
-      .find(p => p.id === pricingId);
+  // Since pricing is yearly only, get the annual pricing for each plan
+  const getAnnualPricing = (planId: string) => {
+    const plan = plans?.find(p => p.id === planId);
+    if (!plan) return null;
+    return plan.pricing.find(p => p.period === 'annual') || plan.pricing[0];
+  };
 
-    if (!pricing) return;
+  const selectedPricing = selectedPlanId ? getAnnualPricing(selectedPlanId) : null;
 
+  const formatCardNumber = (value: string) => {
+    const cleaned = value.replace(/\s/g, "");
+    const formatted = cleaned.match(/.{1,4}/g)?.join(" ") || cleaned;
+    return formatted.substring(0, 19);
+  };
+
+  const formatExpiryDate = (value: string) => {
+    const cleaned = value.replace(/\D/g, "");
+    if (cleaned.length >= 2) {
+      return cleaned.substring(0, 2) + "/" + cleaned.substring(2, 4);
+    }
+    return cleaned;
+  };
+
+  const isCardValid =
+    cardNumber.replace(/\s/g, "").length === 16 &&
+    cardName.trim().length > 0 &&
+    expiryDate.length === 5 &&
+    cvv.length === 3;
+
+  const handlePay = () => {
+    if (!selectedPlanId || !selectedPricing) return;
     onSubmit({
-      planId,
-      pricingId,
-      amount: pricing.amount,
-      period: pricing.period,
-      durationMonths: pricing.duration_months,
+      planId: selectedPlanId,
+      pricingId: selectedPricing.id,
+      amount: selectedPricing.amount,
+      period: selectedPricing.period,
+      durationMonths: selectedPricing.duration_months,
       skipPayment: false
     });
   };
@@ -74,36 +94,16 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
 
   return (
     <div className="space-y-6">
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-primary mb-2">
-          <Sparkles className="h-8 w-8 text-white" />
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-primary mb-2">
+          <Sparkles className="h-7 w-7 text-white" />
         </div>
         <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
           Выберите подписку
         </h2>
-        <p className="text-muted-foreground">
-          Оформите подписку ReAge для доступа к персональной медицине нового поколения
+        <p className="text-muted-foreground text-sm">
+          Выберите подходящий тариф для доступа ко всем возможностям ReAge
         </p>
-      </div>
-
-      {/* Period Selector */}
-      <div className="flex flex-col items-center gap-3">
-        <ToggleGroup
-          type="single"
-          value={selectedPeriod}
-          onValueChange={(value) => value && setSelectedPeriod(value)}
-          className="inline-flex rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
-        >
-          {availablePeriods.map(period => (
-            <ToggleGroupItem
-              key={period.value}
-              value={period.value}
-              className="rounded-md px-4 md:px-6 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              {period.label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
       </div>
 
       {/* Loading */}
@@ -113,22 +113,144 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         </div>
       )}
 
-      {/* Plans Grid */}
+      {/* Plans Selection */}
       {!isLoading && plans && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {plans.map((plan, index) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              selectedPeriod={selectedPeriod}
-              isRecommended={index === 1}
-              onSelect={handleSelectPlan}
-              isLoading={isSubmitting}
-            />
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {plans.map((plan, index) => {
+            const pricing = plan.pricing.find(p => p.period === 'annual') || plan.pricing[0];
+            if (!pricing) return null;
+            const isSelected = selectedPlanId === plan.id;
+            const isRecommended = index === 1;
+            const monthlyEquivalent = calculateMonthlyEquivalent(pricing.amount, pricing.duration_months);
+
+            return (
+              <Card
+                key={plan.id}
+                onClick={() => setSelectedPlanId(plan.id)}
+                className={cn(
+                  "relative cursor-pointer transition-all duration-300 p-4 flex flex-col",
+                  isSelected
+                    ? "border-primary ring-2 ring-primary/30 shadow-neon-primary"
+                    : "border-border/50 hover:border-primary/50",
+                  isRecommended && !isSelected && "border-primary/30"
+                )}
+              >
+                {/* Selected indicator */}
+                <div className={cn(
+                  "absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                  isSelected
+                    ? "border-primary bg-primary"
+                    : "border-muted-foreground/30"
+                )}>
+                  {isSelected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+                </div>
+
+                {/* Badge */}
+                {plan.badge_text && (
+                  <div className="mb-2">
+                    <Badge
+                      className={cn(
+                        "text-[10px] px-2 py-0.5",
+                        plan.badge_color === 'primary' && "bg-primary text-primary-foreground",
+                        plan.badge_color === 'accent' && "bg-accent text-accent-foreground"
+                      )}
+                    >
+                      {isRecommended && <Sparkles className="h-2.5 w-2.5 mr-1 inline" />}
+                      {plan.badge_text}
+                    </Badge>
+                  </div>
+                )}
+
+                <h3 className="text-lg font-bold mb-1">{plan.display_name}</h3>
+                <p className="text-xs text-muted-foreground mb-3 min-h-[32px]">{plan.description}</p>
+
+                <div className="mb-3">
+                  <div className="text-2xl font-bold">
+                    {pricing.amount.toLocaleString('ru-RU')} ₽
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    / год • {monthlyEquivalent.toLocaleString('ru-RU')} ₽/мес
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 mt-auto">
+                  {plan.features.slice(0, 4).map((feature, i) => (
+                    <div key={i} className="flex items-start gap-1.5 text-xs">
+                      <div className="flex-shrink-0 w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                        <Check className="h-2.5 w-2.5 text-primary" />
+                      </div>
+                      <span className="text-muted-foreground leading-relaxed">{feature}</span>
+                    </div>
+                  ))}
+                  {plan.features.length > 4 && (
+                    <div className="text-xs text-muted-foreground pl-5">
+                      +{plan.features.length - 4} ещё
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
 
+      {/* Payment Form */}
+      {selectedPlanId && selectedPricing && (
+        <div className="space-y-4 border-t border-border/50 pt-5">
+          <h3 className="font-semibold text-base flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-primary" />
+            Данные карты
+            <span className="ml-auto text-sm font-normal text-muted-foreground">
+              К оплате: {selectedPricing.amount.toLocaleString('ru-RU')} ₽
+            </span>
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5 md:col-span-2">
+              <Label className="text-xs">Номер карты</Label>
+              <Input
+                placeholder="0000 0000 0000 0000"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                maxLength={19}
+                className="h-11 font-mono"
+              />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label className="text-xs">Имя на карте</Label>
+              <Input
+                placeholder="IVAN IVANOV"
+                value={cardName}
+                onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Срок действия</Label>
+              <Input
+                placeholder="MM/YY"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
+                maxLength={5}
+                className="h-11 font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">CVV</Label>
+              <Input
+                type="password"
+                placeholder="000"
+                value={cvv}
+                onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").substring(0, 3))}
+                maxLength={3}
+                className="h-11 font-mono"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Buttons */}
       <div className="flex gap-3 pt-2">
         <Button
           type="button"
@@ -149,11 +271,15 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
           <SkipForward className="h-4 w-4 mr-2" />
           Оплатить позже
         </Button>
+        <Button
+          onClick={handlePay}
+          disabled={!isCardValid || !selectedPlanId || isSubmitting}
+          className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
+        >
+          {isSubmitting ? "Обработка..." : "Оплатить"}
+          <Check className="ml-2 h-5 w-5" />
+        </Button>
       </div>
-
-      <p className="text-center text-xs text-muted-foreground">
-        🔒 Безопасная оплата • Отмена в любое время
-      </p>
     </div>
   );
 }
