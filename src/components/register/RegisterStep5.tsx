@@ -1,4 +1,4 @@
-import { Rabbit, Sparkles, Loader2, SkipForward, Check, CreditCard } from "lucide-react";
+import { Rabbit, Sparkles, Loader2, SkipForward, Check, CreditCard, FlaskConical, CalendarCheck, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -161,8 +161,42 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
                   </div>
                 )}
 
-                <h3 className="text-lg font-bold mb-1">{plan.display_name}</h3>
-                <p className="text-xs text-muted-foreground mb-3 min-h-[32px]">{plan.description}</p>
+                <h3 className="text-lg font-bold mb-3">{plan.display_name}</h3>
+
+                {/* Plan metrics */}
+                <div className="space-y-1.5 mb-3">
+                  {(() => {
+                    const name = plan.name?.toLowerCase() || '';
+                    const biomarkers = name.includes('expert') || name.includes('premium') ? '85' : name.includes('plus') ? '60' : '45';
+                    const analyses = name.includes('expert') || name.includes('premium') ? '4 раза в год' : '3 раза в год';
+                    const consultations = name.includes('expert') || name.includes('premium') ? '4 в год' : '3 в год';
+                    return (
+                      <>
+                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/50 border border-border/30">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <FlaskConical className="w-3.5 h-3.5" />
+                            <span>Биомаркеров</span>
+                          </div>
+                          <span className={cn("text-xs font-bold", isSelected ? "text-primary" : "text-foreground")}>{biomarkers}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/50 border border-border/30">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <CalendarCheck className="w-3.5 h-3.5" />
+                            <span>Анализов</span>
+                          </div>
+                          <span className={cn("text-xs font-bold", isSelected ? "text-primary" : "text-foreground")}>{analyses}</span>
+                        </div>
+                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-muted/50 border border-border/30">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <UserCheck className="w-3.5 h-3.5" />
+                            <span>Консультаций</span>
+                          </div>
+                          <span className={cn("text-xs font-bold", isSelected ? "text-primary" : "text-foreground")}>{consultations}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
 
                 <div className="mb-3">
                   <div className="text-2xl font-bold">
