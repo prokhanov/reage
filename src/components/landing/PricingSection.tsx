@@ -158,46 +158,47 @@ const premiumBiomarkers: BiomarkerCategory[] = [
 
 export function PricingSection() {
   const plans = [
-  {
-    name: "Базовый",
-    price: "75 000₽",
-    period: "год",
-    description: "Базовый, но умный чек-ап. 46 показателей крови и мочи, которые показывают, как работает обмен веществ, сердце, печень, почки, гормоны и воспаление. Подходит для регулярного трекинга здоровья и раннего выявления рисков — до появления симптомов.",
-    badge: "Старт",
-    biomarkers: "30",
-    analyses: "3 раза в год",
-    consultations: "3",
-    biomarkersBySystem: standardBiomarkers,
-    glowColor: "linear-gradient(135deg, hsl(175, 70%, 55%), hsl(165, 65%, 50%))",
-    delay: 0.1
-  },
-  {
-    name: "Плюс",
-    price: "135 000₽",
-    period: "год",
-    description: "Углублённый уровень поверх Стандарта. Добавляет расширенную оценку сердечно-сосудистых рисков, дефицитов, гормонального баланса и обмена железа — для более точного понимания причин усталости, снижения энергии и скрытых рисков.",
-    badge: "Популярный",
-    isPopular: true,
-    biomarkers: "50",
-    analyses: "3 раза в год",
-    consultations: "4",
-    biomarkersBySystem: plusBiomarkers,
-    glowColor: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))",
-    delay: 0.2
-  },
-  {
-    name: "Премиум",
-    price: "220 000₽",
-    period: "год",
-    description: "Максимальный уровень глубины анализа. Дополняет Стандарт и Плюс оценкой митохондриальной функции, окислительного стресса, низкоуровневого воспаления и ранних изменений со стороны сердца — для тех, кто хочет понимать процессы старения на самом глубоком уровне.",
-    badge: "VIP",
-    biomarkers: "70+",
-    analyses: "4 раза в год",
-    consultations: "6",
-    biomarkersBySystem: premiumBiomarkers,
-    glowColor: "linear-gradient(135deg, hsl(210, 75%, 60%), hsl(220, 70%, 55%))",
-    delay: 0.3
-  }];
+    {
+      name: "Базовый",
+      price: "75 000₽",
+      period: "год",
+      description: "Базовый, но умный чек-ап. 46 показателей крови и мочи, которые показывают, как работает обмен веществ, сердце, печень, почки, гормоны и воспаление. Подходит для регулярного трекинга здоровья и раннего выявления рисков — до появления симптомов.",
+      badge: "Старт",
+      biomarkers: "46",
+      analyses: "3 раза в год",
+      consultations: "3",
+      biomarkersBySystem: standardBiomarkers,
+      glowColor: "linear-gradient(135deg, hsl(175, 70%, 55%), hsl(165, 65%, 50%))",
+      delay: 0.1
+    },
+    {
+      name: "Плюс",
+      price: "135 000₽",
+      period: "год",
+      description: "Углублённый уровень поверх Стандарта. Добавляет расширенную оценку сердечно-сосудистых рисков, дефицитов, гормонального баланса и обмена железа — для более точного понимания причин усталости, снижения энергии и скрытых рисков.",
+      badge: "Популярный",
+      isPopular: true,
+      biomarkers: "60",
+      analyses: "3 раза в год",
+      consultations: "4",
+      biomarkersBySystem: plusBiomarkers,
+      glowColor: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))",
+      delay: 0.2
+    },
+    {
+      name: "Экспертный",
+      price: "220 000₽",
+      period: "год",
+      description: "Максимальный уровень глубины анализа. Дополняет Стандарт и Плюс оценкой митохондриальной функции, окислительного стресса, низкоуровневого воспаления и ранних изменений со стороны сердца — для тех, кто хочет понимать процессы старения на самом глубоком уровне.",
+      badge: "VIP",
+      biomarkers: "85",
+      analyses: "4 раза в год",
+      consultations: "6",
+      biomarkersBySystem: premiumBiomarkers,
+      glowColor: "linear-gradient(135deg, hsl(210, 75%, 60%), hsl(220, 70%, 55%))",
+      delay: 0.3
+    }
+  ];
 
 
   return (
