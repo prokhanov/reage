@@ -76,7 +76,7 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
             <Input
               id="weight"
               type="number"
-              placeholder="70"
+              placeholder=""
               value={formData.weight}
               onChange={(e) => updateFormData({ weight: e.target.value })}
               className="pl-10"
@@ -93,7 +93,7 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
             <Input
               id="height"
               type="number"
-              placeholder="175"
+              placeholder=""
               value={formData.height}
               onChange={(e) => updateFormData({ height: e.target.value })}
               className="pl-10"
