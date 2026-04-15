@@ -13,6 +13,7 @@ import {
   Activity,
   AlertTriangle,
   ClipboardList,
+  ChevronDown,
 } from "lucide-react";
 
 const reportPages = [
@@ -24,7 +25,6 @@ const reportPages = [
     color: "from-blue-500 to-cyan-500",
     bgColor: "from-blue-500/10 to-cyan-500/10",
     borderColor: "border-blue-500/30",
-    accentColor: "text-blue-400",
   },
   {
     title: "Анализ систем",
@@ -34,7 +34,6 @@ const reportPages = [
     color: "from-purple-500 to-pink-500",
     bgColor: "from-purple-500/10 to-pink-500/10",
     borderColor: "border-purple-500/30",
-    accentColor: "text-purple-400",
   },
   {
     title: "Биомаркеры",
@@ -44,7 +43,6 @@ const reportPages = [
     color: "from-amber-500 to-orange-500",
     bgColor: "from-amber-500/10 to-orange-500/10",
     borderColor: "border-amber-500/30",
-    accentColor: "text-amber-400",
   },
   {
     title: "Зоны риска",
@@ -54,17 +52,15 @@ const reportPages = [
     color: "from-rose-500 to-red-500",
     bgColor: "from-rose-500/10 to-red-500/10",
     borderColor: "border-rose-500/30",
-    accentColor: "text-rose-400",
   },
   {
-    title: "Назначения",
+    title: "Персональные назначения",
     description: "Конкретные действия для улучшения",
     detail: "Персональный план: витамины, минералы, питание, обследования — с дозировками, формой приёма и длительностью",
     icon: ClipboardList,
     color: "from-emerald-500 to-teal-500",
     bgColor: "from-emerald-500/10 to-teal-500/10",
     borderColor: "border-emerald-500/30",
-    accentColor: "text-emerald-400",
   },
 ];
 
@@ -97,9 +93,7 @@ const reportFeatures = [
 ];
 
 export function ReportShowcaseSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const activePage = reportPages[activeIndex];
-  const ActiveIcon = activePage.icon;
+  const [openIndex, setOpenIndex] = useState(0);
 
   return (
     <section className="py-20 md:py-28 relative overflow-hidden">
@@ -124,105 +118,109 @@ export function ReportShowcaseSection() {
           </p>
         </div>
 
-        {/* Tabs row */}
-        <div className="flex gap-1.5 mb-8 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 md:justify-center">
-          {reportPages.map((page, index) => {
-            const Icon = page.icon;
-            const isActive = index === activeIndex;
-            return (
-              <button
-                key={page.title}
-                onClick={() => setActiveIndex(index)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap shrink-0 ${
-                  isActive
-                    ? `bg-gradient-to-r ${page.color} text-white shadow-lg`
-                    : "bg-card/60 border border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {page.title}
-              </button>
-            );
-          })}
-        </div>
+        {/* Main content */}
+        <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
+          {/* Left: Accordion */}
+          <div className="space-y-3">
+            {reportPages.map((page, index) => {
+              const Icon = page.icon;
+              const isOpen = index === openIndex;
 
-        {/* Active tab content card */}
-        <div
-          key={activeIndex}
-          className={`rounded-2xl border ${activePage.borderColor} bg-gradient-to-br ${activePage.bgColor} backdrop-blur-sm p-6 md:p-10 mb-16 animate-fade-in`}
-        >
-          <div className="grid lg:grid-cols-5 gap-8 items-start">
-            {/* Left info — 2 cols */}
-            <div className="lg:col-span-2 space-y-5">
-              <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${activePage.color} flex items-center justify-center shadow-lg`}>
-                  <ActiveIcon className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold">{activePage.title}</h3>
-                  <p className="text-sm text-muted-foreground">{activePage.description}</p>
-                </div>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">{activePage.detail}</p>
-              <Badge variant="outline" className="text-xs border-border/50">
-                Раздел {activeIndex + 1} из {reportPages.length}
-              </Badge>
-            </div>
-
-            {/* Right mockup — 3 cols */}
-            <div className="lg:col-span-3">
-              <div className="bg-background/40 rounded-xl border border-border/30 p-5 md:p-6">
-                {/* Mock header */}
-                <div className="flex items-center gap-3 mb-5 pb-4 border-b border-border/20">
-                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${activePage.color} flex items-center justify-center`}>
-                    <ActiveIcon className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="h-3 bg-foreground/15 rounded-full w-32" />
-                  <div className="ml-auto h-3 bg-foreground/10 rounded-full w-16" />
-                </div>
-                {/* Mock content */}
-                <div className="space-y-3">
-                  <div className="h-3 bg-foreground/10 rounded-full w-full" />
-                  <div className="h-3 bg-foreground/10 rounded-full w-4/5" />
-                  <div className="h-3 bg-foreground/10 rounded-full w-3/4" />
-                  <div className="h-10 bg-primary/8 rounded-lg w-full mt-5" />
-                  <div className="grid grid-cols-3 gap-3 mt-5">
-                    <div className="h-16 bg-foreground/5 rounded-lg" />
-                    <div className="h-16 bg-foreground/5 rounded-lg" />
-                    <div className="h-16 bg-foreground/5 rounded-lg" />
-                  </div>
-                  <div className="h-3 bg-foreground/10 rounded-full w-5/6 mt-4" />
-                  <div className="h-3 bg-foreground/10 rounded-full w-2/3" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Features + CTA grid */}
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          <div className="grid gap-3">
-            {reportFeatures.map((feature, index) => {
-              const Icon = feature.icon;
               return (
                 <div
-                  key={feature.title}
-                  className="flex gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm animate-fade-in hover:bg-card/80 transition-colors"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  key={page.title}
+                  className={`rounded-xl border transition-all duration-300 overflow-hidden ${
+                    isOpen
+                      ? `${page.borderColor} bg-gradient-to-br ${page.bgColor}`
+                      : "border-border/40 bg-card/40 hover:bg-card/60"
+                  }`}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">{feature.title}</h4>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <button
+                    onClick={() => setOpenIndex(isOpen ? -1 : index)}
+                    className="w-full flex items-center gap-4 p-4 text-left"
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 ${
+                        isOpen
+                          ? `bg-gradient-to-br ${page.color} text-white shadow-lg`
+                          : "bg-muted/50 text-muted-foreground"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className={`font-semibold transition-colors ${isOpen ? "text-foreground" : "text-muted-foreground"}`}>
+                        {page.title}
+                      </h4>
+                      {!isOpen && (
+                        <p className="text-xs text-muted-foreground/70 truncate">{page.description}</p>
+                      )}
+                    </div>
+                    <ChevronDown
+                      className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-300 ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  <div
+                    className={`transition-all duration-300 ease-out ${
+                      isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="px-4 pb-5">
+                      <p className="text-sm text-muted-foreground mb-4 pl-14">
+                        {page.detail}
+                      </p>
+
+                      {/* Mini mockup */}
+                      <div className="ml-14 bg-background/40 rounded-lg border border-border/20 p-4">
+                        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border/15">
+                          <div className={`w-6 h-6 rounded bg-gradient-to-br ${page.color} flex items-center justify-center`}>
+                            <Icon className="w-3 h-3 text-white" />
+                          </div>
+                          <div className="h-2 bg-foreground/12 rounded-full w-20" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-2 bg-foreground/8 rounded-full w-full" />
+                          <div className="h-2 bg-foreground/8 rounded-full w-4/5" />
+                          <div className="h-2 bg-foreground/8 rounded-full w-3/5" />
+                          <div className="grid grid-cols-2 gap-2 mt-3">
+                            <div className="h-10 bg-foreground/5 rounded" />
+                            <div className="h-10 bg-foreground/5 rounded" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
 
+          {/* Right: Features and CTA */}
           <div className="space-y-8">
+            <div className="grid gap-3">
+              {reportFeatures.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={feature.title}
+                    className="flex gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm animate-fade-in hover:bg-card/80 transition-colors"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-1">{feature.title}</h4>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
             <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
               <div className="flex items-center gap-3 mb-4">
                 <CheckCircle2 className="w-6 h-6 text-primary" />
