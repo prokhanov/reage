@@ -7,7 +7,6 @@ import { BirthDatePicker } from "@/components/BirthDatePicker";
 import { RegisterFormData } from "@/pages/Register";
 import genderMale from "@/assets/gender-male.png";
 import genderFemale from "@/assets/gender-female.png";
-import { RegisterFormData } from "@/pages/Register";
 
 interface RegisterStep2Props {
   formData: RegisterFormData;
