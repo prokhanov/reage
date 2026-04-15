@@ -23,7 +23,7 @@ export function CTASection() {
             {/* Gradient border effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-primary rounded-3xl" />
             
-            <div className="relative m-[2px] rounded-[22px] bg-card p-8 md:p-12 lg:p-16">
+            <div className="relative m-[2px] rounded-[22px] bg-card p-8 md:p-12 lg:p-16 my-px">
               <div className="text-center max-w-2xl mx-auto">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight text-foreground">
                   Готовы взять свое{" "}
