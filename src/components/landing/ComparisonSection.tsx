@@ -119,9 +119,6 @@ export function ComparisonSection() {
           </div>
 
           {/* Footnote */}
-          <p className="text-xs text-muted-foreground text-center mt-6">
-            * При регулярной сдаче расширенных панелей 4 раза в год
-          </p>
         </div>
 
         {/* Bottom cards - key differentiators */}
