@@ -28,7 +28,7 @@ function ComparisonRow({ feature, reage, labs, genetics }: ComparisonRowProps) {
   };
 
   return (
-    <div className="grid grid-cols-4 gap-4 py-4 border-b border-border/50 last:border-0 items-center">
+    <div className="grid grid-cols-4 gap-2 sm:gap-4 py-4 border-b border-border/50 last:border-0 items-center">
       <div className="text-sm text-foreground font-medium pr-4">{feature}</div>
       <div className="flex justify-center">{renderValue(reage, true)}</div>
       <div className="flex justify-center">{renderValue(labs)}</div>
