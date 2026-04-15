@@ -22,7 +22,7 @@ export function PreventiveMedicineSection() {
           </h2>
 
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Объясняем простыми словами, чем наш подход отличается <br /> от «обычной медицины» и зачем сдавать анализы, когда ничего не болит
+            Объясняем простыми словами, чем наш подход отличается <br /> от «обычной медицины» и зачем сдавать анализы, если ничего не болит
           </p>
         </div>
 
