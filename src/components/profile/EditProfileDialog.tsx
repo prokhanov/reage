@@ -145,7 +145,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                   htmlFor="edit-male"
                   className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                 >
-                  <span className="text-2xl mb-2">👨</span>
+                  <span className="text-2xl mb-2">♂</span>
                   <span className="font-medium">Мужчина</span>
                 </Label>
               </div>
@@ -155,7 +155,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                   htmlFor="edit-female"
                   className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                 >
-                  <span className="text-2xl mb-2">👩</span>
+                  <span className="text-2xl mb-2">♀</span>
                   <span className="font-medium">Женщина</span>
                 </Label>
               </div>
