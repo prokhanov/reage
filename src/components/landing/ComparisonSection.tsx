@@ -84,7 +84,7 @@ export function ComparisonSection() {
         <div className="max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
           <div>
             {/* Table Header */}
-            <div className="grid grid-cols-4 gap-4 mb-2">
+            <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-2">
               <div />
               
               {/* ReAge Column Header */}
