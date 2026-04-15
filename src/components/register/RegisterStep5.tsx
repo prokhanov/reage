@@ -200,10 +200,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
 
                 <div className="mb-3">
                   <div className="text-2xl font-bold">
-                    {pricing.amount.toLocaleString('ru-RU')} ₽
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    / год • {monthlyEquivalent.toLocaleString('ru-RU')} ₽/мес
+                    {pricing.amount.toLocaleString('ru-RU')} ₽ <span className="text-sm font-normal text-muted-foreground">/ год</span>
                   </div>
                 </div>
 
