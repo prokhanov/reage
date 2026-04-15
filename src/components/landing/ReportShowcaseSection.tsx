@@ -93,14 +93,7 @@ export function ReportShowcaseSection() {
           </div>
 
           {/* CTA */}
-          <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 max-w-2xl mx-auto">
-            <div className="flex items-center gap-3 mb-4">
-              <CheckCircle2 className="w-6 h-6 text-primary" />
-              <span className="font-semibold text-lg">Хотите увидеть пример?</span>
-            </div>
-            <p className="text-muted-foreground mb-6">
-              Скачайте образец отчёта и убедитесь в качестве нашего сервиса
-            </p>
+          <div className="mt-6 max-w-md mx-auto">
             <a href="/sample-report.pdf" target="_blank" rel="noopener noreferrer" className="inline-block w-full">
               <Button size="lg" className="w-full group">
                 <FileDown className="w-5 h-5 mr-2" />
