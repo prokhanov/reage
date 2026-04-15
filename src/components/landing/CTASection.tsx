@@ -26,7 +26,7 @@ export function CTASection() {
             <div className="relative m-[2px] rounded-[22px] bg-card p-8 md:p-12 lg:p-16">
               <div className="text-center max-w-2xl mx-auto">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight text-foreground">
-                  Готовы узнать свой уровень здоровья?
+                  Готовы взять свое здоровье под контроль?
                 </h2>
                 
                 <p className="text-lg md:text-xl text-muted-foreground mb-8">
