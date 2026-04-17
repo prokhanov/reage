@@ -75,7 +75,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <GitBranch className="h-5 w-5 text-primary" />
-            Корневые причины
+            Что и почему влияет на ваше здоровье
             <Tooltip>
               <TooltipTrigger asChild>
                 <button type="button" className="inline-flex">
@@ -83,12 +83,12 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                Цепочка показывает, какой корневой фактор влияет на ваши биомаркеры и к чему это приводит. Это объясняет ПОЧЕМУ возникают конкретные приоритеты.
+                Здесь показано, какие факторы образа жизни или состояния организма влияют на ваши показатели и почему именно эти рекомендации появились в плане.
               </TooltipContent>
             </Tooltip>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Корень → биомаркер → последствие. Понимание глубинных причин, а не симптомов.
+            Видим, какая привычка или фактор → как это проявляется в анализах и самочувствии → и к чему может привести.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
