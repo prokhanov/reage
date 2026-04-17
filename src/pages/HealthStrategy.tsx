@@ -215,8 +215,9 @@ export default function HealthStrategy() {
 
       <Alert className="bg-primary/5 border-primary/20">
         <Sparkles className="h-4 w-4 text-primary" />
-        <AlertDescription className="text-sm">
-          Здесь — ваш персональный план. Для каждой рекомендации указано: <strong>зачем она нужна</strong>, <strong>что улучшится</strong> и <strong>когда ждать результат</strong>.
+        <AlertDescription className="text-sm leading-relaxed">
+          <strong>Стратегия</strong> — это карта вашего здоровья на год: куда вы идёте, какая главная цель и что будет, если ничего не менять.{" "}
+          <strong>Рекомендации</strong> — конкретные шаги (что принимать, какие анализы сдать), чтобы пройти эту карту.
         </AlertDescription>
       </Alert>
 
@@ -231,8 +232,26 @@ export default function HealthStrategy() {
         </Alert>
       )}
 
-      {riskData?.smart_priorities && (
-        <SmartPriorities data={riskData.smart_priorities} />
+      {riskData?.risk_map?.categories && (
+        <ForecastComparison
+          categories={riskData.risk_map.categories}
+          currentBioAge={currentBioAge}
+          chronoAge={chronoAge}
+        />
+      )}
+
+      {riskData?.risk_map?.categories && (
+        <QuarterGoal
+          categories={riskData.risk_map.categories}
+          smartPriorities={riskData.smart_priorities}
+        />
+      )}
+
+      {riskData && (
+        <YearRoadmap
+          smartPriorities={riskData.smart_priorities}
+          currentBioAge={currentBioAge}
+        />
       )}
 
       {riskData?.risk_map?.categories && (
