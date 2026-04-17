@@ -107,7 +107,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       <Sprout className="h-3.5 w-3.5 text-status-good" />
-                      Корень
+                      Что влияет
                     </div>
                     <p className="text-sm font-semibold text-foreground leading-snug">
                       {blocker.name}
@@ -120,7 +120,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       <FlaskConical className="h-3.5 w-3.5 text-primary" />
-                      Биомаркер
+                      Как это проявляется
                     </div>
                     <ul className="space-y-1">
                       {blocker.evidence.slice(0, 3).map((ev, i) => (
@@ -138,7 +138,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       <AlertTriangle className="h-3.5 w-3.5 text-status-warning" />
-                      К чему это ведёт
+                      Чем это грозит
                     </div>
                     <p className="text-sm text-foreground leading-snug">{consequences}</p>
                   </div>
