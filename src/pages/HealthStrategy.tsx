@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertCircle, AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
 import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
@@ -151,7 +151,7 @@ export default function HealthStrategy() {
     <div className="p-4 md:p-8 space-y-6">
       {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Стратегия здоровья
@@ -186,6 +186,13 @@ export default function HealthStrategy() {
           </Button>
         )}
       </div>
+
+      <Alert className="bg-primary/5 border-primary/20">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <AlertDescription className="text-sm">
+          Здесь — ваш персональный план. Для каждой рекомендации указано: <strong>зачем она нужна</strong>, <strong>что улучшится</strong> и <strong>когда ждать результат</strong>.
+        </AlertDescription>
+      </Alert>
 
       {riskData && !riskData.has_biomarkers && (
         <Alert>
