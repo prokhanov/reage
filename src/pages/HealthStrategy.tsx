@@ -6,6 +6,8 @@ import { AlertCircle, AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
 import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
+import { CausalChains } from "@/components/risk-zones/CausalChains";
+import { CohortComparison } from "@/components/risk-zones/CohortComparison";
 import { useEffect, useState } from "react";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -16,6 +18,7 @@ export default function HealthStrategy() {
   const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [riskData, setRiskData] = useState<any>(null);
+  const [previousRiskData, setPreviousRiskData] = useState<any>(null);
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,13 +81,24 @@ export default function HealthStrategy() {
 
       setNeedsRefresh(profile?.needs_risk_refresh || false);
 
-      const { data: existingAnalysis } = await supabase
+      const { data: recentAnalyses } = await supabase
         .from("risk_zone_analyses")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+        .limit(2);
+
+      const existingAnalysis = recentAnalyses?.[0];
+      const previousAnalysis = recentAnalyses?.[1];
+
+      if (previousAnalysis) {
+        setPreviousRiskData({
+          risk_map: previousAnalysis.risk_map,
+          analysis_date: previousAnalysis.created_at,
+        });
+      } else {
+        setPreviousRiskData(null);
+      }
 
       if (existingAnalysis) {
         const analysisAge = Date.now() - new Date(existingAnalysis.created_at).getTime();
@@ -209,8 +223,23 @@ export default function HealthStrategy() {
         <SmartPriorities data={riskData.smart_priorities} />
       )}
 
+      {riskData?.aging_blockers?.blockers && (
+        <CausalChains
+          blockers={riskData.aging_blockers.blockers}
+          smartPriorities={riskData.smart_priorities}
+        />
+      )}
+
       {riskData?.risk_map?.categories && (
         <RiskMap categories={riskData.risk_map.categories} />
+      )}
+
+      {riskData?.risk_map?.categories && (
+        <CohortComparison
+          categories={riskData.risk_map.categories}
+          previousCategories={previousRiskData?.risk_map?.categories}
+          previousDate={previousRiskData?.analysis_date}
+        />
       )}
 
       {riskData?.aging_blockers?.blockers && (
