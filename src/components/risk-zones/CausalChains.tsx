@@ -147,7 +147,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                 {relatedActions.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-border">
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-primary">На это направлены: </span>
+                      <span className="font-medium text-primary">Что с этим делаем: </span>
                       {relatedActions.join(" • ")}
                     </p>
                   </div>
