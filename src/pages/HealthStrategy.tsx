@@ -5,9 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
-import { ForecastComparison } from "@/components/risk-zones/ForecastComparison";
-import { QuarterGoal } from "@/components/risk-zones/QuarterGoal";
-import { YearRoadmap } from "@/components/risk-zones/YearRoadmap";
+import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
 import { useEffect, useState } from "react";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -22,8 +20,6 @@ export default function HealthStrategy() {
   const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasAnalyses, setHasAnalyses] = useState(false);
-  const [currentBioAge, setCurrentBioAge] = useState<number | null>(null);
-  const [chronoAge, setChronoAge] = useState<number | null>(null);
 
   useEffect(() => {
     setRiskData(null);
@@ -49,34 +45,12 @@ export default function HealthStrategy() {
       const userId = await getUserId();
       if (!userId) return;
 
-      const [{ count }, { data: latestAnalysis }, { data: profile }] = await Promise.all([
-        supabase
-          .from("analyses")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId),
-        supabase
-          .from("analyses")
-          .select("biological_age")
-          .eq("user_id", userId)
-          .not("biological_age", "is", null)
-          .order("date", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from("profiles")
-          .select("birth_date")
-          .eq("id", userId)
-          .maybeSingle(),
-      ]);
+      const { count } = await supabase
+        .from("analyses")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
 
       setHasAnalyses((count || 0) > 0);
-      setCurrentBioAge(latestAnalysis?.biological_age ?? null);
-
-      if (profile?.birth_date) {
-        const birth = new Date(profile.birth_date);
-        const ageMs = Date.now() - birth.getTime();
-        setChronoAge(Math.floor(ageMs / (1000 * 60 * 60 * 24 * 365.25)));
-      }
 
       if (demoMode && demoData) {
         setRiskData(demoData.risk_zones);
@@ -215,9 +189,8 @@ export default function HealthStrategy() {
 
       <Alert className="bg-primary/5 border-primary/20">
         <Sparkles className="h-4 w-4 text-primary" />
-        <AlertDescription className="text-sm leading-relaxed">
-          <strong>Стратегия</strong> — это карта вашего здоровья на год: куда вы идёте, какая главная цель и что будет, если ничего не менять.{" "}
-          <strong>Рекомендации</strong> — конкретные шаги (что принимать, какие анализы сдать), чтобы пройти эту карту.
+        <AlertDescription className="text-sm">
+          Здесь — ваш персональный план. Для каждой рекомендации указано: <strong>зачем она нужна</strong>, <strong>что улучшится</strong> и <strong>когда ждать результат</strong>.
         </AlertDescription>
       </Alert>
 
@@ -232,26 +205,8 @@ export default function HealthStrategy() {
         </Alert>
       )}
 
-      {riskData?.risk_map?.categories && (
-        <ForecastComparison
-          categories={riskData.risk_map.categories}
-          currentBioAge={currentBioAge}
-          chronoAge={chronoAge}
-        />
-      )}
-
-      {riskData?.risk_map?.categories && (
-        <QuarterGoal
-          categories={riskData.risk_map.categories}
-          smartPriorities={riskData.smart_priorities}
-        />
-      )}
-
-      {riskData && (
-        <YearRoadmap
-          smartPriorities={riskData.smart_priorities}
-          currentBioAge={currentBioAge}
-        />
+      {riskData?.smart_priorities && (
+        <SmartPriorities data={riskData.smart_priorities} />
       )}
 
       {riskData?.risk_map?.categories && (
