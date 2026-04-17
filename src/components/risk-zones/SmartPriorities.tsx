@@ -138,14 +138,14 @@ const humanizeTimelineString = (s?: string): string | null => {
   return trimmed;
 };
 
-/** Format predicted improvement as "From → To" with unit */
-const formatChange = (pred: PredictedImprovement): string => {
+/** Format predicted improvement: returns either {from,to} pair or a single delta string */
+const formatChange = (pred: PredictedImprovement): { kind: "range"; text: string } | { kind: "delta"; text: string } => {
   if (pred.from !== undefined && pred.to !== undefined) {
-    return `${pred.from} → ${pred.to}${pred.unit ? ` ${pred.unit}` : ""}`;
+    return { kind: "range", text: `${pred.from} → ${pred.to}${pred.unit ? ` ${pred.unit}` : ""}` };
   }
-  if (pred.improvement) return pred.improvement;
-  if (pred.change) return pred.change;
-  return "—";
+  if (pred.improvement) return { kind: "delta", text: pred.improvement };
+  if (pred.change) return { kind: "delta", text: pred.change };
+  return { kind: "delta", text: "—" };
 };
 
 /** Detect technical numeric expression like "↑2-3 фл", "+5 г/л", "↓20%" */
