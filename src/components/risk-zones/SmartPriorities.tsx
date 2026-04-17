@@ -216,14 +216,19 @@ export const SmartPriorities = ({ data }: SmartPrioritiesProps) => {
                             )}
                           </div>
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                            <span className="text-muted-foreground">
-                              Сейчас → Цель:{" "}
-                              <span className="font-mono text-foreground">{formatChange(pred)}</span>
-                            </span>
+                            {(() => {
+                              const change = formatChange(pred);
+                              return (
+                                <span className="text-muted-foreground">
+                                  {change.kind === "range" ? "Сейчас → Цель: " : "Ожидаемое изменение: "}
+                                  <span className="font-mono text-foreground">{change.text}</span>
+                                </span>
+                              );
+                            })()}
                             {timeline && (
                               <span className="text-muted-foreground flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                Ждать результат: {timeline}
+                                Когда ждать: {timeline}
                               </span>
                             )}
                           </div>
