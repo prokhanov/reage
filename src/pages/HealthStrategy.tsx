@@ -151,7 +151,7 @@ export default function HealthStrategy() {
     <div className="p-4 md:p-8 space-y-6">
       {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Стратегия здоровья
