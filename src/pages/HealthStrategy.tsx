@@ -5,7 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
 import { RiskMap } from "@/components/risk-zones/RiskMap";
 import { AgingBlockers } from "@/components/risk-zones/AgingBlockers";
-import { SmartPriorities } from "@/components/risk-zones/SmartPriorities";
+import { ForecastComparison } from "@/components/risk-zones/ForecastComparison";
+import { QuarterGoal } from "@/components/risk-zones/QuarterGoal";
+import { YearRoadmap } from "@/components/risk-zones/YearRoadmap";
 import { useEffect, useState } from "react";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -20,6 +22,8 @@ export default function HealthStrategy() {
   const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasAnalyses, setHasAnalyses] = useState(false);
+  const [currentBioAge, setCurrentBioAge] = useState<number | null>(null);
+  const [chronoAge, setChronoAge] = useState<number | null>(null);
 
   useEffect(() => {
     setRiskData(null);
