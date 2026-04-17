@@ -56,12 +56,12 @@ const findRelatedActions = (blocker: AgingBlocker, smart?: SmartPrioritiesData):
 /** Build a short "consequences" line from evidence and recommendation context */
 const buildConsequences = (blocker: AgingBlocker): string => {
   if (blocker.impact_score >= 8) {
-    return "Высокий риск ускоренного старения и развития хронических проблем";
+    return "Может ускорять старение организма и постепенно повышать риск хронических заболеваний";
   }
   if (blocker.impact_score >= 5) {
-    return "Снижение энергии, ухудшение восстановления, рост биовозраста";
+    return "Снижает уровень энергии, ухудшает восстановление и может ускорять биовозраст";
   }
-  return "Умеренное влияние на самочувствие и темп старения";
+  return "Умеренно влияет на самочувствие и темп старения";
 };
 
 export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
