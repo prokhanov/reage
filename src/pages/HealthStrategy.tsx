@@ -49,12 +49,34 @@ export default function HealthStrategy() {
       const userId = await getUserId();
       if (!userId) return;
 
-      const { count } = await supabase
-        .from("analyses")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId);
+      const [{ count }, { data: latestAnalysis }, { data: profile }] = await Promise.all([
+        supabase
+          .from("analyses")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId),
+        supabase
+          .from("analyses")
+          .select("biological_age")
+          .eq("user_id", userId)
+          .not("biological_age", "is", null)
+          .order("date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("birth_date")
+          .eq("id", userId)
+          .maybeSingle(),
+      ]);
 
       setHasAnalyses((count || 0) > 0);
+      setCurrentBioAge(latestAnalysis?.biological_age ?? null);
+
+      if (profile?.birth_date) {
+        const birth = new Date(profile.birth_date);
+        const ageMs = Date.now() - birth.getTime();
+        setChronoAge(Math.floor(ageMs / (1000 * 60 * 60 * 24 * 365.25)));
+      }
 
       if (demoMode && demoData) {
         setRiskData(demoData.risk_zones);
