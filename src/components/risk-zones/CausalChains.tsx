@@ -56,12 +56,12 @@ const findRelatedActions = (blocker: AgingBlocker, smart?: SmartPrioritiesData):
 /** Build a short "consequences" line from evidence and recommendation context */
 const buildConsequences = (blocker: AgingBlocker): string => {
   if (blocker.impact_score >= 8) {
-    return "Высокий риск ускоренного старения и развития хронических проблем";
+    return "Может ускорять старение организма и постепенно повышать риск хронических заболеваний";
   }
   if (blocker.impact_score >= 5) {
-    return "Снижение энергии, ухудшение восстановления, рост биовозраста";
+    return "Снижает уровень энергии, ухудшает восстановление и может ускорять биовозраст";
   }
-  return "Умеренное влияние на самочувствие и темп старения";
+  return "Умеренно влияет на самочувствие и темп старения";
 };
 
 export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
@@ -75,7 +75,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <GitBranch className="h-5 w-5 text-primary" />
-            Корневые причины
+            Что и почему влияет на ваше здоровье
             <Tooltip>
               <TooltipTrigger asChild>
                 <button type="button" className="inline-flex">
@@ -83,12 +83,12 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                Цепочка показывает, какой корневой фактор влияет на ваши биомаркеры и к чему это приводит. Это объясняет ПОЧЕМУ возникают конкретные приоритеты.
+                Здесь показано, какие факторы образа жизни или состояния организма влияют на ваши показатели и почему именно эти рекомендации появились в плане.
               </TooltipContent>
             </Tooltip>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Корень → биомаркер → последствие. Понимание глубинных причин, а не симптомов.
+            Видим, какая привычка или фактор → как это проявляется в анализах и самочувствии → и к чему может привести.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -107,7 +107,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       <Sprout className="h-3.5 w-3.5 text-status-good" />
-                      Корень
+                      Что влияет
                     </div>
                     <p className="text-sm font-semibold text-foreground leading-snug">
                       {blocker.name}
@@ -120,7 +120,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       <FlaskConical className="h-3.5 w-3.5 text-primary" />
-                      Биомаркер
+                      Как это проявляется
                     </div>
                     <ul className="space-y-1">
                       {blocker.evidence.slice(0, 3).map((ev, i) => (
@@ -138,7 +138,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       <AlertTriangle className="h-3.5 w-3.5 text-status-warning" />
-                      К чему это ведёт
+                      Чем это грозит
                     </div>
                     <p className="text-sm text-foreground leading-snug">{consequences}</p>
                   </div>
@@ -147,7 +147,7 @@ export function CausalChains({ blockers, smartPriorities }: CausalChainsProps) {
                 {relatedActions.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-border">
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-primary">На это направлены: </span>
+                      <span className="font-medium text-primary">Что с этим делаем: </span>
                       {relatedActions.join(" • ")}
                     </p>
                   </div>
