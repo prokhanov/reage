@@ -49,7 +49,7 @@ export function PreventiveMedicineSection() {
                 </p>
                 <div className="rounded-2xl bg-primary/5 border border-primary/10 p-5">
                   <p className="text-sm">
-                    <strong className="text-foreground">Задача превентивной медицины</strong> — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и изменением образа жизни, <strong className="text-foreground">без тяжёлых лекарств</strong>.
+                    <strong className="text-foreground">Задача превентивной медицины</strong> — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и изменением образа жизни, <strong className="text-foreground">без тяжёлых лекарств</strong>
                   </p>
                 </div>
               </div>
