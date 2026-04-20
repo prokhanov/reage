@@ -58,11 +58,11 @@ export function PreventiveMedicineSection() {
 
           {/* Card 2: Integrative Approach */}
           <div className="group relative animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-accent/30 to-primary/20 opacity-50 blur-xl transition-opacity group-hover:opacity-70" />
-            <div className="relative h-full rounded-3xl border border-accent/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-accent/5">
+            <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/20 opacity-50 blur-xl transition-opacity group-hover:opacity-70" />
+            <div className="relative h-full rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-primary/5">
               <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20">
-                  <Brain className="w-6 h-6 text-accent" />
+                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20">
+                  <Brain className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое интегративный подход?</h3>
               </div>
