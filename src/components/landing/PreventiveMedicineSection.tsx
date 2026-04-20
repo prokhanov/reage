@@ -1,6 +1,35 @@
-import { ShieldCheck, Microscope, Brain, Lightbulb } from "lucide-react";
+import { Lightbulb, AlertCircle, Activity, TrendingDown, Microscope } from "lucide-react";
 
 export function PreventiveMedicineSection() {
+  const aboveWater = [
+    { label: "Усталость", desc: "которую списывают на стресс" },
+    { label: "Лишний вес", desc: "несмотря на диеты" },
+    { label: "Плохой сон", desc: "и снижение энергии" },
+  ];
+
+  const belowWater = [
+    {
+      icon: <AlertCircle className="w-5 h-5 text-primary" />,
+      title: "Скрытые воспаления",
+      desc: "СРБ, ферритин, гомоцистеин — годами повышены без единого симптома, но ускоряют старение сосудов",
+    },
+    {
+      icon: <Activity className="w-5 h-5 text-primary" />,
+      title: "Метаболические сбои",
+      desc: "Инсулинорезистентность развивается за 5–10 лет до диабета. На УЗИ и в общем анализе её не видно",
+    },
+    {
+      icon: <TrendingDown className="w-5 h-5 text-primary" />,
+      title: "Дефициты микронутриентов",
+      desc: "Витамин D, B12, железо, магний — их нехватка медленно разрушает иммунитет, мозг и гормональный фон",
+    },
+    {
+      icon: <Microscope className="w-5 h-5 text-primary" />,
+      title: "Гормональный дисбаланс",
+      desc: "Кортизол, ТТГ, половые гормоны меняются задолго до того, как вы почувствуете «что-то не так»",
+    },
+  ];
+
   return (
     <section className="relative py-20 md:py-28 overflow-hidden">
       {/* Background */}
@@ -13,7 +42,7 @@ export function PreventiveMedicineSection() {
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fade-in">
             <Lightbulb className="w-4 h-4" />
-            Интегративный подход
+            Айсберг здоровья
           </div>
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
@@ -22,63 +51,86 @@ export function PreventiveMedicineSection() {
           </h2>
 
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Объясняем простыми словами, чем наш подход отличается <br /> от «обычной медицины» и зачем сдавать анализы, если ничего не болит
+            То, что вы чувствуете — лишь верхушка айсберга. <br />
+            Главное происходит глубже, и увидеть это можно только в анализах
           </p>
         </div>
 
-        {/* Two Column Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 max-w-6xl mx-auto mb-16">
-          
-          {/* Card 1: Preventive Medicine */}
-          <div className="group relative animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/20 opacity-50 blur-xl transition-opacity group-hover:opacity-70" />
-            <div className="relative h-full rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-primary/5">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20">
-                  <ShieldCheck className="w-6 h-6 text-primary" />
+        {/* Iceberg Visualization */}
+        <div className="max-w-5xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="relative rounded-3xl overflow-hidden border border-primary/20 bg-gradient-to-b from-card to-card/90 shadow-2xl shadow-primary/5">
+            
+            {/* Above water — visible symptoms */}
+            <div className="relative p-8 md:p-12 bg-gradient-to-b from-primary/5 to-primary/10">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="px-3 py-1 rounded-full bg-background/60 backdrop-blur-sm border border-border/50 text-xs font-medium text-muted-foreground">
+                  ~5% • Над водой
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое превентивная медицина?</h3>
+                <div className="text-xs text-muted-foreground">— то, что вы замечаете</div>
               </div>
 
-              <div className="space-y-5 text-muted-foreground leading-relaxed">
-                <p>
-                  Превентивная медицина — это система, которая работает на опережение. Вместо того чтобы лечить уже возникшую болезнь, мы помогаем вам не допустить её появления.
-                </p>
-                <p>
-                  Организм часто молчит до последнего. Повышенный инсулин не болит, но через 5–10 лет может привести к диабету. Высокое давление годами не даёт симптомов — пока не случится инсульт.
-                </p>
-                <div className="rounded-2xl bg-primary/5 border border-primary/10 p-5">
-                  <p className="text-sm">
-                    <strong className="text-foreground">Задача превентивной медицины</strong> — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и изменением образа жизни, <strong className="text-foreground">без тяжёлых лекарств</strong>.
-                  </p>
-                </div>
+              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-6">
+                Симптомы, которые видит обычный врач
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {aboveWater.map((item, i) => (
+                  <div
+                    key={i}
+                    className="rounded-2xl bg-background/60 backdrop-blur-sm border border-border/50 p-4"
+                  >
+                    <div className="font-semibold text-foreground mb-1">{item.label}</div>
+                    <div className="text-sm text-muted-foreground">{item.desc}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
 
-          {/* Card 2: Integrative Approach */}
-          <div className="group relative animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/20 opacity-50 blur-xl transition-opacity group-hover:opacity-70" />
-            <div className="relative h-full rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-primary/5">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20">
-                  <Brain className="w-6 h-6 text-primary" />
+            {/* Water line */}
+            <div className="relative h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+            <div className="relative h-8 bg-gradient-to-b from-primary/10 to-transparent flex items-center justify-center">
+              <div className="px-4 py-1 rounded-full bg-background border border-primary/30 text-[10px] font-bold uppercase tracking-wider text-primary">
+                Уровень воды
+              </div>
+            </div>
+
+            {/* Below water — hidden processes */}
+            <div className="relative p-8 md:p-12">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                  ~95% • Под водой
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое интегративный <br />подход?</h3>
+                <div className="text-xs text-muted-foreground">— то, что формирует болезнь годами</div>
               </div>
 
-              <div className="space-y-5 text-muted-foreground leading-relaxed">
-                <p>
-                  Мы рассматриваем организм не как набор отдельных органов, а как <strong className="text-foreground">единую систему, где всё взаимосвязано</strong>. Вместо того чтобы разбирать здоровье по частям, мы анализируем, как системы организма влияют друг на друга.
+              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-6">
+                Процессы, которые видны только в расширенном анализе
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {belowWater.map((item, i) => (
+                  <div
+                    key={i}
+                    className="group rounded-2xl bg-muted/30 border border-border/50 p-5 transition-all duration-300 hover:bg-muted/50 hover:border-primary/30"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 group-hover:scale-110 transition-transform">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground mb-1">{item.title}</div>
+                        <div className="text-sm text-muted-foreground leading-relaxed">{item.desc}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Conclusion */}
+              <div className="mt-8 rounded-2xl bg-primary/5 border border-primary/10 p-6">
+                <p className="text-base text-foreground leading-relaxed">
+                  <strong>85+ биомаркеров</strong> — это не «много на всякий случай». Это минимум, чтобы увидеть всю подводную часть айсберга и скорректировать здоровье <strong>до того</strong>, как симптомы превратятся в диагноз.
                 </p>
-                <p>
-                  Только так можно найти истинную причину плохого самочувствия, а не просто снять симптом.
-                </p>
-                <div className="rounded-2xl bg-primary/5 border border-primary/10 p-5">
-                  <p className="text-sm">
-                    Интегративная медицина не отрицает достижения классической — она <strong className="text-foreground">разумно их дополняет</strong>, чтобы лечить не отдельный симптом, а человека в целом
-                  </p>
-                </div>
               </div>
             </div>
           </div>
@@ -88,4 +140,3 @@ export function PreventiveMedicineSection() {
     </section>
   );
 }
-
