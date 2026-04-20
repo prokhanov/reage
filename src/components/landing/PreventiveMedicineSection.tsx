@@ -47,7 +47,7 @@ export function PreventiveMedicineSection() {
                   Организм часто молчит до последнего. Повышенный инсулин не болит, но через 5–10 лет может привести к диабету. Высокое давление не даёт симптомов — пока не случится инсульт.
                 </p>
                 <div className="mt-auto rounded-2xl bg-primary/5 border border-primary/10 p-5">
-                  <p className="text-base">
+                  <p className="text-lg">
                     <strong className="text-foreground">Задача превентивной медицины</strong> — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и образом жизни, <strong className="text-foreground">без тяжёлых лекарств</strong>
                   </p>
                 </div>
@@ -73,7 +73,7 @@ export function PreventiveMedicineSection() {
                   Только так можно найти истинную причину плохого самочувствия, а не просто снять симптом.
                 </p>
                 <div className="mt-auto rounded-2xl bg-primary/5 border border-primary/10 p-5">
-                  <p className="text-base">
+                  <p className="text-lg">
                     Интегративная медицина не отрицает достижения классической — она <strong className="text-foreground">разумно их дополняет</strong>, чтобы лечить не отдельный симптом, а человека в целом
                   </p>
                 </div>
