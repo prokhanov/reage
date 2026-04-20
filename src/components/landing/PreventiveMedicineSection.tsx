@@ -32,7 +32,7 @@ export function PreventiveMedicineSection() {
           {/* Card 1: Preventive Medicine */}
           <div className="group relative animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/20 opacity-50 blur-xl transition-opacity group-hover:opacity-70" />
-            <div className="relative h-full rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-primary/5">
+            <div className="relative h-full flex flex-col rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-primary/5">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20">
                   <ShieldCheck className="w-6 h-6 text-primary" />
@@ -40,13 +40,13 @@ export function PreventiveMedicineSection() {
                 <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое превентивная медицина?</h3>
               </div>
 
-              <div className="space-y-5 text-muted-foreground leading-relaxed">
+              <div className="flex flex-col flex-1 space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Превентивная медицина — это система, которая работает на опережение. Вместо того чтобы лечить уже возникшую болезнь, мы помогаем вам не допустить её появления.
                   <br />
                   Организм часто молчит до последнего. Повышенный инсулин не болит, но через 5–10 лет может привести к диабету. Высокое давление годами не даёт симптомов — пока не случится инсульт.
                 </p>
-                <div className="rounded-2xl bg-primary/5 border border-primary/10 p-5">
+                <div className="mt-auto rounded-2xl bg-primary/5 border border-primary/10 p-5">
                   <p className="text-sm">
                     Задача превентивной медицины — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и изменением образа жизни, без тяжёлых лекарств
                   </p>
@@ -58,21 +58,21 @@ export function PreventiveMedicineSection() {
           {/* Card 2: Integrative Approach */}
           <div className="group relative animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/20 opacity-50 blur-xl transition-opacity group-hover:opacity-70" />
-            <div className="relative h-full rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-primary/5">
+            <div className="relative h-full flex flex-col rounded-3xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-8 md:p-10 shadow-2xl shadow-primary/5">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20">
                   <Brain className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое интегративный <br />подход?</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое интегративный подход?</h3>
               </div>
 
-              <div className="space-y-5 text-muted-foreground leading-relaxed">
+              <div className="flex flex-col flex-1 space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Мы рассматриваем организм не как набор отдельных органов, а как единую систему, где всё взаимосвязано. Вместо того чтобы разбирать здоровье по частям, мы анализируем, как системы организма влияют друг на друга.
                   <br />
                   Только так можно найти истинную причину плохого самочувствия, а не просто снять симптом.
                 </p>
-                <div className="rounded-2xl bg-primary/5 border border-primary/10 p-5">
+                <div className="mt-auto rounded-2xl bg-primary/5 border border-primary/10 p-5">
                   <p className="text-sm">
                     Интегративная медицина не отрицает достижения классической — она разумно их дополняет, чтобы лечить не отдельный симптом, а человека в целом
                   </p>
