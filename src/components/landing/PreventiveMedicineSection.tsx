@@ -71,6 +71,19 @@ export function PreventiveMedicineSection() {
                 <p>
                   Мы рассматриваем организм не как набор отдельных органов, а как <strong className="text-foreground">единую систему, где всё взаимосвязано</strong>. Вместо того чтобы разбирать здоровье по частям, мы анализируем, как системы влияют друг на друга.
                 </p>
+                <div className="rounded-2xl bg-accent/5 border border-accent/10 p-5">
+                  <p className="text-sm font-medium text-foreground mb-3">Пример: У человека хроническая усталость.</p>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <Stethoscope className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <span><strong className="text-foreground">Стандартный подход:</strong> назначить тонизирующие или антидепрессанты.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Microscope className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <span><strong className="text-foreground">Интегративный подход:</strong> проверить ферритин, витамин D, щитовидную железу, качество сна, уровень стресса. Найдёт первопричину и устранит её.</span>
+                    </li>
+                  </ul>
+                </div>
                 <p className="text-sm">
                   Только так можно найти истинную причину плохого самочувствия, а не просто снять симптом. Интегративная медицина не отрицает достижения классической — она <strong className="text-foreground">разумно их дополняет</strong>, чтобы лечить не отдельный симптом, а человека в целом.
                 </p>
