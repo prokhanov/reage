@@ -72,15 +72,15 @@ export function PreventiveMedicineSection() {
                   Мы рассматриваем организм не как набор отдельных органов, а как <strong className="text-foreground">единую систему, где всё взаимосвязано</strong>. Вместо того чтобы разбирать здоровье по частям, мы анализируем, как системы влияют друг на друга.
                 </p>
                 <div className="rounded-2xl bg-accent/5 border border-accent/10 p-5">
-                  <p className="text-sm font-medium text-foreground mb-3">Пример: У человека хроническая усталость.</p>
+                  <p className="text-sm font-medium text-foreground mb-3">Пример: У человека повышен холестерин.</p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
                       <Stethoscope className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <span><strong className="text-foreground">Стандартный подход:</strong> назначить тонизирующие или антидепрессанты.</span>
+                      <span><strong className="text-foreground">Стандартный подход:</strong> назначить статины на всю жизнь, предупредить о побочных эффектах.</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Microscope className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                      <span><strong className="text-foreground">Интегративный подход:</strong> проверить ферритин, витамин D, щитовидную железу, качество сна, уровень стресса. Найдёт первопричину и устранит её.</span>
+                      <span><strong className="text-foreground">Интегративный подход:</strong> проверить функцию щитовидной железы, воспалительные маркеры (СРБ), инсулин, печёночные пробные. Часто корень в воспалении или инсулиновом сопротивлении — и холестерин — это следствие. Устраняем факторы — и липидный профиль нормализуется без лекарств.</span>
                     </li>
                   </ul>
                 </div>
