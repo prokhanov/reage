@@ -1,4 +1,4 @@
-import { ShieldCheck, Microscope, Brain, HeartPulse, ArrowRight, Lightbulb, Stethoscope, FlaskConical } from "lucide-react";
+import { ShieldCheck, Microscope, Brain, Lightbulb } from "lucide-react";
 
 export function PreventiveMedicineSection() {
   return (
@@ -71,19 +71,6 @@ export function PreventiveMedicineSection() {
                 <p>
                   Мы рассматриваем организм не как набор отдельных органов, а как <strong className="text-foreground">единую систему, где всё взаимосвязано</strong>. Вместо того чтобы разбирать здоровье по частям, мы анализируем, как системы влияют друг на друга.
                 </p>
-                <div className="rounded-2xl bg-accent/5 border border-accent/10 p-5">
-                  <p className="text-sm font-medium text-foreground mb-3">Пример: У человека повышен холестерин.</p>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-start gap-2">
-                      <Stethoscope className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <span><strong className="text-foreground">Стандартный подход:</strong> назначить статины на всю жизнь, предупредить о побочных эффектах.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Microscope className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                      <span><strong className="text-foreground">Интегративный подход:</strong> проверить функцию щитовидной железы, воспалительные маркеры (СРБ), инсулин, печёночные пробные. Часто корень в воспалении или инсулиновом сопротивлении — и холестерин — это следствие. Устраняем факторы — и липидный профиль нормализуется без лекарств.</span>
-                    </li>
-                  </ul>
-                </div>
                 <p className="text-sm">
                   Только так можно найти истинную причину плохого самочувствия, а не просто снять симптом. Интегративная медицина не отрицает достижения классической — она <strong className="text-foreground">разумно их дополняет</strong>, чтобы лечить не отдельный симптом, а человека в целом.
                 </p>
@@ -97,17 +84,3 @@ export function PreventiveMedicineSection() {
   );
 }
 
-function BottomCard({ icon, title, text, delay }: { icon: React.ReactNode; title: string; text: string; delay: number }) {
-  return (
-    <div
-      className="group relative rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 md:p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in"
-      style={{ animationDelay: `${delay}s` }}
-    >
-      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 mb-4 text-primary group-hover:scale-110 transition-transform">
-        {icon}
-      </div>
-      <h4 className="text-base font-bold text-foreground mb-3 leading-snug">{title}</h4>
-      <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
-    </div>
-  );
-}
