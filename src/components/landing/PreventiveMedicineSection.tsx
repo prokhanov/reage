@@ -48,7 +48,7 @@ export function PreventiveMedicineSection() {
                 </p>
                 <div className="mt-auto rounded-2xl bg-primary/5 border border-primary/10 p-5">
                   <p className="text-sm">
-                    Задача превентивной медицины — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и изменением образа жизни, без тяжёлых лекарств
+                    <strong className="text-foreground">Задача превентивной медицины</strong> — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и изменением образа жизни, <strong className="text-foreground">без тяжёлых лекарств</strong>
                   </p>
                 </div>
               </div>
@@ -74,7 +74,7 @@ export function PreventiveMedicineSection() {
                 </p>
                 <div className="mt-auto rounded-2xl bg-primary/5 border border-primary/10 p-5">
                   <p className="text-sm">
-                    Интегративная медицина не отрицает достижения классической — она разумно их дополняет, чтобы лечить не отдельный симптом, а человека в целом
+                    Интегративная медицина не отрицает достижения классической — она <strong className="text-foreground">разумно их дополняет</strong>, чтобы лечить не отдельный симптом, а человека в целом
                   </p>
                 </div>
               </div>
