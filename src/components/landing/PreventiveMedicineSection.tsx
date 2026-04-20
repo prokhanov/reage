@@ -43,8 +43,7 @@ export function PreventiveMedicineSection() {
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Превентивная медицина — это система, которая работает на опережение. Вместо того чтобы лечить уже возникшую болезнь, мы помогаем вам не допустить её появления.
-                </p>
-                <p>
+                  <br />
                   Организм часто молчит до последнего. Повышенный инсулин не болит, но через 5–10 лет может привести к диабету. Высокое давление годами не даёт симптомов — пока не случится инсульт.
                 </p>
                 <div className="rounded-2xl bg-primary/5 border border-primary/10 p-5">
@@ -70,8 +69,7 @@ export function PreventiveMedicineSection() {
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Мы рассматриваем организм не как набор отдельных органов, а как единую систему, где всё взаимосвязано. Вместо того чтобы разбирать здоровье по частям, мы анализируем, как системы организма влияют друг на друга.
-                </p>
-                <p>
+                  <br />
                   Только так можно найти истинную причину плохого самочувствия, а не просто снять симптом.
                 </p>
                 <div className="rounded-2xl bg-primary/5 border border-primary/10 p-5">
