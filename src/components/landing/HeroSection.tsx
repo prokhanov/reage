@@ -83,9 +83,9 @@ export function HeroSection() {
 
           {/* Subheading */}
           <p
-            className="text-xl sm:text-2xl md:text-3xl text-muted-foreground max-w-4xl leading-relaxed animate-fade-in whitespace-pre-line px-0 mx-0"
+            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in whitespace-pre-line"
             style={{ animationDelay: '0.2s' }}>
-            {"Регулярно берём анализы у вас дома\nи предоставляем комплексный отчёт\nпо системам организма - с динамикой и рекомендацией врача"}
+            {"Регулярно берём анализы у вас дома и предоставляем комплексный отчёт\nпо системам организма - с динамикой и рекомендацией врача"}
           </p>
 
           {/* Value bullets */}
@@ -107,7 +107,7 @@ export function HeroSection() {
               size="lg"
               variant="outline"
               onClick={() => navigate("/auth")}
-              className="text-lg px-8 py-6 border border-primary/30 hover:border-2 hover:border-primary transition-all duration-300">
+              className="text-lg px-8 py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-all duration-300">
               
               Войти в аккаунт
             </Button>
