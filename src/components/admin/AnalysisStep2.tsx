@@ -282,6 +282,8 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                     const currentValue = getValue(biomarker.id);
                     const ranges = getRangesDisplay(biomarker);
                     const status = currentValue ? getValueStatus(biomarker, currentValue.value) : null;
+                    const isCalculated = CALCULATED_BIOMARKER_CODES.has(biomarker.code);
+                    const formulaHint = isCalculated ? getFormulaDescription(biomarker.code) : null;
                     return (
                       <div
                         key={biomarker.id}
@@ -289,17 +291,23 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                       >
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <Label className="text-sm font-medium">
                                 {biomarker.name}
                               </Label>
+                              {isCalculated && (
+                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  <Calculator className="h-3 w-3" />
+                                  Расчётный
+                                </span>
+                              )}
                               {status && (
                                 <span className={`text-xs px-1.5 py-0.5 rounded ${status.bgClass} ${status.colorClass}`}>
                                   {status.emoji} {status.label}
                                 </span>
                               )}
                             </div>
-                            {currentValue && (
+                            {currentValue && !isCalculated && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -323,12 +331,19 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                             )}
                             {!ranges && ' • Норма: не указана'}
                           </p>
+                          {formulaHint && (
+                            <p className="text-[11px] text-muted-foreground italic">
+                              Формула: {formulaHint}
+                            </p>
+                          )}
                           <div className="flex gap-2">
                             <Input
                               type="number"
                               step="0.01"
-                              placeholder="Значение"
+                              placeholder={isCalculated ? "Будет рассчитано автоматически" : "Значение"}
                               value={currentValue?.value || ""}
+                              readOnly={isCalculated}
+                              disabled={isCalculated}
                               onChange={(e) =>
                                 updateValue(
                                   biomarker.id,
@@ -336,12 +351,14 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                                   currentValue?.unitOverride
                                 )
                               }
-                              className="flex-1"
+                              className={`flex-1 ${isCalculated ? 'bg-muted/50 cursor-not-allowed' : ''}`}
                             />
                             <Input
                               type="text"
                               placeholder={biomarker.unit}
                               value={currentValue?.unitOverride || ""}
+                              readOnly={isCalculated}
+                              disabled={isCalculated}
                               onChange={(e) =>
                                 updateValue(
                                   biomarker.id,
@@ -349,7 +366,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                                   e.target.value
                                 )
                               }
-                              className="w-24"
+                              className={`w-24 ${isCalculated ? 'bg-muted/50 cursor-not-allowed' : ''}`}
                             />
                           </div>
                           {currentValue?.value && !isNaN(parseFloat(currentValue.value)) && (
