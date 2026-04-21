@@ -4,7 +4,7 @@ const bullets = [
   {
     icon: <CalendarCheck className="w-5 h-5 text-primary" />,
     title: "Чекап 4 раза\n в год",
-    subtitle: "Берём анализы у вас дома и отслеживаем изменение ваших показателей в динамике",
+    subtitle: "Берём анализы у вас дома и отслеживаем изменения ваших показателей в динамике",
   },
   {
     icon: <Activity className="w-5 h-5 text-primary" />,
