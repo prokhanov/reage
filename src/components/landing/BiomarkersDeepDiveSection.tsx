@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Shield, Dna, RefreshCw, Zap, type LucideIcon } from "lucide-react";
 
 import systemEnergy from "@/assets/system-energy.png";
 import systemHeart from "@/assets/system-heart.png";
@@ -12,7 +12,7 @@ import systemMetabolism from "@/assets/system-metabolism.png";
 const biomarkerCategories = [
   {
     id: "cardio",
-    emoji: "❤️",
+    icon: Heart as LucideIcon,
     name: "Сердечно-сосудистая система",
     image: systemHeart,
     markers: ["Общий холестерин", "ЛПВП", "ЛПНП", "Триглицериды", "ЛПОНП", "ApoA1", "ApoB", "ApoB/ApoA1", "не-HDL холестерин", "Индекс атерогенности", "Гомоцистеин", "Lp(a)", "Ферритин", "Железо", "Трансферрин", "Медь", "NT-proBNP", "КФК"],
@@ -21,7 +21,7 @@ const biomarkerCategories = [
   },
   {
     id: "immune",
-    emoji: "🛡️",
+    icon: Shield as LucideIcon,
     name: "Воспалительная и иммунная система",
     image: systemImmune,
     markers: ["Гемоглобин", "Эритроциты", "Гематокрит", "MCV", "MCH", "MCHC", "RDW", "RDW-SD", "Лейкоциты", "Нейтрофилы", "Лимфоциты", "Моноциты", "Эозинофилы", "Базофилы", "Тромбоциты", "MPV", "PDW", "PCT", "CD3+", "CD4+", "CD8+", "CD19+", "NK-клетки", "СОЭ", "CRP", "IL-6", "TNF-α", "IgM", "IgG", "Фибриноген", "Протромбиновое время", "Тромбиновое время", "МНО", "АЧТВ"],
@@ -30,7 +30,7 @@ const biomarkerCategories = [
   },
   {
     id: "endocrine",
-    emoji: "🧬",
+    icon: Dna as LucideIcon,
     name: "Эндокринная и стрессовая система",
     image: systemEndocrine,
     markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Анти-ТПО", "Анти-ТГ", "TRAb", "Тестостерон", "Эстрадиол", "Эстрон", "Эстриол", "SHBG", "Кортизол", "DHEA-S", "Витамин D", "IGF-1"],
@@ -39,18 +39,9 @@ const biomarkerCategories = [
   },
   {
     id: "metabolism",
-    emoji: "🔄",
+    icon: RefreshCw as LucideIcon,
     name: "Метаболизм и детоксикация",
     image: systemMetabolism,
-    markers: ["ALT", "AST", "GGT", "Билирубин", "ALP", "Общий белок", "Трансферрин", "Мочевая кислота", "Витамин K1", "Креатинин", "Мочевина", "Цистатин С", "Натрий", "Калий", "Хлор", "Кальций", "Фосфор", "pH", "Удельный вес", "Белок", "Глюкоза", "Кетоны", "Уробилиноген", "Гемоглобин", "Нитриты", "Лейкоциты", "Эритроциты"],
-    insights: ["Насколько эффективно работает ваш обмен веществ", "Как ваш организм самостоятельно справляется с детоксикацией", "Задерживается ли в организме лишняя жидкость, создавая нагрузку на сердце и сосуды", "Баланс ключевых электролитов и состояние минерального обмена"],
-    risks: ["Нарушение функции печени", "Жировой гепатоз", "Фиброз печени", "Токсическая нагрузка", "Нарушение детоксикации", "Подагра", "Гиперурикемия", "Нарушение белкового обмена", "Почечная недостаточность", "Нефропатия", "Нарушение электролитного баланса", "Гиперкалиемия", "Гипонатриемия", "Нарушение водно-солевого баланса", "Риск мочекаменной болезни", "Дефицит кальция"]
-  },
-  {
-    id: "energy",
-    emoji: "⚡",
-    name: "Энергия и восстановление",
-    image: systemEnergy,
     markers: ["Глюкоза", "HbA1c", "Инсулин", "HOMA-IR", "ЛДГ", "Коэнзим Q10", "Малоновый диальдегид", "Антиоксидантный статус", "Магний", "B12", "B9 (фолат)", "Цинк", "Селен", "Альбумин", "Лактат", "Бета-каротин", "Витамин A", "Витамин E"],
     insights: ["Откуда берётся постоянная усталость и сонливость ", "Насколько эффективно ваши клетки вырабатывают энергию", "Есть ли у вас скрытые дефициты витаминов и минералов", "Как быстро организм восстанавливается после нагрузок"],
     risks: ["Инсулинорезистентность", "Преддиабет", "Гипергликемия", "Дефицит B12", "Дефицит магния", "Дефицит цинка", "Дефицит селена", "Оксидативный стресс", "Митохондриальная дисфункция", "Хроническая усталость"]
@@ -60,8 +51,9 @@ const biomarkerCategories = [
 function CategoryContent({ cat }: { cat: typeof biomarkerCategories[0] }) {
   return (
     <div className="p-6 md:p-8 lg:p-10 space-y-6">
-      <h3 className="text-2xl md:text-3xl font-bold text-foreground">
-        {cat.emoji} {cat.name}
+      <h3 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+        <cat.icon className="w-7 h-7 text-primary shrink-0" strokeWidth={1.75} />
+        <span>{cat.name}</span>
       </h3>
 
       <div>
@@ -178,7 +170,7 @@ export function BiomarkersDeepDiveSection() {
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-1.5">
-                  <span className="text-base">{c.emoji}</span>
+                  <c.icon className="w-4 h-4" strokeWidth={2} />
                   <span className="hidden md:inline">{c.name.split(" ")[0]}</span>
                 </span>
               </button>
