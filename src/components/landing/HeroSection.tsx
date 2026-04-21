@@ -107,7 +107,7 @@ export function HeroSection() {
               size="lg"
               variant="outline"
               onClick={() => navigate("/auth")}
-              className="text-lg px-8 py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-all duration-300">
+              className="text-lg px-8 py-6 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300">
               
               Войти в аккаунт
             </Button>
