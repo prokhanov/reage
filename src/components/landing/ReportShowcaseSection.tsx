@@ -77,7 +77,7 @@ export function ReportShowcaseSection() {
               return (
                 <div
                   key={feature.title}
-                  className="flex gap-4 p-5 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm animate-fade-in transition-colors hover:bg-card/80 hover:border-primary/30"
+                  className="flex gap-4 p-5 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm animate-fade-in transition-colors hover:bg-card/80"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
