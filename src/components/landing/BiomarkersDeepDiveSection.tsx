@@ -1,6 +1,33 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Heart, Shield, Gem, RefreshCw, Zap, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Shield, RefreshCw, Zap, type LucideIcon } from "lucide-react";
+
+// Custom minimalist thyroid gland icon in Lucide style
+const ThyroidIcon: LucideIcon = (({ className, strokeWidth = 2, color = "currentColor", size = 24, ...props }: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* Trachea / isthmus line */}
+    <path d="M12 3v6" />
+    <path d="M12 14v7" />
+    {/* Left lobe */}
+    <path d="M12 9c-1 0-2.5.4-3.5 1.2-1.4 1.1-2 2.8-2 4.3 0 1.6 1 2.5 2.2 2.5 1.5 0 2.6-1 3-2.5.3-1.2.3-2.5.3-3.5V9z" />
+    {/* Right lobe */}
+    <path d="M12 9c1 0 2.5.4 3.5 1.2 1.4 1.1 2 2.8 2 4.3 0 1.6-1 2.5-2.2 2.5-1.5 0-2.6-1-3-2.5-.3-1.2-.3-2.5-.3-3.5V9z" />
+    {/* Isthmus connector */}
+    <path d="M9.5 12.5h5" />
+  </svg>
+)) as unknown as LucideIcon;
 
 import systemEnergy from "@/assets/system-energy.png";
 import systemHeart from "@/assets/system-heart.png";
@@ -30,7 +57,7 @@ const biomarkerCategories = [
   },
   {
     id: "endocrine",
-    icon: Gem as LucideIcon,
+    icon: ThyroidIcon,
     name: "Эндокринная и стрессовая система",
     image: systemEndocrine,
     markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Анти-ТПО", "Анти-ТГ", "TRAb", "Тестостерон", "Эстрадиол", "Эстрон", "Эстриол", "SHBG", "Кортизол", "DHEA-S", "Витамин D", "IGF-1"],
