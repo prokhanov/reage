@@ -1,14 +1,19 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { X, Search } from "lucide-react";
+import { X, Search, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { calculateAge, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, formatNormalRange, getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import {
+  CALCULATED_BIOMARKER_CODES,
+  computeAllDerivedValues,
+  getFormulaDescription,
+} from "@/lib/calculatedBiomarkers";
 
 interface Biomarker {
   id: string;
@@ -164,7 +169,84 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
     });
   };
 
+  // Карта code → biomarker для расчётов
+  const codeToBiomarker = useMemo(() => {
+    const map = new Map<string, Biomarker>();
+    biomarkers.forEach((b) => map.set(b.code, b));
+    return map;
+  }, [biomarkers]);
+
+  // Автопересчёт расчётных биомаркеров при изменении входных значений.
+  // Сериализуем входы, чтобы хук не зацикливался.
+  const inputsSignature = useMemo(() => {
+    const parts: string[] = [];
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (!bm || CALCULATED_BIOMARKER_CODES.has(bm.code)) continue;
+      parts.push(`${bm.code}:${v.value}`);
+    }
+    return parts.sort().join("|");
+  }, [data.values, biomarkers]);
+
+  useEffect(() => {
+    if (biomarkers.length === 0) return;
+
+    // Собираем входы по кодам
+    const inputs: Record<string, number> = {};
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (!bm || CALCULATED_BIOMARKER_CODES.has(bm.code)) continue;
+      const num = parseFloat(v.value);
+      if (isFinite(num)) inputs[bm.code] = num;
+    }
+
+    const derived = computeAllDerivedValues(inputs);
+
+    // Готовим обновлённый список значений
+    let changed = false;
+    const nextValues: BiomarkerValue[] = [];
+
+    // Сохраняем все нерасчётные значения как есть
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (!bm) {
+        nextValues.push(v);
+        continue;
+      }
+      if (CALCULATED_BIOMARKER_CODES.has(bm.code)) {
+        // Заменим ниже расчётным значением (или удалим, если расчёт невозможен)
+        continue;
+      }
+      nextValues.push(v);
+    }
+
+    // Добавляем расчётные значения
+    derived.forEach((value, code) => {
+      const bm = codeToBiomarker.get(code);
+      if (!bm) return;
+      nextValues.push({ biomarkerId: bm.id, value: String(value) });
+    });
+
+    // Проверяем, изменилось ли хоть что-то по расчётным
+    const oldDerived = new Map<string, string>();
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (bm && CALCULATED_BIOMARKER_CODES.has(bm.code)) {
+        oldDerived.set(bm.code, v.value);
+      }
+    }
+    if (oldDerived.size !== derived.size) changed = true;
+    if (!changed) {
+      derived.forEach((value, code) => {
+        if (oldDerived.get(code) !== String(value)) changed = true;
+      });
+    }
+
+    if (changed) onChange({ values: nextValues });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputsSignature, biomarkers]);
   const addedCount = data.values.length;
+
 
   return (
     <div className="space-y-4 py-4">
@@ -200,6 +282,8 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                     const currentValue = getValue(biomarker.id);
                     const ranges = getRangesDisplay(biomarker);
                     const status = currentValue ? getValueStatus(biomarker, currentValue.value) : null;
+                    const isCalculated = CALCULATED_BIOMARKER_CODES.has(biomarker.code);
+                    const formulaHint = isCalculated ? getFormulaDescription(biomarker.code) : null;
                     return (
                       <div
                         key={biomarker.id}
@@ -207,17 +291,23 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                       >
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <Label className="text-sm font-medium">
                                 {biomarker.name}
                               </Label>
+                              {isCalculated && (
+                                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                  <Calculator className="h-3 w-3" />
+                                  Расчётный
+                                </span>
+                              )}
                               {status && (
                                 <span className={`text-xs px-1.5 py-0.5 rounded ${status.bgClass} ${status.colorClass}`}>
                                   {status.emoji} {status.label}
                                 </span>
                               )}
                             </div>
-                            {currentValue && (
+                            {currentValue && !isCalculated && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -241,12 +331,19 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                             )}
                             {!ranges && ' • Норма: не указана'}
                           </p>
+                          {formulaHint && (
+                            <p className="text-[11px] text-muted-foreground italic">
+                              Формула: {formulaHint}
+                            </p>
+                          )}
                           <div className="flex gap-2">
                             <Input
                               type="number"
                               step="0.01"
-                              placeholder="Значение"
+                              placeholder={isCalculated ? "Будет рассчитано автоматически" : "Значение"}
                               value={currentValue?.value || ""}
+                              readOnly={isCalculated}
+                              disabled={isCalculated}
                               onChange={(e) =>
                                 updateValue(
                                   biomarker.id,
@@ -254,12 +351,14 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                                   currentValue?.unitOverride
                                 )
                               }
-                              className="flex-1"
+                              className={`flex-1 ${isCalculated ? 'bg-muted/50 cursor-not-allowed' : ''}`}
                             />
                             <Input
                               type="text"
                               placeholder={biomarker.unit}
                               value={currentValue?.unitOverride || ""}
+                              readOnly={isCalculated}
+                              disabled={isCalculated}
                               onChange={(e) =>
                                 updateValue(
                                   biomarker.id,
@@ -267,7 +366,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                                   e.target.value
                                 )
                               }
-                              className="w-24"
+                              className={`w-24 ${isCalculated ? 'bg-muted/50 cursor-not-allowed' : ''}`}
                             />
                           </div>
                           {currentValue?.value && !isNaN(parseFloat(currentValue.value)) && (
