@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Heart, Shield, Dna, RefreshCw, Zap, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Shield, Gem, RefreshCw, Zap, type LucideIcon } from "lucide-react";
 
 import systemEnergy from "@/assets/system-energy.png";
 import systemHeart from "@/assets/system-heart.png";
@@ -30,7 +30,7 @@ const biomarkerCategories = [
   },
   {
     id: "endocrine",
-    icon: Dna as LucideIcon,
+    icon: Gem as LucideIcon,
     name: "Эндокринная и стрессовая система",
     image: systemEndocrine,
     markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Анти-ТПО", "Анти-ТГ", "TRAb", "Тестостерон", "Эстрадиол", "Эстрон", "Эстриол", "SHBG", "Кортизол", "DHEA-S", "Витамин D", "IGF-1"],
