@@ -245,6 +245,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
     if (changed) onChange({ values: nextValues });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputsSignature, biomarkers]);
+  const addedCount = data.values.length;
 
 
   return (
