@@ -4,7 +4,7 @@ const bullets = [
   {
     icon: <CalendarCheck className="w-5 h-5 text-primary" />,
     title: "Чекап 4 раза\n в год",
-    subtitle: "Берём анализы у вас дома и отслеживаем динамику изменений ваших показателей ",
+    subtitle: "Берём анализы у вас дома и отслеживаем изменение ваших показателей в динамике",
   },
   {
     icon: <Activity className="w-5 h-5 text-primary" />,
@@ -13,7 +13,7 @@ const bullets = [
   },
   {
     icon: <FileText className="w-5 h-5 text-primary" />,
-    title: "Понятный\nотчет",
+    title: "Понятная\nрасшифровка",
     subtitle: "Объясняем все показатели и взаимосвязи – что происходит с организмом и почему",
   },
   {
