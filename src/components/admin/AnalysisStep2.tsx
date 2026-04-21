@@ -169,7 +169,83 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
     });
   };
 
-  const addedCount = data.values.length;
+  // Карта code → biomarker для расчётов
+  const codeToBiomarker = useMemo(() => {
+    const map = new Map<string, Biomarker>();
+    biomarkers.forEach((b) => map.set(b.code, b));
+    return map;
+  }, [biomarkers]);
+
+  // Автопересчёт расчётных биомаркеров при изменении входных значений.
+  // Сериализуем входы, чтобы хук не зацикливался.
+  const inputsSignature = useMemo(() => {
+    const parts: string[] = [];
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (!bm || CALCULATED_BIOMARKER_CODES.has(bm.code)) continue;
+      parts.push(`${bm.code}:${v.value}`);
+    }
+    return parts.sort().join("|");
+  }, [data.values, biomarkers]);
+
+  useEffect(() => {
+    if (biomarkers.length === 0) return;
+
+    // Собираем входы по кодам
+    const inputs: Record<string, number> = {};
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (!bm || CALCULATED_BIOMARKER_CODES.has(bm.code)) continue;
+      const num = parseFloat(v.value);
+      if (isFinite(num)) inputs[bm.code] = num;
+    }
+
+    const derived = computeAllDerivedValues(inputs);
+
+    // Готовим обновлённый список значений
+    let changed = false;
+    const nextValues: BiomarkerValue[] = [];
+
+    // Сохраняем все нерасчётные значения как есть
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (!bm) {
+        nextValues.push(v);
+        continue;
+      }
+      if (CALCULATED_BIOMARKER_CODES.has(bm.code)) {
+        // Заменим ниже расчётным значением (или удалим, если расчёт невозможен)
+        continue;
+      }
+      nextValues.push(v);
+    }
+
+    // Добавляем расчётные значения
+    derived.forEach((value, code) => {
+      const bm = codeToBiomarker.get(code);
+      if (!bm) return;
+      nextValues.push({ biomarkerId: bm.id, value: String(value) });
+    });
+
+    // Проверяем, изменилось ли хоть что-то по расчётным
+    const oldDerived = new Map<string, string>();
+    for (const v of data.values) {
+      const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+      if (bm && CALCULATED_BIOMARKER_CODES.has(bm.code)) {
+        oldDerived.set(bm.code, v.value);
+      }
+    }
+    if (oldDerived.size !== derived.size) changed = true;
+    if (!changed) {
+      derived.forEach((value, code) => {
+        if (oldDerived.get(code) !== String(value)) changed = true;
+      });
+    }
+
+    if (changed) onChange({ values: nextValues });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputsSignature, biomarkers]);
+
 
   return (
     <div className="space-y-4 py-4">
