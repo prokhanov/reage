@@ -13,6 +13,10 @@ import {
   getOptimalRangeForAge,
   getCriticalRangeForAge,
 } from "@/lib/biomarkerNorms";
+import {
+  CALCULATED_BIOMARKER_CODES,
+  computeAllDerivedValues,
+} from "@/lib/calculatedBiomarkers";
 
 interface AnalysisStep1Props {
   data: {
@@ -171,6 +175,9 @@ export function AnalysisStep1({ data, onChange, onMockGenerate }: AnalysisStep1P
       const values: Array<{ biomarkerId: string; value: string; unitOverride?: string }> = [];
 
       for (const bm of biomarkers) {
+        // Расчётные биомаркеры пропускаем — заполним их формулами после генерации.
+        if (CALCULATED_BIOMARKER_CODES.has(bm.code)) continue;
+
         const normal = getNormalRangeForAge(bm, age, gender);
         const optimal = getOptimalRangeForAge(bm, age, gender);
         const critical = getCriticalRangeForAge(bm, age, gender);
@@ -187,6 +194,24 @@ export function AnalysisStep1({ data, onChange, onMockGenerate }: AnalysisStep1P
           });
         }
       }
+
+      // Считаем производные показатели на основе сгенерированных входных значений.
+      const codeToBiomarker = new Map(biomarkers.map((b) => [b.code, b]));
+      const inputsByCode: Record<string, number> = {};
+      for (const v of values) {
+        const bm = biomarkers.find((b) => b.id === v.biomarkerId);
+        if (bm) inputsByCode[bm.code] = parseFloat(v.value);
+      }
+
+      const derived = computeAllDerivedValues(inputsByCode);
+      derived.forEach((value, code) => {
+        const bm = codeToBiomarker.get(code);
+        if (!bm) return;
+        values.push({
+          biomarkerId: bm.id,
+          value: String(value),
+        });
+      });
 
       onMockGenerate(values);
       toast({
