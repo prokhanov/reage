@@ -1,14 +1,19 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { X, Search } from "lucide-react";
+import { X, Search, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { calculateAge, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, formatNormalRange, getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import {
+  CALCULATED_BIOMARKER_CODES,
+  computeAllDerivedValues,
+  getFormulaDescription,
+} from "@/lib/calculatedBiomarkers";
 
 interface Biomarker {
   id: string;
