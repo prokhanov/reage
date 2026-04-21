@@ -83,10 +83,9 @@ export function HeroSection() {
 
           {/* Subheading */}
           <p
-            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in"
+            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in whitespace-pre-line"
             style={{ animationDelay: '0.2s' }}>
-            
-            Регулярно берём анализы у вас дома и предоставляем комплексный отчёт по системам организма - с динамикой и рекомендацией врача
+            {"Регулярно берём анализы у вас дома и предоставляем комплексный отчёт\nпо системам организма - с динамикой и рекомендацией врача"}
           </p>
 
           {/* Value bullets */}
