@@ -9,7 +9,7 @@ const bullets = [
   {
     icon: <Activity className="w-5 h-5 text-primary" />,
     title: "Глубокая\nдиагностика",
-    subtitle: "Анализ крови на 85+ показателей для комплексной проверки здоровья",
+    subtitle: "Анализ крови на\n 85+ показателей для комплексной проверки здоровья",
   },
   {
     icon: <FileText className="w-5 h-5 text-primary" />,
@@ -36,7 +36,7 @@ export function HeroBullets() {
           </div>
           <div className="space-y-1">
             <div className="text-[15px] md:text-base font-semibold text-foreground leading-snug whitespace-pre-line">{b.title}</div>
-            <div className="text-[13px] md:text-sm text-muted-foreground leading-snug">{b.subtitle}</div>
+            <div className="text-[13px] md:text-sm text-muted-foreground leading-snug whitespace-pre-line">{b.subtitle}</div>
           </div>
         </div>
       ))}
