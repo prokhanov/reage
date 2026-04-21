@@ -83,7 +83,7 @@ export function HeroSection() {
 
           {/* Subheading */}
           <p
-            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in whitespace-pre-line"
+            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed animate-fade-in whitespace-pre-line px-0 mx-0"
             style={{ animationDelay: '0.2s' }}>
             {"Регулярно берём анализы у вас дома\nи предоставляем комплексный отчёт\nпо системам организма - с динамикой и рекомендацией врача"}
           </p>
