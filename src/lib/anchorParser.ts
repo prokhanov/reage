@@ -193,7 +193,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       const lineStart = match.index!;
       const lineEnd = lineStart + match[0].length;
 
-      // Find end of this biomarker section: next standalone biomarker name or ## header
+      // Find end of this biomarker section: next standalone biomarker name,
+      // already-inserted biomarker anchor, or top-level markdown header.
       let sectionEnd = result.length;
       for (const [otherName] of nameEntries) {
         if (otherName === name) continue;
@@ -208,7 +209,14 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
           sectionEnd = nextMatch.index!;
         }
       }
-      // Also check for next ## header
+
+      const nextAnchorRegex = /<!--\s*anchor:biomarker\s+[^\s>]+\s*-->/g;
+      nextAnchorRegex.lastIndex = lineEnd;
+      const nextAnchor = nextAnchorRegex.exec(result);
+      if (nextAnchor && nextAnchor.index! < sectionEnd) {
+        sectionEnd = nextAnchor.index!;
+      }
+
       const nextHeaderRegex = /^#{1,2}\s+/gm;
       nextHeaderRegex.lastIndex = lineEnd;
       const nh = nextHeaderRegex.exec(result);
