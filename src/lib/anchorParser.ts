@@ -67,8 +67,8 @@ export function parseAnchors(
 
   // If no explicit anchors, auto-inject them from ## Name (CODE) headers
   let processedText = normalized;
-  if (!text.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
-    processedText = autoInjectAnchors(text, biomarkerCodes, nameToCode);
+  if (!normalized.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
+    processedText = autoInjectAnchors(normalized, biomarkerCodes, nameToCode);
   }
 
   // If still no anchors after injection, return as single text block
