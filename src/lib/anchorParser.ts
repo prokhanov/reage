@@ -160,6 +160,15 @@ export function parseAnchors(
 
 // ═══ Auto-inject anchors from ## Name (CODE) headers + section headers ═══
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function hasBiomarkerAnchor(text: string, code: string): boolean {
+  const anchorRegex = new RegExp(`<!--\\s*anchor:biomarker\\s+${escapeRegex(code)}\\s*-->`, 'i');
+  return anchorRegex.test(text);
+}
+
 function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
 
@@ -171,8 +180,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       .sort((a, b) => b[0].length - a[0].length); // longer names first
 
     for (const [name, code] of nameEntries) {
-      if (result.includes(`<!-- anchor:biomarker ${code}`)) continue;
-      const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (hasBiomarkerAnchor(result, code)) continue;
+      const escapedName = escapeRegex(name);
       // Match standalone line: exactly the name, optionally with (CODE) suffix
       const plainLineRegex = new RegExp(
         `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(${escapedName}(?:\\s*\\([^)]+\\))?)\\s*$`,
@@ -188,7 +197,7 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       let sectionEnd = result.length;
       for (const [otherName] of nameEntries) {
         if (otherName === name) continue;
-        const escapedOther = otherName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedOther = escapeRegex(otherName);
         const nextRegex = new RegExp(
           `^(?:#{2,4}\\s+|\\s*)(?:${escapedOther})(?:\\s*\\([^)]+\\))?\\s*$`,
           'gm'
@@ -218,8 +227,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
   //   (b) Bold list items:   - **Название (CODE)**  /  * **Название (CODE)** — ...
   if (biomarkerCodes.length > 0) {
     const codePattern = biomarkerCodes
-      .filter(c => !result.includes(`<!-- anchor:biomarker ${c}`))
-      .map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+      .filter(c => !hasBiomarkerAnchor(result, c))
+      .map(c => escapeRegex(c)).join('|');
 
     if (codePattern) {
       const markerRegex = new RegExp(
