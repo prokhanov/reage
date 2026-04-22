@@ -81,8 +81,7 @@ export function Footer() {
               ReAge
             </h3>
             <p className="text-muted-foreground mb-6 max-w-sm whitespace-pre-line">
-              Сервис по управлению здоровьем.
-              Узнайте свой биологический возраст и получите персональные рекомендации.
+              {"Сервис по управлению здоровьем.\nУзнайте свой биологический возраст и получите персональные рекомендации."}
             </p>
             <div className="flex gap-4">
               <ContactButton icon={<Mail className="w-4 h-4" />} label="Email" />
