@@ -115,10 +115,22 @@ export function parseAnchors(
       if (content) blocks.push({ type: 'summary', content });
       lastIndex = endPos.end;
     } else if (tag === 'biomarker' && data) {
-      const endPos = findEndTagPos(processedText, 'biomarker_end', tagEnd);
-      const content = processedText.slice(tagEnd, endPos.start).trim();
+      // Find explicit `biomarker_end`, but also stop at the NEXT biomarker open
+      // tag — many AI outputs forget the closing tag and would otherwise merge
+      // multiple biomarkers into one card.
+      const explicitEnd = findEndTagPos(processedText, 'biomarker_end', tagEnd);
+      const nextOpenRegex = /<!--\s*anchor:biomarker\s+[^\s>]+\s*-->/g;
+      nextOpenRegex.lastIndex = tagEnd;
+      const nextOpen = nextOpenRegex.exec(processedText);
+      let endStart = explicitEnd.start;
+      let endAfter = explicitEnd.end;
+      if (nextOpen && nextOpen.index < explicitEnd.start) {
+        endStart = nextOpen.index;
+        endAfter = nextOpen.index; // do NOT consume the next open tag
+      }
+      const content = processedText.slice(tagEnd, endStart).trim();
       blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data) });
-      lastIndex = endPos.end;
+      lastIndex = endAfter;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');
       if (SECTION_NAMES.has(baseName)) {
