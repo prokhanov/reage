@@ -246,24 +246,21 @@ export function BiomarkersDeepDiveSection() {
           <h3 className="text-lg font-bold text-foreground mb-4 text-center">
             Варианты иконок для эндокринной системы
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-9 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { Icon: ThyroidIcon, label: "Текущая (щитовидка)" },
-              { Icon: Activity, label: "Activity" },
-              { Icon: Droplets, label: "Droplets" },
-              { Icon: Atom, label: "Atom" },
-              { Icon: Sparkles, label: "Sparkles" },
-              { Icon: FlaskConical, label: "FlaskConical" },
-              { Icon: Dna, label: "Dna" },
-              { Icon: CircleDot, label: "CircleDot" },
-              { Icon: Waves, label: "Waves" },
+              { Icon: ThyroidIcon, label: "V1 — Щитовидка" },
+              { Icon: EndocrineBodyIcon, label: "V2 — Силуэт с железами" },
+              { Icon: HormoneMoleculeIcon, label: "V3 — Молекула гормона" },
+              { Icon: HormoneCycleIcon, label: "V4 — Капля + цикл" },
+              { Icon: HormoneBalanceIcon, label: "V5 — Баланс сфер" },
+              { Icon: AdrenalWaveIcon, label: "V6 — Надпочечник + волна" },
             ].map(({ Icon, label }) => (
               <div
                 key={label}
-                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/40 border border-border/30"
+                className="flex flex-col items-center gap-3 p-5 rounded-xl bg-muted/40 border border-border/30"
               >
-                <Icon className="w-7 h-7 text-primary" strokeWidth={1.75} />
-                <span className="text-[11px] text-muted-foreground text-center leading-tight">
+                <Icon className="w-12 h-12 text-primary" strokeWidth={1.5} />
+                <span className="text-xs text-muted-foreground text-center leading-tight">
                   {label}
                 </span>
               </div>
