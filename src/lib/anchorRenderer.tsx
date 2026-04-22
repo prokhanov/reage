@@ -45,7 +45,9 @@ export function renderInterleavedWeb(
   gender: 'male' | 'female',
 ): React.ReactNode {
   const codes = biomarkers.map(b => b.code);
-  const blocks = parseAnchors(reportText, codes);
+  const nameToCode: Record<string, string> = {};
+  biomarkers.forEach(b => { nameToCode[b.name] = b.code; });
+  const blocks = parseAnchors(reportText, codes, nameToCode);
 
   return (
     <div className="space-y-12">
@@ -139,7 +141,9 @@ export function buildInterleavedPdf(
   gender: 'male' | 'female',
 ): any[] {
   const codes = biomarkers.map(b => b.code);
-  const blocks = parseAnchors(reportText, codes);
+  const nameToCode: Record<string, string> = {};
+  biomarkers.forEach(b => { nameToCode[b.name] = b.code; });
+  const blocks = parseAnchors(reportText, codes, nameToCode);
   const pdfContent: any[] = [];
 
   for (const block of blocks) {

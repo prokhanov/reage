@@ -36,14 +36,19 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
 /**
  * Parse report text into AnchorBlock[].
  * If no anchors found, falls back to legacy regex-based splitting.
+ * @param nameToCode — optional map of biomarker name → code for plain-text matching
  */
-export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBlock[] {
+export function parseAnchors(
+  text: string,
+  biomarkerCodes: string[],
+  nameToCode?: Record<string, string>,
+): AnchorBlock[] {
   if (!text) return [];
 
   // If no explicit anchors, auto-inject them from ## Name (CODE) headers
   let processedText = text;
   if (!text.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
-    processedText = autoInjectAnchors(text, biomarkerCodes);
+    processedText = autoInjectAnchors(text, biomarkerCodes, nameToCode);
   }
 
   // If still no anchors after injection, return as single text block
@@ -123,92 +128,129 @@ export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBloc
 
 // ═══ Auto-inject anchors from ## Name (CODE) headers + section headers ═══
 
-function autoInjectAnchors(text: string, biomarkerCodes: string[]): string {
+function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
+
+  // Pass 0: Plain-text biomarker lines — "Название" or "Название (КОД)" on a standalone line
+  // Matches lines that are just the biomarker name (possibly with code in parens),
+  // not preceded by ## or **
+  if (nameToCode && Object.keys(nameToCode).length > 0) {
+    const nameEntries = Object.entries(nameToCode)
+      .sort((a, b) => b[0].length - a[0].length); // longer names first
+
+    for (const [name, code] of nameEntries) {
+      if (result.includes(`<!-- anchor:biomarker ${code}`)) continue;
+      const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match standalone line: exactly the name, optionally with (CODE) suffix
+      const plainLineRegex = new RegExp(
+        `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(${escapedName}(?:\\s*\\([^)]+\\))?)\\s*$`,
+        'gm'
+      );
+      const match = plainLineRegex.exec(result);
+      if (!match) continue;
+
+      const lineStart = match.index!;
+      const lineEnd = lineStart + match[0].length;
+
+      // Find end of this biomarker section: next standalone biomarker name or ## header
+      let sectionEnd = result.length;
+      for (const [otherName] of nameEntries) {
+        if (otherName === name) continue;
+        const escapedOther = otherName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const nextRegex = new RegExp(
+          `^(?:#{2,4}\\s+|\\s*)(?:${escapedOther})(?:\\s*\\([^)]+\\))?\\s*$`,
+          'gm'
+        );
+        nextRegex.lastIndex = lineEnd;
+        const nextMatch = nextRegex.exec(result);
+        if (nextMatch && nextMatch.index! < sectionEnd) {
+          sectionEnd = nextMatch.index!;
+        }
+      }
+      // Also check for next ## header
+      const nextHeaderRegex = /^#{1,2}\s+/gm;
+      nextHeaderRegex.lastIndex = lineEnd;
+      const nh = nextHeaderRegex.exec(result);
+      if (nh && nh.index! < sectionEnd) {
+        sectionEnd = nh.index!;
+      }
+
+      // Inject anchors (process in one shot since we do one at a time)
+      result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
+      result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineEnd);
+    }
+  }
 
   // Pass 1: Biomarker markers — supports BOTH formats:
   //   (a) Markdown headers:  ## Название (CODE)  /  ### Название (CODE)
   //   (b) Bold list items:   - **Название (CODE)**  /  * **Название (CODE)** — ...
-  // The block extends until the next biomarker marker OR the next ## header,
-  // whichever comes first.
   if (biomarkerCodes.length > 0) {
-    const codePattern = biomarkerCodes.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    const codePattern = biomarkerCodes
+      .filter(c => !result.includes(`<!-- anchor:biomarker ${c}`))
+      .map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
 
-    // Combined regex: capture marker style + code
-    // Group 1: header hashes (or empty if list-style)
-    // Group 2: code (from header)
-    // Group 3: code (from list item)
-    const markerRegex = new RegExp(
-      `^(?:(#{2,4})\\s+[^\\n]*?\\((${codePattern})\\)\\s*$|[ \\t]*[-*•]\\s+\\*\\*[^*\\n]*?\\((${codePattern})\\)\\*\\*[^\\n]*$)`,
-      'gm'
-    );
+    if (codePattern) {
+      const markerRegex = new RegExp(
+        `^(?:(#{2,4})\\s+[^\\n]*?\\((${codePattern})\\)\\s*$|[ \\t]*[-*•]\\s+\\*\\*[^*\\n]*?\\((${codePattern})\\)\\*\\*[^\\n]*$)`,
+        'gm'
+      );
 
-    const matches = [...result.matchAll(markerRegex)];
-    if (matches.length > 0) {
-      // Build list of {start, end, code, isHeader, level} sorted by position
-      const markers = matches.map(m => {
-        const isHeader = !!m[1];
-        return {
-          start: m.index!,
-          end: m.index! + m[0].length,
-          code: m[2] || m[3],
-          isHeader,
-          level: isHeader ? m[1].length : 99,
-        };
-      });
+      const matches = [...result.matchAll(markerRegex)];
+      if (matches.length > 0) {
+        const markers = matches.map(m => {
+          const isHeader = !!m[1];
+          return {
+            start: m.index!,
+            end: m.index! + m[0].length,
+            code: m[2] || m[3],
+            isHeader,
+            level: isHeader ? m[1].length : 99,
+          };
+        });
 
-      // Process in reverse to preserve indices
-      for (let i = markers.length - 1; i >= 0; i--) {
-        const cur = markers[i];
-        const next = markers[i + 1];
+        for (let i = markers.length - 1; i >= 0; i--) {
+          const cur = markers[i];
+          const next = markers[i + 1];
 
-        // End of biomarker block: next biomarker marker, or next ## header at <= current level
-        let sectionEnd: number;
-        if (next) {
-          sectionEnd = next.start;
-        } else {
-          // Look for next top-level header (## or #) after this block
-          const nextHeaderRegex = /^#{1,2}\s+/gm;
-          nextHeaderRegex.lastIndex = cur.end;
-          const nh = nextHeaderRegex.exec(result);
-          sectionEnd = nh ? nh.index! : result.length;
-        }
+          let sectionEnd: number;
+          if (next) {
+            sectionEnd = next.start;
+          } else {
+            const nextHeaderRegex = /^#{1,2}\s+/gm;
+            nextHeaderRegex.lastIndex = cur.end;
+            const nh = nextHeaderRegex.exec(result);
+            sectionEnd = nh ? nh.index! : result.length;
+          }
 
-        result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
-        // Replace the marker line with the anchor; for list items we keep the line
-        // (so the AI's first bullet stays as content), for headers we drop it.
-        if (cur.isHeader) {
-          result = result.slice(0, cur.start) + `<!-- anchor:biomarker ${cur.code} -->\n` + result.slice(cur.end);
-        } else {
-          result = result.slice(0, cur.start) + `<!-- anchor:biomarker ${cur.code} -->\n` + result.slice(cur.start);
+          result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
+          if (cur.isHeader) {
+            result = result.slice(0, cur.start) + `<!-- anchor:biomarker ${cur.code} -->\n` + result.slice(cur.end);
+          } else {
+            result = result.slice(0, cur.start) + `<!-- anchor:biomarker ${cur.code} -->\n` + result.slice(cur.start);
+          }
         }
       }
     }
   }
 
   // Pass 2: Section headers — ## 🧬 Заголовок (non-biomarker headers with emoji/keywords)
-  // Only if we haven't already wrapped them as biomarkers
   const sectionHeaderRegex = /^(#{2,3})\s+(.+?)\s*$/gm;
   const sectionMatches = [...result.matchAll(sectionHeaderRegex)];
   const usedSections = new Set<string>();
 
-  // Process in reverse to preserve indices
   for (let i = sectionMatches.length - 1; i >= 0; i--) {
     const match = sectionMatches[i];
     const headerStart = match.index!;
     const headerEnd = headerStart + match[0].length;
     const headerText = match[2];
 
-    // Skip if already inside an anchor block
     const textBefore = result.slice(Math.max(0, headerStart - 100), headerStart);
     if (textBefore.includes('<!-- anchor:biomarker') || textBefore.includes('<!-- anchor:')) {
-      // Check if this header is between a start and end anchor
       const lastAnchorStart = result.lastIndexOf('<!-- anchor:', headerStart);
       const lastAnchorEnd = result.lastIndexOf('_end -->', headerStart);
-      if (lastAnchorStart > lastAnchorEnd) continue; // inside an open anchor block
+      if (lastAnchorStart > lastAnchorEnd) continue;
     }
 
-    // Find matching section name
     let sectionName: string | null = null;
     for (const { pattern, section } of SECTION_HEADER_MAP) {
       if (pattern.test(headerText) && !usedSections.has(section)) {
@@ -220,16 +262,13 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[]): string {
     if (!sectionName) continue;
     usedSections.add(sectionName);
 
-    // Find where section ends (next header of same or higher level, or end)
     const level = match[1].length;
     const nextHeaderRegex = new RegExp(`^#{1,${level}}\\s+`, 'gm');
     nextHeaderRegex.lastIndex = headerEnd;
     const nextMatch = nextHeaderRegex.exec(result);
     const sectionEnd = nextMatch ? nextMatch.index! : result.length;
 
-    // Insert end anchor before next section
     result = result.slice(0, sectionEnd) + `\n<!-- anchor:${sectionName}_end -->\n` + result.slice(sectionEnd);
-    // Insert start anchor before header (keep the header inside the section)
     result = result.slice(0, headerStart) + `<!-- anchor:${sectionName}_start -->\n` + result.slice(headerStart);
   }
 
