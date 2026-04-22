@@ -98,7 +98,9 @@ export function renderInterleavedWeb(
             );
 
           case 'biomarker': {
-            const bm = biomarkers.find(b => b.code === block.code);
+            const bm = findBiomarkerByCode(biomarkers, block.code);
+            // Skip empty fallback blocks: no metadata + no description = nothing useful to show
+            if (!bm && !block.content) return null;
             return (
               <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
@@ -206,7 +208,8 @@ export function buildInterleavedPdf(
       }
 
       case 'biomarker': {
-        const bm = biomarkers.find(b => b.code === block.code);
+        const bm = findBiomarkerByCode(biomarkers, block.code);
+        if (!bm && !block.content) break;
         const cardStack: any[] = [];
 
         if (bm) {
