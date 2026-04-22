@@ -601,20 +601,45 @@ ${globalBiomarkersInstructions}
         .replace(/<!--\s*anchor:([^\n>]*?)-->/gi, (_m, body) => `<!-- anchor:${String(body).replace(/\u00A0/g, ' ').trim()} -->`);
     }
 
+    function normalizeBiomarkerCode(code: string): string {
+      if (!code) return '';
+      return String(code)
+        .toLowerCase()
+        .trim()
+        .replace(/α/g, 'a')
+        .replace(/β/g, 'b')
+        .replace(/γ/g, 'g')
+        .replace(/δ/g, 'd')
+        .replace(/μ/g, 'u')
+        .replace(/[\s\-_+()]/g, '');
+    }
+
     function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
       if (!report || biomarkers.length === 0) return report;
 
       const normalized = normalizeAnchorTypography(report);
-      const anchoredCodes = new Set<string>();
-      const anchorRegex = /<!--\s*anchor:biomarker\s+([^\s>]+)\s*-->/g;
+      const anchoredNormalizedCodes = new Set<string>();
+      const anchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
       for (const match of normalized.matchAll(anchorRegex)) {
-        if (match[1]) anchoredCodes.add(match[1].trim().toUpperCase());
+        if (match[1]) anchoredNormalizedCodes.add(normalizeBiomarkerCode(match[1]));
       }
 
+      // Strip anchors from text so we only search the prose for biomarker mentions
+      const textOnly = normalized.replace(/<!--[\s\S]*?-->/g, ' ');
+
       const missingCodes = biomarkers
-        .map((bm: any) => bm?.biomarkers?.code)
-        .filter((code: string | null | undefined): code is string => Boolean(code))
-        .filter((code: string) => !anchoredCodes.has(code.toUpperCase()));
+        .map((bm: any) => ({ code: bm?.biomarkers?.code as string | undefined, name: bm?.biomarkers?.name as string | undefined }))
+        .filter((entry): entry is { code: string; name: string | undefined } => Boolean(entry.code))
+        .filter((entry) => {
+          // Already has an anchor (exact or normalized) → skip
+          if (anchoredNormalizedCodes.has(normalizeBiomarkerCode(entry.code))) return false;
+          // Mentioned by code or name in prose → frontend auto-inject will handle it; skip fallback
+          const codeMentioned = entry.code && textOnly.toLowerCase().includes(entry.code.toLowerCase());
+          const nameMentioned = entry.name && textOnly.toLowerCase().includes(entry.name.toLowerCase());
+          if (codeMentioned || nameMentioned) return false;
+          return true;
+        })
+        .map((entry) => entry.code);
 
       if (missingCodes.length === 0) return normalized;
 
