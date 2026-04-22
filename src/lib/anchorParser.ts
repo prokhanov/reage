@@ -38,6 +38,23 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
  * If no anchors found, falls back to legacy regex-based splitting.
  * @param nameToCode — optional map of biomarker name → code for plain-text matching
  */
+/**
+ * Normalize typographic artifacts that LLMs frequently introduce into HTML comments:
+ * - en-dash (–) and em-dash (—) get auto-substituted for `--` by some models
+ * - non-breaking spaces inside the comment payload
+ * Restores `<!-- ... -->` form so the anchor regex can match.
+ */
+export function normalizeAnchorTypography(text: string): string {
+  if (!text) return text;
+  return text
+    // Opening: `<!–`, `<!—`, `<!--`, with optional spaces
+    .replace(/<\s*!\s*[-–—]{1,3}\s*(anchor:)/gi, '<!-- $1')
+    // Closing: `–>`, `—>`, `-->`, even when preceded by stray spaces
+    .replace(/(anchor:[^\n<>]*?)\s*[-–—]{1,3}\s*>/gi, '$1 -->')
+    // Stray non-breaking spaces inside the payload
+    .replace(/<!--\s*anchor:([^\n>]*?)-->/gi, (_m, body) => `<!-- anchor:${body.replace(/\u00A0/g, ' ').trim()} -->`);
+}
+
 export function parseAnchors(
   text: string,
   biomarkerCodes: string[],
@@ -45,8 +62,11 @@ export function parseAnchors(
 ): AnchorBlock[] {
   if (!text) return [];
 
+  // Normalize typographic dashes the AI may have inserted (–, —) back to `--`
+  const normalized = normalizeAnchorTypography(text);
+
   // If no explicit anchors, auto-inject them from ## Name (CODE) headers
-  let processedText = text;
+  let processedText = normalized;
   if (!text.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
     processedText = autoInjectAnchors(text, biomarkerCodes, nameToCode);
   }
