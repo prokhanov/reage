@@ -259,7 +259,16 @@ export function BiomarkersDeepDiveSection() {
                   <div className="absolute bottom-6 left-6 lg:bottom-8 lg:left-8">
                     <div className="flex items-baseline gap-1.5 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/40 shadow-lg">
                       <span className="text-3xl font-bold text-foreground">{cat.markers.length}</span>
-                      <span className="text-sm text-muted-foreground">маркера</span>
+                      <span className="text-sm text-muted-foreground">
+                        {(() => {
+                          const n = cat.markers.length;
+                          const mod10 = n % 10;
+                          const mod100 = n % 100;
+                          if (mod10 === 1 && mod100 !== 11) return "маркер";
+                          if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "маркера";
+                          return "маркеров";
+                        })()}
+                      </span>
                     </div>
                   </div>
                   <div className="absolute top-6 right-6 lg:top-8 lg:right-8">
