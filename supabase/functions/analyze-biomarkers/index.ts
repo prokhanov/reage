@@ -589,6 +589,37 @@ ${globalBiomarkersInstructions}
       return contradictions;
     }
 
+    function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
+      if (!report || biomarkers.length === 0) return report;
+
+      const anchoredCodes = new Set<string>();
+      const anchorRegex = /<!--\s*anchor:biomarker\s+([^\s>]+)\s*-->/g;
+      for (const match of report.matchAll(anchorRegex)) {
+        if (match[1]) anchoredCodes.add(match[1].trim().toUpperCase());
+      }
+
+      const missingCodes = biomarkers
+        .map((bm: any) => bm?.biomarkers?.code)
+        .filter((code: string | null | undefined): code is string => Boolean(code))
+        .filter((code: string) => !anchoredCodes.has(code.toUpperCase()));
+
+      if (missingCodes.length === 0) return report;
+
+      const fallbackAnchorBlock = [
+        '',
+        '<!-- anchor:spacer -->',
+        '## Ключевые показатели системы',
+        ...missingCodes.flatMap((code: string) => [
+          `<!-- anchor:biomarker ${code} -->`,
+          '<!-- anchor:biomarker_end -->',
+          '',
+        ]),
+      ].join('\n');
+
+      console.warn(`Adding fallback biomarker anchors: ${missingCodes.join(', ')}`);
+      return `${report.trim()}\n${fallbackAnchorBlock}`.trim();
+    }
+
     // Параллельные запросы для каждой категории
     const categoryReports: Record<string, string> = {};
     const categoryStatuses: Record<string, any> = {};
@@ -866,6 +897,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             try { await retryResponse.text(); } catch {}
           }
         }
+
+        categoryReport = ensureBiomarkerAnchorCoverage(categoryReport, biomarkers as any[]);
 
         // Fallback при полной неудаче
         if (!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) {
