@@ -38,6 +38,23 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
  * If no anchors found, falls back to legacy regex-based splitting.
  * @param nameToCode — optional map of biomarker name → code for plain-text matching
  */
+/**
+ * Normalize typographic artifacts that LLMs frequently introduce into HTML comments:
+ * - en-dash (–) and em-dash (—) get auto-substituted for `--` by some models
+ * - non-breaking spaces inside the comment payload
+ * Restores `<!-- ... -->` form so the anchor regex can match.
+ */
+export function normalizeAnchorTypography(text: string): string {
+  if (!text) return text;
+  return text
+    // Opening: `<!–`, `<!—`, `<!--`, with optional spaces
+    .replace(/<\s*!\s*[-–—]{1,3}\s*(anchor:)/gi, '<!-- $1')
+    // Closing: `–>`, `—>`, `-->`, even when preceded by stray spaces
+    .replace(/(anchor:[^\n<>]*?)\s*[-–—]{1,3}\s*>/gi, '$1 -->')
+    // Stray non-breaking spaces inside the payload
+    .replace(/<!--\s*anchor:([^\n>]*?)-->/gi, (_m, body) => `<!-- anchor:${body.replace(/\u00A0/g, ' ').trim()} -->`);
+}
+
 export function parseAnchors(
   text: string,
   biomarkerCodes: string[],
@@ -45,10 +62,13 @@ export function parseAnchors(
 ): AnchorBlock[] {
   if (!text) return [];
 
+  // Normalize typographic dashes the AI may have inserted (–, —) back to `--`
+  const normalized = normalizeAnchorTypography(text);
+
   // If no explicit anchors, auto-inject them from ## Name (CODE) headers
-  let processedText = text;
-  if (!text.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
-    processedText = autoInjectAnchors(text, biomarkerCodes, nameToCode);
+  let processedText = normalized;
+  if (!normalized.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
+    processedText = autoInjectAnchors(normalized, biomarkerCodes, nameToCode);
   }
 
   // If still no anchors after injection, return as single text block
@@ -95,10 +115,22 @@ export function parseAnchors(
       if (content) blocks.push({ type: 'summary', content });
       lastIndex = endPos.end;
     } else if (tag === 'biomarker' && data) {
-      const endPos = findEndTagPos(processedText, 'biomarker_end', tagEnd);
-      const content = processedText.slice(tagEnd, endPos.start).trim();
+      // Find explicit `biomarker_end`, but also stop at the NEXT biomarker open
+      // tag — many AI outputs forget the closing tag and would otherwise merge
+      // multiple biomarkers into one card.
+      const explicitEnd = findEndTagPos(processedText, 'biomarker_end', tagEnd);
+      const nextOpenRegex = /<!--\s*anchor:biomarker\s+[^\s>]+\s*-->/g;
+      nextOpenRegex.lastIndex = tagEnd;
+      const nextOpen = nextOpenRegex.exec(processedText);
+      let endStart = explicitEnd.start;
+      let endAfter = explicitEnd.end;
+      if (nextOpen && nextOpen.index < explicitEnd.start) {
+        endStart = nextOpen.index;
+        endAfter = nextOpen.index; // do NOT consume the next open tag
+      }
+      const content = processedText.slice(tagEnd, endStart).trim();
       blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data) });
-      lastIndex = endPos.end;
+      lastIndex = endAfter;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');
       if (SECTION_NAMES.has(baseName)) {

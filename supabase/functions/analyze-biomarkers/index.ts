@@ -589,12 +589,25 @@ ${globalBiomarkersInstructions}
       return contradictions;
     }
 
+    // Normalize typographic dashes that LLMs often substitute inside HTML comments
+    // (e.g. `<!– anchor:biomarker LACT –>` instead of `<!-- anchor:biomarker LACT -->`).
+    // Without this normalization the frontend parser cannot recognize anchors and
+    // they leak into the rendered text as plain strings.
+    function normalizeAnchorTypography(text: string): string {
+      if (!text) return text;
+      return text
+        .replace(/<\s*!\s*[-–—]{1,3}\s*(anchor:)/gi, '<!-- $1')
+        .replace(/(anchor:[^\n<>]*?)\s*[-–—]{1,3}\s*>/gi, '$1 -->')
+        .replace(/<!--\s*anchor:([^\n>]*?)-->/gi, (_m, body) => `<!-- anchor:${String(body).replace(/\u00A0/g, ' ').trim()} -->`);
+    }
+
     function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
       if (!report || biomarkers.length === 0) return report;
 
+      const normalized = normalizeAnchorTypography(report);
       const anchoredCodes = new Set<string>();
       const anchorRegex = /<!--\s*anchor:biomarker\s+([^\s>]+)\s*-->/g;
-      for (const match of report.matchAll(anchorRegex)) {
+      for (const match of normalized.matchAll(anchorRegex)) {
         if (match[1]) anchoredCodes.add(match[1].trim().toUpperCase());
       }
 
@@ -603,7 +616,7 @@ ${globalBiomarkersInstructions}
         .filter((code: string | null | undefined): code is string => Boolean(code))
         .filter((code: string) => !anchoredCodes.has(code.toUpperCase()));
 
-      if (missingCodes.length === 0) return report;
+      if (missingCodes.length === 0) return normalized;
 
       const fallbackAnchorBlock = [
         '',
@@ -617,7 +630,7 @@ ${globalBiomarkersInstructions}
       ].join('\n');
 
       console.warn(`Adding fallback biomarker anchors: ${missingCodes.join(', ')}`);
-      return `${report.trim()}\n${fallbackAnchorBlock}`.trim();
+      return `${normalized.trim()}\n${fallbackAnchorBlock}`.trim();
     }
 
     // Параллельные запросы для каждой категории
