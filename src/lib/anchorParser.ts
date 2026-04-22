@@ -193,6 +193,16 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     );
   };
 
+  const buildLeadingBiomarkerParagraphRegex = (name: string, code: string) => {
+    const escapedName = escapeRegex(name);
+    const escapedCode = escapeRegex(code);
+
+    return new RegExp(
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?(?=\\s|$).+$`,
+      'gm'
+    );
+  };
+
   // Pass 0: Plain-text biomarker lines — "Название" or exact "Название (КОД)" on a standalone line.
   // Use the exact code from DB instead of a generic parenthesis matcher, otherwise markers like
   // "Липопротеин (а) (Lp(a))" break because the code itself contains parentheses.
@@ -203,7 +213,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     for (const [name, code] of nameEntries) {
       if (hasBiomarkerAnchor(result, code)) continue;
       const plainLineRegex = buildStandaloneBiomarkerLineRegex(name, code);
-      const match = plainLineRegex.exec(result);
+      const paragraphLineRegex = buildLeadingBiomarkerParagraphRegex(name, code);
+      const match = plainLineRegex.exec(result) || paragraphLineRegex.exec(result);
       if (!match) continue;
 
       const lineStart = match.index!;
@@ -222,7 +233,7 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         }
       }
 
-      const nextAnchorRegex = /<!--\s*anchor:biomarker\s+[^\s>]+\s*-->/g;
+      const nextAnchorRegex = /<!--\s*anchor:biomarker\s+([^\n]*?)\s*-->/g;
       nextAnchorRegex.lastIndex = lineEnd;
       const nextAnchor = nextAnchorRegex.exec(result);
       if (nextAnchor && nextAnchor.index! < sectionEnd) {
