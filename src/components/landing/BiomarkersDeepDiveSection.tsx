@@ -2,32 +2,91 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Heart, Shield, RefreshCw, Zap, Activity, Droplets, Atom, Sparkles, FlaskConical, Dna, CircleDot, Waves, type LucideIcon } from "lucide-react";
 
-// Custom minimalist thyroid gland icon in Lucide style
-const ThyroidIcon: LucideIcon = (({ className, strokeWidth = 2, color = "currentColor", size = 24, ...props }: any) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color}
-    strokeWidth={strokeWidth}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    {...props}
-  >
-    {/* Trachea / isthmus line */}
+// Helper to wrap raw SVG paths into a Lucide-compatible icon
+const makeIcon = (paths: React.ReactNode): LucideIcon =>
+  (({ className, strokeWidth = 2, color = "currentColor", size = 24, ...props }: any) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      {paths}
+    </svg>
+  )) as unknown as LucideIcon;
+
+// V1 — Щитовидная железа (текущая, "бабочка")
+const ThyroidIcon = makeIcon(
+  <>
     <path d="M12 3v6" />
     <path d="M12 14v7" />
-    {/* Left lobe */}
     <path d="M12 9c-1 0-2.5.4-3.5 1.2-1.4 1.1-2 2.8-2 4.3 0 1.6 1 2.5 2.2 2.5 1.5 0 2.6-1 3-2.5.3-1.2.3-2.5.3-3.5V9z" />
-    {/* Right lobe */}
     <path d="M12 9c1 0 2.5.4 3.5 1.2 1.4 1.1 2 2.8 2 4.3 0 1.6-1 2.5-2.2 2.5-1.5 0-2.6-1-3-2.5-.3-1.2-.3-2.5-.3-3.5V9z" />
-    {/* Isthmus connector */}
     <path d="M9.5 12.5h5" />
-  </svg>
-)) as unknown as LucideIcon;
+  </>
+);
+
+// V2 — Силуэт человека с отмеченными железами
+const EndocrineBodyIcon = makeIcon(
+  <>
+    <circle cx="12" cy="4.5" r="2" />
+    <path d="M8 9c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v6c0 .6-.4 1-1 1h-1l-.5 5h-3l-.5-5H9c-.6 0-1-.4-1-1V9z" />
+    <circle cx="12" cy="9.5" r="0.6" fill="currentColor" />
+    <circle cx="10" cy="13" r="0.6" fill="currentColor" />
+    <circle cx="14" cy="13" r="0.6" fill="currentColor" />
+  </>
+);
+
+// V3 — Молекула гормона
+const HormoneMoleculeIcon = makeIcon(
+  <>
+    <circle cx="12" cy="12" r="2.5" />
+    <circle cx="5" cy="6" r="1.5" />
+    <circle cx="19" cy="6" r="1.5" />
+    <circle cx="5" cy="18" r="1.5" />
+    <circle cx="19" cy="18" r="1.5" />
+    <path d="M6.2 7.1l3.8 3.5" />
+    <path d="M17.8 7.1l-3.8 3.5" />
+    <path d="M6.2 16.9l3.8-3.5" />
+    <path d="M17.8 16.9l-3.8-3.5" />
+  </>
+);
+
+// V4 — Капля гормона + орбита (циклы)
+const HormoneCycleIcon = makeIcon(
+  <>
+    <path d="M12 3c-2 3-4 5.5-4 8a4 4 0 0 0 8 0c0-2.5-2-5-4-8z" />
+    <path d="M4 17a4 4 0 0 0 4 4" />
+    <path d="M20 17a4 4 0 0 1-4 4" />
+    <circle cx="4" cy="17" r="1" />
+    <circle cx="20" cy="17" r="1" />
+  </>
+);
+
+// V5 — Гормональный баланс (две сферы)
+const HormoneBalanceIcon = makeIcon(
+  <>
+    <circle cx="12" cy="6" r="3" />
+    <circle cx="12" cy="18" r="3" />
+    <path d="M10.5 8.5l3 7" />
+    <path d="M13.5 8.5l-3 7" />
+  </>
+);
+
+// V6 — Надпочечник + волна стресса
+const AdrenalWaveIcon = makeIcon(
+  <>
+    <path d="M6 5c0-1 1-2 2-2h2c2 0 3 1.5 3 4v3c0 2.5-1.5 4-4 4s-4-1.5-4-4V8" />
+    <path d="M3 18c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2" />
+  </>
+);
 
 import systemEnergy from "@/assets/system-energy.png";
 import systemHeart from "@/assets/system-heart.png";
@@ -187,24 +246,21 @@ export function BiomarkersDeepDiveSection() {
           <h3 className="text-lg font-bold text-foreground mb-4 text-center">
             Варианты иконок для эндокринной системы
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-9 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { Icon: ThyroidIcon, label: "Текущая (щитовидка)" },
-              { Icon: Activity, label: "Activity" },
-              { Icon: Droplets, label: "Droplets" },
-              { Icon: Atom, label: "Atom" },
-              { Icon: Sparkles, label: "Sparkles" },
-              { Icon: FlaskConical, label: "FlaskConical" },
-              { Icon: Dna, label: "Dna" },
-              { Icon: CircleDot, label: "CircleDot" },
-              { Icon: Waves, label: "Waves" },
+              { Icon: ThyroidIcon, label: "V1 — Щитовидка" },
+              { Icon: EndocrineBodyIcon, label: "V2 — Силуэт с железами" },
+              { Icon: HormoneMoleculeIcon, label: "V3 — Молекула гормона" },
+              { Icon: HormoneCycleIcon, label: "V4 — Капля + цикл" },
+              { Icon: HormoneBalanceIcon, label: "V5 — Баланс сфер" },
+              { Icon: AdrenalWaveIcon, label: "V6 — Надпочечник + волна" },
             ].map(({ Icon, label }) => (
               <div
                 key={label}
-                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/40 border border-border/30"
+                className="flex flex-col items-center gap-3 p-5 rounded-xl bg-muted/40 border border-border/30"
               >
-                <Icon className="w-7 h-7 text-primary" strokeWidth={1.75} />
-                <span className="text-[11px] text-muted-foreground text-center leading-tight">
+                <Icon className="w-12 h-12 text-primary" strokeWidth={1.5} />
+                <span className="text-xs text-muted-foreground text-center leading-tight">
                   {label}
                 </span>
               </div>
