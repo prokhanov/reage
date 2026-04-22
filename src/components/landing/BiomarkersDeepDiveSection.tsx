@@ -182,6 +182,36 @@ export function BiomarkersDeepDiveSection() {
           </p>
         </div>
 
+        {/* TEMP: Icon variants preview for endocrine system */}
+        <div className="max-w-4xl mx-auto mb-12 p-6 rounded-2xl bg-card/60 border border-border/40">
+          <h3 className="text-lg font-bold text-foreground mb-4 text-center">
+            Варианты иконок для эндокринной системы
+          </h3>
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-9 gap-3">
+            {[
+              { Icon: ThyroidIcon, label: "Текущая (щитовидка)" },
+              { Icon: Activity, label: "Activity" },
+              { Icon: Droplets, label: "Droplets" },
+              { Icon: Atom, label: "Atom" },
+              { Icon: Sparkles, label: "Sparkles" },
+              { Icon: FlaskConical, label: "FlaskConical" },
+              { Icon: Dna, label: "Dna" },
+              { Icon: CircleDot, label: "CircleDot" },
+              { Icon: Waves, label: "Waves" },
+            ].map(({ Icon, label }) => (
+              <div
+                key={label}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-muted/40 border border-border/30"
+              >
+                <Icon className="w-7 h-7 text-primary" strokeWidth={1.75} />
+                <span className="text-[11px] text-muted-foreground text-center leading-tight">
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Tab navigation */}
         <div className="flex flex-col items-center gap-3 mb-12">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
