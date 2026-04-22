@@ -174,9 +174,31 @@ function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/** Normalize biomarker code so AI variants (Greek vs Latin, case, +/- modifiers) match DB codes. */
+function normalizeBiomarkerCode(code: string): string {
+  if (!code) return '';
+  return code
+    .toLowerCase()
+    .trim()
+    .replace(/α/g, 'a')
+    .replace(/β/g, 'b')
+    .replace(/γ/g, 'g')
+    .replace(/δ/g, 'd')
+    .replace(/μ/g, 'u')
+    .replace(/[\s\-_+()]/g, '');
+}
+
 function hasBiomarkerAnchor(text: string, code: string): boolean {
-  const anchorRegex = new RegExp(`<!--\\s*anchor:biomarker\\s+${escapeRegex(code)}\\s*-->`, 'i');
-  return anchorRegex.test(text);
+  // Exact match (fast path)
+  const exactRegex = new RegExp(`<!--\\s*anchor:biomarker\\s+${escapeRegex(code)}\\s*-->`, 'i');
+  if (exactRegex.test(text)) return true;
+  // Fallback: scan all anchors and compare normalized codes
+  const target = normalizeBiomarkerCode(code);
+  const anyAnchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+  for (const match of text.matchAll(anyAnchorRegex)) {
+    if (normalizeBiomarkerCode(match[1]) === target) return true;
+  }
+  return false;
 }
 
 function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
