@@ -70,7 +70,7 @@ const biomarkerCategories = [
     image: systemEndocrine,
     markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Анти-ТПО", "Анти-ТГ", "TRAb", "Тестостерон", "Эстрадиол", "Эстрон", "Эстриол", "SHBG", "Кортизол", "DHEA-S", "Витамин D", "IGF-1"],
     insights: ["Комплексная оценка состояния вашего гормонального фона", "Как работает ваша щитовидная железа и есть ли аутоиммунные риски", "Уровень хронического стресса по состоянию надпочечников и кортизолу", "Баланс половых гормонов и их влияние на ваше самочувствие"],
-    risks: ["Гипотиреоз", "Гипертиреоз", "Дефицит витамина D", "Гормональный дисбаланс", "Хронический стресс", "Надпочечниковая усталость", "Дефицит тестостерона", "Избыток эстрогенов", "Нарушение кортизолового ритма", "Снижение фертильности"]
+    risks: ["Гипотиреоз", "Гипертиреоз", "Дефицит витамина D", "Гормональный дисбаланс", "Хронический стресс", "Дисфункция надпочечников", "Дефицит тестостерона", "Избыток эстрогенов", "Нарушение кортизолового ритма", "Снижение фертильности"]
   },
   {
     id: "metabolism",
@@ -259,7 +259,7 @@ export function BiomarkersDeepDiveSection() {
                   <div className="absolute bottom-6 left-6 lg:bottom-8 lg:left-8">
                     <div className="flex items-baseline gap-1.5 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/40 shadow-lg">
                       <span className="text-3xl font-bold text-foreground">{cat.markers.length}</span>
-                      <span className="text-sm text-muted-foreground">маркера</span>
+                      <span className="text-sm text-muted-foreground">маркеров</span>
                     </div>
                   </div>
                   <div className="absolute top-6 right-6 lg:top-8 lg:right-8">
