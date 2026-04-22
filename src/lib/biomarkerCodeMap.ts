@@ -51,7 +51,7 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   CPK: "CK",
   LDH: "LDH",
   
-  // Обмен веществ и детоксикация
+  // Метаболизм и Детоксикация
   GLU: "GLU",
   HBA1C: "HbA1c",
   CREA: "CREA",
