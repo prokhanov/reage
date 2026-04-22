@@ -268,6 +268,14 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     const nextMatch = nextHeaderRegex.exec(result);
     const sectionEnd = nextMatch ? nextMatch.index! : result.length;
 
+    // Do not wrap biomarker anchors in a generic section block,
+    // otherwise the parser will consume the whole range as plain text
+    // and the colored biomarker cards / scales won't render.
+    const sectionSlice = result.slice(headerEnd, sectionEnd);
+    if (sectionSlice.includes('<!-- anchor:biomarker ')) {
+      continue;
+    }
+
     result = result.slice(0, sectionEnd) + `\n<!-- anchor:${sectionName}_end -->\n` + result.slice(sectionEnd);
     result = result.slice(0, headerStart) + `<!-- anchor:${sectionName}_start -->\n` + result.slice(headerStart);
   }
