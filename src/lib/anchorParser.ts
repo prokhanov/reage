@@ -172,21 +172,27 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
 function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
 
-  // Pass 0: Plain-text biomarker lines — "Название" or "Название (КОД)" on a standalone line
-  // Matches lines that are just the biomarker name (possibly with code in parens),
-  // not preceded by ## or **
+  const buildStandaloneBiomarkerLineRegex = (name: string, code: string, includeMarkdownHeaders = false) => {
+    const escapedName = escapeRegex(name);
+    const escapedCode = escapeRegex(code);
+    const prefix = includeMarkdownHeaders ? '(?:#{2,4}\\s+|\\s*)' : '(?!#{1,6}\\s)(?!\\s*[-*•])\\s*';
+
+    return new RegExp(
+      `^${prefix}(?:${escapedName}(?:\\s*\\(${escapedCode}\\))?)\\s*$`,
+      'gm'
+    );
+  };
+
+  // Pass 0: Plain-text biomarker lines — "Название" or exact "Название (КОД)" on a standalone line.
+  // Use the exact code from DB instead of a generic parenthesis matcher, otherwise markers like
+  // "Липопротеин (а) (Lp(a))" break because the code itself contains parentheses.
   if (nameToCode && Object.keys(nameToCode).length > 0) {
     const nameEntries = Object.entries(nameToCode)
       .sort((a, b) => b[0].length - a[0].length); // longer names first
 
     for (const [name, code] of nameEntries) {
       if (hasBiomarkerAnchor(result, code)) continue;
-      const escapedName = escapeRegex(name);
-      // Match standalone line: exactly the name, optionally with (CODE) suffix
-      const plainLineRegex = new RegExp(
-        `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(${escapedName}(?:\\s*\\([^)]+\\))?)\\s*$`,
-        'gm'
-      );
+      const plainLineRegex = buildStandaloneBiomarkerLineRegex(name, code);
       const match = plainLineRegex.exec(result);
       if (!match) continue;
 
@@ -196,13 +202,9 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       // Find end of this biomarker section: next standalone biomarker name,
       // already-inserted biomarker anchor, or top-level markdown header.
       let sectionEnd = result.length;
-      for (const [otherName] of nameEntries) {
+      for (const [otherName, otherCode] of nameEntries) {
         if (otherName === name) continue;
-        const escapedOther = escapeRegex(otherName);
-        const nextRegex = new RegExp(
-          `^(?:#{2,4}\\s+|\\s*)(?:${escapedOther})(?:\\s*\\([^)]+\\))?\\s*$`,
-          'gm'
-        );
+        const nextRegex = buildStandaloneBiomarkerLineRegex(otherName, otherCode, true);
         nextRegex.lastIndex = lineEnd;
         const nextMatch = nextRegex.exec(result);
         if (nextMatch && nextMatch.index! < sectionEnd) {
