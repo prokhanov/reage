@@ -65,9 +65,13 @@ export function parseAnchors(
   // Normalize typographic dashes the AI may have inserted (–, —) back to `--`
   const normalized = normalizeAnchorTypography(text);
 
-  // If no explicit anchors, auto-inject them from ## Name (CODE) headers
+  // Always try to supplement missing biomarker anchors.
+  // Real reports can contain a mixed state: some biomarker blocks are already anchored,
+  // while later biomarkers are still plain text. If we only inject when there are zero
+  // anchors in the whole report, the parser will render only the first anchored marker
+  // and leave the rest as plain markdown with visible HTML comments.
   let processedText = normalized;
-  if (!normalized.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
+  if (biomarkerCodes.length > 0) {
     processedText = autoInjectAnchors(normalized, biomarkerCodes, nameToCode);
   }
 
