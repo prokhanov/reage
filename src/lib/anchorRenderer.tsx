@@ -16,6 +16,43 @@ import {
   parseMarkdownToPdfContent,
 } from "@/lib/pdfExportHelpers";
 
+// ═══ Biomarker code matching ═══
+
+/**
+ * Normalize biomarker code for fuzzy matching.
+ * AI sometimes writes "TNF-a" (Latin) instead of "TNF-α" (Greek),
+ * "HB" instead of "Hb", or omits modifiers like "+" / "-ABS".
+ * This collapses those variants so we can match against the DB code.
+ */
+function normalizeBiomarkerCode(code: string): string {
+  if (!code) return '';
+  return code
+    .toLowerCase()
+    .trim()
+    // Greek → Latin equivalents (most common AI substitutions)
+    .replace(/α/g, 'a')
+    .replace(/β/g, 'b')
+    .replace(/γ/g, 'g')
+    .replace(/δ/g, 'd')
+    .replace(/μ/g, 'u')
+    // Strip whitespace, dashes, parens, plus signs — keep only alphanumerics
+    .replace(/[\s\-_+()]/g, '');
+}
+
+/** Find a biomarker by code, with fuzzy fallback for char/case variations. */
+function findBiomarkerByCode(biomarkers: PdfBiomarkerData[], code: string): PdfBiomarkerData | undefined {
+  if (!code) return undefined;
+  // 1. Exact match (fastest)
+  const exact = biomarkers.find(b => b.code === code);
+  if (exact) return exact;
+  // 2. Case-insensitive match
+  const ci = biomarkers.find(b => b.code.toLowerCase() === code.toLowerCase());
+  if (ci) return ci;
+  // 3. Normalized match (handles Greek↔Latin, +/- modifiers, spacing)
+  const target = normalizeBiomarkerCode(code);
+  return biomarkers.find(b => normalizeBiomarkerCode(b.code) === target);
+}
+
 // ═══ Status styling maps ═══
 
 const statusColorMap: Record<string, string> = {
@@ -61,7 +98,9 @@ export function renderInterleavedWeb(
             );
 
           case 'biomarker': {
-            const bm = biomarkers.find(b => b.code === block.code);
+            const bm = findBiomarkerByCode(biomarkers, block.code);
+            // Skip empty fallback blocks: no metadata + no description = nothing useful to show
+            if (!bm && !block.content) return null;
             return (
               <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
@@ -169,7 +208,8 @@ export function buildInterleavedPdf(
       }
 
       case 'biomarker': {
-        const bm = biomarkers.find(b => b.code === block.code);
+        const bm = findBiomarkerByCode(biomarkers, block.code);
+        if (!bm && !block.content) break;
         const cardStack: any[] = [];
 
         if (bm) {
