@@ -36,14 +36,19 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
 /**
  * Parse report text into AnchorBlock[].
  * If no anchors found, falls back to legacy regex-based splitting.
+ * @param nameToCode — optional map of biomarker name → code for plain-text matching
  */
-export function parseAnchors(text: string, biomarkerCodes: string[]): AnchorBlock[] {
+export function parseAnchors(
+  text: string,
+  biomarkerCodes: string[],
+  nameToCode?: Record<string, string>,
+): AnchorBlock[] {
   if (!text) return [];
 
   // If no explicit anchors, auto-inject them from ## Name (CODE) headers
   let processedText = text;
   if (!text.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
-    processedText = autoInjectAnchors(text, biomarkerCodes);
+    processedText = autoInjectAnchors(text, biomarkerCodes, nameToCode);
   }
 
   // If still no anchors after injection, return as single text block
