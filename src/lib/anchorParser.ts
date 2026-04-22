@@ -358,10 +358,22 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
 // ═══ Helpers ═══
 
 /** Strip leading redundant biomarker name+code from content (e.g. "• **Название (CODE)** — ...") */
-function stripLeadingBiomarkerName(content: string, code: string): string {
-  const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escaped}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
-  const cleaned = content.replace(re, '').trim();
+function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames: string[] = []): string {
+  const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const namePattern = biomarkerNames
+    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .sort((a, b) => b.length - a.length)
+    .join('|');
+
+  const codeHeadingRe = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escapedCode}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
+  const nameHeadingRe = namePattern
+    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\(${escapedCode}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
+    : null;
+
+  const cleaned = content
+    .replace(codeHeadingRe, '')
+    .replace(nameHeadingRe ?? /$^/, '')
+    .trim();
   return cleaned || content;
 }
 
