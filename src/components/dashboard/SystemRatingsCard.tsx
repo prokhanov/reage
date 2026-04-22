@@ -43,24 +43,41 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
       }
 
       if (categoriesData && categoryScores) {
+        // Legacy keys для обратной совместимости со старыми анализами
+        const LEGACY_KEYS: Record<string, string[]> = {
+          "Метаболизм и Детоксикация": [
+            "Обмен веществ и детоксикация",
+            "Почки и водно-солевой баланс",
+          ],
+        };
+
+        const extractScore = (raw: any): number => {
+          if (raw === null || raw === undefined) return 0;
+          if (typeof raw === 'object' && 'score' in raw) {
+            const s = (raw as { score?: number }).score;
+            return typeof s === 'number' ? s : 0;
+          }
+          return typeof raw === 'number' ? raw : 0;
+        };
+
         const mappedCategories = categoriesData
           .map(cat => {
-            // categoryScores[cat.name] может быть числом или объектом {score, impact, key_markers}
-            const scoreValue = categoryScores[cat.name];
-            let score = 0;
-            if (scoreValue !== null && scoreValue !== undefined) {
-              if (typeof scoreValue === 'object' && 'score' in scoreValue) {
-                const objScore = (scoreValue as { score?: number }).score;
-                score = typeof objScore === 'number' ? objScore : 0;
-              } else if (typeof scoreValue === 'number') {
-                score = scoreValue;
+            let score = extractScore(categoryScores[cat.name]);
+
+            // Если score не найден по новому имени — пробуем legacy-ключи
+            if (score === 0 && LEGACY_KEYS[cat.name]) {
+              const legacyScores = LEGACY_KEYS[cat.name]
+                .map(k => extractScore(categoryScores[k]))
+                .filter(s => s > 0);
+              if (legacyScores.length > 0) {
+                score = Math.max(...legacyScores);
               }
             }
-            
+
             return {
               name: cat.name,
               emoji: cat.emoji,
-              score: typeof score === 'number' ? score : 0,
+              score,
               displayOrder: cat.display_order
             };
           })
