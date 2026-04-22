@@ -65,11 +65,21 @@ export function parseAnchors(
   // Normalize typographic dashes the AI may have inserted (–, —) back to `--`
   const normalized = normalizeAnchorTypography(text);
 
-  // If no explicit anchors, auto-inject them from ## Name (CODE) headers
+  // Always try to supplement missing biomarker anchors.
+  // Real reports can contain a mixed state: some biomarker blocks are already anchored,
+  // while later biomarkers are still plain text. If we only inject when there are zero
+  // anchors in the whole report, the parser will render only the first anchored marker
+  // and leave the rest as plain markdown with visible HTML comments.
   let processedText = normalized;
-  if (!normalized.includes('<!-- anchor:') && biomarkerCodes.length > 0) {
+  if (biomarkerCodes.length > 0) {
     processedText = autoInjectAnchors(normalized, biomarkerCodes, nameToCode);
   }
+
+  const codeToNames = Object.entries(nameToCode || {}).reduce((acc, [name, code]) => {
+    if (!acc[code]) acc[code] = [];
+    acc[code].push(name);
+    return acc;
+  }, {} as Record<string, string[]>);
 
   // If still no anchors after injection, return as single text block
   if (!processedText.includes('<!-- anchor:')) {
@@ -78,7 +88,7 @@ export function parseAnchors(
 
   const blocks: AnchorBlock[] = [];
   // Match all anchor tags: <!-- anchor:TYPE [DATA] -->
-  const anchorRegex = /<!--\s*anchor:(\w+)(?:\s+([^\s>]+))?\s*-->/g;
+  const anchorRegex = /<!--\s*anchor:(\w+)(?:\s+([^\n]*?))?\s*-->/g;
   const matches = [...processedText.matchAll(anchorRegex)];
 
   if (matches.length === 0) {
@@ -90,7 +100,7 @@ export function parseAnchors(
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
     const tag = match[1];
-    const data = match[2];
+    const data = match[2]?.trim();
     const tagStart = match.index!;
     const tagEnd = tagStart + match[0].length;
 
@@ -119,7 +129,7 @@ export function parseAnchors(
       // tag — many AI outputs forget the closing tag and would otherwise merge
       // multiple biomarkers into one card.
       const explicitEnd = findEndTagPos(processedText, 'biomarker_end', tagEnd);
-      const nextOpenRegex = /<!--\s*anchor:biomarker\s+[^\s>]+\s*-->/g;
+      const nextOpenRegex = /<!--\s*anchor:biomarker\s+([^\n]*?)\s*-->/g;
       nextOpenRegex.lastIndex = tagEnd;
       const nextOpen = nextOpenRegex.exec(processedText);
       let endStart = explicitEnd.start;
@@ -129,7 +139,7 @@ export function parseAnchors(
         endAfter = nextOpen.index; // do NOT consume the next open tag
       }
       const content = processedText.slice(tagEnd, endStart).trim();
-      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data) });
+      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data, codeToNames[data] || []) });
       lastIndex = endAfter;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');
@@ -183,6 +193,16 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     );
   };
 
+  const buildLeadingBiomarkerParagraphRegex = (name: string, code: string) => {
+    const escapedName = escapeRegex(name);
+    const escapedCode = escapeRegex(code);
+
+    return new RegExp(
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?(?=\\s|$).+$`,
+      'gm'
+    );
+  };
+
   // Pass 0: Plain-text biomarker lines — "Название" or exact "Название (КОД)" on a standalone line.
   // Use the exact code from DB instead of a generic parenthesis matcher, otherwise markers like
   // "Липопротеин (а) (Lp(a))" break because the code itself contains parentheses.
@@ -193,7 +213,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     for (const [name, code] of nameEntries) {
       if (hasBiomarkerAnchor(result, code)) continue;
       const plainLineRegex = buildStandaloneBiomarkerLineRegex(name, code);
-      const match = plainLineRegex.exec(result);
+      const paragraphLineRegex = buildLeadingBiomarkerParagraphRegex(name, code);
+      const match = plainLineRegex.exec(result) || paragraphLineRegex.exec(result);
       if (!match) continue;
 
       const lineStart = match.index!;
@@ -212,7 +233,7 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         }
       }
 
-      const nextAnchorRegex = /<!--\s*anchor:biomarker\s+[^\s>]+\s*-->/g;
+      const nextAnchorRegex = /<!--\s*anchor:biomarker\s+([^\n]*?)\s*-->/g;
       nextAnchorRegex.lastIndex = lineEnd;
       const nextAnchor = nextAnchorRegex.exec(result);
       if (nextAnchor && nextAnchor.index! < sectionEnd) {
@@ -337,10 +358,22 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
 // ═══ Helpers ═══
 
 /** Strip leading redundant biomarker name+code from content (e.g. "• **Название (CODE)** — ...") */
-function stripLeadingBiomarkerName(content: string, code: string): string {
-  const escaped = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escaped}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
-  const cleaned = content.replace(re, '').trim();
+function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames: string[] = []): string {
+  const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const namePattern = biomarkerNames
+    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .sort((a, b) => b.length - a.length)
+    .join('|');
+
+  const codeHeadingRe = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escapedCode}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
+  const nameHeadingRe = namePattern
+    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\(${escapedCode}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
+    : null;
+
+  const cleaned = content
+    .replace(codeHeadingRe, '')
+    .replace(nameHeadingRe ?? /$^/, '')
+    .trim();
   return cleaned || content;
 }
 
