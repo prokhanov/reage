@@ -803,6 +803,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
+        const categoryMaxCompletionTokens = categoryKey === "metabolism" ? 24000 : 16000;
+
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -822,7 +824,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               }
             ],
             // Метаболизм требует больше токенов из-за расширенного промпта (печень+почки+электролиты+детоксикация)
-            max_completion_tokens: categoryKey === "metabolism" ? 24000 : 16000
+            max_completion_tokens: categoryMaxCompletionTokens
           }),
         });
 
@@ -881,7 +883,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 { role: "system", content: systemPrompt },
                 { role: "user", content: categoryPrompt }
               ],
-              max_completion_tokens: 16000
+               max_completion_tokens: categoryMaxCompletionTokens
             }),
           });
 
