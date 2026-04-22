@@ -75,6 +75,12 @@ export function parseAnchors(
     processedText = autoInjectAnchors(normalized, biomarkerCodes, nameToCode);
   }
 
+  const codeToNames = Object.entries(nameToCode || {}).reduce((acc, [name, code]) => {
+    if (!acc[code]) acc[code] = [];
+    acc[code].push(name);
+    return acc;
+  }, {} as Record<string, string[]>);
+
   // If still no anchors after injection, return as single text block
   if (!processedText.includes('<!-- anchor:')) {
     return [{ type: 'text', content: processedText }];
@@ -82,7 +88,7 @@ export function parseAnchors(
 
   const blocks: AnchorBlock[] = [];
   // Match all anchor tags: <!-- anchor:TYPE [DATA] -->
-  const anchorRegex = /<!--\s*anchor:(\w+)(?:\s+([^\s>]+))?\s*-->/g;
+  const anchorRegex = /<!--\s*anchor:(\w+)(?:\s+([^\n]*?))?\s*-->/g;
   const matches = [...processedText.matchAll(anchorRegex)];
 
   if (matches.length === 0) {
@@ -94,7 +100,7 @@ export function parseAnchors(
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
     const tag = match[1];
-    const data = match[2];
+    const data = match[2]?.trim();
     const tagStart = match.index!;
     const tagEnd = tagStart + match[0].length;
 
@@ -123,7 +129,7 @@ export function parseAnchors(
       // tag — many AI outputs forget the closing tag and would otherwise merge
       // multiple biomarkers into one card.
       const explicitEnd = findEndTagPos(processedText, 'biomarker_end', tagEnd);
-      const nextOpenRegex = /<!--\s*anchor:biomarker\s+[^\s>]+\s*-->/g;
+      const nextOpenRegex = /<!--\s*anchor:biomarker\s+([^\n]*?)\s*-->/g;
       nextOpenRegex.lastIndex = tagEnd;
       const nextOpen = nextOpenRegex.exec(processedText);
       let endStart = explicitEnd.start;
@@ -133,7 +139,7 @@ export function parseAnchors(
         endAfter = nextOpen.index; // do NOT consume the next open tag
       }
       const content = processedText.slice(tagEnd, endStart).trim();
-      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data) });
+      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data, codeToNames[data] || []) });
       lastIndex = endAfter;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');
