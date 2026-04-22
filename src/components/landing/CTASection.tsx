@@ -98,7 +98,7 @@ export function Footer() {
               <FooterLink href="#" label="Как это работает" />
               <FooterLink href="#" label="Тарифы" />
               <FooterLink href="#" label="Биомаркеры" />
-              <FooterLink href="#" label="AI-рекомендации" />
+              <FooterLink href="#" label="Вопрос-ответ" />
             </ul>
           </div>
           
