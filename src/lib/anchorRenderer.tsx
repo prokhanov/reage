@@ -141,7 +141,9 @@ export function buildInterleavedPdf(
   gender: 'male' | 'female',
 ): any[] {
   const codes = biomarkers.map(b => b.code);
-  const blocks = parseAnchors(reportText, codes);
+  const nameToCode: Record<string, string> = {};
+  biomarkers.forEach(b => { nameToCode[b.name] = b.code; });
+  const blocks = parseAnchors(reportText, codes, nameToCode);
   const pdfContent: any[] = [];
 
   for (const block of blocks) {
