@@ -790,7 +790,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 content: categoryPrompt
               }
             ],
-            max_completion_tokens: 16000
+            // Метаболизм требует больше токенов из-за расширенного промпта (печень+почки+электролиты+детоксикация)
+            max_completion_tokens: categoryKey === "metabolism" ? 24000 : 16000
           }),
         });
 
