@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Heart, Shield, RefreshCw, Zap, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Shield, RefreshCw, Zap, Activity, Droplets, Atom, Sparkles, FlaskConical, Dna, CircleDot, Waves, type LucideIcon } from "lucide-react";
 
 // Custom minimalist thyroid gland icon in Lucide style
 const ThyroidIcon: LucideIcon = (({ className, strokeWidth = 2, color = "currentColor", size = 24, ...props }: any) => (
