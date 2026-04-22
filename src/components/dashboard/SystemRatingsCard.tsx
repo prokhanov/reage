@@ -111,14 +111,44 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
 
     const calculatedTrends: Record<string, CategoryTrend> = {};
 
-    categories.forEach(cat => {
-      const rawOld = oldScores[cat.name];
-      const oldScore = typeof rawOld === 'object' && rawOld !== null && 'score' in rawOld
-        ? (rawOld as any).score : (typeof rawOld === 'number' ? rawOld : null);
+    // Legacy mapping: для категории "Метаболизм и Детоксикация" учитываем
+    // старые ключи из исторических анализов ("Обмен веществ и детоксикация",
+    // "Почки и водно-солевой баланс"). Берём максимум из доступных значений.
+    const LEGACY_KEYS: Record<string, string[]> = {
+      "Метаболизм и Детоксикация": [
+        "Обмен веществ и детоксикация",
+        "Почки и водно-солевой баланс",
+      ],
+    };
 
-      const rawNew = newScores[cat.name];
-      const newScore = typeof rawNew === 'object' && rawNew !== null && 'score' in rawNew
-        ? (rawNew as any).score : (typeof rawNew === 'number' ? rawNew : null);
+    const extractScore = (raw: any): number | null => {
+      if (raw === null || raw === undefined) return null;
+      if (typeof raw === 'object' && 'score' in raw) {
+        return typeof raw.score === 'number' ? raw.score : null;
+      }
+      return typeof raw === 'number' ? raw : null;
+    };
+
+    const getScoreForCategory = (
+      scores: Record<string, any>,
+      categoryName: string
+    ): number | null => {
+      const direct = extractScore(scores[categoryName]);
+      if (direct !== null) return direct;
+
+      const legacyKeys = LEGACY_KEYS[categoryName] || [];
+      const legacyValues = legacyKeys
+        .map(k => extractScore(scores[k]))
+        .filter((v): v is number => v !== null);
+
+      if (legacyValues.length === 0) return null;
+      // Берём максимум, чтобы корректно отражать лучшее из объединённых систем
+      return Math.max(...legacyValues);
+    };
+
+    categories.forEach(cat => {
+      const oldScore = getScoreForCategory(oldScores, cat.name);
+      const newScore = getScoreForCategory(newScores, cat.name);
 
       if (oldScore !== null && newScore !== null && oldScore !== 0) {
         const change = newScore - oldScore;
