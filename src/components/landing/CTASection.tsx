@@ -80,8 +80,8 @@ export function Footer() {
             <h3 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-4">
               ReAge
             </h3>
-            <p className="text-muted-foreground mb-6 max-w-sm">
-              Платформа мониторинга здоровья на основе биомаркеров крови. 
+            <p className="text-muted-foreground mb-6 max-w-sm whitespace-pre-line">
+              Сервис по управлению здоровьем.
               Узнайте свой биологический возраст и получите персональные рекомендации.
             </p>
             <div className="flex gap-4">
