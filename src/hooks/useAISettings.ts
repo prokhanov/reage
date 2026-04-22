@@ -14,11 +14,14 @@ export function useAISettings() {
       const { data, error } = await supabase
         .from("ai_prompt_settings")
         .select("*")
-        .order("key", { ascending: true });
+        .order("key", { ascending: true })
+        .limit(2000);
 
       if (error) throw error;
       return data as AIPromptSetting[];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 

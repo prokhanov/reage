@@ -602,52 +602,67 @@ export default function AISettings() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6 pb-6">
                     <div className="space-y-4 mt-4">
-                      {cp.systemPrompt && (
-                        <Card>
-                          <CardHeader>
-                            <div className="flex items-start justify-between gap-2">
-                              <Badge variant="secondary" className="text-xs">System Prompt</Badge>
-                              <Badge variant="outline" className="text-xs font-mono">{cp.systemPrompt.key}</Badge>
-                            </div>
-                            <CardTitle className="text-base">{cp.systemPrompt.description || "System промпт"}</CardTitle>
-                            <CardDescription className="text-xs">
-                              Определяет роль и специализацию AI эксперта для этой категории
-                              {cp.systemPrompt.updated_at && (<><br />Обновлено: {format(new Date(cp.systemPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>)}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
-                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{cp.systemPrompt.prompt_text}</p>
-                            </div>
-                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(cp.systemPrompt)}>
-                              <Edit className="w-3 h-3 mr-2" />Редактировать
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      )}
-                      {cp.userPrompt && (
-                        <Card>
-                          <CardHeader>
-                            <div className="flex items-start justify-between gap-2">
-                              <Badge variant="secondary" className="text-xs">User Prompt</Badge>
-                              <Badge variant="outline" className="text-xs font-mono">{cp.userPrompt.key}</Badge>
-                            </div>
-                            <CardTitle className="text-base">{cp.userPrompt.description || "User промпт"}</CardTitle>
-                            <CardDescription className="text-xs">
-                              Шаблон запроса для анализа биомаркеров категории
-                              {cp.userPrompt.updated_at && (<><br />Обновлено: {format(new Date(cp.userPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>)}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
-                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{cp.userPrompt.prompt_text}</p>
-                            </div>
-                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(cp.userPrompt)}>
-                              <Edit className="w-3 h-3 mr-2" />Редактировать
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      )}
+                      {(() => {
+                        const catKey = getCategoryKey(cp.category.name);
+                        return (
+                          <>
+                            {cp.systemPrompt ? (
+                              <Card>
+                                <CardHeader>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <Badge variant="secondary" className="text-xs">System Prompt</Badge>
+                                    <Badge variant="outline" className="text-xs font-mono">{cp.systemPrompt.key}</Badge>
+                                  </div>
+                                  <CardTitle className="text-base">{cp.systemPrompt.description || "System промпт"}</CardTitle>
+                                  <CardDescription className="text-xs">
+                                    Определяет роль и специализацию AI эксперта для этой категории
+                                    {cp.systemPrompt.updated_at && (<><br />Обновлено: {format(new Date(cp.systemPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>)}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{cp.systemPrompt.prompt_text}</p>
+                                  </div>
+                                  <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(cp.systemPrompt)}>
+                                    <Edit className="w-3 h-3 mr-2" />Редактировать
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ) : (
+                              <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg border border-dashed">
+                                System промпт не найден. Ожидаемый ключ: <span className="font-mono">category_{catKey}_system</span>. Попробуйте обновить страницу (Ctrl/Cmd+R) — данные могли быть закэшированы.
+                              </div>
+                            )}
+                            {cp.userPrompt ? (
+                              <Card>
+                                <CardHeader>
+                                  <div className="flex items-start justify-between gap-2">
+                                    <Badge variant="secondary" className="text-xs">User Prompt</Badge>
+                                    <Badge variant="outline" className="text-xs font-mono">{cp.userPrompt.key}</Badge>
+                                  </div>
+                                  <CardTitle className="text-base">{cp.userPrompt.description || "User промпт"}</CardTitle>
+                                  <CardDescription className="text-xs">
+                                    Шаблон запроса для анализа биомаркеров категории
+                                    {cp.userPrompt.updated_at && (<><br />Обновлено: {format(new Date(cp.userPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>)}
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
+                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{cp.userPrompt.prompt_text}</p>
+                                  </div>
+                                  <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(cp.userPrompt)}>
+                                    <Edit className="w-3 h-3 mr-2" />Редактировать
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ) : (
+                              <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg border border-dashed">
+                                User промпт не найден. Ожидаемый ключ: <span className="font-mono">category_{catKey}_user</span>. Попробуйте обновить страницу (Ctrl/Cmd+R) — данные могли быть закэшированы.
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
