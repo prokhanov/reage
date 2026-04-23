@@ -1491,6 +1491,17 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           });
         }
 
+        // Явная отсечка между блоком биомаркеров и текстовыми секциями категории.
+        if (catBiomarkers.length > 0) {
+          blocks.push({ type: "spacer", size: "small" });
+        }
+
+        // Overflow от последнего биомаркера (например "Общая оценка системы..."
+        // которую AI вписал прямо в commentary без anchor) — отдельным блоком.
+        if (parsed.overflowAfterBiomarkers) {
+          blocks.push({ type: "text", content: parsed.overflowAfterBiomarkers });
+        }
+
         // Текстовые секции (Сильные стороны, Зоны внимания и т.п.) — ПОСЛЕ карточек маркеров
         for (const sec of parsed.textSections) {
           blocks.push({ type: "text", content: sec.content });
