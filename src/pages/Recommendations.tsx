@@ -38,11 +38,14 @@ import {
 import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
 import logoLightUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
+import { parseReportSnapshot, type ReportSnapshot } from "@/lib/reportSnapshot";
+import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
 
 interface Recommendation {
   id: string;
   type: string;
   text: string;
+  content_json?: any;
   created_at: string;
   analysis_date: string | null;
   analysis_status: "on_review" | "processed" | null;
@@ -265,7 +268,7 @@ export default function Recommendations() {
               ? `${optMin}–${optMax}` : normMin != null && normMax != null
                 ? `${normMin}–${normMax}` : "";
             return {
-              name: meta.name, code: meta.code, value: b.value,
+              id: meta.id, name: meta.name, code: meta.code, value: b.value,
               unit: b.unit || meta.unit, category: meta.category,
               biomarker: meta, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
             };
@@ -295,7 +298,7 @@ export default function Recommendations() {
 
       const { data: valuesData } = await supabase
         .from("analysis_values")
-        .select("value, unit_override, biomarker_id, biomarkers!inner(name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
+        .select("value, unit_override, biomarker_id, biomarkers!inner(id, name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
         .eq("analysis_id", analysisId);
 
       if (valuesData) {
@@ -310,6 +313,7 @@ export default function Recommendations() {
             ? `${optMin}–${optMax}` : normMin != null && normMax != null
               ? `${normMin}–${normMax}` : "";
           return {
+            id: v.biomarker_id || b.id,
             name: b.name, code: b.code, value: v.value,
             unit: v.unit_override || b.unit, category: b.category,
             biomarker: b, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
@@ -517,6 +521,16 @@ export default function Recommendations() {
       const { biomarkers: pdfBiomarkers, age: pdfAge, gender: pdfGender } =
         await fetchReportBiomarkers(selectedReport.analysisId);
 
+      // Try to use the structured snapshot for the main body.
+      // When present, it replaces summary + per-system category sections with
+      // a single coherent "Анализ здоровья" section rendered through the unified
+      // snapshotRenderer (UUID-based biomarker matching).
+      const snapshotResult = summary?.content_json
+        ? parseReportSnapshot(summary.content_json)
+        : null;
+      const snapshot: ReportSnapshot | null =
+        snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+
       // Build sections
       const sections = [
         ...(patientData ? [{ 
@@ -525,12 +539,29 @@ export default function Recommendations() {
           label: 'Данные пациента', 
           content: patientData.text 
         }] : []),
-        ...(summary ? [{ 
-          id: 'summary', 
-          type: 'summary' as SectionType,
-          label: 'Общее резюме', 
-          content: summary.text 
-        }] : []),
+        ...(snapshot
+          ? [{
+              id: 'snapshot',
+              type: 'snapshot' as SectionType,
+              label: 'Анализ здоровья',
+              content: '', // rendered from snapshot, не из markdown
+            }]
+          : [
+              ...(summary ? [{ 
+                id: 'summary', 
+                type: 'summary' as SectionType,
+                label: 'Общее резюме', 
+                content: summary.text 
+              }] : []),
+              ...categories.flatMap(([type, recs]) => 
+                recs.map((rec, idx) => ({
+                  id: `${toSlug(type)}-${idx}`,
+                  type,
+                  label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
+                  content: rec.text
+                }))
+              )
+            ]),
         ...(prescriptions.length > 0 ? [{
           id: 'prescriptions',
           type: 'prescriptions' as SectionType,
@@ -550,21 +581,18 @@ export default function Recommendations() {
               : "—"}`
           ).join('\n\n---\n\n')
         }] : []),
-        ...categories.flatMap(([type, recs]) => 
-          recs.map((rec, idx) => ({
-            id: `${toSlug(type)}-${idx}`,
-            type,
-            label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
-            content: rec.text
-          }))
-        )
       ];
 
       const barWidth = 515;
       const barHeight = 10;
 
       const buildSectionContent = (section: typeof sections[0]): any[] => {
-        const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions';
+        // Snapshot-based body (UUID-binding) — single source of truth.
+        if (section.type === 'snapshot' && snapshot) {
+          return buildSnapshotPdf(snapshot, pdfBiomarkers, barWidth, pdfAge, pdfGender);
+        }
+        // Legacy per-category body (anchor parsing fallback for old reports).
+        const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions' && section.type !== 'snapshot';
         if (isCategory && pdfBiomarkers.length > 0) {
           const catBio = pdfBiomarkers.filter(b => b.category === section.type);
           if (catBio.length > 0) {
@@ -732,10 +760,25 @@ export default function Recommendations() {
                 type !== "Общее резюме" && type !== "Данные пациента"
               );
 
+              // Try to extract a structured ReportSnapshot from the summary recommendation.
+              // If valid, the entire body (summary + per-system blocks) is rendered through
+              // the unified snapshotRenderer; the legacy category fallback is used otherwise.
+              const snapshotResult = summary?.content_json
+                ? parseReportSnapshot(summary.content_json)
+                : null;
+              const snapshot: ReportSnapshot | null =
+                snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+
               const sections = [
                 ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
-                ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
-                ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+                ...(snapshot
+                  ? snapshot.blocks
+                      .map((b, i) => b.type === 'section' ? { id: `snapshot-section-${i}`, label: b.title } : null)
+                      .filter((s): s is { id: string; label: string } => s !== null)
+                  : [
+                      ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
+                      ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+                    ]),
                 ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
               ];
 
@@ -804,41 +847,60 @@ export default function Recommendations() {
                           </div>
                         )}
 
-                        {summary && (
-                          <div id="section-summary" className="scroll-mt-6">
-                            <div className="prose prose-sm max-w-none">
-                              <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
-                                <MarkdownContent content={cleanMarkdownArtifacts(summary.text)} />
-                              </div>
+                        {snapshot ? (
+                          // Unified snapshot rendering — single source of truth.
+                          // Все блоки (section/summary/biomarker/text/spacer) идут одним
+                          // потоком, биомаркеры привязаны по UUID.
+                          biomarkersLoading ? (
+                            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
+                              <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                              <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                              <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
                             </div>
-                          </div>
-                        )}
-
-                        {categories.map(([type, recs]) => (
-                          <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
-                            <div className="space-y-4">
-                              <div className="mb-6">
-                                <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                                  {type}
-                                </h2>
-                                <div className="h-1 w-20 bg-gradient-primary rounded-full" />
-                              </div>
-                              {biomarkersLoading ? (
-                                <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
-                                  <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-                                  <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                                  <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
-                                </div>
-                              ) : (
-                                recs.map((rec) => (
-                                  <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                    {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
+                          ) : (
+                            <div id="snapshot-root" className="prose prose-sm max-w-none">
+                              {renderSnapshotWeb(snapshot, webBiomarkers, patientAge, patientGender)}
+                            </div>
+                          )
+                        ) : (
+                          <>
+                            {summary && (
+                              <div id="section-summary" className="scroll-mt-6">
+                                <div className="prose prose-sm max-w-none">
+                                  <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
+                                    <MarkdownContent content={cleanMarkdownArtifacts(summary.text)} />
                                   </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {categories.map(([type, recs]) => (
+                              <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
+                                <div className="space-y-4">
+                                  <div className="mb-6">
+                                    <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                      {type}
+                                    </h2>
+                                    <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                                  </div>
+                                  {biomarkersLoading ? (
+                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
+                                      <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                                      <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                                      <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
+                                    </div>
+                                  ) : (
+                                    recs.map((rec) => (
+                                      <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                        {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
 
                         {selectedPrescriptions.length > 0 && (
                           <div id="section-prescriptions" className="scroll-mt-6">
