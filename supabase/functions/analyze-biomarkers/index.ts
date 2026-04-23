@@ -1322,9 +1322,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       // Утилиты для работы с якорями
       const stripFences = (s: string): string =>
         (s || "")
-          .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*\r?\n?/gm, "")
-          .replace(/\r?\n?[ \t]*`{3,}[ \t]*$/gm, "")
+          .replace(/\r\n/g, "\n")
+          .replace(/^[\s"'`.,;:!?()\[\]-]*`{3,}[a-zA-Z]*[\s"'`.,;:!?()\[\]-]*$/gm, "")
           .replace(/`{3,}[a-zA-Z]*/g, "")
+          .replace(/^[\s"'`]+|[\s"'`]+$/g, "")
           .trim();
 
       // Парсер одной категории: возвращает блоки { summary, sections[], biomarkerComments }
@@ -1362,12 +1363,15 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           const code = m[1].trim();
           const startContent = m.index! + m[0].length;
           // Конец = ближайший biomarker_end ИЛИ следующий biomarker open ИЛИ следующий *_end секции
-          const endRegex = /<!--\s*anchor:(biomarker_end|biomarker\s+[^>]+|\w+_end)\s*-->/g;
+          const endRegex = /<!--\s*anchor:(biomarker_end|biomarker\s+[^>]+|\w+_(?:start|end))\s*-->/g;
           endRegex.lastIndex = startContent;
           const endMatch = endRegex.exec(t);
           const endPos = endMatch ? endMatch.index : t.length;
           const raw = t.slice(startContent, endPos).trim();
-          const cleaned = stripFences(raw);
+          const cleaned = stripFences(raw)
+            .replace(/^#{1,6}\s+(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе).*$/gim, "")
+            .replace(/^(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе)\s*$/gim, "")
+            .trim();
           const id = codeToId.get(normCode(code));
           if (id && cleaned) {
             // Если уже есть комментарий — конкатенируем
@@ -1380,9 +1384,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const sectionNames = [
           "strengths_start",
           "attention_start",
+          "risks_start",
+          "aging_start",
           "connections_start",
           "actions_start",
           "monitoring_start",
+          "features_start",
+          "trends_start",
         ];
         for (const startName of sectionNames) {
           const baseName = startName.replace("_start", "");
