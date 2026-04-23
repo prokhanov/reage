@@ -38,11 +38,14 @@ import {
 import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
 import logoLightUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
+import { parseReportSnapshot, type ReportSnapshot } from "@/lib/reportSnapshot";
+import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
 
 interface Recommendation {
   id: string;
   type: string;
   text: string;
+  content_json?: any;
   created_at: string;
   analysis_date: string | null;
   analysis_status: "on_review" | "processed" | null;
