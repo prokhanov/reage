@@ -74,15 +74,15 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
               {children}
             </blockquote>
           ),
+          // Render inline code as plain text (no monospace background)
           code: ({ children }) => (
-            <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground">
-              {children}
-            </code>
+            <span className="text-foreground">{children}</span>
           ),
+          // Render code blocks as a normal paragraph (no monospace, no scroll, no background)
           pre: ({ children }) => (
-            <pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-4">
+            <div className="mb-4 text-foreground leading-relaxed whitespace-pre-wrap break-words">
               {children}
-            </pre>
+            </div>
           ),
         }}
       >
