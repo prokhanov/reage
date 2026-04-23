@@ -1422,18 +1422,46 @@ ${categoryReportsForSnapshot}
 
       const snapshotJson = JSON.parse(toolCall.function.arguments);
 
+      // Sanitize text fields: strip code-fences and trim. AI иногда оборачивает
+      // markdown в ```...``` несмотря на запрет — нужно убрать их перед сохранением.
+      const stripFences = (s: unknown): string => {
+        if (typeof s !== "string") return "";
+        return s
+          // ```lang at start of any line
+          .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*\r?\n?/gm, "")
+          // closing ``` on its own line
+          .replace(/\r?\n?[ \t]*`{3,}[ \t]*$/gm, "")
+          // any remaining triple backticks inline
+          .replace(/`{3,}[a-zA-Z]*/g, "")
+          .trim();
+      };
+
       // Валидация на уровне UUID — AI мог что-то выдумать
       const validBiomarkerIds = new Set(biomarkersForSnapshot.map((b: any) => b.biomarker_id));
       const invalidBlocks: string[] = [];
-      const cleanedBlocks = (snapshotJson.blocks || []).filter((block: any) => {
-        if (block.type === "biomarker") {
-          if (!validBiomarkerIds.has(block.biomarker_id)) {
-            invalidBlocks.push(block.biomarker_id || "(нет id)");
+      const cleanedBlocks = (snapshotJson.blocks || [])
+        .map((block: any) => {
+          if (block.type === "text" || block.type === "summary") {
+            return { ...block, content: stripFences(block.content) };
+          }
+          if (block.type === "biomarker") {
+            return { ...block, commentary: stripFences(block.commentary || "") };
+          }
+          return block;
+        })
+        .filter((block: any) => {
+          if (block.type === "biomarker") {
+            if (!validBiomarkerIds.has(block.biomarker_id)) {
+              invalidBlocks.push(block.biomarker_id || "(нет id)");
+              return false;
+            }
+          }
+          // Drop empty text/summary blocks (after stripping fences they могут стать пустыми)
+          if ((block.type === "text" || block.type === "summary") && !block.content) {
             return false;
           }
-        }
-        return true;
-      });
+          return true;
+        });
 
       if (invalidBlocks.length > 0) {
         console.warn(`Removed ${invalidBlocks.length} invalid biomarker blocks: ${invalidBlocks.join(", ")}`);
