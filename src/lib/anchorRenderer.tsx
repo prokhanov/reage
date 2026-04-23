@@ -99,8 +99,9 @@ export function renderInterleavedWeb(
 
           case 'biomarker': {
             const bm = findBiomarkerByCode(biomarkers, block.code);
+            const trimmedContent = (block.content || '').trim();
             // Skip empty fallback blocks: no metadata + no description = nothing useful to show
-            if (!bm && !block.content) return null;
+            if (!bm && !trimmedContent) return null;
             return (
               <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
@@ -132,9 +133,9 @@ export function renderInterleavedWeb(
                     </div>
                   </div>
                 )}
-                {block.content && (
+                {trimmedContent && (
                   <div className="pt-1 border-t border-border/20">
-                    <MarkdownContent content={block.content} />
+                    <MarkdownContent content={trimmedContent} />
                   </div>
                 )}
               </div>
