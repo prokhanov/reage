@@ -1049,6 +1049,7 @@ export type Database = {
       recommendations: {
         Row: {
           analysis_id: string | null
+          content_json: Json | null
           created_at: string
           id: string
           text: string
@@ -1057,6 +1058,7 @@ export type Database = {
         }
         Insert: {
           analysis_id?: string | null
+          content_json?: Json | null
           created_at?: string
           id?: string
           text: string
@@ -1065,6 +1067,7 @@ export type Database = {
         }
         Update: {
           analysis_id?: string | null
+          content_json?: Json | null
           created_at?: string
           id?: string
           text?: string
