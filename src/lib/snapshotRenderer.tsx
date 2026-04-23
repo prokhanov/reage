@@ -18,6 +18,7 @@ import React from "react";
 import type { ReportSnapshot, ReportBlock } from "@/lib/reportSnapshot";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import {
   PdfBiomarkerData,
   STATUS_HEX_MUTED,
@@ -25,6 +26,24 @@ import {
   buildRangeBarCanvas,
   parseMarkdownToPdfContent,
 } from "@/lib/pdfExportHelpers";
+
+// Заголовки секций, которые AI часто оставляет внутри commentary последнего
+// биомаркера. Режем по ним, чтобы не «вытекало» на следующий блок.
+const COMMENTARY_OVERFLOW_REGEX = /^\s*(?:#{1,6}\s*)?(?:Что это значит для вас|Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть|Интерпретация биомаркеров)\b.*$/im;
+
+function sanitizeCommentary(raw: string): string {
+  if (!raw) return "";
+  // 1) Убираем ВСЕ ``` (с языком и без, в любых вариациях)
+  let s = raw
+    .replace(/\r\n/g, "\n")
+    .replace(/`{3,}[a-zA-Z]*/g, "")
+    .replace(/^[\s"'`.,;:!?()\[\]\-—–]*`+[\s"'`.,;:!?()\[\]\-—–]*$/gm, "");
+  // 2) Режем по первому overflow-заголовку
+  const m = COMMENTARY_OVERFLOW_REGEX.exec(s);
+  if (m && m.index > 0) s = s.slice(0, m.index);
+  // 3) Финальная нормализация через общий cleaner
+  return cleanMarkdownArtifacts(s).trim();
+}
 
 // ─── Index biomarkers by UUID ──────────────────────────────────────────────
 
