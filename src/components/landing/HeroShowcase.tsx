@@ -261,7 +261,7 @@ function StateContent() {
 
       {/* Category Header */}
       <div className="flex items-center gap-2 mt-2">
-        <span className="text-lg">😊</span>
+        <Smile className="w-5 h-5 text-primary" />
         <div>
           <div className="text-sm font-semibold text-foreground">Настроение</div>
           <div className="text-[11px] text-muted-foreground">Отметьте все симптомы, которые вы испытываете</div>
