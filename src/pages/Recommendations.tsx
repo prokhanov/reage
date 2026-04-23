@@ -265,7 +265,7 @@ export default function Recommendations() {
               ? `${optMin}–${optMax}` : normMin != null && normMax != null
                 ? `${normMin}–${normMax}` : "";
             return {
-              name: meta.name, code: meta.code, value: b.value,
+              id: meta.id, name: meta.name, code: meta.code, value: b.value,
               unit: b.unit || meta.unit, category: meta.category,
               biomarker: meta, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
             };
