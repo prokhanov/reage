@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle, Trash2 } from "lucide-react";
+import { getSymptomCategoryIcon } from "@/lib/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -738,7 +739,10 @@ export default function MyState() {
                 <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-4xl">{currentCategory.emoji}</span>
+                      {(() => {
+                        const CatIcon = getSymptomCategoryIcon(currentCategory.title);
+                        return <CatIcon className="h-9 w-9 text-primary shrink-0" strokeWidth={1.75} />;
+                      })()}
                       <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -1106,7 +1110,10 @@ export default function MyState() {
                 <div className="space-y-6">
                   <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-4xl">{currentCategory.emoji}</span>
+                      {(() => {
+                        const CatIcon = getSymptomCategoryIcon(currentCategory.title);
+                        return <CatIcon className="h-9 w-9 text-primary shrink-0" strokeWidth={1.75} />;
+                      })()}
                       <h2 className="text-2xl font-bold">{currentCategory.title}</h2>
                     </div>
                     <p className="text-sm text-muted-foreground">
