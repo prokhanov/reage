@@ -125,32 +125,27 @@ function renderBlockWeb(
 
     case "biomarker": {
       const bm = byId.get(block.biomarker_id);
-      const trimmedCommentary = (block.commentary || "").trim();
+      const cleanCommentary = sanitizeCommentary(block.commentary || "");
       // Без метаданных и без комментария — нечего показывать.
-      if (!bm && !trimmedCommentary) return null;
+      if (!bm && !cleanCommentary) return null;
 
       return (
-        <div
-          key={idx}
-          className={`rounded-xl border shadow-sm p-4 space-y-3 ${
-            bm ? statusBgMap[bm.status] : "border-border/40 bg-card/50"
-          }`}
-        >
+        <div key={idx} className="space-y-3">
+          {/* Карточка биомаркера со статусным фоном — ТОЛЬКО шкала и значение */}
           {bm && (
-            <div className="space-y-2">
-              {/* Имя + код */}
+            <div
+              className={`rounded-xl border shadow-sm p-4 space-y-2 ${statusBgMap[bm.status]}`}
+            >
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-semibold text-foreground">{bm.name}</span>
                 <span className="text-xs text-muted-foreground">({bm.code})</span>
               </div>
-              {/* Шкала */}
               <BiomarkerRangeBar
                 biomarker={bm.biomarker}
                 value={bm.value}
                 age={age}
                 gender={gender}
               />
-              {/* Значение + статус */}
               <div className="flex items-baseline justify-between">
                 <div className="flex items-baseline gap-1.5">
                   <span className={`text-lg font-bold tracking-tight ${statusColorMap[bm.status]}`}>
@@ -167,9 +162,10 @@ function renderBlockWeb(
               </div>
             </div>
           )}
-          {trimmedCommentary && (
-            <div className={bm ? "pt-1 border-t border-border/20" : ""}>
-              <MarkdownContent content={trimmedCommentary} />
+          {/* Комментарий — ОТДЕЛЬНЫМ блоком БЕЗ цветного фона, чтобы не вытекало */}
+          {cleanCommentary && (
+            <div className="px-1">
+              <MarkdownContent content={cleanCommentary} />
             </div>
           )}
         </div>
