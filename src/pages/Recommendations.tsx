@@ -220,20 +220,23 @@ export default function Recommendations() {
     }
   };
 
-  const loadBiomarkersForReport = async (analysisId: string | null) => {
+  /**
+   * Pure fetcher: returns biomarker dataset + patient age/gender for the given analysis.
+   * Does NOT touch component state — callers decide whether to push it into state
+   * (for the on-screen view) or just consume it directly (for the PDF export).
+   */
+  const fetchReportBiomarkers = async (
+    analysisId: string | null,
+  ): Promise<{ biomarkers: PdfBiomarkerData[]; age: number; gender: 'male' | 'female' }> => {
     if (!analysisId) {
-      setWebBiomarkers([]);
-      return;
+      return { biomarkers: [], age: 40, gender: 'male' };
     }
-    setBiomarkersLoading(true);
     try {
       // --- Demo mode: build biomarkers from demoData + DB metadata ---
       if (demoMode && demoData && analysisId.startsWith('demo-analysis-')) {
         const analysisIndex = parseInt(analysisId.split('-')[2]) || 0;
         const age = demoData.profile?.chronological_age || 40;
         const gender: 'male' | 'female' = demoData.profile?.gender === 'female' ? 'female' : 'male';
-        setPatientAge(age);
-        setPatientGender(gender);
 
         // Filter demo biomarkers for this analysis and map codes
         const analysisBiomarkers = demoData.biomarkers
@@ -269,9 +272,7 @@ export default function Recommendations() {
           })
           .filter(Boolean) as PdfBiomarkerData[];
 
-        setWebBiomarkers(biomarkers);
-        setBiomarkersLoading(false);
-        return;
+        return { biomarkers, age, gender };
       }
 
       // --- Production mode: load from DB ---
@@ -291,8 +292,6 @@ export default function Recommendations() {
           age = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
         }
       }
-      setPatientAge(age);
-      setPatientGender(gender);
 
       const { data: valuesData } = await supabase
         .from("analysis_values")
@@ -316,13 +315,23 @@ export default function Recommendations() {
             biomarker: b, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
           };
         });
-        setWebBiomarkers(biomarkers);
-      } else {
-        setWebBiomarkers([]);
+        return { biomarkers, age, gender };
       }
+      return { biomarkers: [], age, gender };
     } catch (error) {
       console.error("Error loading biomarkers for report:", error);
-      setWebBiomarkers([]);
+      return { biomarkers: [], age: 40, gender: 'male' };
+    }
+  };
+
+  /** Loads biomarkers for the on-screen viewer (pushes them into component state). */
+  const loadBiomarkersForReport = async (analysisId: string | null) => {
+    setBiomarkersLoading(true);
+    try {
+      const { biomarkers, age, gender } = await fetchReportBiomarkers(analysisId);
+      setPatientAge(age);
+      setPatientGender(gender);
+      setWebBiomarkers(biomarkers);
     } finally {
       setBiomarkersLoading(false);
     }
