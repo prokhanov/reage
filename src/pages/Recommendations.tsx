@@ -823,41 +823,60 @@ export default function Recommendations() {
                           </div>
                         )}
 
-                        {summary && (
-                          <div id="section-summary" className="scroll-mt-6">
-                            <div className="prose prose-sm max-w-none">
-                              <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
-                                <MarkdownContent content={cleanMarkdownArtifacts(summary.text)} />
-                              </div>
+                        {snapshot ? (
+                          // Unified snapshot rendering — single source of truth.
+                          // Все блоки (section/summary/biomarker/text/spacer) идут одним
+                          // потоком, биомаркеры привязаны по UUID.
+                          biomarkersLoading ? (
+                            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
+                              <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                              <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                              <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
                             </div>
-                          </div>
-                        )}
-
-                        {categories.map(([type, recs]) => (
-                          <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
-                            <div className="space-y-4">
-                              <div className="mb-6">
-                                <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                                  {type}
-                                </h2>
-                                <div className="h-1 w-20 bg-gradient-primary rounded-full" />
-                              </div>
-                              {biomarkersLoading ? (
-                                <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
-                                  <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-                                  <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                                  <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
-                                </div>
-                              ) : (
-                                recs.map((rec) => (
-                                  <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                    {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
+                          ) : (
+                            <div id="snapshot-root" className="prose prose-sm max-w-none">
+                              {renderSnapshotWeb(snapshot, webBiomarkers, patientAge, patientGender)}
+                            </div>
+                          )
+                        ) : (
+                          <>
+                            {summary && (
+                              <div id="section-summary" className="scroll-mt-6">
+                                <div className="prose prose-sm max-w-none">
+                                  <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
+                                    <MarkdownContent content={cleanMarkdownArtifacts(summary.text)} />
                                   </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {categories.map(([type, recs]) => (
+                              <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
+                                <div className="space-y-4">
+                                  <div className="mb-6">
+                                    <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                      {type}
+                                    </h2>
+                                    <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                                  </div>
+                                  {biomarkersLoading ? (
+                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
+                                      <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                                      <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                                      <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
+                                    </div>
+                                  ) : (
+                                    recs.map((rec) => (
+                                      <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                        {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
 
                         {selectedPrescriptions.length > 0 && (
                           <div id="section-prescriptions" className="scroll-mt-6">
