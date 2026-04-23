@@ -736,10 +736,25 @@ export default function Recommendations() {
                 type !== "Общее резюме" && type !== "Данные пациента"
               );
 
+              // Try to extract a structured ReportSnapshot from the summary recommendation.
+              // If valid, the entire body (summary + per-system blocks) is rendered through
+              // the unified snapshotRenderer; the legacy category fallback is used otherwise.
+              const snapshotResult = summary?.content_json
+                ? parseReportSnapshot(summary.content_json)
+                : null;
+              const snapshot: ReportSnapshot | null =
+                snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+
               const sections = [
                 ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
-                ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
-                ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+                ...(snapshot
+                  ? snapshot.blocks
+                      .map((b, i) => b.type === 'section' ? { id: `snapshot-section-${i}`, label: b.title } : null)
+                      .filter((s): s is { id: string; label: string } => s !== null)
+                  : [
+                      ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
+                      ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+                    ]),
                 ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
               ];
 
