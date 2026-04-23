@@ -31,6 +31,34 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
   { pattern: /⭐|особенност|feature/i, section: 'features' },
 ];
 
+const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
+  /^\s*`{3,}.*$/m,
+  /^\s*["'` ]*`{3,}["'` ]*$/m,
+  /^\s*\\?={3,}.*?={3,}\s*$/m,
+  /^\s*(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе)\s*$/im,
+  /^\s*#{1,6}\s*(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе)\s*$/im,
+];
+
+function splitLegacyBiomarkerOverflow(content: string): { biomarkerContent: string; overflowContent: string } {
+  if (!content) return { biomarkerContent: '', overflowContent: '' };
+
+  let splitIndex = -1;
+  for (const pattern of LEGACY_BIOMARKER_OVERFLOW_MARKERS) {
+    const match = pattern.exec(content);
+    if (!match || match.index <= 0) continue;
+    splitIndex = splitIndex === -1 ? match.index : Math.min(splitIndex, match.index);
+  }
+
+  if (splitIndex === -1) {
+    return { biomarkerContent: content.trim(), overflowContent: '' };
+  }
+
+  return {
+    biomarkerContent: content.slice(0, splitIndex).trim(),
+    overflowContent: content.slice(splitIndex).trim(),
+  };
+}
+
 // ═══ Main parser ═══
 
 /**
@@ -139,7 +167,12 @@ export function parseAnchors(
         endAfter = nextOpen.index; // do NOT consume the next open tag
       }
       const content = processedText.slice(tagEnd, endStart).trim();
-      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data, codeToNames[data] || []) });
+      const normalizedContent = stripLeadingBiomarkerName(content, data, codeToNames[data] || []);
+      const { biomarkerContent, overflowContent } = splitLegacyBiomarkerOverflow(normalizedContent);
+      blocks.push({ type: 'biomarker', code: data, content: biomarkerContent });
+      if (overflowContent) {
+        blocks.push({ type: 'text', content: overflowContent });
+      }
       lastIndex = endAfter;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');

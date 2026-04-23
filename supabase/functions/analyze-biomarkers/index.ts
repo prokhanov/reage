@@ -1338,8 +1338,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 8. Сохраняй markdown-форматирование внутри content/commentary (жирный, списки, **выделения**), но без блоков кода.
 9. Не добавляй блоки section с заголовками "Биомаркеры" или "Ключевые показатели" — структура и так очевидна.
 10. version всегда = 1.
-
-Возвращай результат через вызов функции build_report_snapshot.`;
+11. Верни ТОЛЬКО один валидный JSON-объект без пояснений, без markdown, без code fences и без текста до/после JSON.`;
 
       const snapshotUserPrompt = `СПИСОК БИОМАРКЕРОВ ПАЦИЕНТА (используй ТОЛЬКО эти biomarker_id):
 ${JSON.stringify(biomarkersForSnapshot, null, 2)}
@@ -1352,41 +1351,45 @@ ${categoryReportsForSnapshot}
 
 Построй ReportSnapshot, точно следуя правилам в system prompt.`;
 
-      // JSON schema для tool calling — соответствует REPORT_SNAPSHOT_JSON_SCHEMA из src/lib/reportSnapshot.ts
-      const snapshotTool = {
-        type: "function",
-        function: {
-          name: "build_report_snapshot",
-          description: "Построить структурированный snapshot отчёта",
-          parameters: {
-            type: "object",
-            properties: {
-              version: { type: "number", enum: [1] },
-              blocks: {
-                type: "array",
-                minItems: 1,
-                items: {
-                  type: "object",
-                  properties: {
-                    type: {
-                      type: "string",
-                      enum: ["text", "section", "summary", "biomarker", "spacer", "pagebreak"],
-                    },
-                    content: { type: "string", description: "Markdown — для type=text и type=summary" },
-                    title: { type: "string", description: "Заголовок секции — для type=section" },
-                    emoji: { type: "string", description: "Emoji категории — для type=section" },
-                    scope: { type: "string", enum: ["overall", "category"], description: "Для type=summary" },
-                    biomarker_id: { type: "string", description: "UUID — для type=biomarker (из списка)" },
-                    commentary: { type: "string", description: "Клинический комментарий — для type=biomarker" },
-                    size: { type: "string", enum: ["small", "medium", "large"], description: "Для type=spacer" },
-                  },
-                  required: ["type"],
-                },
-              },
-            },
-            required: ["version", "blocks"],
-          },
-        },
+      const extractJsonFromResponse = (responseText: string) => {
+        let cleaned = responseText
+          .replace(/```json\s*/gi, "")
+          .replace(/```markdown\s*/gi, "")
+          .replace(/```text\s*/gi, "")
+          .replace(/```\s*/g, "")
+          .trim();
+
+        const jsonStart = cleaned.search(/[\[{]/);
+        if (jsonStart === -1) {
+          throw new Error("No JSON object found in snapshot response");
+        }
+
+        const openingChar = cleaned[jsonStart];
+        const closingChar = openingChar === "[" ? "]" : "}";
+        const jsonEnd = cleaned.lastIndexOf(closingChar);
+        if (jsonEnd === -1 || jsonEnd < jsonStart) {
+          throw new Error("Snapshot response JSON appears truncated");
+        }
+
+        cleaned = cleaned.slice(jsonStart, jsonEnd + 1);
+
+        const openBraces = (cleaned.match(/{/g) || []).length;
+        const closeBraces = (cleaned.match(/}/g) || []).length;
+        const openBrackets = (cleaned.match(/\[/g) || []).length;
+        const closeBrackets = (cleaned.match(/\]/g) || []).length;
+        if (openBraces !== closeBraces || openBrackets !== closeBrackets || /(?:\.\.\.|…|\[truncated\]|\[continued\])\s*$/i.test(cleaned)) {
+          throw new Error("Snapshot response is truncated or malformed");
+        }
+
+        try {
+          return JSON.parse(cleaned);
+        } catch {
+          const repaired = cleaned
+            .replace(/,\s*}/g, "}")
+            .replace(/,\s*]/g, "]")
+            .replace(/[\x00-\x1F\x7F]/g, "");
+          return JSON.parse(repaired);
+        }
       };
 
       const snapshotResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -1402,8 +1405,6 @@ ${categoryReportsForSnapshot}
             { role: "system", content: snapshotSystemPrompt },
             { role: "user", content: snapshotUserPrompt },
           ],
-          tools: [snapshotTool],
-          tool_choice: { type: "function", function: { name: "build_report_snapshot" } },
         }),
       });
 
@@ -1414,13 +1415,13 @@ ${categoryReportsForSnapshot}
       }
 
       const snapshotData = await snapshotResponse.json();
-      const toolCall = snapshotData.choices?.[0]?.message?.tool_calls?.[0];
+      const snapshotText = snapshotData.choices?.[0]?.message?.content;
 
-      if (!toolCall?.function?.arguments) {
-        throw new Error("AI did not return snapshot tool call");
+      if (!snapshotText || typeof snapshotText !== "string") {
+        throw new Error("AI did not return snapshot JSON content");
       }
 
-      const snapshotJson = JSON.parse(toolCall.function.arguments);
+      const snapshotJson = extractJsonFromResponse(snapshotText);
 
       // Sanitize text fields: strip code-fences and trim. AI иногда оборачивает
       // markdown в ```...``` несмотря на запрет — нужно убрать их перед сохранением.
