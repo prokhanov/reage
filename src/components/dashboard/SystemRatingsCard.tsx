@@ -300,19 +300,17 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
         <div className="space-y-6">
           {categories.map((category, index) => {
             const trend = trends[category.name];
-            
+            const CategoryIcon = getBiomarkerCategoryIcon(category.name);
+
             return (
-              {(() => {
-                const CategoryIcon = getBiomarkerCategoryIcon(category.name);
-                return (
-                  <div key={index} className="space-y-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <CategoryIcon className="h-5 w-5 text-primary shrink-0" strokeWidth={1.75} />
-                        <span className="text-sm font-medium text-foreground">
-                          {category.name}
-                        </span>
-                      </div>
+              <div key={index} className="space-y-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CategoryIcon className="h-5 w-5 text-primary shrink-0" strokeWidth={1.75} />
+                    <span className="text-sm font-medium text-foreground">
+                      {category.name}
+                    </span>
+                  </div>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -329,14 +327,14 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                
+
                 <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full rounded-full transition-all ${getProgressColor(category.score)}`}
                     style={{ width: `${category.score}%` }}
                   />
                 </div>
-                
+
                 {trend && (
                   <div className="flex items-center gap-2 text-xs">
                     {trend.type === 'improvement' && (
