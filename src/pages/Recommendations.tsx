@@ -509,8 +509,13 @@ export default function Recommendations() {
           : (data || []).filter(p => p.status === "confirmed");
       }
 
-      // Reuse already-loaded biomarker data from state
-      const pdfBiomarkers = webBiomarkers;
+      // Always fetch fresh biomarkers for the PDF — relying on `webBiomarkers` from
+      // state caused the export to ship empty data (no scales/colors, "0 биомаркеров"
+      // on the cover) when the user opened the dialog and clicked Download before
+      // the async load finished, or when the export is triggered without first
+      // opening the viewer.
+      const { biomarkers: pdfBiomarkers, age: pdfAge, gender: pdfGender } =
+        await fetchReportBiomarkers(selectedReport.analysisId);
 
       // Build sections
       const sections = [
@@ -563,7 +568,7 @@ export default function Recommendations() {
         if (isCategory && pdfBiomarkers.length > 0) {
           const catBio = pdfBiomarkers.filter(b => b.category === section.type);
           if (catBio.length > 0) {
-            return buildInterleavedPdf(section.content, catBio, barWidth, barHeight, patientAge, patientGender);
+            return buildInterleavedPdf(section.content, catBio, barWidth, barHeight, pdfAge, pdfGender);
           }
         }
         return parseMarkdownToPdfContent(section.content);
