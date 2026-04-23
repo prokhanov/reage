@@ -103,9 +103,9 @@ export function renderInterleavedWeb(
             // Skip empty fallback blocks: no metadata + no description = nothing useful to show
             if (!bm && !trimmedContent) return null;
             return (
-              <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
+              <div key={idx} className="space-y-3">
                 {bm && (
-                  <div className="space-y-2">
+                  <div className={`rounded-xl border shadow-sm p-4 space-y-2 ${statusBgMap[bm.status]}`}>
                     {/* Row 1: name (code) */}
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-semibold text-foreground">{bm.name}</span>
@@ -133,8 +133,9 @@ export function renderInterleavedWeb(
                     </div>
                   </div>
                 )}
+                {/* Commentary — отдельным блоком БЕЗ цветного фона, чтобы фон не "вытекал" */}
                 {trimmedContent && (
-                  <div className="pt-1 border-t border-border/20">
+                  <div className="px-1">
                     <MarkdownContent content={trimmedContent} />
                   </div>
                 )}
