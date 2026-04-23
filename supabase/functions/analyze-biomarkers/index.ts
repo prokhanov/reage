@@ -1320,13 +1320,45 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       }
 
       // Утилиты для работы с якорями
+      // Полностью вычищает ВСЕ варианты тройных backticks: standalone-строки,
+      // inline-вхождения с языковым тегом (```markdown, ```json), а также
+      // случаи, когда модель оборачивает ответ в ```...``` без новой строки.
       const stripFences = (s: string): string =>
         (s || "")
           .replace(/\r\n/g, "\n")
-          .replace(/^[\s"'`.,;:!?()\[\]-]*`{3,}[a-zA-Z]*[\s"'`.,;:!?()\[\]-]*$/gm, "")
+          // Standalone fence lines (с любыми кавычками/пунктуацией вокруг)
+          .replace(/^[\s"'`.,;:!?()\[\]\-—–]*`{3,}[a-zA-Z]*[\s"'`.,;:!?()\[\]\-—–]*$/gm, "")
+          // Любые ``` с опциональным языком — где бы они ни встретились
           .replace(/`{3,}[a-zA-Z]*/g, "")
+          // Trim "висящих" одиночных бэктиков по краям
           .replace(/^[\s"'`]+|[\s"'`]+$/g, "")
+          // Свернуть тройные пустые строки, образовавшиеся после удаления fences
+          .replace(/\n{3,}/g, "\n\n")
           .trim();
+
+      // Маркеры section-заголовков, которые AI часто пишет ВНУТРИ commentary
+      // последнего биомаркера (без anchor). Если они встречаются — режем там.
+      const SECTION_HEADER_REGEX = new RegExp(
+        [
+          // Markdown-заголовки
+          "^\\s*#{1,6}\\s*(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть)\\b.*$",
+          // Plain-text заголовки на отдельной строке
+          "^\\s*(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть)(?:\\s*\".*\")?\\s*$",
+        ].join("|"),
+        "im"
+      );
+
+      // Отрезает контент по первому встретившемуся section-заголовку.
+      // Возвращает { kept, overflow } — overflow добавим как отдельный text-блок.
+      const splitAtSectionHeader = (s: string): { kept: string; overflow: string } => {
+        if (!s) return { kept: "", overflow: "" };
+        const m = SECTION_HEADER_REGEX.exec(s);
+        if (!m || m.index === 0) return { kept: s.trim(), overflow: "" };
+        return {
+          kept: s.slice(0, m.index).trim(),
+          overflow: s.slice(m.index).trim(),
+        };
+      };
 
       // Парсер одной категории: возвращает блоки { summary, sections[], biomarkerComments }
       const parseCategoryBlocks = (text: string) => {
@@ -1334,7 +1366,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           summaryContent: string;
           textSections: { title?: string; content: string }[];
           biomarkerComments: Map<string, string>; // biomarker_id → commentary
-        } = { summaryContent: "", textSections: [], biomarkerComments: new Map() };
+          /** Текст, который "вытек" из последнего биомаркера (заголовки/секции без якоря). */
+          overflowAfterBiomarkers: string;
+        } = { summaryContent: "", textSections: [], biomarkerComments: new Map(), overflowAfterBiomarkers: "" };
 
         if (!text) return result;
 
@@ -1368,15 +1402,28 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           const endMatch = endRegex.exec(t);
           const endPos = endMatch ? endMatch.index : t.length;
           const raw = t.slice(startContent, endPos).trim();
-          const cleaned = stripFences(raw)
-            .replace(/^#{1,6}\s+(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе).*$/gim, "")
-            .replace(/^(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе)\s*$/gim, "")
-            .trim();
+          const cleanedRaw = stripFences(raw);
+          // КРИТИЧНО: AI часто пишет "Общая оценка системы..." прямо в конце commentary
+          // последнего биомаркера, без анкера. Режем по первому section-заголовку.
+          const { kept, overflow } = splitAtSectionHeader(cleanedRaw);
           const id = codeToId.get(normCode(code));
-          if (id && cleaned) {
+          if (id && kept) {
             // Если уже есть комментарий — конкатенируем
             const prev = result.biomarkerComments.get(id);
-            result.biomarkerComments.set(id, prev ? `${prev}\n\n${cleaned}` : cleaned);
+            result.biomarkerComments.set(id, prev ? `${prev}\n\n${kept}` : kept);
+          }
+          // Overflow от ПОСЛЕДНЕГО биомаркера в блоке — собираем в отдельный текст
+          if (overflow) {
+            const isLast = i === bioMatches.length - 1;
+            if (isLast) {
+              result.overflowAfterBiomarkers = result.overflowAfterBiomarkers
+                ? `${result.overflowAfterBiomarkers}\n\n${overflow}`
+                : overflow;
+            } else {
+              // У не-последнего маркера overflow — это секции, которые «затесались»
+              // между маркерами. Положим как отдельную text-секцию.
+              result.textSections.push({ content: overflow });
+            }
           }
         }
 
@@ -1442,6 +1489,17 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             biomarker_id: b.biomarker_id,
             commentary: parsed.biomarkerComments.get(b.biomarker_id) || "",
           });
+        }
+
+        // Явная отсечка между блоком биомаркеров и текстовыми секциями категории.
+        if (catBiomarkers.length > 0) {
+          blocks.push({ type: "spacer", size: "small" });
+        }
+
+        // Overflow от последнего биомаркера (например "Общая оценка системы..."
+        // которую AI вписал прямо в commentary без anchor) — отдельным блоком.
+        if (parsed.overflowAfterBiomarkers) {
+          blocks.push({ type: "text", content: parsed.overflowAfterBiomarkers });
         }
 
         // Текстовые секции (Сильные стороны, Зоны внимания и т.п.) — ПОСЛЕ карточек маркеров
