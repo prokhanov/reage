@@ -838,6 +838,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryPrompt += "\n" + criticalGuardBlock;
         }
 
+        // Global anchor/boundary rules are managed in ai_prompt_settings
+        // to avoid hardcoded report-format instructions in code.
+        const globalAnchorRules = prompts["global_anchor_rules"];
+        if (globalAnchorRules?.trim()) {
+          categoryPrompt += `\n\n${globalAnchorRules.trim()}`;
+        }
+
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
@@ -1338,22 +1345,25 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
       // Маркеры section-заголовков, которые AI часто пишет ВНУТРИ commentary
       // последнего биомаркера (без anchor). Если они встречаются — режем там.
+      // Дополнительно допускаем мусор/кавычки/markdown-артефакты перед заголовком.
       const SECTION_HEADER_REGEX = new RegExp(
         [
           // Markdown-заголовки
-          "^\\s*#{1,6}\\s*(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть)\\b.*$",
+          "^[\\s\"'`.,;:!?()\\[\\]\\-—–>•]*#{1,6}\\s*(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть)\\b.*$",
           // Plain-text заголовки на отдельной строке
-          "^\\s*(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть)(?:\\s*\".*\")?\\s*$",
+          "^[\\s\"'`.,;:!?()\\[\\]\\-—–>•]*(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть)(?:\\s*\".*\")?\\s*$",
         ].join("|"),
         "im"
       );
 
       // Отрезает контент по первому встретившемуся section-заголовку.
-      // Возвращает { kept, overflow } — overflow добавим как отдельный text-блок.
+      // Если заголовок стоит в начале блока — весь блок считаем overflow,
+      // а commentary для биомаркера оставляем пустым.
       const splitAtSectionHeader = (s: string): { kept: string; overflow: string } => {
         if (!s) return { kept: "", overflow: "" };
         const m = SECTION_HEADER_REGEX.exec(s);
-        if (!m || m.index === 0) return { kept: s.trim(), overflow: "" };
+        if (!m) return { kept: s.trim(), overflow: "" };
+        if (m.index === 0) return { kept: "", overflow: s.trim() };
         return {
           kept: s.slice(0, m.index).trim(),
           overflow: s.slice(m.index).trim(),
