@@ -16,6 +16,10 @@ export function cleanMarkdownArtifacts(text: string): string {
     // Strip stray markdown code-fence delimiters (``` on their own line) — they appear
     // when AI wraps body text in code blocks. We don't render code blocks in reports.
     .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*$/gm, "")
+    // Also strip triple-backticks that survive inline (e.g. "```markdown\nText" without
+    // proper newline, or trailing "```" right after a sentence). These otherwise leak
+    // into rendered markdown as literal characters.
+    .replace(/`{3,}[a-zA-Z]*\s*/g, "")
     // Start list after a colon/semicolon
     .replace(/([:;])\s*[•*]\s+/g, "$1\n\n- ")
     // Continue list after sentence endings
