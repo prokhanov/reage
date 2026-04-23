@@ -216,28 +216,22 @@ export function buildInterleavedPdf(
         const trimmedContent = (block.content || '').trim();
         if (!bm && !trimmedContent) break;
 
-        const cardStack: any[] = [];
-
+        // 1) Coloured biomarker card — ONLY name + scale + value (no commentary).
         if (bm) {
           const statusColor = STATUS_HEX_MUTED[bm.status] || '#9CA3AF';
           const tallBarHeight = 14;
           const bar = buildRangeBarCanvas(bm, barWidth, tallBarHeight, age, gender);
 
-          // Row 1: Name (code)
-          cardStack.push({
-            text: [
-              { text: bm.name, bold: true, fontSize: 10, color: '#1F2937' },
-              { text: ` (${bm.code})`, fontSize: 8, color: '#6B7280' },
-            ],
-            margin: [0, 0, 0, 4],
-          });
-
-          // Row 2: Range bar (clean, no overlay text)
-          if (bar) {
-            cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
-          }
-
-          // Row 3: Value + status
+          const cardStack: any[] = [
+            {
+              text: [
+                { text: bm.name, bold: true, fontSize: 10, color: '#1F2937' },
+                { text: ` (${bm.code})`, fontSize: 8, color: '#6B7280' },
+              ],
+              margin: [0, 0, 0, 4],
+            },
+          ];
+          if (bar) cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
           cardStack.push({
             columns: [
               { text: [{ text: `${bm.value} `, bold: true, fontSize: 11, color: statusColor }, { text: bm.unit, fontSize: 8, color: '#9CA3AF' }], width: '*' },
@@ -245,35 +239,34 @@ export function buildInterleavedPdf(
             ],
             margin: [0, 0, 0, 0],
           });
+
+          const accentColor = STATUS_HEX_MUTED[bm.status] || '#D1D5DB';
+          const fillColor = STATUS_HEX_BG[bm.status] || '#FAFAFA';
+          pdfContent.push({
+            table: {
+              widths: [3, '*'],
+              body: [[
+                { text: '', fillColor: accentColor },
+                { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
+              ]],
+            },
+            layout: {
+              hLineWidth: () => 0,
+              vLineWidth: () => 0,
+              paddingLeft: () => 0,
+              paddingRight: () => 0,
+              paddingTop: () => 0,
+              paddingBottom: () => 0,
+            },
+            margin: [0, 6, 0, 4],
+          });
         }
+
+        // 2) Commentary — separate block WITHOUT coloured background.
         if (trimmedContent) {
-          cardStack.push(...parseMarkdownToPdfContent(trimmedContent));
+          pdfContent.push(...parseMarkdownToPdfContent(trimmedContent));
+          pdfContent.push({ text: '', margin: [0, 0, 0, 6] });
         }
-
-        // If after all the processing the stack is empty, skip rendering the card entirely
-        if (cardStack.length === 0) break;
-
-        // Wrap in a visually soft card — no border lines, colored fill, left accent bar
-        const accentColor = bm ? (STATUS_HEX_MUTED[bm.status] || '#D1D5DB') : '#D1D5DB';
-        const fillColor = bm ? (STATUS_HEX_BG[bm.status] || '#FAFAFA') : '#FAFAFA';
-        pdfContent.push({
-          table: {
-            widths: [3, '*'],
-            body: [[
-              { text: '', fillColor: accentColor },
-              { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
-            ]],
-          },
-          layout: {
-            hLineWidth: () => 0,
-            vLineWidth: () => 0,
-            paddingLeft: () => 0,
-            paddingRight: () => 0,
-            paddingTop: () => 0,
-            paddingBottom: () => 0,
-          },
-          margin: [0, 6, 0, 6],
-        });
         break;
       }
 
