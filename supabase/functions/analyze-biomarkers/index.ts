@@ -838,21 +838,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryPrompt += "\n" + criticalGuardBlock;
         }
 
-        // Force a hard structural boundary between the last biomarker commentary
-        // and the following system-level section. This prevents the model from
-        // appending "Общая оценка системы организма" into the last biomarker block.
-        categoryPrompt += `
-
-СТРОГОЕ ПРАВИЛО ГРАНИЦ БИОМАРКЕРОВ:
-- Комментарий КАЖДОГО биомаркера заканчивается ДО следующего секционного заголовка.
-- Фраза "Общая оценка системы организма" всегда означает конец последнего биомаркера.
-- Никогда не включай строку "Общая оценка системы организма" внутрь комментария биомаркера.
-- Перед строкой "Общая оценка системы организма" ОБЯЗАТЕЛЬНО поставь отдельную строку: <!-- anchor:biomarker_end -->
-- Сразу после этого начни новый секционный блок для общего текста системы, а не продолжение последнего биомаркера.
-- Не используй triple backticks (
-``` 
-) нигде в ответе.
-`;
+        // Global anchor/boundary rules are managed in ai_prompt_settings
+        // to avoid hardcoded report-format instructions in code.
+        const globalAnchorRules = prompts["global_anchor_rules"];
+        if (globalAnchorRules?.trim()) {
+          categoryPrompt += `\n\n${globalAnchorRules.trim()}`;
+        }
 
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
