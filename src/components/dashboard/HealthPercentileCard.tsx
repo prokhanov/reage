@@ -24,7 +24,10 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
     return (
       <Card className="border-border bg-card backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-lg">🏆 Ваш результат</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-primary" strokeWidth={1.75} />
+            <span>Ваш результат</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
@@ -117,11 +120,11 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
   if (compact) {
     return (
       <div className={`flex items-center gap-3 p-4 rounded-lg border border-border ${data.bgColor}`}>
-        <Icon className={`h-5 w-5 flex-shrink-0 ${data.color}`} />
+        <Icon className={`h-5 w-5 flex-shrink-0 ${data.color}`} strokeWidth={1.75} />
         <div className="flex-1">
           <div className="text-sm text-muted-foreground">Ваш результат</div>
           <div className={`text-lg font-bold ${data.color}`}>{data.title}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{data.emoji} {data.message.split('!')[0]}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{data.message.split('!')[0]}</div>
         </div>
       </div>
     );
@@ -132,7 +135,7 @@ export function HealthPercentileCard({ biologicalAge, chronologicalAge, compact 
     <Card className={`border-border backdrop-blur-sm ${data.bgColor}`}>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          <span>{data.emoji}</span>
+          <Icon className={`h-5 w-5 ${data.color}`} strokeWidth={1.75} />
           <span>Ваш результат</span>
         </CardTitle>
       </CardHeader>
