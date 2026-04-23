@@ -1290,228 +1290,193 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       }
     }
 
-    // ====== ЭТАП 3: ГЕНЕРАЦИЯ STRUCTURED REPORT SNAPSHOT (JSON) ======
-    // Из готовых текстовых отчётов + UUID биомаркеров строим единый JSON snapshot,
-    // который становится источником истины для рендера на сайте и в PDF.
-    // Старые text-поля сохраняются для обратной совместимости и админ-редактирования.
+    // ====== ЭТАП 3: ДЕТЕРМИНИРОВАННАЯ СБОРКА REPORT SNAPSHOT (JSON) ======
+    // Из готовых текстовых отчётов + UUID биомаркеров собираем единый JSON snapshot
+    // БЕЗ дополнительного вызова AI. Это устраняет таймауты и гарантирует, что
+    // ВСЕ маркеры пациента попадают в правильную категорию с правильным UUID,
+    // а заголовки/summary никогда не попадают внутрь карточек биомаркеров.
     try {
-      console.log("Building report snapshot via AI tool calling...");
+      console.log("Building report snapshot deterministically...");
 
-      // Список биомаркеров с UUID, именами, кодами и статусами — для AI
-      const biomarkersForSnapshot = analysis.analysis_values.map((av: any) => ({
-        biomarker_id: av.biomarker_id,
-        name: av.biomarkers.name,
-        code: av.biomarkers.code,
-        category: av.biomarkers.category,
-        value: av.value,
-        unit: av.unit_override || av.biomarkers.unit,
+      // Список биомаркеров пациента: id + код + категория + имя
+      const patientBiomarkers = analysis.analysis_values.map((av: any) => ({
+        biomarker_id: av.biomarker_id as string,
+        name: av.biomarkers.name as string,
+        code: av.biomarkers.code as string,
+        category: av.biomarkers.category as string,
       }));
 
-      // Конкатенация всех текстовых отчётов категорий + резюме
-      const categoryReportsForSnapshot = Object.entries(categoryReports)
-        .map(([cat, txt]) => `### КАТЕГОРИЯ: ${cat}\n\n${txt}`)
-        .join("\n\n---\n\n");
-
-      const snapshotSystemPrompt = `Ты — преобразователь медицинских отчётов в структурированный JSON.
-
-Твоя задача: на основе готовых текстовых отчётов по категориям и общего резюме построить единый структурированный snapshot для рендеринга.
-
-КРИТИЧЕСКИЕ ПРАВИЛА:
-1. Используй ТОЛЬКО biomarker_id из переданного списка. НЕ выдумывай UUID.
-2. Сохраняй ВСЕ биомаркеры пациента — каждый должен попасть в свою категорию как блок biomarker.
-3. Структура отчёта (порядок блоков):
-   - section "Общее резюме" + блок summary (scope: "overall") с текстом общего резюме
-   - Для каждой категории биомаркеров:
-     * section с названием категории и emoji
-     * summary (scope: "category") с кратким резюме категории (выдели "## Краткое резюме" из текста)
-     * text-блоки с основным разбором (всё кроме краткого резюме и блока биомаркеров) — каждая логическая часть (Сильные стороны, Зоны внимания, Системные взаимосвязи и т.п.) идёт ОТДЕЛЬНЫМ text-блоком
-     * biomarker-блоки для каждого маркера этой категории
-     * spacer между категориями
-4. НЕ дублируй данные биомаркера (значение, единицы, шкалы) в commentary — они подтянутся из БД автоматически.
-5. КРИТИЧНО ПРО commentary биомаркера:
-   - ТОЛЬКО про этот конкретный маркер (1-3 коротких предложения).
-   - НИКОГДА не вставляй сюда summary, "Сильные стороны", "Зоны внимания", разборы других маркеров, заголовки секций или переходы к другим темам — это всё должно идти в ОТДЕЛЬНЫХ text-блоках ПОСЛЕ всех biomarker-блоков категории.
-   - Если в исходном тексте после описания маркера идёт общий разбор системы — НЕ включай его в commentary, вынеси в text-блок.
-   - Если про конкретный маркер в исходных текстах ничего нет — оставь commentary пустой строкой "".
-6. ЗАПРЕЩЕНО оборачивать значения полей content/commentary в markdown code-fences (\`\`\`, \`\`\`markdown, \`\`\`text и т.п.). Возвращай чистый markdown без обёртки в код.
-7. ЗАПРЕЩЕНО включать сам JSON, имена полей или служебные пометки в текст полей.
-8. Сохраняй markdown-форматирование внутри content/commentary (жирный, списки, **выделения**), но без блоков кода.
-9. Не добавляй блоки section с заголовками "Биомаркеры" или "Ключевые показатели" — структура и так очевидна.
-10. version всегда = 1.
-11. Верни ТОЛЬКО один валидный JSON-объект без пояснений, без markdown, без code fences и без текста до/после JSON.`;
-
-      const snapshotUserPrompt = `СПИСОК БИОМАРКЕРОВ ПАЦИЕНТА (используй ТОЛЬКО эти biomarker_id):
-${JSON.stringify(biomarkersForSnapshot, null, 2)}
-
-ОБЩЕЕ РЕЗЮМЕ:
-${summaryReport || "(нет)"}
-
-ОТЧЁТЫ ПО КАТЕГОРИЯМ:
-${categoryReportsForSnapshot}
-
-Построй ReportSnapshot, точно следуя правилам в system prompt.`;
-
-      const extractJsonFromResponse = (responseText: string) => {
-        let cleaned = responseText
-          .replace(/```json\s*/gi, "")
-          .replace(/```markdown\s*/gi, "")
-          .replace(/```text\s*/gi, "")
-          .replace(/```\s*/g, "")
-          .trim();
-
-        const jsonStart = cleaned.search(/[\[{]/);
-        if (jsonStart === -1) {
-          throw new Error("No JSON object found in snapshot response");
-        }
-
-        const openingChar = cleaned[jsonStart];
-        const closingChar = openingChar === "[" ? "]" : "}";
-        const jsonEnd = cleaned.lastIndexOf(closingChar);
-        if (jsonEnd === -1 || jsonEnd < jsonStart) {
-          throw new Error("Snapshot response JSON appears truncated");
-        }
-
-        cleaned = cleaned.slice(jsonStart, jsonEnd + 1);
-
-        const openBraces = (cleaned.match(/{/g) || []).length;
-        const closeBraces = (cleaned.match(/}/g) || []).length;
-        const openBrackets = (cleaned.match(/\[/g) || []).length;
-        const closeBrackets = (cleaned.match(/\]/g) || []).length;
-        if (openBraces !== closeBraces || openBrackets !== closeBrackets || /(?:\.\.\.|…|\[truncated\]|\[continued\])\s*$/i.test(cleaned)) {
-          throw new Error("Snapshot response is truncated or malformed");
-        }
-
-        try {
-          return JSON.parse(cleaned);
-        } catch {
-          const repaired = cleaned
-            .replace(/,\s*}/g, "}")
-            .replace(/,\s*]/g, "]")
-            .replace(/[\x00-\x1F\x7F]/g, "");
-          return JSON.parse(repaired);
-        }
-      };
-
-      const snapshotResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${lovableApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          temperature: 0,
-          messages: [
-            { role: "system", content: snapshotSystemPrompt },
-            { role: "user", content: snapshotUserPrompt },
-          ],
-        }),
-      });
-
-      if (!snapshotResponse.ok) {
-        const errText = await snapshotResponse.text();
-        console.error(`Snapshot AI call failed: ${snapshotResponse.status} ${errText}`);
-        throw new Error(`Snapshot generation failed: ${snapshotResponse.status}`);
+      // Карта code (нормализованный) → biomarker_id
+      const normCode = (c: string) =>
+        (c || "")
+          .toLowerCase()
+          .trim()
+          .replace(/α/g, "a").replace(/β/g, "b").replace(/γ/g, "g")
+          .replace(/δ/g, "d").replace(/μ/g, "u")
+          .replace(/[\s\-_./+()]/g, "");
+      const codeToId = new Map<string, string>();
+      for (const b of patientBiomarkers) {
+        codeToId.set(normCode(b.code), b.biomarker_id);
       }
 
-      const snapshotData = await snapshotResponse.json();
-      const snapshotText = snapshotData.choices?.[0]?.message?.content;
-
-      if (!snapshotText || typeof snapshotText !== "string") {
-        throw new Error("AI did not return snapshot JSON content");
-      }
-
-      const snapshotJson = extractJsonFromResponse(snapshotText);
-
-      // Sanitize text fields: strip code-fences and trim. AI иногда оборачивает
-      // markdown в ```...``` несмотря на запрет — нужно убрать их перед сохранением.
-      const stripFences = (s: unknown): string => {
-        if (typeof s !== "string") return "";
-        return s
-          // ```lang at start of any line
+      // Утилиты для работы с якорями
+      const stripFences = (s: string): string =>
+        (s || "")
           .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*\r?\n?/gm, "")
-          // closing ``` on its own line
           .replace(/\r?\n?[ \t]*`{3,}[ \t]*$/gm, "")
-          // any remaining triple backticks inline
           .replace(/`{3,}[a-zA-Z]*/g, "")
           .trim();
+
+      // Парсер одной категории: возвращает блоки { summary, sections[], biomarkerComments }
+      const parseCategoryBlocks = (text: string) => {
+        const result: {
+          summaryContent: string;
+          textSections: { title?: string; content: string }[];
+          biomarkerComments: Map<string, string>; // biomarker_id → commentary
+        } = { summaryContent: "", textSections: [], biomarkerComments: new Map() };
+
+        if (!text) return result;
+
+        // Нормализация типографики якорей
+        let t = text
+          .replace(/<\s*!\s*[-–—]{1,3}\s*(anchor:)/gi, "<!-- $1")
+          .replace(/(anchor:[^\n<>]*?)\s*[-–—]{1,3}\s*>/gi, "$1 -->");
+
+        // Извлечь summary (между summary_start/end или intro_start/end как запасной)
+        const extractSection = (name: string): string => {
+          const re = new RegExp(
+            `<!--\\s*anchor:${name}_start\\s*-->([\\s\\S]*?)<!--\\s*anchor:${name}_end\\s*-->`,
+            "i"
+          );
+          const m = t.match(re);
+          return m ? m[1].trim() : "";
+        };
+
+        result.summaryContent = stripFences(extractSection("summary") || extractSection("intro"));
+
+        // Извлечь все biomarker-блоки: <!-- anchor:biomarker CODE --> ... (до biomarker_end или следующего biomarker)
+        const bioRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+        const bioMatches = [...t.matchAll(bioRegex)];
+        for (let i = 0; i < bioMatches.length; i++) {
+          const m = bioMatches[i];
+          const code = m[1].trim();
+          const startContent = m.index! + m[0].length;
+          // Конец = ближайший biomarker_end ИЛИ следующий biomarker open ИЛИ следующий *_end секции
+          const endRegex = /<!--\s*anchor:(biomarker_end|biomarker\s+[^>]+|\w+_end)\s*-->/g;
+          endRegex.lastIndex = startContent;
+          const endMatch = endRegex.exec(t);
+          const endPos = endMatch ? endMatch.index : t.length;
+          const raw = t.slice(startContent, endPos).trim();
+          const cleaned = stripFences(raw);
+          const id = codeToId.get(normCode(code));
+          if (id && cleaned) {
+            // Если уже есть комментарий — конкатенируем
+            const prev = result.biomarkerComments.get(id);
+            result.biomarkerComments.set(id, prev ? `${prev}\n\n${cleaned}` : cleaned);
+          }
+        }
+
+        // Извлечь стандартные текстовые секции (strengths, attention, connections, actions, и т.п.)
+        const sectionNames = [
+          "strengths_start",
+          "attention_start",
+          "connections_start",
+          "actions_start",
+          "monitoring_start",
+        ];
+        for (const startName of sectionNames) {
+          const baseName = startName.replace("_start", "");
+          const content = extractSection(baseName);
+          if (content) {
+            result.textSections.push({ content: stripFences(content) });
+          }
+        }
+
+        return result;
       };
 
-      // Валидация на уровне UUID — AI мог что-то выдумать
-      const validBiomarkerIds = new Set(biomarkersForSnapshot.map((b: any) => b.biomarker_id));
-      const invalidBlocks: string[] = [];
-      const cleanedBlocks = (snapshotJson.blocks || [])
-        .map((block: any) => {
-          if (block.type === "text" || block.type === "summary") {
-            return { ...block, content: stripFences(block.content) };
-          }
-          if (block.type === "biomarker") {
-            return { ...block, commentary: stripFences(block.commentary || "") };
-          }
-          return block;
-        })
-        .filter((block: any) => {
-          if (block.type === "biomarker") {
-            if (!validBiomarkerIds.has(block.biomarker_id)) {
-              invalidBlocks.push(block.biomarker_id || "(нет id)");
-              return false;
-            }
-          }
-          // Drop empty text/summary blocks (after stripping fences they могут стать пустыми)
-          if ((block.type === "text" || block.type === "summary") && !block.content) {
-            return false;
-          }
-          return true;
-        });
+      // Категории отсортируем по display_order
+      const orderedCategories = Object.keys(categoryReports).sort((a, b) => {
+        const ca = categoriesData?.find((c: any) => c.name === a);
+        const cb = categoriesData?.find((c: any) => c.name === b);
+        return (ca?.display_order ?? 999) - (cb?.display_order ?? 999);
+      });
 
-      if (invalidBlocks.length > 0) {
-        console.warn(`Removed ${invalidBlocks.length} invalid biomarker blocks: ${invalidBlocks.join(", ")}`);
+      const blocks: any[] = [];
+
+      // 1) Общее резюме (overall)
+      if (summaryReport && summaryReport.trim()) {
+        blocks.push({ type: "section", title: "Общее резюме", emoji: "📋" });
+        blocks.push({ type: "summary", scope: "overall", content: stripFences(summaryReport) });
+        blocks.push({ type: "spacer", size: "medium" });
       }
 
-      // Гарантия: все биомаркеры пациента должны быть в snapshot
-      const includedBiomarkerIds = new Set(
-        cleanedBlocks.filter((b: any) => b.type === "biomarker").map((b: any) => b.biomarker_id)
-      );
-      const missingBiomarkers = biomarkersForSnapshot.filter(
-        (b: any) => !includedBiomarkerIds.has(b.biomarker_id)
-      );
+      // 2) Категории
+      for (const catName of orderedCategories) {
+        const catMeta = categoriesData?.find((c: any) => c.name === catName);
+        const parsed = parseCategoryBlocks(categoryReports[catName]);
 
-      if (missingBiomarkers.length > 0) {
-        console.warn(`AI missed ${missingBiomarkers.length} biomarkers, appending fallback blocks`);
-        // Группируем missing по категориям и добавляем в конец
-        const missingByCategory = missingBiomarkers.reduce((acc: any, b: any) => {
-          if (!acc[b.category]) acc[b.category] = [];
-          acc[b.category].push(b);
+        blocks.push({
+          type: "section",
+          title: catName,
+          emoji: catMeta?.emoji || "📊",
+        });
+
+        if (parsed.summaryContent) {
+          blocks.push({ type: "summary", scope: "category", content: parsed.summaryContent });
+        }
+
+        // Биомаркеры этой категории — в порядке patientBiomarkers (по display_order через analysis_values)
+        const catBiomarkers = patientBiomarkers.filter((b: any) => b.category === catName);
+        for (const b of catBiomarkers) {
+          blocks.push({
+            type: "biomarker",
+            biomarker_id: b.biomarker_id,
+            commentary: parsed.biomarkerComments.get(b.biomarker_id) || "",
+          });
+        }
+
+        // Текстовые секции (Сильные стороны, Зоны внимания и т.п.) — ПОСЛЕ карточек маркеров
+        for (const sec of parsed.textSections) {
+          blocks.push({ type: "text", content: sec.content });
+        }
+
+        blocks.push({ type: "spacer", size: "medium" });
+      }
+
+      // 3) Маркеры, чья категория не попала в categoryReports — добавим в конец
+      const categorizedIds = new Set(
+        blocks.filter((b) => b.type === "biomarker").map((b) => b.biomarker_id)
+      );
+      const orphans = patientBiomarkers.filter((b) => !categorizedIds.has(b.biomarker_id));
+      if (orphans.length > 0) {
+        const byCat = orphans.reduce((acc: any, b: any) => {
+          (acc[b.category] = acc[b.category] || []).push(b);
           return acc;
         }, {});
-
-        for (const [cat, markers] of Object.entries(missingByCategory)) {
-          cleanedBlocks.push({ type: "section", title: `${cat} — дополнительные показатели` });
-          for (const m of markers as any[]) {
-            cleanedBlocks.push({
-              type: "biomarker",
-              biomarker_id: m.biomarker_id,
-              commentary: "",
-            });
+        for (const [cat, items] of Object.entries(byCat)) {
+          blocks.push({ type: "section", title: `${cat} — дополнительные показатели`, emoji: "📊" });
+          for (const m of items as any[]) {
+            blocks.push({ type: "biomarker", biomarker_id: m.biomarker_id, commentary: "" });
           }
-          cleanedBlocks.push({ type: "spacer", size: "medium" });
+          blocks.push({ type: "spacer", size: "medium" });
         }
       }
 
       const finalSnapshot = {
         version: 1 as const,
-        blocks: cleanedBlocks,
+        blocks,
         meta: {
           generated_at: new Date().toISOString(),
-          model: "google/gemini-2.5-flash",
+          model: "deterministic-builder-v1",
           analysis_id: analysisId,
         },
       };
 
       console.log(
-        `Snapshot built: ${cleanedBlocks.length} blocks (${
-          cleanedBlocks.filter((b: any) => b.type === "biomarker").length
-        } biomarkers)`
+        `Snapshot built: ${blocks.length} blocks (${
+          blocks.filter((b: any) => b.type === "biomarker").length
+        } biomarkers, ${patientBiomarkers.length} expected)`
       );
 
       // Сохраняем snapshot в content_json записи "Общее резюме"
