@@ -1397,8 +1397,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
       // Категории отсортируем по display_order
       const orderedCategories = Object.keys(categoryReports).sort((a, b) => {
-        const ca = categoriesData?.find((c: any) => c.name === a);
-        const cb = categoriesData?.find((c: any) => c.name === b);
+        const ca = (biomarkerCategoriesData || []).find((c: any) => c.name === a);
+        const cb = (biomarkerCategoriesData || []).find((c: any) => c.name === b);
         return (ca?.display_order ?? 999) - (cb?.display_order ?? 999);
       });
 
@@ -1413,7 +1413,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
       // 2) Категории
       for (const catName of orderedCategories) {
-        const catMeta = categoriesData?.find((c: any) => c.name === catName);
+        const catMeta = (biomarkerCategoriesData || []).find((c: any) => c.name === catName);
         const parsed = parseCategoryBlocks(categoryReports[catName]);
 
         blocks.push({
