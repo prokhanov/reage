@@ -816,18 +816,26 @@ export default function Recommendations() {
 
                         {categories.map(([type, recs]) => (
                           <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
-                            <div className="prose prose-sm max-w-none space-y-4">
+                            <div className="space-y-4">
                               <div className="mb-6">
                                 <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
                                   {type}
                                 </h2>
                                 <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                               </div>
-                              {recs.map((rec) => (
-                                <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                  {renderInterleavedWeb(cleanMarkdownArtifacts(rec.text), webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
+                              {biomarkersLoading ? (
+                                <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
+                                  <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                                  <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                                  <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
                                 </div>
-                              ))}
+                              ) : (
+                                recs.map((rec) => (
+                                  <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                    {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
+                                  </div>
+                                ))
+                              )}
                             </div>
                           </div>
                         ))}
