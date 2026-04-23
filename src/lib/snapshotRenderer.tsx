@@ -242,31 +242,27 @@ export function buildSnapshotPdf(
 
       case "biomarker": {
         const bm = byId.get(block.biomarker_id);
-        const trimmedCommentary = (block.commentary || "").trim();
-        if (!bm && !trimmedCommentary) break;
+        const cleanCommentary = sanitizeCommentary(block.commentary || "");
+        if (!bm && !cleanCommentary) break;
 
-        const cardStack: any[] = [];
-
+        // 1) Карточка биомаркера (со статусным фоном) — только шкала и значение
         if (bm) {
           const statusColor = STATUS_HEX_MUTED[bm.status] || "#9CA3AF";
           const tallBarHeight = 14;
           const bar = buildRangeBarCanvas(bm, barWidth, tallBarHeight, age, gender);
+          const accentColor = STATUS_HEX_MUTED[bm.status] || "#D1D5DB";
+          const fillColor = STATUS_HEX_BG[bm.status] || "#FAFAFA";
 
-          // Имя + код
-          cardStack.push({
-            text: [
-              { text: bm.name, bold: true, fontSize: 10, color: "#1F2937" },
-              { text: ` (${bm.code})`, fontSize: 8, color: "#6B7280" },
-            ],
-            margin: [0, 0, 0, 4],
-          });
-
-          // Шкала
-          if (bar) {
-            cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
-          }
-
-          // Значение + статус
+          const cardStack: any[] = [
+            {
+              text: [
+                { text: bm.name, bold: true, fontSize: 10, color: "#1F2937" },
+                { text: ` (${bm.code})`, fontSize: 8, color: "#6B7280" },
+              ],
+              margin: [0, 0, 0, 4],
+            },
+          ];
+          if (bar) cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
           cardStack.push({
             columns: [
               {
@@ -285,39 +281,33 @@ export function buildSnapshotPdf(
                 width: "auto",
               },
             ],
-            margin: [0, 0, 0, 0],
+          });
+
+          out.push({
+            table: {
+              widths: [3, "*"],
+              body: [[
+                { text: "", fillColor: accentColor },
+                { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
+              ]],
+            },
+            layout: {
+              hLineWidth: () => 0,
+              vLineWidth: () => 0,
+              paddingLeft: () => 0,
+              paddingRight: () => 0,
+              paddingTop: () => 0,
+              paddingBottom: () => 0,
+            },
+            margin: [0, 6, 0, 4],
           });
         }
 
-        if (trimmedCommentary) {
-          cardStack.push(...parseMarkdownToPdfContent(trimmedCommentary));
+        // 2) Комментарий — ОТДЕЛЬНЫМ блоком БЕЗ цветного фона
+        if (cleanCommentary) {
+          out.push(...parseMarkdownToPdfContent(cleanCommentary));
+          out.push({ text: "", margin: [0, 0, 0, 6] });
         }
-
-        if (cardStack.length === 0) break;
-
-        const accentColor = bm ? STATUS_HEX_MUTED[bm.status] || "#D1D5DB" : "#D1D5DB";
-        const fillColor = bm ? STATUS_HEX_BG[bm.status] || "#FAFAFA" : "#FAFAFA";
-
-        out.push({
-          table: {
-            widths: [3, "*"],
-            body: [
-              [
-                { text: "", fillColor: accentColor },
-                { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
-              ],
-            ],
-          },
-          layout: {
-            hLineWidth: () => 0,
-            vLineWidth: () => 0,
-            paddingLeft: () => 0,
-            paddingRight: () => 0,
-            paddingTop: () => 0,
-            paddingBottom: () => 0,
-          },
-          margin: [0, 6, 0, 6],
-        });
         break;
       }
 
