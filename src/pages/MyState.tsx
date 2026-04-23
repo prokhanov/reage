@@ -979,12 +979,12 @@ export default function MyState() {
 
                           <div className="space-y-4">
                             {Object.entries(groupedByCategory).map(([category, categorySymptoms]) => {
-                              const emoji = categoryEmojis[category] || "📋";
-                              
+                              const CatIcon = getSymptomCategoryIcon(category);
+
                               return (
                                 <div key={category} className="border-l-4 border-primary/20 pl-4">
                                   <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-2xl">{emoji}</span>
+                                    <CatIcon className="h-6 w-6 text-primary shrink-0" strokeWidth={1.75} />
                                     <h4 className="font-semibold">{category}</h4>
                                     <Badge variant="secondary" className="ml-auto">
                                       {categorySymptoms.length}
