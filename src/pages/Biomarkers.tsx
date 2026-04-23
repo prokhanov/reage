@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, Activity, Info } from "lucide-react";
+import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -320,7 +321,10 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
               >
                 <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-primary/5">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-xl flex-shrink-0">{categoryEmojis[category] || "🔬"}</span>
+                    {(() => {
+                      const CatIcon = getBiomarkerCategoryIcon(category);
+                      return <CatIcon className="h-5 w-5 text-primary flex-shrink-0" strokeWidth={1.75} />;
+                    })()}
                     <span className="text-lg font-semibold">{category}</span>
                     <Badge variant="secondary" className="flex-shrink-0">
                       {categoryBiomarkers.length}
