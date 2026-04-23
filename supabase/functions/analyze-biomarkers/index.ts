@@ -1366,7 +1366,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           summaryContent: string;
           textSections: { title?: string; content: string }[];
           biomarkerComments: Map<string, string>; // biomarker_id → commentary
-        } = { summaryContent: "", textSections: [], biomarkerComments: new Map() };
+          /** Текст, который "вытек" из последнего биомаркера (заголовки/секции без якоря). */
+          overflowAfterBiomarkers: string;
+        } = { summaryContent: "", textSections: [], biomarkerComments: new Map(), overflowAfterBiomarkers: "" };
 
         if (!text) return result;
 
@@ -1400,15 +1402,28 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           const endMatch = endRegex.exec(t);
           const endPos = endMatch ? endMatch.index : t.length;
           const raw = t.slice(startContent, endPos).trim();
-          const cleaned = stripFences(raw)
-            .replace(/^#{1,6}\s+(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе).*$/gim, "")
-            .replace(/^(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе)\s*$/gim, "")
-            .trim();
+          const cleanedRaw = stripFences(raw);
+          // КРИТИЧНО: AI часто пишет "Общая оценка системы..." прямо в конце commentary
+          // последнего биомаркера, без анкера. Режем по первому section-заголовку.
+          const { kept, overflow } = splitAtSectionHeader(cleanedRaw);
           const id = codeToId.get(normCode(code));
-          if (id && cleaned) {
+          if (id && kept) {
             // Если уже есть комментарий — конкатенируем
             const prev = result.biomarkerComments.get(id);
-            result.biomarkerComments.set(id, prev ? `${prev}\n\n${cleaned}` : cleaned);
+            result.biomarkerComments.set(id, prev ? `${prev}\n\n${kept}` : kept);
+          }
+          // Overflow от ПОСЛЕДНЕГО биомаркера в блоке — собираем в отдельный текст
+          if (overflow) {
+            const isLast = i === bioMatches.length - 1;
+            if (isLast) {
+              result.overflowAfterBiomarkers = result.overflowAfterBiomarkers
+                ? `${result.overflowAfterBiomarkers}\n\n${overflow}`
+                : overflow;
+            } else {
+              // У не-последнего маркера overflow — это секции, которые «затесались»
+              // между маркерами. Положим как отдельную text-секцию.
+              result.textSections.push({ content: overflow });
+            }
           }
         }
 
