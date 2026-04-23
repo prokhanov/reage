@@ -8,6 +8,8 @@ import { cleanMarkdownArtifacts } from "@/lib/markdown";
 // ═══ Types ═══
 
 export interface PdfBiomarkerData {
+  /** UUID from `biomarkers.id` — used by ReportSnapshot to bind cards to DB rows. */
+  id?: string;
   name: string;
   code: string;
   value: number;
