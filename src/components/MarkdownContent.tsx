@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import { cleanMarkdownArtifacts } from '@/lib/markdown';
 
 interface MarkdownContentProps {
   content: string;
@@ -9,7 +10,8 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
   // Guard against accidental indented lines (tabs / 4+ spaces) that Markdown
   // interprets as code blocks. We only de-indent lines that start with bold
   // "headers" like "**2. ...:**".
-  const safeContent = content
+  // Also strip leftover HTML anchor comments and stray ``` fences via cleanMarkdownArtifacts.
+  const safeContent = cleanMarkdownArtifacts(content)
     .replace(/\r\n/g, "\n")
     .replace(/^(?:\t| {4,})(?=\*\*)/gm, "");
 
