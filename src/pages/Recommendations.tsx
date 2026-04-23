@@ -521,6 +521,16 @@ export default function Recommendations() {
       const { biomarkers: pdfBiomarkers, age: pdfAge, gender: pdfGender } =
         await fetchReportBiomarkers(selectedReport.analysisId);
 
+      // Try to use the structured snapshot for the main body.
+      // When present, it replaces summary + per-system category sections with
+      // a single coherent "Анализ здоровья" section rendered through the unified
+      // snapshotRenderer (UUID-based biomarker matching).
+      const snapshotResult = summary?.content_json
+        ? parseReportSnapshot(summary.content_json)
+        : null;
+      const snapshot: ReportSnapshot | null =
+        snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+
       // Build sections
       const sections = [
         ...(patientData ? [{ 
@@ -529,12 +539,29 @@ export default function Recommendations() {
           label: 'Данные пациента', 
           content: patientData.text 
         }] : []),
-        ...(summary ? [{ 
-          id: 'summary', 
-          type: 'summary' as SectionType,
-          label: 'Общее резюме', 
-          content: summary.text 
-        }] : []),
+        ...(snapshot
+          ? [{
+              id: 'snapshot',
+              type: 'snapshot' as SectionType,
+              label: 'Анализ здоровья',
+              content: '', // rendered from snapshot, не из markdown
+            }]
+          : [
+              ...(summary ? [{ 
+                id: 'summary', 
+                type: 'summary' as SectionType,
+                label: 'Общее резюме', 
+                content: summary.text 
+              }] : []),
+              ...categories.flatMap(([type, recs]) => 
+                recs.map((rec, idx) => ({
+                  id: `${toSlug(type)}-${idx}`,
+                  type,
+                  label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
+                  content: rec.text
+                }))
+              )
+            ]),
         ...(prescriptions.length > 0 ? [{
           id: 'prescriptions',
           type: 'prescriptions' as SectionType,
@@ -554,21 +581,18 @@ export default function Recommendations() {
               : "—"}`
           ).join('\n\n---\n\n')
         }] : []),
-        ...categories.flatMap(([type, recs]) => 
-          recs.map((rec, idx) => ({
-            id: `${toSlug(type)}-${idx}`,
-            type,
-            label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
-            content: rec.text
-          }))
-        )
       ];
 
       const barWidth = 515;
       const barHeight = 10;
 
       const buildSectionContent = (section: typeof sections[0]): any[] => {
-        const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions';
+        // Snapshot-based body (UUID-binding) — single source of truth.
+        if (section.type === 'snapshot' && snapshot) {
+          return buildSnapshotPdf(snapshot, pdfBiomarkers, barWidth, pdfAge, pdfGender);
+        }
+        // Legacy per-category body (anchor parsing fallback for old reports).
+        const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions' && section.type !== 'snapshot';
         if (isCategory && pdfBiomarkers.length > 0) {
           const catBio = pdfBiomarkers.filter(b => b.category === section.type);
           if (catBio.length > 0) {
