@@ -35,6 +35,7 @@ const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
   /^\s*`{3,}.*$/m,
   /^\s*["'` ]*`{3,}["'` ]*$/m,
   /^\s*\\?={3,}.*?={3,}\s*$/m,
+  /<!--\s*anchor:\w+_(?:start|end)\s*-->/i,
   /^\s*(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе)\s*$/im,
   /^\s*#{1,6}\s*(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе)\s*$/im,
 ];
@@ -55,7 +56,7 @@ function splitLegacyBiomarkerOverflow(content: string): { biomarkerContent: stri
 
   return {
     biomarkerContent: content.slice(0, splitIndex).trim(),
-    overflowContent: content.slice(splitIndex).trim(),
+    overflowContent: content.slice(splitIndex).replace(/^\s*<!--\s*anchor:\w+_(?:start|end)\s*-->\s*/gi, '').trim(),
   };
 }
 

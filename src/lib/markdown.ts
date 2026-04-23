@@ -22,6 +22,8 @@ export function cleanMarkdownArtifacts(text: string): string {
     .replace(/`{3,}[a-zA-Z]*\s*/g, "")
     // Remove fence-only lines that may be wrapped in quotes/spaces after model formatting glitches
     .replace(/^[\s"'`]*`{3,}[a-zA-Z]*[\s"'`]*$/gm, "")
+        // Remove fence-only fragments even if punctuation/noise got attached around them
+        .replace(/^[\s"'`.,;:!?()\[\]-]*`{3,}[a-zA-Z]*[\s"'`.,;:!?()\[\]-]*$/gm, "")
     // Convert escaped pseudo-headings like "\=== Общая оценка системы ===" into regular headings
     .replace(/^[\s\\/|]*={3,}\s*(.+?)\s*={3,}[\s\\/|]*$/gm, "### $1")
     // Start list after a colon/semicolon
