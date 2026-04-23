@@ -43,20 +43,35 @@ const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
 function splitLegacyBiomarkerOverflow(content: string): { biomarkerContent: string; overflowContent: string } {
   if (!content) return { biomarkerContent: '', overflowContent: '' };
 
+  // First, strip stray code-fence markers (```/```lang) that the AI sometimes
+  // wraps the biomarker value in. They never carry semantic content for us, but
+  // if we leave them inside the biomarker block they get rendered as a
+  // monospace code block (in PDF) or as literal characters (in web).
+  const sanitized = content
+    .replace(/\r\n/g, '\n')
+    .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*$/gm, '')
+    .replace(/`{3,}[a-zA-Z]*/g, '');
+
   let splitIndex = -1;
   for (const pattern of LEGACY_BIOMARKER_OVERFLOW_MARKERS) {
-    const match = pattern.exec(content);
-    if (!match || match.index <= 0) continue;
+    const match = pattern.exec(sanitized);
+    // Allow splitIndex === 0 — when the very first thing in the block is a
+    // section header ("Что это значит для вас", "Сильные стороны…"), the
+    // entire payload belongs to the next section, not to the biomarker card.
+    if (!match || match.index < 0) continue;
     splitIndex = splitIndex === -1 ? match.index : Math.min(splitIndex, match.index);
   }
 
   if (splitIndex === -1) {
-    return { biomarkerContent: content.trim(), overflowContent: '' };
+    return { biomarkerContent: sanitized.trim(), overflowContent: '' };
   }
 
   return {
-    biomarkerContent: content.slice(0, splitIndex).trim(),
-    overflowContent: content.slice(splitIndex).replace(/^\s*<!--\s*anchor:\w+_(?:start|end)\s*-->\s*/gi, '').trim(),
+    biomarkerContent: sanitized.slice(0, splitIndex).trim(),
+    overflowContent: sanitized
+      .slice(splitIndex)
+      .replace(/^\s*<!--\s*anchor:\w+_(?:start|end)\s*-->\s*/gi, '')
+      .trim(),
   };
 }
 

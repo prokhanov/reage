@@ -103,9 +103,9 @@ export function renderInterleavedWeb(
             // Skip empty fallback blocks: no metadata + no description = nothing useful to show
             if (!bm && !trimmedContent) return null;
             return (
-              <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
+              <div key={idx} className="space-y-3">
                 {bm && (
-                  <div className="space-y-2">
+                  <div className={`rounded-xl border shadow-sm p-4 space-y-2 ${statusBgMap[bm.status]}`}>
                     {/* Row 1: name (code) */}
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm font-semibold text-foreground">{bm.name}</span>
@@ -133,8 +133,9 @@ export function renderInterleavedWeb(
                     </div>
                   </div>
                 )}
+                {/* Commentary — отдельным блоком БЕЗ цветного фона, чтобы фон не "вытекал" */}
                 {trimmedContent && (
-                  <div className="pt-1 border-t border-border/20">
+                  <div className="px-1">
                     <MarkdownContent content={trimmedContent} />
                   </div>
                 )}
@@ -215,28 +216,22 @@ export function buildInterleavedPdf(
         const trimmedContent = (block.content || '').trim();
         if (!bm && !trimmedContent) break;
 
-        const cardStack: any[] = [];
-
+        // 1) Coloured biomarker card — ONLY name + scale + value (no commentary).
         if (bm) {
           const statusColor = STATUS_HEX_MUTED[bm.status] || '#9CA3AF';
           const tallBarHeight = 14;
           const bar = buildRangeBarCanvas(bm, barWidth, tallBarHeight, age, gender);
 
-          // Row 1: Name (code)
-          cardStack.push({
-            text: [
-              { text: bm.name, bold: true, fontSize: 10, color: '#1F2937' },
-              { text: ` (${bm.code})`, fontSize: 8, color: '#6B7280' },
-            ],
-            margin: [0, 0, 0, 4],
-          });
-
-          // Row 2: Range bar (clean, no overlay text)
-          if (bar) {
-            cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
-          }
-
-          // Row 3: Value + status
+          const cardStack: any[] = [
+            {
+              text: [
+                { text: bm.name, bold: true, fontSize: 10, color: '#1F2937' },
+                { text: ` (${bm.code})`, fontSize: 8, color: '#6B7280' },
+              ],
+              margin: [0, 0, 0, 4],
+            },
+          ];
+          if (bar) cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
           cardStack.push({
             columns: [
               { text: [{ text: `${bm.value} `, bold: true, fontSize: 11, color: statusColor }, { text: bm.unit, fontSize: 8, color: '#9CA3AF' }], width: '*' },
@@ -244,35 +239,34 @@ export function buildInterleavedPdf(
             ],
             margin: [0, 0, 0, 0],
           });
+
+          const accentColor = STATUS_HEX_MUTED[bm.status] || '#D1D5DB';
+          const fillColor = STATUS_HEX_BG[bm.status] || '#FAFAFA';
+          pdfContent.push({
+            table: {
+              widths: [3, '*'],
+              body: [[
+                { text: '', fillColor: accentColor },
+                { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
+              ]],
+            },
+            layout: {
+              hLineWidth: () => 0,
+              vLineWidth: () => 0,
+              paddingLeft: () => 0,
+              paddingRight: () => 0,
+              paddingTop: () => 0,
+              paddingBottom: () => 0,
+            },
+            margin: [0, 6, 0, 4],
+          });
         }
+
+        // 2) Commentary — separate block WITHOUT coloured background.
         if (trimmedContent) {
-          cardStack.push(...parseMarkdownToPdfContent(trimmedContent));
+          pdfContent.push(...parseMarkdownToPdfContent(trimmedContent));
+          pdfContent.push({ text: '', margin: [0, 0, 0, 6] });
         }
-
-        // If after all the processing the stack is empty, skip rendering the card entirely
-        if (cardStack.length === 0) break;
-
-        // Wrap in a visually soft card — no border lines, colored fill, left accent bar
-        const accentColor = bm ? (STATUS_HEX_MUTED[bm.status] || '#D1D5DB') : '#D1D5DB';
-        const fillColor = bm ? (STATUS_HEX_BG[bm.status] || '#FAFAFA') : '#FAFAFA';
-        pdfContent.push({
-          table: {
-            widths: [3, '*'],
-            body: [[
-              { text: '', fillColor: accentColor },
-              { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
-            ]],
-          },
-          layout: {
-            hLineWidth: () => 0,
-            vLineWidth: () => 0,
-            paddingLeft: () => 0,
-            paddingRight: () => 0,
-            paddingTop: () => 0,
-            paddingBottom: () => 0,
-          },
-          margin: [0, 6, 0, 6],
-        });
         break;
       }
 
