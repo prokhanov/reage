@@ -99,8 +99,9 @@ export function renderInterleavedWeb(
 
           case 'biomarker': {
             const bm = findBiomarkerByCode(biomarkers, block.code);
+            const trimmedContent = (block.content || '').trim();
             // Skip empty fallback blocks: no metadata + no description = nothing useful to show
-            if (!bm && !block.content) return null;
+            if (!bm && !trimmedContent) return null;
             return (
               <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
@@ -132,9 +133,9 @@ export function renderInterleavedWeb(
                     </div>
                   </div>
                 )}
-                {block.content && (
+                {trimmedContent && (
                   <div className="pt-1 border-t border-border/20">
-                    <MarkdownContent content={block.content} />
+                    <MarkdownContent content={trimmedContent} />
                   </div>
                 )}
               </div>
@@ -209,7 +210,11 @@ export function buildInterleavedPdf(
 
       case 'biomarker': {
         const bm = findBiomarkerByCode(biomarkers, block.code);
-        if (!bm && !block.content) break;
+        // Skip blocks where we have neither metadata nor real content.
+        // Treat content with just whitespace / leftover artifacts as empty.
+        const trimmedContent = (block.content || '').trim();
+        if (!bm && !trimmedContent) break;
+
         const cardStack: any[] = [];
 
         if (bm) {
@@ -240,9 +245,12 @@ export function buildInterleavedPdf(
             margin: [0, 0, 0, 0],
           });
         }
-        if (block.content) {
-          cardStack.push(...parseMarkdownToPdfContent(block.content));
+        if (trimmedContent) {
+          cardStack.push(...parseMarkdownToPdfContent(trimmedContent));
         }
+
+        // If after all the processing the stack is empty, skip rendering the card entirely
+        if (cardStack.length === 0) break;
 
         // Wrap in a visually soft card — no border lines, colored fill, left accent bar
         const accentColor = bm ? (STATUS_HEX_MUTED[bm.status] || '#D1D5DB') : '#D1D5DB';

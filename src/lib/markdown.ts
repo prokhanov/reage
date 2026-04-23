@@ -6,13 +6,16 @@
  * - Trailing asterisks used for emphasis that weren't closed
  */
 export function cleanMarkdownArtifacts(text: string): string {
-  // Pre-normalize common inline bullet artifacts produced by AI.
-  // Example:
-  // "... ассоциируется с: * Пункт 1. * Пункт 2." ->
-  // "... ассоциируется с:\n\n- Пункт 1.\n- Пункт 2."
-  // This makes markdown parsers treat them as real lists (UI + editor + PDF).
+  // Strip leftover HTML anchor comments (e.g. "<!-- anchor:biomarker MONO-ABS -->")
+  // that the parser couldn't consume — otherwise they leak into the rendered PDF/web.
+  // Also strip any other HTML comment that survives.
   let preprocessed = text
     .replace(/\r\n/g, "\n")
+    .replace(/<!--\s*anchor:[^\n>]*?-->/gi, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    // Strip stray markdown code-fence delimiters (``` on their own line) — they appear
+    // when AI wraps body text in code blocks. We don't render code blocks in reports.
+    .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*$/gm, "")
     // Start list after a colon/semicolon
     .replace(/([:;])\s*[•*]\s+/g, "$1\n\n- ")
     // Continue list after sentence endings
