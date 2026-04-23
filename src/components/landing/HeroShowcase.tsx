@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb, Download, X } from "lucide-react";
+import { Activity, TrendingUp, Brain, Heart, FileText, MessageSquare, User, Home, FlaskConical, Lightbulb, Download, X, Smile } from "lucide-react";
 
 
 export type ShowcaseSection = "dashboard" | "analyses" | "reports" | "recommendations" | "state" | "assistant";
@@ -261,7 +261,7 @@ function StateContent() {
 
       {/* Category Header */}
       <div className="flex items-center gap-2 mt-2">
-        <span className="text-lg">😊</span>
+        <Smile className="w-5 h-5 text-primary" />
         <div>
           <div className="text-sm font-semibold text-foreground">Настроение</div>
           <div className="text-[11px] text-muted-foreground">Отметьте все симптомы, которые вы испытываете</div>
