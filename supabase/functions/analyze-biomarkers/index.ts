@@ -1290,6 +1290,216 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       }
     }
 
+    // ====== ЭТАП 3: ГЕНЕРАЦИЯ STRUCTURED REPORT SNAPSHOT (JSON) ======
+    // Из готовых текстовых отчётов + UUID биомаркеров строим единый JSON snapshot,
+    // который становится источником истины для рендера на сайте и в PDF.
+    // Старые text-поля сохраняются для обратной совместимости и админ-редактирования.
+    try {
+      console.log("Building report snapshot via AI tool calling...");
+
+      // Список биомаркеров с UUID, именами, кодами и статусами — для AI
+      const biomarkersForSnapshot = analysis.analysis_values.map((av: any) => ({
+        biomarker_id: av.biomarker_id,
+        name: av.biomarkers.name,
+        code: av.biomarkers.code,
+        category: av.biomarkers.category,
+        value: av.value,
+        unit: av.unit_override || av.biomarkers.unit,
+      }));
+
+      // Конкатенация всех текстовых отчётов категорий + резюме
+      const categoryReportsForSnapshot = Object.entries(categoryReports)
+        .map(([cat, txt]) => `### КАТЕГОРИЯ: ${cat}\n\n${txt}`)
+        .join("\n\n---\n\n");
+
+      const snapshotSystemPrompt = `Ты — преобразователь медицинских отчётов в структурированный JSON.
+
+Твоя задача: на основе готовых текстовых отчётов по категориям и общего резюме построить единый структурированный snapshot для рендеринга.
+
+КРИТИЧЕСКИЕ ПРАВИЛА:
+1. Используй ТОЛЬКО biomarker_id из переданного списка. НЕ выдумывай UUID.
+2. Сохраняй ВСЕ биомаркеры пациента — каждый должен попасть в свою категорию как блок biomarker.
+3. Структура отчёта (порядок блоков):
+   - section "Общее резюме" + блок summary (scope: "overall") с текстом общего резюме
+   - Для каждой категории биомаркеров:
+     * section с названием категории и emoji
+     * summary (scope: "category") с кратким резюме категории (выдели "## Краткое резюме" из текста)
+     * text-блоки с основным разбором (всё кроме краткого резюме и блока биомаркеров)
+     * biomarker-блоки для всех маркеров этой категории — commentary это AI-комментарий о клиническом значении конкретного маркера (1-3 предложения, markdown)
+     * spacer между категориями
+4. НЕ дублируй данные биомаркера (значение, единицы, шкалы) в commentary — они подтянутся из БД автоматически.
+5. В commentary биомаркера — только клиническая интерпретация и рекомендации, не повторяй число.
+6. Сохраняй markdown-форматирование внутри полей content и commentary (жирный, списки, **выделения**).
+7. Не добавляй блоки section с заголовками "Биомаркеры" или "Ключевые показатели" — структура и так очевидна.
+8. version всегда = 1.
+
+Возвращай результат через вызов функции build_report_snapshot.`;
+
+      const snapshotUserPrompt = `СПИСОК БИОМАРКЕРОВ ПАЦИЕНТА (используй ТОЛЬКО эти biomarker_id):
+${JSON.stringify(biomarkersForSnapshot, null, 2)}
+
+ОБЩЕЕ РЕЗЮМЕ:
+${summaryReport || "(нет)"}
+
+ОТЧЁТЫ ПО КАТЕГОРИЯМ:
+${categoryReportsForSnapshot}
+
+Построй ReportSnapshot, точно следуя правилам в system prompt.`;
+
+      // JSON schema для tool calling — соответствует REPORT_SNAPSHOT_JSON_SCHEMA из src/lib/reportSnapshot.ts
+      const snapshotTool = {
+        type: "function",
+        function: {
+          name: "build_report_snapshot",
+          description: "Построить структурированный snapshot отчёта",
+          parameters: {
+            type: "object",
+            properties: {
+              version: { type: "number", enum: [1] },
+              blocks: {
+                type: "array",
+                minItems: 1,
+                items: {
+                  type: "object",
+                  properties: {
+                    type: {
+                      type: "string",
+                      enum: ["text", "section", "summary", "biomarker", "spacer", "pagebreak"],
+                    },
+                    content: { type: "string", description: "Markdown — для type=text и type=summary" },
+                    title: { type: "string", description: "Заголовок секции — для type=section" },
+                    emoji: { type: "string", description: "Emoji категории — для type=section" },
+                    scope: { type: "string", enum: ["overall", "category"], description: "Для type=summary" },
+                    biomarker_id: { type: "string", description: "UUID — для type=biomarker (из списка)" },
+                    commentary: { type: "string", description: "Клинический комментарий — для type=biomarker" },
+                    size: { type: "string", enum: ["small", "medium", "large"], description: "Для type=spacer" },
+                  },
+                  required: ["type"],
+                },
+              },
+            },
+            required: ["version", "blocks"],
+          },
+        },
+      };
+
+      const snapshotResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          temperature: 0,
+          messages: [
+            { role: "system", content: snapshotSystemPrompt },
+            { role: "user", content: snapshotUserPrompt },
+          ],
+          tools: [snapshotTool],
+          tool_choice: { type: "function", function: { name: "build_report_snapshot" } },
+        }),
+      });
+
+      if (!snapshotResponse.ok) {
+        const errText = await snapshotResponse.text();
+        console.error(`Snapshot AI call failed: ${snapshotResponse.status} ${errText}`);
+        throw new Error(`Snapshot generation failed: ${snapshotResponse.status}`);
+      }
+
+      const snapshotData = await snapshotResponse.json();
+      const toolCall = snapshotData.choices?.[0]?.message?.tool_calls?.[0];
+
+      if (!toolCall?.function?.arguments) {
+        throw new Error("AI did not return snapshot tool call");
+      }
+
+      const snapshotJson = JSON.parse(toolCall.function.arguments);
+
+      // Валидация на уровне UUID — AI мог что-то выдумать
+      const validBiomarkerIds = new Set(biomarkersForSnapshot.map((b: any) => b.biomarker_id));
+      const invalidBlocks: string[] = [];
+      const cleanedBlocks = (snapshotJson.blocks || []).filter((block: any) => {
+        if (block.type === "biomarker") {
+          if (!validBiomarkerIds.has(block.biomarker_id)) {
+            invalidBlocks.push(block.biomarker_id || "(нет id)");
+            return false;
+          }
+        }
+        return true;
+      });
+
+      if (invalidBlocks.length > 0) {
+        console.warn(`Removed ${invalidBlocks.length} invalid biomarker blocks: ${invalidBlocks.join(", ")}`);
+      }
+
+      // Гарантия: все биомаркеры пациента должны быть в snapshot
+      const includedBiomarkerIds = new Set(
+        cleanedBlocks.filter((b: any) => b.type === "biomarker").map((b: any) => b.biomarker_id)
+      );
+      const missingBiomarkers = biomarkersForSnapshot.filter(
+        (b: any) => !includedBiomarkerIds.has(b.biomarker_id)
+      );
+
+      if (missingBiomarkers.length > 0) {
+        console.warn(`AI missed ${missingBiomarkers.length} biomarkers, appending fallback blocks`);
+        // Группируем missing по категориям и добавляем в конец
+        const missingByCategory = missingBiomarkers.reduce((acc: any, b: any) => {
+          if (!acc[b.category]) acc[b.category] = [];
+          acc[b.category].push(b);
+          return acc;
+        }, {});
+
+        for (const [cat, markers] of Object.entries(missingByCategory)) {
+          cleanedBlocks.push({ type: "section", title: `${cat} — дополнительные показатели` });
+          for (const m of markers as any[]) {
+            cleanedBlocks.push({
+              type: "biomarker",
+              biomarker_id: m.biomarker_id,
+              commentary: "",
+            });
+          }
+          cleanedBlocks.push({ type: "spacer", size: "medium" });
+        }
+      }
+
+      const finalSnapshot = {
+        version: 1 as const,
+        blocks: cleanedBlocks,
+        meta: {
+          generated_at: new Date().toISOString(),
+          model: "google/gemini-2.5-flash",
+          analysis_id: analysisId,
+        },
+      };
+
+      console.log(
+        `Snapshot built: ${cleanedBlocks.length} blocks (${
+          cleanedBlocks.filter((b: any) => b.type === "biomarker").length
+        } biomarkers)`
+      );
+
+      // Сохраняем snapshot в content_json записи "Общее резюме"
+      if (prescriptionRecommendationId) {
+        const { error: snapshotUpdateError } = await supabase
+          .from("recommendations")
+          // @ts-ignore — content_json появится в типах после регенерации
+          .update({ content_json: finalSnapshot })
+          .eq("id", prescriptionRecommendationId);
+
+        if (snapshotUpdateError) {
+          console.error("Failed to save snapshot:", snapshotUpdateError.message);
+        } else {
+          console.log(`Snapshot saved to recommendation ${prescriptionRecommendationId}`);
+        }
+      } else {
+        console.warn("No summary recommendation id — snapshot not saved");
+      }
+    } catch (snapshotError: any) {
+      console.error("Snapshot generation error (non-fatal):", snapshotError.message);
+      // Не падаем — текстовые отчёты уже сохранены, фронт отрендерит fallback
+    }
+
     // Сохраняем назначения в БД (после резюме, чтобы иметь prescriptionRecommendationId)
     if (prescriptionsToCreateFinal.length > 0) {
       const analysisDate = new Date(analysis.date);
