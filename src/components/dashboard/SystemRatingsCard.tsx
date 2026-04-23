@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Activity, CheckCircle2, AlertTriangle, ArrowRight, Info } from "lucide-react";
+import { getBiomarkerCategoryIcon, SystemRatingsIcon } from "@/lib/categoryIcons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -232,7 +233,8 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
       <Card className="border-border bg-card backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            🏥 Рейтинг систем организма
+            <SystemRatingsIcon className="h-5 w-5 text-primary" strokeWidth={1.75} />
+            <span>Рейтинг систем организма</span>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -264,7 +266,8 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            🏥 Рейтинг систем организма
+            <SystemRatingsIcon className="h-5 w-5 text-primary" strokeWidth={1.75} />
+            <span>Рейтинг систем организма</span>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -297,12 +300,13 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
         <div className="space-y-6">
           {categories.map((category, index) => {
             const trend = trends[category.name];
-            
+            const CategoryIcon = getBiomarkerCategoryIcon(category.name);
+
             return (
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{category.emoji}</span>
+                    <CategoryIcon className="h-5 w-5 text-primary shrink-0" strokeWidth={1.75} />
                     <span className="text-sm font-medium text-foreground">
                       {category.name}
                     </span>
@@ -323,14 +327,14 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                
+
                 <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className={`h-full rounded-full transition-all ${getProgressColor(category.score)}`}
                     style={{ width: `${category.score}%` }}
                   />
                 </div>
-                
+
                 {trend && (
                   <div className="flex items-center gap-2 text-xs">
                     {trend.type === 'improvement' && (
