@@ -1324,14 +1324,20 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
    - Для каждой категории биомаркеров:
      * section с названием категории и emoji
      * summary (scope: "category") с кратким резюме категории (выдели "## Краткое резюме" из текста)
-     * text-блоки с основным разбором (всё кроме краткого резюме и блока биомаркеров)
-     * biomarker-блоки для всех маркеров этой категории — commentary это AI-комментарий о клиническом значении конкретного маркера (1-3 предложения, markdown)
+     * text-блоки с основным разбором (всё кроме краткого резюме и блока биомаркеров) — каждая логическая часть (Сильные стороны, Зоны внимания, Системные взаимосвязи и т.п.) идёт ОТДЕЛЬНЫМ text-блоком
+     * biomarker-блоки для каждого маркера этой категории
      * spacer между категориями
 4. НЕ дублируй данные биомаркера (значение, единицы, шкалы) в commentary — они подтянутся из БД автоматически.
-5. В commentary биомаркера — только клиническая интерпретация и рекомендации, не повторяй число.
-6. Сохраняй markdown-форматирование внутри полей content и commentary (жирный, списки, **выделения**).
-7. Не добавляй блоки section с заголовками "Биомаркеры" или "Ключевые показатели" — структура и так очевидна.
-8. version всегда = 1.
+5. КРИТИЧНО ПРО commentary биомаркера:
+   - ТОЛЬКО про этот конкретный маркер (1-3 коротких предложения).
+   - НИКОГДА не вставляй сюда summary, "Сильные стороны", "Зоны внимания", разборы других маркеров, заголовки секций или переходы к другим темам — это всё должно идти в ОТДЕЛЬНЫХ text-блоках ПОСЛЕ всех biomarker-блоков категории.
+   - Если в исходном тексте после описания маркера идёт общий разбор системы — НЕ включай его в commentary, вынеси в text-блок.
+   - Если про конкретный маркер в исходных текстах ничего нет — оставь commentary пустой строкой "".
+6. ЗАПРЕЩЕНО оборачивать значения полей content/commentary в markdown code-fences (\`\`\`, \`\`\`markdown, \`\`\`text и т.п.). Возвращай чистый markdown без обёртки в код.
+7. ЗАПРЕЩЕНО включать сам JSON, имена полей или служебные пометки в текст полей.
+8. Сохраняй markdown-форматирование внутри content/commentary (жирный, списки, **выделения**), но без блоков кода.
+9. Не добавляй блоки section с заголовками "Биомаркеры" или "Ключевые показатели" — структура и так очевидна.
+10. version всегда = 1.
 
 Возвращай результат через вызов функции build_report_snapshot.`;
 
@@ -1416,18 +1422,46 @@ ${categoryReportsForSnapshot}
 
       const snapshotJson = JSON.parse(toolCall.function.arguments);
 
+      // Sanitize text fields: strip code-fences and trim. AI иногда оборачивает
+      // markdown в ```...``` несмотря на запрет — нужно убрать их перед сохранением.
+      const stripFences = (s: unknown): string => {
+        if (typeof s !== "string") return "";
+        return s
+          // ```lang at start of any line
+          .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*\r?\n?/gm, "")
+          // closing ``` on its own line
+          .replace(/\r?\n?[ \t]*`{3,}[ \t]*$/gm, "")
+          // any remaining triple backticks inline
+          .replace(/`{3,}[a-zA-Z]*/g, "")
+          .trim();
+      };
+
       // Валидация на уровне UUID — AI мог что-то выдумать
       const validBiomarkerIds = new Set(biomarkersForSnapshot.map((b: any) => b.biomarker_id));
       const invalidBlocks: string[] = [];
-      const cleanedBlocks = (snapshotJson.blocks || []).filter((block: any) => {
-        if (block.type === "biomarker") {
-          if (!validBiomarkerIds.has(block.biomarker_id)) {
-            invalidBlocks.push(block.biomarker_id || "(нет id)");
+      const cleanedBlocks = (snapshotJson.blocks || [])
+        .map((block: any) => {
+          if (block.type === "text" || block.type === "summary") {
+            return { ...block, content: stripFences(block.content) };
+          }
+          if (block.type === "biomarker") {
+            return { ...block, commentary: stripFences(block.commentary || "") };
+          }
+          return block;
+        })
+        .filter((block: any) => {
+          if (block.type === "biomarker") {
+            if (!validBiomarkerIds.has(block.biomarker_id)) {
+              invalidBlocks.push(block.biomarker_id || "(нет id)");
+              return false;
+            }
+          }
+          // Drop empty text/summary blocks (after stripping fences they могут стать пустыми)
+          if ((block.type === "text" || block.type === "summary") && !block.content) {
             return false;
           }
-        }
-        return true;
-      });
+          return true;
+        });
 
       if (invalidBlocks.length > 0) {
         console.warn(`Removed ${invalidBlocks.length} invalid biomarker blocks: ${invalidBlocks.join(", ")}`);
