@@ -99,8 +99,69 @@ export function EditReportDialog({
     if (open) {
       loadSnapshot();
       loadPrescriptions();
+      loadBiomarkers();
     }
   }, [open, analysisId]);
+
+  const loadBiomarkers = async () => {
+    try {
+      let age = 40;
+      let gender: "male" | "female" = "male";
+      const { data: analysis } = await supabase
+        .from("analyses")
+        .select("user_id")
+        .eq("id", analysisId)
+        .maybeSingle();
+      if (analysis?.user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("birth_date, gender")
+          .eq("id", analysis.user_id)
+          .maybeSingle();
+        if (profile) {
+          gender = profile.gender === "female" ? "female" : "male";
+          if (profile.birth_date) {
+            const birth = new Date(profile.birth_date);
+            age = Math.floor(
+              (Date.now() - birth.getTime()) /
+                (365.25 * 24 * 60 * 60 * 1000),
+            );
+          }
+        }
+      }
+      setPatientAge(age);
+      setPatientGender(gender);
+
+      const { data: valuesData } = await supabase
+        .from("analysis_values")
+        .select(
+          "value, unit_override, biomarker_id, biomarkers!inner(id, name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)",
+        )
+        .eq("analysis_id", analysisId);
+
+      if (valuesData) {
+        const list = valuesData.map((v: any) => {
+          const b = v.biomarkers;
+          const statusInfo = getBiomarkerStatus(v.value, b, age, gender);
+          return {
+            id: v.biomarker_id || b.id,
+            name: b.name,
+            code: b.code,
+            value: v.value,
+            unit: v.unit_override || b.unit,
+            category: b.category,
+            biomarker: b,
+            status: statusInfo.status,
+            statusLabel: statusInfo.label,
+            rangeDisplay: "",
+          } as PdfBiomarkerData;
+        });
+        setBiomarkers(list);
+      }
+    } catch (e) {
+      console.error("loadBiomarkers failed", e);
+    }
+  };
 
   const loadPrescriptions = async () => {
     try {
