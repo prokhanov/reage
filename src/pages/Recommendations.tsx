@@ -10,6 +10,7 @@ import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -22,8 +23,8 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { RecommendationsSkeleton } from "@/components/skeletons/RecommendationsSkeleton";
-import pdfMake from "pdfmake/build/pdfmake";
-import * as pdfFonts from "pdfmake/build/vfs_fonts";
+import pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 import {
@@ -36,173 +37,130 @@ import {
 } from "@/lib/pdfExportHelpers";
 import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
 import logoLightUrl from "@/assets/reage-logo-light.png";
-import {
-  parseReportSnapshot,
-  type ReportSnapshot,
-} from "@/lib/reportSnapshot";
-import {
-  renderSnapshotWeb,
-  buildSnapshotPdf,
-  getSnapshotSectionAnchors,
-  type PrescriptionRenderItem,
-} from "@/lib/snapshotRenderer";
+import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
+import { parseReportSnapshot, type ReportSnapshot } from "@/lib/reportSnapshot";
+import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
 
-// =============================================================================
-// Архитектура (после переезда на JSON-only):
-//   - Один анализ → одна запись в `recommendations` (type='snapshot')
-//     с полным `content_json` (ReportSnapshot).
-//   - Старые многострочные отчёты (type='Общее резюме' + 'Категория ...')
-//     поддерживаем минимально: рендер через "legacy"-режим, в котором всё
-//     склеивается в обычный markdown (без интерактивных карточек биомаркеров).
-//   - Назначения хранятся в `prescriptions` и подгружаются на рендере;
-//     блок `prescriptions` в snapshot — это просто маркер позиции.
-// =============================================================================
-
-interface RecommendationRow {
+interface Recommendation {
   id: string;
   type: string;
   text: string;
   content_json?: any;
   created_at: string;
+  analysis_date: string | null;
+  analysis_status: "on_review" | "processed" | null;
+  analysis_id: string | null;
 }
 
-interface ReportEntry {
-  /** Анализ-ключ. Для legacy/демо — синтетический. */
-  analysisId: string | null;
-  /** Дата анализа (или created_at если нет). */
+interface RecommendationReport {
   date: string;
-  status: "on_review" | "processed" | null;
-  /** UUID единственной строки `recommendations` для этого отчёта (для удаления). */
-  rowIds: string[];
-  /** Готовый snapshot (либо распарсенный, либо собранный из legacy). */
-  snapshot: ReportSnapshot | null;
-  /** Legacy fallback markdown (используется только если snapshot=null). */
-  legacyMarkdown: string;
+  recommendations: Recommendation[];
+  count: number;
+  analysisId: string | null;
 }
 
-interface PrescriptionDb {
+interface Prescription {
   id: string;
   prescription: string;
   reason: string | null;
-  effect: string | null;
+  effect: string;
   control_date: string;
   status: "on_review" | "confirmed";
 }
 
-// =============================================================================
+type SectionType = 'patient-data' | 'summary' | string;
+
 
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
   const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
-  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } =
-    useDemoMode();
-
-  const [reports, setReports] = useState<ReportEntry[]>([]);
+  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [reports, setReports] = useState<RecommendationReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<ReportEntry | null>(null);
-  const [selectedPrescriptions, setSelectedPrescriptions] = useState<PrescriptionDb[]>([]);
+  const [selectedReport, setSelectedReport] = useState<RecommendationReport | null>(null);
+  const [selectedPrescriptions, setSelectedPrescriptions] = useState<Prescription[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [webBiomarkers, setWebBiomarkers] = useState<PdfBiomarkerData[]>([]);
   const [patientAge, setPatientAge] = useState(40);
-  const [patientGender, setPatientGender] = useState<"male" | "female">("male");
+  const [patientGender, setPatientGender] = useState<'male' | 'female'>('male');
   const [biomarkersLoading, setBiomarkersLoading] = useState(false);
-
   const navigate = useNavigate();
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
-
-  // ---------------------------------------------------------------------------
+  const toSlug = (s: string) =>
+    s
+      .toLowerCase()
+      .trim()
+      .replace(/[^\p{L}\p{N}]+/gu, "-")
+      .replace(/^-+|-+$/g, "");
 
   useEffect(() => {
-    if (demoMode && demoLoading) return;
-    loadReports();
+    if (demoMode && demoLoading) {
+      return;
+    }
+    loadRecommendations();
   }, [demoMode, demoLoading]);
 
-  /**
-   * Превращает один анализ-ключ + список строк recommendations в ReportEntry.
-   * Если есть строка с content_json — используем её snapshot.
-   * Иначе склеиваем все text-поля в legacyMarkdown.
-   */
-  function rowsToEntry(
-    analysisId: string | null,
-    date: string,
-    status: "on_review" | "processed" | null,
-    rows: RecommendationRow[],
-  ): ReportEntry {
-    // 1) Ищем строку с валидным snapshot
-    const snapshotRow = rows.find((r) => r.content_json);
-    let snapshot: ReportSnapshot | null = null;
-    if (snapshotRow?.content_json) {
-      const parsed = parseReportSnapshot(snapshotRow.content_json);
-      if (parsed.ok) snapshot = parsed.snapshot;
-    }
-
-    // 2) Legacy fallback: склеиваем text-поля в стабильном порядке
-    const sortOrder: Record<string, number> = {
-      "Данные пациента": 0,
-      "Общее резюме": 1,
-      snapshot: 2,
-    };
-    const legacyMarkdown = rows
-      .slice()
-      .sort((a, b) => {
-        const ao = sortOrder[a.type] ?? 100;
-        const bo = sortOrder[b.type] ?? 100;
-        if (ao !== bo) return ao - bo;
-        return a.type.localeCompare(b.type);
-      })
-      .map((r) => `## ${r.type}\n\n${r.text || ""}`)
-      .join("\n\n---\n\n");
-
-    return {
-      analysisId,
-      date,
-      status,
-      rowIds: rows.map((r) => r.id),
-      snapshot,
-      legacyMarkdown,
-    };
-  }
-
-  const loadReports = async () => {
+  const loadRecommendations = async () => {
     if (demoMode) {
       if (!demoData) {
+        console.error("Demo mode active but demo data not loaded");
         setLoading(false);
         return;
       }
-      // Группируем демо-recs по analysis_index в синтетические "анализы"
-      const grouped: Record<string, any[]> = {};
-      demoData.recommendations.forEach((r: any) => {
-        const idx = r.analysis_index ?? 0;
-        (grouped[idx] ||= []).push(r);
-      });
-      const demoReports: ReportEntry[] = Object.entries(grouped)
-        .map(([idxStr, recs]) => {
-          const idx = parseInt(idxStr);
-          const analysis = demoData.analyses[idx];
-          if (!analysis) return null;
-          const rows: RecommendationRow[] = recs.map((r: any, i: number) => ({
-            id: `demo-rec-${idx}-${i}`,
+      
+      // Group recommendations by analysis_index
+      const groupedByAnalysis = demoData.recommendations.reduce((acc: any, r: any) => {
+        const analysisIndex = r.analysis_index ?? 0;
+        if (!acc[analysisIndex]) {
+          acc[analysisIndex] = [];
+        }
+        acc[analysisIndex].push(r);
+        return acc;
+      }, {});
+      
+      // Create separate reports for each analysis
+      const demoReports = Object.entries(groupedByAnalysis)
+        .map(([analysisIndexStr, recs]: [string, any]) => {
+          const analysisIndex = parseInt(analysisIndexStr);
+          const analysis = demoData.analyses[analysisIndex];
+          
+          if (!analysis) {
+            console.warn(`Analysis not found for index ${analysisIndex}`);
+            return null;
+          }
+          
+          const recommendations = recs.map((r: any, idx: number) => ({
+            id: `demo-rec-${analysisIndex}-${idx}`,
             type: r.type,
             text: r.text,
-            content_json: r.content_json,
             created_at: analysis.date,
+            analysis_date: analysis.date,
+            analysis_status: "processed" as const,
+            analysis_id: `demo-analysis-${analysisIndex}`
           }));
-          return rowsToEntry(
-            `demo-analysis-${idx}`,
-            analysis.date,
-            "processed",
-            rows,
-          );
+          
+          return {
+            date: analysis.date,
+            recommendations,
+            count: recommendations.length,
+            analysisId: `demo-analysis-${analysisIndex}`
+          };
         })
-        .filter(Boolean) as ReportEntry[];
-      demoReports.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      );
+        .filter(Boolean) as RecommendationReport[];
+      
+      // Sort by date descending (newest first)
+      demoReports.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      // Flatten all recommendations for the recommendations state
+      const allDemoRecommendations = demoReports.flatMap(report => report.recommendations);
+      
+      setRecommendations(allDemoRecommendations);
       setReports(demoReports);
       setLoading(false);
       return;
@@ -214,44 +172,47 @@ export default function Recommendations() {
 
       const { data, error } = await supabase
         .from("recommendations")
-        .select(
-          `id, type, text, content_json, created_at, analysis_id,
-           analyses!recommendations_analysis_id_fkey(date, status)`,
-        )
+        .select(`
+          *,
+          analyses!recommendations_analysis_id_fkey(date, status)
+        `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      // Группируем по analysis_id; для записей без analysis_id ключ по дате created_at.
-      const grouped = new Map<
-        string,
-        { analysisId: string | null; date: string; status: any; rows: RecommendationRow[] }
-      >();
-      (data || []).forEach((rec: any) => {
-        const analysisId: string | null = rec.analysis_id || null;
-        const date: string = rec.analyses?.date || rec.created_at;
-        const status = rec.analyses?.status || null;
-        const key = analysisId || `_d:${format(new Date(date), "yyyy-MM-dd")}`;
-        if (!grouped.has(key)) {
-          grouped.set(key, { analysisId, date, status, rows: [] });
+      
+      // Преобразуем данные, добавляя analysis_date и status
+      const transformedData = (data || []).map(rec => ({
+        ...rec,
+        analysis_date: rec.analyses?.date || null,
+        analysis_status: rec.analyses?.status || null,
+        analysis_id: rec.analysis_id || null
+      }));
+      
+      setRecommendations(transformedData);
+      
+      // Группировка по дате анализа (или created_at если анализа нет)
+      const grouped = transformedData.reduce((acc, rec) => {
+        const date = rec.analysis_date 
+          ? format(new Date(rec.analysis_date), "yyyy-MM-dd")
+          : format(new Date(rec.created_at), "yyyy-MM-dd");
+        if (!acc[date]) {
+          acc[date] = [];
         }
-        grouped.get(key)!.rows.push({
-          id: rec.id,
-          type: rec.type,
-          text: rec.text || "",
-          content_json: rec.content_json,
-          created_at: rec.created_at,
-        });
-      });
+        acc[date].push(rec);
+        return acc;
+      }, {} as Record<string, Recommendation[]>);
 
-      const entries: ReportEntry[] = Array.from(grouped.values())
-        .map((g) => rowsToEntry(g.analysisId, g.date, g.status, g.rows))
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const reportsList = Object.entries(grouped).map(([date, recs]) => ({
+        date,
+        recommendations: recs,
+        count: recs.length,
+        analysisId: recs[0]?.analysis_id || null,
+      })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-      setReports(entries);
+      setReports(reportsList);
     } catch (error: any) {
-      console.error("Error loading reports:", error);
+      console.error("Error loading recommendations:", error);
       toast({
         title: "Ошибка",
         description: "Не удалось загрузить отчёты",
@@ -262,55 +223,74 @@ export default function Recommendations() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Биомаркеры + пациент-контекст для рендера
-  // ---------------------------------------------------------------------------
-
+  /**
+   * Pure fetcher: returns biomarker dataset + patient age/gender for the given analysis.
+   * Does NOT touch component state — callers decide whether to push it into state
+   * (for the on-screen view) or just consume it directly (for the PDF export).
+   */
   const fetchReportBiomarkers = async (
     analysisId: string | null,
-  ): Promise<{ biomarkers: PdfBiomarkerData[]; age: number; gender: "male" | "female" }> => {
-    if (!analysisId) return { biomarkers: [], age: 40, gender: "male" };
-
+  ): Promise<{ biomarkers: PdfBiomarkerData[]; age: number; gender: 'male' | 'female' }> => {
+    if (!analysisId) {
+      return { biomarkers: [], age: 40, gender: 'male' };
+    }
     try {
-      // Demo
-      if (demoMode && demoData && analysisId.startsWith("demo-analysis-")) {
-        const analysisIndex = parseInt(analysisId.split("-")[2]) || 0;
+      // --- Demo mode: build biomarkers from demoData + DB metadata ---
+      if (demoMode && demoData && analysisId.startsWith('demo-analysis-')) {
+        const analysisIndex = parseInt(analysisId.split('-')[2]) || 0;
         const age = demoData.profile?.chronological_age || 40;
-        const gender: "male" | "female" =
-          demoData.profile?.gender === "female" ? "female" : "male";
+        const gender: 'male' | 'female' = demoData.profile?.gender === 'female' ? 'female' : 'male';
 
+        // Filter demo biomarkers for this analysis and map codes
         const analysisBiomarkers = demoData.biomarkers
           .filter((b: any) => (b.analysis_index || 0) === analysisIndex)
           .map((b: any) => ({ ...b, code: DEMO_TO_DB_CODE[b.code] || b.code }));
+
         const uniqueCodes = [...new Set(analysisBiomarkers.map((b: any) => b.code))];
+
         const { data: biomarkersMetadata } = await supabase
-          .from("biomarkers").select("*").in("code", uniqueCodes);
+          .from('biomarkers')
+          .select('*')
+          .in('code', uniqueCodes);
+
         const metadataMap = new Map((biomarkersMetadata || []).map((b: any) => [b.code, b]));
+
         const biomarkers = analysisBiomarkers
           .map((b: any) => {
             const meta = metadataMap.get(b.code);
             if (!meta) return null;
             const statusInfo = getBiomarkerStatus(b.value, meta, age, gender);
+            const optMin = gender === 'female' ? (meta.optimal_min_female ?? meta.optimal_min) : (meta.optimal_min_male ?? meta.optimal_min);
+            const optMax = gender === 'female' ? (meta.optimal_max_female ?? meta.optimal_max) : (meta.optimal_max_male ?? meta.optimal_max);
+            const normMin = gender === 'female' ? (meta.normal_min_female ?? meta.normal_min) : (meta.normal_min_male ?? meta.normal_min);
+            const normMax = gender === 'female' ? (meta.normal_max_female ?? meta.normal_max) : (meta.normal_max_male ?? meta.normal_max);
+            const rangeDisplay = optMin != null && optMax != null
+              ? `${optMin}–${optMax}` : normMin != null && normMax != null
+                ? `${normMin}–${normMax}` : "";
             return {
               id: meta.id, name: meta.name, code: meta.code, value: b.value,
               unit: b.unit || meta.unit, category: meta.category,
-              biomarker: meta, status: statusInfo.status,
-              statusLabel: statusInfo.label, rangeDisplay: "",
+              biomarker: meta, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
             };
           })
           .filter(Boolean) as PdfBiomarkerData[];
+
         return { biomarkers, age, gender };
       }
 
-      // Production
+      // --- Production mode: load from DB ---
       let age = 40;
-      let gender: "male" | "female" = "male";
+      let gender: 'male' | 'female' = 'male';
+
       const userId = await getUserId();
       if (userId) {
         const { data: profile } = await supabase
-          .from("profiles").select("birth_date, gender").eq("id", userId).single();
+          .from("profiles")
+          .select("birth_date, gender")
+          .eq("id", userId)
+          .single();
         if (profile) {
-          gender = profile.gender === "female" ? "female" : "male";
+          gender = (profile.gender === 'female') ? 'female' : 'male';
           const birth = new Date(profile.birth_date);
           age = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
         }
@@ -318,32 +298,37 @@ export default function Recommendations() {
 
       const { data: valuesData } = await supabase
         .from("analysis_values")
-        .select(
-          "value, unit_override, biomarker_id, biomarkers!inner(id, name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)",
-        )
+        .select("value, unit_override, biomarker_id, biomarkers!inner(id, name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
         .eq("analysis_id", analysisId);
 
       if (valuesData) {
         const biomarkers = valuesData.map((v: any) => {
           const b = v.biomarkers;
           const statusInfo = getBiomarkerStatus(v.value, b, age, gender);
+          const optMin = gender === 'female' ? (b.optimal_min_female ?? b.optimal_min) : (b.optimal_min_male ?? b.optimal_min);
+          const optMax = gender === 'female' ? (b.optimal_max_female ?? b.optimal_max) : (b.optimal_max_male ?? b.optimal_max);
+          const normMin = gender === 'female' ? (b.normal_min_female ?? b.normal_min) : (b.normal_min_male ?? b.normal_min);
+          const normMax = gender === 'female' ? (b.normal_max_female ?? b.normal_max) : (b.normal_max_male ?? b.normal_max);
+          const rangeDisplay = optMin != null && optMax != null
+            ? `${optMin}–${optMax}` : normMin != null && normMax != null
+              ? `${normMin}–${normMax}` : "";
           return {
             id: v.biomarker_id || b.id,
             name: b.name, code: b.code, value: v.value,
             unit: v.unit_override || b.unit, category: b.category,
-            biomarker: b, status: statusInfo.status,
-            statusLabel: statusInfo.label, rangeDisplay: "",
+            biomarker: b, status: statusInfo.status, statusLabel: statusInfo.label, rangeDisplay,
           };
         });
         return { biomarkers, age, gender };
       }
       return { biomarkers: [], age, gender };
     } catch (error) {
-      console.error("Error loading biomarkers:", error);
-      return { biomarkers: [], age: 40, gender: "male" };
+      console.error("Error loading biomarkers for report:", error);
+      return { biomarkers: [], age: 40, gender: 'male' };
     }
   };
 
+  /** Loads biomarkers for the on-screen viewer (pushes them into component state). */
   const loadBiomarkersForReport = async (analysisId: string | null) => {
     setBiomarkersLoading(true);
     try {
@@ -356,44 +341,49 @@ export default function Recommendations() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Открытие отчёта
-  // ---------------------------------------------------------------------------
-
-  const handleView = async (report: ReportEntry) => {
+  const handleView = async (report: RecommendationReport) => {
     setSelectedReport(report);
     setViewDialogOpen(true);
+    
+    // Load biomarkers for interleaved rendering
     loadBiomarkersForReport(report.analysisId);
-
-    // Назначения
+    
+    // Загружаем назначения для этого анализа
     if (demoMode && demoData?.prescriptions) {
-      const idx = report.analysisId
-        ? parseInt(report.analysisId.split("-")[2])
-        : 0;
-      const filtered = demoData.prescriptions
-        .filter((p: any) => (p.analysis_index ?? 0) === idx)
-        .map((p: any, i: number) => ({
-          id: `demo-presc-${idx}-${i}`,
+      // Extract analysis index from analysisId (format: "demo-analysis-{index}")
+      const analysisIndex = report.analysisId ? parseInt(report.analysisId.split('-')[2]) : 0;
+      
+      // Filter prescriptions for this specific analysis
+      const filteredPrescriptions = demoData.prescriptions
+        .filter((p: any) => (p.analysis_index ?? 0) === analysisIndex)
+        .map((p: any, idx: number) => ({
+          id: `demo-presc-${analysisIndex}-${idx}`,
           prescription: p.prescription,
           reason: p.reason || null,
           effect: p.effect,
           control_date: p.control_date,
-          status: "confirmed" as const,
+          status: "confirmed" as const
         }));
-      setSelectedPrescriptions(filtered);
+      
+      setSelectedPrescriptions(filteredPrescriptions);
     } else if (report.analysisId) {
       try {
         const { data, error } = await supabase
-          .from("prescriptions").select("*")
+          .from("prescriptions")
+          .select("*")
           .eq("analysis_id", report.analysisId)
           .order("created_at", { ascending: true });
+        
         if (error) throw error;
-        const filtered = hasPatientAccess
+        
+        // Фильтруем по статусу: для обычных пользователей только confirmed
+        const filtered = hasPatientAccess 
           ? (data || [])
-          : (data || []).filter((p) => p.status === "confirmed");
-        setSelectedPrescriptions(filtered as any);
-      } catch (e) {
-        console.error("Error loading prescriptions:", e);
+          : (data || []).filter(p => p.status === "confirmed");
+        
+        setSelectedPrescriptions(filtered);
+      } catch (error) {
+        console.error("Error loading prescriptions:", error);
         setSelectedPrescriptions([]);
       }
     } else {
@@ -401,80 +391,58 @@ export default function Recommendations() {
     }
   };
 
-  // Боковая панель содержания
-  const sidebarSections = (() => {
-    if (!selectedReport) return [];
-    if (selectedReport.snapshot) {
-      const anchors = getSnapshotSectionAnchors(selectedReport.snapshot);
-      // если в snapshot есть prescriptions блок — он уже попадёт через section
-      // (мы добавляем prescriptions как именованный блок в renderer);
-      // но если назначений много, добавим отдельную ссылку в конце.
-      const hasPrescriptionsBlock = selectedReport.snapshot.blocks.some(
-        (b) => b.type === "prescriptions",
-      );
-      if (
-        !hasPrescriptionsBlock &&
-        selectedPrescriptions.length > 0
-      ) {
-        anchors.push({ id: "section-prescriptions-extra", label: "Назначения" });
-      }
-      return anchors;
-    }
-    // Legacy
-    return [
-      { id: "section-legacy", label: "Отчёт" },
-      ...(selectedPrescriptions.length > 0
-        ? [{ id: "section-prescriptions-extra", label: "Назначения" }]
-        : []),
-    ];
-  })();
-
   const scrollToSection = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const container = contentRef.current;
-    const target = document.getElementById(sectionId);
+    const target = document.getElementById(`section-${sectionId}`);
     if (container && target) {
-      const offset = target.getBoundingClientRect().top -
-        container.getBoundingClientRect().top + container.scrollTop - 8;
-      container.scrollTo({ top: offset, behavior: "smooth" });
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const offset = targetRect.top - containerRect.top + container.scrollTop - 8;
+      container.scrollTo({ top: offset, behavior: 'smooth' });
     } else if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Fallback if container ref is not available
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Действия с отчётом
-  // ---------------------------------------------------------------------------
-
-  const handleEdit = (report: ReportEntry) => {
+  const handleEdit = (report: RecommendationReport) => {
     setSelectedReport(report);
     setEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (report: ReportEntry) => {
+  const handleDeleteClick = (report: RecommendationReport) => {
     setSelectedReport(report);
     setDeleteDialogOpen(true);
   };
 
   const handleDelete = async () => {
     if (!selectedReport) return;
+    
     setDeleting(true);
     try {
+      const ids = selectedReport.recommendations.map(r => r.id);
       const { error } = await supabase
         .from("recommendations")
         .delete()
-        .in("id", selectedReport.rowIds);
+        .in("id", ids);
+
       if (error) throw error;
-      toast({ title: "Успешно", description: "Отчёт удалён" });
-      await loadReports();
+
+      toast({
+        title: "Успешно",
+        description: "Отчет удален",
+      });
+
+      await loadRecommendations();
       setDeleteDialogOpen(false);
       setSelectedReport(null);
-    } catch (e: any) {
-      console.error("Error deleting report:", e);
+    } catch (error: any) {
+      console.error("Error deleting report:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось удалить отчёт",
+        description: "Не удалось удалить отчет",
         variant: "destructive",
       });
     } finally {
@@ -482,180 +450,202 @@ export default function Recommendations() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Назначения → формат для рендерера (web/PDF)
-  // ---------------------------------------------------------------------------
-
-  const buildPrescriptionRenderItems = (
-    list: PrescriptionDb[],
-    analysisDate: string,
-  ): PrescriptionRenderItem[] => {
-    return list.map((p) => {
-      let durationLabel: string | null = null;
-      if (analysisDate && p.control_date) {
-        const start = new Date(analysisDate);
-        const end = new Date(p.control_date);
-        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-          const months = Math.round(
-            (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30),
-          );
-          durationLabel = `${months} мес.`;
-        }
+  const groupByType = (recommendations: Recommendation[]) => {
+    return recommendations.reduce((acc, rec) => {
+      if (!acc[rec.type]) {
+        acc[rec.type] = [];
       }
-      const controlDateLabel = p.control_date && !isNaN(new Date(p.control_date).getTime())
-        ? format(new Date(p.control_date), "dd.MM.yyyy")
-        : null;
-      return {
-        id: p.id,
-        prescription: p.prescription,
-        reason: p.reason,
-        effect: p.effect,
-        control_date: controlDateLabel,
-        durationLabel,
-      };
-    });
+      acc[rec.type].push(rec);
+      return acc;
+    }, {} as Record<string, Recommendation[]>);
   };
 
-  // ---------------------------------------------------------------------------
-  // PDF export
-  // ---------------------------------------------------------------------------
+  const getSectionLabel = (type: SectionType) => {
+    if (type === 'patient-data') return 'Данные пациента';
+    if (type === 'summary') return 'Общее резюме';
+    return type;
+  };
+
+  // parseInlineMarkdown / cleanMarkdownEscapes / parseMarkdownToPdfMake removed — now in shared pdfExportHelpers
 
   const handleExportPDF = async () => {
     if (!selectedReport) return;
+
     try {
+      // Load cover assets in parallel
       const [bgBase64, logoBase64] = await Promise.all([
         imageToBase64(coverBgUrl),
         imageToBase64(logoLightUrl),
       ]);
 
-      // Имя пациента
-      let patientName = "";
+      // Get patient name
+      let patientName = '';
       const userId = await getUserId();
       if (userId) {
         const { data: profile } = await supabase
-          .from("profiles").select("first_name, last_name").eq("id", userId).single();
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", userId)
+          .single();
         if (profile) {
-          patientName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+          patientName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
         }
       }
 
-      // Биомаркеры (всегда свежие — не из state)
+      const grouped = groupByType(selectedReport.recommendations);
+      const patientData = grouped["Данные пациента"]?.[0];
+      const summary = grouped["Общее резюме"]?.[0];
+      const categories = Object.entries(grouped).filter(([type]) => 
+        type !== "Общее резюме" && type !== "Данные пациента"
+      );
+
+      // Load prescriptions
+      let prescriptions: Prescription[] = [];
+      if (selectedReport.analysisId) {
+        const { data } = await supabase
+          .from("prescriptions")
+          .select("*")
+          .eq("analysis_id", selectedReport.analysisId)
+          .order("created_at", { ascending: true });
+        
+        prescriptions = hasPatientAccess 
+          ? (data || [])
+          : (data || []).filter(p => p.status === "confirmed");
+      }
+
+      // Always fetch fresh biomarkers for the PDF — relying on `webBiomarkers` from
+      // state caused the export to ship empty data (no scales/colors, "0 биомаркеров"
+      // on the cover) when the user opened the dialog and clicked Download before
+      // the async load finished, or when the export is triggered without first
+      // opening the viewer.
       const { biomarkers: pdfBiomarkers, age: pdfAge, gender: pdfGender } =
         await fetchReportBiomarkers(selectedReport.analysisId);
 
-      // Назначения (с актуальной фильтрацией по правам)
-      let prescDb: PrescriptionDb[] = [];
-      if (selectedReport.analysisId && !selectedReport.analysisId.startsWith("demo-")) {
-        const { data } = await supabase
-          .from("prescriptions").select("*")
-          .eq("analysis_id", selectedReport.analysisId)
-          .order("created_at", { ascending: true });
-        prescDb = (hasPatientAccess
-          ? (data || [])
-          : (data || []).filter((p) => p.status === "confirmed")) as any;
-      } else {
-        prescDb = selectedPrescriptions;
-      }
-      const prescItems = buildPrescriptionRenderItems(prescDb, selectedReport.date);
+      // Try to use the structured snapshot for the main body.
+      // When present, it replaces summary + per-system category sections with
+      // a single coherent "Анализ здоровья" section rendered through the unified
+      // snapshotRenderer (UUID-based biomarker matching).
+      const snapshotResult = summary?.content_json
+        ? parseReportSnapshot(summary.content_json)
+        : null;
+      const snapshot: ReportSnapshot | null =
+        snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+
+      // Build sections
+      const sections = [
+        ...(patientData ? [{ 
+          id: 'patient-data', 
+          type: 'patient-data' as SectionType,
+          label: 'Данные пациента', 
+          content: patientData.text 
+        }] : []),
+        ...(snapshot
+          ? [{
+              id: 'snapshot',
+              type: 'snapshot' as SectionType,
+              label: 'Анализ здоровья',
+              content: '', // rendered from snapshot, не из markdown
+            }]
+          : [
+              ...(summary ? [{ 
+                id: 'summary', 
+                type: 'summary' as SectionType,
+                label: 'Общее резюме', 
+                content: summary.text 
+              }] : []),
+              ...categories.flatMap(([type, recs]) => 
+                recs.map((rec, idx) => ({
+                  id: `${toSlug(type)}-${idx}`,
+                  type,
+                  label: `${type}${recs.length > 1 ? ` (${idx + 1})` : ''}`,
+                  content: rec.text
+                }))
+              )
+            ]),
+        ...(prescriptions.length > 0 ? [{
+          id: 'prescriptions',
+          type: 'prescriptions' as SectionType,
+          label: 'Назначения',
+          content: prescriptions.map((p, idx) => 
+            `**${idx + 1}. ${p.prescription}**\n\n*${p.effect}*\n\nДлительность: ${
+              (() => {
+                if (!selectedReport.date || !p.control_date) return "—";
+                const start = new Date(selectedReport.date);
+                const end = new Date(p.control_date);
+                if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
+                const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+                return `${months} мес.`;
+              })()
+            }, Контрольная дата: ${p.control_date && !isNaN(new Date(p.control_date).getTime()) 
+              ? format(new Date(p.control_date), "dd.MM.yyyy")
+              : "—"}`
+          ).join('\n\n---\n\n')
+        }] : []),
+      ];
+
+      const barWidth = 515;
+      const barHeight = 10;
+
+      const buildSectionContent = (section: typeof sections[0]): any[] => {
+        // Snapshot-based body (UUID-binding) — single source of truth.
+        if (section.type === 'snapshot' && snapshot) {
+          return buildSnapshotPdf(snapshot, pdfBiomarkers, barWidth, pdfAge, pdfGender);
+        }
+        // Legacy per-category body (anchor parsing fallback for old reports).
+        const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions' && section.type !== 'snapshot';
+        if (isCategory && pdfBiomarkers.length > 0) {
+          const catBio = pdfBiomarkers.filter(b => b.category === section.type);
+          if (catBio.length > 0) {
+            return buildInterleavedPdf(section.content, catBio, barWidth, barHeight, pdfAge, pdfGender);
+          }
+        }
+        return parseMarkdownToPdfContent(section.content);
+      };
 
       const dateFormatted = selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
         ? format(new Date(selectedReport.date), "dd.MM.yyyy")
-        : "";
-
-      // Содержание (TOC) и тело
-      const tocItems: { label: string }[] = [];
-      const bodyContent: any[] = [];
-
-      if (selectedReport.snapshot) {
-        // Snapshot path — единый источник истины.
-        // TOC = section'ы из snapshot (включая prescriptions, если он встроен).
-        selectedReport.snapshot.blocks.forEach((b) => {
-          if (b.type === "section") {
-            tocItems.push({ label: b.emoji ? `${b.emoji} ${b.title}` : b.title });
-          } else if (b.type === "prescriptions") {
-            tocItems.push({ label: b.title || "Назначения" });
-          }
-        });
-        // Если snapshot не содержит prescriptions блок, но назначения есть —
-        // добавим их отдельной секцией в конец PDF.
-        const hasPrescBlock = selectedReport.snapshot.blocks.some((b) => b.type === "prescriptions");
-        bodyContent.push(
-          ...buildSnapshotPdf(
-            selectedReport.snapshot,
-            pdfBiomarkers,
-            515,
-            pdfAge,
-            pdfGender,
-            prescItems,
-          ),
-        );
-        if (!hasPrescBlock && prescItems.length > 0) {
-          // Дорисовываем секцию назначений вручную
-          tocItems.push({ label: "Назначения" });
-          const synthSnapshot = {
-            version: 1 as const,
-            blocks: [{ type: "prescriptions" as const, title: "Назначения" }],
-          };
-          bodyContent.push(
-            ...buildSnapshotPdf(synthSnapshot, [], 515, pdfAge, pdfGender, prescItems),
-          );
-        }
-      } else {
-        // Legacy fallback — печатаем накопленный markdown как один блок
-        tocItems.push({ label: "Отчёт" });
-        bodyContent.push({
-          text: "Отчёт",
-          fontSize: 16,
-          bold: true,
-          color: "#1F2937",
-          margin: [0, 0, 0, 12],
-        });
-        bodyContent.push(...parseMarkdownToPdfContent(selectedReport.legacyMarkdown));
-        if (prescItems.length > 0) {
-          tocItems.push({ label: "Назначения" });
-          const synthSnapshot = {
-            version: 1 as const,
-            blocks: [{ type: "prescriptions" as const, title: "Назначения" }],
-          };
-          bodyContent.push(
-            ...buildSnapshotPdf(synthSnapshot, [], 515, pdfAge, pdfGender, prescItems),
-          );
-        }
-      }
+        : '';
 
       const docDefinition: any = {
         content: [
           ...buildCoverPageContent(patientName, dateFormatted, pdfBiomarkers.length, logoBase64),
-          { text: "Содержание", fontSize: 18, bold: true, margin: [0, 0, 0, 14] },
-          ...tocItems.map((t, i) => ({
-            text: `${i + 1}. ${t.label}`,
-            fontSize: 11, margin: [0, 0, 0, 6],
+          { text: 'Содержание', style: 'tocHeader', margin: [0, 0, 0, 15] },
+          ...sections.map((section, idx) => ({
+            text: `${idx + 1}. ${section.label}`,
+            style: 'tocItem', margin: [0, 0, 0, 8]
           })),
-          { text: "", pageBreak: "after" },
-          ...bodyContent,
+          { text: '', pageBreak: 'after' },
+          ...sections.flatMap((section, idx) => [
+            ...(idx > 0 ? [{ text: '', pageBreak: 'before' }] : []),
+            { text: section.label, style: 'sectionHeader', margin: [0, 0, 0, 15] },
+            ...buildSectionContent(section)
+          ])
         ],
         background: buildCoverBackground(bgBase64),
         styles: PDF_STYLES,
-        defaultStyle: { fontSize: 10, lineHeight: 1.4 },
-        pageSize: "A4",
+        pageSize: 'A4',
         pageMargins: [40, 50, 40, 50],
         footer: (currentPage: number) => {
           if (currentPage === 1) return null;
           return {
             text: (currentPage - 1).toString(),
-            alignment: "center", fontSize: 9, margin: [0, 15, 0, 0],
+            alignment: 'center', fontSize: 9, margin: [0, 15, 0, 0]
           };
         },
         info: {
-          title: dateFormatted ? `Отчёт ${dateFormatted}` : "Отчёт",
-          author: "ReAge",
-          subject: "Персональный отчёт",
-        },
+          title: dateFormatted ? `Отчет ${dateFormatted}` : 'Отчет',
+          author: 'ReAge',
+          subject: 'Персональный отчет',
+        }
       };
 
-      const fileName = dateFormatted ? `Отчёт_${dateFormatted}.pdf` : "Отчёт.pdf";
+      const fileName = dateFormatted ? `Отчет_${dateFormatted}.pdf` : 'Отчет.pdf';
       pdfMake.createPdf(docDefinition).download(fileName);
-      toast({ title: "Успешно", description: "PDF файл загружен" });
+      
+      toast({
+        title: "Успешно",
+        description: "PDF файл загружен",
+      });
     } catch (error) {
       console.error("Error exporting PDF:", error);
       toast({
@@ -666,13 +656,9 @@ export default function Recommendations() {
     }
   };
 
-  // ---------------------------------------------------------------------------
-
-  if (loading) return <RecommendationsSkeleton />;
-
-  const prescItemsForView = selectedReport
-    ? buildPrescriptionRenderItems(selectedPrescriptions, selectedReport.date)
-    : [];
+  if (loading) {
+    return <RecommendationsSkeleton />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -686,249 +672,332 @@ export default function Recommendations() {
         </p>
       </div>
 
-      {reports.length === 0 ? (
-        <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
-          <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-            <div className="relative mb-6">
-              <Brain className="h-20 w-20 text-primary/40" />
-              <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
-              Ваши отчёты скоро появятся здесь
-            </h3>
-            <p className="text-muted-foreground text-center max-w-md leading-relaxed">
-              После добавления и анализа ваших медицинских показателей,
-              система сгенерирует персональные отчёты для улучшения здоровья.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Дата отчёта</TableHead>
-                <TableHead>Тип</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {reports.map((report) => (
-                <TableRow
-                  key={report.analysisId || report.date}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleView(report)}
-                >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {report.date && !isNaN(new Date(report.date).getTime())
-                        ? format(new Date(report.date), "d MMMM yyyy", { locale: ru })
-                        : "Дата не указана"}
-                      {report.status && (
-                        <AnalysisStatusBadge status={report.status} />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={report.snapshot ? "default" : "secondary"}>
-                      {report.snapshot ? "Структурированный" : "Архивный"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                      {hasPatientAccess && isViewMode && report.analysisId && !report.analysisId.startsWith("demo-") && (
+        {reports.length === 0 ? (
+          <Card className="border-dashed border-2 border-primary/30 bg-card/50 shadow-lg">
+            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+              <div className="relative mb-6">
+                <Brain className="h-20 w-20 text-primary/40" />
+                <Sparkles className="h-8 w-8 text-accent absolute -top-2 -right-2 animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+                Ваши отчёты скоро появятся здесь
+              </h3>
+              <p className="text-muted-foreground text-center max-w-md leading-relaxed">
+                После добавления и анализа ваших медицинских показателей, 
+                система сгенерирует персональные отчёты для улучшения здоровья.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Дата отчета</TableHead>
+                  <TableHead>Разделов</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reports.map((report) => (
+                  <TableRow 
+                    key={report.date} 
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleView(report)}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {report.date && !isNaN(new Date(report.date).getTime()) 
+                          ? format(new Date(report.date), "d MMMM yyyy", { locale: ru })
+                          : "Дата не указана"}
+                        {report.recommendations[0]?.analysis_status && (
+                          <AnalysisStatusBadge status={report.recommendations[0].analysis_status} />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{report.count}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        {hasPatientAccess && isViewMode && report.analysisId && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(report)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleEdit(report)}
+                          onClick={() => handleDeleteClick(report)}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClick(report)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
-
-      {/* View Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-0 overflow-hidden">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Персональный отчёт</DialogTitle>
-            <DialogDescription>Детальный анализ здоровья</DialogDescription>
-          </DialogHeader>
-          {selectedReport && (
-            <div className="flex h-full min-h-0">
-              {/* Sidebar */}
-              <div className="w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex flex-col min-h-0 overflow-hidden">
-                <div className="p-6 border-b border-border flex-shrink-0">
-                  <h3 className="font-semibold text-lg bg-gradient-primary bg-clip-text text-transparent">
-                    Содержание
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
-                      ? format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })
-                      : "Дата не указана"}
-                  </p>
-                </div>
-                <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
-                  <nav className="space-y-1">
-                    {sidebarSections.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={(e) => scrollToSection(s.id, e)}
-                        className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group hover:bg-accent text-muted-foreground hover:text-foreground"
-                      >
-                        <span className="text-sm font-medium flex-1 line-clamp-2">
-                          {s.label}
-                        </span>
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                <div className="px-8 py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex items-center justify-between">
-                  <div>
-                    <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                      Персональный отчёт
-                    </DialogTitle>
-                    <DialogDescription className="mt-2">
-                      Детальный анализ здоровья
-                    </DialogDescription>
-                  </div>
-                  <button
-                    onClick={handleExportPDF}
-                    className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Скачать PDF
-                  </button>
-                </div>
-
-                <div className="flex-1 min-h-0 overflow-y-auto px-8 py-6" ref={contentRef}>
-                  <div id="report-content" className="max-w-4xl">
-                    {biomarkersLoading && selectedReport.snapshot ? (
-                      <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
-                        <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-                        <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                        <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
                       </div>
-                    ) : selectedReport.snapshot ? (
-                      // Snapshot path
-                      <>
-                        {renderSnapshotWeb(
-                          selectedReport.snapshot,
-                          webBiomarkers,
-                          patientAge,
-                          patientGender,
-                          prescItemsForView,
-                        )}
-                        {/* Если snapshot не содержит prescriptions блок, но они есть — */}
-                        {/* отрисуем их отдельно */}
-                        {prescItemsForView.length > 0 &&
-                          !selectedReport.snapshot.blocks.some((b) => b.type === "prescriptions") && (
-                            <div id="section-prescriptions-extra" className="pt-6 scroll-mt-6 space-y-4 mt-8">
-                              <div>
-                                <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                                  Назначения
-                                </h2>
-                                <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
+
+        {/* View Dialog */}
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-0 overflow-hidden">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Персональный отчет</DialogTitle>
+              <DialogDescription>Детальный анализ здоровья</DialogDescription>
+            </DialogHeader>
+            {selectedReport && (() => {
+              const grouped = groupByType(selectedReport.recommendations);
+              const patientData = grouped["Данные пациента"]?.[0];
+              const summary = grouped["Общее резюме"]?.[0];
+              const categories = Object.entries(grouped).filter(([type]) => 
+                type !== "Общее резюме" && type !== "Данные пациента"
+              );
+
+              // Try to extract a structured ReportSnapshot from the summary recommendation.
+              // If valid, the entire body (summary + per-system blocks) is rendered through
+              // the unified snapshotRenderer; the legacy category fallback is used otherwise.
+              const snapshotResult = summary?.content_json
+                ? parseReportSnapshot(summary.content_json)
+                : null;
+              const snapshot: ReportSnapshot | null =
+                snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+
+              const sections = [
+                ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
+                ...(snapshot
+                  ? snapshot.blocks
+                      .map((b, i) => b.type === 'section' ? { id: `snapshot-section-${i}`, label: b.title } : null)
+                      .filter((s): s is { id: string; label: string } => s !== null)
+                  : [
+                      ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
+                      ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+                    ]),
+                ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
+              ];
+
+              return (
+                <div className="flex h-full min-h-0">
+                  {/* Mini Sidebar */}
+                  <div className="w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex flex-col min-h-0 overflow-hidden">
+                    <div className="p-6 border-b border-border flex-shrink-0">
+                      <h3 className="font-semibold text-lg bg-gradient-primary bg-clip-text text-transparent">
+                        Содержание
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
+                          ? format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })
+                          : "Дата не указана"}
+                      </p>
+                    </div>
+                    
+                    <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
+                      <nav className="space-y-1">
+                        {sections.map((section) => (
+                          <button
+                            key={section.id}
+                            type="button"
+                            onClick={(e) => scrollToSection(section.id, e)}
+                            className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group hover:bg-accent text-muted-foreground hover:text-foreground"
+                          >
+                            <span className="text-sm font-medium flex-1 line-clamp-2">
+                              {section.label}
+                            </span>
+                          </button>
+                        ))}
+                      </nav>
+                    </div>
+                  </div>
+
+                  {/* Content Area */}
+                  <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
+                    <div className="px-8 py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex items-center justify-between">
+                      <div>
+                        <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                          Персональный отчет
+                        </DialogTitle>
+                        <DialogDescription className="mt-2">
+                          Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
+                        </DialogDescription>
+                      </div>
+                      <button
+                        onClick={handleExportPDF}
+                        className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Скачать PDF
+                      </button>
+                    </div>
+
+                    <div className="flex-1 min-h-0 overflow-y-auto px-8 py-6" ref={contentRef}>
+                      <div id="report-content" className="space-y-12 max-w-4xl">
+                        {patientData && (
+                          <div id="section-patient-data" className="scroll-mt-6">
+                            <div className="prose prose-sm max-w-none">
+                              <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 shadow-sm">
+                                <MarkdownContent content={cleanMarkdownArtifacts(patientData.text)} />
                               </div>
-                              {/* Простой повтор отрисовки блока — используем тот же snapshotRenderer */}
-                              {renderSnapshotWeb(
-                                {
-                                  version: 1,
-                                  blocks: [{ type: "prescriptions", title: "Назначения" }],
-                                } as ReportSnapshot,
-                                [],
-                                patientAge,
-                                patientGender,
-                                prescItemsForView,
-                              )}
                             </div>
-                          )}
-                      </>
-                    ) : (
-                      // Legacy fallback
-                      <div id="section-legacy" className="space-y-4 scroll-mt-6">
-                        <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3 text-sm text-amber-900 dark:text-amber-200">
-                          Это архивный отчёт без структуры. Для интерактивного отображения
-                          с карточками биомаркеров пересоздайте отчёт.
-                        </div>
-                        <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm">
-                          <MarkdownContent content={selectedReport.legacyMarkdown} />
-                        </div>
-                        {prescItemsForView.length > 0 && (
-                          <div id="section-prescriptions-extra" className="pt-6 scroll-mt-6">
-                            {renderSnapshotWeb(
-                              {
-                                version: 1,
-                                blocks: [{ type: "prescriptions", title: "Назначения" }],
-                              } as ReportSnapshot,
-                              [],
-                              patientAge,
-                              patientGender,
-                              prescItemsForView,
+                          </div>
+                        )}
+
+                        {snapshot ? (
+                          // Unified snapshot rendering — single source of truth.
+                          // Все блоки (section/summary/biomarker/text/spacer) идут одним
+                          // потоком, биомаркеры привязаны по UUID.
+                          biomarkersLoading ? (
+                            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
+                              <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                              <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                              <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
+                            </div>
+                          ) : (
+                            <div id="snapshot-root" className="prose prose-sm max-w-none">
+                              {renderSnapshotWeb(snapshot, webBiomarkers, patientAge, patientGender)}
+                            </div>
+                          )
+                        ) : (
+                          <>
+                            {summary && (
+                              <div id="section-summary" className="scroll-mt-6">
+                                <div className="prose prose-sm max-w-none">
+                                  <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
+                                    <MarkdownContent content={cleanMarkdownArtifacts(summary.text)} />
+                                  </div>
+                                </div>
+                              </div>
                             )}
+
+                            {categories.map(([type, recs]) => (
+                              <div key={type} id={`section-${toSlug(type)}`} className="scroll-mt-6">
+                                <div className="space-y-4">
+                                  <div className="mb-6">
+                                    <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                      {type}
+                                    </h2>
+                                    <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                                  </div>
+                                  {biomarkersLoading ? (
+                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
+                                      <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+                                      <div className="h-4 w-full bg-muted animate-pulse rounded" />
+                                      <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
+                                    </div>
+                                  ) : (
+                                    recs.map((rec) => (
+                                      <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                        {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+
+                        {selectedPrescriptions.length > 0 && (
+                          <div id="section-prescriptions" className="scroll-mt-6">
+                            <div className="mb-6">
+                              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                                Назначения
+                              </h2>
+                              <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                            </div>
+                            <div className="space-y-4">
+                              {selectedPrescriptions.map((prescription, idx) => (
+                                <div key={prescription.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                  <div className="flex items-start justify-between gap-4 mb-3">
+                                    <h3 className="font-semibold text-lg flex-1">
+                                      {idx + 1}. {prescription.prescription}
+                                    </h3>
+                                    <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
+                                      {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
+                                    </Badge>
+                                  </div>
+                                  {prescription.reason && (
+                                    <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
+                                      <span className="text-primary mt-0.5">📊</span>
+                                      <p className="text-sm text-foreground leading-relaxed">
+                                        <span className="font-medium">Причина:</span> {prescription.reason}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {prescription.effect && (
+                                    <p className="text-sm text-muted-foreground mb-3 italic">
+                                      {prescription.effect}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <span>
+                                      Длительность: {(() => {
+                                        if (!selectedReport?.date || !prescription.control_date) return "—";
+                                        const start = new Date(selectedReport.date);
+                                        const end = new Date(prescription.control_date);
+                                        if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
+                                        const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+                                        return `${months} мес.`;
+                                      })()}
+                                    </span>
+                                    <span>•</span>
+                                    <span>
+                                      Контрольная дата: {prescription.control_date && !isNaN(new Date(prescription.control_date).getTime())
+                                        ? format(new Date(prescription.control_date), "dd.MM.yyyy")
+                                        : "—"}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
 
-      {/* Edit Report Dialog */}
-      {selectedReport?.analysisId && !selectedReport.analysisId.startsWith("demo-") && (
-        <EditReportDialog
-          analysisId={selectedReport.analysisId}
-          analysisStatus={selectedReport.status || "on_review"}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          onStatusChange={loadReports}
-        />
-      )}
+        {/* Edit Report Dialog */}
+        {selectedReport?.analysisId && (
+          <EditReportDialog
+            analysisId={selectedReport.analysisId}
+            analysisStatus={selectedReport.recommendations[0]?.analysis_status || "on_review"}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onStatusChange={loadRecommendations}
+          />
+        )}
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Удалить отчёт?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Это действие нельзя отменить. Все данные отчёта за эту дату будут удалены навсегда.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Удаление..." : "Удалить"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Удалить отчет?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Это действие нельзя отменить. Все данные отчёта за эту дату будут удалены навсегда.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? "Удаление..." : "Удалить"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
   );
 }

@@ -1,42 +1,24 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, AlertTriangle } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Loader2, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.bubble.css';
+import { marked } from 'marked';
+import TurndownService from 'turndown';
 import { format } from "date-fns";
 import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
-import {
-  parseReportSnapshot,
-  type ReportSnapshot,
-} from "@/lib/reportSnapshot";
-import {
-  snapshotToMarkdown,
-  markdownToSnapshot,
-} from "@/lib/snapshotMarkdown";
-import { renderSnapshotWeb } from "@/lib/snapshotRenderer";
-import type { PdfBiomarkerData } from "@/lib/pdfExportHelpers";
-import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 
-interface SnapshotRow {
+interface Recommendation {
   id: string;
-  content_json: ReportSnapshot;
+  type: string;
+  text: string;
+  originalMarkdown?: string;
 }
 
 interface Prescription {
@@ -56,39 +38,23 @@ interface EditReportDialogProps {
   onStatusChange?: () => void;
 }
 
-export function EditReportDialog({
-  analysisId,
+export function EditReportDialog({ 
+  analysisId, 
   analysisStatus: initialStatus,
-  open,
+  open, 
   onOpenChange,
-  onStatusChange,
+  onStatusChange 
 }: EditReportDialogProps) {
-  const [snapshotRow, setSnapshotRow] = useState<SnapshotRow | null>(null);
-  const [markdown, setMarkdown] = useState<string>("");
-  const [parseError, setParseError] = useState<string | null>(null);
+  const [sections, setSections] = useState<Recommendation[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [editPrescriptionDialogOpen, setEditPrescriptionDialogOpen] =
-    useState(false);
-  const [selectedPrescription, setSelectedPrescription] =
-    useState<Prescription | null>(null);
-  const [analysisStatus, setAnalysisStatus] =
-    useState<"on_review" | "processed">(initialStatus);
-  const [selectedStatus, setSelectedStatus] =
-    useState<"on_review" | "processed">(initialStatus);
+  const [editPrescriptionDialogOpen, setEditPrescriptionDialogOpen] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
+  const [selectedStatus, setSelectedStatus] = useState<"on_review" | "processed">(initialStatus);
+  const [selectedSection, setSelectedSection] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [biomarkers, setBiomarkers] = useState<PdfBiomarkerData[]>([]);
-  const [patientAge, setPatientAge] = useState(40);
-  const [patientGender, setPatientGender] = useState<"male" | "female">("male");
   const { toast } = useToast();
-
-  // Live preview snapshot — пересобираем из текущего markdown
-  const previewSnapshot = useMemo(() => {
-    if (!snapshotRow) return null;
-    const parsed = markdownToSnapshot(markdown, snapshotRow.content_json);
-    if (!parsed.ok) return null;
-    return parsed.snapshot;
-  }, [markdown, snapshotRow]);
 
   useEffect(() => {
     setAnalysisStatus(initialStatus);
@@ -97,71 +63,10 @@ export function EditReportDialog({
 
   useEffect(() => {
     if (open) {
-      loadSnapshot();
+      loadRecommendations();
       loadPrescriptions();
-      loadBiomarkers();
     }
   }, [open, analysisId]);
-
-  const loadBiomarkers = async () => {
-    try {
-      let age = 40;
-      let gender: "male" | "female" = "male";
-      const { data: analysis } = await supabase
-        .from("analyses")
-        .select("user_id")
-        .eq("id", analysisId)
-        .maybeSingle();
-      if (analysis?.user_id) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("birth_date, gender")
-          .eq("id", analysis.user_id)
-          .maybeSingle();
-        if (profile) {
-          gender = profile.gender === "female" ? "female" : "male";
-          if (profile.birth_date) {
-            const birth = new Date(profile.birth_date);
-            age = Math.floor(
-              (Date.now() - birth.getTime()) /
-                (365.25 * 24 * 60 * 60 * 1000),
-            );
-          }
-        }
-      }
-      setPatientAge(age);
-      setPatientGender(gender);
-
-      const { data: valuesData } = await supabase
-        .from("analysis_values")
-        .select(
-          "value, unit_override, biomarker_id, biomarkers!inner(id, name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)",
-        )
-        .eq("analysis_id", analysisId);
-
-      if (valuesData) {
-        const list = valuesData.map((v: any) => {
-          const b = v.biomarkers;
-          const statusInfo = getBiomarkerStatus(v.value, b, age, gender);
-          return {
-            id: v.biomarker_id || b.id,
-            name: b.name,
-            code: b.code,
-            value: v.value,
-            unit: v.unit_override || b.unit,
-            category: b.category,
-            biomarker: b,
-            status: statusInfo.status,
-            statusLabel: statusInfo.label,
-            rangeDisplay: "",
-          } as PdfBiomarkerData;
-        });
-        setBiomarkers(list);
-      }
-    } catch (e) {
-      console.error("loadBiomarkers failed", e);
-    }
-  };
 
   const loadPrescriptions = async () => {
     try {
@@ -170,50 +75,54 @@ export function EditReportDialog({
         .select("*")
         .eq("analysis_id", analysisId)
         .order("created_at", { ascending: true });
+
       if (error) throw error;
-      setPrescriptions((data ?? []) as Prescription[]);
+      setPrescriptions(data || []);
     } catch (error: any) {
       console.error("Error loading prescriptions:", error);
     }
   };
 
-  const loadSnapshot = async () => {
+  const loadRecommendations = async () => {
     setLoading(true);
-    setParseError(null);
     try {
       const { data, error } = await supabase
         .from("recommendations")
-        .select("id, content_json, type")
+        .select("*")
         .eq("analysis_id", analysisId)
-        .eq("type", "snapshot")
-        .maybeSingle();
+        .order("type");
 
       if (error) throw error;
-
-      if (!data || !data.content_json) {
-        setSnapshotRow(null);
-        setMarkdown("");
-        setParseError(
-          "У этого анализа ещё нет snapshot-отчёта (старый формат или отчёт не сгенерирован).",
-        );
-        return;
-      }
-
-      const parsed = parseReportSnapshot(data.content_json);
-      if (parsed.ok === true) {
-        setSnapshotRow({ id: data.id, content_json: parsed.snapshot });
-        setMarkdown(snapshotToMarkdown(parsed.snapshot));
-      } else {
-        setSnapshotRow(null);
-        setMarkdown("");
-        setParseError(
-          `Ошибка валидации snapshot: ${(parsed as { error: string }).error}`,
-        );
-        return;
+      
+      // Конвертируем markdown в HTML для редактора (очищаем артефакты перед парсингом)
+      const sectionsWithHtml = (data || []).map(section => ({
+        ...section,
+        originalMarkdown: section.text,
+        text: marked.parse(
+          cleanMarkdownArtifacts(section.text).replace(/^(?:\t| {4,})(?=\*\*)/gm, '')
+        ) as string
+      }));
+      
+      // Сортируем разделы в правильном порядке
+      const sortOrder: Record<string, number> = {
+        "Данные пациента": 0,
+        "Общее резюме": 1,
+      };
+      
+      const sorted = sectionsWithHtml.sort((a, b) => {
+        const aOrder = sortOrder[a.type] ?? 100;
+        const bOrder = sortOrder[b.type] ?? 100;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.type.localeCompare(b.type);
+      });
+      
+      setSections(sorted);
+      if (sorted.length > 0) {
+        setSelectedSection(sorted[0].type);
       }
     } catch (error: any) {
       toast({
-        title: "Ошибка загрузки",
+        title: "Ошибка",
         description: error.message,
         variant: "destructive",
       });
@@ -222,50 +131,55 @@ export function EditReportDialog({
     }
   };
 
+  const updateSection = (id: string, newText: string) => {
+    setSections(prev => prev.map(section => 
+      section.id === id ? { ...section, text: newText } : section
+    ));
+  };
+
   const handleSaveChanges = async () => {
-    if (!snapshotRow) return;
     setSaving(true);
     try {
-      const parsed = markdownToSnapshot(markdown, snapshotRow.content_json);
-      if (parsed.ok !== true) {
-        toast({
-          title: "Не удалось распарсить markdown",
-          description: (parsed as { error: string }).error,
-          variant: "destructive",
-        });
-        setSaving(false);
-        return;
+      // Конвертируем HTML обратно в markdown перед сохранением
+      const turndownService = new TurndownService({
+        headingStyle: 'atx',
+        codeBlockStyle: 'fenced'
+      });
+      
+      // Save each section individually
+      for (const section of sections) {
+        const markdownText = turndownService.turndown(section.text);
+        
+        const { error } = await supabase
+          .from("recommendations")
+          .update({ text: markdownText })
+          .eq("id", section.id);
+
+        if (error) throw error;
       }
 
-      const { error } = await supabase
-        .from("recommendations")
-        .update({ content_json: parsed.snapshot as any })
-        .eq("id", snapshotRow.id);
-      if (error) throw error;
-
-      // Статус
+      // Сохраняем статус анализа, если он изменился
       if (selectedStatus !== analysisStatus) {
         const { error: statusError } = await supabase
           .from("analyses")
           .update({ status: selectedStatus })
           .eq("id", analysisId);
+
         if (statusError) throw statusError;
+
         setAnalysisStatus(selectedStatus);
         onStatusChange?.();
       }
 
-      setSnapshotRow({ ...snapshotRow, content_json: parsed.snapshot });
-
       toast({
-        title: "Сохранено",
-        description:
-          selectedStatus !== analysisStatus
-            ? "Snapshot и статус обновлены"
-            : "Snapshot обновлён",
+        title: "Успешно!",
+        description: selectedStatus !== analysisStatus 
+          ? "Изменения и статус сохранены" 
+          : "Изменения сохранены",
       });
     } catch (error: any) {
       toast({
-        title: "Ошибка сохранения",
+        title: "Ошибка",
         description: error.message,
         variant: "destructive",
       });
@@ -280,13 +194,17 @@ export function EditReportDialog({
         .from("prescriptions")
         .update({ status: "confirmed" })
         .eq("id", prescriptionId);
+
       if (error) throw error;
-      setPrescriptions((prev) =>
-        prev.map((p) =>
-          p.id === prescriptionId ? { ...p, status: "confirmed" as const } : p,
-        ),
-      );
-      toast({ title: "Назначение подтверждено" });
+
+      setPrescriptions(prev => prev.map(p => 
+        p.id === prescriptionId ? { ...p, status: "confirmed" as const } : p
+      ));
+
+      toast({
+        title: "Успешно",
+        description: "Назначение подтверждено",
+      });
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -296,34 +214,67 @@ export function EditReportDialog({
     }
   };
 
+  const handleEditPrescription = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setEditPrescriptionDialogOpen(true);
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-7xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
+        <style>{`
+          .quill-editor .ql-editor {
+            font-size: 15px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: normal;
+            max-width: 100%;
+          }
+           .quill-editor .ql-container {
+             width: 100%;
+           }
+          .quill-editor .ql-editor p {
+            margin-bottom: 1em;
+          }
+          .quill-editor .ql-editor h1,
+          .quill-editor .ql-editor h2,
+          .quill-editor .ql-editor h3 {
+            margin-top: 1.5em;
+            margin-bottom: 0.75em;
+            font-weight: 600;
+          }
+          .quill-editor .ql-editor ul,
+          .quill-editor .ql-editor ol {
+            margin-bottom: 1em;
+            padding-left: 1.5em;
+          }
+          .quill-editor .ql-editor li {
+            margin-bottom: 0.5em;
+          }
+          .ql-bubble .ql-tooltip {
+            z-index: 9999;
+          }
+        `}</style>
+        <DialogContent className="max-w-6xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>Редактирование отчёта (Snapshot)</DialogTitle>
-              <Select
-                value={selectedStatus}
-                onValueChange={(value) =>
-                  setSelectedStatus(value as "on_review" | "processed")
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="on_review">На проверке</SelectItem>
-                  <SelectItem value="processed">Подтверждён</SelectItem>
-                </SelectContent>
-              </Select>
+              <DialogTitle>Редактирование отчета</DialogTitle>
+              <div className="flex items-center gap-3">
+                <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="on_review">На проверке</SelectItem>
+                    <SelectItem value="processed">Подтвержден</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogDescription>
-              Редактируйте контент в markdown-полях между маркерами
-              <code className="mx-1 px-1.5 py-0.5 rounded bg-muted text-xs">
-                &lt;!-- block:... --&gt;
-              </code>
-              . Не удаляйте сами маркеры — они задают структуру.
+              Проверьте и отредактируйте AI-сгенерированный отчет. Измените статус на "Подтвержден", чтобы клиент увидел отчет.
             </DialogDescription>
           </DialogHeader>
 
@@ -332,156 +283,105 @@ export function EditReportDialog({
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : parseError ? (
-              <div className="flex items-start gap-3 p-4 rounded-md border border-destructive/40 bg-destructive/5 text-sm">
-                <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-destructive">
-                    Snapshot недоступен
-                  </p>
-                  <p className="text-muted-foreground mt-1">{parseError}</p>
-                </div>
-              </div>
             ) : (
-              <Tabs defaultValue="editor" className="flex-1 flex flex-col min-h-0">
-                <TabsList className="self-start">
-                  <TabsTrigger value="editor">Markdown</TabsTrigger>
-                  <TabsTrigger value="preview">Превью</TabsTrigger>
-                  <TabsTrigger value="prescriptions">
-                    Назначения ({prescriptions.length})
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent
-                  value="editor"
-                  className="flex-1 overflow-hidden mt-3"
-                >
-                  <Textarea
-                    value={markdown}
-                    onChange={(e) => setMarkdown(e.target.value)}
-                    className="font-mono text-sm h-full resize-none"
-                    spellCheck={false}
-                  />
-                </TabsContent>
-
-                <TabsContent
-                  value="preview"
-                  className="flex-1 overflow-auto mt-3 px-4"
-                >
-                  {previewSnapshot ? (
-                    <div className="prose prose-invert max-w-none">
-                      {renderSnapshotWeb(
-                        previewSnapshot,
-                        biomarkers,
-                        patientAge,
-                        patientGender,
-                        prescriptions.map((p) => ({
-                          id: p.id,
-                          prescription: p.prescription,
-                          reason: p.reason,
-                          effect: p.effect,
-                          control_date: p.control_date,
-                        })),
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="shrink-0 mb-4">
+                  <Select value={selectedSection} onValueChange={setSelectedSection}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Выберите раздел" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {sections.map((section) => (
+                        <SelectItem key={section.id} value={section.type}>
+                          {section.type}
+                        </SelectItem>
+                      ))}
+                      {prescriptions.length > 0 && (
+                        <SelectItem value="prescriptions">
+                          Назначения ({prescriptions.length})
+                        </SelectItem>
                       )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-destructive p-4">
-                      Markdown не парсится — проверьте маркеры блоков.
-                    </p>
-                  )}
-                </TabsContent>
-
-                <TabsContent
-                  value="prescriptions"
-                  className="flex-1 overflow-auto mt-3"
-                >
-                  <div className="space-y-4">
-                    {prescriptions.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Нет назначений.
-                      </p>
-                    )}
-                    {prescriptions.map((prescription, idx) => (
-                      <div
-                        key={prescription.id}
-                        className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border"
-                      >
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                          <h3 className="font-semibold text-base flex-1">
-                            {idx + 1}. {prescription.prescription}
-                          </h3>
-                          <Badge
-                            variant={
-                              prescription.status === "confirmed"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {prescription.status === "confirmed"
-                              ? "Подтверждено"
-                              : "На проверке"}
-                          </Badge>
-                        </div>
-                        {prescription.reason && (
-                          <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-                            <span className="text-primary mt-0.5">📊</span>
-                            <p className="text-sm leading-relaxed">
-                              <span className="font-medium">Причина:</span>{" "}
-                              {prescription.reason}
-                            </p>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {selectedSection === "prescriptions" ? (
+                  <div className="flex-1 overflow-auto">
+                    <div className="space-y-4">
+                      {prescriptions.map((prescription, idx) => (
+                        <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <h3 className="font-semibold text-base flex-1">
+                              {idx + 1}. {prescription.prescription}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
+                                {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
+                              </Badge>
+                            </div>
                           </div>
-                        )}
-                        {prescription.effect && (
-                          <p className="text-sm text-muted-foreground mb-3 italic">
-                            {prescription.effect}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between">
-                          {prescription.control_date && (
-                            <span className="text-sm text-muted-foreground">
-                              Контроль:{" "}
-                              {format(
-                                new Date(prescription.control_date),
-                                "dd.MM.yyyy",
-                              )}
-                            </span>
+                          {prescription.reason && (
+                            <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
+                              <span className="text-primary mt-0.5">📊</span>
+                              <p className="text-sm text-foreground leading-relaxed">
+                                <span className="font-medium">Причина:</span> {prescription.reason}
+                              </p>
+                            </div>
                           )}
-                          <div className="flex gap-2 ml-auto">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedPrescription(prescription);
-                                setEditPrescriptionDialogOpen(true);
-                              }}
-                            >
-                              Редактировать
-                            </Button>
-                            {prescription.status !== "confirmed" && (
+                          {prescription.effect && (
+                            <p className="text-sm text-muted-foreground mb-3 italic">
+                              {prescription.effect}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">
+                              Контрольная дата: {format(new Date(prescription.control_date), "dd.MM.yyyy")}
+                            </span>
+                            <div className="flex gap-2">
                               <Button
                                 size="sm"
-                                onClick={() =>
-                                  handleConfirmPrescription(prescription.id)
-                                }
+                                variant="outline"
+                                onClick={() => handleEditPrescription(prescription)}
                               >
-                                <Check className="h-4 w-4 mr-1" />
-                                Подтвердить
+                                Редактировать
                               </Button>
-                            )}
+                              {prescription.status !== "confirmed" && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleConfirmPrescription(prescription.id)}
+                                >
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Подтвердить
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-auto min-h-0">
+                    {sections.filter(s => s.type === selectedSection).map((section) => (
+                      <ReactQuill
+                        key={section.id}
+                        theme="bubble"
+                        value={section.text}
+                        onChange={(text) => updateSection(section.id, text)}
+                        placeholder="Выделите текст для форматирования..."
+                        className="bg-background rounded-md border border-border p-6 h-full quill-editor"
+                      />
                     ))}
                   </div>
-                </TabsContent>
-              </Tabs>
+                )}
+              </div>
             )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
             <Button
               onClick={handleSaveChanges}
-              disabled={saving || loading || !snapshotRow || !previewSnapshot}
+              disabled={saving || loading}
             >
               {saving ? (
                 <>
@@ -489,7 +389,7 @@ export function EditReportDialog({
                   Сохранение...
                 </>
               ) : (
-                "Сохранить snapshot"
+                "Сохранить изменения"
               )}
             </Button>
           </div>
@@ -499,9 +399,11 @@ export function EditReportDialog({
       {selectedPrescription && (
         <EditPrescriptionDialog
           open={editPrescriptionDialogOpen}
-          onOpenChange={(o) => {
-            setEditPrescriptionDialogOpen(o);
-            if (!o) loadPrescriptions();
+          onOpenChange={(open) => {
+            setEditPrescriptionDialogOpen(open);
+            if (!open) {
+              loadPrescriptions();
+            }
           }}
           prescription={selectedPrescription}
         />
