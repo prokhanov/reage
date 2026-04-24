@@ -1115,14 +1115,15 @@ ${globalBiomarkersInstructions}
     // Сериализация для legacy text-поля (только для админ-редактора)
     const summaryText = serializeSnapshotToText(finalSnapshot, biomarkerNameMap);
 
-    // Сохраняем ОДНУ запись типа "Общее резюме" с полным snapshot.
-    // Это и есть единый источник истины для рендера.
+    // Сохраняем ОДНУ запись типа "snapshot" с полным ReportSnapshot.
+    // Это единственная запись recommendations на анализ — единый источник истины.
+    // Поле text хранит markdown-сериализацию для админ-редактора (back-up view).
     const { data: summaryInserted, error: summaryInsertError } = await supabase
       .from("recommendations")
       .insert({
         user_id: analysis.user_id,
         analysis_id: analysisId,
-        type: "Общее резюме",
+        type: "snapshot",
         text: summaryText,
         // @ts-ignore content_json column type may lag
         content_json: finalSnapshot,
