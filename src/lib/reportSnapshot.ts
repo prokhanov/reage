@@ -77,6 +77,20 @@ export const PageBreakBlockSchema = z.object({
   type: z.literal("pagebreak"),
 });
 
+/**
+ * Маркер для вставки секции назначений (prescriptions).
+ * Сами назначения хранятся в таблице `prescriptions` и подгружаются на рендере
+ * по `analysis_id`. Renderer вставляет заголовок + сгруппированные карточки.
+ *
+ * AI НЕ генерирует этот блок — его добавляет edge function в самом конце
+ * snapshot, чтобы prescriptions всегда были последней секцией отчёта.
+ */
+export const PrescriptionsBlockSchema = z.object({
+  type: z.literal("prescriptions"),
+  /** Заголовок секции (по умолчанию "Назначения"). */
+  title: z.string().optional(),
+});
+
 // ─── Объединённый дискриминатор ────────────────────────────────────────────
 
 export const ReportBlockSchema = z.discriminatedUnion("type", [
@@ -86,6 +100,7 @@ export const ReportBlockSchema = z.discriminatedUnion("type", [
   BiomarkerBlockSchema,
   SpacerBlockSchema,
   PageBreakBlockSchema,
+  PrescriptionsBlockSchema,
 ]);
 
 // ─── Корневой snapshot ─────────────────────────────────────────────────────
@@ -113,6 +128,7 @@ export type SummaryBlock = z.infer<typeof SummaryBlockSchema>;
 export type BiomarkerBlock = z.infer<typeof BiomarkerBlockSchema>;
 export type SpacerBlock = z.infer<typeof SpacerBlockSchema>;
 export type PageBreakBlock = z.infer<typeof PageBreakBlockSchema>;
+export type PrescriptionsBlock = z.infer<typeof PrescriptionsBlockSchema>;
 export type ReportBlock = z.infer<typeof ReportBlockSchema>;
 export type ReportSnapshot = z.infer<typeof ReportSnapshotSchema>;
 
@@ -158,11 +174,19 @@ export const REPORT_SNAPSHOT_JSON_SCHEMA = {
         properties: {
           type: {
             type: "string",
-            enum: ["text", "section", "summary", "biomarker", "spacer", "pagebreak"],
+            enum: [
+              "text",
+              "section",
+              "summary",
+              "biomarker",
+              "spacer",
+              "pagebreak",
+              "prescriptions",
+            ],
           },
           // text
           content: { type: "string" },
-          // section
+          // section / prescriptions
           title: { type: "string" },
           emoji: { type: "string" },
           // summary
@@ -178,4 +202,92 @@ export const REPORT_SNAPSHOT_JSON_SCHEMA = {
     },
   },
   required: ["version", "blocks"],
+} as const;
+
+/**
+ * JSON Schema для tool calling одной категории.
+ *
+ * AI получает: список биомаркеров категории (UUID + name + value + status)
+ *   + контекст пациента + промпт категории.
+ * AI возвращает: blocks[] со структурой:
+ *   1. section { title, emoji }              — заголовок категории
+ *   2. summary { content, scope: "category" } — краткое резюме
+ *   3. text     { content }                  — нарратив (опционально)
+ *   4. biomarker { biomarker_id, commentary } — карточка для каждого маркера
+ *   5. text/spacer                            — дополнительные пояснения
+ *
+ * НЕ генерирует: prescriptions, pagebreak, scope:"overall".
+ * Этим занимается edge function на этапе сборки финального snapshot.
+ */
+export const CATEGORY_BLOCKS_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    blocks: {
+      type: "array",
+      minItems: 2,
+      description:
+        "Массив блоков категории. Первым ОБЯЗАТЕЛЬНО идёт section (заголовок), затем summary с scope='category', далее любая комбинация text и biomarker.",
+      items: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            enum: ["text", "section", "summary", "biomarker", "spacer"],
+          },
+          content: {
+            type: "string",
+            description:
+              "Markdown-контент. Для text/summary. Поддерживает заголовки, списки, выделения.",
+          },
+          title: {
+            type: "string",
+            description: "Только для section: название категории.",
+          },
+          emoji: {
+            type: "string",
+            description: "Только для section: эмодзи категории (опционально).",
+          },
+          scope: {
+            type: "string",
+            enum: ["category"],
+            description:
+              "Только для summary в категорийном вызове: должно быть 'category'.",
+          },
+          biomarker_id: {
+            type: "string",
+            description:
+              "Только для biomarker: UUID из переданного списка. Запрещено выдумывать.",
+          },
+          commentary: {
+            type: "string",
+            description:
+              "Только для biomarker: клинический комментарий (markdown). Может быть пустой строкой, если нечего добавить.",
+          },
+          size: {
+            type: "string",
+            enum: ["small", "medium", "large"],
+            description: "Только для spacer.",
+          },
+        },
+        required: ["type"],
+      },
+    },
+  },
+  required: ["blocks"],
+} as const;
+
+/**
+ * JSON Schema для финального overall-summary вызова.
+ * Возвращает один summary-блок со scope:"overall".
+ */
+export const OVERALL_SUMMARY_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    content: {
+      type: "string",
+      description:
+        "Markdown-резюме всего отчёта. 2-4 абзаца. Без заголовка категорий — только синтез.",
+    },
+  },
+  required: ["content"],
 } as const;
