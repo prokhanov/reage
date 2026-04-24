@@ -397,6 +397,13 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
             const nh = nextHeaderRegex.exec(result);
             sectionEnd = nh ? nh.index! : result.length;
           }
+          // Also stop at the nearest plain-text system heading
+          // (Сильные стороны организма, Рекомендации, и т.п.) — иначе
+          // последний биомаркер заберёт всё содержимое до конца раздела.
+          const sysHeadingPos = findNextSystemHeadingPos(result, cur.end);
+          if (sysHeadingPos !== -1 && sysHeadingPos < sectionEnd) {
+            sectionEnd = sysHeadingPos;
+          }
 
           result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
           if (cur.isHeader) {
