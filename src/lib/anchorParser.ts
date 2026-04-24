@@ -369,9 +369,24 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         sectionEnd = sysHeadingPos;
       }
 
-      // Inject anchors (process in one shot since we do one at a time)
+      // Inject anchors. ВАЖНО: для двух разных кейсов поведение разное:
+      //  (a) plainLineRegex — имя биомаркера на ОТДЕЛЬНОЙ строке ("Гемоглобин (Hb)\n…").
+      //      Здесь строку безопасно удалить и заменить якорем — иначе имя продублируется.
+      //  (b) paragraphLineRegex — имя биомаркера в начале параграфа прозы
+      //      ("Эритроциты, или красные кровяные клетки, играют…"). Здесь удалять строку
+      //      НЕЛЬЗЯ, иначе пропадёт первое слово/предложение описания.
+      //      Якорь ставим ПЕРЕД именем, а сам текст оставляем целиком —
+      //      `stripLeadingBiomarkerName` потом аккуратно срежет дублирующий префикс.
+      const matchedFromPlainLine = result.slice(lineStart, lineEnd).trim().length > 0
+        && plainLineRegex.lastIndex === lineEnd; // plain regex именно сматчил эту позицию
+
       result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
-      result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineEnd);
+      if (matchedFromPlainLine) {
+        result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineEnd);
+      } else {
+        // Paragraph mode: НЕ удаляем строку — только вставляем якорь перед именем.
+        result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineStart);
+      }
     }
   }
 
