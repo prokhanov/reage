@@ -94,13 +94,14 @@ export function EditReportDialog({
 
       if (error) throw error;
       
-      // Конвертируем markdown в HTML для редактора (очищаем артефакты перед парсингом)
+      // Convert markdown to HTML for editor (sanitize first so the editor
+      // never receives leading-tab/4-space indents — markdown would otherwise
+      // turn them into <pre><code> blocks visible as monospace boxes with
+      // horizontal scroll inside the admin UI).
       const sectionsWithHtml = (data || []).map(section => ({
         ...section,
         originalMarkdown: section.text,
-        text: marked.parse(
-          cleanMarkdownArtifacts(section.text).replace(/^(?:\t| {4,})(?=\*\*)/gm, '')
-        ) as string
+        text: marked.parse(cleanMarkdownArtifacts(section.text)) as string
       }));
       
       // Сортируем разделы в правильном порядке
