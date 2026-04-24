@@ -77,6 +77,9 @@ export function EditReportDialog({
     useState<"on_review" | "processed">(initialStatus);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [biomarkers, setBiomarkers] = useState<PdfBiomarkerData[]>([]);
+  const [patientAge, setPatientAge] = useState(40);
+  const [patientGender, setPatientGender] = useState<"male" | "female">("male");
   const { toast } = useToast();
 
   // Live preview snapshot — пересобираем из текущего markdown
