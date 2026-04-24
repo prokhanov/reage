@@ -617,7 +617,21 @@ ${globalBiomarkersInstructions}
     function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
       if (!report || biomarkers.length === 0) return report;
 
-      const normalized = normalizeAnchorTypography(report);
+      let normalized = normalizeAnchorTypography(report);
+
+      // Hard stop for the last biomarker in a category: if the model forgot to emit
+      // biomarker_end before the category synthesis starts, force an explicit boundary
+      // before "Общая оценка системы организма" so the biomarker commentary cannot
+      // absorb the rest of the section.
+      normalized = normalized.replace(
+        /(^|\n)([\s"'`.,;:!?()\[\]\-—–>•]*)(?=(?:#{1,6}\s*)?Общая оценка системы организма\b)/im,
+        (match, prefix, noise) => {
+          const before = `${prefix}${noise ?? ""}`;
+          if (/<!--\s*anchor:biomarker_end\s*-->\s*$/i.test(before)) return match;
+          return `${before}<!-- anchor:biomarker_end -->\n`;
+        }
+      );
+
       const anchoredNormalizedCodes = new Set<string>();
       const anchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
       for (const match of normalized.matchAll(anchorRegex)) {
