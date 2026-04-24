@@ -1330,18 +1330,30 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       // Полностью вычищает ВСЕ варианты тройных backticks: standalone-строки,
       // inline-вхождения с языковым тегом (```markdown, ```json), а также
       // случаи, когда модель оборачивает ответ в ```...``` без новой строки.
-      const stripFences = (s: string): string =>
-        (s || "")
+      // ДОПОЛНИТЕЛЬНО: убирает leading-tab/4-space indent на каждой строке —
+      // markdown иначе превращает такие строки (часто "Ваш уровень X ...") в
+      // <pre><code> блок, что в админке выглядит как моноширинная плашка с
+      // горизонтальным скроллом, а после round-trip через Turndown — как ```.
+      const stripFences = (s: string): string => {
+        if (!s) return "";
+        const noFences = s
           .replace(/\r\n/g, "\n")
-          // Standalone fence lines (с любыми кавычками/пунктуацией вокруг)
           .replace(/^[\s"'`.,;:!?()\[\]\-—–]*`{3,}[a-zA-Z]*[\s"'`.,;:!?()\[\]\-—–]*$/gm, "")
-          // Любые ``` с опциональным языком — где бы они ни встретились
           .replace(/`{3,}[a-zA-Z]*/g, "")
-          // Trim "висящих" одиночных бэктиков по краям
           .replace(/^[\s"'`]+|[\s"'`]+$/g, "")
-          // Свернуть тройные пустые строки, образовавшиеся после удаления fences
-          .replace(/\n{3,}/g, "\n\n")
-          .trim();
+          .replace(/\n{3,}/g, "\n\n");
+        // De-indent: drop leading tabs / 4+ spaces on non-list lines and
+        // collapse runs of 2+ internal spaces (AI's column padding).
+        const deindented = noFences
+          .split("\n")
+          .map((line) => {
+            if (/^\s*([-*+]|\d+\.)\s+/.test(line)) return line;
+            return line.replace(/^(?:\t+| {4,})/, "").replace(/ {2,}/g, " ");
+          })
+          .join("\n");
+        return deindented.trim();
+      };
+
 
       // Маркеры section-заголовков, которые AI часто пишет ВНУТРИ commentary
       // последнего биомаркера (без anchor). Если они встречаются — режем там.
