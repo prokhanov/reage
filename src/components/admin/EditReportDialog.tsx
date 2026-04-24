@@ -1,24 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.bubble.css';
-import { marked } from 'marked';
-import TurndownService from 'turndown';
+import { Loader2, Check, AlertTriangle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
-import { cleanMarkdownArtifacts } from "@/lib/markdown";
+import {
+  parseReportSnapshot,
+  type ReportSnapshot,
+} from "@/lib/reportSnapshot";
+import {
+  snapshotToMarkdown,
+  markdownToSnapshot,
+} from "@/lib/snapshotMarkdown";
+import { renderSnapshotForWeb } from "@/lib/snapshotRenderer";
 
-interface Recommendation {
+interface SnapshotRow {
   id: string;
-  type: string;
-  text: string;
-  originalMarkdown?: string;
+  content_json: ReportSnapshot;
 }
 
 interface Prescription {
@@ -38,23 +54,36 @@ interface EditReportDialogProps {
   onStatusChange?: () => void;
 }
 
-export function EditReportDialog({ 
-  analysisId, 
+export function EditReportDialog({
+  analysisId,
   analysisStatus: initialStatus,
-  open, 
+  open,
   onOpenChange,
-  onStatusChange 
+  onStatusChange,
 }: EditReportDialogProps) {
-  const [sections, setSections] = useState<Recommendation[]>([]);
+  const [snapshotRow, setSnapshotRow] = useState<SnapshotRow | null>(null);
+  const [markdown, setMarkdown] = useState<string>("");
+  const [parseError, setParseError] = useState<string | null>(null);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [editPrescriptionDialogOpen, setEditPrescriptionDialogOpen] = useState(false);
-  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
-  const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
-  const [selectedStatus, setSelectedStatus] = useState<"on_review" | "processed">(initialStatus);
-  const [selectedSection, setSelectedSection] = useState<string>("");
+  const [editPrescriptionDialogOpen, setEditPrescriptionDialogOpen] =
+    useState(false);
+  const [selectedPrescription, setSelectedPrescription] =
+    useState<Prescription | null>(null);
+  const [analysisStatus, setAnalysisStatus] =
+    useState<"on_review" | "processed">(initialStatus);
+  const [selectedStatus, setSelectedStatus] =
+    useState<"on_review" | "processed">(initialStatus);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+
+  // Live preview snapshot — пересобираем из текущего markdown
+  const previewSnapshot = useMemo(() => {
+    if (!snapshotRow) return null;
+    const parsed = markdownToSnapshot(markdown, snapshotRow.content_json);
+    if (!parsed.ok) return null;
+    return parsed.snapshot;
+  }, [markdown, snapshotRow]);
 
   useEffect(() => {
     setAnalysisStatus(initialStatus);
@@ -63,7 +92,7 @@ export function EditReportDialog({
 
   useEffect(() => {
     if (open) {
-      loadRecommendations();
+      loadSnapshot();
       loadPrescriptions();
     }
   }, [open, analysisId]);
@@ -75,54 +104,48 @@ export function EditReportDialog({
         .select("*")
         .eq("analysis_id", analysisId)
         .order("created_at", { ascending: true });
-
       if (error) throw error;
-      setPrescriptions(data || []);
+      setPrescriptions((data ?? []) as Prescription[]);
     } catch (error: any) {
       console.error("Error loading prescriptions:", error);
     }
   };
 
-  const loadRecommendations = async () => {
+  const loadSnapshot = async () => {
     setLoading(true);
+    setParseError(null);
     try {
       const { data, error } = await supabase
         .from("recommendations")
-        .select("*")
+        .select("id, content_json, type")
         .eq("analysis_id", analysisId)
-        .order("type");
+        .eq("type", "snapshot")
+        .maybeSingle();
 
       if (error) throw error;
-      
-      // Конвертируем markdown в HTML для редактора (очищаем артефакты перед парсингом)
-      const sectionsWithHtml = (data || []).map(section => ({
-        ...section,
-        originalMarkdown: section.text,
-        text: marked.parse(
-          cleanMarkdownArtifacts(section.text).replace(/^(?:\t| {4,})(?=\*\*)/gm, '')
-        ) as string
-      }));
-      
-      // Сортируем разделы в правильном порядке
-      const sortOrder: Record<string, number> = {
-        "Данные пациента": 0,
-        "Общее резюме": 1,
-      };
-      
-      const sorted = sectionsWithHtml.sort((a, b) => {
-        const aOrder = sortOrder[a.type] ?? 100;
-        const bOrder = sortOrder[b.type] ?? 100;
-        if (aOrder !== bOrder) return aOrder - bOrder;
-        return a.type.localeCompare(b.type);
-      });
-      
-      setSections(sorted);
-      if (sorted.length > 0) {
-        setSelectedSection(sorted[0].type);
+
+      if (!data || !data.content_json) {
+        setSnapshotRow(null);
+        setMarkdown("");
+        setParseError(
+          "У этого анализа ещё нет snapshot-отчёта (старый формат или отчёт не сгенерирован).",
+        );
+        return;
       }
+
+      const parsed = parseReportSnapshot(data.content_json);
+      if (!parsed.ok) {
+        setSnapshotRow(null);
+        setMarkdown("");
+        setParseError(`Ошибка валидации snapshot: ${parsed.error}`);
+        return;
+      }
+
+      setSnapshotRow({ id: data.id, content_json: parsed.snapshot });
+      setMarkdown(snapshotToMarkdown(parsed.snapshot));
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Ошибка загрузки",
         description: error.message,
         variant: "destructive",
       });
@@ -131,55 +154,50 @@ export function EditReportDialog({
     }
   };
 
-  const updateSection = (id: string, newText: string) => {
-    setSections(prev => prev.map(section => 
-      section.id === id ? { ...section, text: newText } : section
-    ));
-  };
-
   const handleSaveChanges = async () => {
+    if (!snapshotRow) return;
     setSaving(true);
     try {
-      // Конвертируем HTML обратно в markdown перед сохранением
-      const turndownService = new TurndownService({
-        headingStyle: 'atx',
-        codeBlockStyle: 'fenced'
-      });
-      
-      // Save each section individually
-      for (const section of sections) {
-        const markdownText = turndownService.turndown(section.text);
-        
-        const { error } = await supabase
-          .from("recommendations")
-          .update({ text: markdownText })
-          .eq("id", section.id);
-
-        if (error) throw error;
+      const parsed = markdownToSnapshot(markdown, snapshotRow.content_json);
+      if (!parsed.ok) {
+        toast({
+          title: "Не удалось распарсить markdown",
+          description: parsed.error,
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
       }
 
-      // Сохраняем статус анализа, если он изменился
+      const { error } = await supabase
+        .from("recommendations")
+        .update({ content_json: parsed.snapshot as any })
+        .eq("id", snapshotRow.id);
+      if (error) throw error;
+
+      // Статус
       if (selectedStatus !== analysisStatus) {
         const { error: statusError } = await supabase
           .from("analyses")
           .update({ status: selectedStatus })
           .eq("id", analysisId);
-
         if (statusError) throw statusError;
-
         setAnalysisStatus(selectedStatus);
         onStatusChange?.();
       }
 
+      setSnapshotRow({ ...snapshotRow, content_json: parsed.snapshot });
+
       toast({
-        title: "Успешно!",
-        description: selectedStatus !== analysisStatus 
-          ? "Изменения и статус сохранены" 
-          : "Изменения сохранены",
+        title: "Сохранено",
+        description:
+          selectedStatus !== analysisStatus
+            ? "Snapshot и статус обновлены"
+            : "Snapshot обновлён",
       });
     } catch (error: any) {
       toast({
-        title: "Ошибка",
+        title: "Ошибка сохранения",
         description: error.message,
         variant: "destructive",
       });
@@ -194,17 +212,13 @@ export function EditReportDialog({
         .from("prescriptions")
         .update({ status: "confirmed" })
         .eq("id", prescriptionId);
-
       if (error) throw error;
-
-      setPrescriptions(prev => prev.map(p => 
-        p.id === prescriptionId ? { ...p, status: "confirmed" as const } : p
-      ));
-
-      toast({
-        title: "Успешно",
-        description: "Назначение подтверждено",
-      });
+      setPrescriptions((prev) =>
+        prev.map((p) =>
+          p.id === prescriptionId ? { ...p, status: "confirmed" as const } : p,
+        ),
+      );
+      toast({ title: "Назначение подтверждено" });
     } catch (error: any) {
       toast({
         title: "Ошибка",
@@ -214,67 +228,34 @@ export function EditReportDialog({
     }
   };
 
-  const handleEditPrescription = (prescription: Prescription) => {
-    setSelectedPrescription(prescription);
-    setEditPrescriptionDialogOpen(true);
-  };
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <style>{`
-          .quill-editor .ql-editor {
-            font-size: 15px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-            white-space: normal;
-            max-width: 100%;
-          }
-           .quill-editor .ql-container {
-             width: 100%;
-           }
-          .quill-editor .ql-editor p {
-            margin-bottom: 1em;
-          }
-          .quill-editor .ql-editor h1,
-          .quill-editor .ql-editor h2,
-          .quill-editor .ql-editor h3 {
-            margin-top: 1.5em;
-            margin-bottom: 0.75em;
-            font-weight: 600;
-          }
-          .quill-editor .ql-editor ul,
-          .quill-editor .ql-editor ol {
-            margin-bottom: 1em;
-            padding-left: 1.5em;
-          }
-          .quill-editor .ql-editor li {
-            margin-bottom: 0.5em;
-          }
-          .ql-bubble .ql-tooltip {
-            z-index: 9999;
-          }
-        `}</style>
-        <DialogContent className="max-w-6xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
+        <DialogContent className="max-w-7xl max-h-[95vh] w-full h-full overflow-hidden flex flex-col">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>Редактирование отчета</DialogTitle>
-              <div className="flex items-center gap-3">
-                <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="on_review">На проверке</SelectItem>
-                    <SelectItem value="processed">Подтвержден</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <DialogTitle>Редактирование отчёта (Snapshot)</DialogTitle>
+              <Select
+                value={selectedStatus}
+                onValueChange={(value) =>
+                  setSelectedStatus(value as "on_review" | "processed")
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="on_review">На проверке</SelectItem>
+                  <SelectItem value="processed">Подтверждён</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <DialogDescription>
-              Проверьте и отредактируйте AI-сгенерированный отчет. Измените статус на "Подтвержден", чтобы клиент увидел отчет.
+              Редактируйте контент в markdown-полях между маркерами
+              <code className="mx-1 px-1.5 py-0.5 rounded bg-muted text-xs">
+                &lt;!-- block:... --&gt;
+              </code>
+              . Не удаляйте сами маркеры — они задают структуру.
             </DialogDescription>
           </DialogHeader>
 
@@ -283,105 +264,145 @@ export function EditReportDialog({
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : (
-              <div className="flex-1 overflow-hidden flex flex-col">
-                <div className="shrink-0 mb-4">
-                  <Select value={selectedSection} onValueChange={setSelectedSection}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Выберите раздел" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background z-50">
-                      {sections.map((section) => (
-                        <SelectItem key={section.id} value={section.type}>
-                          {section.type}
-                        </SelectItem>
-                      ))}
-                      {prescriptions.length > 0 && (
-                        <SelectItem value="prescriptions">
-                          Назначения ({prescriptions.length})
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
+            ) : parseError ? (
+              <div className="flex items-start gap-3 p-4 rounded-md border border-destructive/40 bg-destructive/5 text-sm">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-destructive">
+                    Snapshot недоступен
+                  </p>
+                  <p className="text-muted-foreground mt-1">{parseError}</p>
                 </div>
-                
-                {selectedSection === "prescriptions" ? (
-                  <div className="flex-1 overflow-auto">
-                    <div className="space-y-4">
-                      {prescriptions.map((prescription, idx) => (
-                        <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
-                          <div className="flex items-start justify-between gap-4 mb-3">
-                            <h3 className="font-semibold text-base flex-1">
-                              {idx + 1}. {prescription.prescription}
-                            </h3>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
-                                {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
-                              </Badge>
-                            </div>
-                          </div>
-                          {prescription.reason && (
-                            <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-                              <span className="text-primary mt-0.5">📊</span>
-                              <p className="text-sm text-foreground leading-relaxed">
-                                <span className="font-medium">Причина:</span> {prescription.reason}
-                              </p>
-                            </div>
-                          )}
-                          {prescription.effect && (
-                            <p className="text-sm text-muted-foreground mb-3 italic">
-                              {prescription.effect}
+              </div>
+            ) : (
+              <Tabs defaultValue="editor" className="flex-1 flex flex-col min-h-0">
+                <TabsList className="self-start">
+                  <TabsTrigger value="editor">Markdown</TabsTrigger>
+                  <TabsTrigger value="preview">Превью</TabsTrigger>
+                  <TabsTrigger value="prescriptions">
+                    Назначения ({prescriptions.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent
+                  value="editor"
+                  className="flex-1 overflow-hidden mt-3"
+                >
+                  <Textarea
+                    value={markdown}
+                    onChange={(e) => setMarkdown(e.target.value)}
+                    className="font-mono text-sm h-full resize-none"
+                    spellCheck={false}
+                  />
+                </TabsContent>
+
+                <TabsContent
+                  value="preview"
+                  className="flex-1 overflow-auto mt-3 px-4"
+                >
+                  {previewSnapshot ? (
+                    renderSnapshotForWeb(previewSnapshot, {
+                      analysisId,
+                      prescriptions: prescriptions as any,
+                    })
+                  ) : (
+                    <p className="text-sm text-destructive p-4">
+                      Markdown не парсится — проверьте маркеры блоков.
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent
+                  value="prescriptions"
+                  className="flex-1 overflow-auto mt-3"
+                >
+                  <div className="space-y-4">
+                    {prescriptions.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Нет назначений.
+                      </p>
+                    )}
+                    {prescriptions.map((prescription, idx) => (
+                      <div
+                        key={prescription.id}
+                        className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border"
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <h3 className="font-semibold text-base flex-1">
+                            {idx + 1}. {prescription.prescription}
+                          </h3>
+                          <Badge
+                            variant={
+                              prescription.status === "confirmed"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {prescription.status === "confirmed"
+                              ? "Подтверждено"
+                              : "На проверке"}
+                          </Badge>
+                        </div>
+                        {prescription.reason && (
+                          <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
+                            <span className="text-primary mt-0.5">📊</span>
+                            <p className="text-sm leading-relaxed">
+                              <span className="font-medium">Причина:</span>{" "}
+                              {prescription.reason}
                             </p>
-                          )}
-                          <div className="flex items-center justify-between">
+                          </div>
+                        )}
+                        {prescription.effect && (
+                          <p className="text-sm text-muted-foreground mb-3 italic">
+                            {prescription.effect}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          {prescription.control_date && (
                             <span className="text-sm text-muted-foreground">
-                              Контрольная дата: {format(new Date(prescription.control_date), "dd.MM.yyyy")}
+                              Контроль:{" "}
+                              {format(
+                                new Date(prescription.control_date),
+                                "dd.MM.yyyy",
+                              )}
                             </span>
-                            <div className="flex gap-2">
+                          )}
+                          <div className="flex gap-2 ml-auto">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedPrescription(prescription);
+                                setEditPrescriptionDialogOpen(true);
+                              }}
+                            >
+                              Редактировать
+                            </Button>
+                            {prescription.status !== "confirmed" && (
                               <Button
                                 size="sm"
-                                variant="outline"
-                                onClick={() => handleEditPrescription(prescription)}
+                                onClick={() =>
+                                  handleConfirmPrescription(prescription.id)
+                                }
                               >
-                                Редактировать
+                                <Check className="h-4 w-4 mr-1" />
+                                Подтвердить
                               </Button>
-                              {prescription.status !== "confirmed" && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleConfirmPrescription(prescription.id)}
-                                >
-                                  <Check className="h-4 w-4 mr-1" />
-                                  Подтвердить
-                                </Button>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 overflow-auto min-h-0">
-                    {sections.filter(s => s.type === selectedSection).map((section) => (
-                      <ReactQuill
-                        key={section.id}
-                        theme="bubble"
-                        value={section.text}
-                        onChange={(text) => updateSection(section.id, text)}
-                        placeholder="Выделите текст для форматирования..."
-                        className="bg-background rounded-md border border-border p-6 h-full quill-editor"
-                      />
+                      </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </TabsContent>
+              </Tabs>
             )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
             <Button
               onClick={handleSaveChanges}
-              disabled={saving || loading}
+              disabled={saving || loading || !snapshotRow || !previewSnapshot}
             >
               {saving ? (
                 <>
@@ -389,7 +410,7 @@ export function EditReportDialog({
                   Сохранение...
                 </>
               ) : (
-                "Сохранить изменения"
+                "Сохранить snapshot"
               )}
             </Button>
           </div>
@@ -399,11 +420,9 @@ export function EditReportDialog({
       {selectedPrescription && (
         <EditPrescriptionDialog
           open={editPrescriptionDialogOpen}
-          onOpenChange={(open) => {
-            setEditPrescriptionDialogOpen(open);
-            if (!open) {
-              loadPrescriptions();
-            }
+          onOpenChange={(o) => {
+            setEditPrescriptionDialogOpen(o);
+            if (!o) loadPrescriptions();
           }}
           prescription={selectedPrescription}
         />
