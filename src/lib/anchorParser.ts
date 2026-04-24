@@ -330,8 +330,10 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       if (hasBiomarkerAnchor(result, code)) continue;
       const plainLineRegex = buildStandaloneBiomarkerLineRegex(name, code);
       const paragraphLineRegex = buildLeadingBiomarkerParagraphRegex(name, code);
-      const match = plainLineRegex.exec(result) || paragraphLineRegex.exec(result);
+      const plainMatch = plainLineRegex.exec(result);
+      const match = plainMatch || paragraphLineRegex.exec(result);
       if (!match) continue;
+      const matchedFromPlain = !!plainMatch;
 
       const lineStart = match.index!;
       const lineEnd = lineStart + match[0].length;
