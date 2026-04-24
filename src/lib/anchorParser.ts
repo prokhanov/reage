@@ -313,8 +313,14 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     const escapedName = escapeRegex(name);
     const escapedCode = escapeRegex(code);
 
+    // Allow the biomarker name to be followed by ANY non-letter character
+    // (comma, dash, colon, parenthesis, period, whitespace, end of line),
+    // so paragraphs like "Эритроциты, или красные кровяные клетки..." are
+    // detected as a biomarker block. We also avoid matching mid-word names
+    // by using a negative look-behind on letters (no preceding letter chars
+    // are possible since we anchor on line start with optional whitespace).
     return new RegExp(
-      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?(?=\\s|$).+$`,
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?(?=[^A-Za-zА-Яа-яЁё0-9]|$).+$`,
       'gm'
     );
   };
