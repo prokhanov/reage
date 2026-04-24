@@ -330,10 +330,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       if (hasBiomarkerAnchor(result, code)) continue;
       const plainLineRegex = buildStandaloneBiomarkerLineRegex(name, code);
       const paragraphLineRegex = buildLeadingBiomarkerParagraphRegex(name, code);
-      const plainMatch = plainLineRegex.exec(result);
-      const match = plainMatch || paragraphLineRegex.exec(result);
+      const match = plainLineRegex.exec(result) || paragraphLineRegex.exec(result);
       if (!match) continue;
-      const matchedFromPlain = !!plainMatch;
 
       const lineStart = match.index!;
       const lineEnd = lineStart + match[0].length;
@@ -371,21 +369,9 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         sectionEnd = sysHeadingPos;
       }
 
-      // Inject anchors. ВАЖНО: для двух разных кейсов поведение разное:
-      //  (a) plainLineRegex — имя биомаркера на ОТДЕЛЬНОЙ строке ("Гемоглобин (Hb)\n…").
-      //      Здесь строку безопасно удалить и заменить якорем — иначе имя продублируется.
-      //  (b) paragraphLineRegex — имя биомаркера в начале параграфа прозы
-      //      ("Эритроциты, или красные кровяные клетки, играют…"). Здесь удалять строку
-      //      НЕЛЬЗЯ, иначе пропадёт первое слово/предложение описания.
-      //      Якорь ставим ПЕРЕД именем, а сам текст оставляем целиком —
-      //      `stripLeadingBiomarkerName` потом аккуратно срежет дублирующий префикс.
+      // Inject anchors (process in one shot since we do one at a time)
       result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
-      if (matchedFromPlain) {
-        result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineEnd);
-      } else {
-        // Paragraph mode: НЕ удаляем строку — только вставляем якорь перед именем.
-        result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineStart);
-      }
+      result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineEnd);
     }
   }
 
@@ -501,18 +487,11 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
 // ═══ Helpers ═══
 
 /**
- * Strip a duplicated biomarker heading from the start of the block.
+ * Strip ONLY a standalone duplicated biomarker heading from the start of the block.
  *
- * Handles two cases:
- *   1) Standalone heading line: "Гемоглобин (Hb)" / "Эритроциты" — full line is removed.
- *   2) Inline duplicate at start of prose: "Гемоглобин — это белок…", "Гемоглобин (Hb): белок…",
- *      "Гемоглобин это белок…", "Гемоглобин представляет собой…" — only the leading name
- *      (plus optional code in parens and the connector — / – / - / : / «это» / «представляет собой»
- *      / «является») is removed; the remaining sentence is preserved and capitalized.
- *
- * IMPORTANT: do NOT remove anything when the name is the SUBJECT of the sentence,
- * e.g. "Эритроциты, или красные кровяные клетки, играют ключевую роль…" —
- * a comma after the name signals real prose, not a duplicated heading.
+ * Important: do not remove leading prose like
+ * "Липопротеины низкой плотности (LDL), часто называемые..."
+ * because that's a valid sentence, not a duplicate heading.
  */
 function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames: string[] = []): string {
   if (!content) return content;
@@ -527,47 +506,22 @@ function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames
     .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
     .sort((a, b) => b.length - a.length);
 
-  // Case 1: standalone heading line ("Гемоглобин (Hb)" / "Эритроциты:" etc.)
-  const standalonePatterns = [
+  const isDuplicateHeading = [
     new RegExp(`^\\*{0,2}[^\\n]*\\(${escapedCode}\\)\\*{0,2}:?$`, 'i'),
     ...escapedNames.map(
       (name) => new RegExp(`^\\*{0,2}${name}(?:\\s*\\(${escapedCode}\\))?\\*{0,2}:?$`, 'i')
     ),
-  ];
-  if (standalonePatterns.some((pattern) => pattern.test(firstLine))) {
+  ].some((pattern) => pattern.test(firstLine));
+
+  if (!isDuplicateHeading) return content;
+
+  lines.splice(firstNonEmptyIndex, 1);
+  while (lines[firstNonEmptyIndex] !== undefined && lines[firstNonEmptyIndex].trim() === '') {
     lines.splice(firstNonEmptyIndex, 1);
-    while (lines[firstNonEmptyIndex] !== undefined && lines[firstNonEmptyIndex].trim() === '') {
-      lines.splice(firstNonEmptyIndex, 1);
-    }
-    const cleaned = lines.join('\n').trim();
-    return cleaned || content;
   }
 
-  // Case 2: inline duplicate at the start of prose. Allowed connectors after the name:
-  //   "—", "–", "-", ":", "это", "—это", "представляет собой", "является", "это белок", etc.
-  // We capture: optional **bold**, name, optional (CODE), optional comma-separated alias is
-  // explicitly NOT allowed (a comma signals the name is the subject of a real sentence).
-  if (escapedNames.length > 0) {
-    const nameAlt = escapedNames.join('|');
-    const inlineRegex = new RegExp(
-      `^\\*{0,2}(?:${nameAlt})(?:\\s*\\(${escapedCode}\\))?\\*{0,2}` +
-        `\\s*(?:[—–\\-:]\\s*(?:это\\s+|представляет\\s+собой\\s+|является\\s+)?|` +
-        `(?:это|представляет\\s+собой|является)\\s+)`,
-      'i',
-    );
-    const m = inlineRegex.exec(firstLine);
-    if (m) {
-      let rest = firstLine.slice(m[0].length).trim();
-      if (rest.length > 0) {
-        // Capitalize first letter so the sentence reads naturally.
-        rest = rest.charAt(0).toUpperCase() + rest.slice(1);
-        lines[firstNonEmptyIndex] = rest;
-        return lines.join('\n').trim();
-      }
-    }
-  }
-
-  return content;
+  const cleaned = lines.join('\n').trim();
+  return cleaned || content;
 }
 
 function findEndTagPos(text: string, endTagName: string, afterPos: number): { start: number; end: number } {

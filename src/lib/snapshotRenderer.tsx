@@ -34,15 +34,7 @@ import {
 const COMMENTARY_OVERFLOW_REGEX =
   /^[\s"'`.,;:!?()\[\]\-—–>•]*(?:#{1,6}\s*)?(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть|Интерпретация биомаркеров)\b.*$/im;
 
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function sanitizeCommentary(
-  raw: string,
-  bmName?: string,
-  bmCode?: string,
-): string {
+function sanitizeCommentary(raw: string): string {
   if (!raw) return "";
   // 1) Убираем ВСЕ ``` (с языком и без, в любых вариациях)
   let s = raw
@@ -57,43 +49,19 @@ function sanitizeCommentary(
     if (m.index === 0) return "";
     s = s.slice(0, m.index);
   }
-  // 2.5) Удаляем дубликат имени биомаркера в начале commentary.
-  // Поддерживаются два кейса:
-  //   (a) standalone-строка: "Гемоглобин (Hb)" — удаляем целиком.
-  //   (b) inline-дубликат: "Гемоглобин — это белок…" / "Гемоглобин (Hb): белок…" /
-  //       "Гемоглобин это белок…" — оставляем только остаток предложения.
-  // ВАЖНО: НЕ трогаем "Эритроциты, или красные кровяные клетки, играют…" —
-  // запятая после имени означает, что имя является подлежащим, а не дубликатом.
-  const lines = s.split("\n");
+  // 2.5) Drop only a truly duplicated first-line biomarker heading, but keep
+  // normal prose that begins with the biomarker name.
+  const normalized = s.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
   const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0);
   if (firstNonEmptyIndex >= 0) {
     const firstLine = lines[firstNonEmptyIndex].trim();
-    // (a) Standalone — старая логика
     if (/^\*{0,2}[^\n]+\([^)]+\)\*{0,2}:?$/i.test(firstLine)) {
       lines.splice(firstNonEmptyIndex, 1);
       while (lines[firstNonEmptyIndex] !== undefined && lines[firstNonEmptyIndex].trim() === "") {
         lines.splice(firstNonEmptyIndex, 1);
       }
       s = lines.join("\n");
-    } else if (bmName) {
-      // (b) Inline-дубликат с известным именем биомаркера
-      const escapedName = escapeRegex(bmName);
-      const escapedCode = bmCode ? escapeRegex(bmCode) : "[A-Za-zА-Яа-я0-9α-ωΑ-Ω()+\\-_]+";
-      const inlineRegex = new RegExp(
-        `^\\*{0,2}${escapedName}(?:\\s*\\(${escapedCode}\\))?\\*{0,2}` +
-          `\\s*(?:[—–\\-:]\\s*(?:это\\s+|представляет\\s+собой\\s+|является\\s+)?|` +
-          `(?:это|представляет\\s+собой|является)\\s+)`,
-        "i",
-      );
-      const im = inlineRegex.exec(firstLine);
-      if (im) {
-        let rest = firstLine.slice(im[0].length).trim();
-        if (rest.length > 0) {
-          rest = rest.charAt(0).toUpperCase() + rest.slice(1);
-          lines[firstNonEmptyIndex] = rest;
-          s = lines.join("\n");
-        }
-      }
     }
   }
   // 3) Финальная нормализация через общий cleaner
@@ -180,7 +148,7 @@ function renderBlockWeb(
 
     case "biomarker": {
       const bm = byId.get(block.biomarker_id);
-      const cleanCommentary = sanitizeCommentary(block.commentary || "", bm?.name, bm?.code);
+      const cleanCommentary = sanitizeCommentary(block.commentary || "");
       // Без метаданных и без комментария — нечего показывать.
       if (!bm && !cleanCommentary) return null;
 
@@ -297,7 +265,7 @@ export function buildSnapshotPdf(
 
       case "biomarker": {
         const bm = byId.get(block.biomarker_id);
-        const cleanCommentary = sanitizeCommentary(block.commentary || "", bm?.name, bm?.code);
+        const cleanCommentary = sanitizeCommentary(block.commentary || "");
         if (!bm && !cleanCommentary) break;
 
         // 1) Карточка биомаркера (со статусным фоном) — только шкала и значение
