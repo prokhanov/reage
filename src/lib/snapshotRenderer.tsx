@@ -297,7 +297,7 @@ export function buildSnapshotPdf(
 
       case "biomarker": {
         const bm = byId.get(block.biomarker_id);
-        const cleanCommentary = sanitizeCommentary(block.commentary || "");
+        const cleanCommentary = sanitizeCommentary(block.commentary || "", bm?.name, bm?.code);
         if (!bm && !cleanCommentary) break;
 
         // 1) Карточка биомаркера (со статусным фоном) — только шкала и значение
