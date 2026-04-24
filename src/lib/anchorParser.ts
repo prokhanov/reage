@@ -295,6 +295,7 @@ function findNextSystemHeadingPos(text: string, from: number): number {
   return m[1] === '\n' ? m.index + 1 : m.index;
 }
 
+function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
 
   const buildStandaloneBiomarkerLineRegex = (name: string, code: string, includeMarkdownHeaders = false) => {
