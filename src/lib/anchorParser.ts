@@ -277,7 +277,24 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
   return false;
 }
 
-function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
+/**
+ * Возвращает позицию ближайшего системного заголовка категории
+ * (Сильные стороны, Дефициты, Рекомендации, Общая оценка системы организма и т.п.)
+ * после позиции `from`. Используется чтобы корректно отсечь последний биомаркер.
+ * Возвращает -1, если совпадений нет.
+ */
+function findNextSystemHeadingPos(text: string, from: number): number {
+  const re = new RegExp(
+    `(^|\\n)[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b`,
+    'gim',
+  );
+  re.lastIndex = from;
+  const m = re.exec(text);
+  if (!m) return -1;
+  // Если совпало с переводом строки — указываем на начало строки заголовка.
+  return m[1] === '\n' ? m.index + 1 : m.index;
+}
+
   let result = text;
 
   const buildStandaloneBiomarkerLineRegex = (name: string, code: string, includeMarkdownHeaders = false) => {
