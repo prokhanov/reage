@@ -77,6 +77,20 @@ export const PageBreakBlockSchema = z.object({
   type: z.literal("pagebreak"),
 });
 
+/**
+ * Маркер для вставки секции назначений (prescriptions).
+ * Сами назначения хранятся в таблице `prescriptions` и подгружаются на рендере
+ * по `analysis_id`. Renderer вставляет заголовок + сгруппированные карточки.
+ *
+ * AI НЕ генерирует этот блок — его добавляет edge function в самом конце
+ * snapshot, чтобы prescriptions всегда были последней секцией отчёта.
+ */
+export const PrescriptionsBlockSchema = z.object({
+  type: z.literal("prescriptions"),
+  /** Заголовок секции (по умолчанию "Назначения"). */
+  title: z.string().optional(),
+});
+
 // ─── Объединённый дискриминатор ────────────────────────────────────────────
 
 export const ReportBlockSchema = z.discriminatedUnion("type", [
@@ -86,6 +100,7 @@ export const ReportBlockSchema = z.discriminatedUnion("type", [
   BiomarkerBlockSchema,
   SpacerBlockSchema,
   PageBreakBlockSchema,
+  PrescriptionsBlockSchema,
 ]);
 
 // ─── Корневой snapshot ─────────────────────────────────────────────────────
