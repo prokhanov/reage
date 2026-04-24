@@ -136,15 +136,15 @@ export function EditReportDialog({
       }
 
       const parsed = parseReportSnapshot(data.content_json);
-      if (!parsed.ok) {
+      if (parsed.ok) {
+        setSnapshotRow({ id: data.id, content_json: parsed.snapshot });
+        setMarkdown(snapshotToMarkdown(parsed.snapshot));
+      } else {
         setSnapshotRow(null);
         setMarkdown("");
         setParseError(`Ошибка валидации snapshot: ${parsed.error}`);
         return;
       }
-
-      setSnapshotRow({ id: data.id, content_json: parsed.snapshot });
-      setMarkdown(snapshotToMarkdown(parsed.snapshot));
     } catch (error: any) {
       toast({
         title: "Ошибка загрузки",
