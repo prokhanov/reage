@@ -379,11 +379,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       //      НЕЛЬЗЯ, иначе пропадёт первое слово/предложение описания.
       //      Якорь ставим ПЕРЕД именем, а сам текст оставляем целиком —
       //      `stripLeadingBiomarkerName` потом аккуратно срежет дублирующий префикс.
-      const matchedFromPlainLine = result.slice(lineStart, lineEnd).trim().length > 0
-        && plainLineRegex.lastIndex === lineEnd; // plain regex именно сматчил эту позицию
-
       result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
-      if (matchedFromPlainLine) {
+      if (matchedFromPlain) {
         result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineEnd);
       } else {
         // Paragraph mode: НЕ удаляем строку — только вставляем якорь перед именем.
