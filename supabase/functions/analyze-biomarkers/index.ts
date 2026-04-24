@@ -620,16 +620,34 @@ ${globalBiomarkersInstructions}
       let normalized = normalizeAnchorTypography(report);
 
       // Hard stop for the last biomarker in a category: if the model forgot to emit
-      // biomarker_end before the category synthesis starts, force an explicit boundary
-      // before "Общая оценка системы организма" so the biomarker commentary cannot
-      // absorb the rest of the section.
+      // biomarker_end before the next system heading, force an explicit boundary
+      // before ANY known system heading so the biomarker commentary cannot
+      // absorb the rest of the section. Список заголовков должен совпадать
+      // с фронтовым SYSTEM_SECTION_HEADINGS (src/lib/anchorParser.ts).
+      const SYSTEM_HEADINGS_PATTERN = [
+        'Общая оценка системы организма',
+        'Итог по системе',
+        'Сильные стороны организма',
+        'Дефициты и дисфункции',
+        'Зоны внимания',
+        'Системные взаимосвязи',
+        'Рекомендации',
+        'План действий',
+        'Что мешает молодеть',
+        'Интерпретация биомаркеров',
+      ].join('|');
+      const systemHeadingBoundary = new RegExp(
+        `(^|\\n)([\\s"'\`.,;:!?()\\[\\]\\-—–>•]*)(?=(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b)`,
+        'gim',
+      );
       normalized = normalized.replace(
-        /(^|\n)([\s"'`.,;:!?()\[\]\-—–>•]*)(?=(?:#{1,6}\s*)?Общая оценка системы организма\b)/im,
+        systemHeadingBoundary,
         (match, prefix, noise) => {
-          const before = `${prefix}${noise ?? ""}`;
+          const before = `${prefix ?? ''}${noise ?? ''}`;
+          // Если уже есть закрывающий маркер прямо перед заголовком — не дублируем.
           if (/<!--\s*anchor:biomarker_end\s*-->\s*$/i.test(before)) return match;
           return `${before}<!-- anchor:biomarker_end -->\n`;
-        }
+        },
       );
 
       const anchoredNormalizedCodes = new Set<string>();

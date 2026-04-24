@@ -31,15 +31,40 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
   { pattern: /⭐|особенност|feature/i, section: 'features' },
 ];
 
+// Заголовки разделов категории, которые AI часто оставляет ВНУТРИ commentary
+// последнего биомаркера (без anchor:biomarker_end). По ним мы должны
+// принудительно отсекать содержимое биомаркерного блока.
+//
+// ВАЖНО: «Что это значит для вас» — это ВНУТРЕННИЙ подблок биомаркера
+// (см. системные промпты категорий), его НЕ режем как границу.
+export const SYSTEM_SECTION_HEADINGS = [
+  'Общая оценка системы организма',
+  'Итог по системе',
+  'Сильные стороны организма',
+  'Дефициты и дисфункции',
+  'Зоны внимания',
+  'Системные взаимосвязи',
+  'Рекомендации',
+  'План действий',
+  'Что мешает молодеть',
+  'Интерпретация биомаркеров',
+];
+
+const SYSTEM_HEADINGS_PATTERN = SYSTEM_SECTION_HEADINGS
+  .map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  .join('|');
+
 const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
   /^\s*`{3,}.*$/m,
   /^\s*["'` ]*`{3,}["'` ]*$/m,
   /^\s*\\?={3,}.*?={3,}\s*$/m,
   /<!--\s*anchor:\w+_(?:start|end)\s*-->/i,
-  // Match "Общая оценка системы организма" and similar headings even if followed
-  // by extra text on the same line (e.g. system name in quotes:
-  // `Общая оценка системы организма "Сердечно-сосудистая система"`).
-  /^[\s"'`.,;:!?()\[\]\-—–>•]*(?:#{1,6}\s*)?(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе|Что это значит для вас|Рекомендации|План действий|Что мешает молодеть|Интерпретация биомаркеров)\b.*$/im,
+  // Match system section headings even when followed by extra text on the
+  // same line (system name in quotes, punctuation, dashes, etc.).
+  new RegExp(
+    `^[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b.*$`,
+    'im',
+  ),
 ];
 
 function splitLegacyBiomarkerOverflow(content: string): { biomarkerContent: string; overflowContent: string } {
@@ -252,6 +277,24 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
   return false;
 }
 
+/**
+ * Возвращает позицию ближайшего системного заголовка категории
+ * (Сильные стороны, Дефициты, Рекомендации, Общая оценка системы организма и т.п.)
+ * после позиции `from`. Используется чтобы корректно отсечь последний биомаркер.
+ * Возвращает -1, если совпадений нет.
+ */
+function findNextSystemHeadingPos(text: string, from: number): number {
+  const re = new RegExp(
+    `(^|\\n)[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b`,
+    'gim',
+  );
+  re.lastIndex = from;
+  const m = re.exec(text);
+  if (!m) return -1;
+  // Если совпало с переводом строки — указываем на начало строки заголовка.
+  return m[1] === '\n' ? m.index + 1 : m.index;
+}
+
 function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
 
@@ -294,7 +337,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       const lineEnd = lineStart + match[0].length;
 
       // Find end of this biomarker section: next standalone biomarker name,
-      // already-inserted biomarker anchor, or top-level markdown header.
+      // already-inserted biomarker anchor, or top-level markdown header,
+      // or a plain-text system section heading (Сильные стороны, Рекомендации, и т.п.).
       let sectionEnd = result.length;
       for (const [otherName, otherCode] of nameEntries) {
         if (otherName === name) continue;
@@ -318,6 +362,11 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       const nh = nextHeaderRegex.exec(result);
       if (nh && nh.index! < sectionEnd) {
         sectionEnd = nh.index!;
+      }
+
+      const sysHeadingPos = findNextSystemHeadingPos(result, lineEnd);
+      if (sysHeadingPos !== -1 && sysHeadingPos < sectionEnd) {
+        sectionEnd = sysHeadingPos;
       }
 
       // Inject anchors (process in one shot since we do one at a time)
@@ -365,6 +414,13 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
             nextHeaderRegex.lastIndex = cur.end;
             const nh = nextHeaderRegex.exec(result);
             sectionEnd = nh ? nh.index! : result.length;
+          }
+          // Also stop at the nearest plain-text system heading
+          // (Сильные стороны организма, Рекомендации, и т.п.) — иначе
+          // последний биомаркер заберёт всё содержимое до конца раздела.
+          const sysHeadingPos = findNextSystemHeadingPos(result, cur.end);
+          if (sysHeadingPos !== -1 && sysHeadingPos < sectionEnd) {
+            sectionEnd = sysHeadingPos;
           }
 
           result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
