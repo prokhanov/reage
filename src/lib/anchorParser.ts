@@ -354,6 +354,16 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         if (nextMatch && nextMatch.index! < sectionEnd) {
           sectionEnd = nextMatch.index!;
         }
+        // Also detect the next biomarker in leading-paragraph form
+        // ("Эритроциты, или красные кровяные клетки..."). Without this
+        // check, the current biomarker block would absorb the entire
+        // paragraph that introduces the next biomarker.
+        const nextParaRegex = buildLeadingBiomarkerParagraphRegex(otherName, otherCode);
+        nextParaRegex.lastIndex = lineEnd;
+        const nextParaMatch = nextParaRegex.exec(result);
+        if (nextParaMatch && nextParaMatch.index! < sectionEnd) {
+          sectionEnd = nextParaMatch.index!;
+        }
       }
 
       const nextAnchorRegex = /<!--\s*anchor:biomarker\s+([^\n]*?)\s*-->/g;
