@@ -34,8 +34,11 @@ export function cleanMarkdownArtifacts(text: string): string {
   // Strip leftover HTML anchor comments (e.g. "<!-- anchor:biomarker MONO-ABS -->")
   // that the parser couldn't consume — otherwise they leak into the rendered PDF/web.
   // Also strip any other HTML comment that survives.
-  let preprocessed = text
-    .replace(/\r\n/g, "\n")
+  // FIRST: drop any indentation/tabs that markdown would treat as a code block.
+  // Reports are pure prose; AI-generated leading whitespace before phrases like
+  // "Ваш уровень" / "Ваш показатель" otherwise renders as monospace boxes
+  // both in the admin editor (after marked.parse) and in the patient view.
+  let preprocessed = stripIndentedCodeBlocks(text)
     .replace(/<!--\s*anchor:[^\n>]*?-->/gi, "")
     .replace(/<!--[\s\S]*?-->/g, "")
     // Strip stray markdown code-fence delimiters (``` on their own line) — they appear
