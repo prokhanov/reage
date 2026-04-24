@@ -369,10 +369,21 @@ export function EditReportDialog({
                   className="flex-1 overflow-auto mt-3 px-4"
                 >
                   {previewSnapshot ? (
-                    renderSnapshotForWeb(previewSnapshot, {
-                      analysisId,
-                      prescriptions: prescriptions as any,
-                    })
+                    <div className="prose prose-invert max-w-none">
+                      {renderSnapshotWeb(
+                        previewSnapshot,
+                        biomarkers,
+                        patientAge,
+                        patientGender,
+                        prescriptions.map((p) => ({
+                          id: p.id,
+                          prescription: p.prescription,
+                          reason: p.reason,
+                          effect: p.effect,
+                          control_date: p.control_date,
+                        })),
+                      )}
+                    </div>
                   ) : (
                     <p className="text-sm text-destructive p-4">
                       Markdown не парсится — проверьте маркеры блоков.
