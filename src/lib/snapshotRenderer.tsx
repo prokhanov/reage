@@ -47,6 +47,21 @@ function sanitizeCommentary(raw: string): string {
     if (m.index === 0) return "";
     s = s.slice(0, m.index);
   }
+  // 2.5) Drop only a truly duplicated first-line biomarker heading, but keep
+  // normal prose that begins with the biomarker name.
+  const normalized = s.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0);
+  if (firstNonEmptyIndex >= 0) {
+    const firstLine = lines[firstNonEmptyIndex].trim();
+    if (/^\*{0,2}[^\n]+\([^)]+\)\*{0,2}:?$/i.test(firstLine)) {
+      lines.splice(firstNonEmptyIndex, 1);
+      while (lines[firstNonEmptyIndex] !== undefined && lines[firstNonEmptyIndex].trim() === "") {
+        lines.splice(firstNonEmptyIndex, 1);
+      }
+      s = lines.join("\n");
+    }
+  }
   // 3) Финальная нормализация через общий cleaner
   return cleanMarkdownArtifacts(s).trim();
 }

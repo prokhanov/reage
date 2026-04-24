@@ -428,23 +428,41 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
 
 // ═══ Helpers ═══
 
-/** Strip leading redundant biomarker name+code from content (e.g. "• **Название (CODE)** — ...") */
+/**
+ * Strip ONLY a standalone duplicated biomarker heading from the start of the block.
+ *
+ * Important: do not remove leading prose like
+ * "Липопротеины низкой плотности (LDL), часто называемые..."
+ * because that's a valid sentence, not a duplicate heading.
+ */
 function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames: string[] = []): string {
+  if (!content) return content;
+
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
+  const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0);
+  if (firstNonEmptyIndex === -1) return content;
+
+  const firstLine = lines[firstNonEmptyIndex].trim();
   const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const namePattern = biomarkerNames
+  const escapedNames = biomarkerNames
     .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .sort((a, b) => b.length - a.length)
-    .join('|');
+    .sort((a, b) => b.length - a.length);
 
-  const codeHeadingRe = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escapedCode}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
-  const nameHeadingRe = namePattern
-    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\(${escapedCode}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
-    : null;
+  const isDuplicateHeading = [
+    new RegExp(`^\\*{0,2}[^\\n]*\\(${escapedCode}\\)\\*{0,2}:?$`, 'i'),
+    ...escapedNames.map(
+      (name) => new RegExp(`^\\*{0,2}${name}(?:\\s*\\(${escapedCode}\\))?\\*{0,2}:?$`, 'i')
+    ),
+  ].some((pattern) => pattern.test(firstLine));
 
-  const cleaned = content
-    .replace(codeHeadingRe, '')
-    .replace(nameHeadingRe ?? /$^/, '')
-    .trim();
+  if (!isDuplicateHeading) return content;
+
+  lines.splice(firstNonEmptyIndex, 1);
+  while (lines[firstNonEmptyIndex] !== undefined && lines[firstNonEmptyIndex].trim() === '') {
+    lines.splice(firstNonEmptyIndex, 1);
+  }
+
+  const cleaned = lines.join('\n').trim();
   return cleaned || content;
 }
 
