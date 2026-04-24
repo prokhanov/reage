@@ -30,7 +30,9 @@ import {
   snapshotToMarkdown,
   markdownToSnapshot,
 } from "@/lib/snapshotMarkdown";
-import { renderSnapshotForWeb } from "@/lib/snapshotRenderer";
+import { renderSnapshotWeb } from "@/lib/snapshotRenderer";
+import type { PdfBiomarkerData } from "@/lib/pdfExportHelpers";
+import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
 
 interface SnapshotRow {
   id: string;
