@@ -31,15 +31,40 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
   { pattern: /⭐|особенност|feature/i, section: 'features' },
 ];
 
+// Заголовки разделов категории, которые AI часто оставляет ВНУТРИ commentary
+// последнего биомаркера (без anchor:biomarker_end). По ним мы должны
+// принудительно отсекать содержимое биомаркерного блока.
+//
+// ВАЖНО: «Что это значит для вас» — это ВНУТРЕННИЙ подблок биомаркера
+// (см. системные промпты категорий), его НЕ режем как границу.
+export const SYSTEM_SECTION_HEADINGS = [
+  'Общая оценка системы организма',
+  'Итог по системе',
+  'Сильные стороны организма',
+  'Дефициты и дисфункции',
+  'Зоны внимания',
+  'Системные взаимосвязи',
+  'Рекомендации',
+  'План действий',
+  'Что мешает молодеть',
+  'Интерпретация биомаркеров',
+];
+
+const SYSTEM_HEADINGS_PATTERN = SYSTEM_SECTION_HEADINGS
+  .map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  .join('|');
+
 const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
   /^\s*`{3,}.*$/m,
   /^\s*["'` ]*`{3,}["'` ]*$/m,
   /^\s*\\?={3,}.*?={3,}\s*$/m,
   /<!--\s*anchor:\w+_(?:start|end)\s*-->/i,
-  // Match "Общая оценка системы организма" and similar headings even if followed
-  // by extra text on the same line (e.g. system name in quotes:
-  // `Общая оценка системы организма "Сердечно-сосудистая система"`).
-  /^[\s"'`.,;:!?()\[\]\-—–>•]*(?:#{1,6}\s*)?(?:Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Общая оценка системы организма|Итог по системе|Что это значит для вас|Рекомендации|План действий|Что мешает молодеть|Интерпретация биомаркеров)\b.*$/im,
+  // Match system section headings even when followed by extra text on the
+  // same line (system name in quotes, punctuation, dashes, etc.).
+  new RegExp(
+    `^[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b.*$`,
+    'im',
+  ),
 ];
 
 function splitLegacyBiomarkerOverflow(content: string): { biomarkerContent: string; overflowContent: string } {
