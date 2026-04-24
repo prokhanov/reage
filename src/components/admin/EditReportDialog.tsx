@@ -136,13 +136,15 @@ export function EditReportDialog({
       }
 
       const parsed = parseReportSnapshot(data.content_json);
-      if (parsed.ok) {
+      if (parsed.ok === true) {
         setSnapshotRow({ id: data.id, content_json: parsed.snapshot });
         setMarkdown(snapshotToMarkdown(parsed.snapshot));
       } else {
         setSnapshotRow(null);
         setMarkdown("");
-        setParseError(`Ошибка валидации snapshot: ${parsed.error}`);
+        setParseError(
+          `Ошибка валидации snapshot: ${(parsed as { error: string }).error}`,
+        );
         return;
       }
     } catch (error: any) {
