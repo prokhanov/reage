@@ -54,6 +54,10 @@ const SYSTEM_HEADINGS_PATTERN = SYSTEM_SECTION_HEADINGS
   .map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
   .join('|');
 
+const SYSTEM_HEADING_LEADING_NOISE = `[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*`;
+const SYSTEM_HEADING_OPTIONAL_FORMATTING = `(?:#{1,6}\\s*)?(?:\\*{1,2}|_{1,2})?\\s*`;
+const OVERALL_SYSTEM_ASSESSMENT_PHRASE = 'Общая оценка системы организма';
+
 const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
   /^\s*`{3,}.*$/m,
   /^\s*["'` ]*`{3,}["'` ]*$/m,
@@ -62,7 +66,7 @@ const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
   // Match system section headings even when followed by extra text on the
   // same line (system name in quotes, punctuation, dashes, etc.).
   new RegExp(
-    `^[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b.*$`,
+    `^${SYSTEM_HEADING_LEADING_NOISE}${SYSTEM_HEADING_OPTIONAL_FORMATTING}(?:${SYSTEM_HEADINGS_PATTERN})\\b.*$`,
     'im',
   ),
 ];
@@ -87,6 +91,13 @@ function splitLegacyBiomarkerOverflow(content: string): { biomarkerContent: stri
     // entire payload belongs to the next section, not to the biomarker card.
     if (!match || match.index < 0) continue;
     splitIndex = splitIndex === -1 ? match.index : Math.min(splitIndex, match.index);
+  }
+
+  const overallAssessmentIndex = sanitized.search(
+    new RegExp(`${SYSTEM_HEADING_LEADING_NOISE}(?:\\*{1,2}|_{1,2})?\\s*${escapeRegex(OVERALL_SYSTEM_ASSESSMENT_PHRASE)}\\b`, 'i')
+  );
+  if (overallAssessmentIndex >= 0) {
+    splitIndex = splitIndex === -1 ? overallAssessmentIndex : Math.min(splitIndex, overallAssessmentIndex);
   }
 
   if (splitIndex === -1) {
@@ -285,7 +296,7 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
  */
 function findNextSystemHeadingPos(text: string, from: number): number {
   const re = new RegExp(
-    `(^|\\n)[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b`,
+    `(^|\\n)${SYSTEM_HEADING_LEADING_NOISE}${SYSTEM_HEADING_OPTIONAL_FORMATTING}(?:${SYSTEM_HEADINGS_PATTERN})\\b`,
     'gim',
   );
   re.lastIndex = from;
