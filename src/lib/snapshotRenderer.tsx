@@ -180,7 +180,7 @@ function renderBlockWeb(
 
     case "biomarker": {
       const bm = byId.get(block.biomarker_id);
-      const cleanCommentary = sanitizeCommentary(block.commentary || "");
+      const cleanCommentary = sanitizeCommentary(block.commentary || "", bm?.name, bm?.code);
       // Без метаданных и без комментария — нечего показывать.
       if (!bm && !cleanCommentary) return null;
 
