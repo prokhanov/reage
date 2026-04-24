@@ -1,9 +1,34 @@
 /**
+ * Strip indentation that markdown would interpret as a code block.
+ * Reports never contain real code, so this neutralizes any leading tab/4-space
+ * padding the AI produced and collapses runs of internal "alignment" whitespace.
+ *
+ * List items are preserved (their leading spaces are semantic).
+ */
+export function stripIndentedCodeBlocks(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((line) => {
+      // Preserve list items — their indentation is semantic
+      if (/^\s*([-*+]|\d+\.)\s+/.test(line)) return line;
+      // De-indent any line that would otherwise become a code block
+      const deindented = line.replace(/^(?:\t+| {4,})/, "");
+      // Collapse runs of 2+ internal spaces (AI sometimes pads text to align columns)
+      return deindented.replace(/ {2,}/g, " ");
+    })
+    .join("\n");
+}
+
+/**
  * Cleans markdown artifacts that shouldn't be displayed:
  * - Lone bullet points (•, *, -)
  * - Horizontal rules (---, ***, ___)
  * - Empty list markers
  * - Trailing asterisks used for emphasis that weren't closed
+ * - Triple backticks / fenced code blocks (reports never contain real code)
+ * - Leading 4-space / tab indentation that markdown would treat as code
  */
 export function cleanMarkdownArtifacts(text: string): string {
   // Strip leftover HTML anchor comments (e.g. "<!-- anchor:biomarker MONO-ABS -->")
