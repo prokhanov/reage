@@ -145,17 +145,42 @@ export function EditReportDialog({
         headingStyle: 'atx',
         codeBlockStyle: 'fenced'
       });
-      
+
+      // Определяем, поменялся ли хоть один markdown-текст по сравнению с
+      // тем, что лежит в БД (originalMarkdown). Если да — снимаем JSON snapshot
+      // у "Общее резюме", чтобы рендер ушёл на legacy markdown pipeline и
+      // показывал свежие правки админа. Это сознательный trade-off: мы теряем
+      // UUID-binding визуал в этом отчёте, но гарантируем, что правки видны.
+      let anyContentChanged = false;
+
       // Save each section individually
       for (const section of sections) {
         const markdownText = turndownService.turndown(section.text);
-        
+
+        if (section.originalMarkdown !== undefined && section.originalMarkdown !== markdownText) {
+          anyContentChanged = true;
+        }
+
         const { error } = await supabase
           .from("recommendations")
           .update({ text: markdownText })
           .eq("id", section.id);
 
         if (error) throw error;
+      }
+
+      // Если контент менялся — инвалидируем JSON snapshot у summary этого анализа.
+      if (anyContentChanged) {
+        const { error: invalidateError } = await supabase
+          .from("recommendations")
+          // @ts-ignore — content_json может ещё отсутствовать в локальных типах
+          .update({ content_json: null })
+          .eq("analysis_id", analysisId)
+          .eq("type", "Общее резюме");
+
+        if (invalidateError) {
+          console.warn("Failed to invalidate snapshot after edit:", invalidateError.message);
+        }
       }
 
       // Сохраняем статус анализа, если он изменился
