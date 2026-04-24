@@ -296,7 +296,7 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
  */
 function findNextSystemHeadingPos(text: string, from: number): number {
   const re = new RegExp(
-    `(^|\\n)[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*(?:#{1,6}\\s*)?(?:${SYSTEM_HEADINGS_PATTERN})\\b`,
+    `(^|\\n)${SYSTEM_HEADING_LEADING_NOISE}${SYSTEM_HEADING_OPTIONAL_FORMATTING}(?:${SYSTEM_HEADINGS_PATTERN})\\b`,
     'gim',
   );
   re.lastIndex = from;
