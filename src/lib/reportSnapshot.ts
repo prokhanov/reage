@@ -128,6 +128,7 @@ export type SummaryBlock = z.infer<typeof SummaryBlockSchema>;
 export type BiomarkerBlock = z.infer<typeof BiomarkerBlockSchema>;
 export type SpacerBlock = z.infer<typeof SpacerBlockSchema>;
 export type PageBreakBlock = z.infer<typeof PageBreakBlockSchema>;
+export type PrescriptionsBlock = z.infer<typeof PrescriptionsBlockSchema>;
 export type ReportBlock = z.infer<typeof ReportBlockSchema>;
 export type ReportSnapshot = z.infer<typeof ReportSnapshotSchema>;
 
