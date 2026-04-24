@@ -163,10 +163,10 @@ export function EditReportDialog({
     setSaving(true);
     try {
       const parsed = markdownToSnapshot(markdown, snapshotRow.content_json);
-      if (!parsed.ok) {
+      if (parsed.ok !== true) {
         toast({
           title: "Не удалось распарсить markdown",
-          description: parsed.error,
+          description: (parsed as { error: string }).error,
           variant: "destructive",
         });
         setSaving(false);
