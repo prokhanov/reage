@@ -18,7 +18,6 @@ import React from "react";
 import type { ReportSnapshot, ReportBlock } from "@/lib/reportSnapshot";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
-import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import {
   PdfBiomarkerData,
   STATUS_HEX_MUTED,
@@ -26,47 +25,6 @@ import {
   buildRangeBarCanvas,
   parseMarkdownToPdfContent,
 } from "@/lib/pdfExportHelpers";
-
-// Заголовки секций, которые AI часто оставляет внутри commentary последнего
-// биомаркера. Режем по ним, чтобы не «вытекало» на следующий блок.
-// ВАЖНО: «Что это значит для вас» — это ВНУТРЕННИЙ подблок биомаркера
-// (по системным промптам), его НЕ режем как границу следующей секции.
-const COMMENTARY_OVERFLOW_REGEX =
-  /^[\s"'`.,;:!?()\[\]\-—–>•]*(?:#{1,6}\s*)?(?:\*{1,2}|_{1,2})?\s*(?:Общая оценка системы организма|Итог по системе|Сильные стороны организма|Дефициты и дисфункции|Зоны внимания|Системные взаимосвязи|Рекомендации|План действий|Что мешает молодеть|Интерпретация биомаркеров)\b.*$/im;
-
-function sanitizeCommentary(raw: string): string {
-  if (!raw) return "";
-  // 1) Убираем ВСЕ ``` (с языком и без, в любых вариациях)
-  let s = raw
-    .replace(/\r\n/g, "\n")
-    .replace(/`{3,}[a-zA-Z]*/g, "")
-    .replace(/^[\s"'`.,;:!?()\[\]\-—–]*`+[\s"'`.,;:!?()\[\]\-—–]*$/gm, "");
-  // 2) Режем по первому overflow-заголовку.
-  // Если заголовок начинается с первой строки — значит весь блок уже относится
-  // к следующей секции и не должен оставаться внутри commentary.
-  const m = COMMENTARY_OVERFLOW_REGEX.exec(s);
-  if (m) {
-    if (m.index === 0) return "";
-    s = s.slice(0, m.index);
-  }
-  // 2.5) Drop only a truly duplicated first-line biomarker heading, but keep
-  // normal prose that begins with the biomarker name.
-  const normalized = s.replace(/\r\n/g, "\n");
-  const lines = normalized.split("\n");
-  const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0);
-  if (firstNonEmptyIndex >= 0) {
-    const firstLine = lines[firstNonEmptyIndex].trim();
-    if (/^\*{0,2}[^\n]+\([^)]+\)\*{0,2}:?$/i.test(firstLine)) {
-      lines.splice(firstNonEmptyIndex, 1);
-      while (lines[firstNonEmptyIndex] !== undefined && lines[firstNonEmptyIndex].trim() === "") {
-        lines.splice(firstNonEmptyIndex, 1);
-      }
-      s = lines.join("\n");
-    }
-  }
-  // 3) Финальная нормализация через общий cleaner
-  return cleanMarkdownArtifacts(s).trim();
-}
 
 // ─── Index biomarkers by UUID ──────────────────────────────────────────────
 
@@ -148,27 +106,32 @@ function renderBlockWeb(
 
     case "biomarker": {
       const bm = byId.get(block.biomarker_id);
-      const cleanCommentary = sanitizeCommentary(block.commentary || "");
+      const trimmedCommentary = (block.commentary || "").trim();
       // Без метаданных и без комментария — нечего показывать.
-      if (!bm && !cleanCommentary) return null;
+      if (!bm && !trimmedCommentary) return null;
 
       return (
-        <div key={idx} className="space-y-3">
-          {/* Карточка биомаркера со статусным фоном — ТОЛЬКО шкала и значение */}
+        <div
+          key={idx}
+          className={`rounded-xl border shadow-sm p-4 space-y-3 ${
+            bm ? statusBgMap[bm.status] : "border-border/40 bg-card/50"
+          }`}
+        >
           {bm && (
-            <div
-              className={`rounded-xl border shadow-sm p-4 space-y-2 ${statusBgMap[bm.status]}`}
-            >
+            <div className="space-y-2">
+              {/* Имя + код */}
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-semibold text-foreground">{bm.name}</span>
                 <span className="text-xs text-muted-foreground">({bm.code})</span>
               </div>
+              {/* Шкала */}
               <BiomarkerRangeBar
                 biomarker={bm.biomarker}
                 value={bm.value}
                 age={age}
                 gender={gender}
               />
+              {/* Значение + статус */}
               <div className="flex items-baseline justify-between">
                 <div className="flex items-baseline gap-1.5">
                   <span className={`text-lg font-bold tracking-tight ${statusColorMap[bm.status]}`}>
@@ -185,10 +148,9 @@ function renderBlockWeb(
               </div>
             </div>
           )}
-          {/* Комментарий — ОТДЕЛЬНЫМ блоком БЕЗ цветного фона, чтобы не вытекало */}
-          {cleanCommentary && (
-            <div className="px-1">
-              <MarkdownContent content={cleanCommentary} />
+          {trimmedCommentary && (
+            <div className={bm ? "pt-1 border-t border-border/20" : ""}>
+              <MarkdownContent content={trimmedCommentary} />
             </div>
           )}
         </div>
@@ -265,27 +227,31 @@ export function buildSnapshotPdf(
 
       case "biomarker": {
         const bm = byId.get(block.biomarker_id);
-        const cleanCommentary = sanitizeCommentary(block.commentary || "");
-        if (!bm && !cleanCommentary) break;
+        const trimmedCommentary = (block.commentary || "").trim();
+        if (!bm && !trimmedCommentary) break;
 
-        // 1) Карточка биомаркера (со статусным фоном) — только шкала и значение
+        const cardStack: any[] = [];
+
         if (bm) {
           const statusColor = STATUS_HEX_MUTED[bm.status] || "#9CA3AF";
           const tallBarHeight = 14;
           const bar = buildRangeBarCanvas(bm, barWidth, tallBarHeight, age, gender);
-          const accentColor = STATUS_HEX_MUTED[bm.status] || "#D1D5DB";
-          const fillColor = STATUS_HEX_BG[bm.status] || "#FAFAFA";
 
-          const cardStack: any[] = [
-            {
-              text: [
-                { text: bm.name, bold: true, fontSize: 10, color: "#1F2937" },
-                { text: ` (${bm.code})`, fontSize: 8, color: "#6B7280" },
-              ],
-              margin: [0, 0, 0, 4],
-            },
-          ];
-          if (bar) cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
+          // Имя + код
+          cardStack.push({
+            text: [
+              { text: bm.name, bold: true, fontSize: 10, color: "#1F2937" },
+              { text: ` (${bm.code})`, fontSize: 8, color: "#6B7280" },
+            ],
+            margin: [0, 0, 0, 4],
+          });
+
+          // Шкала
+          if (bar) {
+            cardStack.push({ ...bar, height: tallBarHeight, margin: [0, 0, 0, 4] });
+          }
+
+          // Значение + статус
           cardStack.push({
             columns: [
               {
@@ -304,33 +270,39 @@ export function buildSnapshotPdf(
                 width: "auto",
               },
             ],
+            margin: [0, 0, 0, 0],
           });
+        }
 
-          out.push({
-            table: {
-              widths: [3, "*"],
-              body: [[
+        if (trimmedCommentary) {
+          cardStack.push(...parseMarkdownToPdfContent(trimmedCommentary));
+        }
+
+        if (cardStack.length === 0) break;
+
+        const accentColor = bm ? STATUS_HEX_MUTED[bm.status] || "#D1D5DB" : "#D1D5DB";
+        const fillColor = bm ? STATUS_HEX_BG[bm.status] || "#FAFAFA" : "#FAFAFA";
+
+        out.push({
+          table: {
+            widths: [3, "*"],
+            body: [
+              [
                 { text: "", fillColor: accentColor },
                 { stack: cardStack, margin: [8, 8, 8, 8], fillColor: fillColor },
-              ]],
-            },
-            layout: {
-              hLineWidth: () => 0,
-              vLineWidth: () => 0,
-              paddingLeft: () => 0,
-              paddingRight: () => 0,
-              paddingTop: () => 0,
-              paddingBottom: () => 0,
-            },
-            margin: [0, 6, 0, 4],
-          });
-        }
-
-        // 2) Комментарий — ОТДЕЛЬНЫМ блоком БЕЗ цветного фона
-        if (cleanCommentary) {
-          out.push(...parseMarkdownToPdfContent(cleanCommentary));
-          out.push({ text: "", margin: [0, 0, 0, 6] });
-        }
+              ],
+            ],
+          },
+          layout: {
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+            paddingLeft: () => 0,
+            paddingRight: () => 0,
+            paddingTop: () => 0,
+            paddingBottom: () => 0,
+          },
+          margin: [0, 6, 0, 6],
+        });
         break;
       }
 

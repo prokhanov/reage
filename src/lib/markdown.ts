@@ -1,62 +1,21 @@
 /**
- * Strip indentation that markdown would interpret as a code block.
- * Reports never contain real code, so this neutralizes any leading tab/4-space
- * padding the AI produced and collapses runs of internal "alignment" whitespace.
- *
- * List items are preserved (their leading spaces are semantic).
- */
-export function stripIndentedCodeBlocks(text: string): string {
-  if (!text) return "";
-  return text
-    .replace(/\r\n/g, "\n")
-    .split("\n")
-    .map((line) => {
-      // Preserve list items — their indentation is semantic
-      if (/^\s*([-*+]|\d+\.)\s+/.test(line)) return line;
-      // De-indent any line that would otherwise become a code block
-      const deindented = line.replace(/^(?:\t+| {4,})/, "");
-      // Collapse runs of 2+ internal spaces (AI sometimes pads text to align columns)
-      return deindented.replace(/ {2,}/g, " ");
-    })
-    .join("\n");
-}
-
-/**
  * Cleans markdown artifacts that shouldn't be displayed:
  * - Lone bullet points (•, *, -)
  * - Horizontal rules (---, ***, ___)
  * - Empty list markers
  * - Trailing asterisks used for emphasis that weren't closed
- * - Triple backticks / fenced code blocks (reports never contain real code)
- * - Leading 4-space / tab indentation that markdown would treat as code
  */
 export function cleanMarkdownArtifacts(text: string): string {
   // Strip leftover HTML anchor comments (e.g. "<!-- anchor:biomarker MONO-ABS -->")
   // that the parser couldn't consume — otherwise they leak into the rendered PDF/web.
   // Also strip any other HTML comment that survives.
-  // FIRST: drop any indentation/tabs that markdown would treat as a code block.
-  // Reports are pure prose; AI-generated leading whitespace before phrases like
-  // "Ваш уровень" / "Ваш показатель" otherwise renders as monospace boxes
-  // both in the admin editor (after marked.parse) and in the patient view.
-  let preprocessed = stripIndentedCodeBlocks(text)
+  let preprocessed = text
+    .replace(/\r\n/g, "\n")
     .replace(/<!--\s*anchor:[^\n>]*?-->/gi, "")
     .replace(/<!--[\s\S]*?-->/g, "")
     // Strip stray markdown code-fence delimiters (``` on their own line) — they appear
     // when AI wraps body text in code blocks. We don't render code blocks in reports.
     .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*$/gm, "")
-    // Also strip triple-backticks that survive inline (e.g. "```markdown\nText" without
-    // proper newline, or trailing "```" right after a sentence). These otherwise leak
-    // into rendered markdown as literal characters.
-    .replace(/`{3,}[a-zA-Z]*\s*/g, "")
-    // Remove fence-only lines that may be wrapped in quotes/spaces after model formatting glitches
-    .replace(/^[\s"'`]*`{3,}[a-zA-Z]*[\s"'`]*$/gm, "")
-        // Remove fence-only fragments even if punctuation/noise got attached around them
-        .replace(/^[\s"'`.,;:!?()\[\]-]*`{3,}[a-zA-Z]*[\s"'`.,;:!?()\[\]-]*$/gm, "")
-        // Nuke ANY remaining triple-backtick run (with or without language tag) — these
-        // are NEVER intended in our reports and otherwise render as a code block.
-        .replace(/`{3,}[a-zA-Z]*/g, "")
-    // Convert escaped pseudo-headings like "\=== Общая оценка системы ===" into regular headings
-    .replace(/^[\s\\/|]*={3,}\s*(.+?)\s*={3,}[\s\\/|]*$/gm, "### $1")
     // Start list after a colon/semicolon
     .replace(/([:;])\s*[•*]\s+/g, "$1\n\n- ")
     // Continue list after sentence endings

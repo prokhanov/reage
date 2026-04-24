@@ -31,88 +31,6 @@ const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
   { pattern: /⭐|особенност|feature/i, section: 'features' },
 ];
 
-// Заголовки разделов категории, которые AI часто оставляет ВНУТРИ commentary
-// последнего биомаркера (без anchor:biomarker_end). По ним мы должны
-// принудительно отсекать содержимое биомаркерного блока.
-//
-// ВАЖНО: «Что это значит для вас» — это ВНУТРЕННИЙ подблок биомаркера
-// (см. системные промпты категорий), его НЕ режем как границу.
-export const SYSTEM_SECTION_HEADINGS = [
-  'Общая оценка системы организма',
-  'Итог по системе',
-  'Сильные стороны организма',
-  'Дефициты и дисфункции',
-  'Зоны внимания',
-  'Системные взаимосвязи',
-  'Рекомендации',
-  'План действий',
-  'Что мешает молодеть',
-  'Интерпретация биомаркеров',
-];
-
-const SYSTEM_HEADINGS_PATTERN = SYSTEM_SECTION_HEADINGS
-  .map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-  .join('|');
-
-const SYSTEM_HEADING_LEADING_NOISE = `[\\s"'\`.,;:!?()\\[\\]\\-—–>•]*`;
-const SYSTEM_HEADING_OPTIONAL_FORMATTING = `(?:#{1,6}\\s*)?(?:\\*{1,2}|_{1,2})?\\s*`;
-const OVERALL_SYSTEM_ASSESSMENT_PHRASE = 'Общая оценка системы организма';
-
-const LEGACY_BIOMARKER_OVERFLOW_MARKERS = [
-  /^\s*`{3,}.*$/m,
-  /^\s*["'` ]*`{3,}["'` ]*$/m,
-  /^\s*\\?={3,}.*?={3,}\s*$/m,
-  /<!--\s*anchor:\w+_(?:start|end)\s*-->/i,
-  // Match system section headings even when followed by extra text on the
-  // same line (system name in quotes, punctuation, dashes, etc.).
-  new RegExp(
-    `^${SYSTEM_HEADING_LEADING_NOISE}${SYSTEM_HEADING_OPTIONAL_FORMATTING}(?:${SYSTEM_HEADINGS_PATTERN})\\b.*$`,
-    'im',
-  ),
-];
-
-function splitLegacyBiomarkerOverflow(content: string): { biomarkerContent: string; overflowContent: string } {
-  if (!content) return { biomarkerContent: '', overflowContent: '' };
-
-  // First, strip stray code-fence markers (```/```lang) that the AI sometimes
-  // wraps the biomarker value in. They never carry semantic content for us, but
-  // if we leave them inside the biomarker block they get rendered as a
-  // monospace code block (in PDF) or as literal characters (in web).
-  const sanitized = content
-    .replace(/\r\n/g, '\n')
-    .replace(/^[ \t]*`{3,}[a-zA-Z]*[ \t]*$/gm, '')
-    .replace(/`{3,}[a-zA-Z]*/g, '');
-
-  let splitIndex = -1;
-  for (const pattern of LEGACY_BIOMARKER_OVERFLOW_MARKERS) {
-    const match = pattern.exec(sanitized);
-    // Allow splitIndex === 0 — when the very first thing in the block is a
-    // section header ("Что это значит для вас", "Сильные стороны…"), the
-    // entire payload belongs to the next section, not to the biomarker card.
-    if (!match || match.index < 0) continue;
-    splitIndex = splitIndex === -1 ? match.index : Math.min(splitIndex, match.index);
-  }
-
-  const overallAssessmentIndex = sanitized.search(
-    new RegExp(`${SYSTEM_HEADING_LEADING_NOISE}(?:\\*{1,2}|_{1,2})?\\s*${escapeRegex(OVERALL_SYSTEM_ASSESSMENT_PHRASE)}\\b`, 'i')
-  );
-  if (overallAssessmentIndex >= 0) {
-    splitIndex = splitIndex === -1 ? overallAssessmentIndex : Math.min(splitIndex, overallAssessmentIndex);
-  }
-
-  if (splitIndex === -1) {
-    return { biomarkerContent: sanitized.trim(), overflowContent: '' };
-  }
-
-  return {
-    biomarkerContent: sanitized.slice(0, splitIndex).trim(),
-    overflowContent: sanitized
-      .slice(splitIndex)
-      .replace(/^\s*<!--\s*anchor:\w+_(?:start|end)\s*-->\s*/gi, '')
-      .trim(),
-  };
-}
-
 // ═══ Main parser ═══
 
 /**
@@ -221,12 +139,7 @@ export function parseAnchors(
         endAfter = nextOpen.index; // do NOT consume the next open tag
       }
       const content = processedText.slice(tagEnd, endStart).trim();
-      const normalizedContent = stripLeadingBiomarkerName(content, data, codeToNames[data] || []);
-      const { biomarkerContent, overflowContent } = splitLegacyBiomarkerOverflow(normalizedContent);
-      blocks.push({ type: 'biomarker', code: data, content: biomarkerContent });
-      if (overflowContent) {
-        blocks.push({ type: 'text', content: overflowContent });
-      }
+      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data, codeToNames[data] || []) });
       lastIndex = endAfter;
     } else if (tag.endsWith('_start')) {
       const baseName = tag.replace('_start', '');
@@ -288,24 +201,6 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
   return false;
 }
 
-/**
- * Возвращает позицию ближайшего системного заголовка категории
- * (Сильные стороны, Дефициты, Рекомендации, Общая оценка системы организма и т.п.)
- * после позиции `from`. Используется чтобы корректно отсечь последний биомаркер.
- * Возвращает -1, если совпадений нет.
- */
-function findNextSystemHeadingPos(text: string, from: number): number {
-  const re = new RegExp(
-    `(^|\\n)${SYSTEM_HEADING_LEADING_NOISE}${SYSTEM_HEADING_OPTIONAL_FORMATTING}(?:${SYSTEM_HEADINGS_PATTERN})\\b`,
-    'gim',
-  );
-  re.lastIndex = from;
-  const m = re.exec(text);
-  if (!m) return -1;
-  // Если совпало с переводом строки — указываем на начало строки заголовка.
-  return m[1] === '\n' ? m.index + 1 : m.index;
-}
-
 function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
 
@@ -324,14 +219,8 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     const escapedName = escapeRegex(name);
     const escapedCode = escapeRegex(code);
 
-    // Allow the biomarker name to be followed by ANY non-letter character
-    // (comma, dash, colon, parenthesis, period, whitespace, end of line),
-    // so paragraphs like "Эритроциты, или красные кровяные клетки..." are
-    // detected as a biomarker block. We also avoid matching mid-word names
-    // by using a negative look-behind on letters (no preceding letter chars
-    // are possible since we anchor on line start with optional whitespace).
     return new RegExp(
-      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?(?=[^A-Za-zА-Яа-яЁё0-9]|$).+$`,
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?(?=\\s|$).+$`,
       'gm'
     );
   };
@@ -354,8 +243,7 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       const lineEnd = lineStart + match[0].length;
 
       // Find end of this biomarker section: next standalone biomarker name,
-      // already-inserted biomarker anchor, or top-level markdown header,
-      // or a plain-text system section heading (Сильные стороны, Рекомендации, и т.п.).
+      // already-inserted biomarker anchor, or top-level markdown header.
       let sectionEnd = result.length;
       for (const [otherName, otherCode] of nameEntries) {
         if (otherName === name) continue;
@@ -364,16 +252,6 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         const nextMatch = nextRegex.exec(result);
         if (nextMatch && nextMatch.index! < sectionEnd) {
           sectionEnd = nextMatch.index!;
-        }
-        // Also detect the next biomarker in leading-paragraph form
-        // ("Эритроциты, или красные кровяные клетки..."). Without this
-        // check, the current biomarker block would absorb the entire
-        // paragraph that introduces the next biomarker.
-        const nextParaRegex = buildLeadingBiomarkerParagraphRegex(otherName, otherCode);
-        nextParaRegex.lastIndex = lineEnd;
-        const nextParaMatch = nextParaRegex.exec(result);
-        if (nextParaMatch && nextParaMatch.index! < sectionEnd) {
-          sectionEnd = nextParaMatch.index!;
         }
       }
 
@@ -389,11 +267,6 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       const nh = nextHeaderRegex.exec(result);
       if (nh && nh.index! < sectionEnd) {
         sectionEnd = nh.index!;
-      }
-
-      const sysHeadingPos = findNextSystemHeadingPos(result, lineEnd);
-      if (sysHeadingPos !== -1 && sysHeadingPos < sectionEnd) {
-        sectionEnd = sysHeadingPos;
       }
 
       // Inject anchors (process in one shot since we do one at a time)
@@ -441,13 +314,6 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
             nextHeaderRegex.lastIndex = cur.end;
             const nh = nextHeaderRegex.exec(result);
             sectionEnd = nh ? nh.index! : result.length;
-          }
-          // Also stop at the nearest plain-text system heading
-          // (Сильные стороны организма, Рекомендации, и т.п.) — иначе
-          // последний биомаркер заберёт всё содержимое до конца раздела.
-          const sysHeadingPos = findNextSystemHeadingPos(result, cur.end);
-          if (sysHeadingPos !== -1 && sysHeadingPos < sectionEnd) {
-            sectionEnd = sysHeadingPos;
           }
 
           result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
@@ -513,41 +379,23 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
 
 // ═══ Helpers ═══
 
-/**
- * Strip ONLY a standalone duplicated biomarker heading from the start of the block.
- *
- * Important: do not remove leading prose like
- * "Липопротеины низкой плотности (LDL), часто называемые..."
- * because that's a valid sentence, not a duplicate heading.
- */
+/** Strip leading redundant biomarker name+code from content (e.g. "• **Название (CODE)** — ...") */
 function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames: string[] = []): string {
-  if (!content) return content;
-
-  const lines = content.replace(/\r\n/g, '\n').split('\n');
-  const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0);
-  if (firstNonEmptyIndex === -1) return content;
-
-  const firstLine = lines[firstNonEmptyIndex].trim();
   const escapedCode = code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const escapedNames = biomarkerNames
+  const namePattern = biomarkerNames
     .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .sort((a, b) => b.length - a.length);
+    .sort((a, b) => b.length - a.length)
+    .join('|');
 
-  const isDuplicateHeading = [
-    new RegExp(`^\\*{0,2}[^\\n]*\\(${escapedCode}\\)\\*{0,2}:?$`, 'i'),
-    ...escapedNames.map(
-      (name) => new RegExp(`^\\*{0,2}${name}(?:\\s*\\(${escapedCode}\\))?\\*{0,2}:?$`, 'i')
-    ),
-  ].some((pattern) => pattern.test(firstLine));
+  const codeHeadingRe = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escapedCode}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
+  const nameHeadingRe = namePattern
+    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\(${escapedCode}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
+    : null;
 
-  if (!isDuplicateHeading) return content;
-
-  lines.splice(firstNonEmptyIndex, 1);
-  while (lines[firstNonEmptyIndex] !== undefined && lines[firstNonEmptyIndex].trim() === '') {
-    lines.splice(firstNonEmptyIndex, 1);
-  }
-
-  const cleaned = lines.join('\n').trim();
+  const cleaned = content
+    .replace(codeHeadingRe, '')
+    .replace(nameHeadingRe ?? /$^/, '')
+    .trim();
   return cleaned || content;
 }
 

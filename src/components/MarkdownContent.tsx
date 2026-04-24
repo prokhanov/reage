@@ -7,10 +7,13 @@ interface MarkdownContentProps {
 }
 
 export function MarkdownContent({ content, className = '' }: MarkdownContentProps) {
-  // cleanMarkdownArtifacts already strips indented code blocks, fenced code blocks,
-  // HTML anchor comments and AI's column-alignment padding — so the renderer
-  // never sees anything markdown would interpret as a <pre><code> block.
-  const safeContent = cleanMarkdownArtifacts(content);
+  // Guard against accidental indented lines (tabs / 4+ spaces) that Markdown
+  // interprets as code blocks. We only de-indent lines that start with bold
+  // "headers" like "**2. ...:**".
+  // Also strip leftover HTML anchor comments and stray ``` fences via cleanMarkdownArtifacts.
+  const safeContent = cleanMarkdownArtifacts(content)
+    .replace(/\r\n/g, "\n")
+    .replace(/^(?:\t| {4,})(?=\*\*)/gm, "");
 
   return (
     <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
@@ -71,15 +74,15 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
               {children}
             </blockquote>
           ),
-          // Render inline code as plain text (no monospace background)
           code: ({ children }) => (
-            <span className="text-foreground">{children}</span>
-          ),
-          // Render code blocks as a normal paragraph (no monospace, no scroll, no background)
-          pre: ({ children }) => (
-            <div className="mb-4 text-foreground leading-relaxed whitespace-pre-wrap break-words">
+            <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground">
               {children}
-            </div>
+            </code>
+          ),
+          pre: ({ children }) => (
+            <pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-4">
+              {children}
+            </pre>
           ),
         }}
       >

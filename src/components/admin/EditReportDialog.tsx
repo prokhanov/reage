@@ -94,14 +94,13 @@ export function EditReportDialog({
 
       if (error) throw error;
       
-      // Convert markdown to HTML for editor (sanitize first so the editor
-      // never receives leading-tab/4-space indents — markdown would otherwise
-      // turn them into <pre><code> blocks visible as monospace boxes with
-      // horizontal scroll inside the admin UI).
+      // Конвертируем markdown в HTML для редактора (очищаем артефакты перед парсингом)
       const sectionsWithHtml = (data || []).map(section => ({
         ...section,
         originalMarkdown: section.text,
-        text: marked.parse(cleanMarkdownArtifacts(section.text)) as string
+        text: marked.parse(
+          cleanMarkdownArtifacts(section.text).replace(/^(?:\t| {4,})(?=\*\*)/gm, '')
+        ) as string
       }));
       
       // Сортируем разделы в правильном порядке
@@ -141,28 +140,16 @@ export function EditReportDialog({
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
-      // Convert HTML back to markdown before saving.
-      // We deliberately neutralize Turndown's code/pre handling so admin edits
-      // can never re-introduce ``` fenced code blocks or 4-space indented blocks
-      // — those would otherwise re-appear as monospaced boxes on the patient
-      // side and as ``` artifacts in the exported PDF.
+      // Конвертируем HTML обратно в markdown перед сохранением
       const turndownService = new TurndownService({
         headingStyle: 'atx',
-        codeBlockStyle: 'fenced',
+        codeBlockStyle: 'fenced'
       });
-      // Treat <pre> / <code> as plain prose, not code.
-      turndownService.addRule('plainCodeBlocks', {
-        filter: ['pre', 'code'],
-        replacement: (content) => content,
-      });
-
+      
       // Save each section individually
       for (const section of sections) {
-        const rawMarkdown = turndownService.turndown(section.text);
-        // Final safety: run through the unified sanitizer so anything that slipped
-        // through (stray fences, indentation) is removed before persistence.
-        const markdownText = cleanMarkdownArtifacts(rawMarkdown);
-
+        const markdownText = turndownService.turndown(section.text);
+        
         const { error } = await supabase
           .from("recommendations")
           .update({ text: markdownText })
