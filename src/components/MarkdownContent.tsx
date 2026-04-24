@@ -7,26 +7,10 @@ interface MarkdownContentProps {
 }
 
 export function MarkdownContent({ content, className = '' }: MarkdownContentProps) {
-  // Guard against accidental indented lines (tabs / 4+ spaces) that Markdown
-  // interprets as code blocks. We only de-indent lines that start with bold
-  // "headers" like "**2. ...:**".
-  // Also strip leftover HTML anchor comments and stray ``` fences via cleanMarkdownArtifacts.
-  // Strip leading indentation that Markdown would interpret as a code block.
-  // Reports never contain real code, so flatten ALL indented lines (tabs or 4+ spaces)
-  // and collapse runs of internal whitespace so AI's "aligned" text doesn't keep its
-  // monospace look once we've stripped the indent.
-  const safeContent = cleanMarkdownArtifacts(content)
-    .replace(/\r\n/g, "\n")
-    .split("\n")
-    .map((line) => {
-      // Skip list items (their leading spaces are semantic)
-      if (/^\s*([-*+]|\d+\.)\s+/.test(line)) return line;
-      // De-indent any line that would otherwise become a code block
-      const deindented = line.replace(/^(?:\t+| {4,})/, "");
-      // Collapse runs of 2+ internal spaces (AI sometimes pads text to align columns)
-      return deindented.replace(/ {2,}/g, " ");
-    })
-    .join("\n");
+  // cleanMarkdownArtifacts already strips indented code blocks, fenced code blocks,
+  // HTML anchor comments and AI's column-alignment padding — so the renderer
+  // never sees anything markdown would interpret as a <pre><code> block.
+  const safeContent = cleanMarkdownArtifacts(content);
 
   return (
     <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
