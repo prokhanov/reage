@@ -33,6 +33,7 @@ interface WizardData {
   };
   step3: {
     generateReport: boolean;
+    mode: "standard" | "deep";
   };
 }
 
@@ -58,6 +59,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
     },
     step3: {
       generateReport: false,
+      mode: "standard",
     },
   });
 
@@ -103,6 +105,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
         },
         step3: {
           generateReport: false,
+          mode: "standard",
         },
       });
     } catch (error: any) {
@@ -224,7 +227,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
           const { error: functionError } = await supabase.functions.invoke(
             "analyze-biomarkers",
             {
-              body: { analysisId },
+              body: { analysisId, mode: wizardData.step3.mode },
             }
           );
 

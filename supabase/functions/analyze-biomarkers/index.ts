@@ -16,11 +16,28 @@ serve(async (req) => {
   }
 
   try {
-    const { analysisId } = await req.json();
+    const { analysisId, mode: rawMode } = await req.json();
 
     if (!analysisId) {
       throw new Error("Не указан ID анализа");
     }
+
+    // ===== Режим генерации: standard (быстрее, дефолт) | deep (качественнее, медленнее) =====
+    const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
+    const aiProfile = mode === "deep"
+      ? {
+          model: "google/gemini-2.5-pro",
+          reasoning: { effort: "high" as const },
+          tokenMultiplier: 1.5,
+          maxRetries: 3,
+        }
+      : {
+          model: "google/gemini-2.5-flash",
+          reasoning: undefined as undefined | { effort: "high" },
+          tokenMultiplier: 1,
+          maxRetries: 2,
+        };
+    console.log(`AI generation mode: ${mode} (model=${aiProfile.model}, reasoning=${aiProfile.reasoning?.effort ?? "none"})`);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -826,7 +843,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
-        const categoryMaxCompletionTokens = categoryKey === "metabolism" ? 24000 : 16000;
+        const baseCategoryTokens = categoryKey === "metabolism" ? 24000 : 16000;
+        const categoryMaxCompletionTokens = Math.round(baseCategoryTokens * aiProfile.tokenMultiplier);
 
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -835,7 +853,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: aiProfile.model,
+            ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
             messages: [
               {
                 role: "system",
@@ -889,9 +908,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const MIN_CONTENT_LENGTH = 500;
         let retryCount = 0;
 
-        while ((!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) && retryCount < 2) {
+        while ((!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) && retryCount < aiProfile.maxRetries) {
           retryCount++;
-          console.warn(`RETRY ${retryCount}/2 for ${category}: content too short (${categoryReport?.length || 0} chars)`);
+          console.warn(`RETRY ${retryCount}/${aiProfile.maxRetries} for ${category}: content too short (${categoryReport?.length || 0} chars)`);
           await new Promise(r => setTimeout(r, 3000));
 
           const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -901,7 +920,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
+              model: aiProfile.model,
+              ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: categoryPrompt }
@@ -1110,7 +1130,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: aiProfile.model,
+            ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
             messages: [
               { 
                 role: "system", 
@@ -1243,7 +1264,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiProfile.model,
+          ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
           messages: [
             {
               role: "system",
@@ -1254,7 +1276,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               content: summaryPrompt
             }
           ],
-          max_completion_tokens: 16000
+          max_completion_tokens: Math.round(16000 * aiProfile.tokenMultiplier)
         }),
       });
 
@@ -1410,7 +1432,8 @@ ${categoryReportsForSnapshot}
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiProfile.model,
+          ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
           temperature: 0,
           messages: [
             { role: "system", content: snapshotSystemPrompt },
@@ -1488,7 +1511,8 @@ ${categoryReportsForSnapshot}
         blocks: cleanedBlocks,
         meta: {
           generated_at: new Date().toISOString(),
-          model: "google/gemini-2.5-flash",
+          model: aiProfile.model,
+          mode,
           analysis_id: analysisId,
         },
       };
@@ -1945,7 +1969,8 @@ health_index ДОЛЖЕН быть равен ${health_index} (серверно�
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
+              model: aiProfile.model,
+              ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
               temperature: 0,
               messages: [
                 { role: "system", content: systemPrompt },

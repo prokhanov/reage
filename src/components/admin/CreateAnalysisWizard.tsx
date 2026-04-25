@@ -33,6 +33,7 @@ interface WizardData {
   };
   step3: {
     generateReport: boolean;
+    mode: "standard" | "deep";
   };
 }
 
@@ -56,6 +57,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
     },
     step3: {
       generateReport: true,
+      mode: "standard",
     },
   });
 
@@ -205,7 +207,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
       try {
         const { data, error } = await supabase.functions.invoke("analyze-biomarkers", {
-          body: { analysisId },
+          body: { analysisId, mode: wizardData.step3.mode },
         });
 
         pollingStopped = true;
@@ -276,6 +278,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
       },
       step3: {
         generateReport: true,
+        mode: "standard",
       },
     });
     setCreatedAnalysisId(null);
