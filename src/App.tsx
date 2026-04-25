@@ -23,6 +23,7 @@ import { Navigate } from "react-router-dom";
 import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
 import Prescriptions from "./pages/Prescriptions";
+import PrescriptionsV2 from "./pages/PrescriptionsV2";
 import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
 import HealthAssistant from "./pages/HealthAssistant";
@@ -103,6 +104,7 @@ const App = () => (
               <Route path="/biomarkers" element={<Navigate to="/dashboard" replace />} />
               <Route path="/recommendations" element={<PatientRoute><Recommendations /></PatientRoute>} />
               <Route path="/prescriptions" element={<PatientRoute><Prescriptions /></PatientRoute>} />
+              <Route path="/prescriptions-v2" element={<PatientRoute><PrescriptionsV2 /></PatientRoute>} />
               <Route path="/trends" element={<Navigate to="/dashboard" replace />} />
               <Route path="/my-state" element={<PatientRoute><MyState /></PatientRoute>} />
               <Route path="/health-assistant" element={<PatientRoute><HealthAssistant /></PatientRoute>} />
