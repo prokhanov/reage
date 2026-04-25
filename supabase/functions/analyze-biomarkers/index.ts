@@ -1355,7 +1355,9 @@ ${categoryReportsForSnapshot}
           parameters: {
             type: "object",
             properties: {
-              version: { type: "number", enum: [1] },
+              // Намеренно без enum:[1] — Gemini ломает схему при enum на числе.
+              // Версию контролируем валидацией Zod на бэке после JSON.parse.
+              version: { type: "number", description: "Версия схемы, всегда 1" },
               blocks: {
                 type: "array",
                 minItems: 1,

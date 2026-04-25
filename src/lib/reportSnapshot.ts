@@ -149,7 +149,9 @@ export function parseReportSnapshot(
 export const REPORT_SNAPSHOT_JSON_SCHEMA = {
   type: "object",
   properties: {
-    version: { type: "number", enum: [1] },
+    // Без enum на числе — Gemini не принимает такую конструкцию в OpenAPI subset.
+    // Жёсткую проверку version === 1 делаем через Zod после получения ответа.
+    version: { type: "number", description: "Версия схемы, всегда 1" },
     blocks: {
       type: "array",
       minItems: 1,
