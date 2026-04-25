@@ -114,6 +114,13 @@ export function EditReportDialog({
 
       const rows = data || [];
 
+      // Диагностика: видно ли строку «Назначения» с content_json после загрузки.
+      console.log("[EditReportDialog] loadRecommendations", {
+        analysisId,
+        rowsCount: rows.length,
+        types: rows.map((r: any) => r.type),
+      });
+
       // Выделяем advisory-блок «Назначения» (lifestyle + follow_ups) — он не markdown,
       // его нужно рендерить отдельным read-only компонентом, а не через Quill.
       const advisoryRow = rows.find((r: any) => r.type === "Назначения");
@@ -121,16 +128,21 @@ export function EditReportDialog({
         const cj = (advisoryRow as any).content_json;
         const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
         const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
-        const lifestyleCount =
-          (lifestyle.nutrition?.length || 0) +
-          (lifestyle.activity?.length || 0) +
-          (lifestyle.sleep?.length || 0);
-        if (lifestyleCount > 0 || followUps.length > 0) {
-          setAdvisory({ lifestyle, followUps });
-        } else {
-          setAdvisory(null);
-        }
+
+        console.log("[EditReportDialog] advisoryRow found", {
+          contentJsonType: typeof cj,
+          contentJsonKeys: cj && typeof cj === "object" ? Object.keys(cj) : null,
+          nutritionLen: lifestyle.nutrition?.length || 0,
+          activityLen: lifestyle.activity?.length || 0,
+          sleepLen: lifestyle.sleep?.length || 0,
+          followUpsLen: followUps.length,
+        });
+
+        // Если строка «Назначения» вообще существует — показываем блок,
+        // даже если массивы пустые (отрисуем placeholder).
+        setAdvisory({ lifestyle, followUps });
       } else {
+        console.log("[EditReportDialog] advisoryRow NOT found in recommendations");
         setAdvisory(null);
       }
 
@@ -365,11 +377,24 @@ export function EditReportDialog({
                           {section.type}
                         </SelectItem>
                       ))}
-                      {(prescriptions.length > 0 || advisory) && (
-                        <SelectItem value="prescriptions">
-                          Назначения{prescriptions.length > 0 ? ` (${prescriptions.length})` : ""}
-                        </SelectItem>
-                      )}
+                      {(prescriptions.length > 0 || advisory) && (() => {
+                        const lifestyleCount = advisory
+                          ? (advisory.lifestyle.nutrition?.length || 0) +
+                            (advisory.lifestyle.activity?.length || 0) +
+                            (advisory.lifestyle.sleep?.length || 0)
+                          : 0;
+                        const followUpsCount = advisory?.followUps.length || 0;
+                        const parts: string[] = [];
+                        if (prescriptions.length > 0) parts.push(`нутрицевтики: ${prescriptions.length}`);
+                        if (lifestyleCount > 0) parts.push(`образ жизни: ${lifestyleCount}`);
+                        if (followUpsCount > 0) parts.push(`консультации: ${followUpsCount}`);
+                        const label = parts.length > 0 ? `Назначения (${parts.join(" · ")})` : "Назначения";
+                        return (
+                          <SelectItem value="prescriptions">
+                            {label}
+                          </SelectItem>
+                        );
+                      })()}
                     </SelectContent>
                   </Select>
                 </div>
@@ -499,6 +524,20 @@ export function EditReportDialog({
                           </div>
                         </section>
                       )}
+
+                      {advisory &&
+                        ((advisory.lifestyle.nutrition?.length || 0) +
+                          (advisory.lifestyle.activity?.length || 0) +
+                          (advisory.lifestyle.sleep?.length || 0) === 0) &&
+                        advisory.followUps.length === 0 && (
+                          <section>
+                            <div className="p-4 rounded-xl border border-dashed border-border bg-muted/30">
+                              <p className="text-sm text-muted-foreground">
+                                AI не сгенерировал блоки «Питание и образ жизни» и «Дополнительные консультации» для этого анализа. Запись «Назначения» в базе есть, но массивы пустые. Возможные причины: лимит токенов модели или невалидный JSON. Можно перегенерировать отчёт.
+                              </p>
+                            </div>
+                          </section>
+                        )}
 
                       {prescriptions.length === 0 && !advisory && (
                         <p className="text-sm text-muted-foreground">Назначений пока нет.</p>
