@@ -223,6 +223,18 @@ export default function Prescriptions() {
   const activePrescriptions = prescriptions.filter((p) => !p.is_archived);
   const archivedPrescriptions = prescriptions.filter((p) => p.is_archived);
 
+  // Подсчёт всех активных рекомендаций (нутрицевтики + структурированные блоки).
+  const advisoryNutritionCount = advisory?.lifestyle.nutrition?.length || 0;
+  const advisoryActivityCount = advisory?.lifestyle.activity?.length || 0;
+  const advisorySleepCount = advisory?.lifestyle.sleep?.length || 0;
+  const advisoryFollowUpsCount = advisory?.followUps?.length || 0;
+  const totalActiveCount =
+    activePrescriptions.length +
+    advisoryNutritionCount +
+    advisoryActivityCount +
+    advisorySleepCount +
+    advisoryFollowUpsCount;
+
   const getStatusBadge = (status: "on_review" | "confirmed") => {
     if (status === "confirmed") {
       return <Badge variant="default" className="text-xs">Подтверждено</Badge>;
