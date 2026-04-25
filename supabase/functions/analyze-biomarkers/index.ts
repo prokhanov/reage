@@ -1571,6 +1571,47 @@ ${categoryReportsForSnapshot}
       console.log("No prescriptions were needed based on analysis");
     }
 
+    // ====== Сохраняем «Питание/образ жизни» и «Доп. обследования» как отдельную запись ======
+    // type = 'Назначения', данные в content_json. Поле text — короткое summary
+    // (для совместимости со старыми UI/админкой, которые могут отображать text).
+    const hasLifestyle =
+      lifestyleFinal.nutrition.length + lifestyleFinal.activity.length + lifestyleFinal.sleep.length > 0;
+    const hasFollowUps = followUpsFinal.length > 0;
+
+    if (hasLifestyle || hasFollowUps) {
+      const summaryParts: string[] = [];
+      if (hasLifestyle) {
+        const totalBullets =
+          lifestyleFinal.nutrition.length + lifestyleFinal.activity.length + lifestyleFinal.sleep.length;
+        summaryParts.push(`Питание и образ жизни: ${totalBullets} рекомендаций`);
+      }
+      if (hasFollowUps) {
+        summaryParts.push(`Дополнительные обследования: ${followUpsFinal.length}`);
+      }
+      const summaryText = summaryParts.join(". ") + ".";
+
+      const { error: rxRecError } = await supabase
+        .from("recommendations")
+        .insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: "Назначения",
+          text: summaryText,
+          content_json: {
+            lifestyle: lifestyleFinal,
+            follow_ups: followUpsFinal,
+          },
+        });
+
+      if (rxRecError) {
+        console.error("Error inserting Назначения recommendation:", rxRecError);
+      } else {
+        console.log(
+          `Saved «Назначения» recommendation: lifestyle=${hasLifestyle}, follow_ups=${followUpsFinal.length}`
+        );
+      }
+    }
+
     // ============== STANDARDIZED BIOLOGICAL AGE CALCULATION ==============
     
     // Define patient age and gender for age-dependent norm calculations
