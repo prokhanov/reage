@@ -1511,7 +1511,8 @@ ${categoryReportsForSnapshot}
         blocks: cleanedBlocks,
         meta: {
           generated_at: new Date().toISOString(),
-          model: "google/gemini-2.5-flash",
+          model: aiProfile.model,
+          mode,
           analysis_id: analysisId,
         },
       };
