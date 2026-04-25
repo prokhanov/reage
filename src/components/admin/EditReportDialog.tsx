@@ -111,32 +111,58 @@ export function EditReportDialog({
         .order("type");
 
       if (error) throw error;
-      
-      // Конвертируем markdown в HTML для редактора (очищаем артефакты перед парсингом)
-      const sectionsWithHtml = (data || []).map(section => ({
+
+      const rows = data || [];
+
+      // Выделяем advisory-блок «Назначения» (lifestyle + follow_ups) — он не markdown,
+      // его нужно рендерить отдельным read-only компонентом, а не через Quill.
+      const advisoryRow = rows.find((r: any) => r.type === "Назначения");
+      if (advisoryRow) {
+        const cj = (advisoryRow as any).content_json;
+        const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+        const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+        const lifestyleCount =
+          (lifestyle.nutrition?.length || 0) +
+          (lifestyle.activity?.length || 0) +
+          (lifestyle.sleep?.length || 0);
+        if (lifestyleCount > 0 || followUps.length > 0) {
+          setAdvisory({ lifestyle, followUps });
+        } else {
+          setAdvisory(null);
+        }
+      } else {
+        setAdvisory(null);
+      }
+
+      // В список markdown-секций включаем всё, КРОМЕ «Назначения» (она рендерится отдельно).
+      const markdownRows = rows.filter((r: any) => r.type !== "Назначения");
+
+      const sectionsWithHtml = markdownRows.map((section: any) => ({
         ...section,
         originalMarkdown: section.text,
         text: marked.parse(
           cleanMarkdownArtifacts(section.text).replace(/^(?:\t| {4,})(?=\*\*)/gm, '')
         ) as string
       }));
-      
+
       // Сортируем разделы в правильном порядке
       const sortOrder: Record<string, number> = {
         "Данные пациента": 0,
         "Общее резюме": 1,
       };
-      
+
       const sorted = sectionsWithHtml.sort((a, b) => {
         const aOrder = sortOrder[a.type] ?? 100;
         const bOrder = sortOrder[b.type] ?? 100;
         if (aOrder !== bOrder) return aOrder - bOrder;
         return a.type.localeCompare(b.type);
       });
-      
+
       setSections(sorted);
       if (sorted.length > 0) {
         setSelectedSection(sorted[0].type);
+      } else if (advisoryRow || (data || []).length > 0) {
+        setSelectedSection("prescriptions");
       }
     } catch (error: any) {
       toast({
