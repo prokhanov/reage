@@ -495,8 +495,15 @@ export default function Recommendations() {
       const grouped = groupByType(selectedReport.recommendations);
       const patientData = grouped["Данные пациента"]?.[0];
       const summary = grouped["Общее резюме"]?.[0];
-      const categories = Object.entries(grouped).filter(([type]) => 
-        type !== "Общее резюме" && type !== "Данные пациента"
+      const prescriptionsRec = grouped["Назначения"]?.[0];
+      const lifestylePdf = (prescriptionsRec?.content_json?.lifestyle || {}) as {
+        nutrition?: string[]; activity?: string[]; sleep?: string[];
+      };
+      const followUpsPdf = (prescriptionsRec?.content_json?.follow_ups || []) as Array<{
+        specialist?: string; goal?: string; trigger?: string;
+      }>;
+      const categories = Object.entries(grouped).filter(([type]) =>
+        type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
       );
 
       // Load prescriptions
@@ -562,25 +569,85 @@ export default function Recommendations() {
                 }))
               )
             ]),
-        ...(prescriptions.length > 0 ? [{
-          id: 'prescriptions',
-          type: 'prescriptions' as SectionType,
-          label: 'Назначения',
-          content: prescriptions.map((p, idx) => 
-            `**${idx + 1}. ${p.prescription}**\n\n*${p.effect}*\n\nДлительность: ${
-              (() => {
-                if (!selectedReport.date || !p.control_date) return "—";
-                const start = new Date(selectedReport.date);
-                const end = new Date(p.control_date);
-                if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
-                const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
-                return `${months} мес.`;
-              })()
-            }, Контрольная дата: ${p.control_date && !isNaN(new Date(p.control_date).getTime()) 
-              ? format(new Date(p.control_date), "dd.MM.yyyy")
-              : "—"}`
-          ).join('\n\n---\n\n')
-        }] : []),
+        ...((() => {
+          const hasLs =
+            (lifestylePdf.nutrition?.length || 0) +
+              (lifestylePdf.activity?.length || 0) +
+              (lifestylePdf.sleep?.length || 0) >
+            0;
+          const hasFu = followUpsPdf.length > 0;
+          if (prescriptions.length === 0 && !hasLs && !hasFu) return [];
+
+          const parts: string[] = [];
+
+          if (prescriptions.length > 0) {
+            parts.push("**Нутрицевтики**");
+            parts.push(
+              prescriptions
+                .map((p, idx) => {
+                  const dur = (() => {
+                    if (!selectedReport.date || !p.control_date) return "—";
+                    const start = new Date(selectedReport.date);
+                    const end = new Date(p.control_date);
+                    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
+                    const months = Math.round(
+                      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30),
+                    );
+                    return `${months} мес.`;
+                  })();
+                  const ctrl =
+                    p.control_date && !isNaN(new Date(p.control_date).getTime())
+                      ? format(new Date(p.control_date), "dd.MM.yyyy")
+                      : "—";
+                  return `**${idx + 1}. ${p.prescription}**\n\n*${p.effect || ""}*\n\nДлительность: ${dur}, Контрольная дата: ${ctrl}`;
+                })
+                .join("\n\n---\n\n"),
+            );
+          }
+
+          if (hasLs) {
+            parts.push("**Питание и коррекция образа жизни**");
+            if ((lifestylePdf.nutrition?.length || 0) > 0) {
+              parts.push(
+                "**Питание:**\n" +
+                  lifestylePdf.nutrition!.map((b) => `• ${b}`).join("\n"),
+              );
+            }
+            if ((lifestylePdf.activity?.length || 0) > 0) {
+              parts.push(
+                "**Физическая активность:**\n" +
+                  lifestylePdf.activity!.map((b) => `• ${b}`).join("\n"),
+              );
+            }
+            if ((lifestylePdf.sleep?.length || 0) > 0) {
+              parts.push(
+                "**Сон и режим:**\n" +
+                  lifestylePdf.sleep!.map((b) => `• ${b}`).join("\n"),
+              );
+            }
+          }
+
+          if (hasFu) {
+            parts.push("**Дополнительные консультации и обследования**");
+            parts.push(
+              followUpsPdf
+                .map(
+                  (f) =>
+                    `• **${f.specialist || ""}** — ${f.goal || ""}${f.trigger ? ` _(основание: ${f.trigger})_` : ""}`,
+                )
+                .join("\n"),
+            );
+          }
+
+          return [
+            {
+              id: "prescriptions",
+              type: "prescriptions" as SectionType,
+              label: "Назначения",
+              content: parts.join("\n\n"),
+            },
+          ];
+        })()),
       ];
 
       const barWidth = 515;
@@ -756,8 +823,24 @@ export default function Recommendations() {
               const grouped = groupByType(selectedReport.recommendations);
               const patientData = grouped["Данные пациента"]?.[0];
               const summary = grouped["Общее резюме"]?.[0];
-              const categories = Object.entries(grouped).filter(([type]) => 
-                type !== "Общее резюме" && type !== "Данные пациента"
+              const prescriptionsRec = grouped["Назначения"]?.[0];
+              const lifestyleData = prescriptionsRec?.content_json?.lifestyle as
+                | { nutrition?: string[]; activity?: string[]; sleep?: string[] }
+                | undefined;
+              const followUpsData = prescriptionsRec?.content_json?.follow_ups as
+                | Array<{ specialist?: string; goal?: string; trigger?: string }>
+                | undefined;
+              const hasLifestyle =
+                !!lifestyleData &&
+                ((lifestyleData.nutrition?.length || 0) +
+                  (lifestyleData.activity?.length || 0) +
+                  (lifestyleData.sleep?.length || 0) >
+                  0);
+              const hasFollowUps = !!followUpsData && followUpsData.length > 0;
+              const hasPrescriptionsBlock =
+                selectedPrescriptions.length > 0 || hasLifestyle || hasFollowUps;
+              const categories = Object.entries(grouped).filter(([type]) =>
+                type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
               );
 
               // Try to extract a structured ReportSnapshot from the summary recommendation.
@@ -779,7 +862,7 @@ export default function Recommendations() {
                       ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
                       ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
                     ]),
-                ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
+                ...(hasPrescriptionsBlock ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
               ];
 
               return (
@@ -902,7 +985,7 @@ export default function Recommendations() {
                           </>
                         )}
 
-                        {selectedPrescriptions.length > 0 && (
+                        {hasPrescriptionsBlock && (
                           <div id="section-prescriptions" className="scroll-mt-6">
                             <div className="mb-6">
                               <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
@@ -910,51 +993,143 @@ export default function Recommendations() {
                               </h2>
                               <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                             </div>
-                            <div className="space-y-4">
-                              {selectedPrescriptions.map((prescription, idx) => (
-                                <div key={prescription.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                  <div className="flex items-start justify-between gap-4 mb-3">
-                                    <h3 className="font-semibold text-lg flex-1">
-                                      {idx + 1}. {prescription.prescription}
-                                    </h3>
-                                    <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
-                                      {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
-                                    </Badge>
-                                  </div>
-                                  {prescription.reason && (
-                                    <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-                                      <span className="text-primary mt-0.5">📊</span>
-                                      <p className="text-sm text-foreground leading-relaxed">
-                                        <span className="font-medium">Причина:</span> {prescription.reason}
-                                      </p>
+
+                            {/* ── Нутрицевтики ── */}
+                            {selectedPrescriptions.length > 0 && (
+                              <>
+                                <h3 className="text-xl font-semibold mb-4 text-foreground">
+                                  Нутрицевтики
+                                </h3>
+                                <div className="space-y-4">
+                                  {selectedPrescriptions.map((prescription, idx) => (
+                                    <div key={prescription.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                      <div className="flex items-start justify-between gap-4 mb-3">
+                                        <h3 className="font-semibold text-lg flex-1">
+                                          {idx + 1}. {prescription.prescription}
+                                        </h3>
+                                        <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
+                                          {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
+                                        </Badge>
+                                      </div>
+                                      {prescription.reason && (
+                                        <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
+                                          <span className="text-primary mt-0.5">📊</span>
+                                          <p className="text-sm text-foreground leading-relaxed">
+                                            <span className="font-medium">Причина:</span> {prescription.reason}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {prescription.effect && (
+                                        <p className="text-sm text-muted-foreground mb-3 italic">
+                                          {prescription.effect}
+                                        </p>
+                                      )}
+                                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                        <span>
+                                          Длительность: {(() => {
+                                            if (!selectedReport?.date || !prescription.control_date) return "—";
+                                            const start = new Date(selectedReport.date);
+                                            const end = new Date(prescription.control_date);
+                                            if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
+                                            const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
+                                            return `${months} мес.`;
+                                          })()}
+                                        </span>
+                                        <span>•</span>
+                                        <span>
+                                          Контрольная дата: {prescription.control_date && !isNaN(new Date(prescription.control_date).getTime())
+                                            ? format(new Date(prescription.control_date), "dd.MM.yyyy")
+                                            : "—"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+
+                            {/* ── Питание и коррекция образа жизни ── */}
+                            {hasLifestyle && lifestyleData && (
+                              <div className="mt-8">
+                                <h3 className="text-xl font-semibold mb-4 text-foreground">
+                                  Питание и коррекция образа жизни
+                                </h3>
+                                <div className="space-y-4">
+                                  {(lifestyleData.nutrition?.length || 0) > 0 && (
+                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm">
+                                      <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                                        <span>🥗</span> Питание
+                                      </h4>
+                                      <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
+                                        {lifestyleData.nutrition!.map((item, i) => (
+                                          <li key={`nut-${i}`}>{item}</li>
+                                        ))}
+                                      </ul>
                                     </div>
                                   )}
-                                  {prescription.effect && (
-                                    <p className="text-sm text-muted-foreground mb-3 italic">
-                                      {prescription.effect}
-                                    </p>
+                                  {(lifestyleData.activity?.length || 0) > 0 && (
+                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm">
+                                      <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                                        <span>🏃</span> Физическая активность
+                                      </h4>
+                                      <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
+                                        {lifestyleData.activity!.map((item, i) => (
+                                          <li key={`act-${i}`}>{item}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
                                   )}
-                                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <span>
-                                      Длительность: {(() => {
-                                        if (!selectedReport?.date || !prescription.control_date) return "—";
-                                        const start = new Date(selectedReport.date);
-                                        const end = new Date(prescription.control_date);
-                                        if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
-                                        const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
-                                        return `${months} мес.`;
-                                      })()}
-                                    </span>
-                                    <span>•</span>
-                                    <span>
-                                      Контрольная дата: {prescription.control_date && !isNaN(new Date(prescription.control_date).getTime())
-                                        ? format(new Date(prescription.control_date), "dd.MM.yyyy")
-                                        : "—"}
-                                    </span>
-                                  </div>
+                                  {(lifestyleData.sleep?.length || 0) > 0 && (
+                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm">
+                                      <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                                        <span>😴</span> Сон и режим
+                                      </h4>
+                                      <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
+                                        {lifestyleData.sleep!.map((item, i) => (
+                                          <li key={`slp-${i}`}>{item}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            )}
+
+                            {/* ── Дополнительные консультации и обследования ── */}
+                            {hasFollowUps && followUpsData && (
+                              <div className="mt-8">
+                                <h3 className="text-xl font-semibold mb-4 text-foreground">
+                                  Дополнительные консультации и обследования
+                                </h3>
+                                <div className="space-y-3">
+                                  {followUpsData.map((f, i) => (
+                                    <div
+                                      key={`fu-${i}`}
+                                      className="p-5 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm"
+                                    >
+                                      <div className="flex items-start gap-3">
+                                        <span className="text-primary mt-0.5">🩺</span>
+                                        <div className="flex-1 space-y-1">
+                                          <p className="font-semibold text-foreground">
+                                            {f.specialist}
+                                          </p>
+                                          {f.goal && (
+                                            <p className="text-sm text-foreground leading-relaxed">
+                                              <span className="font-medium">Цель:</span> {f.goal}
+                                            </p>
+                                          )}
+                                          {f.trigger && (
+                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                              <span className="font-medium">Основание:</span> {f.trigger}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

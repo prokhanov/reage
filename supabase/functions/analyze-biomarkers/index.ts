@@ -984,6 +984,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     let prescriptionsCreated = 0;
     let prescriptionsStatus = "skipped";
     let prescriptionsToCreateFinal: Array<{ name: string; form: string; dosage: string; how_to_take: string; duration: string; prescription: string; reason: string; effect: string; duration_months: number }> = [];
+    // Дополнительные блоки раздела «Назначения»: питание/образ жизни и доп. обследования.
+    // Сохраняются в recommendations.content_json (type = 'Назначения').
+    let lifestyleFinal: { nutrition: string[]; activity: string[]; sleep: string[] } = { nutrition: [], activity: [], sleep: [] };
+    let followUpsFinal: Array<{ specialist: string; goal: string; trigger: string }> = [];
 
     // Извлекаем рекомендательные секции из отчётов (между anchor:actions_start и anchor:actions_end)
     const categoryRecommendations = Object.entries(categoryReports)
@@ -1110,7 +1114,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             messages: [
               { 
                 role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"name\": \"короткое название (например Витамин D3)\", \"form\": \"биодоступная форма (например холекальциферол)\", \"dosage\": \"дозировка (например 5000 МЕ)\", \"how_to_take\": \"схема приёма (например 1 капсула ежедневно утром с едой)\", \"duration\": \"длительность курса (например 6 месяцев)\", \"prescription\": \"полный текст назначения\", \"reason\": \"причина с биомаркером\", \"effect\": \"на что это влияет\", \"duration_months\": число}]}. Никакого дополнительного текста!"
+                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"name\": \"короткое название (например Витамин D3)\", \"form\": \"биодоступная форма (например холекальциферол)\", \"dosage\": \"дозировка (например 5000 МЕ)\", \"how_to_take\": \"схема приёма (например 1 капсула ежедневно утром с едой)\", \"duration\": \"длительность курса (например 6 месяцев)\", \"prescription\": \"полный текст назначения\", \"reason\": \"причина с биомаркером\", \"effect\": \"на что это влияет\", \"duration_months\": число}], \"lifestyle\": {\"nutrition\": [\"буллет 1\", \"буллет 2\"], \"activity\": [\"буллет 1\"], \"sleep\": [\"буллет 1\"]}, \"follow_ups\": [{\"specialist\": \"кардиолог\", \"goal\": \"оценка сосудистого риска\", \"trigger\": \"ЛПНП 4.2 ммоль/л\"}]}. Все три ключа (prescriptions, lifestyle, follow_ups) обязательны. Если какой-то блок неприменим — верни пустой массив/пустые массивы внутри объекта. Никакого дополнительного текста!"
               },
               { 
                 role: "user", 
@@ -1148,8 +1152,36 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 effect: (p.effect || "").trim().substring(0, 5000),
                 duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
               }));
-            
-            console.log(`Parsed ${prescriptionsToCreateFinal.length} valid prescriptions`);
+
+            // ── Lifestyle (питание / активность / сон) ──
+            const cleanBullets = (arr: any): string[] =>
+              Array.isArray(arr)
+                ? arr
+                    .map((s: any) => (typeof s === "string" ? s.trim() : ""))
+                    .filter((s) => s.length > 0)
+                    .map((s) => s.substring(0, 1000))
+                    .slice(0, 10)
+                : [];
+            const ls = parsed.lifestyle || {};
+            lifestyleFinal = {
+              nutrition: cleanBullets(ls.nutrition),
+              activity: cleanBullets(ls.activity),
+              sleep: cleanBullets(ls.sleep),
+            };
+
+            // ── Follow-ups (доп. консультации и обследования) ──
+            followUpsFinal = Array.isArray(parsed.follow_ups)
+              ? parsed.follow_ups
+                  .map((f: any) => ({
+                    specialist: (f?.specialist || "").toString().trim().substring(0, 200),
+                    goal: (f?.goal || "").toString().trim().substring(0, 500),
+                    trigger: (f?.trigger || "").toString().trim().substring(0, 500),
+                  }))
+                  .filter((f: any) => f.specialist && f.goal)
+                  .slice(0, 15)
+              : [];
+
+            console.log(`Parsed ${prescriptionsToCreateFinal.length} prescriptions, lifestyle bullets: ${lifestyleFinal.nutrition.length}/${lifestyleFinal.activity.length}/${lifestyleFinal.sleep.length}, follow-ups: ${followUpsFinal.length}`);
             prescriptionsStatus = "success";
           } catch (parseError) {
             console.error("Failed to parse prescriptions JSON:", parseError, "Content:", content);
@@ -1537,6 +1569,47 @@ ${categoryReportsForSnapshot}
       console.log(`Successfully created ${prescriptionsCreated} prescriptions in database`);
     } else if (prescriptionsStatus === "success") {
       console.log("No prescriptions were needed based on analysis");
+    }
+
+    // ====== Сохраняем «Питание/образ жизни» и «Доп. обследования» как отдельную запись ======
+    // type = 'Назначения', данные в content_json. Поле text — короткое summary
+    // (для совместимости со старыми UI/админкой, которые могут отображать text).
+    const hasLifestyle =
+      lifestyleFinal.nutrition.length + lifestyleFinal.activity.length + lifestyleFinal.sleep.length > 0;
+    const hasFollowUps = followUpsFinal.length > 0;
+
+    if (hasLifestyle || hasFollowUps) {
+      const summaryParts: string[] = [];
+      if (hasLifestyle) {
+        const totalBullets =
+          lifestyleFinal.nutrition.length + lifestyleFinal.activity.length + lifestyleFinal.sleep.length;
+        summaryParts.push(`Питание и образ жизни: ${totalBullets} рекомендаций`);
+      }
+      if (hasFollowUps) {
+        summaryParts.push(`Дополнительные обследования: ${followUpsFinal.length}`);
+      }
+      const summaryText = summaryParts.join(". ") + ".";
+
+      const { error: rxRecError } = await supabase
+        .from("recommendations")
+        .insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: "Назначения",
+          text: summaryText,
+          content_json: {
+            lifestyle: lifestyleFinal,
+            follow_ups: followUpsFinal,
+          },
+        });
+
+      if (rxRecError) {
+        console.error("Error inserting Назначения recommendation:", rxRecError);
+      } else {
+        console.log(
+          `Saved «Назначения» recommendation: lifestyle=${hasLifestyle}, follow_ups=${followUpsFinal.length}`
+        );
+      }
     }
 
     // ============== STANDARDIZED BIOLOGICAL AGE CALCULATION ==============
