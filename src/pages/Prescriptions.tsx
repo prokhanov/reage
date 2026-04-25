@@ -43,6 +43,24 @@ type Prescription = {
   created_at: string;
 };
 
+type LifestyleBlock = {
+  nutrition?: string[];
+  activity?: string[];
+  sleep?: string[];
+};
+
+type FollowUp = {
+  specialist?: string;
+  goal?: string;
+  trigger?: string;
+};
+
+type AdvisoryBlock = {
+  lifestyle: LifestyleBlock;
+  followUps: FollowUp[];
+  createdAt: string;
+};
+
 export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
