@@ -1130,7 +1130,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: aiProfile.model,
+            ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
             messages: [
               { 
                 role: "system", 
