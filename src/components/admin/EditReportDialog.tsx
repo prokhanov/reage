@@ -525,6 +525,20 @@ export function EditReportDialog({
                         </section>
                       )}
 
+                      {advisory &&
+                        ((advisory.lifestyle.nutrition?.length || 0) +
+                          (advisory.lifestyle.activity?.length || 0) +
+                          (advisory.lifestyle.sleep?.length || 0) === 0) &&
+                        advisory.followUps.length === 0 && (
+                          <section>
+                            <div className="p-4 rounded-xl border border-dashed border-border bg-muted/30">
+                              <p className="text-sm text-muted-foreground">
+                                AI не сгенерировал блоки «Питание и образ жизни» и «Дополнительные консультации» для этого анализа. Запись «Назначения» в базе есть, но массивы пустые. Возможные причины: лимит токенов модели или невалидный JSON. Можно перегенерировать отчёт.
+                              </p>
+                            </div>
+                          </section>
+                        )}
+
                       {prescriptions.length === 0 && !advisory && (
                         <p className="text-sm text-muted-foreground">Назначений пока нет.</p>
                       )}
