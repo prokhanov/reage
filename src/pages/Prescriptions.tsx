@@ -450,8 +450,6 @@ export default function Prescriptions() {
           )}
         </div>
 
-        <AdvisorySections />
-
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="active" className="gap-2">
@@ -494,6 +492,9 @@ export default function Prescriptions() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Питание/образ жизни и Доп. обследования — ПОСЛЕ нутрицевтиков */}
+        <AdvisorySections />
 
         </>
       )}
