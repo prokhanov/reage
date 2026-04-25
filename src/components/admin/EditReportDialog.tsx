@@ -64,6 +64,7 @@ export function EditReportDialog({
 }: EditReportDialogProps) {
   const [sections, setSections] = useState<Recommendation[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [advisory, setAdvisory] = useState<AdvisoryBlock | null>(null);
   const [editPrescriptionDialogOpen, setEditPrescriptionDialogOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
