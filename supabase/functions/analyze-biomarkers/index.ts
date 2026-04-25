@@ -843,7 +843,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
-        const categoryMaxCompletionTokens = categoryKey === "metabolism" ? 24000 : 16000;
+        const baseCategoryTokens = categoryKey === "metabolism" ? 24000 : 16000;
+        const categoryMaxCompletionTokens = Math.round(baseCategoryTokens * aiProfile.tokenMultiplier);
 
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -852,7 +853,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: aiProfile.model,
+            ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
             messages: [
               {
                 role: "system",
