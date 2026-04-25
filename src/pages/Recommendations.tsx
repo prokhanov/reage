@@ -756,8 +756,24 @@ export default function Recommendations() {
               const grouped = groupByType(selectedReport.recommendations);
               const patientData = grouped["Данные пациента"]?.[0];
               const summary = grouped["Общее резюме"]?.[0];
-              const categories = Object.entries(grouped).filter(([type]) => 
-                type !== "Общее резюме" && type !== "Данные пациента"
+              const prescriptionsRec = grouped["Назначения"]?.[0];
+              const lifestyleData = prescriptionsRec?.content_json?.lifestyle as
+                | { nutrition?: string[]; activity?: string[]; sleep?: string[] }
+                | undefined;
+              const followUpsData = prescriptionsRec?.content_json?.follow_ups as
+                | Array<{ specialist?: string; goal?: string; trigger?: string }>
+                | undefined;
+              const hasLifestyle =
+                !!lifestyleData &&
+                ((lifestyleData.nutrition?.length || 0) +
+                  (lifestyleData.activity?.length || 0) +
+                  (lifestyleData.sleep?.length || 0) >
+                  0);
+              const hasFollowUps = !!followUpsData && followUpsData.length > 0;
+              const hasPrescriptionsBlock =
+                selectedPrescriptions.length > 0 || hasLifestyle || hasFollowUps;
+              const categories = Object.entries(grouped).filter(([type]) =>
+                type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
               );
 
               // Try to extract a structured ReportSnapshot from the summary recommendation.
@@ -779,7 +795,7 @@ export default function Recommendations() {
                       ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
                       ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
                     ]),
-                ...(selectedPrescriptions.length > 0 ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
+                ...(hasPrescriptionsBlock ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
               ];
 
               return (
