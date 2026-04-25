@@ -68,14 +68,14 @@ export default function Prescriptions() {
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
+  const { hasPatientAccess, loading: accessLoading } = usePatientModuleAccess();
   const { viewAsUserId, isViewMode } = useViewAsUser();
 
   const userId = viewAsUserId || undefined;
 
   const { data: prescriptions = [], isLoading } = useQuery({
     queryKey: ["prescriptions", userId, hasPatientAccess, demoMode, demoData],
-    enabled: !demoLoading,
+    enabled: !demoLoading && !accessLoading,
     queryFn: async () => {
       if (demoMode) {
         if (!demoData) {
@@ -128,8 +128,8 @@ export default function Prescriptions() {
   // Важно: НЕ блокируем загрузку флагом demoMode — он управляет только отображением
   // нутрицевтиков выше; advisory всегда читается из реальных recommendations.
   const { data: advisory, error: advisoryError } = useQuery<AdvisoryBlock | null>({
-    queryKey: ["recommendations-advisory", userId ?? "self", demoMode],
-    enabled: !demoLoading && !demoMode,
+    queryKey: ["recommendations-advisory", userId ?? "self"],
+    enabled: !demoLoading,
     staleTime: 0,
     queryFn: async () => {
       let targetUserId = userId;
@@ -428,8 +428,8 @@ export default function Prescriptions() {
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
-        {isLoading && <PrescriptionListSkeleton />}
-        {!isLoading && (
+        {(isLoading || accessLoading) && <PrescriptionListSkeleton />}
+        {!isLoading && !accessLoading && (
           <>
             <div className="flex items-center justify-between">
           <div>
