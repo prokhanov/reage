@@ -123,6 +123,53 @@ export default function Prescriptions() {
     },
   });
 
+  // Загружаем структурированные блоки «Питание/образ жизни» и «Доп. обследования»
+  // из последнего отчёта (recommendations.type = 'Назначения').
+  const { data: advisory } = useQuery<AdvisoryBlock | null>({
+    queryKey: ["recommendations-advisory", userId, demoMode],
+    enabled: !demoLoading && !demoMode,
+    queryFn: async () => {
+      let targetUserId = userId;
+      if (!targetUserId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        targetUserId = user?.id;
+      }
+      if (!targetUserId) return null;
+
+      const { data, error } = await supabase
+        .from("recommendations")
+        .select("content_json, created_at")
+        .eq("user_id", targetUserId)
+        .eq("type", "Назначения")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error("Error loading advisory recommendations:", error);
+        return null;
+      }
+
+      // Берём первый блок, в котором есть хоть что-то полезное.
+      for (const row of data || []) {
+        const cj = (row as any).content_json;
+        const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+        const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+        const lifestyleCount =
+          (lifestyle.nutrition?.length || 0) +
+          (lifestyle.activity?.length || 0) +
+          (lifestyle.sleep?.length || 0);
+        if (lifestyleCount > 0 || followUps.length > 0) {
+          return {
+            lifestyle,
+            followUps,
+            createdAt: (row as any).created_at,
+          };
+        }
+      }
+      return null;
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
