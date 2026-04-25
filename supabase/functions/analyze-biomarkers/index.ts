@@ -1279,8 +1279,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     // Из готовых текстовых отчётов + UUID биомаркеров строим единый JSON snapshot,
     // который становится источником истины для рендера на сайте и в PDF.
     // Старые text-поля сохраняются для обратной совместимости и админ-редактирования.
-    try {
-      console.log("Building report snapshot via AI tool calling...");
+    const buildAndSaveSnapshot = async () => {
+      try {
+        console.log("Building report snapshot via AI tool calling...");
 
       // Список биомаркеров с UUID, именами, кодами и статусами — для AI
       const biomarkersForSnapshot = analysis.analysis_values.map((av: any) => ({
@@ -1482,9 +1483,20 @@ ${categoryReportsForSnapshot}
       } else {
         console.warn("No summary recommendation id — snapshot not saved");
       }
-    } catch (snapshotError: any) {
-      console.error("Snapshot generation error (non-fatal):", snapshotError.message);
-      // Не падаем — текстовые отчёты уже сохранены, фронт отрендерит fallback
+      } catch (snapshotError: any) {
+        console.error("Snapshot generation error (non-fatal):", snapshotError.message);
+        // Не падаем — текстовые отчёты уже сохранены, фронт отрендерит fallback
+      }
+    };
+
+    const edgeRuntime = globalThis as typeof globalThis & {
+      EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void };
+    };
+
+    if (edgeRuntime.EdgeRuntime?.waitUntil) {
+      edgeRuntime.EdgeRuntime.waitUntil(buildAndSaveSnapshot());
+    } else {
+      void buildAndSaveSnapshot();
     }
 
     // Сохраняем назначения в БД (после резюме, чтобы иметь prescriptionRecommendationId)
