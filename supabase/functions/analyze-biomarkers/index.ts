@@ -908,9 +908,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const MIN_CONTENT_LENGTH = 500;
         let retryCount = 0;
 
-        while ((!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) && retryCount < 2) {
+        while ((!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) && retryCount < aiProfile.maxRetries) {
           retryCount++;
-          console.warn(`RETRY ${retryCount}/2 for ${category}: content too short (${categoryReport?.length || 0} chars)`);
+          console.warn(`RETRY ${retryCount}/${aiProfile.maxRetries} for ${category}: content too short (${categoryReport?.length || 0} chars)`);
           await new Promise(r => setTimeout(r, 3000));
 
           const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -920,7 +920,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
+              model: aiProfile.model,
+              ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
               messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: categoryPrompt }
