@@ -313,48 +313,12 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     }
   }
 
-  // Pass 2: Section headers — ## 🧬 Заголовок (non-biomarker headers with emoji/keywords)
-  const sectionHeaderRegex = /^(#{2,3})\s+(.+?)\s*$/gm;
-  const sectionMatches = [...result.matchAll(sectionHeaderRegex)];
-  const usedSections = new Set<string>();
+  // Pass 2 (legacy auto-injection of intro/insights/strengths/... section
+  // anchors по emoji в заголовках) удалён — эти секции больше не используются
+  // ни промптами, ни рендерером.
 
-  for (let i = sectionMatches.length - 1; i >= 0; i--) {
-    const match = sectionMatches[i];
-    const headerStart = match.index!;
-    const headerEnd = headerStart + match[0].length;
-    const headerText = match[2];
-
-    const textBefore = result.slice(Math.max(0, headerStart - 100), headerStart);
-    if (textBefore.includes('<!-- anchor:biomarker') || textBefore.includes('<!-- anchor:')) {
-      const lastAnchorStart = result.lastIndexOf('<!-- anchor:', headerStart);
-      const lastAnchorEnd = result.lastIndexOf('_end -->', headerStart);
-      if (lastAnchorStart > lastAnchorEnd) continue;
-    }
-
-    let sectionName: string | null = null;
-    for (const { pattern, section } of SECTION_HEADER_MAP) {
-      if (pattern.test(headerText) && !usedSections.has(section)) {
-        sectionName = section;
-        break;
-      }
-    }
-
-    if (!sectionName) continue;
-    usedSections.add(sectionName);
-
-    const level = match[1].length;
-    const nextHeaderRegex = new RegExp(`^#{1,${level}}\\s+`, 'gm');
-    nextHeaderRegex.lastIndex = headerEnd;
-    const nextMatch = nextHeaderRegex.exec(result);
-    const sectionEnd = nextMatch ? nextMatch.index! : result.length;
-
-    // Do not wrap biomarker anchors in a generic section block,
-    // otherwise the parser will consume the whole range as plain text
-    // and the colored biomarker cards / scales won't render.
-    const sectionSlice = result.slice(headerEnd, sectionEnd);
-    if (sectionSlice.includes('<!-- anchor:biomarker ')) {
-      continue;
-    }
+  return result;
+}
 
     result = result.slice(0, sectionEnd) + `\n<!-- anchor:${sectionName}_end -->\n` + result.slice(sectionEnd);
     result = result.slice(0, headerStart) + `<!-- anchor:${sectionName}_start -->\n` + result.slice(headerStart);
