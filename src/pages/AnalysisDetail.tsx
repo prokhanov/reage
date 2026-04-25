@@ -305,7 +305,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     }
   };
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (mode: "standard" | "deep" = "standard") => {
     if (values.length === 0) {
       toast({
         title: "Недостаточно данных",
