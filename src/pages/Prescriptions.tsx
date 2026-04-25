@@ -41,6 +41,7 @@ type Prescription = {
   status: "on_review" | "confirmed";
   is_archived: boolean;
   created_at: string;
+  analysis_id: string | null;
 };
 
 type LifestyleBlock = {
@@ -124,25 +125,53 @@ export default function Prescriptions() {
   });
 
   // Загружаем структурированные блоки «Питание/образ жизни» и «Доп. обследования»
-  // из последнего отчёта (recommendations.type = 'Назначения').
-  // Важно: НЕ блокируем загрузку флагом demoMode — он управляет только отображением
-  // нутрицевтиков выше; advisory всегда читается из реальных recommendations.
-  const { data: advisory, error: advisoryError } = useQuery<AdvisoryBlock | null>({
-    queryKey: ["recommendations-advisory", userId ?? "self"],
-    enabled: !demoLoading,
+  // из отчёта (recommendations.type = 'Назначения').
+  // Приоритет привязки:
+  //   1) если есть активные нутрицевтики с analysis_id — берём advisory того же analysis_id;
+  //   2) иначе — последний по created_at блок «Назначения», в котором есть данные.
+  const activeAnalysisId = (() => {
+    const withAnalysis = (prescriptions || []).find(
+      (p: any) => !p.is_archived && p.analysis_id
+    ) as any;
+    return withAnalysis?.analysis_id as string | undefined;
+  })();
+
+  const { data: advisory } = useQuery<AdvisoryBlock | null>({
+    queryKey: ["recommendations-advisory", userId ?? "self", activeAnalysisId ?? null, demoMode],
+    enabled: !demoLoading && !isLoading,
     staleTime: 0,
     queryFn: async () => {
+      if (demoMode) return null;
+
       let targetUserId = userId;
       if (!targetUserId) {
         const { data: { user } } = await supabase.auth.getUser();
         targetUserId = user?.id;
       }
-      if (!targetUserId) {
-        console.log("[advisory] no targetUserId, skipping");
-        return null;
+      if (!targetUserId) return null;
+
+      // Шаг 1: пробуем найти advisory по analysis_id активного нутрицевтика.
+      if (activeAnalysisId) {
+        const { data: targeted } = await supabase
+          .from("recommendations")
+          .select("content_json, created_at, analysis_id, type")
+          .eq("user_id", targetUserId)
+          .eq("type", "Назначения")
+          .eq("analysis_id", activeAnalysisId)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        const row = targeted?.[0] as any;
+        if (row) {
+          const cj = row.content_json;
+          const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+          const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+          return { lifestyle, followUps, createdAt: row.created_at };
+        }
       }
 
-      const { data, error } = await supabase
+      // Шаг 2: fallback — последний блок «Назначения» с данными.
+      const { data } = await supabase
         .from("recommendations")
         .select("content_json, created_at, analysis_id, type")
         .eq("user_id", targetUserId)
@@ -150,18 +179,6 @@ export default function Prescriptions() {
         .order("created_at", { ascending: false })
         .limit(10);
 
-      console.log("[advisory] fetch result", {
-        targetUserId,
-        rows: data?.length ?? 0,
-        error,
-      });
-
-      if (error) {
-        console.error("Error loading advisory recommendations:", error);
-        return null;
-      }
-
-      // Берём первый блок, в котором есть хоть что-то полезное.
       for (const row of data || []) {
         const cj = (row as any).content_json;
         const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
@@ -170,17 +187,8 @@ export default function Prescriptions() {
           (lifestyle.nutrition?.length || 0) +
           (lifestyle.activity?.length || 0) +
           (lifestyle.sleep?.length || 0);
-        console.log("[advisory] row check", {
-          createdAt: (row as any).created_at,
-          lifestyleCount,
-          followUps: followUps.length,
-        });
         if (lifestyleCount > 0 || followUps.length > 0) {
-          return {
-            lifestyle,
-            followUps,
-            createdAt: (row as any).created_at,
-          };
+          return { lifestyle, followUps, createdAt: (row as any).created_at };
         }
       }
       return null;
@@ -214,6 +222,18 @@ export default function Prescriptions() {
 
   const activePrescriptions = prescriptions.filter((p) => !p.is_archived);
   const archivedPrescriptions = prescriptions.filter((p) => p.is_archived);
+
+  // Подсчёт всех активных рекомендаций (нутрицевтики + структурированные блоки).
+  const advisoryNutritionCount = advisory?.lifestyle.nutrition?.length || 0;
+  const advisoryActivityCount = advisory?.lifestyle.activity?.length || 0;
+  const advisorySleepCount = advisory?.lifestyle.sleep?.length || 0;
+  const advisoryFollowUpsCount = advisory?.followUps?.length || 0;
+  const totalActiveCount =
+    activePrescriptions.length +
+    advisoryNutritionCount +
+    advisoryActivityCount +
+    advisorySleepCount +
+    advisoryFollowUpsCount;
 
   const getStatusBadge = (status: "on_review" | "confirmed") => {
     if (status === "confirmed") {
@@ -454,7 +474,7 @@ export default function Prescriptions() {
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="active" className="gap-2">
               <FileText className="w-4 h-4" />
-              Активные ({activePrescriptions.length})
+              Активные ({totalActiveCount})
             </TabsTrigger>
             <TabsTrigger value="archive" className="gap-2">
               <FileText className="w-4 h-4" />
@@ -462,8 +482,8 @@ export default function Prescriptions() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-4 mt-6">
-            {activePrescriptions.length === 0 ? (
+          <TabsContent value="active" className="space-y-8 mt-6">
+            {totalActiveCount === 0 ? (
               <div className="rounded-lg border border-dashed border-border/50 bg-card/30 p-12">
                 <div className="flex flex-col items-center justify-center">
                   <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
@@ -473,7 +493,22 @@ export default function Prescriptions() {
                 </div>
               </div>
             ) : (
-              <PrescriptionTable prescriptions={activePrescriptions} />
+              <>
+                {activePrescriptions.length > 0 && (
+                  <section className="space-y-4">
+                    <div>
+                      <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                        Нутрицевтики ({activePrescriptions.length})
+                      </h2>
+                      <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                    </div>
+                    <PrescriptionTable prescriptions={activePrescriptions} />
+                  </section>
+                )}
+
+                {/* Питание/образ жизни и Доп. обследования */}
+                <AdvisorySections />
+              </>
             )}
           </TabsContent>
 
@@ -492,9 +527,6 @@ export default function Prescriptions() {
             )}
           </TabsContent>
         </Tabs>
-
-        {/* Питание/образ жизни и Доп. обследования — ПОСЛЕ нутрицевтиков */}
-        <AdvisorySections />
 
         </>
       )}
