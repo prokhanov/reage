@@ -377,11 +377,24 @@ export function EditReportDialog({
                           {section.type}
                         </SelectItem>
                       ))}
-                      {(prescriptions.length > 0 || advisory) && (
-                        <SelectItem value="prescriptions">
-                          Назначения{prescriptions.length > 0 ? ` (${prescriptions.length})` : ""}
-                        </SelectItem>
-                      )}
+                      {(prescriptions.length > 0 || advisory) && (() => {
+                        const lifestyleCount = advisory
+                          ? (advisory.lifestyle.nutrition?.length || 0) +
+                            (advisory.lifestyle.activity?.length || 0) +
+                            (advisory.lifestyle.sleep?.length || 0)
+                          : 0;
+                        const followUpsCount = advisory?.followUps.length || 0;
+                        const parts: string[] = [];
+                        if (prescriptions.length > 0) parts.push(`нутрицевтики: ${prescriptions.length}`);
+                        if (lifestyleCount > 0) parts.push(`образ жизни: ${lifestyleCount}`);
+                        if (followUpsCount > 0) parts.push(`консультации: ${followUpsCount}`);
+                        const label = parts.length > 0 ? `Назначения (${parts.join(" · ")})` : "Назначения";
+                        return (
+                          <SelectItem value="prescriptions">
+                            {label}
+                          </SelectItem>
+                        );
+                      })()}
                     </SelectContent>
                   </Select>
                 </div>
