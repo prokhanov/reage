@@ -125,24 +125,36 @@ export default function Prescriptions() {
 
   // Загружаем структурированные блоки «Питание/образ жизни» и «Доп. обследования»
   // из последнего отчёта (recommendations.type = 'Назначения').
-  const { data: advisory } = useQuery<AdvisoryBlock | null>({
-    queryKey: ["recommendations-advisory", userId, demoMode],
+  // Важно: НЕ блокируем загрузку флагом demoMode — он управляет только отображением
+  // нутрицевтиков выше; advisory всегда читается из реальных recommendations.
+  const { data: advisory, error: advisoryError } = useQuery<AdvisoryBlock | null>({
+    queryKey: ["recommendations-advisory", userId ?? "self", demoMode],
     enabled: !demoLoading && !demoMode,
+    staleTime: 0,
     queryFn: async () => {
       let targetUserId = userId;
       if (!targetUserId) {
         const { data: { user } } = await supabase.auth.getUser();
         targetUserId = user?.id;
       }
-      if (!targetUserId) return null;
+      if (!targetUserId) {
+        console.log("[advisory] no targetUserId, skipping");
+        return null;
+      }
 
       const { data, error } = await supabase
         .from("recommendations")
-        .select("content_json, created_at")
+        .select("content_json, created_at, analysis_id, type")
         .eq("user_id", targetUserId)
         .eq("type", "Назначения")
         .order("created_at", { ascending: false })
         .limit(10);
+
+      console.log("[advisory] fetch result", {
+        targetUserId,
+        rows: data?.length ?? 0,
+        error,
+      });
 
       if (error) {
         console.error("Error loading advisory recommendations:", error);
@@ -158,6 +170,11 @@ export default function Prescriptions() {
           (lifestyle.nutrition?.length || 0) +
           (lifestyle.activity?.length || 0) +
           (lifestyle.sleep?.length || 0);
+        console.log("[advisory] row check", {
+          createdAt: (row as any).created_at,
+          lifestyleCount,
+          followUps: followUps.length,
+        });
         if (lifestyleCount > 0 || followUps.length > 0) {
           return {
             lifestyle,
@@ -433,8 +450,6 @@ export default function Prescriptions() {
           )}
         </div>
 
-        <AdvisorySections />
-
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="active" className="gap-2">
@@ -477,6 +492,9 @@ export default function Prescriptions() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Питание/образ жизни и Доп. обследования — ПОСЛЕ нутрицевтиков */}
+        <AdvisorySections />
 
         </>
       )}
