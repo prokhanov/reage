@@ -74,7 +74,7 @@ type SectionType = 'patient-data' | 'summary' | string;
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
-  const { hasPatientAccess, isSuperAdmin, loading: accessLoading } = usePatientModuleAccess();
+  const { hasPatientAccess, loading: accessLoading } = usePatientModuleAccess();
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
