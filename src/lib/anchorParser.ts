@@ -8,28 +8,14 @@ export type AnchorBlock =
   | { type: 'text'; content: string }
   | { type: 'summary'; content: string }
   | { type: 'biomarker'; code: string; content: string }
-  | { type: 'section'; name: string; content: string }
   | { type: 'spacer' }
   | { type: 'pagebreak' };
 
-// Known paired section names (open_start → close_end)
-const SECTION_NAMES = new Set([
-  'intro', 'insights', 'strengths', 'risks', 'aging',
-  'features', 'actions', 'trends', 'connections',
-]);
-
-// Emoji/keyword → section name mapping for auto-injection
-const SECTION_HEADER_MAP: Array<{ pattern: RegExp; section: string }> = [
-  { pattern: /🔬|интерпретация|расшифровка/i, section: 'insights' },
-  { pattern: /✅|💪|сильные|в норме|оптимал/i, section: 'strengths' },
-  { pattern: /⚠️|🔴|риск|отклонен|внимани/i, section: 'risks' },
-  { pattern: /⏳|🕰|старени|биовозраст|aging/i, section: 'aging' },
-  { pattern: /🧬|роль|взаимосвяз|систем/i, section: 'connections' },
-  { pattern: /📋|резюме|итог|выводы|заключен/i, section: 'intro' },
-  { pattern: /🎯|действ|рекоменд|план/i, section: 'actions' },
-  { pattern: /📈|тренд|динамик/i, section: 'trends' },
-  { pattern: /⭐|особенност|feature/i, section: 'features' },
-];
+// NOTE: Legacy `section` blocks (intro/insights/strengths/risks/aging/features/
+// actions/connections/trends) полностью удалены. Эти секции никогда не
+// рендерились в anchorRenderer.tsx и больше не упоминаются ни в одном
+// промпте. Если в старых отчётах встретятся `<!-- anchor:NAME_start -->`,
+// парсер просто пропустит их как обычный текст.
 
 // ═══ Main parser ═══
 
