@@ -1152,8 +1152,36 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                 effect: (p.effect || "").trim().substring(0, 5000),
                 duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
               }));
-            
-            console.log(`Parsed ${prescriptionsToCreateFinal.length} valid prescriptions`);
+
+            // ── Lifestyle (питание / активность / сон) ──
+            const cleanBullets = (arr: any): string[] =>
+              Array.isArray(arr)
+                ? arr
+                    .map((s: any) => (typeof s === "string" ? s.trim() : ""))
+                    .filter((s) => s.length > 0)
+                    .map((s) => s.substring(0, 1000))
+                    .slice(0, 10)
+                : [];
+            const ls = parsed.lifestyle || {};
+            lifestyleFinal = {
+              nutrition: cleanBullets(ls.nutrition),
+              activity: cleanBullets(ls.activity),
+              sleep: cleanBullets(ls.sleep),
+            };
+
+            // ── Follow-ups (доп. консультации и обследования) ──
+            followUpsFinal = Array.isArray(parsed.follow_ups)
+              ? parsed.follow_ups
+                  .map((f: any) => ({
+                    specialist: (f?.specialist || "").toString().trim().substring(0, 200),
+                    goal: (f?.goal || "").toString().trim().substring(0, 500),
+                    trigger: (f?.trigger || "").toString().trim().substring(0, 500),
+                  }))
+                  .filter((f: any) => f.specialist && f.goal)
+                  .slice(0, 15)
+              : [];
+
+            console.log(`Parsed ${prescriptionsToCreateFinal.length} prescriptions, lifestyle bullets: ${lifestyleFinal.nutrition.length}/${lifestyleFinal.activity.length}/${lifestyleFinal.sleep.length}, follow-ups: ${followUpsFinal.length}`);
             prescriptionsStatus = "success";
           } catch (parseError) {
             console.error("Failed to parse prescriptions JSON:", parseError, "Content:", content);
