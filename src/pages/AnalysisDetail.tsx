@@ -511,14 +511,57 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 <Edit className="mr-2 h-4 w-4" />
                 Редактировать анализ
               </Button>
-              <Button
-                onClick={handleAnalyze}
-                disabled={analyzing || values.length === 0}
-                className="shadow-neon-accent"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                {analyzing ? "Генерируем..." : "Перегенерировать"}
-              </Button>
+              <div className="flex">
+                <Button
+                  onClick={() => handleAnalyze("standard")}
+                  disabled={analyzing || values.length === 0}
+                  className="shadow-neon-accent rounded-r-none"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {analyzing ? "Генерируем..." : "Перегенерировать"}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      disabled={analyzing || values.length === 0}
+                      className="shadow-neon-accent rounded-l-none border-l border-primary-foreground/20 px-2"
+                      aria-label="Выбрать режим генерации"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72">
+                    <DropdownMenuLabel>Глубина анализа</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => handleAnalyze("standard")}
+                      className="flex flex-col items-start gap-1 py-2"
+                    >
+                      <div className="flex items-center gap-2 font-medium">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Стандартный
+                        <span className="text-xs text-muted-foreground font-normal">~3–5 мин</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Быстрая генерация на базовой модели.
+                      </p>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleAnalyze("deep")}
+                      className="flex flex-col items-start gap-1 py-2"
+                    >
+                      <div className="flex items-center gap-2 font-medium">
+                        <Brain className="h-4 w-4 text-primary" />
+                        Глубокий анализ
+                        <span className="text-xs text-muted-foreground font-normal">~8–15 мин</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Усиленная модель + расширенное «обдумывание». Выше точность и связность, требует больше времени и AI-кредитов.
+                      </p>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           )}
         </div>
