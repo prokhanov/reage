@@ -104,6 +104,7 @@ const App = () => (
               <Route path="/biomarkers" element={<Navigate to="/dashboard" replace />} />
               <Route path="/recommendations" element={<PatientRoute><Recommendations /></PatientRoute>} />
               <Route path="/prescriptions" element={<PatientRoute><Prescriptions /></PatientRoute>} />
+              <Route path="/prescriptions-v2" element={<PatientRoute><PrescriptionsV2 /></PatientRoute>} />
               <Route path="/trends" element={<Navigate to="/dashboard" replace />} />
               <Route path="/my-state" element={<PatientRoute><MyState /></PatientRoute>} />
               <Route path="/health-assistant" element={<PatientRoute><HealthAssistant /></PatientRoute>} />
