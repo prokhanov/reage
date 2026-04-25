@@ -495,8 +495,15 @@ export default function Recommendations() {
       const grouped = groupByType(selectedReport.recommendations);
       const patientData = grouped["Данные пациента"]?.[0];
       const summary = grouped["Общее резюме"]?.[0];
-      const categories = Object.entries(grouped).filter(([type]) => 
-        type !== "Общее резюме" && type !== "Данные пациента"
+      const prescriptionsRec = grouped["Назначения"]?.[0];
+      const lifestylePdf = (prescriptionsRec?.content_json?.lifestyle || {}) as {
+        nutrition?: string[]; activity?: string[]; sleep?: string[];
+      };
+      const followUpsPdf = (prescriptionsRec?.content_json?.follow_ups || []) as Array<{
+        specialist?: string; goal?: string; trigger?: string;
+      }>;
+      const categories = Object.entries(grouped).filter(([type]) =>
+        type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
       );
 
       // Load prescriptions
