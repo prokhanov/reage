@@ -41,6 +41,7 @@ type Prescription = {
   status: "on_review" | "confirmed";
   is_archived: boolean;
   created_at: string;
+  analysis_id: string | null;
 };
 
 type LifestyleBlock = {
