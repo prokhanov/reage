@@ -16,11 +16,28 @@ serve(async (req) => {
   }
 
   try {
-    const { analysisId } = await req.json();
+    const { analysisId, mode: rawMode } = await req.json();
 
     if (!analysisId) {
       throw new Error("Не указан ID анализа");
     }
+
+    // ===== Режим генерации: standard (быстрее, дефолт) | deep (качественнее, медленнее) =====
+    const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
+    const aiProfile = mode === "deep"
+      ? {
+          model: "google/gemini-2.5-pro",
+          reasoning: { effort: "high" as const },
+          tokenMultiplier: 1.5,
+          maxRetries: 3,
+        }
+      : {
+          model: "google/gemini-2.5-flash",
+          reasoning: undefined as undefined | { effort: "high" },
+          tokenMultiplier: 1,
+          maxRetries: 2,
+        };
+    console.log(`AI generation mode: ${mode} (model=${aiProfile.model}, reasoning=${aiProfile.reasoning?.effort ?? "none"})`);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
