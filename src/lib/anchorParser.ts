@@ -320,12 +320,7 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
   return result;
 }
 
-    result = result.slice(0, sectionEnd) + `\n<!-- anchor:${sectionName}_end -->\n` + result.slice(sectionEnd);
-    result = result.slice(0, headerStart) + `<!-- anchor:${sectionName}_start -->\n` + result.slice(headerStart);
-  }
 
-  return result;
-}
 
 // ═══ Helpers ═══
 
