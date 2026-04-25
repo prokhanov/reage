@@ -365,9 +365,9 @@ export function EditReportDialog({
                           {section.type}
                         </SelectItem>
                       ))}
-                      {prescriptions.length > 0 && (
+                      {(prescriptions.length > 0 || advisory) && (
                         <SelectItem value="prescriptions">
-                          Назначения ({prescriptions.length})
+                          Назначения{prescriptions.length > 0 ? ` (${prescriptions.length})` : ""}
                         </SelectItem>
                       )}
                     </SelectContent>
