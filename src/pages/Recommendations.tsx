@@ -74,7 +74,7 @@ type SectionType = 'patient-data' | 'summary' | string;
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
   const { setSimPath } = useContext(ViewAsPatientContext);
-  const { hasPatientAccess, isSuperAdmin } = usePatientModuleAccess();
+  const { hasPatientAccess, isSuperAdmin, loading: accessLoading } = usePatientModuleAccess();
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [reports, setReports] = useState<RecommendationReport[]>([]);
@@ -100,11 +100,11 @@ export default function Recommendations() {
       .replace(/^-+|-+$/g, "");
 
   useEffect(() => {
-    if (demoMode && demoLoading) {
+    if (demoLoading || accessLoading) {
       return;
     }
     loadRecommendations();
-  }, [demoMode, demoLoading]);
+  }, [demoMode, demoLoading, accessLoading]);
 
   const loadRecommendations = async () => {
     if (demoMode) {
@@ -723,7 +723,7 @@ export default function Recommendations() {
     }
   };
 
-  if (loading) {
+  if (loading || accessLoading) {
     return <RecommendationsSkeleton />;
   }
 
