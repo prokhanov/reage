@@ -128,15 +128,9 @@ export function parseAnchors(
       blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data, codeToNames[data] || []) });
       lastIndex = endAfter;
     } else if (tag.endsWith('_start')) {
-      const baseName = tag.replace('_start', '');
-      if (SECTION_NAMES.has(baseName)) {
-        const endPos = findEndTagPos(processedText, `${baseName}_end`, tagEnd);
-        const content = processedText.slice(tagEnd, endPos.start).trim();
-        if (content) blocks.push({ type: 'section', name: baseName, content });
-        lastIndex = endPos.end;
-      } else {
-        lastIndex = tagEnd;
-      }
+      // Legacy section markers (intro/insights/strengths/risks/aging/...)
+      // больше не поддерживаются — пропускаем как обычный текст.
+      lastIndex = tagEnd;
     } else if (tag.endsWith('_end')) {
       // Orphaned end tag — skip
       lastIndex = tagEnd;
