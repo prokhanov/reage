@@ -21,6 +21,23 @@ interface Recommendation {
   originalMarkdown?: string;
 }
 
+type LifestyleBlock = {
+  nutrition?: string[];
+  activity?: string[];
+  sleep?: string[];
+};
+
+type FollowUp = {
+  specialist?: string;
+  goal?: string;
+  trigger?: string;
+};
+
+type AdvisoryBlock = {
+  lifestyle: LifestyleBlock;
+  followUps: FollowUp[];
+};
+
 interface Prescription {
   id: string;
   prescription: string;
