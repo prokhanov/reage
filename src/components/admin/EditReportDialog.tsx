@@ -114,6 +114,13 @@ export function EditReportDialog({
 
       const rows = data || [];
 
+      // Диагностика: видно ли строку «Назначения» с content_json после загрузки.
+      console.log("[EditReportDialog] loadRecommendations", {
+        analysisId,
+        rowsCount: rows.length,
+        types: rows.map((r: any) => r.type),
+      });
+
       // Выделяем advisory-блок «Назначения» (lifestyle + follow_ups) — он не markdown,
       // его нужно рендерить отдельным read-only компонентом, а не через Quill.
       const advisoryRow = rows.find((r: any) => r.type === "Назначения");
@@ -121,16 +128,21 @@ export function EditReportDialog({
         const cj = (advisoryRow as any).content_json;
         const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
         const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
-        const lifestyleCount =
-          (lifestyle.nutrition?.length || 0) +
-          (lifestyle.activity?.length || 0) +
-          (lifestyle.sleep?.length || 0);
-        if (lifestyleCount > 0 || followUps.length > 0) {
-          setAdvisory({ lifestyle, followUps });
-        } else {
-          setAdvisory(null);
-        }
+
+        console.log("[EditReportDialog] advisoryRow found", {
+          contentJsonType: typeof cj,
+          contentJsonKeys: cj && typeof cj === "object" ? Object.keys(cj) : null,
+          nutritionLen: lifestyle.nutrition?.length || 0,
+          activityLen: lifestyle.activity?.length || 0,
+          sleepLen: lifestyle.sleep?.length || 0,
+          followUpsLen: followUps.length,
+        });
+
+        // Если строка «Назначения» вообще существует — показываем блок,
+        // даже если массивы пустые (отрисуем placeholder).
+        setAdvisory({ lifestyle, followUps });
       } else {
+        console.log("[EditReportDialog] advisoryRow NOT found in recommendations");
         setAdvisory(null);
       }
 
