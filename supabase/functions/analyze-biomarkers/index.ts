@@ -984,6 +984,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     let prescriptionsCreated = 0;
     let prescriptionsStatus = "skipped";
     let prescriptionsToCreateFinal: Array<{ name: string; form: string; dosage: string; how_to_take: string; duration: string; prescription: string; reason: string; effect: string; duration_months: number }> = [];
+    // Дополнительные блоки раздела «Назначения»: питание/образ жизни и доп. обследования.
+    // Сохраняются в recommendations.content_json (type = 'Назначения').
+    let lifestyleFinal: { nutrition: string[]; activity: string[]; sleep: string[] } = { nutrition: [], activity: [], sleep: [] };
+    let followUpsFinal: Array<{ specialist: string; goal: string; trigger: string }> = [];
 
     // Извлекаем рекомендательные секции из отчётов (между anchor:actions_start и anchor:actions_end)
     const categoryRecommendations = Object.entries(categoryReports)
