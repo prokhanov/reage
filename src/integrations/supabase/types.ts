@@ -670,50 +670,6 @@ export type Database = {
         }
         Relationships: []
       }
-      lifestyle_recommendations_v2: {
-        Row: {
-          activity: Json
-          analysis_id: string
-          created_at: string
-          follow_ups: Json
-          id: string
-          nutrition: Json
-          sleep: Json
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          activity?: Json
-          analysis_id: string
-          created_at?: string
-          follow_ups?: Json
-          id?: string
-          nutrition?: Json
-          sleep?: Json
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          activity?: Json
-          analysis_id?: string
-          created_at?: string
-          follow_ups?: Json
-          id?: string
-          nutrition?: Json
-          sleep?: Json
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lifestyle_recommendations_v2_analysis_id_fkey"
-            columns: ["analysis_id"]
-            isOneToOne: false
-            referencedRelation: "analyses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       medical_condition_categories: {
         Row: {
           created_at: string
@@ -1032,74 +988,6 @@ export type Database = {
             columns: ["recommendation_id"]
             isOneToOne: false
             referencedRelation: "recommendations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      prescriptions_v2: {
-        Row: {
-          analysis_id: string | null
-          category: string | null
-          created_at: string
-          created_by: string | null
-          dosage: string | null
-          duration: string | null
-          effect: string | null
-          form: string | null
-          how_to_take: string | null
-          id: string
-          is_archived: boolean
-          name: string | null
-          prescription: string
-          reason: string | null
-          status: Database["public"]["Enums"]["prescription_status"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          analysis_id?: string | null
-          category?: string | null
-          created_at?: string
-          created_by?: string | null
-          dosage?: string | null
-          duration?: string | null
-          effect?: string | null
-          form?: string | null
-          how_to_take?: string | null
-          id?: string
-          is_archived?: boolean
-          name?: string | null
-          prescription: string
-          reason?: string | null
-          status?: Database["public"]["Enums"]["prescription_status"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          analysis_id?: string | null
-          category?: string | null
-          created_at?: string
-          created_by?: string | null
-          dosage?: string | null
-          duration?: string | null
-          effect?: string | null
-          form?: string | null
-          how_to_take?: string | null
-          id?: string
-          is_archived?: boolean
-          name?: string | null
-          prescription?: string
-          reason?: string | null
-          status?: Database["public"]["Enums"]["prescription_status"]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "prescriptions_v2_analysis_id_fkey"
-            columns: ["analysis_id"]
-            isOneToOne: false
-            referencedRelation: "analyses"
             referencedColumns: ["id"]
           },
         ]
