@@ -1432,7 +1432,8 @@ ${categoryReportsForSnapshot}
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiProfile.model,
+          ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
           temperature: 0,
           messages: [
             { role: "system", content: snapshotSystemPrompt },
