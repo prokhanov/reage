@@ -359,14 +359,16 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       pollingStopped = true;
       clearInterval(pollInterval);
 
+      // 1) Сетевая/транспортная ошибка от supabase-js
       if (error) {
-        if (error.message?.includes("402") || error.message?.includes("Payment required")) {
+        const msg = error.message || "";
+        if (msg.includes("402") || msg.includes("Payment required")) {
           toast({
             title: "Недостаточно средств",
             description: "Пополните баланс в Settings → Workspace → Usage",
             variant: "destructive",
           });
-        } else if (error.message?.includes("429") || error.message?.includes("Rate limit")) {
+        } else if (msg.includes("429") || msg.includes("Rate limit")) {
           toast({
             title: "Превышен лимит запросов",
             description: "Подождите несколько минут и попробуйте снова",
@@ -378,17 +380,28 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         return;
       }
 
+      // 2) Логическая ошибка от edge-функции (status=200, success=false)
+      if (data && data.success === false) {
+        toast({
+          title: "Ошибка анализа",
+          description: data.error || "Не удалось выполнить AI-анализ",
+          variant: "destructive",
+        });
+        console.error("analyze-biomarkers returned error:", data);
+        return;
+      }
+
       setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
 
-      const successCount = Object.values(data.categories_processed).filter((s: any) => s.success).length;
-      
+      const successCount = Object.values(data.categories_processed || {}).filter((s: any) => s.success).length;
+
       toast({
         title: "Отчет сгенерирован",
         description: `Успешно: ${successCount} из ${categories.length} категорий`,
       });
 
       loadData();
-      
+
       // Открываем диалог редактирования отчета
       setEditReportAnalysisId(id || null);
       setShowEditReport(true);
