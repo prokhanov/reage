@@ -569,25 +569,85 @@ export default function Recommendations() {
                 }))
               )
             ]),
-        ...(prescriptions.length > 0 ? [{
-          id: 'prescriptions',
-          type: 'prescriptions' as SectionType,
-          label: 'Назначения',
-          content: prescriptions.map((p, idx) => 
-            `**${idx + 1}. ${p.prescription}**\n\n*${p.effect}*\n\nДлительность: ${
-              (() => {
-                if (!selectedReport.date || !p.control_date) return "—";
-                const start = new Date(selectedReport.date);
-                const end = new Date(p.control_date);
-                if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
-                const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
-                return `${months} мес.`;
-              })()
-            }, Контрольная дата: ${p.control_date && !isNaN(new Date(p.control_date).getTime()) 
-              ? format(new Date(p.control_date), "dd.MM.yyyy")
-              : "—"}`
-          ).join('\n\n---\n\n')
-        }] : []),
+        ...((() => {
+          const hasLs =
+            (lifestylePdf.nutrition?.length || 0) +
+              (lifestylePdf.activity?.length || 0) +
+              (lifestylePdf.sleep?.length || 0) >
+            0;
+          const hasFu = followUpsPdf.length > 0;
+          if (prescriptions.length === 0 && !hasLs && !hasFu) return [];
+
+          const parts: string[] = [];
+
+          if (prescriptions.length > 0) {
+            parts.push("**Нутрицевтики**");
+            parts.push(
+              prescriptions
+                .map((p, idx) => {
+                  const dur = (() => {
+                    if (!selectedReport.date || !p.control_date) return "—";
+                    const start = new Date(selectedReport.date);
+                    const end = new Date(p.control_date);
+                    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
+                    const months = Math.round(
+                      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30),
+                    );
+                    return `${months} мес.`;
+                  })();
+                  const ctrl =
+                    p.control_date && !isNaN(new Date(p.control_date).getTime())
+                      ? format(new Date(p.control_date), "dd.MM.yyyy")
+                      : "—";
+                  return `**${idx + 1}. ${p.prescription}**\n\n*${p.effect || ""}*\n\nДлительность: ${dur}, Контрольная дата: ${ctrl}`;
+                })
+                .join("\n\n---\n\n"),
+            );
+          }
+
+          if (hasLs) {
+            parts.push("**Питание и коррекция образа жизни**");
+            if ((lifestylePdf.nutrition?.length || 0) > 0) {
+              parts.push(
+                "**Питание:**\n" +
+                  lifestylePdf.nutrition!.map((b) => `• ${b}`).join("\n"),
+              );
+            }
+            if ((lifestylePdf.activity?.length || 0) > 0) {
+              parts.push(
+                "**Физическая активность:**\n" +
+                  lifestylePdf.activity!.map((b) => `• ${b}`).join("\n"),
+              );
+            }
+            if ((lifestylePdf.sleep?.length || 0) > 0) {
+              parts.push(
+                "**Сон и режим:**\n" +
+                  lifestylePdf.sleep!.map((b) => `• ${b}`).join("\n"),
+              );
+            }
+          }
+
+          if (hasFu) {
+            parts.push("**Дополнительные консультации и обследования**");
+            parts.push(
+              followUpsPdf
+                .map(
+                  (f) =>
+                    `• **${f.specialist || ""}** — ${f.goal || ""}${f.trigger ? ` _(основание: ${f.trigger})_` : ""}`,
+                )
+                .join("\n"),
+            );
+          }
+
+          return [
+            {
+              id: "prescriptions",
+              type: "prescriptions" as SectionType,
+              label: "Назначения",
+              content: parts.join("\n\n"),
+            },
+          ];
+        })()),
       ];
 
       const barWidth = 515;
