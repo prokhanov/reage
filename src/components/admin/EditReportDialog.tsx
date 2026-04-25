@@ -21,6 +21,23 @@ interface Recommendation {
   originalMarkdown?: string;
 }
 
+type LifestyleBlock = {
+  nutrition?: string[];
+  activity?: string[];
+  sleep?: string[];
+};
+
+type FollowUp = {
+  specialist?: string;
+  goal?: string;
+  trigger?: string;
+};
+
+type AdvisoryBlock = {
+  lifestyle: LifestyleBlock;
+  followUps: FollowUp[];
+};
+
 interface Prescription {
   id: string;
   prescription: string;
@@ -47,6 +64,7 @@ export function EditReportDialog({
 }: EditReportDialogProps) {
   const [sections, setSections] = useState<Recommendation[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [advisory, setAdvisory] = useState<AdvisoryBlock | null>(null);
   const [editPrescriptionDialogOpen, setEditPrescriptionDialogOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [analysisStatus, setAnalysisStatus] = useState<"on_review" | "processed">(initialStatus);
@@ -93,32 +111,58 @@ export function EditReportDialog({
         .order("type");
 
       if (error) throw error;
-      
-      // Конвертируем markdown в HTML для редактора (очищаем артефакты перед парсингом)
-      const sectionsWithHtml = (data || []).map(section => ({
+
+      const rows = data || [];
+
+      // Выделяем advisory-блок «Назначения» (lifestyle + follow_ups) — он не markdown,
+      // его нужно рендерить отдельным read-only компонентом, а не через Quill.
+      const advisoryRow = rows.find((r: any) => r.type === "Назначения");
+      if (advisoryRow) {
+        const cj = (advisoryRow as any).content_json;
+        const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+        const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+        const lifestyleCount =
+          (lifestyle.nutrition?.length || 0) +
+          (lifestyle.activity?.length || 0) +
+          (lifestyle.sleep?.length || 0);
+        if (lifestyleCount > 0 || followUps.length > 0) {
+          setAdvisory({ lifestyle, followUps });
+        } else {
+          setAdvisory(null);
+        }
+      } else {
+        setAdvisory(null);
+      }
+
+      // В список markdown-секций включаем всё, КРОМЕ «Назначения» (она рендерится отдельно).
+      const markdownRows = rows.filter((r: any) => r.type !== "Назначения");
+
+      const sectionsWithHtml = markdownRows.map((section: any) => ({
         ...section,
         originalMarkdown: section.text,
         text: marked.parse(
           cleanMarkdownArtifacts(section.text).replace(/^(?:\t| {4,})(?=\*\*)/gm, '')
         ) as string
       }));
-      
+
       // Сортируем разделы в правильном порядке
       const sortOrder: Record<string, number> = {
         "Данные пациента": 0,
         "Общее резюме": 1,
       };
-      
+
       const sorted = sectionsWithHtml.sort((a, b) => {
         const aOrder = sortOrder[a.type] ?? 100;
         const bOrder = sortOrder[b.type] ?? 100;
         if (aOrder !== bOrder) return aOrder - bOrder;
         return a.type.localeCompare(b.type);
       });
-      
+
       setSections(sorted);
       if (sorted.length > 0) {
         setSelectedSection(sorted[0].type);
+      } else if (advisoryRow || (data || []).length > 0) {
+        setSelectedSection("prescriptions");
       }
     } catch (error: any) {
       toast({
@@ -321,9 +365,9 @@ export function EditReportDialog({
                           {section.type}
                         </SelectItem>
                       ))}
-                      {prescriptions.length > 0 && (
+                      {(prescriptions.length > 0 || advisory) && (
                         <SelectItem value="prescriptions">
-                          Назначения ({prescriptions.length})
+                          Назначения{prescriptions.length > 0 ? ` (${prescriptions.length})` : ""}
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -332,57 +376,133 @@ export function EditReportDialog({
                 
                 {selectedSection === "prescriptions" ? (
                   <div className="flex-1 overflow-auto">
-                    <div className="space-y-4">
-                      {prescriptions.map((prescription, idx) => (
-                        <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
-                          <div className="flex items-start justify-between gap-4 mb-3">
-                            <h3 className="font-semibold text-base flex-1">
-                              {idx + 1}. {prescription.prescription}
-                            </h3>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
-                                {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
-                              </Badge>
-                            </div>
+                    <div className="space-y-6">
+                      {prescriptions.length > 0 && (
+                        <section>
+                          <h2 className="text-lg font-semibold mb-3">💊 Нутрицевтики ({prescriptions.length})</h2>
+                          <div className="space-y-4">
+                            {prescriptions.map((prescription, idx) => (
+                              <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
+                                <div className="flex items-start justify-between gap-4 mb-3">
+                                  <h3 className="font-semibold text-base flex-1">
+                                    {idx + 1}. {prescription.prescription}
+                                  </h3>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
+                                      {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                {prescription.reason && (
+                                  <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
+                                    <span className="text-primary mt-0.5">📊</span>
+                                    <p className="text-sm text-foreground leading-relaxed">
+                                      <span className="font-medium">Причина:</span> {prescription.reason}
+                                    </p>
+                                  </div>
+                                )}
+                                {prescription.effect && (
+                                  <p className="text-sm text-muted-foreground mb-3 italic">
+                                    {prescription.effect}
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-muted-foreground">
+                                    {prescription.control_date ? `Контрольная дата: ${format(new Date(prescription.control_date), "dd.MM.yyyy")}` : ""}
+                                  </span>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleEditPrescription(prescription)}
+                                    >
+                                      Редактировать
+                                    </Button>
+                                    {prescription.status !== "confirmed" && (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleConfirmPrescription(prescription.id)}
+                                      >
+                                        <Check className="h-4 w-4 mr-1" />
+                                        Подтвердить
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          {prescription.reason && (
-                            <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-                              <span className="text-primary mt-0.5">📊</span>
-                              <p className="text-sm text-foreground leading-relaxed">
-                                <span className="font-medium">Причина:</span> {prescription.reason}
-                              </p>
-                            </div>
-                          )}
-                          {prescription.effect && (
-                            <p className="text-sm text-muted-foreground mb-3 italic">
-                              {prescription.effect}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">
-                              Контрольная дата: {format(new Date(prescription.control_date), "dd.MM.yyyy")}
-                            </span>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditPrescription(prescription)}
-                              >
-                                Редактировать
-                              </Button>
-                              {prescription.status !== "confirmed" && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleConfirmPrescription(prescription.id)}
-                                >
-                                  <Check className="h-4 w-4 mr-1" />
-                                  Подтвердить
-                                </Button>
+                        </section>
+                      )}
+
+                      {advisory && (
+                        ((advisory.lifestyle.nutrition?.length || 0) +
+                          (advisory.lifestyle.activity?.length || 0) +
+                          (advisory.lifestyle.sleep?.length || 0) > 0) && (
+                          <section>
+                            <h2 className="text-lg font-semibold mb-3">🥗 Питание и образ жизни</h2>
+                            <div className="space-y-4">
+                              {advisory.lifestyle.nutrition && advisory.lifestyle.nutrition.length > 0 && (
+                                <div className="p-4 bg-card/50 rounded-xl border border-border">
+                                  <h4 className="font-medium mb-2">Питание</h4>
+                                  <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
+                                    {advisory.lifestyle.nutrition.map((item, i) => (
+                                      <li key={i} className="leading-relaxed">{item}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {advisory.lifestyle.activity && advisory.lifestyle.activity.length > 0 && (
+                                <div className="p-4 bg-card/50 rounded-xl border border-border">
+                                  <h4 className="font-medium mb-2">Физическая активность</h4>
+                                  <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
+                                    {advisory.lifestyle.activity.map((item, i) => (
+                                      <li key={i} className="leading-relaxed">{item}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {advisory.lifestyle.sleep && advisory.lifestyle.sleep.length > 0 && (
+                                <div className="p-4 bg-card/50 rounded-xl border border-border">
+                                  <h4 className="font-medium mb-2">Сон и восстановление</h4>
+                                  <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
+                                    {advisory.lifestyle.sleep.map((item, i) => (
+                                      <li key={i} className="leading-relaxed">{item}</li>
+                                    ))}
+                                  </ul>
+                                </div>
                               )}
                             </div>
+                          </section>
+                        )
+                      )}
+
+                      {advisory && advisory.followUps.length > 0 && (
+                        <section>
+                          <h2 className="text-lg font-semibold mb-3">🩺 Дополнительные консультации и обследования</h2>
+                          <div className="space-y-3">
+                            {advisory.followUps.map((f, i) => (
+                              <div key={i} className="p-4 bg-card/50 rounded-xl border border-border">
+                                <div className="font-medium mb-1">{f.specialist || "Специалист"}</div>
+                                {f.goal && (
+                                  <p className="text-sm text-foreground mb-1">
+                                    <span className="text-muted-foreground">Цель:</span> {f.goal}
+                                  </p>
+                                )}
+                                {f.trigger && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Основание: {f.trigger}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
                           </div>
-                        </div>
-                      ))}
+                        </section>
+                      )}
+
+                      {prescriptions.length === 0 && !advisory && (
+                        <p className="text-sm text-muted-foreground">Назначений пока нет.</p>
+                      )}
                     </div>
                   </div>
                 ) : (
