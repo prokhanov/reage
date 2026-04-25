@@ -43,6 +43,24 @@ type Prescription = {
   created_at: string;
 };
 
+type LifestyleBlock = {
+  nutrition?: string[];
+  activity?: string[];
+  sleep?: string[];
+};
+
+type FollowUp = {
+  specialist?: string;
+  goal?: string;
+  trigger?: string;
+};
+
+type AdvisoryBlock = {
+  lifestyle: LifestyleBlock;
+  followUps: FollowUp[];
+  createdAt: string;
+};
+
 export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -102,6 +120,53 @@ export default function Prescriptions() {
       const { data, error } = await query;
       if (error) throw error;
       return data as Prescription[];
+    },
+  });
+
+  // Загружаем структурированные блоки «Питание/образ жизни» и «Доп. обследования»
+  // из последнего отчёта (recommendations.type = 'Назначения').
+  const { data: advisory } = useQuery<AdvisoryBlock | null>({
+    queryKey: ["recommendations-advisory", userId, demoMode],
+    enabled: !demoLoading && !demoMode,
+    queryFn: async () => {
+      let targetUserId = userId;
+      if (!targetUserId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        targetUserId = user?.id;
+      }
+      if (!targetUserId) return null;
+
+      const { data, error } = await supabase
+        .from("recommendations")
+        .select("content_json, created_at")
+        .eq("user_id", targetUserId)
+        .eq("type", "Назначения")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error("Error loading advisory recommendations:", error);
+        return null;
+      }
+
+      // Берём первый блок, в котором есть хоть что-то полезное.
+      for (const row of data || []) {
+        const cj = (row as any).content_json;
+        const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+        const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+        const lifestyleCount =
+          (lifestyle.nutrition?.length || 0) +
+          (lifestyle.activity?.length || 0) +
+          (lifestyle.sleep?.length || 0);
+        if (lifestyleCount > 0 || followUps.length > 0) {
+          return {
+            lifestyle,
+            followUps,
+            createdAt: (row as any).created_at,
+          };
+        }
+      }
+      return null;
     },
   });
 
@@ -307,6 +372,107 @@ export default function Prescriptions() {
             )}
           </TabsContent>
         </Tabs>
+
+        {advisory && (() => {
+          const ls = advisory.lifestyle || {};
+          const hasNutrition = (ls.nutrition?.length || 0) > 0;
+          const hasActivity = (ls.activity?.length || 0) > 0;
+          const hasSleep = (ls.sleep?.length || 0) > 0;
+          const hasLifestyle = hasNutrition || hasActivity || hasSleep;
+          const hasFollowUps = (advisory.followUps?.length || 0) > 0;
+          if (!hasLifestyle && !hasFollowUps) return null;
+
+          return (
+            <div className="space-y-8 pt-4">
+              {hasLifestyle && (
+                <section className="space-y-4">
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                      Питание и коррекция образа жизни
+                    </h2>
+                    <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                  </div>
+                  <div className="space-y-4">
+                    {hasNutrition && (
+                      <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
+                        <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                          <span>🥗</span> Питание
+                        </h3>
+                        <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
+                          {ls.nutrition!.map((item, i) => (
+                            <li key={`nut-${i}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {hasActivity && (
+                      <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
+                        <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                          <span>🏃</span> Физическая активность
+                        </h3>
+                        <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
+                          {ls.activity!.map((item, i) => (
+                            <li key={`act-${i}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {hasSleep && (
+                      <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
+                        <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                          <span>😴</span> Сон и режим
+                        </h3>
+                        <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
+                          {ls.sleep!.map((item, i) => (
+                            <li key={`slp-${i}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {hasFollowUps && (
+                <section className="space-y-4">
+                  <div>
+                    <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                      Дополнительные консультации и обследования
+                    </h2>
+                    <div className="h-1 w-20 bg-gradient-primary rounded-full" />
+                  </div>
+                  <div className="space-y-3">
+                    {advisory.followUps.map((f, i) => (
+                      <div
+                        key={`fu-${i}`}
+                        className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-5"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-primary mt-0.5">🩺</span>
+                          <div className="flex-1 space-y-1">
+                            <p className="font-semibold text-foreground">
+                              {f.specialist || "Специалист"}
+                            </p>
+                            {f.goal && (
+                              <p className="text-sm text-foreground leading-relaxed">
+                                <span className="font-medium">Цель:</span> {f.goal}
+                              </p>
+                            )}
+                            {f.trigger && (
+                              <p className="text-sm text-muted-foreground leading-relaxed">
+                                <span className="font-medium">Основание:</span> {f.trigger}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          );
+        })()}
         </>
       )}
       </div>
