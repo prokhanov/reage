@@ -1264,7 +1264,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiProfile.model,
+          ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
           messages: [
             {
               role: "system",
@@ -1275,7 +1276,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
               content: summaryPrompt
             }
           ],
-          max_completion_tokens: 16000
+          max_completion_tokens: Math.round(16000 * aiProfile.tokenMultiplier)
         }),
       });
 
