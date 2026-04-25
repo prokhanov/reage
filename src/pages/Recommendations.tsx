@@ -839,6 +839,14 @@ export default function Recommendations() {
               const hasFollowUps = !!followUpsData && followUpsData.length > 0;
               const hasPrescriptionsBlock =
                 selectedPrescriptions.length > 0 || hasLifestyle || hasFollowUps;
+              console.log("[ReportModal] prescription block diag", {
+                groupedTypes: Object.keys(grouped),
+                hasPrescriptionsRec: !!prescriptionsRec,
+                hasContentJson: !!prescriptionsRec?.content_json,
+                hasLifestyle,
+                hasFollowUps,
+                nutraceuticals: selectedPrescriptions.length,
+              });
               const categories = Object.entries(grouped).filter(([type]) =>
                 type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
               );
