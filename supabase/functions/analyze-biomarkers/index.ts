@@ -403,27 +403,10 @@ ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: '
     });
     console.log("Saved: Данные пациента");
 
-    // Получаем тренды для каждой категории
-    const getCategoryTrends = (category: string) => {
-      if (!previousAnalyses || previousAnalyses.length === 0) {
-        return "Нет предыдущих анализов для сравнения";
-      }
-
-      const trends: string[] = [];
-      previousAnalyses.forEach((prevAnalysis: any) => {
-        const prevValues = prevAnalysis.analysis_values.filter(
-          (av: any) => av.biomarkers.category === category
-        );
-        if (prevValues.length > 0) {
-          trends.push(`\nАнализ от ${new Date(prevAnalysis.date).toLocaleDateString("ru-RU")}:`);
-          prevValues.forEach((pv: any) => {
-            trends.push(`  ${pv.biomarkers.name}: ${pv.value} ${pv.biomarkers.unit}`);
-          });
-        }
-      });
-
-      return trends.length > 0 ? trends.join("\n") : "Нет данных по этой категории в предыдущих анализах";
-    };
+    // Тренды по категориям больше не используются: плейсхолдер {trends} удалён
+    // из всех category_*_user промптов в БД. Если в каком-то старом или ручном
+    // промпте плейсхолдер остался — он будет заменён на пустую строку (ниже),
+    // чтобы AI не получал литерал «{trends}».
 
     // Получаем релевантные предыдущие рекомендации для категории
     const getCategoryRecommendations = (category: string) => {
@@ -817,15 +800,17 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 Пиши простым языком, но будь максимально информативным и конкретным.
         `.trim();
 
-        // Подставляем данные в шаблон
+        // Подставляем данные в шаблон.
+        // {trends} оставлен как safety net — если плейсхолдер случайно остался
+        // в чьём-то промпте, он схлопнется в пустую строку, а не уйдёт литералом.
         let categoryPrompt = userPromptTemplate
           .replace(/{userContext}/g, userContext)
           .replace(/{category}/g, category)
           .replace(/{biomarkersText}/g, biomarkersText)
           .replace(/{biomarkers}/g, biomarkersText)
-          .replace(/{trends}/g, getCategoryTrends(category))
+          .replace(/{trends}/g, "")
           .replace(/{recommendations}/g, getCategoryRecommendations(category));
-        
+
         // Подставляем глобальный контекст биомаркеров через плейсхолдер или fallback
         if (categoryPrompt.includes("{globalBiomarkers}")) {
           categoryPrompt = categoryPrompt.replace(/{globalBiomarkers}/g, globalBiomarkersContext);

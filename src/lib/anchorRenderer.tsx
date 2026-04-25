@@ -142,12 +142,8 @@ export function renderInterleavedWeb(
             );
           }
 
-          case 'section':
-            return (
-              <div key={idx}>
-                <MarkdownContent content={block.content} />
-              </div>
-            );
+          // 'section' блок удалён из типа — все ## заголовки теперь приходят
+          // как обычный 'text' (или биомаркер).
 
           case 'text':
             return (
@@ -276,7 +272,6 @@ export function buildInterleavedPdf(
         break;
       }
 
-      case 'section':
       case 'text':
         if (block.content) {
           pdfContent.push(...parseMarkdownToPdfContent(block.content));
