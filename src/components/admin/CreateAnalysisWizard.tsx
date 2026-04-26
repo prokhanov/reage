@@ -13,6 +13,7 @@ import { AnalysisStep3 } from "./AnalysisStep3";
 import { EditReportDialog } from "./EditReportDialog";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
+import { invokeAnalyzeBiomarkers } from "@/lib/analyzeBiomarkers";
 
 interface CreateAnalysisWizardProps {
   open: boolean;
@@ -208,9 +209,8 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
       }, 2500);
 
       try {
-        const { data, error } = await supabase.functions.invoke("analyze-biomarkers", {
-          body: { analysisId, mode: wizardData.step3.mode },
-        });
+        const data = await invokeAnalyzeBiomarkers({ analysisId, mode: wizardData.step3.mode });
+        const error = null;
 
         pollingStopped = true;
         clearInterval(pollInterval);
@@ -277,8 +277,9 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           return;
         }
 
-        let successCount = Object.values(data?.categories_processed || {}).filter((s: any) => s.success).length;
-        const totalCount = Object.keys(data?.categories_processed || {}).length || categories.length;
+        const categoryResults = Object.values(data?.categories_processed || {}) as any[];
+        const totalCount = Math.max(Object.keys(data?.categories_processed || {}).length, categories.length);
+        let successCount = categoryResults.filter((s: any) => s?.success).length;
 
         if (data?.success === false || successCount === 0) {
           const completed = (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt }))
@@ -294,7 +295,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
         toast({
           title: "Отчет сгенерирован",
-          description: `Успешно: ${successCount} из ${totalCount} категорий`,
+          description: "Анализ завершён. Открываем редактор...",
         });
 
         // Open edit report dialog
