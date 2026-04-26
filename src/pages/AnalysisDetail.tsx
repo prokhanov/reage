@@ -425,6 +425,17 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         return;
       }
 
+      if (data?.accepted) {
+        setAnalysisProgress((p) => ({
+          ...p,
+          stage: "Глубокий анализ выполняется в фоне, ожидаем финальное сохранение отчёта...",
+        }));
+        const completed = await waitForAnalysisCompletion(id!, 10 * 60 * 1000, 5000);
+        if (!completed) {
+          throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
+        }
+      }
+
       setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
 
       const successCount = Object.values(data.categories_processed || {}).filter((s: any) => s.success).length;
