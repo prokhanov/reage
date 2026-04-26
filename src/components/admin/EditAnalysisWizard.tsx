@@ -12,6 +12,7 @@ import { AnalysisStep3 } from "./AnalysisStep3";
 import { EditReportDialog } from "./EditReportDialog";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
+import { invokeAnalyzeBiomarkers } from "@/lib/analyzeBiomarkers";
 
 interface EditAnalysisWizardProps {
   analysisId: string;
@@ -226,12 +227,8 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
         const generationStartedAt = new Date();
         setAnalyzing(true);
         try {
-          const { data, error: functionError } = await supabase.functions.invoke(
-            "analyze-biomarkers",
-            {
-              body: { analysisId, mode: wizardData.step3.mode },
-            }
-          );
+          const data = await invokeAnalyzeBiomarkers({ analysisId, mode: wizardData.step3.mode });
+          const functionError = null;
 
           if (functionError) {
             const completionWaitMs = wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000;

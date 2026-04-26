@@ -37,7 +37,16 @@ serve(async (req) => {
   // Глубокий отчёт почти всегда длиннее клиентского/relay timeout.
   // Поэтому запрос подтверждаем сразу, а сам pipeline продолжаем внутри этого же runtime.
   if (mode === "deep" && !body.background) {
-    const runPromise = processAnalysis({ analysisId: body.analysisId, rawMode: body.mode })
+    const url = new URL(req.url);
+    const headers = new Headers(req.headers);
+    headers.set("Content-Type", "application/json");
+    headers.delete("content-length");
+
+    const runPromise = fetch(url.toString(), {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ analysisId: body.analysisId, mode, background: true }),
+    })
       .then((response) => console.log(`Deep analysis background completed with status ${response.status}`))
       .catch((error) => console.error("Deep analysis background failed:", error));
 

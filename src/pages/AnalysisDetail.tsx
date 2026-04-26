@@ -23,6 +23,7 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
+import { invokeAnalyzeBiomarkers } from "@/lib/analyzeBiomarkers";
 
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -362,9 +363,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     }, 2500);
 
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-biomarkers", {
-        body: { analysisId: id, mode },
-      });
+      const data = await invokeAnalyzeBiomarkers({ analysisId: id!, mode });
+      const error = null;
 
       pollingStopped = true;
       clearInterval(pollInterval);
@@ -448,8 +448,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         return;
       }
 
-      let successCount = Object.values(data?.categories_processed || {}).filter((s: any) => s.success).length;
-      const totalCount = Object.keys(data?.categories_processed || {}).length || categories.length;
+      const categoryResults = Object.values(data?.categories_processed || {}) as any[];
+      const totalCount = Math.max(Object.keys(data?.categories_processed || {}).length, categories.length);
+      let successCount = categoryResults.filter((s: any) => s?.success).length;
 
       if (data?.success === false || successCount === 0) {
         const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
@@ -465,7 +466,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
       toast({
         title: "Отчет сгенерирован",
-        description: `Успешно: ${successCount} из ${totalCount} категорий`,
+        description: "Анализ завершён. Открываем редактор...",
       });
 
       loadData();
