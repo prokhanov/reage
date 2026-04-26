@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { analysisId, mode: rawMode } = await req.json();
+    const { analysisId, mode: rawMode, background } = await req.json();
 
     if (!analysisId) {
       throw new Error("Не указан ID анализа");
@@ -26,10 +26,10 @@ serve(async (req) => {
     const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
     const aiProfile = mode === "deep"
       ? {
-          model: "google/gemini-2.5-pro",
-          reasoning: { effort: "high" as const },
-          tokenMultiplier: 1.5,
-          maxRetries: 3,
+          model: "google/gemini-3-flash-preview",
+          reasoning: { effort: "medium" as const },
+          tokenMultiplier: 1.15,
+          maxRetries: 2,
         }
       : {
           model: "google/gemini-2.5-flash",
@@ -45,6 +45,40 @@ serve(async (req) => {
 
     if (!supabaseUrl || !supabaseKey || !lovableApiKey) {
       throw new Error("Не настроены переменные окружения");
+    }
+
+    if (mode === "deep" && !background) {
+      const backgroundRequest = fetch(`${supabaseUrl}/functions/v1/analyze-biomarkers`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${supabaseKey}`,
+          "apikey": supabaseKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ analysisId, mode, background: true }),
+      }).then(async (response) => {
+        const bodyText = await response.text();
+        if (!response.ok) {
+          console.error(`Background deep analysis failed to start/finish: ${response.status} ${bodyText}`);
+        }
+      }).catch((error) => {
+        console.error("Background deep analysis request failed:", error);
+      });
+
+      const edgeRuntime = globalThis as typeof globalThis & {
+        EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void };
+      };
+
+      if (edgeRuntime.EdgeRuntime?.waitUntil) {
+        edgeRuntime.EdgeRuntime.waitUntil(backgroundRequest);
+      } else {
+        void backgroundRequest;
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, accepted: true, mode }),
+        { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);

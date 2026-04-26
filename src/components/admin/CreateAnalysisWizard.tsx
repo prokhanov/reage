@@ -256,6 +256,17 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           throw error;
         }
 
+        if (data?.accepted) {
+          setAnalysisProgress((p) => ({
+            ...p,
+            stage: "Глубокий анализ выполняется в фоне, ожидаем финальное сохранение отчёта...",
+          }));
+          const completed = await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000);
+          if (!completed) {
+            throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
+          }
+        }
+
         setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
 
         const successCount = Object.values(data.categories_processed).filter((s: any) => s.success).length;
