@@ -1652,8 +1652,9 @@ ${categoryReportsForSnapshot}
     const hasLifestyle =
       lifestyleFinal.nutrition.length + lifestyleFinal.activity.length + lifestyleFinal.sleep.length > 0;
     const hasFollowUps = followUpsFinal.length > 0;
+    const hasMarkdownFallback = prescriptionsStatus === "markdown_fallback" && prescriptionsRawContent.trim().length > 0;
 
-    if (hasLifestyle || hasFollowUps) {
+    if (hasLifestyle || hasFollowUps || hasMarkdownFallback) {
       const summaryParts: string[] = [];
       if (hasLifestyle) {
         const totalBullets =
@@ -1663,6 +1664,9 @@ ${categoryReportsForSnapshot}
       if (hasFollowUps) {
         summaryParts.push(`Дополнительные обследования: ${followUpsFinal.length}`);
       }
+      if (hasMarkdownFallback) {
+        summaryParts.push("Назначения сохранены в текстовом формате");
+      }
       const summaryText = summaryParts.join(". ") + ".";
 
       const { error: rxRecError } = await supabase
@@ -1671,10 +1675,11 @@ ${categoryReportsForSnapshot}
           user_id: analysis.user_id,
           analysis_id: analysisId,
           type: "Назначения",
-          text: summaryText,
+          text: hasMarkdownFallback ? prescriptionsRawContent : summaryText,
           content_json: {
             lifestyle: lifestyleFinal,
             follow_ups: followUpsFinal,
+            ...(hasMarkdownFallback ? { raw_markdown: prescriptionsRawContent } : {}),
           },
         });
 
