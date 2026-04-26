@@ -707,12 +707,14 @@ ${globalBiomarkersInstructions}
       return `${normalized.trim()}\n${fallbackAnchorBlock}`.trim();
     }
 
-    // Параллельные запросы для каждой категории
+    // Запросы для каждой категории. В deep-режиме не запускаем 5 тяжёлых AI-вызовов одновременно:
+    // пакетный параллельный старт периодически упирался в gateway rate limit, и клиент видел «0 из 5 систем».
     const categoryReports: Record<string, string> = {};
     const categoryStatuses: Record<string, any> = {};
     let totalTokens = 0;
 
-    const categoryPromises = Object.entries(categorizedBiomarkers).map(async ([category, biomarkers]) => {
+    const categoryEntries = Object.entries(categorizedBiomarkers) as [string, any[]][];
+    const processCategory = async ([category, biomarkers]: [string, any[]]) => {
       try {
         const expert = CATEGORY_EXPERTS[category as keyof typeof CATEGORY_EXPERTS];
         
@@ -895,29 +897,46 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const baseCategoryTokens = categoryKey === "metabolism" ? 24000 : 16000;
         const categoryMaxCompletionTokens = Math.round(baseCategoryTokens * aiProfile.tokenMultiplier);
 
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const categoryRequestBody = JSON.stringify({
+          model: aiProfile.model,
+          ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: categoryPrompt
+            }
+          ],
+          // Метаболизм требует больше токенов из-за расширенного промпта (печень+почки+электролиты+детоксикация)
+          max_completion_tokens: categoryMaxCompletionTokens
+        });
+
+        let response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${lovableApiKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            model: aiProfile.model,
-            ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
-            messages: [
-              {
-                role: "system",
-                content: systemPrompt
-              },
-              {
-                role: "user",
-                content: categoryPrompt
-              }
-            ],
-            // Метаболизм требует больше токенов из-за расширенного промпта (печень+почки+электролиты+детоксикация)
-            max_completion_tokens: categoryMaxCompletionTokens
-          }),
+          body: categoryRequestBody,
         });
+
+        const rateLimitRetries = mode === "deep" ? 3 : 1;
+        for (let attempt = 1; response.status === 429 && attempt <= rateLimitRetries; attempt++) {
+          const delayMs = attempt * 8000;
+          console.warn(`Rate limit for category ${category}; retry ${attempt}/${rateLimitRetries} after ${delayMs}ms`);
+          await new Promise((r) => setTimeout(r, delayMs));
+          response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${lovableApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: categoryRequestBody,
+          });
+        }
 
         if (response.status === 429) {
           categoryStatuses[category] = { success: false, error: "Rate limit exceeded" };
@@ -928,7 +947,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         if (response.status === 402) {
           categoryStatuses[category] = { success: false, error: "Insufficient credits" };
           console.error(`Insufficient credits for category ${category}`);
-          return;
+          throw new Error("Недостаточно AI-кредитов для генерации отчёта");
         }
 
         if (!response.ok) {
@@ -1028,11 +1047,22 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
         categoryStatuses[category] = { success: false, error: error.message };
+        if (String(error?.message || "").includes("Недостаточно AI-кредитов")) throw error;
       }
-    });
+    };
 
-    // Ждем завершения всех категорий
-    await Promise.all(categoryPromises);
+    if (mode === "deep") {
+      for (const entry of categoryEntries) {
+        await processCategory(entry);
+      }
+    } else {
+      await Promise.all(categoryEntries.map(processCategory));
+    }
+
+    const successfulCategoryCount = Object.values(categoryStatuses).filter((status: any) => status?.success).length;
+    if (successfulCategoryCount === 0) {
+      throw new Error("Не удалось сгенерировать ни одну систему: AI-сервис временно ограничил запросы или не ответил. Попробуйте через несколько минут.");
+    }
 
     // === SCAN FOR CONTRADICTIONS in generated reports ===
     const detectedContradictions = scanContradictions(categoryReports, analysis.analysis_values);
