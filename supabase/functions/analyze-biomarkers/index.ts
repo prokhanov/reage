@@ -75,10 +75,10 @@ async function processAnalysis({ analysisId, rawMode }: { analysisId: string; ra
     const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
     const aiProfile = mode === "deep"
       ? {
-          model: "google/gemini-3-flash-preview",
-        reasoning: { effort: "low" as const },
-        tokenMultiplier: 1,
-        maxRetries: 1,
+          model: "google/gemini-2.5-pro",
+          reasoning: { effort: "high" as const },
+          tokenMultiplier: 1.25,
+          maxRetries: 2,
         }
       : {
           model: "google/gemini-2.5-flash",
