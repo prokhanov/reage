@@ -225,7 +225,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
       if (wizardData.step3.generateReport) {
         setAnalyzing(true);
         try {
-          const { error: functionError } = await supabase.functions.invoke(
+          const { data, error: functionError } = await supabase.functions.invoke(
             "analyze-biomarkers",
             {
               body: { analysisId, mode: wizardData.step3.mode },
@@ -238,6 +238,13 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
               || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000));
 
             if (!completed) throw functionError;
+          }
+
+          if (data?.accepted) {
+            const completed = await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000);
+            if (!completed) {
+              throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
+            }
           }
 
           toast({
