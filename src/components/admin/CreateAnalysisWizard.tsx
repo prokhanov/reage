@@ -212,9 +212,6 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
         const data = await invokeAnalyzeBiomarkers({ analysisId, mode: wizardData.step3.mode });
         const error = null;
 
-        pollingStopped = true;
-        clearInterval(pollInterval);
-
         if (error) {
           if (error.message?.includes("402") || error.message?.includes("Payment required")) {
             toast({
@@ -268,6 +265,8 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           if (!completed) {
             throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
           }
+          pollingStopped = true;
+          clearInterval(pollInterval);
           setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
           toast({
             title: "Отчет сгенерирован",
@@ -276,6 +275,9 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           setShowEditReport(true);
           return;
         }
+
+        pollingStopped = true;
+        clearInterval(pollInterval);
 
         const categoryResults = Object.values(data?.categories_processed || {}) as any[];
         const totalCount = Math.max(Object.keys(data?.categories_processed || {}).length, categories.length);
