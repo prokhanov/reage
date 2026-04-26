@@ -11,6 +11,7 @@ import { AnalysisStep2 } from "./AnalysisStep2";
 import { AnalysisStep3 } from "./AnalysisStep3";
 import { EditReportDialog } from "./EditReportDialog";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
 
 interface EditAnalysisWizardProps {
   analysisId: string;
@@ -231,7 +232,13 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
             }
           );
 
-          if (functionError) throw functionError;
+          if (functionError) {
+            const completionWaitMs = wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000;
+            const completed = (await isAnalysisReportComplete(analysisId))
+              || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000));
+
+            if (!completed) throw functionError;
+          }
 
           toast({
             title: "Отчет сгенерирован",
