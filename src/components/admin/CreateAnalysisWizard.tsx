@@ -12,6 +12,7 @@ import { AnalysisStep2 } from "./AnalysisStep2";
 import { AnalysisStep3 } from "./AnalysisStep3";
 import { EditReportDialog } from "./EditReportDialog";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
 
 interface CreateAnalysisWizardProps {
   open: boolean;
@@ -220,16 +221,33 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
               description: "Пополните баланс в Settings → Workspace → Usage",
               variant: "destructive",
             });
-          } else if (error.message?.includes("429") || error.message?.includes("Rate limit")) {
+            return;
+          }
+          if (error.message?.includes("429") || error.message?.includes("Rate limit")) {
             toast({
               title: "Превышен лимит запросов",
               description: "Подождите несколько минут и попробуйте снова",
               variant: "destructive",
             });
-          } else {
-            throw error;
+            return;
           }
-          return;
+
+          // Edge runtime мог закрыть соединение по таймауту (deep-режим идёт 3+ мин),
+          // хотя фоновая работа продолжается и может уже завершиться. Проверяем БД.
+          setAnalysisProgress((p) => ({ ...p, stage: "Проверяем готовность отчёта..." }));
+          const completed = (await isAnalysisReportComplete(analysisId))
+            || (await waitForAnalysisCompletion(analysisId, 60000, 3000));
+
+          if (completed) {
+            setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
+            toast({
+              title: "Отчет сгенерирован",
+              description: "Анализ завершён. Открываем редактор...",
+            });
+            setShowEditReport(true);
+            return;
+          }
+          throw error;
         }
 
         setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });

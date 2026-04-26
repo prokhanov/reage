@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
+import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
 
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -376,16 +377,35 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             description: "Пополните баланс в Settings → Workspace → Usage",
             variant: "destructive",
           });
-        } else if (msg.includes("429") || msg.includes("Rate limit")) {
+          return;
+        }
+        if (msg.includes("429") || msg.includes("Rate limit")) {
           toast({
             title: "Превышен лимит запросов",
             description: "Подождите несколько минут и попробуйте снова",
             variant: "destructive",
           });
-        } else {
-          throw error;
+          return;
         }
-        return;
+
+        // Edge runtime мог закрыть соединение по таймауту (deep-режим идёт 3+ мин),
+        // хотя фоновая работа продолжается и может уже завершиться. Проверяем БД.
+        setAnalysisProgress((p) => ({ ...p, stage: "Проверяем готовность отчёта..." }));
+        const completed = (await isAnalysisReportComplete(id!))
+          || (await waitForAnalysisCompletion(id!, 60000, 3000));
+
+        if (completed) {
+          setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
+          toast({
+            title: "Отчет сгенерирован",
+            description: "Анализ завершён. Открываем редактор...",
+          });
+          loadData();
+          setEditReportAnalysisId(id || null);
+          setShowEditReport(true);
+          return;
+        }
+        throw error;
       }
 
       // 2) Логическая ошибка от edge-функции (status=200, success=false)
