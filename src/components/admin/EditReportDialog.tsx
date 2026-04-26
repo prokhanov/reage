@@ -527,11 +527,24 @@ export function EditReportDialog({
                         </section>
                       )}
 
+                      {advisory?.rawMarkdown && prescriptions.length === 0 && (
+                        <section>
+                          <h2 className="text-lg font-semibold mb-3">📄 Текст назначений</h2>
+                          <div
+                            className="prose prose-sm dark:prose-invert max-w-none p-4 bg-card/50 rounded-xl border border-border"
+                            dangerouslySetInnerHTML={{
+                              __html: marked.parse(cleanMarkdownArtifacts(advisory.rawMarkdown)) as string,
+                            }}
+                          />
+                        </section>
+                      )}
+
                       {advisory &&
                         ((advisory.lifestyle.nutrition?.length || 0) +
                           (advisory.lifestyle.activity?.length || 0) +
                           (advisory.lifestyle.sleep?.length || 0) === 0) &&
-                        advisory.followUps.length === 0 && (
+                        advisory.followUps.length === 0 &&
+                        !advisory.rawMarkdown && (
                           <section>
                             <div className="p-4 rounded-xl border border-dashed border-border bg-muted/30">
                               <p className="text-sm text-muted-foreground">
