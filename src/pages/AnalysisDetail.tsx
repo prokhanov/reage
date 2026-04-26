@@ -364,7 +364,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     try {
       const { data, error } = await supabase.functions.invoke("analyze-biomarkers", {
         body: { analysisId: id, mode },
-        timeout: mode === "deep" ? 10 * 60 * 1000 : 3 * 60 * 1000,
       });
 
       pollingStopped = true;
