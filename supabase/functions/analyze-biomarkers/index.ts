@@ -26,10 +26,10 @@ serve(async (req) => {
     const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
     const aiProfile = mode === "deep"
       ? {
-          model: "google/gemini-2.5-pro",
-          reasoning: { effort: "high" as const },
-          tokenMultiplier: 1.5,
-          maxRetries: 3,
+          model: "google/gemini-3-flash-preview",
+          reasoning: { effort: "medium" as const },
+          tokenMultiplier: 1.15,
+          maxRetries: 2,
         }
       : {
           model: "google/gemini-2.5-flash",
