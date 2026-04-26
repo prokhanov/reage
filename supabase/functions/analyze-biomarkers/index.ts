@@ -1089,6 +1089,92 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     let lifestyleFinal: { nutrition: string[]; activity: string[]; sleep: string[] } = { nutrition: [], activity: [], sleep: [] };
     let followUpsFinal: Array<{ specialist: string; goal: string; trigger: string }> = [];
 
+    const getSectionBetween = (text: string, start: string, endMarkers: string[]) => {
+      const startIndex = text.indexOf(start);
+      if (startIndex === -1) return "";
+      const afterStart = startIndex + start.length;
+      const endIndexes = endMarkers
+        .map((marker) => text.indexOf(marker, afterStart))
+        .filter((idx) => idx !== -1);
+      const endIndex = endIndexes.length > 0 ? Math.min(...endIndexes) : text.length;
+      return text.substring(afterStart, endIndex).trim();
+    };
+
+    const parseBullets = (text: string) =>
+      text
+        .split("\n")
+        .map((line) => line.trim().replace(/^[•\-*]\s*/, "").trim())
+        .filter(Boolean)
+        .slice(0, 10);
+
+    const inferDurationMonths = (duration: string) => {
+      const normalized = duration.toLowerCase();
+      const numberMatch = normalized.match(/(\d+)\s*(месяц|мес)/);
+      if (numberMatch) {
+        const months = Number(numberMatch[1]);
+        return [1, 2, 3, 4, 6].includes(months) ? months : 3;
+      }
+      if (normalized.includes("полгода") || normalized.includes("6")) return 6;
+      if (normalized.includes("контроль")) return 3;
+      return 3;
+    };
+
+    const parsePrescriptionsMarkdown = (content: string) => {
+      const body = getSectionBetween(content, "Нутрицевтики", ["Питание и коррекция образа жизни", "Дополнительные консультации", "<!-- anchor:actions_end -->"]);
+      const blocks = body
+        .split(/\n(?=[^\n:]{2,120}\nФорма:\s*)/g)
+        .map((block) => block.trim())
+        .filter((block) => /Форма:\s*/.test(block) || /Дозировка:\s*/.test(block));
+
+      return blocks.map((block) => {
+        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+        const name = (lines[0] || "").replace(/^\d+[.)]\s*/, "").trim();
+        const readField = (label: string) => {
+          const line = lines.find((l) => l.toLowerCase().startsWith(label.toLowerCase() + ":"));
+          return line ? line.substring(label.length + 1).trim() : "";
+        };
+        const effectSection = getSectionBetween(block, "На что влияет:", ["\n\n"]);
+        const effect = parseBullets(effectSection).join("\n");
+        const duration = readField("Длительность");
+        return {
+          name: name.substring(0, 500),
+          form: readField("Форма").substring(0, 500),
+          dosage: readField("Дозировка").substring(0, 500),
+          how_to_take: readField("Как принимать").substring(0, 1000),
+          duration: duration.substring(0, 500),
+          prescription: name.substring(0, 5000),
+          reason: readField("Причина").substring(0, 2000),
+          effect: effect.substring(0, 5000),
+          duration_months: inferDurationMonths(duration),
+        };
+      }).filter((p) => p.name || p.prescription);
+    };
+
+    const parseAdvisoryMarkdown = (content: string) => {
+      const lifestyle = getSectionBetween(content, "Питание и коррекция образа жизни", ["Дополнительные консультации", "<!-- anchor:actions_end -->"]);
+      lifestyleFinal = {
+        nutrition: parseBullets(getSectionBetween(lifestyle, "Питание:", ["Физическая активность:", "Сон и режим:"])),
+        activity: parseBullets(getSectionBetween(lifestyle, "Физическая активность:", ["Сон и режим:"])),
+        sleep: parseBullets(getSectionBetween(lifestyle, "Сон и режим:", [])),
+      };
+
+      const followUps = getSectionBetween(content, "Дополнительные консультации и обследования", ["<!-- anchor:actions_end -->"]);
+      followUpsFinal = followUps
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.includes("→"))
+        .map((line) => {
+          const [specialist = "", goal = "", trigger = ""] = line.split("→").map((part) => part.trim());
+          return {
+            specialist: specialist.substring(0, 200),
+            goal: goal.substring(0, 500),
+            trigger: trigger.substring(0, 500),
+          };
+        })
+        .filter((f) => f.specialist && f.goal)
+        .slice(0, 15);
+    };
+
     // Извлекаем рекомендательные секции из отчётов (между anchor:actions_start и anchor:actions_end)
     const categoryRecommendations = Object.entries(categoryReports)
       .map(([category, report]) => {
