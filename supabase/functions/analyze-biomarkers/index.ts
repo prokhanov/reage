@@ -1301,7 +1301,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             messages: [
               { 
                 role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text + "\n\nВажно: Верни ТОЛЬКО валидный JSON в формате: {\"prescriptions\": [{\"name\": \"короткое название (например Витамин D3)\", \"form\": \"биодоступная форма (например холекальциферол)\", \"dosage\": \"дозировка (например 5000 МЕ)\", \"how_to_take\": \"схема приёма (например 1 капсула ежедневно утром с едой)\", \"duration\": \"длительность курса (например 6 месяцев)\", \"prescription\": \"полный текст назначения\", \"reason\": \"причина с биомаркером\", \"effect\": \"на что это влияет\", \"duration_months\": число}], \"lifestyle\": {\"nutrition\": [\"буллет 1\", \"буллет 2\"], \"activity\": [\"буллет 1\"], \"sleep\": [\"буллет 1\"]}, \"follow_ups\": [{\"specialist\": \"кардиолог\", \"goal\": \"оценка сосудистого риска\", \"trigger\": \"ЛПНП 4.2 ммоль/л\"}]}. Все три ключа (prescriptions, lifestyle, follow_ups) обязательны. Если какой-то блок неприменим — верни пустой массив/пустые массивы внутри объекта. Никакого дополнительного текста!"
+                content: prescriptionsSystemPrompt.prompt_text
               },
               { 
                 role: "user", 
@@ -1321,13 +1321,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           try {
             const jsonStart = content.indexOf('{');
             const jsonEnd = content.lastIndexOf('}') + 1;
-            if (jsonStart === -1 || jsonEnd <= jsonStart) {
-              throw new Error("No JSON found in response");
-            }
-            
-            const jsonStr = content.substring(jsonStart, jsonEnd);
-            const parsed = JSON.parse(jsonStr);
-            prescriptionsToCreateFinal = (parsed.prescriptions || [])
+
+            if (jsonStart !== -1 && jsonEnd > jsonStart) {
+              const jsonStr = content.substring(jsonStart, jsonEnd);
+              const parsed = JSON.parse(jsonStr);
+              prescriptionsToCreateFinal = (parsed.prescriptions || [])
               .filter((p: any) => (p.name || p.prescription) && (p.name || p.prescription).trim())
               .map((p: any) => ({
                 name: (p.name || "").trim().substring(0, 500),
@@ -1368,6 +1366,10 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
                   .filter((f: any) => f.specialist && f.goal)
                   .slice(0, 15)
               : [];
+            } else {
+              prescriptionsToCreateFinal = parsePrescriptionsMarkdown(content);
+              parseAdvisoryMarkdown(content);
+            }
 
             console.log(`Parsed ${prescriptionsToCreateFinal.length} prescriptions, lifestyle bullets: ${lifestyleFinal.nutrition.length}/${lifestyleFinal.activity.length}/${lifestyleFinal.sleep.length}, follow-ups: ${followUpsFinal.length}`);
             prescriptionsStatus = "success";
