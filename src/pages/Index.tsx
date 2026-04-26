@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getSessionWithTimeout } from "@/lib/authTimeout";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
@@ -30,34 +31,59 @@ const Index = () => {
 
   const checkAuthAndRedirect = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        const { data: roles } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id);
+      // Защита от зависшего backend: если getSession не ответит за 2.5с —
+      // показываем лендинг (он публичный). Если сессия найдётся позже,
+      // фоновая проверка ниже выполнит редирект.
+      const { session, timedOut } = await getSessionWithTimeout(2500);
 
-        if (roles && roles.length > 0) {
-          const roleList = roles.map(r => r.role);
-          
-          if (roleList.includes("superadmin") || roleList.includes("admin") || roleList.includes("doctor")) {
-            navigate("/admin/patients", { replace: true });
-            return;
+      if (timedOut) {
+        console.warn("[Index] auth.getSession timed out, showing landing");
+        setLoading(false);
+        // Фоновая проверка: если сессия всё-таки придёт, редиректим.
+        supabase.auth.getSession().then(({ data }) => {
+          if (data.session?.user) {
+            redirectByRole(data.session.user.id);
           }
-          
-          if (roleList.includes("patient")) {
-            navigate("/dashboard", { replace: true });
-            return;
-          }
-        }
-        
-        navigate("/dashboard", { replace: true });
+        }).catch(() => { /* ignore */ });
+        return;
+      }
+
+      if (session?.user) {
+        await redirectByRole(session.user.id);
+        return;
       }
     } catch (error) {
       console.error("Error checking auth:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const redirectByRole = async (userId: string) => {
+    try {
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+
+      if (roles && roles.length > 0) {
+        const roleList = roles.map((r) => r.role);
+        if (
+          roleList.includes("superadmin") ||
+          roleList.includes("admin") ||
+          roleList.includes("doctor")
+        ) {
+          navigate("/admin/patients", { replace: true });
+          return;
+        }
+        if (roleList.includes("patient")) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+      }
+      navigate("/dashboard", { replace: true });
+    } catch (e) {
+      console.error("redirectByRole failed", e);
     }
   };
 
