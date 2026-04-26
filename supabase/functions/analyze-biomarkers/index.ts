@@ -40,6 +40,7 @@ serve(async (req) => {
     const url = new URL(req.url);
     const headers = new Headers(req.headers);
     headers.set("Content-Type", "application/json");
+    headers.delete("content-length");
 
     const runPromise = fetch(url.toString(), {
       method: "POST",
