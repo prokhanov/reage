@@ -366,9 +366,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       const data = await invokeAnalyzeBiomarkers({ analysisId: id!, mode });
       const error = null;
 
-      pollingStopped = true;
-      clearInterval(pollInterval);
-
       // 1) Сетевая/транспортная ошибка от supabase-js
       if (error) {
         const msg = error.message || "";
@@ -437,6 +434,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         if (!completed) {
           throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
         }
+        pollingStopped = true;
+        clearInterval(pollInterval);
         setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
         toast({
           title: "Отчет сгенерирован",
@@ -447,6 +446,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         setShowEditReport(true);
         return;
       }
+
+      pollingStopped = true;
+      clearInterval(pollInterval);
 
       const categoryResults = Object.values(data?.categories_processed || {}) as any[];
       const totalCount = Math.max(Object.keys(data?.categories_processed || {}).length, categories.length);
