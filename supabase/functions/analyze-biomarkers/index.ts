@@ -15,13 +15,53 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let body: { analysisId?: string; mode?: unknown; background?: boolean } = {};
   try {
-    const { analysisId, mode: rawMode, background } = await req.json();
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ success: false, error: "Некорректный JSON запроса" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
-    if (!analysisId) {
-      throw new Error("Не указан ID анализа");
+  if (!body.analysisId) {
+    return new Response(JSON.stringify({ success: false, error: "Не указан ID анализа" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
+
+  // Глубокий отчёт почти всегда длиннее клиентского/relay timeout.
+  // Поэтому запрос подтверждаем сразу, а сам pipeline продолжаем внутри этого же runtime.
+  if (mode === "deep" && !body.background) {
+    const runPromise = processAnalysis({ analysisId: body.analysisId, rawMode: body.mode })
+      .then((response) => console.log(`Deep analysis background completed with status ${response.status}`))
+      .catch((error) => console.error("Deep analysis background failed:", error));
+
+    const edgeRuntime = globalThis as typeof globalThis & {
+      EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void };
+    };
+
+    if (edgeRuntime.EdgeRuntime?.waitUntil) {
+      edgeRuntime.EdgeRuntime.waitUntil(runPromise);
+    } else {
+      void runPromise;
     }
 
+    return new Response(
+      JSON.stringify({ success: true, accepted: true, mode, analysisId: body.analysisId }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  return processAnalysis({ analysisId: body.analysisId, rawMode: body.mode });
+});
+
+async function processAnalysis({ analysisId, rawMode }: { analysisId: string; rawMode?: unknown }) {
+  try {
     // ===== Режим генерации: standard (быстрее, дефолт) | deep (качественнее, медленнее) =====
     const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
     const aiProfile = mode === "deep"
