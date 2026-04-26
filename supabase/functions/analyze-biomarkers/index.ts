@@ -67,9 +67,9 @@ async function processAnalysis({ analysisId, rawMode }: { analysisId: string; ra
     const aiProfile = mode === "deep"
       ? {
           model: "google/gemini-3-flash-preview",
-          reasoning: { effort: "medium" as const },
-          tokenMultiplier: 1.15,
-          maxRetries: 2,
+        reasoning: { effort: "low" as const },
+        tokenMultiplier: 1,
+        maxRetries: 1,
         }
       : {
           model: "google/gemini-2.5-flash",
@@ -2198,4 +2198,4 @@ health_index ДОЛЖЕН быть равен ${health_index} (серверно�
       }
     );
   }
-});
+}
