@@ -276,7 +276,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           return;
         }
 
-        const successCount = Object.values(data?.categories_processed || {}).filter((s: any) => s.success).length;
+        let successCount = Object.values(data?.categories_processed || {}).filter((s: any) => s.success).length;
         const totalCount = Object.keys(data?.categories_processed || {}).length || categories.length;
 
         if (data?.success === false || successCount === 0) {
@@ -286,6 +286,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           if (!completed) {
             throw new Error(data?.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
           }
+          successCount = totalCount;
         }
 
         setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
