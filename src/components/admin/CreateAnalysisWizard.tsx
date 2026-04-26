@@ -234,9 +234,15 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
           // Edge runtime мог закрыть соединение по таймауту (deep-режим идёт 3+ мин),
           // хотя фоновая работа продолжается и может уже завершиться. Проверяем БД.
-          setAnalysisProgress((p) => ({ ...p, stage: "Проверяем готовность отчёта..." }));
+          setAnalysisProgress((p) => ({
+            ...p,
+            stage: wizardData.step3.mode === "deep"
+              ? "Глубокий анализ ещё сохраняется, проверяем готовность отчёта..."
+              : "Проверяем готовность отчёта...",
+          }));
+          const completionWaitMs = wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000;
           const completed = (await isAnalysisReportComplete(analysisId))
-            || (await waitForAnalysisCompletion(analysisId, 60000, 3000));
+            || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000));
 
           if (completed) {
             setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
