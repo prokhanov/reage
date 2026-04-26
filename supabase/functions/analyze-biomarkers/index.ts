@@ -35,19 +35,19 @@ serve(async (req) => {
   const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
 
   // Глубокий отчёт почти всегда длиннее клиентского/relay timeout.
-  // Поэтому запрос подтверждаем сразу, а сам pipeline продолжаем внутри этого же runtime.
+  // Поэтому запрос подтверждаем сразу (202), а pipeline продолжаем внутри того же runtime
+  // через EdgeRuntime.waitUntil — без self-invocation по HTTP (которая возвращала 404).
   if (mode === "deep" && !body.background) {
-    const url = new URL(req.url);
-    const headers = new Headers(req.headers);
-    headers.set("Content-Type", "application/json");
-    headers.delete("content-length");
-
-    const runPromise = fetch(url.toString(), {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ analysisId: body.analysisId, mode, background: true }),
-    })
-      .then((response) => console.log(`Deep analysis background completed with status ${response.status}`))
+    const analysisId = body.analysisId!;
+    const runPromise = processAnalysis({ analysisId, rawMode: mode })
+      .then(async (response) => {
+        try {
+          const text = await response.text();
+          console.log(`Deep analysis background finished: status=${response.status}, body=${text.slice(0, 500)}`);
+        } catch (err) {
+          console.error("Deep analysis: failed to read background response body", err);
+        }
+      })
       .catch((error) => console.error("Deep analysis background failed:", error));
 
     const edgeRuntime = globalThis as typeof globalThis & {
@@ -61,7 +61,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, accepted: true, mode, analysisId: body.analysisId }),
+      JSON.stringify({ success: true, accepted: true, mode, analysisId }),
       { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
