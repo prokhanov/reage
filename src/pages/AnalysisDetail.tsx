@@ -328,6 +328,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     const categories = [...new Set(values.map(v => v.biomarkers.category))];
     // total = categories + "Данные пациента" + "Общее резюме" + "Назначения" = categories.length + 3
     const totalSteps = categories.length + 3;
+    const generationStartedAt = new Date();
     setAnalysisProgress({ current: 0, total: totalSteps, currentCategory: "", stage: "Подготовка данных..." });
     setAnalyzing(true);
 
@@ -363,6 +364,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     try {
       const { data, error } = await supabase.functions.invoke("analyze-biomarkers", {
         body: { analysisId: id, mode },
+        timeout: mode === "deep" ? 10 * 60 * 1000 : 3 * 60 * 1000,
       });
 
       pollingStopped = true;
@@ -397,8 +399,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             : "Проверяем готовность отчёта...",
         }));
         const completionWaitMs = mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000;
-        const completed = (await isAnalysisReportComplete(id!))
-          || (await waitForAnalysisCompletion(id!, completionWaitMs, 5000));
+        const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
+          || (await waitForAnalysisCompletion(id!, completionWaitMs, 5000, { startedAt: generationStartedAt }));
 
         if (completed) {
           setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
@@ -416,13 +418,13 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
       // 2) Логическая ошибка от edge-функции (status=200, success=false)
       if (data && data.success === false) {
-        toast({
-          title: "Ошибка анализа",
-          description: data.error || "Не удалось выполнить AI-анализ",
-          variant: "destructive",
-        });
-        console.error("analyze-biomarkers returned error:", data);
-        return;
+        const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
+          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
+
+        if (!completed) {
+          console.error("analyze-biomarkers returned error:", data);
+          throw new Error(data.error || "Не удалось выполнить AI-анализ");
+        }
       }
 
       if (data?.accepted) {
@@ -431,8 +433,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           stage: "Глубокий анализ выполняется в фоне, ожидаем финальное сохранение отчёта...",
         }));
         const completed =
-          (await isAnalysisReportComplete(id!)) ||
-          (await waitForAnalysisCompletion(id!, 10 * 60 * 1000, 5000));
+          (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt })) ||
+          (await waitForAnalysisCompletion(id!, 10 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
         if (!completed) {
           throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
         }
@@ -451,8 +453,8 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       const totalCount = Object.keys(data?.categories_processed || {}).length || categories.length;
 
       if (data?.success === false || successCount === 0) {
-        const completed = (await isAnalysisReportComplete(id!))
-          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000));
+        const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
+          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
 
         if (!completed) {
           throw new Error(data?.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
