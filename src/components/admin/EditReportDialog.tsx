@@ -36,6 +36,7 @@ type FollowUp = {
 type AdvisoryBlock = {
   lifestyle: LifestyleBlock;
   followUps: FollowUp[];
+  rawMarkdown?: string;
 };
 
 interface Prescription {
@@ -128,6 +129,7 @@ export function EditReportDialog({
         const cj = (advisoryRow as any).content_json;
         const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
         const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+        const rawMarkdown = typeof cj?.raw_markdown === "string" ? cj.raw_markdown : undefined;
 
         console.log("[EditReportDialog] advisoryRow found", {
           contentJsonType: typeof cj,
@@ -140,7 +142,7 @@ export function EditReportDialog({
 
         // Если строка «Назначения» вообще существует — показываем блок,
         // даже если массивы пустые (отрисуем placeholder).
-        setAdvisory({ lifestyle, followUps });
+        setAdvisory({ lifestyle, followUps, rawMarkdown });
       } else {
         console.log("[EditReportDialog] advisoryRow NOT found in recommendations");
         setAdvisory(null);
@@ -525,11 +527,24 @@ export function EditReportDialog({
                         </section>
                       )}
 
+                      {advisory?.rawMarkdown && prescriptions.length === 0 && (
+                        <section>
+                          <h2 className="text-lg font-semibold mb-3">📄 Текст назначений</h2>
+                          <div
+                            className="prose prose-sm dark:prose-invert max-w-none p-4 bg-card/50 rounded-xl border border-border"
+                            dangerouslySetInnerHTML={{
+                              __html: marked.parse(cleanMarkdownArtifacts(advisory.rawMarkdown)) as string,
+                            }}
+                          />
+                        </section>
+                      )}
+
                       {advisory &&
                         ((advisory.lifestyle.nutrition?.length || 0) +
                           (advisory.lifestyle.activity?.length || 0) +
                           (advisory.lifestyle.sleep?.length || 0) === 0) &&
-                        advisory.followUps.length === 0 && (
+                        advisory.followUps.length === 0 &&
+                        !advisory.rawMarkdown && (
                           <section>
                             <div className="p-4 rounded-xl border border-dashed border-border bg-muted/30">
                               <p className="text-sm text-muted-foreground">
