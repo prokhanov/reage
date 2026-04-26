@@ -1052,6 +1052,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
     let prescriptionsCreated = 0;
     let prescriptionsStatus = "skipped";
+    let prescriptionsRawContent = "";
     let prescriptionsToCreateFinal: Array<{ name: string; form: string; dosage: string; how_to_take: string; duration: string; prescription: string; reason: string; effect: string; duration_months: number }> = [];
     // Дополнительные блоки раздела «Назначения»: питание/образ жизни и доп. обследования.
     // Сохраняются в recommendations.content_json (type = 'Назначения').
@@ -1197,6 +1198,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         if (prescriptionsResponse.ok) {
           const prescriptionsData = await prescriptionsResponse.json();
           const content = prescriptionsData.choices?.[0]?.message?.content || "";
+          prescriptionsRawContent = content;
           
           console.log(`Got prescriptions content snippet: ${content.substring(0, 200)}...`);
 
@@ -1255,7 +1257,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
             prescriptionsStatus = "success";
           } catch (parseError) {
             console.error("Failed to parse prescriptions JSON:", parseError, "Content:", content);
-            prescriptionsStatus = "error";
+            prescriptionsStatus = content.trim() ? "markdown_fallback" : "error";
           }
         } else {
           const errorText = await prescriptionsResponse.text();
