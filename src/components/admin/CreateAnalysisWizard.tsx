@@ -12,6 +12,7 @@ import { AnalysisStep2 } from "./AnalysisStep2";
 import { AnalysisStep3 } from "./AnalysisStep3";
 import { EditReportDialog } from "./EditReportDialog";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
 
 interface CreateAnalysisWizardProps {
   open: boolean;
