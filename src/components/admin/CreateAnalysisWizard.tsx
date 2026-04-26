@@ -276,10 +276,20 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           return;
         }
 
-        setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
-
-        const successCount = Object.values(data?.categories_processed || {}).filter((s: any) => s.success).length;
+        let successCount = Object.values(data?.categories_processed || {}).filter((s: any) => s.success).length;
         const totalCount = Object.keys(data?.categories_processed || {}).length || categories.length;
+
+        if (data?.success === false || successCount === 0) {
+          const completed = (await isAnalysisReportComplete(analysisId))
+            || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000));
+
+          if (!completed) {
+            throw new Error(data?.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
+          }
+          successCount = totalCount;
+        }
+
+        setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
 
         toast({
           title: "Отчет сгенерирован",

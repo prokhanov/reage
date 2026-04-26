@@ -240,6 +240,15 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
             if (!completed) throw functionError;
           }
 
+          if (data?.success === false) {
+            const completed = (await isAnalysisReportComplete(analysisId))
+              || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000));
+
+            if (!completed) {
+              throw new Error(data.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
+            }
+          }
+
           if (data?.accepted) {
             const completed = await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000);
             if (!completed) {
