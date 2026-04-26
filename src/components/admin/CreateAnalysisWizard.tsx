@@ -172,6 +172,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
       const categories = [...new Set(biomarkers?.map(b => b.category) || [])];
       const totalSteps = categories.length + 3; // categories + "Данные пациента" + "Общее резюме" + "Назначения"
+      const generationStartedAt = new Date();
 
       setAnalysisProgress({ current: 0, total: totalSteps, currentCategory: "", stage: "Подготовка данных..." });
       setAnalyzing(true);
@@ -241,8 +242,8 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
               : "Проверяем готовность отчёта...",
           }));
           const completionWaitMs = wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000;
-          const completed = (await isAnalysisReportComplete(analysisId))
-            || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000));
+          const completed = (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt }))
+            || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000, { startedAt: generationStartedAt }));
 
           if (completed) {
             setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
@@ -262,8 +263,8 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
             stage: "Глубокий анализ выполняется в фоне, ожидаем финальное сохранение отчёта...",
           }));
           const completed =
-            (await isAnalysisReportComplete(analysisId)) ||
-            (await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000));
+            (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt })) ||
+            (await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
           if (!completed) {
             throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
           }
@@ -280,8 +281,8 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
         const totalCount = Object.keys(data?.categories_processed || {}).length || categories.length;
 
         if (data?.success === false || successCount === 0) {
-          const completed = (await isAnalysisReportComplete(analysisId))
-            || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000));
+          const completed = (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt }))
+            || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
 
           if (!completed) {
             throw new Error(data?.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");

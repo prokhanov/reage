@@ -223,6 +223,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
 
       // Generate report if requested
       if (wizardData.step3.generateReport) {
+        const generationStartedAt = new Date();
         setAnalyzing(true);
         try {
           const { data, error: functionError } = await supabase.functions.invoke(
@@ -234,15 +235,15 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
 
           if (functionError) {
             const completionWaitMs = wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000;
-            const completed = (await isAnalysisReportComplete(analysisId))
-              || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000));
+            const completed = (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt }))
+              || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000, { startedAt: generationStartedAt }));
 
             if (!completed) throw functionError;
           }
 
           if (data?.success === false) {
-            const completed = (await isAnalysisReportComplete(analysisId))
-              || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000));
+            const completed = (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt }))
+              || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
 
             if (!completed) {
               throw new Error(data.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
@@ -250,7 +251,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
           }
 
           if (data?.accepted) {
-            const completed = await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000);
+            const completed = await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000, { startedAt: generationStartedAt });
             if (!completed) {
               throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
             }
