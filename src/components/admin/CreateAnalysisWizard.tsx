@@ -261,19 +261,29 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
             ...p,
             stage: "Глубокий анализ выполняется в фоне, ожидаем финальное сохранение отчёта...",
           }));
-          const completed = await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000);
+          const completed =
+            (await isAnalysisReportComplete(analysisId)) ||
+            (await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000));
           if (!completed) {
             throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
           }
+          setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
+          toast({
+            title: "Отчет сгенерирован",
+            description: "Глубокий анализ завершён. Открываем редактор...",
+          });
+          setShowEditReport(true);
+          return;
         }
 
         setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
 
-        const successCount = Object.values(data.categories_processed).filter((s: any) => s.success).length;
+        const successCount = Object.values(data?.categories_processed || {}).filter((s: any) => s.success).length;
+        const totalCount = Object.keys(data?.categories_processed || {}).length || categories.length;
 
         toast({
           title: "Отчет сгенерирован",
-          description: `Успешно: ${successCount} из ${categories.length} категорий`,
+          description: `Успешно: ${successCount} из ${totalCount} категорий`,
         });
 
         // Open edit report dialog
