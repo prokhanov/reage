@@ -238,9 +238,9 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
               ? "Глубокий анализ ещё сохраняется, проверяем готовность отчёта..."
               : "Проверяем готовность отчёта...",
           }));
-          const completionWaitMs = wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000;
+          const completionWaitMs = wizardData.step3.mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000;
           const completed = (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt }))
-            || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 5000, { startedAt: generationStartedAt }));
+            || (await waitForAnalysisCompletion(analysisId, completionWaitMs, 3000, { startedAt: generationStartedAt }));
 
           if (completed) {
             setAnalysisProgress({ current: totalSteps, total: totalSteps, currentCategory: "", stage: "Готово!" });
@@ -261,7 +261,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
           }));
           const completed =
             (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt })) ||
-            (await waitForAnalysisCompletion(analysisId, 10 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
+            (await waitForAnalysisCompletion(analysisId, 15 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
           if (!completed) {
             throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
           }
@@ -285,7 +285,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
         if (data?.success === false || successCount === 0) {
           const completed = (await isAnalysisReportComplete(analysisId, { startedAt: generationStartedAt }))
-            || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 10 * 60 * 1000 : 2 * 60 * 1000, 5000, { startedAt: generationStartedAt }));
+            || (await waitForAnalysisCompletion(analysisId, wizardData.step3.mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
 
           if (!completed) {
             throw new Error(data?.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
