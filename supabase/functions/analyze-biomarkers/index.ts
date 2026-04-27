@@ -1103,7 +1103,27 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       }
     };
 
-    if (mode === "deep") {
+    if (skipCategories) {
+      // Step-режим: категории уже сгенерированы предыдущими шагами оркестратора.
+      // Подгружаем сохранённые отчёты из таблицы recommendations.
+      console.log("skipCategories=true — loading existing category reports from DB");
+      const categoryNames = allCategoryEntries.map(([c]) => c);
+      const { data: savedRecs, error: savedRecsErr } = await supabase
+        .from("recommendations")
+        .select("type, text")
+        .eq("analysis_id", analysisId)
+        .in("type", categoryNames);
+      if (savedRecsErr) {
+        throw new Error(`Не удалось загрузить сохранённые категорийные отчёты: ${savedRecsErr.message}`);
+      }
+      for (const rec of savedRecs ?? []) {
+        if (rec?.type && typeof rec.text === "string" && rec.text.trim()) {
+          categoryReports[rec.type] = rec.text;
+          categoryStatuses[rec.type] = { success: true, loaded_from_db: true };
+        }
+      }
+      console.log(`Loaded ${Object.keys(categoryReports).length} category reports from DB`);
+    } else if (mode === "deep") {
       for (const entry of categoryEntries) {
         await processCategory(entry);
       }
