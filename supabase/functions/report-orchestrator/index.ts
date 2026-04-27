@@ -229,24 +229,67 @@ async function handleTick(supabase: any, body: any) {
         stepOk = true;
       }
     } else if (step.kind === "finalize") {
+      // Финализация может идти дольше HTTP-таймаута edge-runtime (idle 150с).
+      // Запускаем её в fire-and-forget режиме и поллим БД до появления
+      // «Общего резюме» в recommendations и health_index/biological_age в analyses.
       const url = `${SUPABASE_URL}/functions/v1/finalize-analysis`;
-      const r = await fetchWithTimeout(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${SERVICE_KEY}`,
-          apikey: SERVICE_KEY,
-        },
-        body: JSON.stringify({ analysisId: j.analysis_id, mode: j.mode, background: true }),
-      }, 380_000);
-      const text = await r.text();
-      let parsed: any = null;
-      try { parsed = JSON.parse(text); } catch { /* ignore */ }
-      if (!r.ok || !parsed?.success) {
-        stepError = `finalize-analysis status=${r.status} body=${text.slice(0, 400)}`;
-      } else {
-        stepOk = true;
+      // Триггерим вызов, не ждём ответа (background=true внутри тоже использует waitUntil).
+      try {
+        // Не await — нам не важен Response; запрос всё равно дойдёт до edge-runtime.
+        // Ставим короткий таймаут, чтобы не висеть здесь, если соединение зависнет.
+        const triggerCtrl = new AbortController();
+        const triggerTimer = setTimeout(() => triggerCtrl.abort(), 15_000);
+        fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${SERVICE_KEY}`,
+            apikey: SERVICE_KEY,
+          },
+          body: JSON.stringify({ analysisId: j.analysis_id, mode: j.mode, background: true }),
+          signal: triggerCtrl.signal,
+        })
+          .then(async (resp) => {
+            const txt = await resp.text().catch(() => "");
+            console.log(`[job ${j.id}] finalize trigger status=${resp.status} body=${txt.slice(0, 200)}`);
+          })
+          .catch((err) => {
+            console.warn(`[job ${j.id}] finalize trigger fetch ended:`, err?.message ?? err);
+          })
+          .finally(() => clearTimeout(triggerTimer));
+      } catch (e: any) {
+        console.warn(`[job ${j.id}] finalize trigger threw:`, e?.message ?? e);
       }
+
+      // Поллим до 6 минут (360с) — финализация на deep-режиме обычно завершается за 2-4 минуты
+      const FINALIZE_TIMEOUT_MS = 6 * 60 * 1000;
+      const POLL_INTERVAL_MS = 5_000;
+      const deadline = Date.now() + FINALIZE_TIMEOUT_MS;
+      let lastErr = "не дождались резюме и метрик";
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const [recsRes, anRes] = await Promise.all([
+          supabase
+            .from("recommendations")
+            .select("type")
+            .eq("analysis_id", j.analysis_id),
+          supabase
+            .from("analyses")
+            .select("health_index, biological_age")
+            .eq("id", j.analysis_id)
+            .maybeSingle(),
+        ]);
+        const types = new Set(((recsRes.data ?? []) as any[]).map((r) => r.type));
+        const hasSummary = types.has("Общее резюме");
+        const hasMetrics =
+          anRes.data?.health_index != null && anRes.data?.biological_age != null;
+        if (hasSummary && hasMetrics) {
+          stepOk = true;
+          break;
+        }
+        lastErr = `ожидание finalize: summary=${hasSummary} metrics=${hasMetrics}`;
+      }
+      if (!stepOk) stepError = lastErr;
     }
   } catch (e: any) {
     stepError = e?.message ?? String(e);
