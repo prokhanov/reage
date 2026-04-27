@@ -497,14 +497,18 @@ ${complaints && complaints.length > 0 && complaints[0].goals
 ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}
 `.trim();
 
-    // Сохраняем "Данные пациента" сразу — клиент увидит прогресс
-    await supabase.from("recommendations").insert({
-      user_id: analysis.user_id,
-      analysis_id: analysisId,
-      type: "Данные пациента",
-      text: patientDataSection
-    });
-    console.log("Saved: Данные пациента");
+    // Сохраняем "Данные пациента" сразу — клиент увидит прогресс.
+    // В step-режиме оркестратора patient_data сохраняется только на самом первом шаге
+    // (когда !skipDelete, т.е. одновременно с очисткой старых данных).
+    if (!skipDelete) {
+      await supabase.from("recommendations").insert({
+        user_id: analysis.user_id,
+        analysis_id: analysisId,
+        type: "Данные пациента",
+        text: patientDataSection
+      });
+      console.log("Saved: Данные пациента");
+    }
 
     // Тренды по категориям больше не используются: плейсхолдер {trends} удалён
     // из всех category_*_user промптов в БД. Если в каком-то старом или ручном
