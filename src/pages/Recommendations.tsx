@@ -1018,12 +1018,42 @@ export default function Recommendations() {
                                     <div key={prescription.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
                                       <div className="flex items-start justify-between gap-4 mb-3">
                                         <h3 className="font-semibold text-lg flex-1">
-                                          {idx + 1}. {prescription.prescription}
+                                          {idx + 1}. {prescription.name || prescription.prescription}
                                         </h3>
                                         <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
                                           {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
                                         </Badge>
                                       </div>
+
+                                      {(prescription.form || prescription.dosage || prescription.how_to_take || prescription.duration) && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-sm">
+                                          {prescription.form && (
+                                            <div className="p-2 rounded-md bg-muted/40">
+                                              <span className="font-medium text-foreground">Форма:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.form}</span>
+                                            </div>
+                                          )}
+                                          {prescription.dosage && (
+                                            <div className="p-2 rounded-md bg-muted/40">
+                                              <span className="font-medium text-foreground">Дозировка:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.dosage}</span>
+                                            </div>
+                                          )}
+                                          {prescription.how_to_take && (
+                                            <div className="p-2 rounded-md bg-muted/40 sm:col-span-2">
+                                              <span className="font-medium text-foreground">Как принимать:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.how_to_take}</span>
+                                            </div>
+                                          )}
+                                          {prescription.duration && (
+                                            <div className="p-2 rounded-md bg-muted/40 sm:col-span-2">
+                                              <span className="font-medium text-foreground">Длительность:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.duration}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+
                                       {prescription.reason && (
                                         <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
                                           <span className="text-primary mt-0.5">📊</span>
@@ -1039,7 +1069,7 @@ export default function Recommendations() {
                                       )}
                                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <span>
-                                          Длительность: {(() => {
+                                          Контроль через: {(() => {
                                             if (!selectedReport?.date || !prescription.control_date) return "—";
                                             const start = new Date(selectedReport.date);
                                             const end = new Date(prescription.control_date);
