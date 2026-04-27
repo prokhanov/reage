@@ -1708,7 +1708,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         );
       }
     }
-    } // end of `if (!skipPrescriptions)` for prescriptions block
+    // (skipPrescriptions handling: no wrapping if-block; controlled by early return below if needed)
 
     // ====== ЗАПУСКАЕМ FINALIZE-ANALYSIS (summary + snapshot + bio age) ======
     // В step-режиме оркестратор сам триггерит finalize-analysis отдельным шагом.
