@@ -20,6 +20,7 @@ serve(async (req) => {
     mode?: unknown;
     background?: boolean;
     categoryFilter?: string[];
+    skipCategories?: boolean;
     skipPrescriptions?: boolean;
     skipFinalize?: boolean;
     skipDelete?: boolean;
@@ -83,6 +84,7 @@ serve(async (req) => {
     analysisId: body.analysisId,
     rawMode: body.mode,
     categoryFilter: body.categoryFilter,
+    skipCategories: body.skipCategories,
     skipPrescriptions: body.skipPrescriptions,
     skipFinalize: body.skipFinalize,
     skipDelete: body.skipDelete,
@@ -93,6 +95,7 @@ async function processAnalysis({
   analysisId,
   rawMode,
   categoryFilter,
+  skipCategories,
   skipPrescriptions,
   skipFinalize,
   skipDelete,
@@ -100,6 +103,7 @@ async function processAnalysis({
   analysisId: string;
   rawMode?: unknown;
   categoryFilter?: string[];
+  skipCategories?: boolean;
   skipPrescriptions?: boolean;
   skipFinalize?: boolean;
   skipDelete?: boolean;
@@ -1099,7 +1103,27 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       }
     };
 
-    if (mode === "deep") {
+    if (skipCategories) {
+      // Step-режим: категории уже сгенерированы предыдущими шагами оркестратора.
+      // Подгружаем сохранённые отчёты из таблицы recommendations.
+      console.log("skipCategories=true — loading existing category reports from DB");
+      const categoryNames = allCategoryEntries.map(([c]) => c);
+      const { data: savedRecs, error: savedRecsErr } = await supabase
+        .from("recommendations")
+        .select("type, text")
+        .eq("analysis_id", analysisId)
+        .in("type", categoryNames);
+      if (savedRecsErr) {
+        throw new Error(`Не удалось загрузить сохранённые категорийные отчёты: ${savedRecsErr.message}`);
+      }
+      for (const rec of savedRecs ?? []) {
+        if (rec?.type && typeof rec.text === "string" && rec.text.trim()) {
+          categoryReports[rec.type] = rec.text;
+          categoryStatuses[rec.type] = { success: true, loaded_from_db: true };
+        }
+      }
+      console.log(`Loaded ${Object.keys(categoryReports).length} category reports from DB`);
+    } else if (mode === "deep") {
       for (const entry of categoryEntries) {
         await processCategory(entry);
       }
@@ -1124,6 +1148,22 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     const contradictionsBlock = detectedContradictions.length > 0
       ? `\n⚠️ ОБНАРУЖЕНЫ ПРОТИВОРЕЧИЯ В КАТЕГОРИЙНЫХ ОТЧЁТАХ — НЕ ПОВТОРЯЙ ИХ В РЕЗЮМЕ:\n${detectedContradictions.map(c => `- ${c}`).join('\n')}\nИспользуй ТОЛЬКО фактические данные из списка биомаркеров выше.\n`
       : '';
+
+    // ====== РАННИЙ ВЫХОД В STEP-РЕЖИМЕ ======
+    // Если оркестратор передал categoryFilter или явно попросил пропустить prescriptions —
+    // на этом шаге работа закончена: возвращаем результат, чтобы воркер мог завершиться.
+    if (skipPrescriptions || (Array.isArray(categoryFilter) && categoryFilter.length > 0)) {
+      console.log(`Step mode finished: categories=${categoryStatuses.length}, skipPrescriptions=${!!skipPrescriptions}`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          step: "categories",
+          categories_processed: categoryStatuses,
+          total_tokens: totalTokens,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     // ====== ГЕНЕРАЦИЯ НАЗНАЧЕНИЙ (ДО РЕЗЮМЕ, чтобы резюме могло на них ссылаться) ======
     console.log("All category reports saved. Starting prescriptions generation...");
@@ -1708,7 +1748,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         );
       }
     }
-    } // end of `if (!skipPrescriptions)` for prescriptions block
+    // (skipPrescriptions handling: no wrapping if-block; controlled by early return below if needed)
 
     // ====== ЗАПУСКАЕМ FINALIZE-ANALYSIS (summary + snapshot + bio age) ======
     // В step-режиме оркестратор сам триггерит finalize-analysis отдельным шагом.
