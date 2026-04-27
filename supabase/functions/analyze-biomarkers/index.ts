@@ -1172,51 +1172,124 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     };
 
     const parsePrescriptionsMarkdown = (content: string) => {
-      const body = getSectionBetween(content, "Нутрицевтики", ["Питание и коррекция образа жизни", "Дополнительные консультации", "<!-- anchor:actions_end -->"]);
-      const blocks = body
-        .split(/\n(?=[^\n:]{2,120}\nФорма:\s*)/g)
-        .map((block) => block.trim())
-        .filter((block) => /Форма:\s*/.test(block) || /Дозировка:\s*/.test(block));
+      const body = getSectionBetween(content, "Нутрицевтики", [
+        "Питание и коррекция образа жизни",
+        "Дополнительные консультации",
+        "<!-- anchor:actions_end -->",
+      ]);
+      if (!body.trim()) return [];
 
-      return blocks.map((block) => {
-        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-        const name = (lines[0] || "").replace(/^\d+[.)]\s*/, "").trim();
-        const readField = (label: string) => {
-          const line = lines.find((l) => l.toLowerCase().startsWith(label.toLowerCase() + ":"));
-          return line ? line.substring(label.length + 1).trim() : "";
-        };
-        const effectSection = getSectionBetween(block, "На что влияет:", ["\n\n"]);
-        const effect = parseBullets(effectSection).join("\n");
-        const duration = readField("Длительность");
-        return {
-          name: name.substring(0, 500),
-          form: readField("Форма").substring(0, 500),
-          dosage: readField("Дозировка").substring(0, 500),
-          how_to_take: readField("Как принимать").substring(0, 1000),
-          duration: duration.substring(0, 500),
-          prescription: name.substring(0, 5000),
-          reason: readField("Причина").substring(0, 2000),
-          effect: effect.substring(0, 5000),
-          duration_months: inferDurationMonths(duration),
-        };
-      }).filter((p) => p.name || p.prescription);
+      // Разбиваем на блоки: каждый блок начинается со строки-имени препарата
+      // и обязательно содержит строку "Форма:" где-то ниже.
+      // Имя — строка БЕЗ двоеточия (в отличие от полей вида "Форма:", "Дозировка:").
+      // Старый regex /\n(?=[^\n:]{2,120}\nФорма:\s*)/ требовал, чтобы Форма: шла
+      // СРАЗУ после имени, что часто ломалось. Новый подход: ищем все позиции
+      // строк "Форма:" и для каждой откатываемся к предыдущему имени.
+      const lines = body.split("\n");
+      const blocks: string[] = [];
+      let currentBlock: string[] = [];
+      const isFieldLine = (l: string) =>
+        /^(Форма|Дозировка|Как принимать|Длительность|Причина|На что влияет|Эффект)\s*[:：]/i.test(
+          l.trim(),
+        );
+      const isLikelyName = (l: string) => {
+        const t = l.trim().replace(/^\d+[.)]\s*/, "");
+        if (!t) return false;
+        if (isFieldLine(t)) return false;
+        if (t.startsWith("•") || t.startsWith("-") || t.startsWith("*")) return false;
+        // Имя — короткая строка без двоеточия в начале и не пустая
+        return t.length >= 2 && t.length <= 200;
+      };
+
+      for (const rawLine of lines) {
+        const line = rawLine;
+        // Если строка похожа на имя нового препарата и текущий блок уже содержит "Форма:" —
+        // закрываем текущий блок.
+        if (
+          isLikelyName(line) &&
+          currentBlock.some((l) => /^Форма\s*[:：]/i.test(l.trim()))
+        ) {
+          blocks.push(currentBlock.join("\n").trim());
+          currentBlock = [line];
+        } else {
+          currentBlock.push(line);
+        }
+      }
+      if (currentBlock.length) blocks.push(currentBlock.join("\n").trim());
+
+      return blocks
+        .filter((block) => /Форма\s*[:：]/i.test(block) || /Дозировка\s*[:：]/i.test(block))
+        .map((block) => {
+          const blockLines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+          // Имя — первая строка, которая не является полем
+          const nameLine = blockLines.find((l) => !isFieldLine(l) && !l.startsWith("•") && !l.startsWith("-"));
+          const name = (nameLine || "").replace(/^\d+[.)]\s*/, "").replace(/^\*\*|\*\*$/g, "").trim();
+
+          const readField = (label: string) => {
+            const re = new RegExp(`^${label}\\s*[:：]\\s*(.+)$`, "i");
+            for (const l of blockLines) {
+              const m = l.match(re);
+              if (m) return m[1].trim();
+            }
+            return "";
+          };
+
+          // "На что влияет" — многострочный блок буллетов
+          const effectIdx = blockLines.findIndex((l) => /^На что влияет\s*[:：]/i.test(l));
+          let effect = "";
+          if (effectIdx !== -1) {
+            const effectLines: string[] = [];
+            for (let i = effectIdx + 1; i < blockLines.length; i++) {
+              const l = blockLines[i];
+              if (isFieldLine(l) || isLikelyName(l)) break;
+              effectLines.push(l);
+            }
+            effect = parseBullets(effectLines.join("\n")).join("\n");
+          }
+
+          const duration = readField("Длительность");
+          return {
+            name: name.substring(0, 500),
+            form: readField("Форма").substring(0, 500),
+            dosage: readField("Дозировка").substring(0, 500),
+            how_to_take: readField("Как принимать").substring(0, 1000),
+            duration: duration.substring(0, 500),
+            prescription: name.substring(0, 5000),
+            reason: readField("Причина").substring(0, 2000),
+            effect: effect.substring(0, 5000),
+            duration_months: inferDurationMonths(duration),
+          };
+        })
+        .filter((p) => p.name || p.prescription);
     };
 
     const parseAdvisoryMarkdown = (content: string) => {
-      const lifestyle = getSectionBetween(content, "Питание и коррекция образа жизни", ["Дополнительные консультации", "<!-- anchor:actions_end -->"]);
+      const lifestyle = getSectionBetween(content, "Питание и коррекция образа жизни", [
+        "Дополнительные консультации",
+        "<!-- anchor:actions_end -->",
+      ]);
       lifestyleFinal = {
-        nutrition: parseBullets(getSectionBetween(lifestyle, "Питание:", ["Физическая активность:", "Сон и режим:"])),
-        activity: parseBullets(getSectionBetween(lifestyle, "Физическая активность:", ["Сон и режим:"])),
-        sleep: parseBullets(getSectionBetween(lifestyle, "Сон и режим:", [])),
+        nutrition: parseBullets(
+          getSectionBetween(lifestyle, "Питание", ["Физическая активность", "Сон и режим"]),
+        ),
+        activity: parseBullets(
+          getSectionBetween(lifestyle, "Физическая активность", ["Сон и режим"]),
+        ),
+        sleep: parseBullets(getSectionBetween(lifestyle, "Сон и режим", [])),
       };
 
-      const followUps = getSectionBetween(content, "Дополнительные консультации и обследования", ["<!-- anchor:actions_end -->"]);
+      const followUps = getSectionBetween(content, "Дополнительные консультации и обследования", [
+        "<!-- anchor:actions_end -->",
+      ]);
+      // Допускаем разные разделители: → / -> / — / –
+      const SEP_RE = /\s*(?:→|->|—|–)\s*/;
       followUpsFinal = followUps
         .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.includes("→"))
+        .map((line) => line.trim().replace(/^([•\-*]|\d+[.)])\s*/, ""))
+        .filter((line) => SEP_RE.test(line))
         .map((line) => {
-          const [specialist = "", goal = "", trigger = ""] = line.split("→").map((part) => part.trim());
+          const parts = line.split(SEP_RE).map((p) => p.trim());
+          const [specialist = "", goal = "", trigger = ""] = parts;
           return {
             specialist: specialist.substring(0, 200),
             goal: goal.substring(0, 500),
