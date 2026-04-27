@@ -1125,7 +1125,26 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       ? `\n⚠️ ОБНАРУЖЕНЫ ПРОТИВОРЕЧИЯ В КАТЕГОРИЙНЫХ ОТЧЁТАХ — НЕ ПОВТОРЯЙ ИХ В РЕЗЮМЕ:\n${detectedContradictions.map(c => `- ${c}`).join('\n')}\nИспользуй ТОЛЬКО фактические данные из списка биомаркеров выше.\n`
       : '';
 
+    // ====== EARLY RETURN: step-режим оркестратора ======
+    // Если orchestrator передал categoryFilter — этот воркер обрабатывает только категории.
+    // Prescriptions и finalize запускаются orchestrator-ом отдельными шагами (свои воркеры с 400с бюджетом).
+    if (Array.isArray(categoryFilter) && categoryFilter.length > 0) {
+      console.log(`Step done. Returning ${Object.keys(categoryStatuses).length} category results to orchestrator.`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          step: "categories",
+          categories_processed: categoryStatuses,
+          total_tokens: totalTokens,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // ====== ГЕНЕРАЦИЯ НАЗНАЧЕНИЙ (ДО РЕЗЮМЕ, чтобы резюме могло на них ссылаться) ======
+    if (skipPrescriptions) {
+      console.log("Skipping prescriptions (skipPrescriptions=true)");
+    } else {
     console.log("All category reports saved. Starting prescriptions generation...");
 
     let prescriptionsCreated = 0;
