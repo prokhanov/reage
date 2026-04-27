@@ -1752,7 +1752,7 @@ ${categoryReportsForSnapshot}
                     emoji: { type: "string", description: "Emoji категории — для type=section" },
                     scope: { type: "string", enum: ["overall", "category"], description: "Для type=summary" },
                     biomarker_id: { type: "string", description: "UUID — для type=biomarker (из списка)" },
-                    commentary: { type: "string", description: "Клинический комментарий — для type=biomarker" },
+                    commentary: { type: "string", description: "Клинический комментарий ТОЛЬКО для этого биомаркера (1–4 предложения). СТРОГО ЗАПРЕЩЕНЫ заголовки markdown (## , ###), а также общие разделы 'Общая оценка', 'Итог по системе', 'Резюме' — их выноси отдельным блоком type=text после биомаркеров." },
                     size: { type: "string", enum: ["small", "medium", "large"], description: "Для type=spacer" },
                   },
                   required: ["type"],
