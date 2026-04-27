@@ -1727,12 +1727,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         );
       }
     }
+    } // end of `if (!skipPrescriptions)` for prescriptions block
 
     // ====== ЗАПУСКАЕМ FINALIZE-ANALYSIS (summary + snapshot + bio age) ======
-    // Делаем это ВНУТРИ analyze-biomarkers через прямой HTTP-вызов с background=false,
-    // обёрнутый в EdgeRuntime.waitUntil. Это позволяет вернуть пользователю ответ сразу,
-    // а тяжёлая финализация продолжится в отдельном edge-runtime инстансе и не упрётся
-    // в наш wall-clock лимит.
+    // В step-режиме оркестратор сам триггерит finalize-analysis отдельным шагом.
+    let finalizeTriggered = false;
+    if (!skipFinalize) {
     try {
       const finalizeUrl = `${supabaseUrl}/functions/v1/finalize-analysis`;
       // Не ждём ответа — finalize сам берёт работу в waitUntil и возвращает 202.
@@ -1759,9 +1759,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       } else {
         void finalizePromise;
       }
+      finalizeTriggered = true;
     } catch (e: any) {
       console.error("Error scheduling finalize-analysis:", e);
     }
+    } // end of `if (!skipFinalize)`
 
     // health_index/biological_age/metadata теперь рассчитываются в finalize-analysis
 
