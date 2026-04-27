@@ -120,8 +120,10 @@ async function handleStart(supabase: any, body: any) {
     label: "Назначения",
     kind: "prescriptions",
     payload: {
-      // categoryFilter не задаём — функция считает, что категории уже сохранены и сразу идёт к назначениям
+      // categoryFilter не задаём — функция загрузит готовые категорийные отчёты из БД
       skipDelete: true,
+      skipCategories: true,
+      skipPrescriptions: false,
       skipFinalize: true,
     },
   });
