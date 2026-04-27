@@ -15,7 +15,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let body: { analysisId?: string; mode?: unknown; background?: boolean } = {};
+  let body: {
+    analysisId?: string;
+    mode?: unknown;
+    background?: boolean;
+    categoryFilter?: string[];
+    skipPrescriptions?: boolean;
+    skipFinalize?: boolean;
+    skipDelete?: boolean;
+  } = {};
   try {
     body = await req.json();
   } catch {
@@ -34,10 +42,14 @@ serve(async (req) => {
 
   const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
 
-  // Глубокий отчёт почти всегда длиннее клиентского/relay timeout.
-  // Поэтому запрос подтверждаем сразу (202), а pipeline продолжаем внутри того же runtime
-  // через EdgeRuntime.waitUntil — без self-invocation по HTTP (которая возвращала 404).
-  if (mode === "deep" && !body.background) {
+  // Когда оркестратор передаёт categoryFilter — обрабатываем только эти категории
+  // (один шаг pipeline = один HTTP-вызов = свой 400-секундный бюджет воркера).
+  // В этом режиме НЕ удаляем старые записи (это делает orchestrator на старте задачи)
+  // и НЕ запускаем prescriptions/finalize (их запускает orchestrator отдельными шагами).
+  const isStepRequest = Array.isArray(body.categoryFilter) && body.categoryFilter.length > 0;
+
+  // Старый deep-режим без фильтра: оставляем background-схему для обратной совместимости.
+  if (mode === "deep" && !body.background && !isStepRequest) {
     const analysisId = body.analysisId!;
     const runPromise = processAnalysis({ analysisId, rawMode: mode })
       .then(async (response) => {
@@ -66,7 +78,15 @@ serve(async (req) => {
     );
   }
 
-  return processAnalysis({ analysisId: body.analysisId, rawMode: body.mode });
+  // Step-режим (под управлением orchestrator) или standard — выполняем синхронно и возвращаем результат.
+  return processAnalysis({
+    analysisId: body.analysisId,
+    rawMode: body.mode,
+    categoryFilter: body.categoryFilter,
+    skipPrescriptions: body.skipPrescriptions,
+    skipFinalize: body.skipFinalize,
+    skipDelete: body.skipDelete,
+  });
 });
 
 async function processAnalysis({ analysisId, rawMode }: { analysisId: string; rawMode?: unknown }) {
