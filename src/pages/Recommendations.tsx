@@ -62,6 +62,11 @@ interface RecommendationReport {
 interface Prescription {
   id: string;
   prescription: string;
+  name?: string | null;
+  form?: string | null;
+  dosage?: string | null;
+  how_to_take?: string | null;
+  duration?: string | null;
   reason: string | null;
   effect: string;
   control_date: string;
