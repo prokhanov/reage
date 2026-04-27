@@ -754,7 +754,14 @@ ${globalBiomarkersInstructions}
     const categoryStatuses: Record<string, any> = {};
     let totalTokens = 0;
 
-    const categoryEntries = Object.entries(categorizedBiomarkers) as [string, any[]][];
+    const allCategoryEntries = Object.entries(categorizedBiomarkers) as [string, any[]][];
+    // Фильтрация по step-режиму оркестратора: обрабатываем только указанные категории.
+    const categoryEntries = (Array.isArray(categoryFilter) && categoryFilter.length > 0)
+      ? allCategoryEntries.filter(([cat]) => categoryFilter.includes(cat))
+      : allCategoryEntries;
+    if (Array.isArray(categoryFilter) && categoryFilter.length > 0) {
+      console.log(`Step mode: processing ${categoryEntries.length} of ${allCategoryEntries.length} categories: ${categoryEntries.map(([c]) => c).join(", ")}`);
+    }
     const processCategory = async ([category, biomarkers]: [string, any[]]) => {
       try {
         const expert = CATEGORY_EXPERTS[category as keyof typeof CATEGORY_EXPERTS];
