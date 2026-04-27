@@ -604,7 +604,16 @@ export default function Recommendations() {
                     p.control_date && !isNaN(new Date(p.control_date).getTime())
                       ? format(new Date(p.control_date), "dd.MM.yyyy")
                       : "—";
-                  return `**${idx + 1}. ${p.prescription}**\n\n*${p.effect || ""}*\n\nДлительность: ${dur}, Контрольная дата: ${ctrl}`;
+                  const title = p.name || p.prescription;
+                  const lines: string[] = [`**${idx + 1}. ${title}**`];
+                  if (p.form) lines.push(`Форма: ${p.form}`);
+                  if (p.dosage) lines.push(`Дозировка: ${p.dosage}`);
+                  if (p.how_to_take) lines.push(`Как принимать: ${p.how_to_take}`);
+                  if (p.duration) lines.push(`Длительность: ${p.duration}`);
+                  if (p.reason) lines.push(`Причина: ${p.reason}`);
+                  if (p.effect) lines.push(`*${p.effect}*`);
+                  lines.push(`Контроль через: ${dur}, Контрольная дата: ${ctrl}`);
+                  return lines.join("\n\n");
                 })
                 .join("\n\n---\n\n"),
             );
