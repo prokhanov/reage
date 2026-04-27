@@ -95,6 +95,7 @@ async function processAnalysis({
   analysisId,
   rawMode,
   categoryFilter,
+  skipCategories,
   skipPrescriptions,
   skipFinalize,
   skipDelete,
@@ -102,6 +103,7 @@ async function processAnalysis({
   analysisId: string;
   rawMode?: unknown;
   categoryFilter?: string[];
+  skipCategories?: boolean;
   skipPrescriptions?: boolean;
   skipFinalize?: boolean;
   skipDelete?: boolean;
