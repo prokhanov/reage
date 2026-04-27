@@ -1779,7 +1779,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         estimated_cost_credits: estimatedCostCredits,
         prescriptions_created: prescriptionsCreated,
         prescriptions_status: prescriptionsStatus,
-        finalize_triggered: true,
+        finalize_triggered: finalizeTriggered,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
