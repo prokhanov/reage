@@ -1443,65 +1443,97 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           
           console.log(`Got prescriptions content snippet: ${content.substring(0, 200)}...`);
 
+          // ===== MARKDOWN-FIRST PARSER =====
+          // Промпт `prescriptions_system` — Markdown. Парсим его в первую очередь.
+          // JSON оставлен как safety-net на случай, если ИИ вернёт JSON.
+          let parserUsed: "markdown" | "json" | "none" = "none";
           try {
-            const jsonStart = content.indexOf('{');
-            const jsonEnd = content.lastIndexOf('}') + 1;
-
-            if (jsonStart !== -1 && jsonEnd > jsonStart) {
-              const jsonStr = content.substring(jsonStart, jsonEnd);
-              const parsed = JSON.parse(jsonStr);
-              prescriptionsToCreateFinal = (parsed.prescriptions || [])
-              .filter((p: any) => (p.name || p.prescription) && (p.name || p.prescription).trim())
-              .map((p: any) => ({
-                name: (p.name || "").trim().substring(0, 500),
-                form: (p.form || "").trim().substring(0, 500),
-                dosage: (p.dosage || "").trim().substring(0, 500),
-                how_to_take: (p.how_to_take || "").trim().substring(0, 1000),
-                duration: (p.duration || "").trim().substring(0, 500),
-                prescription: (p.prescription || p.name || "").trim().substring(0, 5000),
-                reason: (p.reason || "").trim().substring(0, 2000),
-                effect: (p.effect || "").trim().substring(0, 5000),
-                duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3
-              }));
-
-            // ── Lifestyle (питание / активность / сон) ──
-            const cleanBullets = (arr: any): string[] =>
-              Array.isArray(arr)
-                ? arr
-                    .map((s: any) => (typeof s === "string" ? s.trim() : ""))
-                    .filter((s) => s.length > 0)
-                    .map((s) => s.substring(0, 1000))
-                    .slice(0, 10)
-                : [];
-            const ls = parsed.lifestyle || {};
-            lifestyleFinal = {
-              nutrition: cleanBullets(ls.nutrition),
-              activity: cleanBullets(ls.activity),
-              sleep: cleanBullets(ls.sleep),
-            };
-
-            // ── Follow-ups (доп. консультации и обследования) ──
-            followUpsFinal = Array.isArray(parsed.follow_ups)
-              ? parsed.follow_ups
-                  .map((f: any) => ({
-                    specialist: (f?.specialist || "").toString().trim().substring(0, 200),
-                    goal: (f?.goal || "").toString().trim().substring(0, 500),
-                    trigger: (f?.trigger || "").toString().trim().substring(0, 500),
-                  }))
-                  .filter((f: any) => f.specialist && f.goal)
-                  .slice(0, 15)
-              : [];
+            const mdPrescriptions = parsePrescriptionsMarkdown(content);
+            if (mdPrescriptions.length > 0) {
+              prescriptionsToCreateFinal = mdPrescriptions;
+              parseAdvisoryMarkdown(content); // заполняет lifestyleFinal + followUpsFinal
+              parserUsed = "markdown";
+              console.log(
+                `[prescriptions] Markdown parser: ${mdPrescriptions.length} items, lifestyle ${lifestyleFinal.nutrition.length}/${lifestyleFinal.activity.length}/${lifestyleFinal.sleep.length}, follow-ups ${followUpsFinal.length}`,
+              );
             } else {
-              prescriptionsToCreateFinal = parsePrescriptionsMarkdown(content);
-              parseAdvisoryMarkdown(content);
+              console.warn("[prescriptions] Markdown parser returned 0 items, trying JSON fallback");
             }
-
-            console.log(`Parsed ${prescriptionsToCreateFinal.length} prescriptions, lifestyle bullets: ${lifestyleFinal.nutrition.length}/${lifestyleFinal.activity.length}/${lifestyleFinal.sleep.length}, follow-ups: ${followUpsFinal.length}`);
-            prescriptionsStatus = "success";
-          } catch (parseError) {
-            console.error("Failed to parse prescriptions JSON:", parseError, "Content:", content);
-            prescriptionsStatus = content.trim() ? "markdown_fallback" : "error";
+          } catch (mdErr) {
+            console.error("[prescriptions] Markdown parser threw:", mdErr);
           }
+
+          // JSON-фоллбек — только если Markdown ничего не дал
+          if (parserUsed === "none") {
+            try {
+              const jsonStart = content.indexOf("{");
+              const jsonEnd = content.lastIndexOf("}") + 1;
+              if (jsonStart !== -1 && jsonEnd > jsonStart) {
+                const jsonStr = content.substring(jsonStart, jsonEnd);
+                const parsed = JSON.parse(jsonStr);
+                prescriptionsToCreateFinal = (parsed.prescriptions || [])
+                  .filter((p: any) => (p.name || p.prescription) && (p.name || p.prescription).trim())
+                  .map((p: any) => ({
+                    name: (p.name || "").trim().substring(0, 500),
+                    form: (p.form || "").trim().substring(0, 500),
+                    dosage: (p.dosage || "").trim().substring(0, 500),
+                    how_to_take: (p.how_to_take || "").trim().substring(0, 1000),
+                    duration: (p.duration || "").trim().substring(0, 500),
+                    prescription: (p.prescription || p.name || "").trim().substring(0, 5000),
+                    reason: (p.reason || "").trim().substring(0, 2000),
+                    effect: (p.effect || "").trim().substring(0, 5000),
+                    duration_months: [1, 2, 3, 4, 6].includes(p.duration_months) ? p.duration_months : 3,
+                  }));
+
+                const cleanBullets = (arr: any): string[] =>
+                  Array.isArray(arr)
+                    ? arr
+                        .map((s: any) => (typeof s === "string" ? s.trim() : ""))
+                        .filter((s) => s.length > 0)
+                        .map((s) => s.substring(0, 1000))
+                        .slice(0, 10)
+                    : [];
+                const ls = parsed.lifestyle || {};
+                lifestyleFinal = {
+                  nutrition: cleanBullets(ls.nutrition),
+                  activity: cleanBullets(ls.activity),
+                  sleep: cleanBullets(ls.sleep),
+                };
+
+                followUpsFinal = Array.isArray(parsed.follow_ups)
+                  ? parsed.follow_ups
+                      .map((f: any) => ({
+                        specialist: (f?.specialist || "").toString().trim().substring(0, 200),
+                        goal: (f?.goal || "").toString().trim().substring(0, 500),
+                        trigger: (f?.trigger || "").toString().trim().substring(0, 500),
+                      }))
+                      .filter((f: any) => f.specialist && f.goal)
+                      .slice(0, 15)
+                  : [];
+
+                if (prescriptionsToCreateFinal.length > 0) {
+                  parserUsed = "json";
+                  console.log(`[prescriptions] JSON fallback parser: ${prescriptionsToCreateFinal.length} items`);
+                }
+              }
+            } catch (jsonErr) {
+              console.error("[prescriptions] JSON fallback parser failed:", jsonErr);
+            }
+          }
+
+          if (parserUsed === "none") {
+            prescriptionsStatus = content.trim() ? "markdown_fallback" : "error";
+            console.error(
+              "[prescriptions] BOTH parsers failed. Raw content (first 500 chars):",
+              content.substring(0, 500),
+            );
+          } else {
+            prescriptionsStatus = "success";
+            console.log(
+              `[prescriptions] Final: ${prescriptionsToCreateFinal.length} prescriptions via ${parserUsed}`,
+            );
+          }
+
         } else {
           const errorText = await prescriptionsResponse.text();
           console.error("Failed to generate prescriptions:", prescriptionsResponse.status, errorText);
