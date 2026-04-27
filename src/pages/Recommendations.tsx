@@ -62,6 +62,11 @@ interface RecommendationReport {
 interface Prescription {
   id: string;
   prescription: string;
+  name?: string | null;
+  form?: string | null;
+  dosage?: string | null;
+  how_to_take?: string | null;
+  duration?: string | null;
   reason: string | null;
   effect: string;
   control_date: string;
@@ -599,7 +604,16 @@ export default function Recommendations() {
                     p.control_date && !isNaN(new Date(p.control_date).getTime())
                       ? format(new Date(p.control_date), "dd.MM.yyyy")
                       : "—";
-                  return `**${idx + 1}. ${p.prescription}**\n\n*${p.effect || ""}*\n\nДлительность: ${dur}, Контрольная дата: ${ctrl}`;
+                  const title = p.name || p.prescription;
+                  const lines: string[] = [`**${idx + 1}. ${title}**`];
+                  if (p.form) lines.push(`Форма: ${p.form}`);
+                  if (p.dosage) lines.push(`Дозировка: ${p.dosage}`);
+                  if (p.how_to_take) lines.push(`Как принимать: ${p.how_to_take}`);
+                  if (p.duration) lines.push(`Длительность: ${p.duration}`);
+                  if (p.reason) lines.push(`Причина: ${p.reason}`);
+                  if (p.effect) lines.push(`*${p.effect}*`);
+                  lines.push(`Контроль через: ${dur}, Контрольная дата: ${ctrl}`);
+                  return lines.join("\n\n");
                 })
                 .join("\n\n---\n\n"),
             );
@@ -1013,12 +1027,42 @@ export default function Recommendations() {
                                     <div key={prescription.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
                                       <div className="flex items-start justify-between gap-4 mb-3">
                                         <h3 className="font-semibold text-lg flex-1">
-                                          {idx + 1}. {prescription.prescription}
+                                          {idx + 1}. {prescription.name || prescription.prescription}
                                         </h3>
                                         <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
                                           {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
                                         </Badge>
                                       </div>
+
+                                      {(prescription.form || prescription.dosage || prescription.how_to_take || prescription.duration) && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-sm">
+                                          {prescription.form && (
+                                            <div className="p-2 rounded-md bg-muted/40">
+                                              <span className="font-medium text-foreground">Форма:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.form}</span>
+                                            </div>
+                                          )}
+                                          {prescription.dosage && (
+                                            <div className="p-2 rounded-md bg-muted/40">
+                                              <span className="font-medium text-foreground">Дозировка:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.dosage}</span>
+                                            </div>
+                                          )}
+                                          {prescription.how_to_take && (
+                                            <div className="p-2 rounded-md bg-muted/40 sm:col-span-2">
+                                              <span className="font-medium text-foreground">Как принимать:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.how_to_take}</span>
+                                            </div>
+                                          )}
+                                          {prescription.duration && (
+                                            <div className="p-2 rounded-md bg-muted/40 sm:col-span-2">
+                                              <span className="font-medium text-foreground">Длительность:</span>{" "}
+                                              <span className="text-muted-foreground">{prescription.duration}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+
                                       {prescription.reason && (
                                         <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
                                           <span className="text-primary mt-0.5">📊</span>
@@ -1034,7 +1078,7 @@ export default function Recommendations() {
                                       )}
                                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <span>
-                                          Длительность: {(() => {
+                                          Контроль через: {(() => {
                                             if (!selectedReport?.date || !prescription.control_date) return "—";
                                             const start = new Date(selectedReport.date);
                                             const end = new Date(prescription.control_date);

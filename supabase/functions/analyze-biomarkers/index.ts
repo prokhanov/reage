@@ -1192,11 +1192,27 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         /^(Форма|Дозировка|Как принимать|Длительность|Причина|На что влияет|Эффект)\s*[:：]/i.test(
           l.trim(),
         );
+      // Заголовки секций, которые НЕ являются именами препаратов.
+      // Парсер должен их пропускать, иначе первое назначение получает имя
+      // вроде "Нутрицевтики" вместо реального названия добавки.
+      const SECTION_HEADER_RE =
+        /^(#{1,6}\s*)?\**\s*(нутрицевтики|витамины|добавки|препараты|минералы|бады|нутрицевтика|питание[\s\S]*|физическая активность|сон[\s\S]*|дополнительные консультации[\s\S]*)\s*\**\s*[:：]?\s*$/i;
+      const isSectionHeader = (l: string) => {
+        const t = l.trim()
+          .replace(/^[#>\s]+/, "")
+          .replace(/\*\*/g, "")
+          .replace(/[:：]\s*$/, "")
+          .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F1FF}\u{2300}-\u{23FF}]/gu, "")
+          .trim();
+        return SECTION_HEADER_RE.test(t);
+      };
       const isLikelyName = (l: string) => {
         const t = l.trim().replace(/^\d+[.)]\s*/, "");
         if (!t) return false;
         if (isFieldLine(t)) return false;
         if (t.startsWith("•") || t.startsWith("-") || t.startsWith("*")) return false;
+        if (t.startsWith("#")) return false; // markdown header
+        if (isSectionHeader(t)) return false; // "Нутрицевтики" и т.п.
         // Имя — короткая строка без двоеточия в начале и не пустая
         return t.length >= 2 && t.length <= 200;
       };
@@ -1222,7 +1238,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         .map((block) => {
           const blockLines = block.split("\n").map((l) => l.trim()).filter(Boolean);
           // Имя — первая строка, которая не является полем
-          const nameLine = blockLines.find((l) => !isFieldLine(l) && !l.startsWith("•") && !l.startsWith("-"));
+          const nameLine = blockLines.find(
+            (l) => !isFieldLine(l) && !l.startsWith("•") && !l.startsWith("-") && !isSectionHeader(l),
+          );
           const name = (nameLine || "").replace(/^\d+[.)]\s*/, "").replace(/^\*\*|\*\*$/g, "").trim();
 
           const readField = (label: string) => {
