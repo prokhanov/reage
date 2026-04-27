@@ -84,6 +84,7 @@ serve(async (req) => {
     analysisId: body.analysisId,
     rawMode: body.mode,
     categoryFilter: body.categoryFilter,
+    skipCategories: body.skipCategories,
     skipPrescriptions: body.skipPrescriptions,
     skipFinalize: body.skipFinalize,
     skipDelete: body.skipDelete,
