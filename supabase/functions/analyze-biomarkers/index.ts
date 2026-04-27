@@ -1671,14 +1671,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     return new Response(
       JSON.stringify({
         success: true,
-        health_index,
-        biological_age,
         categories_processed: categoryStatuses,
         total_tokens: totalTokens,
         estimated_cost_credits: estimatedCostCredits,
-        summary: summaryReport.substring(0, 500) + "...",
         prescriptions_created: prescriptionsCreated,
-        prescriptions_status: prescriptionsStatus
+        prescriptions_status: prescriptionsStatus,
+        finalize_triggered: true,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
