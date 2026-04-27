@@ -1238,7 +1238,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         .map((block) => {
           const blockLines = block.split("\n").map((l) => l.trim()).filter(Boolean);
           // Имя — первая строка, которая не является полем
-          const nameLine = blockLines.find((l) => !isFieldLine(l) && !l.startsWith("•") && !l.startsWith("-"));
+          const nameLine = blockLines.find(
+            (l) => !isFieldLine(l) && !l.startsWith("•") && !l.startsWith("-") && !isSectionHeader(l),
+          );
           const name = (nameLine || "").replace(/^\d+[.)]\s*/, "").replace(/^\*\*|\*\*$/g, "").trim();
 
           const readField = (label: string) => {
