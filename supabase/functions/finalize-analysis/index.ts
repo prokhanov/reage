@@ -209,9 +209,20 @@ ${symptomsText}
       .map(([cat, txt]) => `--- ${cat} ---\n${(txt as string).substring(0, 1200)}`)
       .join("\n\n");
 
-    // Список назначений из БД (могут быть пустыми)
+    // Список назначений из БД (могут быть пустыми) — передаём ВСЕ структурные поля,
+    // чтобы AI summary видел реальные дозировки, формы и длительности.
     const prescriptionsList = (prescriptionsRows && prescriptionsRows.length > 0)
-      ? prescriptionsRows.map((p: any, i: number) => `${i + 1}. ${p.prescription} — ${p.reason || ""}`).join("\n")
+      ? prescriptionsRows.map((p: any, i: number) => {
+          const title = p.name || p.prescription || "(без названия)";
+          const meta = [
+            p.form && `форма: ${p.form}`,
+            p.dosage && `дозировка: ${p.dosage}`,
+            p.how_to_take && `приём: ${p.how_to_take}`,
+            p.duration && `длительность: ${p.duration}`,
+          ].filter(Boolean).join("; ");
+          const reason = p.reason ? ` — ${p.reason}` : "";
+          return `${i + 1}. ${title}${meta ? ` [${meta}]` : ""}${reason}`;
+        }).join("\n")
       : "Назначения не сгенерированы";
 
     let totalTokens = 0;
@@ -394,59 +405,155 @@ ${categoryReportsForSnapshot}
         }),
       });
 
+      let finalSnapshot: any = null;
+
       if (snapshotResponse.ok) {
         const snapshotData = await snapshotResponse.json();
         const toolCall = snapshotData.choices?.[0]?.message?.tool_calls?.[0];
         totalTokens += snapshotData.usage?.total_tokens || 0;
 
         if (toolCall?.function?.arguments) {
-          const snapshotJson = JSON.parse(toolCall.function.arguments);
-          const validIds = new Set(biomarkersForSnapshot.map((b: any) => b.biomarker_id));
-          const cleanedBlocks = (snapshotJson.blocks || []).filter((b: any) => {
-            if (b.type === "biomarker" && !validIds.has(b.biomarker_id)) return false;
-            return true;
-          });
-
-          // Гарантия: все биомаркеры в snapshot
-          const included = new Set(cleanedBlocks.filter((b: any) => b.type === "biomarker").map((b: any) => b.biomarker_id));
-          const missing = biomarkersForSnapshot.filter((b: any) => !included.has(b.biomarker_id));
-          if (missing.length > 0) {
-            const grouped = missing.reduce((acc: any, b: any) => {
-              (acc[b.category] = acc[b.category] || []).push(b);
-              return acc;
-            }, {});
-            for (const [cat, markers] of Object.entries(grouped)) {
-              cleanedBlocks.push({ type: "section", title: `${cat} — дополнительные показатели` });
-              for (const m of markers as any[]) {
-                cleanedBlocks.push({ type: "biomarker", biomarker_id: m.biomarker_id, commentary: "" });
-              }
-              cleanedBlocks.push({ type: "spacer", size: "medium" });
-            }
+          let snapshotJson: any = null;
+          try {
+            snapshotJson = JSON.parse(toolCall.function.arguments);
+          } catch (parseErr) {
+            console.error("Snapshot JSON parse failed:", parseErr);
           }
 
-          const finalSnapshot = {
-            version: 1 as const,
-            blocks: cleanedBlocks,
-            meta: {
-              generated_at: new Date().toISOString(),
-              model: aiProfile.model,
-              mode,
-              analysis_id: analysisId,
-            },
-          };
+          if (snapshotJson && Array.isArray(snapshotJson.blocks)) {
+            const validIds = new Set(biomarkersForSnapshot.map((b: any) => b.biomarker_id));
+            const ALLOWED_TYPES = new Set(["text", "section", "summary", "biomarker", "spacer", "pagebreak"]);
 
-          if (summaryRecommendationId) {
-            const { error: snapErr } = await supabase
-              .from("recommendations")
-              // @ts-ignore
-              .update({ content_json: finalSnapshot })
-              .eq("id", summaryRecommendationId);
-            if (snapErr) console.error("Snapshot save error:", snapErr.message);
-            else console.log(`Snapshot saved (${cleanedBlocks.length} blocks)`);
+            // Жёсткая нормализация блоков: фильтруем мусор, приводим типы.
+            const cleanedBlocks = (snapshotJson.blocks || [])
+              .filter((b: any) => b && typeof b === "object" && ALLOWED_TYPES.has(b.type))
+              .filter((b: any) => {
+                if (b.type === "biomarker") return validIds.has(b.biomarker_id);
+                if (b.type === "text") return typeof b.content === "string" && b.content.trim().length > 0;
+                if (b.type === "section") return typeof b.title === "string" && b.title.trim().length > 0;
+                if (b.type === "summary") return typeof b.content === "string" && b.content.trim().length > 0;
+                return true;
+              })
+              .map((b: any) => {
+                if (b.type === "biomarker") return { type: "biomarker", biomarker_id: b.biomarker_id, commentary: typeof b.commentary === "string" ? b.commentary : "" };
+                if (b.type === "summary") {
+                  const scope = b.scope === "category" ? "category" : "overall";
+                  return { type: "summary", content: b.content, scope };
+                }
+                return b;
+              });
+
+            // Гарантия: все биомаркеры в snapshot
+            const included = new Set(cleanedBlocks.filter((b: any) => b.type === "biomarker").map((b: any) => b.biomarker_id));
+            const missing = biomarkersForSnapshot.filter((b: any) => !included.has(b.biomarker_id));
+            if (missing.length > 0) {
+              const grouped = missing.reduce((acc: any, b: any) => {
+                (acc[b.category] = acc[b.category] || []).push(b);
+                return acc;
+              }, {});
+              for (const [cat, markers] of Object.entries(grouped)) {
+                cleanedBlocks.push({ type: "section", title: `${cat} — дополнительные показатели` });
+                for (const m of markers as any[]) {
+                  cleanedBlocks.push({ type: "biomarker", biomarker_id: m.biomarker_id, commentary: "" });
+                }
+                cleanedBlocks.push({ type: "spacer", size: "medium" });
+              }
+            }
+
+            if (cleanedBlocks.length > 0) {
+              finalSnapshot = {
+                version: 1 as const,
+                blocks: cleanedBlocks,
+                meta: {
+                  generated_at: new Date().toISOString(),
+                  model: aiProfile.model,
+                  mode,
+                  analysis_id: analysisId,
+                },
+              };
+            }
           }
         }
       } else {
-        console.error("Snapshot AI failed:", snapshotResponse.status);
+        console.error("Snapshot AI failed:", snapshotResponse.status, await snapshotResponse.text());
+      }
+
+      // ===== FALLBACK SNAPSHOT =====
+      // Если AI не вернул валидный snapshot — собираем минимальный из имеющихся
+      // данных, чтобы recommendations.content_json никогда не оставался null.
+      if (!finalSnapshot) {
+        console.warn("Using fallback snapshot (AI snapshot unavailable)");
+        const fallbackBlocks: any[] = [];
+        if (summaryReport) {
+          fallbackBlocks.push({ type: "section", title: "Общее резюме" });
+          fallbackBlocks.push({ type: "summary", content: summaryReport, scope: "overall" });
+          fallbackBlocks.push({ type: "spacer", size: "medium" });
+        }
+        // Группируем биомаркеры по категориям
+        const byCategory = biomarkersForSnapshot.reduce((acc: any, b: any) => {
+          (acc[b.category] = acc[b.category] || []).push(b);
+          return acc;
+        }, {});
+        for (const [cat, markers] of Object.entries(byCategory)) {
+          fallbackBlocks.push({ type: "section", title: cat as string });
+          const catText = categoryReports[cat as string];
+          if (catText) {
+            fallbackBlocks.push({ type: "text", content: String(catText).substring(0, 12000) });
+          }
+          for (const m of markers as any[]) {
+            fallbackBlocks.push({ type: "biomarker", biomarker_id: m.biomarker_id, commentary: "" });
+          }
+          fallbackBlocks.push({ type: "spacer", size: "medium" });
+        }
+        if (fallbackBlocks.length > 0) {
+          finalSnapshot = {
+            version: 1 as const,
+            blocks: fallbackBlocks,
+            meta: {
+              generated_at: new Date().toISOString(),
+              model: "fallback",
+              mode,
+              analysis_id: analysisId,
+              fallback: true,
+            },
+          };
+        }
+      }
+
+      // Если по какой-то причине у нас нет recommendation для «Общее резюме»,
+      // создаём минимальную запись, чтобы было куда положить snapshot.
+      if (finalSnapshot && !summaryRecommendationId) {
+        const { data: created, error: createErr } = await supabase
+          .from("recommendations")
+          .insert({
+            user_id: analysis.user_id,
+            analysis_id: analysisId,
+            type: "Общее резюме",
+            text: summaryReport || "Резюме недоступно — отчёт сформирован в режиме fallback.",
+          })
+          .select("id")
+          .single();
+        if (createErr) console.error("Fallback summary insert error:", createErr.message);
+        else {
+          summaryRecommendationId = created?.id || null;
+          if (summaryRecommendationId && prescriptionsRows && prescriptionsRows.length > 0) {
+            await supabase
+              .from("prescriptions")
+              .update({ recommendation_id: summaryRecommendationId })
+              .eq("analysis_id", analysisId)
+              .is("recommendation_id", null);
+          }
+        }
+      }
+
+      if (finalSnapshot && summaryRecommendationId) {
+        const { error: snapErr } = await supabase
+          .from("recommendations")
+          // @ts-ignore
+          .update({ content_json: finalSnapshot })
+          .eq("id", summaryRecommendationId);
+        if (snapErr) console.error("Snapshot save error:", snapErr.message);
+        else console.log(`Snapshot saved (${finalSnapshot.blocks.length} blocks, fallback=${finalSnapshot.meta?.fallback === true})`);
       }
     } catch (e: any) {
       console.error("Snapshot error (non-fatal):", e.message);
