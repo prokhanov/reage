@@ -47,7 +47,12 @@ serve(async (req) => {
   // (один шаг pipeline = один HTTP-вызов = свой 400-секундный бюджет воркера).
   // В этом режиме НЕ удаляем старые записи (это делает orchestrator на старте задачи)
   // и НЕ запускаем prescriptions/finalize (их запускает orchestrator отдельными шагами).
-  const isStepRequest = Array.isArray(body.categoryFilter) && body.categoryFilter.length > 0;
+  const isStepRequest =
+    (Array.isArray(body.categoryFilter) && body.categoryFilter.length > 0) ||
+    body.skipCategories === true ||
+    body.skipPrescriptions === true ||
+    body.skipFinalize === true ||
+    body.skipDelete === true;
 
   // Старый deep-режим без фильтра: оставляем background-схему для обратной совместимости.
   if (mode === "deep" && !body.background && !isStepRequest) {
