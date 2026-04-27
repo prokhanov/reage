@@ -1103,9 +1103,32 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     const parseBullets = (text: string) =>
       text
         .split("\n")
-        .map((line) => line.trim().replace(/^[•\-*]\s*/, "").trim())
+        .map((line) =>
+          line
+            .trim()
+            // снимаем буллеты: •, -, *, –, —, и нумерацию "1." / "1)"
+            .replace(/^([•\-*–—]|\d+[.)])\s*/, "")
+            .trim(),
+        )
         .filter(Boolean)
         .slice(0, 10);
+
+    // Нормализатор заголовков: убирает эмодзи/markdown-маркеры, чтобы
+    // ИИ мог писать "## 💊 Нутрицевтики" / "Нутрицевтики:" / "**Нутрицевтики**"
+    // — парсер всё равно найдёт секцию.
+    const normalizeForHeaderSearch = (text: string) =>
+      text
+        // удаляем все эмодзи и пиктограммы (диапазоны Unicode)
+        .replace(
+          /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F1FF}\u{2300}-\u{23FF}]/gu,
+          "",
+        )
+        // убираем markdown-обёртки заголовков и выделений
+        .replace(/^#{1,6}\s+/gm, "")
+        .replace(/\*\*/g, "")
+        .replace(/__/g, "")
+        // убираем хвостовые двоеточия у заголовков
+        .replace(/[:：]\s*$/gm, "");
 
     const inferDurationMonths = (duration: string) => {
       const normalized = duration.toLowerCase();
