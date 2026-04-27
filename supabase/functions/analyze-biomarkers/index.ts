@@ -1282,25 +1282,41 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     };
 
     const parseAdvisoryMarkdown = (content: string) => {
-      const lifestyle = getSectionBetween(content, "Питание и коррекция образа жизни", [
+      // Принимаем варианты заголовков: «Питание и коррекция образа жизни»,
+      // «Образ жизни», «Lifestyle» и т.п.
+      let lifestyle = getSectionBetween(content, "Питание и коррекция образа жизни", [
         "Дополнительные консультации",
         "<!-- anchor:actions_end -->",
       ]);
+      if (!lifestyle) {
+        lifestyle = getSectionBetween(content, "Образ жизни", [
+          "Дополнительные консультации",
+          "<!-- anchor:actions_end -->",
+        ]);
+      }
       lifestyleFinal = {
         nutrition: parseBullets(
-          getSectionBetween(lifestyle, "Питание", ["Физическая активность", "Сон и режим"]),
+          getSectionBetween(lifestyle, "Питание", ["Физическая активность", "Сон и режим", "Сон"]),
         ),
         activity: parseBullets(
-          getSectionBetween(lifestyle, "Физическая активность", ["Сон и режим"]),
+          getSectionBetween(lifestyle, "Физическая активность", ["Сон и режим", "Сон"]),
         ),
-        sleep: parseBullets(getSectionBetween(lifestyle, "Сон и режим", [])),
+        sleep: parseBullets(
+          getSectionBetween(lifestyle, "Сон и режим", []) ||
+            getSectionBetween(lifestyle, "Сон", []),
+        ),
       };
 
-      const followUps = getSectionBetween(content, "Дополнительные консультации и обследования", [
+      let followUps = getSectionBetween(content, "Дополнительные консультации и обследования", [
         "<!-- anchor:actions_end -->",
       ]);
-      // Допускаем разные разделители: → / -> / — / –
-      const SEP_RE = /\s*(?:→|->|—|–)\s*/;
+      if (!followUps) {
+        followUps = getSectionBetween(content, "Дополнительные консультации", [
+          "<!-- anchor:actions_end -->",
+        ]);
+      }
+      // Допускаем разные разделители: → / -> / — / – / : / | (любой из них считается валидным)
+      const SEP_RE = /\s*(?:→|->|—|–|:|\|)\s*/;
       followUpsFinal = followUps
         .split("\n")
         .map((line) => line.trim().replace(/^([•\-*]|\d+[.)])\s*/, ""))
