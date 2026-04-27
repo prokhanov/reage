@@ -20,6 +20,7 @@ serve(async (req) => {
     mode?: unknown;
     background?: boolean;
     categoryFilter?: string[];
+    skipCategories?: boolean;
     skipPrescriptions?: boolean;
     skipFinalize?: boolean;
     skipDelete?: boolean;
