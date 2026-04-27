@@ -1089,15 +1089,44 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
     let lifestyleFinal: { nutrition: string[]; activity: string[]; sleep: string[] } = { nutrition: [], activity: [], sleep: [] };
     let followUpsFinal: Array<{ specialist: string; goal: string; trigger: string }> = [];
 
+    // Поиск секции по заголовку, устойчивый к вариациям ИИ:
+    //  - регистронезависимо
+    //  - игнорирует эмодзи / **жирный** / # markdown-заголовки / двоеточие в конце
+    //  - распознаёт html-комментарии (<!-- ... -->) как точные совпадения
     const getSectionBetween = (text: string, start: string, endMarkers: string[]) => {
-      const startIndex = text.indexOf(start);
+      const findMarker = (haystack: string, needle: string, fromIdx = 0) => {
+        // html-комментарии и литеральные \n\n матчим как есть, без нормализации
+        if (needle.startsWith("<!--") || needle === "\n\n") {
+          return haystack.indexOf(needle, fromIdx);
+        }
+        // строим карту "позиция в нормализованной строке -> позиция в исходной"
+        const normalized = normalizeForHeaderSearch(haystack);
+        const idx = normalized.toLowerCase().indexOf(needle.toLowerCase(), fromIdx);
+        if (idx === -1) return -1;
+        // т.к. normalize только удаляет/заменяет посимвольно через regex,
+        // длины меняются — проще найти приблизительную позицию через regex по исходнику
+        const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        // допускаем эмодзи/маркеры/пробелы перед заголовком, двоеточие и пробелы после
+        const re = new RegExp(
+          `(^|\\n)\\s*(?:#{1,6}\\s*)?(?:\\*\\*|__)?\\s*[\\p{Emoji_Presentation}\\p{Extended_Pictographic}\\s]*${escaped}[\\s:：]*(?:\\*\\*|__)?\\s*(?=\\n|$)`,
+          "iu",
+        );
+        const slice = haystack.substring(fromIdx);
+        const m = slice.match(re);
+        if (!m || m.index === undefined) return -1;
+        // возвращаем позицию КОНЦА строки заголовка (чтобы тело начиналось со следующей строки)
+        const matchStart = fromIdx + m.index + (m[1] ? m[1].length : 0);
+        const lineEnd = haystack.indexOf("\n", matchStart);
+        return lineEnd === -1 ? matchStart + m[0].length : lineEnd;
+      };
+
+      const startIndex = findMarker(text, start);
       if (startIndex === -1) return "";
-      const afterStart = startIndex + start.length;
       const endIndexes = endMarkers
-        .map((marker) => text.indexOf(marker, afterStart))
+        .map((marker) => findMarker(text, marker, startIndex))
         .filter((idx) => idx !== -1);
       const endIndex = endIndexes.length > 0 ? Math.min(...endIndexes) : text.length;
-      return text.substring(afterStart, endIndex).trim();
+      return text.substring(startIndex, endIndex).trim();
     };
 
     const parseBullets = (text: string) =>
