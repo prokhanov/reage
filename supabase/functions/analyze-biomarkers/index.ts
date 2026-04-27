@@ -89,7 +89,21 @@ serve(async (req) => {
   });
 });
 
-async function processAnalysis({ analysisId, rawMode }: { analysisId: string; rawMode?: unknown }) {
+async function processAnalysis({
+  analysisId,
+  rawMode,
+  categoryFilter,
+  skipPrescriptions,
+  skipFinalize,
+  skipDelete,
+}: {
+  analysisId: string;
+  rawMode?: unknown;
+  categoryFilter?: string[];
+  skipPrescriptions?: boolean;
+  skipFinalize?: boolean;
+  skipDelete?: boolean;
+}) {
   try {
     // ===== Режим генерации: standard (быстрее, дефолт) | deep (качественнее, медленнее) =====
     const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
