@@ -192,22 +192,25 @@ async function processAnalysis({
     }
 
     // Удаляем старые рекомендации и назначения перед генерацией новых
-    const { error: deletePrescsError } = await supabase
-      .from("prescriptions")
-      .delete()
-      .eq("analysis_id", analysisId);
+    // (только если это полный запуск, не step-режим оркестратора)
+    if (!skipDelete) {
+      const { error: deletePrescsError } = await supabase
+        .from("prescriptions")
+        .delete()
+        .eq("analysis_id", analysisId);
 
-    if (deletePrescsError) {
-      console.warn("Failed to delete old prescriptions:", deletePrescsError.message);
-    }
+      if (deletePrescsError) {
+        console.warn("Failed to delete old prescriptions:", deletePrescsError.message);
+      }
 
-    const { error: deleteRecsError } = await supabase
-      .from("recommendations")
-      .delete()
-      .eq("analysis_id", analysisId);
-    
-    if (deleteRecsError) {
-      console.warn("Failed to delete old recommendations:", deleteRecsError.message);
+      const { error: deleteRecsError } = await supabase
+        .from("recommendations")
+        .delete()
+        .eq("analysis_id", analysisId);
+
+      if (deleteRecsError) {
+        console.warn("Failed to delete old recommendations:", deleteRecsError.message);
+      }
     }
 
     // Сохраняем "Данные пациента" сразу (чтобы клиент видел прогресс)
