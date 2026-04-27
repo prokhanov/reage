@@ -15,7 +15,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let body: { analysisId?: string; mode?: unknown; background?: boolean } = {};
+  let body: {
+    analysisId?: string;
+    mode?: unknown;
+    background?: boolean;
+    categoryFilter?: string[];
+    skipPrescriptions?: boolean;
+    skipFinalize?: boolean;
+    skipDelete?: boolean;
+  } = {};
   try {
     body = await req.json();
   } catch {
@@ -34,10 +42,14 @@ serve(async (req) => {
 
   const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
 
-  // Глубокий отчёт почти всегда длиннее клиентского/relay timeout.
-  // Поэтому запрос подтверждаем сразу (202), а pipeline продолжаем внутри того же runtime
-  // через EdgeRuntime.waitUntil — без self-invocation по HTTP (которая возвращала 404).
-  if (mode === "deep" && !body.background) {
+  // Когда оркестратор передаёт categoryFilter — обрабатываем только эти категории
+  // (один шаг pipeline = один HTTP-вызов = свой 400-секундный бюджет воркера).
+  // В этом режиме НЕ удаляем старые записи (это делает orchestrator на старте задачи)
+  // и НЕ запускаем prescriptions/finalize (их запускает orchestrator отдельными шагами).
+  const isStepRequest = Array.isArray(body.categoryFilter) && body.categoryFilter.length > 0;
+
+  // Старый deep-режим без фильтра: оставляем background-схему для обратной совместимости.
+  if (mode === "deep" && !body.background && !isStepRequest) {
     const analysisId = body.analysisId!;
     const runPromise = processAnalysis({ analysisId, rawMode: mode })
       .then(async (response) => {
@@ -66,10 +78,32 @@ serve(async (req) => {
     );
   }
 
-  return processAnalysis({ analysisId: body.analysisId, rawMode: body.mode });
+  // Step-режим (под управлением orchestrator) или standard — выполняем синхронно и возвращаем результат.
+  return processAnalysis({
+    analysisId: body.analysisId,
+    rawMode: body.mode,
+    categoryFilter: body.categoryFilter,
+    skipPrescriptions: body.skipPrescriptions,
+    skipFinalize: body.skipFinalize,
+    skipDelete: body.skipDelete,
+  });
 });
 
-async function processAnalysis({ analysisId, rawMode }: { analysisId: string; rawMode?: unknown }) {
+async function processAnalysis({
+  analysisId,
+  rawMode,
+  categoryFilter,
+  skipPrescriptions,
+  skipFinalize,
+  skipDelete,
+}: {
+  analysisId: string;
+  rawMode?: unknown;
+  categoryFilter?: string[];
+  skipPrescriptions?: boolean;
+  skipFinalize?: boolean;
+  skipDelete?: boolean;
+}) {
   try {
     // ===== Режим генерации: standard (быстрее, дефолт) | deep (качественнее, медленнее) =====
     const mode: "standard" | "deep" = rawMode === "deep" ? "deep" : "standard";
@@ -158,22 +192,25 @@ async function processAnalysis({ analysisId, rawMode }: { analysisId: string; ra
     }
 
     // Удаляем старые рекомендации и назначения перед генерацией новых
-    const { error: deletePrescsError } = await supabase
-      .from("prescriptions")
-      .delete()
-      .eq("analysis_id", analysisId);
+    // (только если это полный запуск, не step-режим оркестратора)
+    if (!skipDelete) {
+      const { error: deletePrescsError } = await supabase
+        .from("prescriptions")
+        .delete()
+        .eq("analysis_id", analysisId);
 
-    if (deletePrescsError) {
-      console.warn("Failed to delete old prescriptions:", deletePrescsError.message);
-    }
+      if (deletePrescsError) {
+        console.warn("Failed to delete old prescriptions:", deletePrescsError.message);
+      }
 
-    const { error: deleteRecsError } = await supabase
-      .from("recommendations")
-      .delete()
-      .eq("analysis_id", analysisId);
-    
-    if (deleteRecsError) {
-      console.warn("Failed to delete old recommendations:", deleteRecsError.message);
+      const { error: deleteRecsError } = await supabase
+        .from("recommendations")
+        .delete()
+        .eq("analysis_id", analysisId);
+
+      if (deleteRecsError) {
+        console.warn("Failed to delete old recommendations:", deleteRecsError.message);
+      }
     }
 
     // Сохраняем "Данные пациента" сразу (чтобы клиент видел прогресс)
@@ -460,14 +497,18 @@ ${complaints && complaints.length > 0 && complaints[0].goals
 ${new Date(analysis.date).toLocaleDateString("ru-RU", { day: 'numeric', month: 'long', year: 'numeric' })}
 `.trim();
 
-    // Сохраняем "Данные пациента" сразу — клиент увидит прогресс
-    await supabase.from("recommendations").insert({
-      user_id: analysis.user_id,
-      analysis_id: analysisId,
-      type: "Данные пациента",
-      text: patientDataSection
-    });
-    console.log("Saved: Данные пациента");
+    // Сохраняем "Данные пациента" сразу — клиент увидит прогресс.
+    // В step-режиме оркестратора patient_data сохраняется только на самом первом шаге
+    // (когда !skipDelete, т.е. одновременно с очисткой старых данных).
+    if (!skipDelete) {
+      await supabase.from("recommendations").insert({
+        user_id: analysis.user_id,
+        analysis_id: analysisId,
+        type: "Данные пациента",
+        text: patientDataSection
+      });
+      console.log("Saved: Данные пациента");
+    }
 
     // Тренды по категориям больше не используются: плейсхолдер {trends} удалён
     // из всех category_*_user промптов в БД. Если в каком-то старом или ручном
@@ -713,7 +754,14 @@ ${globalBiomarkersInstructions}
     const categoryStatuses: Record<string, any> = {};
     let totalTokens = 0;
 
-    const categoryEntries = Object.entries(categorizedBiomarkers) as [string, any[]][];
+    const allCategoryEntries = Object.entries(categorizedBiomarkers) as [string, any[]][];
+    // Фильтрация по step-режиму оркестратора: обрабатываем только указанные категории.
+    const categoryEntries = (Array.isArray(categoryFilter) && categoryFilter.length > 0)
+      ? allCategoryEntries.filter(([cat]) => categoryFilter.includes(cat))
+      : allCategoryEntries;
+    if (Array.isArray(categoryFilter) && categoryFilter.length > 0) {
+      console.log(`Step mode: processing ${categoryEntries.length} of ${allCategoryEntries.length} categories: ${categoryEntries.map(([c]) => c).join(", ")}`);
+    }
     const processCategory = async ([category, biomarkers]: [string, any[]]) => {
       try {
         const expert = CATEGORY_EXPERTS[category as keyof typeof CATEGORY_EXPERTS];
@@ -1660,12 +1708,12 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         );
       }
     }
+    } // end of `if (!skipPrescriptions)` for prescriptions block
 
     // ====== ЗАПУСКАЕМ FINALIZE-ANALYSIS (summary + snapshot + bio age) ======
-    // Делаем это ВНУТРИ analyze-biomarkers через прямой HTTP-вызов с background=false,
-    // обёрнутый в EdgeRuntime.waitUntil. Это позволяет вернуть пользователю ответ сразу,
-    // а тяжёлая финализация продолжится в отдельном edge-runtime инстансе и не упрётся
-    // в наш wall-clock лимит.
+    // В step-режиме оркестратор сам триггерит finalize-analysis отдельным шагом.
+    let finalizeTriggered = false;
+    if (!skipFinalize) {
     try {
       const finalizeUrl = `${supabaseUrl}/functions/v1/finalize-analysis`;
       // Не ждём ответа — finalize сам берёт работу в waitUntil и возвращает 202.
@@ -1692,9 +1740,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       } else {
         void finalizePromise;
       }
+      finalizeTriggered = true;
     } catch (e: any) {
       console.error("Error scheduling finalize-analysis:", e);
     }
+    } // end of `if (!skipFinalize)`
 
     // health_index/biological_age/metadata теперь рассчитываются в finalize-analysis
 
@@ -1710,7 +1760,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         estimated_cost_credits: estimatedCostCredits,
         prescriptions_created: prescriptionsCreated,
         prescriptions_status: prescriptionsStatus,
-        finalize_triggered: true,
+        finalize_triggered: finalizeTriggered,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
