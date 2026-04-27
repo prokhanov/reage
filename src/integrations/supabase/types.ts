@@ -1084,6 +1084,60 @@ export type Database = {
           },
         ]
       }
+      report_jobs: {
+        Row: {
+          analysis_id: string
+          attempts: number
+          current_step: string | null
+          error: string | null
+          finished_at: string | null
+          id: string
+          metadata: Json
+          mode: string
+          started_at: string
+          status: string
+          steps: Json
+          steps_done: number
+          steps_total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          attempts?: number
+          current_step?: string | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json
+          mode: string
+          started_at?: string
+          status?: string
+          steps?: Json
+          steps_done?: number
+          steps_total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          attempts?: number
+          current_step?: string | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json
+          mode?: string
+          started_at?: string
+          status?: string
+          steps?: Json
+          steps_done?: number
+          steps_total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       risk_zone_analyses: {
         Row: {
           aging_blockers: Json
