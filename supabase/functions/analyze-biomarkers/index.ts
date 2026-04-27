@@ -1815,6 +1815,40 @@ ${categoryReportsForSnapshot}
         console.warn(`Removed ${invalidBlocks.length} invalid biomarker blocks: ${invalidBlocks.join(", ")}`);
       }
 
+      // ===== ПОСТ-ПРОЦЕССИНГ: РАЗРЕЗАЕМ «ПРОТЕКАЮЩИЕ» COMMENTARY =====
+      // ИИ иногда кладёт «## Общая оценка системы» / «Итог по системе» / другой
+      // markdown-заголовок ВНУТРЬ commentary последнего биомаркера. На рендере
+      // фон карточки биомаркера тогда «протекает» на весь следующий текст.
+      // Здесь автоматически режем такие commentary и выносим хвост в отдельный
+      // блок type="text" сразу после биомаркера.
+      const COMMENTARY_BREAK_RE =
+        /(\n|^)\s*(?:#{2,4}\s+|(?:\*\*)?(?:Общая\s+оценка|Итог(?:\s+по\s+системе)?|Резюме(?:\s+категории)?|Заключение|Вывод(?:ы)?|Сводка|Подытожим)[^\n]*?(?:\*\*)?\s*(?::|$|\n))/im;
+
+      const splitBlocks: any[] = [];
+      let splitCount = 0;
+      for (const block of cleanedBlocks) {
+        if (block.type === "biomarker" && typeof block.commentary === "string" && block.commentary.length > 0) {
+          const m = block.commentary.match(COMMENTARY_BREAK_RE);
+          if (m && m.index !== undefined && m.index > 0) {
+            const head = block.commentary.substring(0, m.index).trim();
+            const tail = block.commentary.substring(m.index).trim();
+            splitBlocks.push({ ...block, commentary: head });
+            if (tail.length > 0) {
+              splitBlocks.push({ type: "text", content: tail });
+            }
+            splitCount++;
+            continue;
+          }
+        }
+        splitBlocks.push(block);
+      }
+      if (splitCount > 0) {
+        console.log(`[snapshot] Split leaking commentary in ${splitCount} biomarker blocks`);
+      }
+      // переписываем cleanedBlocks результатом разрезания
+      cleanedBlocks.length = 0;
+      cleanedBlocks.push(...splitBlocks);
+
       // Гарантия: все биомаркеры пациента должны быть в snapshot
       const includedBiomarkerIds = new Set(
         cleanedBlocks.filter((b: any) => b.type === "biomarker").map((b: any) => b.biomarker_id)
