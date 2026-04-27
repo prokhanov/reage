@@ -209,9 +209,20 @@ ${symptomsText}
       .map(([cat, txt]) => `--- ${cat} ---\n${(txt as string).substring(0, 1200)}`)
       .join("\n\n");
 
-    // Список назначений из БД (могут быть пустыми)
+    // Список назначений из БД (могут быть пустыми) — передаём ВСЕ структурные поля,
+    // чтобы AI summary видел реальные дозировки, формы и длительности.
     const prescriptionsList = (prescriptionsRows && prescriptionsRows.length > 0)
-      ? prescriptionsRows.map((p: any, i: number) => `${i + 1}. ${p.prescription} — ${p.reason || ""}`).join("\n")
+      ? prescriptionsRows.map((p: any, i: number) => {
+          const title = p.name || p.prescription || "(без названия)";
+          const meta = [
+            p.form && `форма: ${p.form}`,
+            p.dosage && `дозировка: ${p.dosage}`,
+            p.how_to_take && `приём: ${p.how_to_take}`,
+            p.duration && `длительность: ${p.duration}`,
+          ].filter(Boolean).join("; ");
+          const reason = p.reason ? ` — ${p.reason}` : "";
+          return `${i + 1}. ${title}${meta ? ` [${meta}]` : ""}${reason}`;
+        }).join("\n")
       : "Назначения не сгенерированы";
 
     let totalTokens = 0;
