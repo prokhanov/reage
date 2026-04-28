@@ -503,7 +503,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       pollingStopped = true;
       clearInterval(pollInterval);
       // Спецслучай: клиентский поллинг истёк, но фоновая задача почти всегда дописывается.
-      if (error?.message === "accepted_background") {
+      if (mode === "deep" && (error?.message === "accepted_background" || error?.message?.includes("ещё не заверш"))) {
         toast({
           title: "Отчёт ещё формируется",
           description: "Можно закрыть страницу — мы откроем готовый отчёт автоматически, как только он будет готов.",

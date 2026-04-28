@@ -248,9 +248,20 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
           }
 
           if (data?.accepted) {
-            const completed = await waitForAnalysisCompletion(analysisId, 15 * 60 * 1000, 3000, { startedAt: generationStartedAt });
+            const completed = await waitForAnalysisCompletion(analysisId, 25 * 60 * 1000, 3000, { startedAt: generationStartedAt });
             if (!completed) {
-              throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
+              toast({
+                title: "Отчёт ещё формируется",
+                description: "Глубокий анализ продолжается в фоне. Сохранённые разделы появятся автоматически.",
+              });
+              waitForAnalysisCompletion(analysisId, 5 * 60 * 1000, 5000, { startedAt: generationStartedAt }).then((ok) => {
+                if (ok) {
+                  toast({ title: "Отчёт готов", description: "Глубокий анализ завершён." });
+                  onOpenChange(false);
+                  setShowEditReport(true);
+                }
+              });
+              return;
             }
           }
 
@@ -264,6 +275,20 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
           setShowEditReport(true);
         } catch (error: any) {
           console.error("Error generating report:", error);
+          if (wizardData.step3.mode === "deep" && (error?.message === "accepted_background" || error?.message?.includes("ещё не заверш"))) {
+            toast({
+              title: "Отчёт ещё формируется",
+              description: "Глубокий анализ продолжается в фоне. Сохранённые разделы появятся автоматически.",
+            });
+            waitForAnalysisCompletion(analysisId, 5 * 60 * 1000, 5000, { startedAt: generationStartedAt }).then((ok) => {
+              if (ok) {
+                toast({ title: "Отчёт готов", description: "Глубокий анализ завершён." });
+                onOpenChange(false);
+                setShowEditReport(true);
+              }
+            });
+            return;
+          }
           toast({
             title: "Ошибка генерации отчета",
             description: error.message,
