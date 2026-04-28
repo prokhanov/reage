@@ -133,9 +133,9 @@ export function renderInterleavedWeb(
                     </div>
                   </div>
                 )}
-                {commentary && (
+                {trimmedContent && (
                   <div className="pt-1 border-t border-border/20">
-                    <MarkdownContent content={commentary} />
+                    <MarkdownContent content={trimmedContent} />
                   </div>
                 )}
               </div>
