@@ -796,18 +796,22 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
         };
       }
     }
+    } // end if (doBioAge)
 
     // ===== 7. Сохраняем результаты =====
-    await supabase
-      .from("analyses")
-      .update({ health_index, biological_age, biomarkers_metadata })
-      .eq("id", analysisId);
+    if (doBioAge) {
+      await supabase
+        .from("analyses")
+        .update({ health_index, biological_age, biomarkers_metadata })
+        .eq("id", analysisId);
+    }
 
-    console.log(`finalize-analysis done. tokens=${totalTokens}`);
+    console.log(`finalize-analysis phase=${phase} done. tokens=${totalTokens}`);
 
     return new Response(
       JSON.stringify({
         success: true,
+        phase,
         health_index,
         biological_age,
         total_tokens: totalTokens,
