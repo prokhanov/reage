@@ -81,7 +81,70 @@ export function EditReportDialog({
   const [selectedSection, setSelectedSection] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [qaRunning, setQaRunning] = useState(false);
+  const [qaEvents, setQaEvents] = useState<Array<{ type: string; message: string }>>([]);
+  const [qaCompleted, setQaCompleted] = useState(false);
   const { toast } = useToast();
+
+  const runQaCheck = async () => {
+    setQaRunning(true);
+    setQaCompleted(false);
+    setQaEvents([{ type: "status", message: "Запускаю проверку отчёта…" }]);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-qa`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ analysisId }),
+      });
+      if (!resp.ok || !resp.body) {
+        const t = await resp.text();
+        throw new Error(`QA failed: ${resp.status} ${t}`);
+      }
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let streamDone = false;
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, nl);
+          buf = buf.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            setQaEvents((prev) => [...prev, evt]);
+            if (evt.type === "done" || evt.type === "error") {
+              streamDone = true;
+              if (evt.type === "error") {
+                toast({ title: "Ошибка проверки", description: evt.message, variant: "destructive" });
+              }
+              break;
+            }
+          } catch {
+            // partial line, will be re-buffered on next iteration
+          }
+        }
+      }
+      setQaCompleted(true);
+      // Reload sections to reflect any AI-generated repairs
+      await loadRecommendations();
+      toast({ title: "Проверка завершена", description: "Контент перезагружен в редактор." });
+    } catch (e: any) {
+      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+    } finally {
+      setQaRunning(false);
+    }
+  };
 
   useEffect(() => {
     setAnalysisStatus(initialStatus);
