@@ -6,4 +6,4 @@ const nameToCode: Record<string, string> = {};
 const codes: string[] = [];
 for (const line of bmsRaw) {
   const [code, name] = line.split('\t');
-  if (code && name) { nameToCode[name] = code; codes.push(
+  if (code && name) { nameToCode[name] = code;
