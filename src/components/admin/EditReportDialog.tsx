@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, Check, ClipboardList, FileText, Loader2, Moon, Pill, Stethoscope, Utensils } from "lucide-react";
+import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, ShieldCheck, Stethoscope, Utensils, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
