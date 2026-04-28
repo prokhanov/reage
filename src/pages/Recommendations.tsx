@@ -40,6 +40,8 @@ import logoLightUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 import { parseReportSnapshot, type ReportSnapshot } from "@/lib/reportSnapshot";
 import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
+import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
+import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
 
 interface Recommendation {
   id: string;
