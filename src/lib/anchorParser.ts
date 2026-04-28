@@ -439,7 +439,7 @@ function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames
 
   const codeHeadingRe = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escapedCode}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
   const nameHeadingRe = namePattern
-    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\(${escapedCode}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
+    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\([^()\\n]{1,40}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
     : null;
 
   const cleaned = content
