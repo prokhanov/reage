@@ -372,28 +372,86 @@ ${symptomsText}
         blocks.push({ type: "spacer", size: "medium" });
       }
 
-      // 2) Категории: для каждой — заголовок + ПОЛНЫЙ нарратив + карточки биомаркеров
+      // 2) Категории: заголовок + ИНТЕРЛИВИНГ нарратива и карточек биомаркеров.
+      //
+      // Нарратив (analyze-biomarkers) имеет структуру:
+      //   <вступление>
+      //   ## Имя биомаркера (КОД)
+      //   <интерпретация — несколько абзацев>
+      //   ## Имя следующего (КОД)
+      //   ...
+      //
+      // Сплитим текст по заголовкам ## и формируем чередование:
+      //   text(вступление) → text(заголовок+интерпретация) + biomarker(карточка)
+      //   → text(заголовок+интерпретация) + biomarker(карточка) → ...
+      //
+      // Это совпадает с тем, как раздел «Рекомендации» рендерит готовый
+      // нарратив — текст и шкала находятся рядом, без «портянки» шкал внизу.
       for (const cat of orderedCategories) {
         const emoji = categoryEmoji[cat];
         blocks.push({ type: "section", title: cat, ...(emoji ? { emoji } : {}) });
 
         const narrative = categoryReports[cat];
+        const markers = biomarkersByCategory[cat] || [];
+
+        // Индекс биомаркеров категории по UPPER(code) и UPPER(name) для матчинга
+        // заголовков `## Имя (КОД)` независимо от регистра/раскладки.
+        const markerByKey = new Map<string, any>();
+        for (const m of markers) {
+          if (m.code) markerByKey.set(String(m.code).toUpperCase().trim(), m);
+          if (m.name) markerByKey.set(String(m.name).toUpperCase().trim(), m);
+        }
+        const usedIds = new Set<string>();
+
         if (narrative && narrative.trim()) {
-          // Чистим возможные технические якоря (<!-- anchor:... -->) — они
-          // были нужны для legacy-рендера, в snapshot не используются.
           const cleaned = String(narrative)
             .replace(/<!--\s*anchor:[^\n>]*?-->/g, "")
             .replace(/\n{3,}/g, "\n\n")
             .trim();
-          if (cleaned) {
-            blocks.push({ type: "text", content: cleaned });
+
+          // Сплит по заголовкам ## (заголовок + контент до следующего ##).
+          // Регэксп с lookahead, чтобы сохранить заголовок в каждой части.
+          const parts = cleaned.split(/(?=^##\s+)/m);
+
+          for (const part of parts) {
+            const trimmed = part.trim();
+            if (!trimmed) continue;
+
+            // Это заголовок биомаркера?
+            const headerMatch = trimmed.match(/^##\s+(.+?)(?:\s*\(([^)]+)\))?\s*$/m);
+            let matched: any = null;
+            if (headerMatch) {
+              const name = headerMatch[1].trim().toUpperCase();
+              const code = (headerMatch[2] || "").trim().toUpperCase();
+              matched = (code && markerByKey.get(code)) || markerByKey.get(name) || null;
+            }
+
+            if (matched && !usedIds.has(matched.biomarker_id)) {
+              // Карточка биомаркера + интерпретация в commentary —
+              // так шкала и пояснение оказываются в одной карточке.
+              usedIds.add(matched.biomarker_id);
+              // Убираем строку заголовка ## ... — она дублирует имя в карточке.
+              const commentary = trimmed
+                .replace(/^##\s+.+$/m, "")
+                .trim();
+              blocks.push({
+                type: "biomarker",
+                biomarker_id: matched.biomarker_id,
+                commentary,
+              });
+            } else {
+              // Вступительный текст или незаматченный заголовок — обычный text.
+              blocks.push({ type: "text", content: trimmed });
+            }
           }
         }
 
-        const markers = biomarkersByCategory[cat] || [];
-        if (markers.length > 0) {
+        // Биомаркеры, которые не упомянуты в нарративе, добавляем в конце
+        // как карточки без комментария (но они хотя бы будут видны).
+        const leftover = markers.filter((m: any) => !usedIds.has(m.biomarker_id));
+        if (leftover.length > 0) {
           blocks.push({ type: "spacer", size: "small" });
-          for (const m of markers) {
+          for (const m of leftover) {
             blocks.push({
               type: "biomarker",
               biomarker_id: m.biomarker_id,
@@ -404,24 +462,10 @@ ${symptomsText}
         blocks.push({ type: "spacer", size: "medium" });
       }
 
-      // 3) Назначения — из таблицы prescriptions (структурированные поля).
-      //    Делаем это так же, как в Recommendations.tsx, чтобы вид совпадал.
-      if (prescriptionsRows && prescriptionsRows.length > 0) {
-        blocks.push({ type: "section", title: "Назначения", emoji: "💊" });
-        const prescMd = prescriptionsRows.map((p: any, idx: number) => {
-          const title = p.name || p.prescription || "(без названия)";
-          const lines: string[] = [`### ${idx + 1}. ${title}`];
-          if (p.form) lines.push(`**Форма:** ${p.form}`);
-          if (p.dosage) lines.push(`**Дозировка:** ${p.dosage}`);
-          if (p.how_to_take) lines.push(`**Как принимать:** ${p.how_to_take}`);
-          if (p.duration) lines.push(`**Длительность:** ${p.duration}`);
-          if (p.reason) lines.push(`\n**Причина:** ${p.reason}`);
-          if (p.effect) lines.push(`\n**На что это влияет:** ${p.effect}`);
-          return lines.join("\n\n");
-        }).join("\n\n---\n\n");
-        blocks.push({ type: "text", content: prescMd });
-        blocks.push({ type: "spacer", size: "medium" });
-      }
+      // 3) Блок «Назначения» НЕ добавляем в snapshot — раздел «Назначения»
+      //    рендерится в Recommendations.tsx структурно из таблицы prescriptions
+      //    (со статусами, контрольными датами и формой). Если положить его сюда,
+      //    в UI получится дубликат (один в snapshot, второй — снаружи).
 
       const finalSnapshot = blocks.length > 0
         ? {
