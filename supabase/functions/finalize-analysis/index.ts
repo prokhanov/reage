@@ -472,11 +472,27 @@ ${symptomsText}
               const region = raw.slice(a.end, nextStart);
 
               const endMatch = region.match(BIO_END_RE);
-              const commentaryRaw = endMatch
-                ? region.slice(0, endMatch.index)
+              const hardStopMatch = region.match(HARD_STOP_RE);
+              // Берём наименьший индекс из biomarker_end и hard-stop границ.
+              let cutIndex: number | null = null;
+              let cutLength = 0;
+              if (endMatch && typeof endMatch.index === "number") {
+                cutIndex = endMatch.index;
+                cutLength = endMatch[0].length;
+              }
+              if (hardStopMatch && typeof hardStopMatch.index === "number") {
+                if (cutIndex === null || hardStopMatch.index < cutIndex) {
+                  cutIndex = hardStopMatch.index;
+                  // hard-stop НЕ съедаем — оставляем в хвосте, чтобы он
+                  // корректно обработался дальше (strengths рендерится отдельно).
+                  cutLength = 0;
+                }
+              }
+              const commentaryRaw = cutIndex !== null
+                ? region.slice(0, cutIndex)
                 : region;
-              const tailRaw = endMatch
-                ? region.slice((endMatch.index || 0) + endMatch[0].length)
+              const tailRaw = cutIndex !== null
+                ? region.slice(cutIndex + cutLength)
                 : "";
 
               // Убираем первую строку-заголовок (имя биомаркера) — оно
