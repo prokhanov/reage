@@ -612,6 +612,10 @@ export default function Recommendations() {
         if (section.type === 'snapshot' && snapshot) {
           return buildSnapshotPdf(snapshot, pdfBiomarkers, barWidth, pdfAge, pdfGender);
         }
+        // Структурированные «Назначения» — карточки 1:1 с личным кабинетом.
+        if (section.type === 'prescriptions' && (section as any).prescriptionsData) {
+          return buildPrescriptionsPdf((section as any).prescriptionsData);
+        }
         // Legacy per-category body (anchor parsing fallback for old reports).
         const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions' && section.type !== 'snapshot';
         if (isCategory && pdfBiomarkers.length > 0) {
