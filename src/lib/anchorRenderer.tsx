@@ -73,17 +73,6 @@ const statusEmojiMap: Record<string, string> = {
   critical: "🔴", risk: "🟠", acceptable: "🟡", optimal: "🟢",
 };
 
-// ═══ Fallback commentary ═══
-
-function buildFallbackCommentary(bm: PdfBiomarkerData): string {
-  const range = (bm as any).rangeDisplay ? ` Ориентир целевого диапазона: ${(bm as any).rangeDisplay} ${bm.unit}.` : "";
-  const description = (bm as any).biomarker?.description ? ` ${(bm as any).biomarker.description}` : "";
-  return [
-    `${bm.name} (${bm.code}) — показатель системы «${(bm as any).category}». Ваш результат: ${bm.value} ${bm.unit}; текущая оценка по шкале — ${bm.statusLabel.toLowerCase()}.${range}`,
-    description || `Этот показатель необходимо оценивать вместе с соседними маркерами этой системы и общей клинической картиной.`,
-  ].join("\n\n");
-}
-
 // ═══ Web renderer ═══
 
 export function renderInterleavedWeb(
@@ -113,7 +102,6 @@ export function renderInterleavedWeb(
             const trimmedContent = (block.content || '').trim();
             // Skip empty fallback blocks: no metadata + no description = nothing useful to show
             if (!bm && !trimmedContent) return null;
-            const commentary = trimmedContent || (bm ? buildFallbackCommentary(bm) : '');
             return (
               <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
