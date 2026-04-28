@@ -49,7 +49,7 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
                 return <div style={{ height: '1em' }} />;
               }
             }
-            return <p className="mb-4 text-foreground leading-relaxed">{children}</p>;
+            return <p className="mb-4 text-foreground leading-relaxed text-left">{children}</p>;
           },
           ul: ({ children }) => (
             <ul className="list-disc list-outside pl-6 mb-4 space-y-2 text-foreground">
