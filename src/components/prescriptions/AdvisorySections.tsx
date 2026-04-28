@@ -18,13 +18,59 @@ export interface FollowUpData {
   trigger?: string;
 }
 
+/**
+ * Очистка lifestyle-массивов от «загрязнения» AI:
+ *   - заголовков-ярлыков ("Питание:", "Сон и режим:", "Физическая активность:");
+ *   - случайно вставленного заголовка "Дополнительные консультации и обследования";
+ *   - строк, дублирующих follow-ups (вида "Специалист → ... → ...").
+ */
+const SECTION_LABELS = new Set(
+  [
+    "питание",
+    "питание:",
+    "сон",
+    "сон:",
+    "сон и режим",
+    "сон и режим:",
+    "физическая активность",
+    "физическая активность:",
+    "образ жизни",
+    "образ жизни:",
+    "дополнительные консультации и обследования",
+    "дополнительные консультации",
+    "консультации специалистов",
+  ].map((s) => s.toLowerCase()),
+);
+
+export function sanitizeLifestyleItems(items?: string[]): string[] {
+  if (!items?.length) return [];
+  return items
+    .map((i) => (typeof i === "string" ? i.trim() : ""))
+    .filter((i) => {
+      if (!i) return false;
+      const norm = i.toLowerCase().replace(/\s+/g, " ").trim();
+      if (SECTION_LABELS.has(norm)) return false;
+      // Drop follow-up-like rows: "Специалист → цель → основание"
+      if (/→.*→/.test(i)) return false;
+      return true;
+    });
+}
+
+export function sanitizeLifestyle(ls?: LifestyleData): LifestyleData {
+  return {
+    nutrition: sanitizeLifestyleItems(ls?.nutrition),
+    activity: sanitizeLifestyleItems(ls?.activity),
+    sleep: sanitizeLifestyleItems(ls?.sleep),
+  };
+}
+
 interface Props {
   lifestyle?: LifestyleData;
   followUps?: FollowUpData[];
 }
 
 export function AdvisorySections({ lifestyle, followUps }: Props) {
-  const ls = lifestyle || {};
+  const ls = sanitizeLifestyle(lifestyle);
   const hasNutrition = (ls.nutrition?.length || 0) > 0;
   const hasActivity = (ls.activity?.length || 0) > 0;
   const hasSleep = (ls.sleep?.length || 0) > 0;
