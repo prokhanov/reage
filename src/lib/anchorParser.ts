@@ -205,53 +205,90 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     );
   };
 
-  // Pass 0: Plain-text biomarker lines — "Название" or exact "Название (КОД)" on a standalone line.
-  // Use the exact code from DB instead of a generic parenthesis matcher, otherwise markers like
-  // "Липопротеин (а) (Lp(a))" break because the code itself contains parentheses.
+  // Pass 0: Plain-text biomarker lines — "Название" or exact "Название (КОД)" at the
+  // start of a line/paragraph. Two-step strategy:
+  //   1) Collect ALL candidate matches across all biomarkers in a SINGLE scan, so we
+  //      know boundaries between consecutive biomarkers ahead of time.
+  //   2) Sort by position, drop overlaps (longer names first wins), then inject anchors
+  //      from last to first using next-marker.start (or next markdown H1/H2 header) as
+  //      the section end.
+  // This fixes two regressions:
+  //   - The previous per-name loop only handled the FIRST occurrence of each name and
+  //     used `result.length` as fallback section end, which made the first matched
+  //     biomarker swallow ALL trailing text (including subsequent biomarkers and the
+  //     closing summary). Visually this presented as "the last biomarker leaks" — its
+  //     card kept absorbing the system's strengths/weaknesses paragraphs.
+  //   - It could not detect a second biomarker that lives in the same paragraph form
+  //     ("Имя (КОД) текст текст…") because `buildStandaloneBiomarkerLineRegex` requires
+  //     a line that contains ONLY the name+code.
   if (nameToCode && Object.keys(nameToCode).length > 0) {
     const nameEntries = Object.entries(nameToCode)
-      .sort((a, b) => b[0].length - a[0].length); // longer names first
+      .sort((a, b) => b[0].length - a[0].length); // longer names first → wins on overlap
+
+    type Hit = { start: number; end: number; code: string; nameLen: number };
+    const hits: Hit[] = [];
 
     for (const [name, code] of nameEntries) {
       if (hasBiomarkerAnchor(result, code)) continue;
-      const plainLineRegex = buildStandaloneBiomarkerLineRegex(name, code);
-      const paragraphLineRegex = buildLeadingBiomarkerParagraphRegex(name, code);
-      const match = plainLineRegex.exec(result) || paragraphLineRegex.exec(result);
-      if (!match) continue;
 
-      const lineStart = match.index!;
-      const lineEnd = lineStart + match[0].length;
-
-      // Find end of this biomarker section: next standalone biomarker name,
-      // already-inserted biomarker anchor, or top-level markdown header.
-      let sectionEnd = result.length;
-      for (const [otherName, otherCode] of nameEntries) {
-        if (otherName === name) continue;
-        const nextRegex = buildStandaloneBiomarkerLineRegex(otherName, otherCode, true);
-        nextRegex.lastIndex = lineEnd;
-        const nextMatch = nextRegex.exec(result);
-        if (nextMatch && nextMatch.index! < sectionEnd) {
-          sectionEnd = nextMatch.index!;
+      const collect = (re: RegExp) => {
+        re.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(result)) !== null) {
+          hits.push({
+            start: m.index!,
+            end: m.index! + m[0].length,
+            code,
+            nameLen: name.length,
+          });
+          if (m[0].length === 0) re.lastIndex++; // safety
         }
+      };
+
+      collect(buildStandaloneBiomarkerLineRegex(name, code));
+      collect(buildLeadingBiomarkerParagraphRegex(name, code));
+    }
+
+    if (hits.length > 0) {
+      // Sort by position; for the same position prefer longer name (more specific).
+      hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
+
+      // Drop overlapping hits and duplicates per code (keep the first occurrence).
+      const seenCodes = new Set<string>();
+      const filtered: Hit[] = [];
+      let lastEnd = -1;
+      for (const h of hits) {
+        if (h.start < lastEnd) continue; // overlaps a previous hit
+        if (seenCodes.has(h.code)) continue;
+        filtered.push(h);
+        seenCodes.add(h.code);
+        lastEnd = h.end;
       }
 
-      const nextAnchorRegex = /<!--\s*anchor:biomarker\s+([^\n]*?)\s*-->/g;
-      nextAnchorRegex.lastIndex = lineEnd;
-      const nextAnchor = nextAnchorRegex.exec(result);
-      if (nextAnchor && nextAnchor.index! < sectionEnd) {
-        sectionEnd = nextAnchor.index!;
-      }
+      // Locate the next top-level markdown header AFTER the last hit so the final
+      // biomarker block doesn't swallow the trailing system summary.
+      const findNextHeaderAfter = (pos: number): number => {
+        const headerRegex = /^#{1,2}\s+/gm;
+        headerRegex.lastIndex = pos;
+        const m = headerRegex.exec(result);
+        return m ? m.index! : result.length;
+      };
 
-      const nextHeaderRegex = /^#{1,2}\s+/gm;
-      nextHeaderRegex.lastIndex = lineEnd;
-      const nh = nextHeaderRegex.exec(result);
-      if (nh && nh.index! < sectionEnd) {
-        sectionEnd = nh.index!;
-      }
+      // Inject from last to first to keep earlier indices stable.
+      for (let i = filtered.length - 1; i >= 0; i--) {
+        const cur = filtered[i];
+        const next = filtered[i + 1];
+        const sectionEnd = next ? next.start : findNextHeaderAfter(cur.end);
 
-      // Inject anchors (process in one shot since we do one at a time)
-      result = result.slice(0, sectionEnd) + `\n<!-- anchor:biomarker_end -->\n` + result.slice(sectionEnd);
-      result = result.slice(0, lineStart) + `<!-- anchor:biomarker ${code} -->\n` + result.slice(lineEnd);
+        result =
+          result.slice(0, sectionEnd) +
+          `\n<!-- anchor:biomarker_end -->\n` +
+          result.slice(sectionEnd);
+        result =
+          result.slice(0, cur.start) +
+          `<!-- anchor:biomarker ${cur.code} -->\n` +
+          result.slice(cur.end);
+      }
     }
   }
 
