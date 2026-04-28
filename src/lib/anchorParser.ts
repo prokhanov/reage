@@ -184,16 +184,15 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
 function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
 
-  // Standalone line:  "Имя (CODE)" — код в скобках ОБЯЗАТЕЛЕН.
-  // Без кода ("Гемоглобин") строка может быть просто упоминанием в прозе,
-  // что приводило к ложным якорям и пустым карточкам биомаркеров.
+  // Standalone line:  "Имя" или "Имя (CODE)" — код опционален.
+  // Безопасно: строка содержит ТОЛЬКО имя (±код), не прозу с упоминанием.
   const buildStandaloneBiomarkerLineRegex = (name: string, code: string, includeMarkdownHeaders = false) => {
     const escapedName = escapeRegex(name);
     const escapedCode = escapeRegex(code);
     const prefix = includeMarkdownHeaders ? '(?:#{2,4}\\s+|\\s*)' : '(?!#{1,6}\\s)(?!\\s*[-*•])\\s*';
 
     return new RegExp(
-      `^${prefix}(?:${escapedName})\\s*\\(${escapedCode}\\)\\s*$`,
+      `^${prefix}(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?\\s*$`,
       'gm'
     );
   };
