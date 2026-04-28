@@ -67,6 +67,12 @@ export function parseAnchors(
     return acc;
   }, {} as Record<string, string[]>);
 
+  // Set of known biomarker codes (normalized) — AI sometimes emits anchors with
+  // legacy/short codes (e.g. `CRP`, `PCT`) while DB has `hs-CRP`, `PCT-t`. Such
+  // anchors must be skipped so they do not produce empty cards. Auto-inject
+  // below picks up the real codes from the body text.
+  const knownCodes = new Set(biomarkerCodes.map(normalizeBiomarkerCode));
+
   // If still no anchors after injection, return as single text block
   if (!processedText.includes('<!-- anchor:')) {
     return [{ type: 'text', content: processedText }];
