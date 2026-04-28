@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check } from "lucide-react";
+import { Activity, Check, ClipboardList, FileText, Moon, Pill, Stethoscope, Utensils } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
@@ -414,7 +414,10 @@ export function EditReportDialog({
                     <div className="space-y-6">
                       {prescriptions.length > 0 && (
                         <section>
-                          <h2 className="text-lg font-semibold mb-3">💊 Нутрицевтики ({prescriptions.length})</h2>
+                          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                            <Pill className="h-5 w-5 text-primary" />
+                            Нутрицевтики ({prescriptions.length})
+                          </h2>
                           <div className="space-y-4">
                             {prescriptions.map((prescription, idx) => {
                               const title = prescription.name || prescription.prescription;
@@ -489,11 +492,17 @@ export function EditReportDialog({
                           (advisory.lifestyle.activity?.length || 0) +
                           (advisory.lifestyle.sleep?.length || 0) > 0) && (
                           <section>
-                            <h2 className="text-lg font-semibold mb-3">🥗 Питание и образ жизни</h2>
+                            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                              <ClipboardList className="h-5 w-5 text-primary" />
+                              Питание и образ жизни
+                            </h2>
                             <div className="space-y-4">
                               {advisory.lifestyle.nutrition && advisory.lifestyle.nutrition.length > 0 && (
                                 <div className="p-4 bg-card/50 rounded-xl border border-border">
-                                  <h4 className="font-medium mb-2">Питание</h4>
+                                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                                    <Utensils className="h-4 w-4 text-primary" />
+                                    Питание
+                                  </h4>
                                   <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
                                     {advisory.lifestyle.nutrition.map((item, i) => (
                                       <li key={i} className="leading-relaxed">{item}</li>
@@ -503,7 +512,10 @@ export function EditReportDialog({
                               )}
                               {advisory.lifestyle.activity && advisory.lifestyle.activity.length > 0 && (
                                 <div className="p-4 bg-card/50 rounded-xl border border-border">
-                                  <h4 className="font-medium mb-2">Физическая активность</h4>
+                                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                                    <Activity className="h-4 w-4 text-primary" />
+                                    Физическая активность
+                                  </h4>
                                   <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
                                     {advisory.lifestyle.activity.map((item, i) => (
                                       <li key={i} className="leading-relaxed">{item}</li>
@@ -513,7 +525,10 @@ export function EditReportDialog({
                               )}
                               {advisory.lifestyle.sleep && advisory.lifestyle.sleep.length > 0 && (
                                 <div className="p-4 bg-card/50 rounded-xl border border-border">
-                                  <h4 className="font-medium mb-2">Сон и восстановление</h4>
+                                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                                    <Moon className="h-4 w-4 text-primary" />
+                                    Сон и восстановление
+                                  </h4>
                                   <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
                                     {advisory.lifestyle.sleep.map((item, i) => (
                                       <li key={i} className="leading-relaxed">{item}</li>
@@ -528,7 +543,10 @@ export function EditReportDialog({
 
                       {advisory && advisory.followUps.length > 0 && (
                         <section>
-                          <h2 className="text-lg font-semibold mb-3">🩺 Дополнительные консультации и обследования</h2>
+                          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                            <Stethoscope className="h-5 w-5 text-primary" />
+                            Дополнительные консультации и обследования
+                          </h2>
                           <div className="space-y-3">
                             {advisory.followUps.map((f, i) => (
                               <div key={i} className="p-4 bg-card/50 rounded-xl border border-border">
@@ -551,7 +569,10 @@ export function EditReportDialog({
 
                       {advisory?.rawMarkdown && prescriptions.length === 0 && (
                         <section>
-                          <h2 className="text-lg font-semibold mb-3">📄 Текст назначений</h2>
+                          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-primary" />
+                            Текст назначений
+                          </h2>
                           <div
                             className="prose prose-sm dark:prose-invert max-w-none p-4 bg-card/50 rounded-xl border border-border"
                             dangerouslySetInnerHTML={{
