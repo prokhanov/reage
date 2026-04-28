@@ -142,7 +142,7 @@ function renderBlockWeb(
       const trimmedCommentary = (block.commentary || "").trim();
         // Пустые карточки биомаркеров без интерпретации не показываем:
         // они выглядят как «показатель без объяснения» и ломают структуру отчёта.
-        if (!trimmedCommentary) return null;
+        if (!bm || !trimmedCommentary) return null;
 
       return (
         <div
@@ -265,7 +265,7 @@ export function buildSnapshotPdf(
         const trimmedCommentary = (block.commentary || "").trim();
         // Не рендерим пустые маркеры: шкала без текста в PDF воспринимается как
         // оборванный/непонятный показатель и не соответствует требованиям отчёта.
-        if (!trimmedCommentary) break;
+        if (!bm || !trimmedCommentary) break;
 
         const cardStack: any[] = [];
 
