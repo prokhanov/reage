@@ -264,13 +264,13 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     const nameEntries = Object.entries(nameToCode)
       .sort((a, b) => b[0].length - a[0].length); // longer names first → wins on overlap
 
-    type Hit = { start: number; end: number; code: string; nameLen: number };
+    type Hit = { start: number; end: number; code: string; nameLen: number; loose: boolean };
     const hits: Hit[] = [];
 
     for (const [name, code] of nameEntries) {
       if (hasBiomarkerAnchor(result, code)) continue;
 
-      const collect = (re: RegExp) => {
+      const collect = (re: RegExp, loose: boolean) => {
         re.lastIndex = 0;
         let m: RegExpExecArray | null;
         while ((m = re.exec(result)) !== null) {
@@ -279,14 +279,15 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
             end: m.index! + m[0].length,
             code,
             nameLen: name.length,
+            loose,
           });
           if (m[0].length === 0) re.lastIndex++; // safety
         }
       };
 
-      collect(buildStandaloneBiomarkerLineRegex(name, code));
-      collect(buildLeadingBiomarkerParagraphRegex(name, code));
-      collect(buildLooseLeadingBiomarkerRegex(name));
+      collect(buildStandaloneBiomarkerLineRegex(name, code), false);
+      collect(buildLeadingBiomarkerParagraphRegex(name, code), false);
+      collect(buildLooseLeadingBiomarkerRegex(name), true);
     }
 
     if (hits.length > 0) {
