@@ -42,7 +42,10 @@ serve(async (req) => {
   return finalize({ analysisId: body.analysisId, mode, phase });
 });
 
-async function finalize({ analysisId, mode }: { analysisId: string; mode: "standard" | "deep" }) {
+async function finalize({ analysisId, mode, phase }: { analysisId: string; mode: "standard" | "deep"; phase: "summary" | "bioage" | "all" }) {
+  const doSummary = phase === "summary" || phase === "all";
+  const doBioAge = phase === "bioage" || phase === "all";
+  console.log(`finalize-analysis phase=${phase} doSummary=${doSummary} doBioAge=${doBioAge}`);
   try {
     const aiProfile = mode === "deep"
       ? {
