@@ -333,31 +333,40 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     setAnalysisProgress({ current: 0, total: totalSteps, currentCategory: "", stage: "Подготовка данных..." });
     setAnalyzing(true);
 
-    // Запускаем polling для отслеживания прогресса
+    // Polling прогресса напрямую из report_jobs — это точный источник истины
+    // (steps_done/steps_total/current_step заполняются оркестратором).
     let pollingStopped = false;
-    const stageNames: Record<string, string> = {
-      "Данные пациента": "Сохранение данных пациента...",
-      "Общее резюме": "Формирование общего резюме...",
+    const stepLabelMap: Record<string, string> = {
+      "prescriptions": "Подбор назначений и нутрицевтиков...",
+      "finalize:summary": "Формирование общего резюме...",
+      "finalize:bioage": "Расчёт биологического возраста...",
     };
-    categories.forEach(c => { stageNames[c] = `Анализ: ${c}...`; });
 
     const pollInterval = setInterval(async () => {
       if (pollingStopped) return;
       try {
-        const { data: recs } = await supabase
-          .from("recommendations")
-          .select("type")
-          .eq("analysis_id", id!);
+        const { data: job } = await supabase
+          .from("report_jobs")
+          .select("steps_done, steps_total, current_step, status")
+          .eq("analysis_id", id!)
+          .gte("updated_at", generationStartedAt.toISOString())
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-        const savedCount = recs?.length || 0;
-        const lastSaved = recs?.[recs.length - 1]?.type || "";
-        const stageName = stageNames[lastSaved] || lastSaved;
+        if (!job) return;
+        const cur = job.current_step || "";
+        let stage = stepLabelMap[cur] || "";
+        if (!stage && cur.startsWith("category:")) {
+          stage = `Анализ: ${cur.replace(/^category:/, "")}...`;
+        }
+        if (!stage) stage = "Идёт обработка...";
 
         setAnalysisProgress({
-          current: savedCount,
-          total: totalSteps,
-          currentCategory: lastSaved,
-          stage: savedCount < totalSteps ? stageName : "Генерация назначений..."
+          current: job.steps_done || 0,
+          total: job.steps_total || totalSteps,
+          currentCategory: cur,
+          stage,
         });
       } catch {}
     }, 2500);
@@ -394,7 +403,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             ? "Глубокий анализ ещё сохраняется, проверяем готовность отчёта..."
             : "Проверяем готовность отчёта...",
         }));
-        const completionWaitMs = mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000;
+        const completionWaitMs = mode === "deep" ? 25 * 60 * 1000 : 3 * 60 * 1000;
         const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
           || (await waitForAnalysisCompletion(id!, completionWaitMs, 3000, { startedAt: generationStartedAt }));
 
@@ -415,7 +424,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       // 2) Логическая ошибка от edge-функции (status=200, success=false)
       if (data && data.success === false) {
         const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
-          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
+          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 25 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
 
         if (!completed) {
           console.error("analyze-biomarkers returned error:", data);
@@ -430,9 +439,23 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         }));
         const completed =
           (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt })) ||
-          (await waitForAnalysisCompletion(id!, 15 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
+          (await waitForAnalysisCompletion(id!, 25 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
         if (!completed) {
-          throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
+          // Не показываем красную ошибку — задача почти всегда дописывается в фоне.
+          // Запускаем тихий «дофон» ещё на 5 минут, и если успеем — обновим страницу.
+          pollingStopped = true;
+          clearInterval(pollInterval);
+          toast({
+            title: "Отчёт ещё формируется",
+            description: "Можно закрыть страницу — мы откроем готовый отчёт автоматически, как только он будет готов.",
+          });
+          waitForAnalysisCompletion(id!, 5 * 60 * 1000, 5000, { startedAt: generationStartedAt }).then((ok) => {
+            if (ok) {
+              toast({ title: "Отчёт готов", description: "Глубокий анализ завершён." });
+              loadData();
+            }
+          });
+          return;
         }
         pollingStopped = true;
         clearInterval(pollInterval);
@@ -456,7 +479,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
       if (data?.success === false || successCount === 0) {
         const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
-          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
+          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 25 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
 
         if (!completed) {
           throw new Error(data?.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
@@ -479,11 +502,25 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     } catch (error: any) {
       pollingStopped = true;
       clearInterval(pollInterval);
-      toast({
-        title: "Ошибка анализа",
-        description: error.message || "Не удалось выполнить AI-анализ",
-        variant: "destructive",
-      });
+      // Спецслучай: клиентский поллинг истёк, но фоновая задача почти всегда дописывается.
+      if (error?.message === "accepted_background") {
+        toast({
+          title: "Отчёт ещё формируется",
+          description: "Можно закрыть страницу — мы откроем готовый отчёт автоматически, как только он будет готов.",
+        });
+        waitForAnalysisCompletion(id!, 5 * 60 * 1000, 5000, { startedAt: generationStartedAt }).then((ok) => {
+          if (ok) {
+            toast({ title: "Отчёт готов", description: "Глубокий анализ завершён." });
+            loadData();
+          }
+        });
+      } else {
+        toast({
+          title: "Ошибка анализа",
+          description: error.message || "Не удалось выполнить AI-анализ",
+          variant: "destructive",
+        });
+      }
     } finally {
       setAnalyzing(false);
     }

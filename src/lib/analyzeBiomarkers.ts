@@ -58,7 +58,7 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
 
   // 2. Поллинг через report_jobs (RLS: пользователь видит свои задачи)
   const POLL_INTERVAL_MS = 3000;
-  const MAX_WAIT_MS = 20 * 60 * 1000; // 20 минут — даём deep с ретраями
+  const MAX_WAIT_MS = 25 * 60 * 1000; // 25 минут — даём deep с ретраями
   const deadline = Date.now() + MAX_WAIT_MS;
 
   while (Date.now() < deadline) {
@@ -99,5 +99,5 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
       throw new Error(job.error || "Генерация отчёта завершилась ошибкой");
     }
   }
-  throw new Error("Превышено время ожидания генерации отчёта (20 минут).");
+  throw new Error("accepted_background");
 }
