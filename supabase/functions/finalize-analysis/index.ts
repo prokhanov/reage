@@ -412,6 +412,10 @@ ${symptomsText}
       // конца) попадает в обычный нарративный text-блок категории.
       const BIO_ANCHOR_RE = /<!--\s*anchor:biomarker\s+([^\s>]+?)\s*-->/g;
       const BIO_END_RE = /<!--\s*anchor:biomarker_end\s*-->/;
+      // Доп. «жёсткие границы» — если AI забыл biomarker_end, не даём
+      // интерпретации последнего биомаркера утечь в блоки strengths/pagebreak
+      // или в заголовок «Общая оценка».
+      const HARD_STOP_RE = /<!--\s*anchor:(?:strengths_start|strengths_end|pagebreak|intro_start|intro_end)\s*-->|^\s*#{1,6}\s*Общая оценка/im;
 
       for (const cat of orderedCategories) {
         const emoji = categoryEmoji[cat];
