@@ -8,45 +8,20 @@ type AnalyzeBiomarkersPayload = {
 /**
  * Запуск генерации отчёта.
  *
- * - `standard`: один синхронный вызов analyze-biomarkers (как и раньше).
- * - `deep`: запуск pipeline через report-orchestrator (job в таблице report_jobs)
- *   с поллингом до завершения. Обходит 400-сек лимит edge runtime, выполняя
- *   каждый шаг (категория / назначения / финализация) отдельным HTTP-вызовом.
+ * Всегда идёт через report-orchestrator (job в таблице report_jobs)
+ * с поллингом до завершения. Это:
+ *  - обходит 400-сек лимит edge runtime, выполняя каждый шаг
+ *    (категория / назначения / финализация) отдельным HTTP-вызовом;
+ *  - гарантирует, что отчёт всегда содержит все секции (5 категорий +
+ *    «Данные пациента» + «Назначения» + «Общее резюме»). Прямой вызов
+ *    analyze-biomarkers удалял старые рекомендации и не успевал
+ *    восстановить Summary/Назначения за один edge-invoke.
+ *
+ * `mode` (`standard`/`deep`) передаётся в orchestrator и далее в
+ * analyze-biomarkers/finalize-analysis.
  */
 export async function invokeAnalyzeBiomarkers(payload: AnalyzeBiomarkersPayload) {
-  if (payload.mode === "deep") {
-    return await runOrchestratedPipeline(payload);
-  }
-  return await runDirectAnalyze(payload);
-}
-
-async function runDirectAnalyze(payload: AnalyzeBiomarkersPayload) {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData?.session?.access_token;
-
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-biomarkers`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const text = await response.text();
-  let data: any = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = { success: false, error: text || `Пустой ответ функции (${response.status})` };
-  }
-
-  if (!response.ok && response.status !== 202) {
-    throw new Error(data?.error || data?.message || `Ошибка генерации отчёта (${response.status})`);
-  }
-
-  return data;
+  return await runOrchestratedPipeline(payload);
 }
 
 async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
