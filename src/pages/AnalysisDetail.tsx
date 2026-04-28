@@ -439,9 +439,23 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         }));
         const completed =
           (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt })) ||
-          (await waitForAnalysisCompletion(id!, 15 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
+          (await waitForAnalysisCompletion(id!, 25 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
         if (!completed) {
-          throw new Error("Глубокий анализ ещё не завершён. Откройте отчет позже — сохраненные разделы появятся автоматически.");
+          // Не показываем красную ошибку — задача почти всегда дописывается в фоне.
+          // Запускаем тихий «дофон» ещё на 5 минут, и если успеем — обновим страницу.
+          pollingStopped = true;
+          clearInterval(pollInterval);
+          toast({
+            title: "Отчёт ещё формируется",
+            description: "Можно закрыть страницу — мы откроем готовый отчёт автоматически, как только он будет готов.",
+          });
+          waitForAnalysisCompletion(id!, 5 * 60 * 1000, 5000, { startedAt: generationStartedAt }).then((ok) => {
+            if (ok) {
+              toast({ title: "Отчёт готов", description: "Глубокий анализ завершён." });
+              loadData();
+            }
+          });
+          return;
         }
         pollingStopped = true;
         clearInterval(pollInterval);
