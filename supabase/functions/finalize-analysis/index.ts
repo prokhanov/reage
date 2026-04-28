@@ -256,7 +256,6 @@ ${symptomsText}
     // CASCADE, и удаление старой записи «Общее резюме» каскадно сносит все
     // ранее сгенерированные нутрицевтики этого анализа. Используем UPDATE
     // существующей записи, либо INSERT, если её ещё нет.
-    let summaryRecommendationId: string | null = null;
     if (summaryReport) {
       const { data: existing } = await supabase
         .from("recommendations")
