@@ -184,23 +184,27 @@ function hasBiomarkerAnchor(text: string, code: string): boolean {
 function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: Record<string, string>): string {
   let result = text;
 
+  // Standalone line:  "Имя (CODE)" — код в скобках ОБЯЗАТЕЛЕН.
+  // Без кода ("Гемоглобин") строка может быть просто упоминанием в прозе,
+  // что приводило к ложным якорям и пустым карточкам биомаркеров.
   const buildStandaloneBiomarkerLineRegex = (name: string, code: string, includeMarkdownHeaders = false) => {
     const escapedName = escapeRegex(name);
     const escapedCode = escapeRegex(code);
     const prefix = includeMarkdownHeaders ? '(?:#{2,4}\\s+|\\s*)' : '(?!#{1,6}\\s)(?!\\s*[-*•])\\s*';
 
     return new RegExp(
-      `^${prefix}(?:${escapedName}(?:\\s*\\(${escapedCode}\\))?)\\s*$`,
+      `^${prefix}(?:${escapedName})\\s*\\(${escapedCode}\\)\\s*$`,
       'gm'
     );
   };
 
+  // Leading paragraph:  "Имя (CODE) описание..." — код в скобках ОБЯЗАТЕЛЕН.
   const buildLeadingBiomarkerParagraphRegex = (name: string, code: string) => {
     const escapedName = escapeRegex(name);
     const escapedCode = escapeRegex(code);
 
     return new RegExp(
-      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\(${escapedCode}\\))?(?=\\s|$).+$`,
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})\\s*\\(${escapedCode}\\)(?=\\s|$).+$`,
       'gm'
     );
   };
@@ -253,11 +257,20 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       // Sort by position; for the same position prefer longer name (more specific).
       hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
 
+      // Detect the start of the system "summary" tail — после неё AI часто
+      // упоминает биомаркеры в прозе ("Гемоглобин 145 г/л", "СОЭ 7 мм/ч"),
+      // но это НЕ блоки биомаркеров. Игнорируем все хиты после этой границы.
+      const summaryBoundaryRegex =
+        /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im;
+      const summaryMatch = summaryBoundaryRegex.exec(result);
+      const summaryStart = summaryMatch ? summaryMatch.index! : result.length;
+
       // Drop overlapping hits and duplicates per code (keep the first occurrence).
       const seenCodes = new Set<string>();
       const filtered: Hit[] = [];
       let lastEnd = -1;
       for (const h of hits) {
+        if (h.start >= summaryStart) continue; // hit внутри summary секции
         if (h.start < lastEnd) continue; // overlaps a previous hit
         if (seenCodes.has(h.code)) continue;
         filtered.push(h);
@@ -265,29 +278,41 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         lastEnd = h.end;
       }
 
-      // Locate the next top-level markdown header AFTER the last hit so the final
-      // biomarker block doesn't swallow the trailing system summary.
+      // End of biomarker zone = начало summary либо следующий H1/H2 заголовок.
       const findNextHeaderAfter = (pos: number): number => {
         const headerRegex = /^#{1,2}\s+/gm;
         headerRegex.lastIndex = pos;
         const m = headerRegex.exec(result);
-        return m ? m.index! : result.length;
+        const headerPos = m ? m.index! : result.length;
+        return Math.min(headerPos, summaryStart);
       };
 
       // Inject from last to first to keep earlier indices stable.
+      //
+      // Two layouts of biomarker blocks the AI uses interchangeably:
+      //   (a) Title on its own line, then a multi-paragraph description below.
+      //       Block content = paragraphs between cur.end and the next hit / summary.
+      //   (b) Inline single paragraph: "Имя (CODE) Описание ... значение ... вывод."
+      //       Block content = the paragraph itself (cur.start..cur.end).
+      //
+      // We always wrap the block from `cur.start` (open tag here) to
+      // `Math.max(cur.end, next.start)`. The opening tag we put BEFORE cur.start
+      // so the title stays inside the block (then `stripLeadingBiomarkerName`
+      // removes the duplicated "Имя (CODE)" prefix at render time).
       for (let i = filtered.length - 1; i >= 0; i--) {
         const cur = filtered[i];
         const next = filtered[i + 1];
-        const sectionEnd = next ? next.start : findNextHeaderAfter(cur.end);
+        const nextBoundary = next ? next.start : findNextHeaderAfter(cur.end);
+        const blockEnd = Math.max(cur.end, nextBoundary);
 
         result =
-          result.slice(0, sectionEnd) +
+          result.slice(0, blockEnd) +
           `\n<!-- anchor:biomarker_end -->\n` +
-          result.slice(sectionEnd);
+          result.slice(blockEnd);
         result =
           result.slice(0, cur.start) +
           `<!-- anchor:biomarker ${cur.code} -->\n` +
-          result.slice(cur.end);
+          result.slice(cur.start);
       }
     }
   }
