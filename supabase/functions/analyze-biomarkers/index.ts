@@ -73,6 +73,56 @@ serve(async (req) => {
   });
 });
 
+async function startDeepViaOrchestrator(analysisId: string) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) {
+    return new Response(JSON.stringify({ success: false, error: "Не настроены переменные окружения" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const supabase = createClient(supabaseUrl, serviceKey);
+  const { data: analysis, error } = await supabase
+    .from("analyses")
+    .select("user_id")
+    .eq("id", analysisId)
+    .single();
+
+  if (error || !analysis?.user_id) {
+    return new Response(JSON.stringify({ success: false, error: "Анализ не найден" }), {
+      status: 404,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const resp = await fetch(`${supabaseUrl}/functions/v1/report-orchestrator`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${serviceKey}`,
+      apikey: serviceKey,
+    },
+    body: JSON.stringify({ action: "start", analysisId, userId: analysis.user_id, mode: "deep" }),
+  });
+  const text = await resp.text();
+  let parsed: any = null;
+  try { parsed = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+
+  return new Response(
+    JSON.stringify({
+      success: resp.ok && parsed?.success === true,
+      accepted: resp.ok && parsed?.success === true,
+      mode: "deep",
+      analysisId,
+      jobId: parsed?.jobId,
+      error: parsed?.error,
+    }),
+    { status: resp.ok ? 202 : resp.status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
+}
+
 async function processAnalysis({
   analysisId,
   rawMode,
