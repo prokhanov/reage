@@ -288,9 +288,10 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       };
 
       // Inject from last to first to keep earlier indices stable.
-      if (process?.env?.ANCHOR_DEBUG) {
-        console.log('[anchor] filtered hits:', filtered.map(f => ({ code: f.code, start: f.start })));
-        console.log('[anchor] summaryStart:', summaryStart);
+      const _dbg = (globalThis as any)?.process?.env?.ANCHOR_DEBUG;
+      if (_dbg) {
+        // eslint-disable-next-line no-console
+        console.log('[anchor] filtered:', filtered.map(f => ({ code: f.code, start: f.start })), 'summaryStart:', summaryStart);
       }
       for (let i = filtered.length - 1; i >= 0; i--) {
         const cur = filtered[i];
