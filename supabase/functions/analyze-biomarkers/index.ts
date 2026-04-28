@@ -54,34 +54,11 @@ serve(async (req) => {
     body.skipFinalize === true ||
     body.skipDelete === true;
 
-  // Старый deep-режим без фильтра: оставляем background-схему для обратной совместимости.
+  // Старый direct deep-вызов без фильтра больше НЕ выполняем через background-схему:
+  // она могла стереть финальные разделы и оставить отчёт без «Назначений»/«Общего резюме».
+  // Для обратной совместимости со старыми клиентами безопасно делегируем запуск orchestrator-у.
   if (mode === "deep" && !body.background && !isStepRequest) {
-    const analysisId = body.analysisId!;
-    const runPromise = processAnalysis({ analysisId, rawMode: mode })
-      .then(async (response) => {
-        try {
-          const text = await response.text();
-          console.log(`Deep analysis background finished: status=${response.status}, body=${text.slice(0, 500)}`);
-        } catch (err) {
-          console.error("Deep analysis: failed to read background response body", err);
-        }
-      })
-      .catch((error) => console.error("Deep analysis background failed:", error));
-
-    const edgeRuntime = globalThis as typeof globalThis & {
-      EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void };
-    };
-
-    if (edgeRuntime.EdgeRuntime?.waitUntil) {
-      edgeRuntime.EdgeRuntime.waitUntil(runPromise);
-    } else {
-      void runPromise;
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, accepted: true, mode, analysisId }),
-      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return startDeepViaOrchestrator(body.analysisId!);
   }
 
   // Step-режим (под управлением orchestrator) или standard — выполняем синхронно и возвращаем результат.
