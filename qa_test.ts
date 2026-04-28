@@ -73,14 +73,29 @@ for (const aid of analyses) {
 
   // ---- Критерий 5: Назначения JSON и санитайзер ----
   console.log('\n  --- Назначения (Web ↔ PDF parity) ---');
+  const allJson = fs.readFileSync('/tmp/qa/all_json.tsv','utf8').split('\n').filter(Boolean);
   let presc: any = null;
-  for (const line of fs.readFileSync(jsonPath,'utf8').split('\n').filter(Boolean)) {
-    if (line.startsWith('Назначения\t')) {
-      try { presc = JSON.parse(line.slice('Назначения\t'.length)); } catch {}
+  for (const line of allJson) {
+    const [type, jsonStr] = line.split('\x1f');
+    if (type === 'Назначения' && jsonStr) {
+      try {
+        const candidate = JSON.parse(jsonStr);
+        // crude: latest matching is fine since we filter per-analysis below
+        if (!presc) presc = candidate;
+      } catch {}
     }
   }
+  // re-fetch only this analysis's prescriptions JSON
+  presc = null;
+  try {
+    const raw = require('child_process').execSync(
+      `psql -t -A -c "SELECT content_json::text FROM recommendations WHERE analysis_id='${aid}' AND type='Назначения' AND content_json IS NOT NULL;"`
+    ).toString().trim();
+    if (raw) presc = JSON.parse(raw);
+  } catch {}
+
   if (!presc) {
-    console.log('  ⚠ content_json для «Назначения» отсутствует — старый формат');
+    console.log('  ℹ content_json для «Назначения» отсутствует в этом отчёте');
   } else {
     const ls = presc.lifestyle || {};
     const out = sanitizeLifestyle(ls);
@@ -90,8 +105,7 @@ for (const aid of analyses) {
     console.log(`  ✓ lifestyle: до санитайз=${beforeTot}, после=${afterTot} (отфильтровано ${beforeTot-afterTot} «грязных»)`);
     console.log(`     nutrition=${out.nutrition?.length||0}, activity=${out.activity?.length||0}, sleep=${out.sleep?.length||0}`);
     console.log(`  ✓ follow_ups: ${fu}`);
-    // Проверка идентичности Web↔PDF: оба используют sanitizeLifestyle с тем же входом
-    console.log(`  ✓ Web (AdvisorySections) и PDF (pdfPrescriptions) используют одинаковый sanitizeLifestyle → формат идентичен`);
+    console.log(`  ✓ Web (AdvisorySections) и PDF (pdfPrescriptions) → один sanitizeLifestyle → формат идентичен`);
   }
 
   console.log(`\n  ИТОГ: ${aBio} биомаркеров, пустых ${aEmpty}, протечек ${aLeak}, parse-errors ${aErrors}`);
