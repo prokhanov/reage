@@ -45,6 +45,11 @@ const cleanReasonText = (value?: string | null) =>
 interface Prescription {
   id: string;
   prescription: string;
+  name: string | null;
+  form: string | null;
+  dosage: string | null;
+  how_to_take: string | null;
+  duration: string | null;
   reason: string | null;
   effect: string | null;
   control_date: string | null;
@@ -411,30 +416,44 @@ export function EditReportDialog({
                         <section>
                           <h2 className="text-lg font-semibold mb-3">💊 Нутрицевтики ({prescriptions.length})</h2>
                           <div className="space-y-4">
-                            {prescriptions.map((prescription, idx) => (
+                            {prescriptions.map((prescription, idx) => {
+                              const title = prescription.name || prescription.prescription;
+                              const reason = cleanReasonText(prescription.reason);
+                              const statusLabel = prescription.status === "confirmed" ? "Подтверждено" : "На проверке";
+
+                              return (
                               <div key={prescription.id} className="p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border">
-                                <div className="flex items-start justify-between gap-4 mb-3">
-                                  <h3 className="font-semibold text-base flex-1">
-                                    {idx + 1}. {prescription.prescription}
-                                  </h3>
+                                <div className="space-y-3 mb-4">
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    <span className="font-medium text-foreground">Название:</span> {idx + 1}. {title || "—"}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    <span className="font-medium text-foreground">Форма:</span> {prescription.form || "—"}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    <span className="font-medium text-foreground">Дозировка:</span> {prescription.dosage || "—"}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    <span className="font-medium text-foreground">Как принимать:</span> {prescription.how_to_take || "—"}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    <span className="font-medium text-foreground">Длительность:</span> {prescription.duration || "—"}
+                                  </p>
+                                  <div className="p-3 rounded-md bg-primary/5 border border-primary/10">
+                                    <p className="text-sm text-foreground leading-relaxed">
+                                      <span className="font-medium">Причина:</span> {reason || "—"}
+                                    </p>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    <span className="font-medium text-foreground">На что влияет:</span> {prescription.effect || "—"}
+                                  </p>
                                   <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-foreground">Статус:</span>
                                     <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
-                                      {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
+                                      {statusLabel}
                                     </Badge>
                                   </div>
                                 </div>
-                                {cleanReasonText(prescription.reason) && (
-                                  <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-                                    <p className="text-sm text-foreground leading-relaxed">
-                                      <span className="font-medium">Причина:</span> {cleanReasonText(prescription.reason)}
-                                    </p>
-                                  </div>
-                                )}
-                                {prescription.effect && (
-                                  <p className="text-sm text-muted-foreground mb-3 italic">
-                                    {prescription.effect}
-                                  </p>
-                                )}
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm text-muted-foreground">
                                     {prescription.control_date ? `Контрольная дата: ${format(new Date(prescription.control_date), "dd.MM.yyyy")}` : ""}
@@ -459,7 +478,8 @@ export function EditReportDialog({
                                   </div>
                                 </div>
                               </div>
-                            ))}
+                            );
+                            })}
                           </div>
                         </section>
                       )}
