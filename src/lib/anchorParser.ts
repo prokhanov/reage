@@ -261,7 +261,7 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       // упоминает биомаркеры в прозе ("Гемоглобин 145 г/л", "СОЭ 7 мм/ч"),
       // но это НЕ блоки биомаркеров. Игнорируем все хиты после этой границы.
       const summaryBoundaryRegex =
-        /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)\b/im;
+        /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im;
       const summaryMatch = summaryBoundaryRegex.exec(result);
       const summaryStart = summaryMatch ? summaryMatch.index! : result.length;
 
