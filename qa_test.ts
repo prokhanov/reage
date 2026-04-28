@@ -32,7 +32,6 @@ for (const aid of analyses) {
   console.log('='.repeat(70));
 
   const sectionsPath = `/tmp/qa/${aid}/sections.tsv`;
-  const jsonPath = `/tmp/qa/${aid}/json.tsv`;
   const sections: Record<string,string> = {};
   for (const line of fs.readFileSync(sectionsPath,'utf8').split('\n').filter(Boolean)) {
     const idx = line.indexOf('\t');
@@ -40,6 +39,13 @@ for (const aid of analyses) {
     const type = line.slice(0, idx);
     const text = line.slice(idx+1).replace(/\\n/g,'\n');
     sections[type] = text;
+  }
+  // Detect legacy markdown-heading format (no anchors AND uses `## **Name**` headers)
+  const sample = sections['Энергия и восстановление'] || sections['Метаболизм и Детоксикация'] || '';
+  const isLegacy = !sample.includes('<!-- anchor:') && /^\s*##\s+/m.test(sample) && /\*\*[^*]+\*\*/.test(sample);
+  if (isLegacy) {
+    console.log('  ℹ Архивный legacy-формат (Markdown-заголовки до anchor-системы) — пропуск');
+    continue;
   }
 
   let aErrors = 0, aBio = 0, aEmpty = 0, aLeak = 0, aMissingSummary = 0;
