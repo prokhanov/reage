@@ -18,7 +18,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let body: { analysisId?: string; mode?: unknown; background?: boolean } = {};
+  let body: { analysisId?: string; mode?: unknown; background?: boolean; phase?: "summary" | "bioage" | "all" } = {};
   try {
     body = await req.json();
   } catch {
@@ -36,39 +36,10 @@ serve(async (req) => {
   }
 
   const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
+  const phase: "summary" | "bioage" | "all" =
+    body.phase === "summary" || body.phase === "bioage" ? body.phase : "all";
 
-  // Принимаем сразу 202 и выполняем фоновую работу через EdgeRuntime.waitUntil.
-  if (!body.background) {
-    const analysisId = body.analysisId!;
-    const runPromise = finalize({ analysisId, mode })
-      .then(async (response) => {
-        try {
-          const text = await response.text();
-          console.log(
-            `finalize-analysis background finished: status=${response.status}, body=${text.slice(0, 500)}`,
-          );
-        } catch (err) {
-          console.error("finalize-analysis: failed to read background response body", err);
-        }
-      })
-      .catch((error) => console.error("finalize-analysis background failed:", error));
-
-    const edgeRuntime = globalThis as typeof globalThis & {
-      EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void };
-    };
-    if (edgeRuntime.EdgeRuntime?.waitUntil) {
-      edgeRuntime.EdgeRuntime.waitUntil(runPromise);
-    } else {
-      void runPromise;
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, accepted: true, analysisId, mode }),
-      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  }
-
-  return finalize({ analysisId: body.analysisId, mode });
+  return finalize({ analysisId: body.analysisId, mode, phase });
 });
 
 async function finalize({ analysisId, mode }: { analysisId: string; mode: "standard" | "deep" }) {
