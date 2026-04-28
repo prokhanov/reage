@@ -39,6 +39,9 @@ type AdvisoryBlock = {
   rawMarkdown?: string;
 };
 
+const cleanReasonText = (value?: string | null) =>
+  (value || "").replace(/^[\s📊📈📉]+/u, "").trim();
+
 interface Prescription {
   id: string;
   prescription: string;
@@ -420,11 +423,10 @@ export function EditReportDialog({
                                     </Badge>
                                   </div>
                                 </div>
-                                {prescription.reason && (
+                                {cleanReasonText(prescription.reason) && (
                                   <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-                                    <span className="text-primary mt-0.5">📊</span>
                                     <p className="text-sm text-foreground leading-relaxed">
-                                      <span className="font-medium">Причина:</span> {prescription.reason}
+                                      <span className="font-medium">Причина:</span> {cleanReasonText(prescription.reason)}
                                     </p>
                                   </div>
                                 )}
