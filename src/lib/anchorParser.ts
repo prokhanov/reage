@@ -257,11 +257,20 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       // Sort by position; for the same position prefer longer name (more specific).
       hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
 
+      // Detect the start of the system "summary" tail — после неё AI часто
+      // упоминает биомаркеры в прозе ("Гемоглобин 145 г/л", "СОЭ 7 мм/ч"),
+      // но это НЕ блоки биомаркеров. Игнорируем все хиты после этой границы.
+      const summaryBoundaryRegex =
+        /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)\b/im;
+      const summaryMatch = summaryBoundaryRegex.exec(result);
+      const summaryStart = summaryMatch ? summaryMatch.index! : result.length;
+
       // Drop overlapping hits and duplicates per code (keep the first occurrence).
       const seenCodes = new Set<string>();
       const filtered: Hit[] = [];
       let lastEnd = -1;
       for (const h of hits) {
+        if (h.start >= summaryStart) continue; // hit внутри summary секции
         if (h.start < lastEnd) continue; // overlaps a previous hit
         if (seenCodes.has(h.code)) continue;
         filtered.push(h);
@@ -269,13 +278,13 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         lastEnd = h.end;
       }
 
-      // Locate the next top-level markdown header AFTER the last hit so the final
-      // biomarker block doesn't swallow the trailing system summary.
+      // End of biomarker zone = начало summary либо следующий H1/H2 заголовок.
       const findNextHeaderAfter = (pos: number): number => {
         const headerRegex = /^#{1,2}\s+/gm;
         headerRegex.lastIndex = pos;
         const m = headerRegex.exec(result);
-        return m ? m.index! : result.length;
+        const headerPos = m ? m.index! : result.length;
+        return Math.min(headerPos, summaryStart);
       };
 
       // Inject from last to first to keep earlier indices stable.
@@ -283,6 +292,10 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
         const cur = filtered[i];
         const next = filtered[i + 1];
         const sectionEnd = next ? next.start : findNextHeaderAfter(cur.end);
+
+        // Sanity check: если контент <20 символов — не инжектим (это не блок).
+        const candidateLen = (sectionEnd - cur.end);
+        if (candidateLen < 20) continue;
 
         result =
           result.slice(0, sectionEnd) +
