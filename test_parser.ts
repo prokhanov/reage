@@ -1,4 +1,4 @@
-import { parseAnchors, autoInjectAnchors } from '@/lib/anchorParser';
+import { parseAnchors, autoInjectAnchors } from './src/lib/anchorParser';
 import fs from 'fs';
 import path from 'path';
 
