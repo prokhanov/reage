@@ -387,6 +387,15 @@ ${symptomsText}
       // конца) попадает в обычный нарративный text-блок категории.
       const BIO_ANCHOR_RE = /<!--\s*anchor:biomarker\s+([^\s>]+?)\s*-->/g;
       const BIO_END_RE = /<!--\s*anchor:biomarker_end\s*-->/;
+      const normalizeBiomarkerCode = (code: string) => String(code || "")
+        .toLowerCase()
+        .trim()
+        .replace(/α/g, "a")
+        .replace(/β/g, "b")
+        .replace(/γ/g, "g")
+        .replace(/δ/g, "d")
+        .replace(/μ/g, "u")
+        .replace(/[\s\-_+()]/g, "");
       // Доп. «жёсткие границы» — если AI забыл biomarker_end, не даём
       // интерпретации последнего биомаркера утечь в блоки strengths/pagebreak
       // или в заголовок «Общая оценка».
@@ -402,6 +411,7 @@ ${symptomsText}
         const markerByKey = new Map<string, any>();
         for (const m of markers) {
           if (m.code) markerByKey.set(String(m.code).toUpperCase().trim(), m);
+          if (m.code) markerByKey.set(normalizeBiomarkerCode(String(m.code)), m);
           if (m.name) markerByKey.set(String(m.name).toUpperCase().trim(), m);
         }
         const usedIds = new Set<string>();
@@ -477,6 +487,7 @@ ${symptomsText}
 
               const matched =
                 markerByKey.get(a.code.toUpperCase()) ||
+                markerByKey.get(normalizeBiomarkerCode(a.code)) ||
                 null;
 
               if (matched) {
@@ -500,19 +511,8 @@ ${symptomsText}
           }
         }
 
-        // Биомаркеры, которые не упомянуты в нарративе, добавляем в конце
-        // как карточки без комментария — чтобы шкала всё равно была видна.
-        const leftover = markers.filter((m: any) => !usedIds.has(m.biomarker_id));
-        if (leftover.length > 0) {
-          blocks.push({ type: "spacer", size: "small" });
-          for (const m of leftover) {
-            blocks.push({
-              type: "biomarker",
-              biomarker_id: m.biomarker_id,
-              commentary: "",
-            });
-          }
-        }
+        // Не добавляем «остаточные» биомаркеры пустыми карточками.
+        // Если AI не дал интерпретацию, в PDF не должно быть шкал без текста.
         blocks.push({ type: "spacer", size: "medium" });
       }
 
