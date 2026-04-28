@@ -416,6 +416,19 @@ export function EditReportDialog({
             <div className="flex items-center justify-between">
               <DialogTitle>Редактирование отчета</DialogTitle>
               <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runQaCheck}
+                  disabled={qaRunning || loading}
+                >
+                  {qaRunning ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                  )}
+                  Проверить на валидность
+                </Button>
                 <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue />
