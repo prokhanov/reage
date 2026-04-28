@@ -740,10 +740,103 @@ ${globalBiomarkersInstructions}
         .replace(/[\s\-_+()]/g, '');
     }
 
+    function escapeRegex(value: string): string {
+      return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    /**
+     * Inject `<!-- anchor:biomarker CODE -->` / `<!-- anchor:biomarker_end -->` around
+     * paragraphs that start with a biomarker name when the AI forgot to include the
+     * required anchor markers. Operates only inside the "Интерпретация биомаркеров"
+     * zone (between that header and the next "Общая оценка/Сильные стороны/..."
+     * boundary), so prose mentions in intro/summary are never wrapped.
+     */
+    function injectMissingBiomarkerAnchors(report: string, biomarkers: any[]): string {
+      if (!report || biomarkers.length === 0) return report;
+
+      // Build name → code map (longest names first to win on overlapping matches)
+      const nameToCode: Array<{ name: string; code: string }> = biomarkers
+        .map((bm: any) => ({
+          name: String(bm?.biomarkers?.name || '').trim(),
+          code: String(bm?.biomarkers?.code || '').trim(),
+        }))
+        .filter((e) => e.name && e.code)
+        .sort((a, b) => b.name.length - a.name.length);
+      if (nameToCode.length === 0) return report;
+
+      // Skip codes that already have an anchor in the text
+      const anchoredCodes = new Set<string>();
+      const anchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+      for (const m of report.matchAll(anchorRegex)) {
+        if (m[1]) anchoredCodes.add(normalizeBiomarkerCode(m[1]));
+      }
+
+      // Boundaries
+      const interpretationMatch = /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
+      if (!interpretationMatch) return report; // no biomarker zone — nothing to do
+      const interpretationStart = interpretationMatch.index! + interpretationMatch[0].length;
+      const summaryMatch = /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im.exec(report);
+      const summaryStart = summaryMatch ? summaryMatch.index! : report.length;
+
+      type Hit = { start: number; end: number; code: string; nameLen: number };
+      const hits: Hit[] = [];
+      for (const { name, code } of nameToCode) {
+        if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
+        // "Имя <опц.(абр)> Заглавная_буква_следующего_слова..."
+        const re = new RegExp(
+          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\\n]+$`,
+          'gm'
+        );
+        re.lastIndex = interpretationStart;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(report)) !== null) {
+          if (m.index! >= summaryStart) break;
+          hits.push({ start: m.index!, end: m.index! + m[0].length, code, nameLen: name.length });
+          if (m[0].length === 0) re.lastIndex++;
+        }
+      }
+      if (hits.length === 0) return report;
+
+      // Sort + dedupe by code (first occurrence wins) + drop overlaps
+      hits.sort((a, b) => a.start - b.start || b.nameLen - a.nameLen);
+      const seen = new Set<string>();
+      const filtered: Hit[] = [];
+      let lastEnd = -1;
+      for (const h of hits) {
+        if (h.start < lastEnd) continue;
+        if (seen.has(h.code)) continue;
+        filtered.push(h);
+        seen.add(h.code);
+        lastEnd = h.end;
+      }
+
+      // Inject from last to first to keep indices stable. Block end = next hit OR summary.
+      let result = report;
+      for (let i = filtered.length - 1; i >= 0; i--) {
+        const cur = filtered[i];
+        const next = filtered[i + 1];
+        const blockEnd = next ? next.start : summaryStart;
+        result =
+          result.slice(0, blockEnd) +
+          `\n<!-- anchor:biomarker_end -->\n` +
+          result.slice(blockEnd);
+        result =
+          result.slice(0, cur.start) +
+          `<!-- anchor:biomarker ${cur.code} -->\n` +
+          result.slice(cur.start);
+      }
+      console.log(`Injected ${filtered.length} missing biomarker anchors: ${filtered.map(f => f.code).join(', ')}`);
+      return result;
+    }
+
     function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
       if (!report || biomarkers.length === 0) return report;
 
-      const normalized = normalizeAnchorTypography(report);
+      let normalized = normalizeAnchorTypography(report);
+      // First, try to inject anchors around biomarkers that AI mentioned by name
+      // but forgot to wrap in anchor markers (the most common failure mode).
+      normalized = injectMissingBiomarkerAnchors(normalized, biomarkers);
+
       const anchoredNormalizedCodes = new Set<string>();
       const anchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
       for (const match of normalized.matchAll(anchorRegex)) {

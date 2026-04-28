@@ -221,6 +221,29 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     );
   };
 
+  // Loose leading paragraph: "Имя <опц.доп.слова или (любая аббр)> Заглавная..."
+  // Срабатывает когда AI забыл якорь и латинский (CODE), но всё-таки начал
+  // абзац с имени биомаркера, после которого идёт пробел и сразу новое
+  // предложение (Заглавная буква). Это формат самой частой ошибки модели:
+  //   "Общий холестерин Этот показатель отражает..."
+  //   "Липопротеины очень низкой плотности (ЛПОНП) Эти частицы..."
+  //   "Триглицериды Это основной вид жиров..."
+  // Защиты от ложных срабатываний:
+  //   • строка должна начинаться с имени (^), не быть заголовком/буллетом;
+  //   • перед заглавной — пробел (имя кончилось);
+  //   • опционально допускается ОДНА пара скобок сразу после имени с любой
+  //     аббревиатурой внутри (русская/латинская — нам всё равно, мы привязываем
+  //     к коду через nameToCode);
+  //   • после имени должно идти именно начало предложения — заглавная буква
+  //     или число, иначе совпадение игнорируется.
+  const buildLooseLeadingBiomarkerRegex = (name: string) => {
+    const escapedName = escapeRegex(name);
+    return new RegExp(
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapedName})(?:\\s*\\([^()\\n]{1,30}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\\n]+$`,
+      'gm'
+    );
+  };
+
   // Pass 0: Plain-text biomarker lines — "Название" or exact "Название (КОД)" at the
   // start of a line/paragraph. Two-step strategy:
   //   1) Collect ALL candidate matches across all biomarkers in a SINGLE scan, so we
@@ -241,13 +264,13 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     const nameEntries = Object.entries(nameToCode)
       .sort((a, b) => b[0].length - a[0].length); // longer names first → wins on overlap
 
-    type Hit = { start: number; end: number; code: string; nameLen: number };
+    type Hit = { start: number; end: number; code: string; nameLen: number; loose: boolean };
     const hits: Hit[] = [];
 
     for (const [name, code] of nameEntries) {
       if (hasBiomarkerAnchor(result, code)) continue;
 
-      const collect = (re: RegExp) => {
+      const collect = (re: RegExp, loose: boolean) => {
         re.lastIndex = 0;
         let m: RegExpExecArray | null;
         while ((m = re.exec(result)) !== null) {
@@ -256,13 +279,15 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
             end: m.index! + m[0].length,
             code,
             nameLen: name.length,
+            loose,
           });
           if (m[0].length === 0) re.lastIndex++; // safety
         }
       };
 
-      collect(buildStandaloneBiomarkerLineRegex(name, code));
-      collect(buildLeadingBiomarkerParagraphRegex(name, code));
+      collect(buildStandaloneBiomarkerLineRegex(name, code), false);
+      collect(buildLeadingBiomarkerParagraphRegex(name, code), false);
+      collect(buildLooseLeadingBiomarkerRegex(name), true);
     }
 
     if (hits.length > 0) {
@@ -277,12 +302,24 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       const summaryMatch = summaryBoundaryRegex.exec(result);
       const summaryStart = summaryMatch ? summaryMatch.index! : result.length;
 
+      // Detect the "Интерпретация биомаркеров" header — loose-хиты (имя без
+      // кода) до этой границы безопаснее игнорировать: AI часто упоминает
+      // биомаркер во вступительном тексте раздела ("Холестерин — это
+      // жизненно важное вещество..."), и такая строка не должна превращаться
+      // в карточку, иначе она поглотит весь intro. Strict-хиты (со скобками
+      // или standalone-строка) обрабатываются как раньше.
+      const interpretationBoundaryRegex =
+        /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im;
+      const interpretationMatch = interpretationBoundaryRegex.exec(result);
+      const interpretationStart = interpretationMatch ? interpretationMatch.index! : 0;
+
       // Drop overlapping hits and duplicates per code (keep the first occurrence).
       const seenCodes = new Set<string>();
       const filtered: Hit[] = [];
       let lastEnd = -1;
       for (const h of hits) {
         if (h.start >= summaryStart) continue; // hit внутри summary секции
+        if (h.loose && interpretationStart > 0 && h.start < interpretationStart) continue;
         if (h.start < lastEnd) continue; // overlaps a previous hit
         if (seenCodes.has(h.code)) continue;
         filtered.push(h);
@@ -402,7 +439,7 @@ function stripLeadingBiomarkerName(content: string, code: string, biomarkerNames
 
   const codeHeadingRe = new RegExp(`^[\\s•\\-*]*\\*{0,2}[^(\\n]*\\(${escapedCode}\\)\\*{0,2}\\s*[—–\\-:]?\\s*`, '');
   const nameHeadingRe = namePattern
-    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\(${escapedCode}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
+    ? new RegExp(`^[\\s•\\-*]*\\*{0,2}(?:${namePattern})(?:\\s*\\([^()\\n]{1,40}\\))?\\*{0,2}\\s*[—–\\-:]?\\s*`, '')
     : null;
 
   const cleaned = content
