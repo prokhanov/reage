@@ -18,7 +18,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  let body: { analysisId?: string; mode?: unknown; background?: boolean } = {};
+  let body: { analysisId?: string; mode?: unknown; background?: boolean; phase?: "summary" | "bioage" | "all" } = {};
   try {
     body = await req.json();
   } catch {
@@ -36,42 +36,16 @@ serve(async (req) => {
   }
 
   const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
+  const phase: "summary" | "bioage" | "all" =
+    body.phase === "summary" || body.phase === "bioage" ? body.phase : "all";
 
-  // Принимаем сразу 202 и выполняем фоновую работу через EdgeRuntime.waitUntil.
-  if (!body.background) {
-    const analysisId = body.analysisId!;
-    const runPromise = finalize({ analysisId, mode })
-      .then(async (response) => {
-        try {
-          const text = await response.text();
-          console.log(
-            `finalize-analysis background finished: status=${response.status}, body=${text.slice(0, 500)}`,
-          );
-        } catch (err) {
-          console.error("finalize-analysis: failed to read background response body", err);
-        }
-      })
-      .catch((error) => console.error("finalize-analysis background failed:", error));
-
-    const edgeRuntime = globalThis as typeof globalThis & {
-      EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void };
-    };
-    if (edgeRuntime.EdgeRuntime?.waitUntil) {
-      edgeRuntime.EdgeRuntime.waitUntil(runPromise);
-    } else {
-      void runPromise;
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, accepted: true, analysisId, mode }),
-      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
-  }
-
-  return finalize({ analysisId: body.analysisId, mode });
+  return finalize({ analysisId: body.analysisId, mode, phase });
 });
 
-async function finalize({ analysisId, mode }: { analysisId: string; mode: "standard" | "deep" }) {
+async function finalize({ analysisId, mode, phase }: { analysisId: string; mode: "standard" | "deep"; phase: "summary" | "bioage" | "all" }) {
+  const doSummary = phase === "summary" || phase === "all";
+  const doBioAge = phase === "bioage" || phase === "all";
+  console.log(`finalize-analysis phase=${phase} doSummary=${doSummary} doBioAge=${doBioAge}`);
   try {
     const aiProfile = mode === "deep"
       ? {
@@ -229,6 +203,8 @@ ${symptomsText}
 
     // ===== 4. ОБЩЕЕ РЕЗЮМЕ =====
     let summaryReport = "";
+    let summaryRecommendationId: string | null = null;
+    if (doSummary) {
     try {
       const allReportsText = Object.entries(categoryReports)
         .map(([cat, report]) => `=== ${cat} ===\n${(report as string).substring(0, 8000)}`)
@@ -280,7 +256,6 @@ ${symptomsText}
     // CASCADE, и удаление старой записи «Общее резюме» каскадно сносит все
     // ранее сгенерированные нутрицевтики этого анализа. Используем UPDATE
     // существующей записи, либо INSERT, если её ещё нет.
-    let summaryRecommendationId: string | null = null;
     if (summaryReport) {
       const { data: existing } = await supabase
         .from("recommendations")
@@ -603,12 +578,14 @@ ${symptomsText}
     } catch (e: any) {
       console.error("Snapshot error (non-fatal):", e.message);
     }
+    } // end if (doSummary)
 
     // ===== 6. BIOLOGICAL AGE + HEALTH INDEX =====
     let health_index: number | null = null;
     let biological_age: number | null = null;
     let biomarkers_metadata: any = null;
 
+    if (doBioAge) {
     // Композитные биомаркеры (окно 4 месяца)
     const compositeBiomarkers = buildCompositeBiomarkers(analysis, previousAnalyses || [], 4);
     const totalValues = compositeBiomarkers.values.length;
@@ -819,18 +796,22 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
         };
       }
     }
+    } // end if (doBioAge)
 
     // ===== 7. Сохраняем результаты =====
-    await supabase
-      .from("analyses")
-      .update({ health_index, biological_age, biomarkers_metadata })
-      .eq("id", analysisId);
+    if (doBioAge) {
+      await supabase
+        .from("analyses")
+        .update({ health_index, biological_age, biomarkers_metadata })
+        .eq("id", analysisId);
+    }
 
-    console.log(`finalize-analysis done. tokens=${totalTokens}`);
+    console.log(`finalize-analysis phase=${phase} done. tokens=${totalTokens}`);
 
     return new Response(
       JSON.stringify({
         success: true,
+        phase,
         health_index,
         biological_age,
         total_tokens: totalTokens,
