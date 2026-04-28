@@ -288,19 +288,31 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       };
 
       // Inject from last to first to keep earlier indices stable.
+      //
+      // Two layouts of biomarker blocks the AI uses interchangeably:
+      //   (a) Title on its own line, then a multi-paragraph description below.
+      //       Block content = paragraphs between cur.end and the next hit / summary.
+      //   (b) Inline single paragraph: "Имя (CODE) Описание ... значение ... вывод."
+      //       Block content = the paragraph itself (cur.start..cur.end).
+      //
+      // We always wrap the block from `cur.start` (open tag here) to
+      // `Math.max(cur.end, next.start)`. The opening tag we put BEFORE cur.start
+      // so the title stays inside the block (then `stripLeadingBiomarkerName`
+      // removes the duplicated "Имя (CODE)" prefix at render time).
       for (let i = filtered.length - 1; i >= 0; i--) {
         const cur = filtered[i];
         const next = filtered[i + 1];
-        const sectionEnd = next ? next.start : findNextHeaderAfter(cur.end);
+        const nextBoundary = next ? next.start : findNextHeaderAfter(cur.end);
+        const blockEnd = Math.max(cur.end, nextBoundary);
 
         result =
-          result.slice(0, sectionEnd) +
+          result.slice(0, blockEnd) +
           `\n<!-- anchor:biomarker_end -->\n` +
-          result.slice(sectionEnd);
+          result.slice(blockEnd);
         result =
           result.slice(0, cur.start) +
           `<!-- anchor:biomarker ${cur.code} -->\n` +
-          result.slice(cur.end);
+          result.slice(cur.start);
       }
     }
   }
