@@ -455,16 +455,30 @@ ${symptomsText}
             const intro = stripMisc(raw.slice(0, anchors[0].start));
             if (intro) blocks.push({ type: "text", content: intro });
 
-            // Каждый сегмент: от end текущего якоря до start следующего.
+            // Каждый сегмент: от end текущего biomarker-якоря до:
+            //   1) ближайшего `<!-- anchor:biomarker_end -->` (приоритет), либо
+            //   2) start следующего biomarker-якоря, либо
+            //   3) конца текста.
+            // Текст после biomarker_end (но до следующего biomarker-якоря) —
+            // это «нарративный мост» категории, кладём его отдельным text-блоком,
+            // чтобы он не «протёк» в карточку биомаркера.
             for (let i = 0; i < anchors.length; i++) {
               const a = anchors[i];
-              const segEnd = i + 1 < anchors.length ? anchors[i + 1].start : raw.length;
-              let segment = raw.slice(a.end, segEnd);
+              const nextStart = i + 1 < anchors.length ? anchors[i + 1].start : raw.length;
+              const region = raw.slice(a.end, nextStart);
+
+              const endMatch = region.match(BIO_END_RE);
+              const commentaryRaw = endMatch
+                ? region.slice(0, endMatch.index)
+                : region;
+              const tailRaw = endMatch
+                ? region.slice((endMatch.index || 0) + endMatch[0].length)
+                : "";
 
               // Убираем первую строку-заголовок (имя биомаркера) — оно
               // дублирует название в карточке.
-              segment = segment.replace(/^\s*\n*[^\n]+\n+/, "");
-              const commentary = stripMisc(segment);
+              const cleanedSegment = commentaryRaw.replace(/^\s*\n*[^\n]+\n+/, "");
+              const commentary = stripMisc(cleanedSegment);
 
               const matched =
                 markerByKey.get(a.code.toUpperCase()) ||
@@ -478,9 +492,14 @@ ${symptomsText}
                   commentary,
                 });
               } else if (commentary) {
-                // Якорь есть, но биомаркер не найден — оставим текст,
-                // чтобы интерпретация не потерялась.
                 blocks.push({ type: "text", content: commentary });
+              }
+
+              // Хвост между biomarker_end и следующим biomarker-якорем —
+              // нарративный «мост» категории.
+              const tail = stripMisc(tailRaw);
+              if (tail) {
+                blocks.push({ type: "text", content: tail });
               }
             }
           }
