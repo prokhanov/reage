@@ -5,6 +5,7 @@
  *   - src/pages/Prescriptions.tsx (раздел «Рекомендации» в меню)
  *   - src/pages/Recommendations.tsx (модалка отчёта)
  */
+import { Activity, Moon, Stethoscope, Utensils } from "lucide-react";
 
 export interface LifestyleData {
   nutrition?: string[];
@@ -92,7 +93,8 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             {hasNutrition && (
               <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
                 <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-                  <span>🥗</span> Питание
+                  <Utensils className="h-4 w-4 text-primary" />
+                  Питание
                 </h3>
                 <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
                   {ls.nutrition!.map((item, i) => (
@@ -104,7 +106,8 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             {hasActivity && (
               <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
                 <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-                  <span>🏃</span> Физическая активность
+                  <Activity className="h-4 w-4 text-primary" />
+                  Физическая активность
                 </h3>
                 <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
                   {ls.activity!.map((item, i) => (
@@ -116,7 +119,8 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             {hasSleep && (
               <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
                 <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-                  <span>😴</span> Сон и режим
+                  <Moon className="h-4 w-4 text-primary" />
+                  Сон и режим
                 </h3>
                 <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
                   {ls.sleep!.map((item, i) => (
@@ -144,7 +148,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
                 className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-5"
               >
                 <div className="flex items-start gap-3">
-                  <span className="text-primary mt-0.5">🩺</span>
+                  <Stethoscope className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="flex-1 space-y-1">
                     <p className="font-semibold text-foreground">
                       {f.specialist || "Специалист"}
