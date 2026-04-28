@@ -203,6 +203,8 @@ ${symptomsText}
 
     // ===== 4. ОБЩЕЕ РЕЗЮМЕ =====
     let summaryReport = "";
+    let summaryRecommendationId: string | null = null;
+    if (doSummary) {
     try {
       const allReportsText = Object.entries(categoryReports)
         .map(([cat, report]) => `=== ${cat} ===\n${(report as string).substring(0, 8000)}`)
