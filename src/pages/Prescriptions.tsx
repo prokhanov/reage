@@ -242,60 +242,19 @@ export default function Prescriptions() {
     return <Badge variant="secondary" className="text-xs">На проверке</Badge>;
   };
 
+  // Карточки нутрицевтиков рендерим через единый компонент
+  // PrescriptionCard (тот же используется в модалке отчёта).
+  // Метаданные (статус/дата создания, кнопки edit/delete) добавляем
+  // обёрткой ниже, поскольку они нужны только в админке.
   const PrescriptionTable = ({ prescriptions }: { prescriptions: Prescription[] }) => (
     <div className="space-y-4">
       {prescriptions.map((prescription) => (
-        <div 
-          key={prescription.id} 
-          className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 space-y-4 hover:border-primary/30 transition-colors"
-        >
-          {/* Назначение */}
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold leading-relaxed text-primary">
-              {prescription.name || prescription.prescription}
-            </h3>
-
-            {prescription.form && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground">Форма:</span> {prescription.form}
-              </p>
-            )}
-
-            {prescription.dosage && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground">Дозировка:</span> {prescription.dosage}
-              </p>
-            )}
-
-            {prescription.how_to_take && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground">Как принимать:</span> {prescription.how_to_take}
-              </p>
-            )}
-
-            {prescription.duration && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="font-medium text-foreground">Длительность:</span> {prescription.duration}
-              </p>
-            )}
-
-            {prescription.reason && (
-              <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mt-2">
-                <p className="text-sm text-foreground leading-relaxed">
-                  <span className="font-medium">Причина:</span> {prescription.reason}
-                </p>
-              </div>
-            )}
-
-            {prescription.effect && (
-              <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                <span className="font-medium text-foreground">На что это влияет:</span> {prescription.effect}
-              </p>
-            )}
-          </div>
-
-          {/* Метаданные и действия */}
-          <div className="flex items-center justify-between pt-4 border-t border-border/30">
+        <div key={prescription.id} className="space-y-0">
+          <PrescriptionCard
+            prescription={prescription}
+            showStatus={false /* статус ниже как часть метаданных */}
+          />
+          <div className="flex items-center justify-between pt-4 px-6 pb-4 border-t border-border/30 -mt-4 rounded-b-lg border border-border/50 bg-card/50 backdrop-blur border-t-0">
             <div className="flex items-center gap-6 flex-wrap">
               {hasPatientAccess && (
                 <div className="flex items-center gap-2">
@@ -303,7 +262,6 @@ export default function Prescriptions() {
                   {getStatusBadge(prescription.status)}
                 </div>
               )}
-              
 
               {prescription.created_at && !isNaN(new Date(prescription.created_at).getTime()) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -341,106 +299,14 @@ export default function Prescriptions() {
     </div>
   );
 
-  const AdvisorySections = () => {
+  // Локальный wrapper над общим AdvisorySections, чтобы пробросить данные.
+  const AdvisorySectionsWrapper = () => {
     if (!advisory) return null;
-
-    const ls = advisory.lifestyle || {};
-    const hasNutrition = (ls.nutrition?.length || 0) > 0;
-    const hasActivity = (ls.activity?.length || 0) > 0;
-    const hasSleep = (ls.sleep?.length || 0) > 0;
-    const hasLifestyle = hasNutrition || hasActivity || hasSleep;
-    const hasFollowUps = (advisory.followUps?.length || 0) > 0;
-    if (!hasLifestyle && !hasFollowUps) return null;
-
     return (
-      <div className="space-y-8">
-        {hasLifestyle && (
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                Питание и коррекция образа жизни
-              </h2>
-              <div className="h-1 w-20 bg-gradient-primary rounded-full" />
-            </div>
-            <div className="space-y-4">
-              {hasNutrition && (
-                <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
-                  <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-                    <span>🥗</span> Питание
-                  </h3>
-                  <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
-                    {ls.nutrition!.map((item, i) => (
-                      <li key={`nut-${i}`}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {hasActivity && (
-                <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
-                  <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-                    <span>🏃</span> Физическая активность
-                  </h3>
-                  <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
-                    {ls.activity!.map((item, i) => (
-                      <li key={`act-${i}`}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {hasSleep && (
-                <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6">
-                  <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-                    <span>😴</span> Сон и режим
-                  </h3>
-                  <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
-                    {ls.sleep!.map((item, i) => (
-                      <li key={`slp-${i}`}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {hasFollowUps && (
-          <section className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                Дополнительные консультации и обследования
-              </h2>
-              <div className="h-1 w-20 bg-gradient-primary rounded-full" />
-            </div>
-            <div className="space-y-3">
-              {advisory.followUps.map((f, i) => (
-                <div
-                  key={`fu-${i}`}
-                  className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-5"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-primary mt-0.5">🩺</span>
-                    <div className="flex-1 space-y-1">
-                      <p className="font-semibold text-foreground">
-                        {f.specialist || "Специалист"}
-                      </p>
-                      {f.goal && (
-                        <p className="text-sm text-foreground leading-relaxed">
-                          <span className="font-medium">Цель:</span> {f.goal}
-                        </p>
-                      )}
-                      {f.trigger && (
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          <span className="font-medium">Основание:</span> {f.trigger}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+      <AdvisorySections
+        lifestyle={advisory.lifestyle}
+        followUps={advisory.followUps}
+      />
     );
   };
 
