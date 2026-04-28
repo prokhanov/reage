@@ -301,12 +301,24 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       const summaryMatch = summaryBoundaryRegex.exec(result);
       const summaryStart = summaryMatch ? summaryMatch.index! : result.length;
 
+      // Detect the "Интерпретация биомаркеров" header — loose-хиты (имя без
+      // кода) до этой границы безопаснее игнорировать: AI часто упоминает
+      // биомаркер во вступительном тексте раздела ("Холестерин — это
+      // жизненно важное вещество..."), и такая строка не должна превращаться
+      // в карточку, иначе она поглотит весь intro. Strict-хиты (со скобками
+      // или standalone-строка) обрабатываются как раньше.
+      const interpretationBoundaryRegex =
+        /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im;
+      const interpretationMatch = interpretationBoundaryRegex.exec(result);
+      const interpretationStart = interpretationMatch ? interpretationMatch.index! : 0;
+
       // Drop overlapping hits and duplicates per code (keep the first occurrence).
       const seenCodes = new Set<string>();
       const filtered: Hit[] = [];
       let lastEnd = -1;
       for (const h of hits) {
         if (h.start >= summaryStart) continue; // hit внутри summary секции
+        if (h.loose && interpretationStart > 0 && h.start < interpretationStart) continue;
         if (h.start < lastEnd) continue; // overlaps a previous hit
         if (seenCodes.has(h.code)) continue;
         filtered.push(h);
