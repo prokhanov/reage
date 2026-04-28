@@ -65,6 +65,16 @@ function normalizeSnapshotBlocks(blocks: ReportSnapshot["blocks"], byId: Map<str
   });
 }
 
+function buildFallbackCommentary(bm: PdfBiomarkerData): string {
+  const range = bm.rangeDisplay ? ` Ориентир целевого диапазона: ${bm.rangeDisplay} ${bm.unit}.` : "";
+  const description = bm.biomarker?.description ? ` ${bm.biomarker.description}` : "";
+
+  return [
+    `${bm.name} (${bm.code}) — показатель системы «${bm.category}». Ваш результат: ${bm.value} ${bm.unit}; текущая оценка по шкале — ${bm.statusLabel.toLowerCase()}.${range}`,
+    description || `Этот показатель необходимо оценивать не изолированно, а вместе с соседними маркерами этой системы и общей клинической картиной.`,
+  ].join("\n\n");
+}
+
 // ─── Web styles ────────────────────────────────────────────────────────────
 
 const statusColorMap: Record<string, string> = {
@@ -139,10 +149,8 @@ function renderBlockWeb(
 
     case "biomarker": {
       const bm = byId.get(block.biomarker_id);
-      const trimmedCommentary = (block.commentary || "").trim();
-        // Пустые карточки биомаркеров без интерпретации не показываем:
-        // они выглядят как «показатель без объяснения» и ломают структуру отчёта.
-        if (!bm || !trimmedCommentary) return null;
+      if (!bm) return null;
+      const trimmedCommentary = (block.commentary || "").trim() || buildFallbackCommentary(bm);
 
       return (
         <div
@@ -262,10 +270,8 @@ export function buildSnapshotPdf(
 
       case "biomarker": {
         const bm = byId.get(block.biomarker_id);
-        const trimmedCommentary = (block.commentary || "").trim();
-        // Не рендерим пустые маркеры: шкала без текста в PDF воспринимается как
-        // оборванный/непонятный показатель и не соответствует требованиям отчёта.
-        if (!bm || !trimmedCommentary) break;
+        if (!bm) break;
+        const trimmedCommentary = (block.commentary || "").trim() || buildFallbackCommentary(bm);
 
         const cardStack: any[] = [];
 
