@@ -110,8 +110,9 @@ function renderBlockWeb(
     case "biomarker": {
       const bm = byId.get(block.biomarker_id);
       const trimmedCommentary = (block.commentary || "").trim();
-      // Без метаданных и без комментария — нечего показывать.
-      if (!bm && !trimmedCommentary) return null;
+        // Пустые карточки биомаркеров без интерпретации не показываем:
+        // они выглядят как «показатель без объяснения» и ломают структуру отчёта.
+        if (!trimmedCommentary) return null;
 
       return (
         <div
@@ -231,7 +232,9 @@ export function buildSnapshotPdf(
       case "biomarker": {
         const bm = byId.get(block.biomarker_id);
         const trimmedCommentary = (block.commentary || "").trim();
-        if (!bm && !trimmedCommentary) break;
+        // Не рендерим пустые маркеры: шкала без текста в PDF воспринимается как
+        // оборванный/непонятный показатель и не соответствует требованиям отчёта.
+        if (!trimmedCommentary) break;
 
         const cardStack: any[] = [];
 
