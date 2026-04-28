@@ -502,11 +502,25 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     } catch (error: any) {
       pollingStopped = true;
       clearInterval(pollInterval);
-      toast({
-        title: "Ошибка анализа",
-        description: error.message || "Не удалось выполнить AI-анализ",
-        variant: "destructive",
-      });
+      // Спецслучай: клиентский поллинг истёк, но фоновая задача почти всегда дописывается.
+      if (error?.message === "accepted_background") {
+        toast({
+          title: "Отчёт ещё формируется",
+          description: "Можно закрыть страницу — мы откроем готовый отчёт автоматически, как только он будет готов.",
+        });
+        waitForAnalysisCompletion(id!, 5 * 60 * 1000, 5000, { startedAt: generationStartedAt }).then((ok) => {
+          if (ok) {
+            toast({ title: "Отчёт готов", description: "Глубокий анализ завершён." });
+            loadData();
+          }
+        });
+      } else {
+        toast({
+          title: "Ошибка анализа",
+          description: error.message || "Не удалось выполнить AI-анализ",
+          variant: "destructive",
+        });
+      }
     } finally {
       setAnalyzing(false);
     }
