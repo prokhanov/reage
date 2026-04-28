@@ -42,6 +42,7 @@ import { parseReportSnapshot, type ReportSnapshot } from "@/lib/reportSnapshot";
 import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
+import { buildPrescriptionsPdf } from "@/lib/pdfPrescriptions";
 
 interface Recommendation {
   id: string;
@@ -582,82 +583,22 @@ export default function Recommendations() {
           const hasFu = followUpsPdf.length > 0;
           if (prescriptions.length === 0 && !hasLs && !hasFu) return [];
 
-          const parts: string[] = [];
-
-          if (prescriptions.length > 0) {
-            parts.push("**Нутрицевтики**");
-            parts.push(
-              prescriptions
-                .map((p, idx) => {
-                  const dur = (() => {
-                    if (!selectedReport.date || !p.control_date) return "—";
-                    const start = new Date(selectedReport.date);
-                    const end = new Date(p.control_date);
-                    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
-                    const months = Math.round(
-                      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30),
-                    );
-                    return `${months} мес.`;
-                  })();
-                  const ctrl =
-                    p.control_date && !isNaN(new Date(p.control_date).getTime())
-                      ? format(new Date(p.control_date), "dd.MM.yyyy")
-                      : "—";
-                  const title = p.name || p.prescription;
-                  const lines: string[] = [`**${idx + 1}. ${title}**`];
-                  if (p.form) lines.push(`Форма: ${p.form}`);
-                  if (p.dosage) lines.push(`Дозировка: ${p.dosage}`);
-                  if (p.how_to_take) lines.push(`Как принимать: ${p.how_to_take}`);
-                  if (p.duration) lines.push(`Длительность: ${p.duration}`);
-                  if (p.reason) lines.push(`Причина: ${p.reason}`);
-                  if (p.effect) lines.push(`*${p.effect}*`);
-                  lines.push(`Контроль через: ${dur}, Контрольная дата: ${ctrl}`);
-                  return lines.join("\n\n");
-                })
-                .join("\n\n---\n\n"),
-            );
-          }
-
-          if (hasLs) {
-            parts.push("**Питание и коррекция образа жизни**");
-            if ((lifestylePdf.nutrition?.length || 0) > 0) {
-              parts.push(
-                "**Питание:**\n" +
-                  lifestylePdf.nutrition!.map((b) => `• ${b}`).join("\n"),
-              );
-            }
-            if ((lifestylePdf.activity?.length || 0) > 0) {
-              parts.push(
-                "**Физическая активность:**\n" +
-                  lifestylePdf.activity!.map((b) => `• ${b}`).join("\n"),
-              );
-            }
-            if ((lifestylePdf.sleep?.length || 0) > 0) {
-              parts.push(
-                "**Сон и режим:**\n" +
-                  lifestylePdf.sleep!.map((b) => `• ${b}`).join("\n"),
-              );
-            }
-          }
-
-          if (hasFu) {
-            parts.push("**Дополнительные консультации и обследования**");
-            parts.push(
-              followUpsPdf
-                .map(
-                  (f) =>
-                    `• **${f.specialist || ""}** — ${f.goal || ""}${f.trigger ? ` _(основание: ${f.trigger})_` : ""}`,
-                )
-                .join("\n"),
-            );
-          }
-
+          // Передаём СТРУКТУРИРОВАННЫЕ данные дальше — рендер «Назначений»
+          // в PDF полностью повторяет визуал PrescriptionCard + AdvisorySections
+          // через buildPrescriptionsPdf (см. src/lib/pdfPrescriptions.ts).
+          // Раньше тут собирался markdown, из-за чего колонки/блоки в PDF
+          // выглядели иначе, чем в личном кабинете.
           return [
             {
               id: "prescriptions",
               type: "prescriptions" as SectionType,
               label: "Назначения",
-              content: parts.join("\n\n"),
+              content: "",
+              prescriptionsData: {
+                prescriptions,
+                lifestyle: lifestylePdf,
+                followUps: followUpsPdf,
+              },
             },
           ];
         })()),
@@ -670,6 +611,10 @@ export default function Recommendations() {
         // Snapshot-based body (UUID-binding) — single source of truth.
         if (section.type === 'snapshot' && snapshot) {
           return buildSnapshotPdf(snapshot, pdfBiomarkers, barWidth, pdfAge, pdfGender);
+        }
+        // Структурированные «Назначения» — карточки 1:1 с личным кабинетом.
+        if (section.type === 'prescriptions' && (section as any).prescriptionsData) {
+          return buildPrescriptionsPdf((section as any).prescriptionsData);
         }
         // Legacy per-category body (anchor parsing fallback for old reports).
         const isCategory = section.type !== 'patient-data' && section.type !== 'summary' && section.type !== 'prescriptions' && section.type !== 'snapshot';
