@@ -542,6 +542,29 @@ export default function Recommendations() {
         : null;
       const snapshot: ReportSnapshot | null =
         snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+      const snapshotSections = snapshot
+        ? snapshot.blocks.reduce((acc, block) => {
+            if (block.type === 'section') {
+              acc.push({
+                id: `snapshot-${acc.length}`,
+                type: 'snapshot-section' as SectionType,
+                label: block.title,
+                blocks: [] as ReportSnapshot['blocks'],
+              });
+              return acc;
+            }
+            if (acc.length === 0) {
+              acc.push({
+                id: 'snapshot-0',
+                type: 'snapshot-section' as SectionType,
+                label: 'Анализ здоровья',
+                blocks: [] as ReportSnapshot['blocks'],
+              });
+            }
+            acc[acc.length - 1].blocks.push(block);
+            return acc;
+          }, [] as Array<{ id: string; type: SectionType; label: string; blocks: ReportSnapshot['blocks'] }>)
+        : [];
 
       // Build sections
       const sections = [
@@ -552,12 +575,10 @@ export default function Recommendations() {
           content: patientData.text 
         }] : []),
         ...(snapshot
-          ? [{
-              id: 'snapshot',
-              type: 'snapshot' as SectionType,
-              label: 'Анализ здоровья',
-              content: '', // rendered from snapshot, не из markdown
-            }]
+          ? snapshotSections.map((section) => ({
+              ...section,
+              content: '', // rendered from snapshot blocks, не из markdown
+            }))
           : [
               ...(summary ? [{ 
                 id: 'summary', 
