@@ -216,8 +216,9 @@ export function buildSnapshotPdf(
 ): any[] {
   const byId = indexById(biomarkers);
   const out: any[] = [];
+  const blocks = normalizeSnapshotBlocks(snapshot.blocks, byId);
 
-  for (const block of snapshot.blocks) {
+  for (const block of blocks) {
     switch (block.type) {
       case "text": {
         if (block.content) {
