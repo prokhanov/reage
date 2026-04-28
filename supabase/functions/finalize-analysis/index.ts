@@ -396,6 +396,10 @@ ${symptomsText}
         .replace(/δ/g, "d")
         .replace(/μ/g, "u")
         .replace(/[\s\-_+()]/g, "");
+      const buildFallbackCommentary = (m: any) => {
+        const value = `${m.value} ${m.unit || ""}`.trim();
+        return `${m.name} (${m.code}) — показатель системы «${m.category}». Ваш результат: ${value}. Этот маркер включён в отчёт, потому что по нему есть заполненное лабораторное значение. Оценивайте его вместе с соседними показателями этой системы и общей клинической картиной.`;
+      };
       // Доп. «жёсткие границы» — если AI забыл biomarker_end, не даём
       // интерпретации последнего биомаркера утечь в блоки strengths/pagebreak
       // или в заголовок «Общая оценка».
@@ -511,8 +515,20 @@ ${symptomsText}
           }
         }
 
-        // Не добавляем «остаточные» биомаркеры пустыми карточками.
-        // Если AI не дал интерпретацию, в PDF не должно быть шкал без текста.
+        // Каждый заполненный биомаркер обязан быть отражён в отчёте. Если AI
+        // не дал отдельный текстовый блок, добавляем безопасную fallback-
+        // интерпретацию вместо пустой шкалы.
+        const leftover = markers.filter((m: any) => !usedIds.has(m.biomarker_id));
+        if (leftover.length > 0) {
+          blocks.push({ type: "spacer", size: "small" });
+          for (const m of leftover) {
+            blocks.push({
+              type: "biomarker",
+              biomarker_id: m.biomarker_id,
+              commentary: buildFallbackCommentary(m),
+            });
+          }
+        }
         blocks.push({ type: "spacer", size: "medium" });
       }
 
