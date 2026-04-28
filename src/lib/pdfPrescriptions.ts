@@ -14,7 +14,7 @@
  *   - follow_ups[]      → блоки доп. консультаций
  */
 import type { PrescriptionCardData } from "@/components/prescriptions/PrescriptionCard";
-import type { LifestyleData, FollowUpData } from "@/components/prescriptions/AdvisorySections";
+import { sanitizeLifestyle, type LifestyleData, type FollowUpData } from "@/components/prescriptions/AdvisorySections";
 
 const COLOR = {
   text: "#1F2937",
@@ -208,7 +208,7 @@ export function buildPrescriptionsPdf(
   input: BuildPrescriptionsPdfInput,
 ): any[] {
   const { prescriptions, lifestyle, followUps } = input;
-  const ls = lifestyle || {};
+  const ls = sanitizeLifestyle(lifestyle);
   const hasNutrition = (ls.nutrition?.length || 0) > 0;
   const hasActivity = (ls.activity?.length || 0) > 0;
   const hasSleep = (ls.sleep?.length || 0) > 0;
