@@ -54,34 +54,11 @@ serve(async (req) => {
     body.skipFinalize === true ||
     body.skipDelete === true;
 
-  // Старый deep-режим без фильтра: оставляем background-схему для обратной совместимости.
+  // Старый direct deep-вызов без фильтра больше НЕ выполняем через background-схему:
+  // она могла стереть финальные разделы и оставить отчёт без «Назначений»/«Общего резюме».
+  // Для обратной совместимости со старыми клиентами безопасно делегируем запуск orchestrator-у.
   if (mode === "deep" && !body.background && !isStepRequest) {
-    const analysisId = body.analysisId!;
-    const runPromise = processAnalysis({ analysisId, rawMode: mode })
-      .then(async (response) => {
-        try {
-          const text = await response.text();
-          console.log(`Deep analysis background finished: status=${response.status}, body=${text.slice(0, 500)}`);
-        } catch (err) {
-          console.error("Deep analysis: failed to read background response body", err);
-        }
-      })
-      .catch((error) => console.error("Deep analysis background failed:", error));
-
-    const edgeRuntime = globalThis as typeof globalThis & {
-      EdgeRuntime?: { waitUntil: (promise: Promise<unknown>) => void };
-    };
-
-    if (edgeRuntime.EdgeRuntime?.waitUntil) {
-      edgeRuntime.EdgeRuntime.waitUntil(runPromise);
-    } else {
-      void runPromise;
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, accepted: true, mode, analysisId }),
-      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return startDeepViaOrchestrator(body.analysisId!);
   }
 
   // Step-режим (под управлением orchestrator) или standard — выполняем синхронно и возвращаем результат.
@@ -95,6 +72,56 @@ serve(async (req) => {
     skipDelete: body.skipDelete,
   });
 });
+
+async function startDeepViaOrchestrator(analysisId: string) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceKey) {
+    return new Response(JSON.stringify({ success: false, error: "Не настроены переменные окружения" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const supabase = createClient(supabaseUrl, serviceKey);
+  const { data: analysis, error } = await supabase
+    .from("analyses")
+    .select("user_id")
+    .eq("id", analysisId)
+    .single();
+
+  if (error || !analysis?.user_id) {
+    return new Response(JSON.stringify({ success: false, error: "Анализ не найден" }), {
+      status: 404,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const resp = await fetch(`${supabaseUrl}/functions/v1/report-orchestrator`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${serviceKey}`,
+      apikey: serviceKey,
+    },
+    body: JSON.stringify({ action: "start", analysisId, userId: analysis.user_id, mode: "deep" }),
+  });
+  const text = await resp.text();
+  let parsed: any = null;
+  try { parsed = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+
+  return new Response(
+    JSON.stringify({
+      success: resp.ok && parsed?.success === true,
+      accepted: resp.ok && parsed?.success === true,
+      mode: "deep",
+      analysisId,
+      jobId: parsed?.jobId,
+      error: parsed?.error,
+    }),
+    { status: resp.ok ? 202 : resp.status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
+}
 
 async function processAnalysis({
   analysisId,
