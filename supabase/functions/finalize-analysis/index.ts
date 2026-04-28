@@ -412,6 +412,10 @@ ${symptomsText}
       // конца) попадает в обычный нарративный text-блок категории.
       const BIO_ANCHOR_RE = /<!--\s*anchor:biomarker\s+([^\s>]+?)\s*-->/g;
       const BIO_END_RE = /<!--\s*anchor:biomarker_end\s*-->/;
+      // Доп. «жёсткие границы» — если AI забыл biomarker_end, не даём
+      // интерпретации последнего биомаркера утечь в блоки strengths/pagebreak
+      // или в заголовок «Общая оценка».
+      const HARD_STOP_RE = /<!--\s*anchor:(?:strengths_start|strengths_end|pagebreak|intro_start|intro_end)\s*-->|^\s*#{1,6}\s*Общая оценка/im;
 
       for (const cat of orderedCategories) {
         const emoji = categoryEmoji[cat];
@@ -468,11 +472,27 @@ ${symptomsText}
               const region = raw.slice(a.end, nextStart);
 
               const endMatch = region.match(BIO_END_RE);
-              const commentaryRaw = endMatch
-                ? region.slice(0, endMatch.index)
+              const hardStopMatch = region.match(HARD_STOP_RE);
+              // Берём наименьший индекс из biomarker_end и hard-stop границ.
+              let cutIndex: number | null = null;
+              let cutLength = 0;
+              if (endMatch && typeof endMatch.index === "number") {
+                cutIndex = endMatch.index;
+                cutLength = endMatch[0].length;
+              }
+              if (hardStopMatch && typeof hardStopMatch.index === "number") {
+                if (cutIndex === null || hardStopMatch.index < cutIndex) {
+                  cutIndex = hardStopMatch.index;
+                  // hard-stop НЕ съедаем — оставляем в хвосте, чтобы он
+                  // корректно обработался дальше (strengths рендерится отдельно).
+                  cutLength = 0;
+                }
+              }
+              const commentaryRaw = cutIndex !== null
+                ? region.slice(0, cutIndex)
                 : region;
-              const tailRaw = endMatch
-                ? region.slice((endMatch.index || 0) + endMatch[0].length)
+              const tailRaw = cutIndex !== null
+                ? region.slice(cutIndex + cutLength)
                 : "";
 
               // Убираем первую строку-заголовок (имя биомаркера) — оно
