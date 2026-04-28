@@ -286,6 +286,7 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
 
       collect(buildStandaloneBiomarkerLineRegex(name, code));
       collect(buildLeadingBiomarkerParagraphRegex(name, code));
+      collect(buildLooseLeadingBiomarkerRegex(name));
     }
 
     if (hits.length > 0) {
