@@ -352,14 +352,43 @@ export default function Recommendations() {
   const handleView = async (report: RecommendationReport) => {
     setSelectedReport(report);
     setViewDialogOpen(true);
+
+    let freshReport = report;
+
+    if (!demoMode && report.analysisId) {
+      const { data, error } = await supabase
+        .from("recommendations")
+        .select(`
+          *,
+          analyses!recommendations_analysis_id_fkey(date, status)
+        `)
+        .eq("analysis_id", report.analysisId)
+        .order("created_at", { ascending: true });
+
+      if (!error && data) {
+        const freshRecommendations = data.map((rec: any) => ({
+          ...rec,
+          analysis_date: rec.analyses?.date || null,
+          analysis_status: rec.analyses?.status || null,
+          analysis_id: rec.analysis_id || null,
+        }));
+
+        freshReport = {
+          ...report,
+          recommendations: freshRecommendations,
+          count: freshRecommendations.length,
+        };
+        setSelectedReport(freshReport);
+      }
+    }
     
     // Load biomarkers for interleaved rendering
-    loadBiomarkersForReport(report.analysisId);
+    loadBiomarkersForReport(freshReport.analysisId);
     
     // Загружаем назначения для этого анализа
     if (demoMode && demoData?.prescriptions) {
       // Extract analysis index from analysisId (format: "demo-analysis-{index}")
-      const analysisIndex = report.analysisId ? parseInt(report.analysisId.split('-')[2]) : 0;
+      const analysisIndex = freshReport.analysisId ? parseInt(freshReport.analysisId.split('-')[2]) : 0;
       
       // Filter prescriptions for this specific analysis
       const filteredPrescriptions = demoData.prescriptions
@@ -374,12 +403,12 @@ export default function Recommendations() {
         }));
       
       setSelectedPrescriptions(filteredPrescriptions);
-    } else if (report.analysisId) {
+    } else if (freshReport.analysisId) {
       try {
         const { data, error } = await supabase
           .from("prescriptions")
           .select("*")
-          .eq("analysis_id", report.analysisId)
+          .eq("analysis_id", freshReport.analysisId)
           .order("created_at", { ascending: true });
         
         if (error) throw error;
