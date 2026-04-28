@@ -375,7 +375,7 @@ export default function Prescriptions() {
                 )}
 
                 {/* Питание/образ жизни и Доп. обследования */}
-                <AdvisorySections />
+                <AdvisorySectionsWrapper />
               </>
             )}
           </TabsContent>
