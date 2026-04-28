@@ -630,8 +630,14 @@ export default function Recommendations() {
 
       const buildSectionContent = (section: typeof sections[0]): any[] => {
         // Snapshot-based body (UUID-binding) — single source of truth.
-        if (section.type === 'snapshot' && snapshot) {
-          return buildSnapshotPdf(snapshot, pdfBiomarkers, barWidth, pdfAge, pdfGender);
+        if (section.type === 'snapshot-section' && snapshot && (section as any).blocks) {
+          return buildSnapshotPdf(
+            { ...snapshot, blocks: (section as any).blocks },
+            pdfBiomarkers,
+            barWidth,
+            pdfAge,
+            pdfGender,
+          );
         }
         // Структурированные «Назначения» — карточки 1:1 с личным кабинетом.
         if (section.type === 'prescriptions' && (section as any).prescriptionsData) {
