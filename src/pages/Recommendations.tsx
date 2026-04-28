@@ -542,6 +542,29 @@ export default function Recommendations() {
         : null;
       const snapshot: ReportSnapshot | null =
         snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+      const snapshotSections = snapshot
+        ? snapshot.blocks.reduce((acc, block) => {
+            if (block.type === 'section') {
+              acc.push({
+                id: `snapshot-${acc.length}`,
+                type: 'snapshot-section' as SectionType,
+                label: block.title,
+                blocks: [] as ReportSnapshot['blocks'],
+              });
+              return acc;
+            }
+            if (acc.length === 0) {
+              acc.push({
+                id: 'snapshot-0',
+                type: 'snapshot-section' as SectionType,
+                label: 'Анализ здоровья',
+                blocks: [] as ReportSnapshot['blocks'],
+              });
+            }
+            acc[acc.length - 1].blocks.push(block);
+            return acc;
+          }, [] as Array<{ id: string; type: SectionType; label: string; blocks: ReportSnapshot['blocks'] }>)
+        : [];
 
       // Build sections
       const sections = [
@@ -552,12 +575,10 @@ export default function Recommendations() {
           content: patientData.text 
         }] : []),
         ...(snapshot
-          ? [{
-              id: 'snapshot',
-              type: 'snapshot' as SectionType,
-              label: 'Анализ здоровья',
-              content: '', // rendered from snapshot, не из markdown
-            }]
+          ? snapshotSections.map((section) => ({
+              ...section,
+              content: '', // rendered from snapshot blocks, не из markdown
+            }))
           : [
               ...(summary ? [{ 
                 id: 'summary', 
@@ -609,8 +630,14 @@ export default function Recommendations() {
 
       const buildSectionContent = (section: typeof sections[0]): any[] => {
         // Snapshot-based body (UUID-binding) — single source of truth.
-        if (section.type === 'snapshot' && snapshot) {
-          return buildSnapshotPdf(snapshot, pdfBiomarkers, barWidth, pdfAge, pdfGender);
+        if (section.type === 'snapshot-section' && snapshot && (section as any).blocks) {
+          return buildSnapshotPdf(
+            { ...snapshot, blocks: (section as any).blocks },
+            pdfBiomarkers,
+            barWidth,
+            pdfAge,
+            pdfGender,
+          );
         }
         // Структурированные «Назначения» — карточки 1:1 с личным кабинетом.
         if (section.type === 'prescriptions' && (section as any).prescriptionsData) {

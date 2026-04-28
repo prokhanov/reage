@@ -36,6 +36,35 @@ function indexById(biomarkers: PdfBiomarkerData[]): Map<string, PdfBiomarkerData
   return map;
 }
 
+function normalizeSnapshotBlocks(blocks: ReportSnapshot["blocks"], byId: Map<string, PdfBiomarkerData>): ReportSnapshot["blocks"] {
+  const skip = new Set<number>();
+  let currentSection = "";
+
+  return blocks.flatMap((block, idx) => {
+    if (skip.has(idx)) return [];
+    if (block.type === "section") currentSection = block.title;
+
+    if (block.type !== "text" || !block.content.trim()) return [block];
+
+    const text = block.content.trim();
+    const looksLikeSummary = /^(Общая оценка|Сильные стороны|Дефициты|Заключение|Резюме|Итоги|Выводы|Далее|Теперь|Ключевые показатели)/i.test(text);
+    const looksLikeBiomarkerComment = /\b(Ваш(?:\s+уровень|\s+показатель)?|уровень|показатель|значение)\b/i.test(text);
+    if (looksLikeSummary || !looksLikeBiomarkerComment) return [block];
+
+    for (let j = idx + 1; j < blocks.length; j++) {
+      const next = blocks[j];
+      if (next.type === "section") break;
+      if (next.type !== "biomarker" || (next.commentary || "").trim()) continue;
+      const bm = byId.get(next.biomarker_id);
+      if (!bm || (currentSection && bm.category !== currentSection)) continue;
+      skip.add(j);
+      return [{ ...next, commentary: text }];
+    }
+
+    return [block];
+  });
+}
+
 // ─── Web styles ────────────────────────────────────────────────────────────
 
 const statusColorMap: Record<string, string> = {
@@ -61,10 +90,11 @@ export function renderSnapshotWeb(
   gender: "male" | "female",
 ): React.ReactNode {
   const byId = indexById(biomarkers);
+  const blocks = normalizeSnapshotBlocks(snapshot.blocks, byId);
 
   return (
     <div className="space-y-8">
-      {snapshot.blocks.map((block, idx) => renderBlockWeb(block, idx, byId, age, gender))}
+      {blocks.map((block, idx) => renderBlockWeb(block, idx, byId, age, gender))}
     </div>
   );
 }
@@ -110,8 +140,9 @@ function renderBlockWeb(
     case "biomarker": {
       const bm = byId.get(block.biomarker_id);
       const trimmedCommentary = (block.commentary || "").trim();
-      // Без метаданных и без комментария — нечего показывать.
-      if (!bm && !trimmedCommentary) return null;
+        // Пустые карточки биомаркеров без интерпретации не показываем:
+        // они выглядят как «показатель без объяснения» и ломают структуру отчёта.
+        if (!bm || !trimmedCommentary) return null;
 
       return (
         <div
@@ -185,8 +216,9 @@ export function buildSnapshotPdf(
 ): any[] {
   const byId = indexById(biomarkers);
   const out: any[] = [];
+  const blocks = normalizeSnapshotBlocks(snapshot.blocks, byId);
 
-  for (const block of snapshot.blocks) {
+  for (const block of blocks) {
     switch (block.type) {
       case "text": {
         if (block.content) {
@@ -231,7 +263,9 @@ export function buildSnapshotPdf(
       case "biomarker": {
         const bm = byId.get(block.biomarker_id);
         const trimmedCommentary = (block.commentary || "").trim();
-        if (!bm && !trimmedCommentary) break;
+        // Не рендерим пустые маркеры: шкала без текста в PDF воспринимается как
+        // оборванный/непонятный показатель и не соответствует требованиям отчёта.
+        if (!bm || !trimmedCommentary) break;
 
         const cardStack: any[] = [];
 
