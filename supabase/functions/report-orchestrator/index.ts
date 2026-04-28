@@ -128,10 +128,16 @@ async function handleStart(supabase: any, body: any) {
     },
   });
   steps.push({
-    id: "finalize",
-    label: "Резюме и метрики",
+    id: "finalize:summary",
+    label: "Общее резюме",
     kind: "finalize",
-    payload: {},
+    payload: { phase: "summary" },
+  });
+  steps.push({
+    id: "finalize:bioage",
+    label: "Биологический возраст",
+    kind: "finalize",
+    payload: { phase: "bioage" },
   });
 
   const { data: job, error: insErr } = await supabase
