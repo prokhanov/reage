@@ -399,17 +399,14 @@ export default function Recommendations() {
   const scrollToSection = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const container = contentRef.current;
     const target = document.getElementById(`section-${sectionId}`);
-    if (container && target) {
-      const containerRect = container.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const offset = targetRect.top - containerRect.top + container.scrollTop - 8;
-      container.scrollTo({ top: offset, behavior: 'smooth' });
-    } else if (target) {
-      // Fallback if container ref is not available
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!target) {
+      console.warn(`[scrollToSection] Element not found: section-${sectionId}`);
+      return;
     }
+    // scrollIntoView корректно работает в любом скролл-контейнере
+    // (включая Radix Dialog), без ручных расчётов offset.
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleEdit = (report: RecommendationReport) => {
