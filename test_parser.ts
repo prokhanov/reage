@@ -8,7 +8,7 @@ const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
 let totalIssues = 0;
 for (const f of files) {
   const raw = fs.readFileSync(path.join(dir, f), 'utf8');
-  const blocks = parseAnchors(raw);
+  const blocks = parseAnchors(raw, fs.readFileSync('/tmp/codes.txt','utf8').split('\n').filter(Boolean));
   const bio = blocks.filter((b: any) => b.type === 'biomarker');
   const empty = bio.filter((b: any) => !b.content || b.content.trim().length < 50);
   const summary = blocks.find((b: any) => b.type === 'summary');
