@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, Check, ClipboardList, FileText, Loader2, Moon, Pill, Stethoscope, Utensils } from "lucide-react";
+import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, ShieldCheck, Stethoscope, Utensils, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
@@ -81,7 +81,70 @@ export function EditReportDialog({
   const [selectedSection, setSelectedSection] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [qaRunning, setQaRunning] = useState(false);
+  const [qaEvents, setQaEvents] = useState<Array<{ type: string; message: string }>>([]);
+  const [qaCompleted, setQaCompleted] = useState(false);
   const { toast } = useToast();
+
+  const runQaCheck = async () => {
+    setQaRunning(true);
+    setQaCompleted(false);
+    setQaEvents([{ type: "status", message: "Запускаю проверку отчёта…" }]);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-qa`;
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ analysisId }),
+      });
+      if (!resp.ok || !resp.body) {
+        const t = await resp.text();
+        throw new Error(`QA failed: ${resp.status} ${t}`);
+      }
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let streamDone = false;
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, nl);
+          buf = buf.slice(nl + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            setQaEvents((prev) => [...prev, evt]);
+            if (evt.type === "done" || evt.type === "error") {
+              streamDone = true;
+              if (evt.type === "error") {
+                toast({ title: "Ошибка проверки", description: evt.message, variant: "destructive" });
+              }
+              break;
+            }
+          } catch {
+            // partial line, will be re-buffered on next iteration
+          }
+        }
+      }
+      setQaCompleted(true);
+      // Reload sections to reflect any AI-generated repairs
+      await loadRecommendations();
+      toast({ title: "Проверка завершена", description: "Контент перезагружен в редактор." });
+    } catch (e: any) {
+      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+    } finally {
+      setQaRunning(false);
+    }
+  };
 
   useEffect(() => {
     setAnalysisStatus(initialStatus);
@@ -353,6 +416,19 @@ export function EditReportDialog({
             <div className="flex items-center justify-between">
               <DialogTitle>Редактирование отчета</DialogTitle>
               <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runQaCheck}
+                  disabled={qaRunning || loading}
+                >
+                  {qaRunning ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                  )}
+                  Проверить на валидность
+                </Button>
                 <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue />
@@ -635,8 +711,76 @@ export function EditReportDialog({
               )}
             </Button>
           </div>
+
+          {(qaRunning || qaEvents.length > 0) && (
+            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+              <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b">
+                  <div className="flex items-center gap-2">
+                    {qaRunning ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    ) : (
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                    )}
+                    <h3 className="font-semibold">
+                      {qaRunning ? "Выполняется проверка отчёта" : "Проверка завершена"}
+                    </h3>
+                  </div>
+                  {!qaRunning && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setQaEvents([]);
+                        setQaCompleted(false);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex-1 overflow-auto px-5 py-3 space-y-1.5 text-sm font-mono">
+                  {qaEvents.map((evt, idx) => {
+                    const Icon =
+                      evt.type === "fix" ? Check
+                      : evt.type === "warn" ? AlertTriangle
+                      : evt.type === "error" ? AlertTriangle
+                      : evt.type === "done" ? CheckCircle2
+                      : Info;
+                    const color =
+                      evt.type === "fix" ? "text-emerald-600 dark:text-emerald-400"
+                      : evt.type === "warn" ? "text-amber-600 dark:text-amber-400"
+                      : evt.type === "error" ? "text-destructive"
+                      : evt.type === "done" ? "text-primary"
+                      : "text-muted-foreground";
+                    return (
+                      <div key={idx} className={`flex items-start gap-2 ${color}`}>
+                        <Icon className="h-4 w-4 mt-0.5 shrink-0" />
+                        <span className="break-words">{evt.message}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {!qaRunning && qaCompleted && (
+                  <div className="px-5 py-3 border-t flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setQaEvents([]);
+                        setQaCompleted(false);
+                      }}
+                    >
+                      Закрыть и продолжить редактирование
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
 
       {selectedPrescription && (
         <EditPrescriptionDialog
