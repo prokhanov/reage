@@ -36,6 +36,35 @@ function indexById(biomarkers: PdfBiomarkerData[]): Map<string, PdfBiomarkerData
   return map;
 }
 
+function normalizeSnapshotBlocks(blocks: ReportSnapshot["blocks"], byId: Map<string, PdfBiomarkerData>): ReportSnapshot["blocks"] {
+  const skip = new Set<number>();
+  let currentSection = "";
+
+  return blocks.flatMap((block, idx) => {
+    if (skip.has(idx)) return [];
+    if (block.type === "section") currentSection = block.title;
+
+    if (block.type !== "text" || !block.content.trim()) return [block];
+
+    const text = block.content.trim();
+    const looksLikeSummary = /^(Общая оценка|Сильные стороны|Дефициты|Заключение|Резюме|Итоги|Выводы|Далее|Теперь|Ключевые показатели)/i.test(text);
+    const looksLikeBiomarkerComment = /\b(Ваш(?:\s+уровень|\s+показатель)?|уровень|показатель|значение)\b/i.test(text);
+    if (looksLikeSummary || !looksLikeBiomarkerComment) return [block];
+
+    for (let j = idx + 1; j < blocks.length; j++) {
+      const next = blocks[j];
+      if (next.type === "section") break;
+      if (next.type !== "biomarker" || (next.commentary || "").trim()) continue;
+      const bm = byId.get(next.biomarker_id);
+      if (!bm || (currentSection && bm.category !== currentSection)) continue;
+      skip.add(j);
+      return [{ ...next, commentary: text }];
+    }
+
+    return [block];
+  });
+}
+
 // ─── Web styles ────────────────────────────────────────────────────────────
 
 const statusColorMap: Record<string, string> = {
@@ -61,10 +90,11 @@ export function renderSnapshotWeb(
   gender: "male" | "female",
 ): React.ReactNode {
   const byId = indexById(biomarkers);
+  const blocks = normalizeSnapshotBlocks(snapshot.blocks, byId);
 
   return (
     <div className="space-y-8">
-      {snapshot.blocks.map((block, idx) => renderBlockWeb(block, idx, byId, age, gender))}
+      {blocks.map((block, idx) => renderBlockWeb(block, idx, byId, age, gender))}
     </div>
   );
 }
