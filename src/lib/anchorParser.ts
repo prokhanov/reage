@@ -293,19 +293,10 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       };
 
       // Inject from last to first to keep earlier indices stable.
-      const _dbg = (globalThis as any)?.process?.env?.ANCHOR_DEBUG;
-      if (_dbg) {
-        // eslint-disable-next-line no-console
-        console.log('[anchor] filtered:', filtered.map(f => ({ code: f.code, start: f.start })), 'summaryStart:', summaryStart);
-      }
       for (let i = filtered.length - 1; i >= 0; i--) {
         const cur = filtered[i];
         const next = filtered[i + 1];
         const sectionEnd = next ? next.start : findNextHeaderAfter(cur.end);
-
-        // Sanity check: если контент <20 символов — не инжектим (это не блок).
-        const candidateLen = (sectionEnd - cur.end);
-        if (candidateLen < 20) continue;
 
         result =
           result.slice(0, sectionEnd) +
