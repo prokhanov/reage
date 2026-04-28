@@ -578,12 +578,14 @@ ${symptomsText}
     } catch (e: any) {
       console.error("Snapshot error (non-fatal):", e.message);
     }
+    } // end if (doSummary)
 
     // ===== 6. BIOLOGICAL AGE + HEALTH INDEX =====
     let health_index: number | null = null;
     let biological_age: number | null = null;
     let biomarkers_metadata: any = null;
 
+    if (doBioAge) {
     // Композитные биомаркеры (окно 4 месяца)
     const compositeBiomarkers = buildCompositeBiomarkers(analysis, previousAnalyses || [], 4);
     const totalValues = compositeBiomarkers.values.length;
