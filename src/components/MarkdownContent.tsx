@@ -16,10 +16,7 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
     .replace(/^(?:\t| {4,})(?=\*\*)/gm, "");
 
   return (
-    <div
-      className={`max-w-none ${className}`}
-      style={{ textAlign: 'left', textAlignLast: 'left', wordSpacing: 'normal' }}
-    >
+    <div className={`prose prose-slate dark:prose-invert max-w-none ${className}`}>
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
@@ -49,7 +46,7 @@ export function MarkdownContent({ content, className = '' }: MarkdownContentProp
                 return <div style={{ height: '1em' }} />;
               }
             }
-            return <p className="mb-4 text-foreground leading-relaxed text-left">{children}</p>;
+            return <p className="mb-4 text-foreground leading-relaxed">{children}</p>;
           },
           ul: ({ children }) => (
             <ul className="list-disc list-outside pl-6 mb-4 space-y-2 text-foreground">
