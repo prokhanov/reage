@@ -30,8 +30,12 @@ interface Props {
   showStatus?: boolean;
 }
 
+const cleanReasonText = (value?: string | null) =>
+  (value || "").replace(/^[\s📊📈📉]+/u, "").trim();
+
 export function PrescriptionCard({ prescription, index, showStatus = false }: Props) {
   const title = prescription.name || prescription.prescription;
+  const reason = cleanReasonText(prescription.reason);
   return (
     <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 space-y-4 hover:border-primary/30 transition-colors">
       <div className="space-y-2">
@@ -67,10 +71,10 @@ export function PrescriptionCard({ prescription, index, showStatus = false }: Pr
           </p>
         )}
 
-        {prescription.reason && (
+        {reason && (
           <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mt-2">
             <p className="text-sm text-foreground leading-relaxed">
-              <span className="font-medium">Причина:</span> {prescription.reason}
+              <span className="font-medium">Причина:</span> {reason}
             </p>
           </div>
         )}
