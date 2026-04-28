@@ -403,7 +403,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
             ? "Глубокий анализ ещё сохраняется, проверяем готовность отчёта..."
             : "Проверяем готовность отчёта...",
         }));
-        const completionWaitMs = mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000;
+        const completionWaitMs = mode === "deep" ? 25 * 60 * 1000 : 3 * 60 * 1000;
         const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
           || (await waitForAnalysisCompletion(id!, completionWaitMs, 3000, { startedAt: generationStartedAt }));
 
@@ -424,7 +424,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       // 2) Логическая ошибка от edge-функции (status=200, success=false)
       if (data && data.success === false) {
         const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
-          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
+          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 25 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
 
         if (!completed) {
           console.error("analyze-biomarkers returned error:", data);
@@ -479,7 +479,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
       if (data?.success === false || successCount === 0) {
         const completed = (await isAnalysisReportComplete(id!, { startedAt: generationStartedAt }))
-          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 15 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
+          || (await waitForAnalysisCompletion(id!, mode === "deep" ? 25 * 60 * 1000 : 3 * 60 * 1000, 3000, { startedAt: generationStartedAt }));
 
         if (!completed) {
           throw new Error(data?.error || "Отчет не был полностью сгенерирован. Попробуйте запустить генерацию ещё раз.");
