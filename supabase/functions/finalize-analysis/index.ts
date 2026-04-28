@@ -374,19 +374,23 @@ ${symptomsText}
 
       // 2) Категории: заголовок + ИНТЕРЛИВИНГ нарратива и карточек биомаркеров.
       //
-      // Нарратив (analyze-biomarkers) имеет структуру:
-      //   <вступление>
-      //   ## Имя биомаркера (КОД)
+      // Нарратив (analyze-biomarkers) имеет структуру с HTML-якорями:
+      //   <!-- anchor:intro_start --> ... <!-- anchor:intro_end -->
+      //   Интерпретация биомаркеров
+      //   <!-- anchor:biomarker КОД -->
+      //   Имя биомаркера
       //   <интерпретация — несколько абзацев>
-      //   ## Имя следующего (КОД)
+      //   <!-- anchor:biomarker КОД2 -->
       //   ...
       //
-      // Сплитим текст по заголовкам ## и формируем чередование:
-      //   text(вступление) → text(заголовок+интерпретация) + biomarker(карточка)
-      //   → text(заголовок+интерпретация) + biomarker(карточка) → ...
+      // Сплитим текст по якорям `<!-- anchor:biomarker КОД -->` и формируем:
+      //   text(вступление + intro) → biomarker(карточка с интерпретацией в commentary)
+      //   → biomarker(карточка с интерпретацией) → ...
       //
-      // Это совпадает с тем, как раздел «Рекомендации» рендерит готовый
-      // нарратив — текст и шкала находятся рядом, без «портянки» шкал внизу.
+      // Так шкала и пояснение оказываются в одной карточке — как в разделе
+      // «Рекомендации», без «портянки» шкал внизу.
+      const BIO_ANCHOR_RE = /<!--\s*anchor:biomarker\s+([^\s>]+?)\s*-->/g;
+
       for (const cat of orderedCategories) {
         const emoji = categoryEmoji[cat];
         blocks.push({ type: "section", title: cat, ...(emoji ? { emoji } : {}) });
@@ -394,8 +398,6 @@ ${symptomsText}
         const narrative = categoryReports[cat];
         const markers = biomarkersByCategory[cat] || [];
 
-        // Индекс биомаркеров категории по UPPER(code) и UPPER(name) для матчинга
-        // заголовков `## Имя (КОД)` независимо от регистра/раскладки.
         const markerByKey = new Map<string, any>();
         for (const m of markers) {
           if (m.code) markerByKey.set(String(m.code).toUpperCase().trim(), m);
@@ -404,50 +406,66 @@ ${symptomsText}
         const usedIds = new Set<string>();
 
         if (narrative && narrative.trim()) {
-          const cleaned = String(narrative)
-            .replace(/<!--\s*anchor:[^\n>]*?-->/g, "")
-            .replace(/\n{3,}/g, "\n\n")
-            .trim();
+          const raw = String(narrative);
 
-          // Сплит по заголовкам ## (заголовок + контент до следующего ##).
-          // Регэксп с lookahead, чтобы сохранить заголовок в каждой части.
-          const parts = cleaned.split(/(?=^##\s+)/m);
+          // Найдём все позиции biomarker-якорей.
+          const anchors: { code: string; start: number; end: number }[] = [];
+          let m: RegExpExecArray | null;
+          BIO_ANCHOR_RE.lastIndex = 0;
+          while ((m = BIO_ANCHOR_RE.exec(raw)) !== null) {
+            anchors.push({ code: m[1].trim(), start: m.index, end: m.index + m[0].length });
+          }
 
-          for (const part of parts) {
-            const trimmed = part.trim();
-            if (!trimmed) continue;
+          // Чистилка от прочих якорей и заголовков-обёрток.
+          const stripMisc = (s: string) =>
+            s
+              .replace(/<!--\s*anchor:[^\n>]*?-->/g, "")
+              .replace(/^\s*Интерпретация биомаркеров\s*$/im, "")
+              .replace(/\n{3,}/g, "\n\n")
+              .trim();
 
-            // Это заголовок биомаркера?
-            const headerMatch = trimmed.match(/^##\s+(.+?)(?:\s*\(([^)]+)\))?\s*$/m);
-            let matched: any = null;
-            if (headerMatch) {
-              const name = headerMatch[1].trim().toUpperCase();
-              const code = (headerMatch[2] || "").trim().toUpperCase();
-              matched = (code && markerByKey.get(code)) || markerByKey.get(name) || null;
-            }
+          if (anchors.length === 0) {
+            // Якорей нет — кладём весь нарратив одним текстовым блоком.
+            const cleaned = stripMisc(raw);
+            if (cleaned) blocks.push({ type: "text", content: cleaned });
+          } else {
+            // Вступление — всё до первого biomarker-якоря.
+            const intro = stripMisc(raw.slice(0, anchors[0].start));
+            if (intro) blocks.push({ type: "text", content: intro });
 
-            if (matched && !usedIds.has(matched.biomarker_id)) {
-              // Карточка биомаркера + интерпретация в commentary —
-              // так шкала и пояснение оказываются в одной карточке.
-              usedIds.add(matched.biomarker_id);
-              // Убираем строку заголовка ## ... — она дублирует имя в карточке.
-              const commentary = trimmed
-                .replace(/^##\s+.+$/m, "")
-                .trim();
-              blocks.push({
-                type: "biomarker",
-                biomarker_id: matched.biomarker_id,
-                commentary,
-              });
-            } else {
-              // Вступительный текст или незаматченный заголовок — обычный text.
-              blocks.push({ type: "text", content: trimmed });
+            // Каждый сегмент: от end текущего якоря до start следующего.
+            for (let i = 0; i < anchors.length; i++) {
+              const a = anchors[i];
+              const segEnd = i + 1 < anchors.length ? anchors[i + 1].start : raw.length;
+              let segment = raw.slice(a.end, segEnd);
+
+              // Убираем первую строку-заголовок (имя биомаркера) — оно
+              // дублирует название в карточке.
+              segment = segment.replace(/^\s*\n*[^\n]+\n+/, "");
+              const commentary = stripMisc(segment);
+
+              const matched =
+                markerByKey.get(a.code.toUpperCase()) ||
+                null;
+
+              if (matched) {
+                usedIds.add(matched.biomarker_id);
+                blocks.push({
+                  type: "biomarker",
+                  biomarker_id: matched.biomarker_id,
+                  commentary,
+                });
+              } else if (commentary) {
+                // Якорь есть, но биомаркер не найден — оставим текст,
+                // чтобы интерпретация не потерялась.
+                blocks.push({ type: "text", content: commentary });
+              }
             }
           }
         }
 
         // Биомаркеры, которые не упомянуты в нарративе, добавляем в конце
-        // как карточки без комментария (но они хотя бы будут видны).
+        // как карточки без комментария — чтобы шкала всё равно была видна.
         const leftover = markers.filter((m: any) => !usedIds.has(m.biomarker_id));
         if (leftover.length > 0) {
           blocks.push({ type: "spacer", size: "small" });
@@ -462,9 +480,9 @@ ${symptomsText}
         blocks.push({ type: "spacer", size: "medium" });
       }
 
-      // 3) Блок «Назначения» НЕ добавляем в snapshot — раздел «Назначения»
-      //    рендерится в Recommendations.tsx структурно из таблицы prescriptions
-      //    (со статусами, контрольными датами и формой). Если положить его сюда,
+      // 3) Блок «Назначения» НЕ добавляем в snapshot — раздел рендерится в
+      //    Recommendations.tsx структурно из таблицы prescriptions (со
+      //    статусами, контрольными датами и формой). Если положить его сюда,
       //    в UI получится дубликат (один в snapshot, второй — снаружи).
 
       const finalSnapshot = blocks.length > 0
