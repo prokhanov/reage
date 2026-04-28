@@ -87,10 +87,12 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
       }
       return {
         success: true,
+        accepted: true,
         categories_processed: categoriesProcessed,
         finalize_triggered: true,
         prescriptions_status: "success",
         job_id: jobId,
+        error: null as string | null,
       };
     }
     if (job.status === "failed") {
