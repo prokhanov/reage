@@ -372,28 +372,104 @@ ${symptomsText}
         blocks.push({ type: "spacer", size: "medium" });
       }
 
-      // 2) Категории: для каждой — заголовок + ПОЛНЫЙ нарратив + карточки биомаркеров
+      // 2) Категории: заголовок + ИНТЕРЛИВИНГ нарратива и карточек биомаркеров.
+      //
+      // Нарратив (analyze-biomarkers) имеет структуру с HTML-якорями:
+      //   <!-- anchor:intro_start --> ... <!-- anchor:intro_end -->
+      //   Интерпретация биомаркеров
+      //   <!-- anchor:biomarker КОД -->
+      //   Имя биомаркера
+      //   <интерпретация — несколько абзацев>
+      //   <!-- anchor:biomarker КОД2 -->
+      //   ...
+      //
+      // Сплитим текст по якорям `<!-- anchor:biomarker КОД -->` и формируем:
+      //   text(вступление + intro) → biomarker(карточка с интерпретацией в commentary)
+      //   → biomarker(карточка с интерпретацией) → ...
+      //
+      // Так шкала и пояснение оказываются в одной карточке — как в разделе
+      // «Рекомендации», без «портянки» шкал внизу.
+      const BIO_ANCHOR_RE = /<!--\s*anchor:biomarker\s+([^\s>]+?)\s*-->/g;
+
       for (const cat of orderedCategories) {
         const emoji = categoryEmoji[cat];
         blocks.push({ type: "section", title: cat, ...(emoji ? { emoji } : {}) });
 
         const narrative = categoryReports[cat];
+        const markers = biomarkersByCategory[cat] || [];
+
+        const markerByKey = new Map<string, any>();
+        for (const m of markers) {
+          if (m.code) markerByKey.set(String(m.code).toUpperCase().trim(), m);
+          if (m.name) markerByKey.set(String(m.name).toUpperCase().trim(), m);
+        }
+        const usedIds = new Set<string>();
+
         if (narrative && narrative.trim()) {
-          // Чистим возможные технические якоря (<!-- anchor:... -->) — они
-          // были нужны для legacy-рендера, в snapshot не используются.
-          const cleaned = String(narrative)
-            .replace(/<!--\s*anchor:[^\n>]*?-->/g, "")
-            .replace(/\n{3,}/g, "\n\n")
-            .trim();
-          if (cleaned) {
-            blocks.push({ type: "text", content: cleaned });
+          const raw = String(narrative);
+
+          // Найдём все позиции biomarker-якорей.
+          const anchors: { code: string; start: number; end: number }[] = [];
+          let m: RegExpExecArray | null;
+          BIO_ANCHOR_RE.lastIndex = 0;
+          while ((m = BIO_ANCHOR_RE.exec(raw)) !== null) {
+            anchors.push({ code: m[1].trim(), start: m.index, end: m.index + m[0].length });
+          }
+
+          // Чистилка от прочих якорей и заголовков-обёрток.
+          const stripMisc = (s: string) =>
+            s
+              .replace(/<!--\s*anchor:[^\n>]*?-->/g, "")
+              .replace(/^\s*Интерпретация биомаркеров\s*$/im, "")
+              .replace(/\n{3,}/g, "\n\n")
+              .trim();
+
+          if (anchors.length === 0) {
+            // Якорей нет — кладём весь нарратив одним текстовым блоком.
+            const cleaned = stripMisc(raw);
+            if (cleaned) blocks.push({ type: "text", content: cleaned });
+          } else {
+            // Вступление — всё до первого biomarker-якоря.
+            const intro = stripMisc(raw.slice(0, anchors[0].start));
+            if (intro) blocks.push({ type: "text", content: intro });
+
+            // Каждый сегмент: от end текущего якоря до start следующего.
+            for (let i = 0; i < anchors.length; i++) {
+              const a = anchors[i];
+              const segEnd = i + 1 < anchors.length ? anchors[i + 1].start : raw.length;
+              let segment = raw.slice(a.end, segEnd);
+
+              // Убираем первую строку-заголовок (имя биомаркера) — оно
+              // дублирует название в карточке.
+              segment = segment.replace(/^\s*\n*[^\n]+\n+/, "");
+              const commentary = stripMisc(segment);
+
+              const matched =
+                markerByKey.get(a.code.toUpperCase()) ||
+                null;
+
+              if (matched) {
+                usedIds.add(matched.biomarker_id);
+                blocks.push({
+                  type: "biomarker",
+                  biomarker_id: matched.biomarker_id,
+                  commentary,
+                });
+              } else if (commentary) {
+                // Якорь есть, но биомаркер не найден — оставим текст,
+                // чтобы интерпретация не потерялась.
+                blocks.push({ type: "text", content: commentary });
+              }
+            }
           }
         }
 
-        const markers = biomarkersByCategory[cat] || [];
-        if (markers.length > 0) {
+        // Биомаркеры, которые не упомянуты в нарративе, добавляем в конце
+        // как карточки без комментария — чтобы шкала всё равно была видна.
+        const leftover = markers.filter((m: any) => !usedIds.has(m.biomarker_id));
+        if (leftover.length > 0) {
           blocks.push({ type: "spacer", size: "small" });
-          for (const m of markers) {
+          for (const m of leftover) {
             blocks.push({
               type: "biomarker",
               biomarker_id: m.biomarker_id,
@@ -404,24 +480,10 @@ ${symptomsText}
         blocks.push({ type: "spacer", size: "medium" });
       }
 
-      // 3) Назначения — из таблицы prescriptions (структурированные поля).
-      //    Делаем это так же, как в Recommendations.tsx, чтобы вид совпадал.
-      if (prescriptionsRows && prescriptionsRows.length > 0) {
-        blocks.push({ type: "section", title: "Назначения", emoji: "💊" });
-        const prescMd = prescriptionsRows.map((p: any, idx: number) => {
-          const title = p.name || p.prescription || "(без названия)";
-          const lines: string[] = [`### ${idx + 1}. ${title}`];
-          if (p.form) lines.push(`**Форма:** ${p.form}`);
-          if (p.dosage) lines.push(`**Дозировка:** ${p.dosage}`);
-          if (p.how_to_take) lines.push(`**Как принимать:** ${p.how_to_take}`);
-          if (p.duration) lines.push(`**Длительность:** ${p.duration}`);
-          if (p.reason) lines.push(`\n**Причина:** ${p.reason}`);
-          if (p.effect) lines.push(`\n**На что это влияет:** ${p.effect}`);
-          return lines.join("\n\n");
-        }).join("\n\n---\n\n");
-        blocks.push({ type: "text", content: prescMd });
-        blocks.push({ type: "spacer", size: "medium" });
-      }
+      // 3) Блок «Назначения» НЕ добавляем в snapshot — раздел рендерится в
+      //    Recommendations.tsx структурно из таблицы prescriptions (со
+      //    статусами, контрольными датами и формой). Если положить его сюда,
+      //    в UI получится дубликат (один в snapshot, второй — снаружи).
 
       const finalSnapshot = blocks.length > 0
         ? {
