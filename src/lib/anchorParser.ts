@@ -60,11 +60,6 @@ export function parseAnchors(
   if (biomarkerCodes.length > 0) {
     processedText = autoInjectAnchors(normalized, biomarkerCodes, nameToCode);
   }
-  if ((globalThis as any)?.process?.env?.ANCHOR_DEBUG) {
-    const idx = processedText.indexOf('Гемоглобин (Hb)');
-    // eslint-disable-next-line no-console
-    console.log('[anchor] around Hb:', JSON.stringify(processedText.slice(Math.max(0, idx - 80), idx + 200)));
-  }
 
   const codeToNames = Object.entries(nameToCode || {}).reduce((acc, [name, code]) => {
     if (!acc[code]) acc[code] = [];
