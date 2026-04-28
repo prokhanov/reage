@@ -117,6 +117,13 @@ export function parseAnchors(
       if (content) blocks.push({ type: 'summary', content });
       lastIndex = endPos.end;
     } else if (tag === 'biomarker' && data) {
+      // Skip anchors with unknown codes (AI sometimes emits legacy short codes
+      // like `CRP` / `PCT` while DB has `hs-CRP` / `PCT-t`). Treat the tag as
+      // plain text — auto-inject will create the correct anchor from the body.
+      if (knownCodes.size > 0 && !knownCodes.has(normalizeBiomarkerCode(data))) {
+        lastIndex = tagEnd;
+        continue;
+      }
       // Find explicit `biomarker_end`, but also stop at the NEXT biomarker open
       // tag — many AI outputs forget the closing tag and would otherwise merge
       // multiple biomarkers into one card.
