@@ -42,6 +42,7 @@ import { parseReportSnapshot, type ReportSnapshot } from "@/lib/reportSnapshot";
 import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
+import { buildPrescriptionsPdf } from "@/lib/pdfPrescriptions";
 
 interface Recommendation {
   id: string;
