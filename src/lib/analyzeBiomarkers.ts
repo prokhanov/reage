@@ -99,5 +99,5 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
       throw new Error(job.error || "Генерация отчёта завершилась ошибкой");
     }
   }
-  throw new Error("Превышено время ожидания генерации отчёта (20 минут).");
+  throw new Error("accepted_background");
 }
