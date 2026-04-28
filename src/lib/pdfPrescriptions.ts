@@ -38,6 +38,7 @@ function fieldRow(label: string, value: string): any {
 
 function prescriptionCardPdf(p: PrescriptionCardData, idx: number): any {
   const title = p.name || p.prescription;
+  const reason = (p.reason || "").replace(/^[\s📊📈📉]+/u, "").trim();
   const stack: any[] = [
     {
       text: `${idx + 1}. ${title}`,
@@ -53,7 +54,7 @@ function prescriptionCardPdf(p: PrescriptionCardData, idx: number): any {
   if (p.how_to_take) stack.push(fieldRow("Как принимать", p.how_to_take));
   if (p.duration) stack.push(fieldRow("Длительность", p.duration));
 
-  if (p.reason) {
+  if (reason) {
     stack.push({
       table: {
         widths: ["*"],
@@ -62,7 +63,7 @@ function prescriptionCardPdf(p: PrescriptionCardData, idx: number): any {
             {
               text: [
                 { text: "Причина: ", bold: true, color: COLOR.text, fontSize: 10 },
-                { text: p.reason, color: COLOR.text, fontSize: 10 },
+                { text: reason, color: COLOR.text, fontSize: 10 },
               ],
               margin: [8, 6, 8, 6],
               fillColor: COLOR.primarySoft,
