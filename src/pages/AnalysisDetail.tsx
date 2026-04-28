@@ -333,31 +333,40 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     setAnalysisProgress({ current: 0, total: totalSteps, currentCategory: "", stage: "Подготовка данных..." });
     setAnalyzing(true);
 
-    // Запускаем polling для отслеживания прогресса
+    // Polling прогресса напрямую из report_jobs — это точный источник истины
+    // (steps_done/steps_total/current_step заполняются оркестратором).
     let pollingStopped = false;
-    const stageNames: Record<string, string> = {
-      "Данные пациента": "Сохранение данных пациента...",
-      "Общее резюме": "Формирование общего резюме...",
+    const stepLabelMap: Record<string, string> = {
+      "prescriptions": "Подбор назначений и нутрицевтиков...",
+      "finalize:summary": "Формирование общего резюме...",
+      "finalize:bioage": "Расчёт биологического возраста...",
     };
-    categories.forEach(c => { stageNames[c] = `Анализ: ${c}...`; });
 
     const pollInterval = setInterval(async () => {
       if (pollingStopped) return;
       try {
-        const { data: recs } = await supabase
-          .from("recommendations")
-          .select("type")
-          .eq("analysis_id", id!);
+        const { data: job } = await supabase
+          .from("report_jobs")
+          .select("steps_done, steps_total, current_step, status")
+          .eq("analysis_id", id!)
+          .gte("updated_at", generationStartedAt.toISOString())
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-        const savedCount = recs?.length || 0;
-        const lastSaved = recs?.[recs.length - 1]?.type || "";
-        const stageName = stageNames[lastSaved] || lastSaved;
+        if (!job) return;
+        const cur = job.current_step || "";
+        let stage = stepLabelMap[cur] || "";
+        if (!stage && cur.startsWith("category:")) {
+          stage = `Анализ: ${cur.replace(/^category:/, "")}...`;
+        }
+        if (!stage) stage = "Идёт обработка...";
 
         setAnalysisProgress({
-          current: savedCount,
-          total: totalSteps,
-          currentCategory: lastSaved,
-          stage: savedCount < totalSteps ? stageName : "Генерация назначений..."
+          current: job.steps_done || 0,
+          total: job.steps_total || totalSteps,
+          currentCategory: cur,
+          stage,
         });
       } catch {}
     }, 2500);
