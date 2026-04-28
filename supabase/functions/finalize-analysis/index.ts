@@ -275,41 +275,57 @@ ${symptomsText}
       summaryReport = "Ошибка при генерации общего резюме";
     }
 
-    // Сохраняем «Общее резюме» (или обновляем если уже есть)
+    // Сохраняем «Общее резюме». ВАЖНО: не делаем DELETE+INSERT — у таблицы
+    // prescriptions есть FK recommendation_id → recommendations.id ON DELETE
+    // CASCADE, и удаление старой записи «Общее резюме» каскадно сносит все
+    // ранее сгенерированные нутрицевтики этого анализа. Используем UPDATE
+    // существующей записи, либо INSERT, если её ещё нет.
     let summaryRecommendationId: string | null = null;
     if (summaryReport) {
-      // Удаляем старое, чтобы избежать дубликатов
-      await supabase
+      const { data: existing } = await supabase
         .from("recommendations")
-        .delete()
-        .eq("analysis_id", analysisId)
-        .eq("type", "Общее резюме");
-
-      const { data: inserted, error: insErr } = await supabase
-        .from("recommendations")
-        .insert({
-          user_id: analysis.user_id,
-          analysis_id: analysisId,
-          type: "Общее резюме",
-          text: summaryReport,
-        })
         .select("id")
-        .single();
+        .eq("analysis_id", analysisId)
+        .eq("type", "Общее резюме")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-      if (insErr) {
-        console.error("Error inserting summary:", insErr);
+      if (existing?.id) {
+        summaryRecommendationId = existing.id;
+        // @ts-ignore — content_json обновим ниже, здесь только text
+        const { error: updErr } = await supabase
+          .from("recommendations")
+          .update({ text: summaryReport })
+          .eq("id", existing.id);
+        if (updErr) console.error("Error updating summary:", updErr);
+        else console.log(`Updated: Общее резюме (id: ${summaryRecommendationId})`);
       } else {
-        summaryRecommendationId = inserted?.id || null;
-        console.log(`Saved: Общее резюме (id: ${summaryRecommendationId})`);
-
-        // Связываем уже сохранённые prescriptions с этой записью
-        if (prescriptionsRows && prescriptionsRows.length > 0) {
-          await supabase
-            .from("prescriptions")
-            .update({ recommendation_id: summaryRecommendationId })
-            .eq("analysis_id", analysisId)
-            .is("recommendation_id", null);
+        const { data: inserted, error: insErr } = await supabase
+          .from("recommendations")
+          .insert({
+            user_id: analysis.user_id,
+            analysis_id: analysisId,
+            type: "Общее резюме",
+            text: summaryReport,
+          })
+          .select("id")
+          .single();
+        if (insErr) {
+          console.error("Error inserting summary:", insErr);
+        } else {
+          summaryRecommendationId = inserted?.id || null;
+          console.log(`Inserted: Общее резюме (id: ${summaryRecommendationId})`);
         }
+      }
+
+      // Связываем уже сохранённые prescriptions с этой записью (если ещё не связаны)
+      if (summaryRecommendationId && prescriptionsRows && prescriptionsRows.length > 0) {
+        await supabase
+          .from("prescriptions")
+          .update({ recommendation_id: summaryRecommendationId })
+          .eq("analysis_id", analysisId)
+          .is("recommendation_id", null);
       }
     }
 
