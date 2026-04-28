@@ -1,0 +1,10 @@
+import { sanitizeLifestyle } from './src/components/prescriptions/AdvisorySections';
+import fs from 'fs';
+const j = JSON.parse(fs.readFileSync('/tmp/rep/prescriptions.json','utf8'));
+console.log('BEFORE sleep:', j.lifestyle.sleep.length);
+const out = sanitizeLifestyle(j.lifestyle);
+console.log('AFTER sleep:', out.sleep?.length, 'items:');
+out.sleep?.forEach((s:string,i:number)=>console.log(`  [${i}]`, s.slice(0,100)));
+console.log('AFTER nutrition:', out.nutrition?.length);
+out.nutrition?.forEach((s:string,i:number)=>console.log(`  [${i}]`, s.slice(0,80)));
+console.log('AFTER activity:', out.activity?.length);
