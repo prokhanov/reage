@@ -40,6 +40,8 @@ import logoLightUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
 import { parseReportSnapshot, type ReportSnapshot } from "@/lib/reportSnapshot";
 import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
+import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
+import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
 
 interface Recommendation {
   id: string;
@@ -1013,172 +1015,30 @@ export default function Recommendations() {
                               <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                             </div>
 
-                            {/* ── Нутрицевтики ── */}
+                            {/* ── Нутрицевтики (единый компонент с разделом «Рекомендации») ── */}
                             {selectedPrescriptions.length > 0 && (
-                              <>
-                                <h3 className="text-xl font-semibold mb-4 text-foreground">
-                                  Нутрицевтики
+                              <section className="space-y-4 mb-8">
+                                <h3 className="text-xl font-semibold text-foreground">
+                                  Нутрицевтики ({selectedPrescriptions.length})
                                 </h3>
                                 <div className="space-y-4">
-                                  {selectedPrescriptions.map((prescription, idx) => (
-                                    <div key={prescription.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                      <div className="flex items-start justify-between gap-4 mb-3">
-                                        <h3 className="font-semibold text-lg flex-1">
-                                          {idx + 1}. {prescription.name || prescription.prescription}
-                                        </h3>
-                                        <Badge variant={prescription.status === "confirmed" ? "default" : "secondary"}>
-                                          {prescription.status === "confirmed" ? "Подтверждено" : "На проверке"}
-                                        </Badge>
-                                      </div>
-
-                                      {(prescription.form || prescription.dosage || prescription.how_to_take || prescription.duration) && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 text-sm">
-                                          {prescription.form && (
-                                            <div className="p-2 rounded-md bg-muted/40">
-                                              <span className="font-medium text-foreground">Форма:</span>{" "}
-                                              <span className="text-muted-foreground">{prescription.form}</span>
-                                            </div>
-                                          )}
-                                          {prescription.dosage && (
-                                            <div className="p-2 rounded-md bg-muted/40">
-                                              <span className="font-medium text-foreground">Дозировка:</span>{" "}
-                                              <span className="text-muted-foreground">{prescription.dosage}</span>
-                                            </div>
-                                          )}
-                                          {prescription.how_to_take && (
-                                            <div className="p-2 rounded-md bg-muted/40 sm:col-span-2">
-                                              <span className="font-medium text-foreground">Как принимать:</span>{" "}
-                                              <span className="text-muted-foreground">{prescription.how_to_take}</span>
-                                            </div>
-                                          )}
-                                          {prescription.duration && (
-                                            <div className="p-2 rounded-md bg-muted/40 sm:col-span-2">
-                                              <span className="font-medium text-foreground">Длительность:</span>{" "}
-                                              <span className="text-muted-foreground">{prescription.duration}</span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      )}
-
-                                      {prescription.reason && (
-                                        <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/10 mb-3">
-                                          <span className="text-primary mt-0.5">📊</span>
-                                          <p className="text-sm text-foreground leading-relaxed">
-                                            <span className="font-medium">Причина:</span> {prescription.reason}
-                                          </p>
-                                        </div>
-                                      )}
-                                      {prescription.effect && (
-                                        <p className="text-sm text-muted-foreground mb-3 italic">
-                                          {prescription.effect}
-                                        </p>
-                                      )}
-                                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                        <span>
-                                          Контроль через: {(() => {
-                                            if (!selectedReport?.date || !prescription.control_date) return "—";
-                                            const start = new Date(selectedReport.date);
-                                            const end = new Date(prescription.control_date);
-                                            if (isNaN(start.getTime()) || isNaN(end.getTime())) return "—";
-                                            const months = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
-                                            return `${months} мес.`;
-                                          })()}
-                                        </span>
-                                        <span>•</span>
-                                        <span>
-                                          Контрольная дата: {prescription.control_date && !isNaN(new Date(prescription.control_date).getTime())
-                                            ? format(new Date(prescription.control_date), "dd.MM.yyyy")
-                                            : "—"}
-                                        </span>
-                                      </div>
-                                    </div>
+                                  {selectedPrescriptions.map((p, idx) => (
+                                    <PrescriptionCard
+                                      key={p.id}
+                                      prescription={p}
+                                      index={idx}
+                                      showStatus={hasPatientAccess}
+                                    />
                                   ))}
                                 </div>
-                              </>
+                              </section>
                             )}
 
-                            {/* ── Питание и коррекция образа жизни ── */}
-                            {hasLifestyle && lifestyleData && (
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 text-foreground">
-                                  Питание и коррекция образа жизни
-                                </h3>
-                                <div className="space-y-4">
-                                  {(lifestyleData.nutrition?.length || 0) > 0 && (
-                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm">
-                                      <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
-                                        <span>🥗</span> Питание
-                                      </h4>
-                                      <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
-                                        {lifestyleData.nutrition!.map((item, i) => (
-                                          <li key={`nut-${i}`}>{item}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                  {(lifestyleData.activity?.length || 0) > 0 && (
-                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm">
-                                      <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
-                                        <span>🏃</span> Физическая активность
-                                      </h4>
-                                      <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
-                                        {lifestyleData.activity!.map((item, i) => (
-                                          <li key={`act-${i}`}>{item}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                  {(lifestyleData.sleep?.length || 0) > 0 && (
-                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm">
-                                      <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
-                                        <span>😴</span> Сон и режим
-                                      </h4>
-                                      <ul className="space-y-2 list-disc list-inside text-sm text-foreground leading-relaxed">
-                                        {lifestyleData.sleep!.map((item, i) => (
-                                          <li key={`slp-${i}`}>{item}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ── Дополнительные консультации и обследования ── */}
-                            {hasFollowUps && followUpsData && (
-                              <div className="mt-8">
-                                <h3 className="text-xl font-semibold mb-4 text-foreground">
-                                  Дополнительные консультации и обследования
-                                </h3>
-                                <div className="space-y-3">
-                                  {followUpsData.map((f, i) => (
-                                    <div
-                                      key={`fu-${i}`}
-                                      className="p-5 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm"
-                                    >
-                                      <div className="flex items-start gap-3">
-                                        <span className="text-primary mt-0.5">🩺</span>
-                                        <div className="flex-1 space-y-1">
-                                          <p className="font-semibold text-foreground">
-                                            {f.specialist}
-                                          </p>
-                                          {f.goal && (
-                                            <p className="text-sm text-foreground leading-relaxed">
-                                              <span className="font-medium">Цель:</span> {f.goal}
-                                            </p>
-                                          )}
-                                          {f.trigger && (
-                                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                              <span className="font-medium">Основание:</span> {f.trigger}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                            {/* ── Питание/образ жизни и Доп. обследования (единый компонент) ── */}
+                            <AdvisorySections
+                              lifestyle={lifestyleData}
+                              followUps={followUpsData}
+                            />
                           </div>
                         )}
                       </div>
