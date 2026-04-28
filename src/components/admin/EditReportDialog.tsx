@@ -711,8 +711,76 @@ export function EditReportDialog({
               )}
             </Button>
           </div>
+
+          {(qaRunning || qaEvents.length > 0) && (
+            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
+              <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b">
+                  <div className="flex items-center gap-2">
+                    {qaRunning ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    ) : (
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                    )}
+                    <h3 className="font-semibold">
+                      {qaRunning ? "Выполняется проверка отчёта" : "Проверка завершена"}
+                    </h3>
+                  </div>
+                  {!qaRunning && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setQaEvents([]);
+                        setQaCompleted(false);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="flex-1 overflow-auto px-5 py-3 space-y-1.5 text-sm font-mono">
+                  {qaEvents.map((evt, idx) => {
+                    const Icon =
+                      evt.type === "fix" ? Check
+                      : evt.type === "warn" ? AlertTriangle
+                      : evt.type === "error" ? AlertTriangle
+                      : evt.type === "done" ? CheckCircle2
+                      : Info;
+                    const color =
+                      evt.type === "fix" ? "text-emerald-600 dark:text-emerald-400"
+                      : evt.type === "warn" ? "text-amber-600 dark:text-amber-400"
+                      : evt.type === "error" ? "text-destructive"
+                      : evt.type === "done" ? "text-primary"
+                      : "text-muted-foreground";
+                    return (
+                      <div key={idx} className={`flex items-start gap-2 ${color}`}>
+                        <Icon className="h-4 w-4 mt-0.5 shrink-0" />
+                        <span className="break-words">{evt.message}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {!qaRunning && qaCompleted && (
+                  <div className="px-5 py-3 border-t flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setQaEvents([]);
+                        setQaCompleted(false);
+                      }}
+                    >
+                      Закрыть и продолжить редактирование
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
 
       {selectedPrescription && (
         <EditPrescriptionDialog
