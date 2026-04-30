@@ -672,7 +672,7 @@ Deno.serve(async (req) => {
           }
 
           // 6. Detect & translate stray English fragments (artifacts)
-          const englishHits = detectEnglishArtifacts(text);
+          const englishHits = detectEnglishArtifacts(text, englishWhitelistExtra);
           if (englishHits.length > 0) {
             // Dedupe by match string (translate each unique fragment once)
             const uniqueMap = new Map<string, { match: string; context: string }>();
