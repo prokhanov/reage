@@ -966,13 +966,24 @@ export default function Recommendations() {
                           Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
                         </DialogDescription>
                       </div>
-                      <button
-                        onClick={handleExportPDF}
-                        className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        Скачать PDF
-                      </button>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={handleExportPDF}
+                          className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Скачать PDF
+                        </button>
+                        <button
+                          onClick={handleExportSnapshotPDF}
+                          disabled={snapshotExporting}
+                          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Экспериментальный экспорт: PDF собирается из снимков web-отчёта"
+                        >
+                          <Download className="h-4 w-4" />
+                          {snapshotExporting ? "Готовлю…" : "Скачать тест PDF"}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-6" ref={contentRef}>
