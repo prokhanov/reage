@@ -23,7 +23,7 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { RecommendationsSkeleton } from "@/components/skeletons/RecommendationsSkeleton";
-import { exportReportSnapshotToPdf } from "@/lib/pdfSnapshotExport";
+
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;
