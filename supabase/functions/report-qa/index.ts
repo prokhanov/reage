@@ -614,7 +614,54 @@ Deno.serve(async (req) => {
             }
           }
 
-          // Persist if changed
+          // 6. Detect & translate stray English fragments (artifacts)
+          const englishHits = detectEnglishArtifacts(text);
+          if (englishHits.length > 0) {
+            // Dedupe by match string (translate each unique fragment once)
+            const uniqueMap = new Map<string, { match: string; context: string }>();
+            for (const h of englishHits) {
+              if (!uniqueMap.has(h.match)) {
+                uniqueMap.set(h.match, { match: h.match, context: h.context });
+              }
+            }
+            const unique = [...uniqueMap.values()];
+            send({
+              type: "status",
+              message: `[${sectionLabel}] Найдены английские артефакты (${unique.length} уник.). Перевожу…`,
+            });
+            const translations = await translateEnglishFragments(unique, aiModel);
+            let replaced = 0;
+            // Replace longest first to avoid overlapping substring issues
+            const sortedKeys = Object.keys(translations).sort(
+              (a, b) => b.length - a.length,
+            );
+            for (const orig of sortedKeys) {
+              const ru = translations[orig];
+              if (!ru || ru === orig) continue;
+              const re = new RegExp(escapeRegex(orig), "g");
+              const before = text;
+              text = text.replace(re, ru);
+              if (before !== text) {
+                replaced++;
+                const msg = `[${sectionLabel}] ✓ Английский → русский: «${orig}» → «${ru}»`;
+                fixes.push(msg);
+                send({ type: "fix", message: msg });
+              }
+            }
+            const skipped = unique.length - replaced;
+            if (skipped > 0) {
+              const samples = unique
+                .filter((u) => !translations[u.match] || translations[u.match] === u.match)
+                .slice(0, 5)
+                .map((u) => u.match)
+                .join(", ");
+              const msg = `[${sectionLabel}] ⚠ Не переведены ${skipped} фрагментов (возможно, термины/коды): ${samples}`;
+              fixes.push(msg);
+              send({ type: "warn", message: msg });
+            }
+          }
+
+
           if (text !== sec.text) {
             const { error: upErr } = await admin
               .from("recommendations")
