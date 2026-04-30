@@ -43,6 +43,20 @@ const SECTION_LABELS = new Set(
   ].map((s) => s.toLowerCase()),
 );
 
+/** Регэксп строки follow-up: "Специалист → ..." (одна или две стрелки, → или ->). */
+const FOLLOW_UP_LINE_RE = /^\s*([^→\->\n]{2,80}?)\s*(?:→|->)\s+(.+)$/;
+
+/**
+ * Список ключевых слов, по которым строка-«заголовок» из мусора AI считается
+ * вступлением к блоку follow-ups (и должна быть отброшена из lifestyle).
+ */
+const FOLLOWUPS_INTRO_KEYWORDS = [
+  "консультац",
+  "обследован",
+  "узких специалист",
+  "нутрицевтическая поддержка",
+];
+
 export function sanitizeLifestyleItems(items?: string[]): string[] {
   if (!items?.length) return [];
   return items
@@ -51,8 +65,11 @@ export function sanitizeLifestyleItems(items?: string[]): string[] {
       if (!i) return false;
       const norm = i.toLowerCase().replace(/\s+/g, " ").trim();
       if (SECTION_LABELS.has(norm)) return false;
-      // Drop follow-up-like rows: "Специалист → цель → основание"
-      if (/→.*→/.test(i)) return false;
+      // Любая строка вида «Специалист → ...» — это follow-up, не lifestyle.
+      if (FOLLOW_UP_LINE_RE.test(i)) return false;
+      // Вступительные строки к блоку доп. консультаций («Ваши анализы выявили...
+      // требующих внимания узких специалистов»).
+      if (FOLLOWUPS_INTRO_KEYWORDS.some((kw) => norm.includes(kw))) return false;
       return true;
     });
 }
@@ -65,18 +82,67 @@ export function sanitizeLifestyle(ls?: LifestyleData): LifestyleData {
   };
 }
 
+/**
+ * Достаёт строки-follow-up'ы («Эндокринолог → ...») из lifestyle-массивов,
+ * которые AI ошибочно сложил вместе с режимом сна / питанием.
+ *
+ * Возвращает структурированные FollowUpData[] для слияния с уже существующим
+ * списком follow_ups (с дедупом по специалисту).
+ */
+export function extractFollowUpsFromLifestyle(ls?: LifestyleData): FollowUpData[] {
+  if (!ls) return [];
+  const all: string[] = [
+    ...(ls.nutrition || []),
+    ...(ls.activity || []),
+    ...(ls.sleep || []),
+  ];
+  const out: FollowUpData[] = [];
+  for (const raw of all) {
+    if (typeof raw !== "string") continue;
+    const m = raw.match(FOLLOW_UP_LINE_RE);
+    if (!m) continue;
+    const specialist = m[1].trim().replace(/[:.,;]+$/, "");
+    const goal = m[2].trim();
+    if (!specialist || !goal) continue;
+    out.push({ specialist, goal });
+  }
+  return out;
+}
+
+/** Слияние follow-ups (явных + извлечённых) с дедупом по специалисту. */
+export function mergeFollowUps(
+  existing?: FollowUpData[],
+  extracted?: FollowUpData[],
+): FollowUpData[] {
+  const result: FollowUpData[] = [];
+  const seen = new Set<string>();
+  const push = (f: FollowUpData) => {
+    const key = (f.specialist || "").trim().toLowerCase();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    result.push(f);
+  };
+  (existing || []).forEach(push);
+  (extracted || []).forEach(push);
+  return result;
+}
+
 interface Props {
   lifestyle?: LifestyleData;
   followUps?: FollowUpData[];
 }
 
 export function AdvisorySections({ lifestyle, followUps }: Props) {
+  // Сначала вытаскиваем «врачей» из lifestyle (AI часто кладёт их в sleep/activity),
+  // потом санитайзим lifestyle уже без них.
+  const extractedFollowUps = extractFollowUpsFromLifestyle(lifestyle);
   const ls = sanitizeLifestyle(lifestyle);
+  const mergedFollowUps = mergeFollowUps(followUps, extractedFollowUps);
   const hasNutrition = (ls.nutrition?.length || 0) > 0;
   const hasActivity = (ls.activity?.length || 0) > 0;
   const hasSleep = (ls.sleep?.length || 0) > 0;
   const hasLifestyle = hasNutrition || hasActivity || hasSleep;
-  const hasFollowUps = (followUps?.length || 0) > 0;
+  const hasFollowUps = mergedFollowUps.length > 0;
   if (!hasLifestyle && !hasFollowUps) return null;
 
   return (
@@ -133,7 +199,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
         </section>
       )}
 
-      {hasFollowUps && followUps && (
+      {hasFollowUps && (
         <section className="space-y-4">
           <div>
             <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
@@ -142,7 +208,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             <div className="h-1 w-20 bg-gradient-primary rounded-full" />
           </div>
           <div className="space-y-3">
-            {followUps.map((f, i) => (
+            {mergedFollowUps.map((f, i) => (
               <div
                 key={`fu-${i}`}
                 className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-5"
