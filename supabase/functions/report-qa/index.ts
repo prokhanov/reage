@@ -202,6 +202,145 @@ function isBiomarkerMissingEducation(content: string): boolean {
   return withoutTitle.length < 60;
 }
 
+// ──────────────────── English artifact detection ────────────────────
+
+/**
+ * Whitelist: tokens that are LEGITIMATELY English and must NOT be flagged.
+ * Includes biomarker codes/units, common medical abbreviations, brand names.
+ */
+const ENGLISH_WHITELIST = new Set<string>([
+  // units
+  "mg", "dl", "ml", "l", "g", "kg", "mmol", "mol", "umol", "nmol", "pmol",
+  "iu", "miu", "u", "ng", "pg", "mcg", "mkg", "mIU", "mEq", "mm", "cm",
+  "hg", "mmhg", "rpm", "kcal", "bpm",
+  // biomarker / lab codes & abbreviations (lowercased)
+  "hba1c", "ldl", "hdl", "vldl", "tsh", "t3", "t4", "ft3", "ft4", "tpo",
+  "psa", "crp", "esr", "alt", "ast", "ggt", "alp", "ldh", "ck", "bnp",
+  "homa", "homa-ir", "ir", "tnf", "il", "il-6", "il-1", "il-10",
+  "vitamin", "omega", "dha", "epa", "coq10", "nad", "nadh", "nadph",
+  "rbc", "wbc", "mcv", "mch", "mchc", "rdw", "mpv", "pdw", "plt", "hgb", "hb", "hct",
+  "iga", "igg", "igm", "ige", "anti", "abs",
+  "pcr", "elisa", "dna", "rna", "atp", "adp", "amp", "gtp",
+  "ph", "spo2", "po2", "pco2", "hco3",
+  "vo2", "vo2max", "max", "min", "avg",
+  "id", "url", "api", "json", "pdf", "ai", "qa",
+  // common Latin-in-Russian (may slip in)
+  "in", "vivo", "vitro", "ex", "vs", "et", "al",
+]);
+
+/**
+ * Detect runs of English text inside a Russian report.
+ * Returns matches with surrounding context for AI translation.
+ */
+function detectEnglishArtifacts(text: string): Array<{ match: string; context: string; index: number }> {
+  if (!text) return [];
+  const results: Array<{ match: string; context: string; index: number }> = [];
+
+  // Strip anchor comments, code fences, and inline code from search scope.
+  // We track positions via a mask string of same length.
+  const masked = text
+    .replace(/<!--[\s\S]*?-->/g, (m) => " ".repeat(m.length))
+    .replace(/```[\s\S]*?```/g, (m) => " ".repeat(m.length))
+    .replace(/`[^`\n]+`/g, (m) => " ".repeat(m.length));
+
+  // Find sequences of 2+ consecutive English words (Latin letters), separated by spaces/punct.
+  // Single English words are handled separately with whitelist check.
+  const phraseRegex = /\b[A-Za-z][A-Za-z'-]*(?:\s+[A-Za-z][A-Za-z'-]*){1,}\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = phraseRegex.exec(masked)) !== null) {
+    const phrase = m[0];
+    // Skip if every token is whitelisted
+    const tokens = phrase.toLowerCase().split(/\s+/);
+    const allWhitelisted = tokens.every((t) => ENGLISH_WHITELIST.has(t.replace(/[-']/g, "")));
+    if (allWhitelisted) continue;
+    // Skip if surrounded by parentheses with code-like content (e.g. "(HOMA-IR)")
+    const ctxStart = Math.max(0, m.index - 80);
+    const ctxEnd = Math.min(text.length, m.index + phrase.length + 80);
+    const context = text.slice(ctxStart, ctxEnd);
+    results.push({ match: phrase, context, index: m.index });
+  }
+
+  // Also catch single English words ≥4 letters that are NOT whitelisted
+  // and NOT immediately preceded/followed by Latin (already in phrase) or code chars.
+  const singleRegex = /(?<![A-Za-z\-])[A-Za-z]{4,}(?![A-Za-z\-])/g;
+  while ((m = singleRegex.exec(masked)) !== null) {
+    const word = m[0];
+    const lower = word.toLowerCase();
+    if (ENGLISH_WHITELIST.has(lower)) continue;
+    // Skip if already covered by a phrase match
+    if (results.some((r) => m!.index >= r.index && m!.index < r.index + r.match.length)) continue;
+    const ctxStart = Math.max(0, m.index - 80);
+    const ctxEnd = Math.min(text.length, m.index + word.length + 80);
+    results.push({ match: word, context: text.slice(ctxStart, ctxEnd), index: m.index });
+  }
+
+  return results;
+}
+
+/**
+ * Ask AI to translate English fragments to Russian, preserving medical terms,
+ * codes, units. Returns map { originalFragment -> russianTranslation }.
+ */
+async function translateEnglishFragments(
+  fragments: Array<{ match: string; context: string }>,
+  model: string,
+): Promise<Record<string, string>> {
+  if (fragments.length === 0) return {};
+
+  const system = `Ты медицинский редактор-переводчик. На вход получаешь JSON-массив объектов {match, context}, где match — английский фрагмент, попавший в русский медицинский отчёт по ошибке, context — окружающий русский текст.
+
+Твоя задача: для каждого match вернуть точный русский перевод, сохраняющий медицинский смысл и стилистику окружающего контекста.
+
+ПРАВИЛА:
+- НЕ переводи: коды биомаркеров (HBA1C, LDL, TSH), единицы измерения (mg/dL, mmol/L), бренды препаратов, латинские медицинские термины (in vivo, ex vivo).
+- Если match — это код/аббревиатура/бренд → верни его как есть.
+- Если match — это обычное английское слово или фраза (например "according to recent studies") → переведи на естественный русский.
+- Сохраняй регистр и пунктуацию по контексту.
+
+Верни ТОЛЬКО валидный JSON в формате: {"translations": [{"match": "...", "russian": "..."}, ...]}. Без обёрток, без комментариев.`;
+
+  const user = JSON.stringify({ fragments }, null, 2);
+
+  const resp = await fetch(
+    "https://ai.gateway.lovable.dev/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    },
+  );
+
+  if (!resp.ok) {
+    console.error("AI translate error:", resp.status, await resp.text());
+    return {};
+  }
+  const data = await resp.json();
+  const raw: string = data?.choices?.[0]?.message?.content ?? "";
+  try {
+    const parsed = JSON.parse(raw);
+    const out: Record<string, string> = {};
+    for (const item of parsed.translations || []) {
+      if (item?.match && typeof item.russian === "string") {
+        out[item.match] = item.russian;
+      }
+    }
+    return out;
+  } catch (e) {
+    console.error("AI translate JSON parse failed:", e, raw.slice(0, 300));
+    return {};
+  }
+}
+
 // ──────────────────── AI helper ────────────────────
 
 async function generateBiomarkerEducation(
