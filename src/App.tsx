@@ -28,6 +28,7 @@ import MyState from "./pages/MyState";
 import HealthAssistant from "./pages/HealthAssistant";
 import Subscription from "./pages/Subscription";
 import HealthStrategy from "./pages/HealthStrategy";
+import ExampleReport from "./pages/ExampleReport";
 
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
@@ -71,6 +72,16 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
+            {/* Публичный пример отчёта — рендерится как Dialog поверх лендинга. */}
+            <Route
+              path="/example-report"
+              element={
+                <>
+                  <Index />
+                  <ExampleReport />
+                </>
+              }
+            />
             <Route path="/auth" element={<Auth />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register-staff" element={<RegisterStaff />} />

@@ -1,7 +1,8 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  FileDown,
+  Eye,
   FileText,
   Target,
   TrendingUp,
@@ -94,13 +95,13 @@ export function ReportShowcaseSection() {
 
           {/* CTA */}
           <div className="mt-6 max-w-md mx-auto">
-            <a href="/sample-report.pdf" target="_blank" rel="noopener noreferrer" className="inline-block w-full">
+            <Link to="/example-report" className="inline-block w-full">
               <Button size="lg" className="w-full group">
-                <FileDown className="w-5 h-5 mr-2" />
-                Скачать пример отчёта (PDF)
+                <Eye className="w-5 h-5 mr-2" />
+                Посмотреть пример отчёта
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
