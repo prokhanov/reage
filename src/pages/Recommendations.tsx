@@ -503,6 +503,40 @@ export default function Recommendations() {
 
   // parseInlineMarkdown / cleanMarkdownEscapes / parseMarkdownToPdfMake removed — now in shared pdfExportHelpers
 
+  // ──────────────────────────────────────────────────────────────────────
+  // Экспериментальный PDF: «фотографирует» web-DOM как есть (html2canvas + jsPDF).
+  // Не трогает основной handleExportPDF; работает параллельно для A/B-проверки.
+  // ──────────────────────────────────────────────────────────────────────
+  const [snapshotExporting, setSnapshotExporting] = useState(false);
+  const handleExportSnapshotPDF = async () => {
+    const container = document.getElementById("report-content");
+    if (!container) {
+      toast({ title: "Не нашёл содержимое отчёта", variant: "destructive" });
+      return;
+    }
+    setSnapshotExporting(true);
+    try {
+      const dateStr = selectedReport?.date
+        ? format(new Date(selectedReport.date), "yyyy-MM-dd")
+        : "report";
+      await exportReportSnapshotToPdf({
+        container,
+        fileName: `report-snapshot-${dateStr}.pdf`,
+        scale: 2,
+      });
+      toast({ title: "Тестовый PDF готов" });
+    } catch (e: any) {
+      console.error("[snapshot pdf]", e);
+      toast({
+        title: "Не удалось сделать тестовый PDF",
+        description: e?.message ?? String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setSnapshotExporting(false);
+    }
+  };
+
   const handleExportPDF = async () => {
     if (!selectedReport) return;
 
