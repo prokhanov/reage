@@ -199,7 +199,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
         </section>
       )}
 
-      {hasFollowUps && followUps && (
+      {hasFollowUps && (
         <section className="space-y-4">
           <div>
             <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
@@ -208,7 +208,7 @@ export function AdvisorySections({ lifestyle, followUps }: Props) {
             <div className="h-1 w-20 bg-gradient-primary rounded-full" />
           </div>
           <div className="space-y-3">
-            {followUps.map((f, i) => (
+            {mergedFollowUps.map((f, i) => (
               <div
                 key={`fu-${i}`}
                 className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-5"
