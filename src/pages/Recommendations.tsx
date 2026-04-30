@@ -940,15 +940,6 @@ export default function Recommendations() {
                           <Download className="h-4 w-4" />
                           Скачать PDF
                         </button>
-                        <button
-                          onClick={handleExportSnapshotPDF}
-                          disabled={snapshotExporting}
-                          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Экспериментальный экспорт: PDF собирается из снимков web-отчёта"
-                        >
-                          <Download className="h-4 w-4" />
-                          {snapshotExporting ? "Готовлю…" : "Скачать тест PDF"}
-                        </button>
                       </div>
                     </div>
 
