@@ -14,7 +14,13 @@
  *   - follow_ups[]      → блоки доп. консультаций
  */
 import type { PrescriptionCardData } from "@/components/prescriptions/PrescriptionCard";
-import { sanitizeLifestyle, type LifestyleData, type FollowUpData } from "@/components/prescriptions/AdvisorySections";
+import {
+  sanitizeLifestyle,
+  extractFollowUpsFromLifestyle,
+  mergeFollowUps,
+  type LifestyleData,
+  type FollowUpData,
+} from "@/components/prescriptions/AdvisorySections";
 
 const COLOR = {
   text: "#1F2937",
