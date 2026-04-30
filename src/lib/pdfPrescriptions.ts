@@ -215,12 +215,14 @@ export function buildPrescriptionsPdf(
   input: BuildPrescriptionsPdfInput,
 ): any[] {
   const { prescriptions, lifestyle, followUps } = input;
+  const extractedFollowUps = extractFollowUpsFromLifestyle(lifestyle);
   const ls = sanitizeLifestyle(lifestyle);
+  const mergedFollowUps = mergeFollowUps(followUps, extractedFollowUps);
   const hasNutrition = (ls.nutrition?.length || 0) > 0;
   const hasActivity = (ls.activity?.length || 0) > 0;
   const hasSleep = (ls.sleep?.length || 0) > 0;
   const hasLifestyle = hasNutrition || hasActivity || hasSleep;
-  const hasFollowUps = (followUps?.length || 0) > 0;
+  const hasFollowUps = mergedFollowUps.length > 0;
 
   const out: any[] = [];
 
@@ -242,9 +244,9 @@ export function buildPrescriptionsPdf(
     if (hasSleep) out.push(lifestyleCard("😴", "Сон и режим", ls.sleep!));
   }
 
-  if (hasFollowUps && followUps) {
+  if (hasFollowUps) {
     out.push(sectionTitle("Дополнительные консультации и обследования"));
-    followUps.forEach((f) => out.push(followUpCard(f)));
+    mergedFollowUps.forEach((f) => out.push(followUpCard(f)));
   }
 
   return out;
