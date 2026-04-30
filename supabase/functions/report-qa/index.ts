@@ -522,6 +522,26 @@ Deno.serve(async (req) => {
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
         );
 
+        // Load ALL biomarker codes from the dictionary (not just this analysis)
+        // so the English-artifact detector never flags valid biomarker codes,
+        // synonyms, or short names as errors.
+        const { data: allBiomarkersData } = await admin
+          .from("biomarkers")
+          .select("code, name");
+        const englishWhitelistExtra = new Set<string>();
+        for (const b of (allBiomarkersData || []) as any[]) {
+          if (b?.code) englishWhitelistExtra.add(normalizeWhitelistToken(String(b.code)));
+          if (b?.name) {
+            // also add Latin tokens that may appear inside biomarker names
+            for (const tok of String(b.name).split(/[\s,()/]+/)) {
+              if (/^[A-Za-z][A-Za-z0-9-]*$/.test(tok)) {
+                englishWhitelistExtra.add(normalizeWhitelistToken(tok));
+              }
+            }
+          }
+        }
+
+
         const aiModel: string =
           (analysis as any)?.biomarkers_metadata?.ai_model ||
           "google/gemini-2.5-pro";
