@@ -23,6 +23,7 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { RecommendationsSkeleton } from "@/components/skeletons/RecommendationsSkeleton";
+import { exportReportSnapshotToPdf } from "@/lib/pdfSnapshotExport";
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;
@@ -502,6 +503,40 @@ export default function Recommendations() {
 
   // parseInlineMarkdown / cleanMarkdownEscapes / parseMarkdownToPdfMake removed — now in shared pdfExportHelpers
 
+  // ──────────────────────────────────────────────────────────────────────
+  // Экспериментальный PDF: «фотографирует» web-DOM как есть (html2canvas + jsPDF).
+  // Не трогает основной handleExportPDF; работает параллельно для A/B-проверки.
+  // ──────────────────────────────────────────────────────────────────────
+  const [snapshotExporting, setSnapshotExporting] = useState(false);
+  const handleExportSnapshotPDF = async () => {
+    const container = document.getElementById("report-content");
+    if (!container) {
+      toast({ title: "Не нашёл содержимое отчёта", variant: "destructive" });
+      return;
+    }
+    setSnapshotExporting(true);
+    try {
+      const dateStr = selectedReport?.date
+        ? format(new Date(selectedReport.date), "yyyy-MM-dd")
+        : "report";
+      await exportReportSnapshotToPdf({
+        container,
+        fileName: `report-snapshot-${dateStr}.pdf`,
+        scale: 2,
+      });
+      toast({ title: "Тестовый PDF готов" });
+    } catch (e: any) {
+      console.error("[snapshot pdf]", e);
+      toast({
+        title: "Не удалось сделать тестовый PDF",
+        description: e?.message ?? String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setSnapshotExporting(false);
+    }
+  };
+
   const handleExportPDF = async () => {
     if (!selectedReport) return;
 
@@ -931,13 +966,24 @@ export default function Recommendations() {
                           Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
                         </DialogDescription>
                       </div>
-                      <button
-                        onClick={handleExportPDF}
-                        className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        Скачать PDF
-                      </button>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={handleExportPDF}
+                          className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Скачать PDF
+                        </button>
+                        <button
+                          onClick={handleExportSnapshotPDF}
+                          disabled={snapshotExporting}
+                          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Экспериментальный экспорт: PDF собирается из снимков web-отчёта"
+                        >
+                          <Download className="h-4 w-4" />
+                          {snapshotExporting ? "Готовлю…" : "Скачать тест PDF"}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex-1 min-h-0 overflow-y-auto px-8 py-6" ref={contentRef}>
