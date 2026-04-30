@@ -208,15 +208,15 @@ function isBiomarkerMissingEducation(content: string): boolean {
  * Whitelist: tokens that are LEGITIMATELY English and must NOT be flagged.
  * Includes biomarker codes/units, common medical abbreviations, brand names.
  */
-const ENGLISH_WHITELIST = new Set<string>([
+const ENGLISH_WHITELIST_BASE = new Set<string>([
   // units
   "mg", "dl", "ml", "l", "g", "kg", "mmol", "mol", "umol", "nmol", "pmol",
-  "iu", "miu", "u", "ng", "pg", "mcg", "mkg", "mIU", "mEq", "mm", "cm",
+  "iu", "miu", "u", "ng", "pg", "mcg", "mkg", "meq", "mm", "cm",
   "hg", "mmhg", "rpm", "kcal", "bpm",
-  // biomarker / lab codes & abbreviations (lowercased)
+  // biomarker / lab codes & abbreviations (lowercased, hyphens stripped)
   "hba1c", "ldl", "hdl", "vldl", "tsh", "t3", "t4", "ft3", "ft4", "tpo",
   "psa", "crp", "esr", "alt", "ast", "ggt", "alp", "ldh", "ck", "bnp",
-  "homa", "homa-ir", "ir", "tnf", "il", "il-6", "il-1", "il-10",
+  "homa", "homair", "ir", "tnf", "il", "il6", "il1", "il10",
   "vitamin", "omega", "dha", "epa", "coq10", "nad", "nadh", "nadph",
   "rbc", "wbc", "mcv", "mch", "mchc", "rdw", "mpv", "pdw", "plt", "hgb", "hb", "hct",
   "iga", "igg", "igm", "ige", "anti", "abs",
@@ -226,48 +226,84 @@ const ENGLISH_WHITELIST = new Set<string>([
   "id", "url", "api", "json", "pdf", "ai", "qa",
   // common Latin-in-Russian (may slip in)
   "in", "vivo", "vitro", "ex", "vs", "et", "al",
+  // common supplement / brand fragments that legitimately appear in Russian text
+  "magnesium", "glycinate", "citrate", "malate", "bisglycinate",
+  "zinc", "picolinate", "selenium", "selenomethionine",
+  "carnitine", "acetyl", "alpha", "lipoic", "acid",
+  "coenzyme", "ubiquinol", "ubiquinone",
+  "methylfolate", "methylcobalamin", "cyanocobalamin",
+  "cholecalciferol", "ergocalciferol", "menaquinone",
+  "berberine", "curcumin", "resveratrol", "quercetin",
+  "ashwagandha", "rhodiola", "spirulina",
 ]);
+
+/** Normalize a token for whitelist comparison. */
+function normalizeWhitelistToken(token: string): string {
+  return token.toLowerCase().replace(/[\-_'.\d]/g, "");
+}
 
 /**
  * Detect runs of English text inside a Russian report.
- * Returns matches with surrounding context for AI translation.
+ * `extraWhitelist` — additional tokens (e.g. biomarker codes from DB) to ignore.
+ *
+ * Filters out false positives:
+ *  - tokens that match biomarker codes from DB
+ *  - single Latin letter prefixes attached to Cyrillic (L-карнитин, D-аспарагин, N-ацетил)
+ *  - Latin terms inside parentheses immediately after a Cyrillic word (бренды добавок)
+ *  - URLs and email addresses
  */
-function detectEnglishArtifacts(text: string): Array<{ match: string; context: string; index: number }> {
+function detectEnglishArtifacts(
+  text: string,
+  extraWhitelist: Set<string> = new Set(),
+): Array<{ match: string; context: string; index: number }> {
   if (!text) return [];
   const results: Array<{ match: string; context: string; index: number }> = [];
 
-  // Strip anchor comments, code fences, and inline code from search scope.
-  // We track positions via a mask string of same length.
-  const masked = text
+  const isWhitelisted = (token: string): boolean => {
+    const norm = normalizeWhitelistToken(token);
+    if (!norm) return true;
+    return ENGLISH_WHITELIST_BASE.has(norm) || extraWhitelist.has(norm);
+  };
+
+  // Mask out: anchor comments, code fences, inline code, URLs, emails, and
+  // parenthesised Latin clauses that follow a Cyrillic word (brand annotations).
+  let masked = text
     .replace(/<!--[\s\S]*?-->/g, (m) => " ".repeat(m.length))
     .replace(/```[\s\S]*?```/g, (m) => " ".repeat(m.length))
-    .replace(/`[^`\n]+`/g, (m) => " ".repeat(m.length));
+    .replace(/`[^`\n]+`/g, (m) => " ".repeat(m.length))
+    .replace(/https?:\/\/\S+/gi, (m) => " ".repeat(m.length))
+    .replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, (m) => " ".repeat(m.length));
 
-  // Find sequences of 2+ consecutive English words (Latin letters), separated by spaces/punct.
-  // Single English words are handled separately with whitelist check.
+  // Mask Latin-in-parentheses right after a Cyrillic word: "Магний (Magnesium glycinate)"
+  masked = masked.replace(
+    /([А-Яа-яЁё])(\s*\(\s*[A-Za-z][A-Za-z0-9\s,.\-/]*\))/g,
+    (_full, lead, paren) => lead + " ".repeat(paren.length),
+  );
+
+  // Mask single Latin letter glued to Cyrillic via hyphen: "L-карнитин", "D-аспарагин",
+  // "N-ацетил", "омега-3", also when capitalised at sentence start.
+  masked = masked.replace(
+    /\b([A-Za-z])(-[А-Яа-яЁё])/g,
+    (_full, letter, rest) => " " + rest,
+  );
+
+  // Phrase: 2+ consecutive Latin words.
   const phraseRegex = /\b[A-Za-z][A-Za-z'-]*(?:\s+[A-Za-z][A-Za-z'-]*){1,}\b/g;
   let m: RegExpExecArray | null;
   while ((m = phraseRegex.exec(masked)) !== null) {
     const phrase = m[0];
-    // Skip if every token is whitelisted
-    const tokens = phrase.toLowerCase().split(/\s+/);
-    const allWhitelisted = tokens.every((t) => ENGLISH_WHITELIST.has(t.replace(/[-']/g, "")));
-    if (allWhitelisted) continue;
-    // Skip if surrounded by parentheses with code-like content (e.g. "(HOMA-IR)")
+    const tokens = phrase.split(/\s+/);
+    if (tokens.every(isWhitelisted)) continue;
     const ctxStart = Math.max(0, m.index - 80);
     const ctxEnd = Math.min(text.length, m.index + phrase.length + 80);
-    const context = text.slice(ctxStart, ctxEnd);
-    results.push({ match: phrase, context, index: m.index });
+    results.push({ match: phrase, context: text.slice(ctxStart, ctxEnd), index: m.index });
   }
 
-  // Also catch single English words ≥4 letters that are NOT whitelisted
-  // and NOT immediately preceded/followed by Latin (already in phrase) or code chars.
+  // Single Latin words ≥4 letters, not whitelisted, not part of phrase hit.
   const singleRegex = /(?<![A-Za-z\-])[A-Za-z]{4,}(?![A-Za-z\-])/g;
   while ((m = singleRegex.exec(masked)) !== null) {
     const word = m[0];
-    const lower = word.toLowerCase();
-    if (ENGLISH_WHITELIST.has(lower)) continue;
-    // Skip if already covered by a phrase match
+    if (isWhitelisted(word)) continue;
     if (results.some((r) => m!.index >= r.index && m!.index < r.index + r.match.length)) continue;
     const ctxStart = Math.max(0, m.index - 80);
     const ctxEnd = Math.min(text.length, m.index + word.length + 80);
@@ -276,6 +312,7 @@ function detectEnglishArtifacts(text: string): Array<{ match: string; context: s
 
   return results;
 }
+
 
 /**
  * Ask AI to translate English fragments to Russian, preserving medical terms,
