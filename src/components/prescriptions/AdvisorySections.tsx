@@ -133,12 +133,16 @@ interface Props {
 }
 
 export function AdvisorySections({ lifestyle, followUps }: Props) {
+  // Сначала вытаскиваем «врачей» из lifestyle (AI часто кладёт их в sleep/activity),
+  // потом санитайзим lifestyle уже без них.
+  const extractedFollowUps = extractFollowUpsFromLifestyle(lifestyle);
   const ls = sanitizeLifestyle(lifestyle);
+  const mergedFollowUps = mergeFollowUps(followUps, extractedFollowUps);
   const hasNutrition = (ls.nutrition?.length || 0) > 0;
   const hasActivity = (ls.activity?.length || 0) > 0;
   const hasSleep = (ls.sleep?.length || 0) > 0;
   const hasLifestyle = hasNutrition || hasActivity || hasSleep;
-  const hasFollowUps = (followUps?.length || 0) > 0;
+  const hasFollowUps = mergedFollowUps.length > 0;
   if (!hasLifestyle && !hasFollowUps) return null;
 
   return (
