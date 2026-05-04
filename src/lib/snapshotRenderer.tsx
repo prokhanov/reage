@@ -17,7 +17,7 @@
 import React from "react";
 import type { ReportSnapshot, ReportBlock } from "@/lib/reportSnapshot";
 import { MarkdownContent } from "@/components/MarkdownContent";
-import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
 import {
   PdfBiomarkerData,
   STATUS_HEX_MUTED,
