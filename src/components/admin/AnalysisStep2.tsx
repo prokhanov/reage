@@ -8,7 +8,7 @@ import { X, Search, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { calculateAge, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, formatNormalRange, getBiomarkerStatus } from "@/lib/biomarkerNorms";
-import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
 import {
   CALCULATED_BIOMARKER_CODES,
   computeAllDerivedValues,
