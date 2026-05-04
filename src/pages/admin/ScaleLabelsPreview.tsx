@@ -75,7 +75,7 @@ function VariantWrapper({ title, description, children }: { title: string; descr
 }
 
 export default function ScaleLabelsPreview() {
-  const { left, right } = useOptimalPositions();
+  const { left, right, valuePos } = useOptimalPositions();
 
   return (
     <div className="container max-w-4xl py-8 space-y-6">
