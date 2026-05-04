@@ -350,6 +350,34 @@ export function EditReportDialog({
         if (error) throw error;
       }
 
+      // Сохраняем advisory-блок (Назначения / lifestyle + follow_ups) в content_json,
+      // фильтруя пустые строки и follow-ups без специалиста.
+      if (advisory) {
+        const cleanArr = (a?: string[]) => (a || []).map(s => s.trim()).filter(Boolean);
+        const lifestyle = {
+          nutrition: cleanArr(advisory.lifestyle.nutrition),
+          activity: cleanArr(advisory.lifestyle.activity),
+          sleep: cleanArr(advisory.lifestyle.sleep),
+        };
+        const follow_ups = (advisory.followUps || [])
+          .map(f => ({
+            specialist: (f.specialist || "").trim(),
+            goal: (f.goal || "").trim(),
+            trigger: (f.trigger || "").trim(),
+          }))
+          .filter(f => f.specialist || f.goal);
+
+        const newContentJson: any = { lifestyle, follow_ups };
+        if (advisory.rawMarkdown) newContentJson.raw_markdown = advisory.rawMarkdown;
+
+        const { error: advErr } = await supabase
+          .from("recommendations")
+          // @ts-ignore
+          .update({ content_json: newContentJson })
+          .eq("id", advisory.id);
+        if (advErr) throw advErr;
+      }
+
       // Если контент менялся — инвалидируем JSON snapshot у summary этого анализа.
       if (anyContentChanged) {
         const { error: invalidateError } = await supabase
