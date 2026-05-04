@@ -364,18 +364,24 @@ export function WeightTracker() {
           const lbl3 = ((30 - scaleMin) / (scaleMax - scaleMin)) * 100;
           return (
             <div className="space-y-1">
+              <div className="relative" style={{ height: "6px" }}>
+                <svg
+                  className="absolute -translate-x-1/2 text-foreground"
+                  style={{ left: `${markerPos}%`, bottom: "-1px" }}
+                  width={9}
+                  height={6}
+                  viewBox="0 0 9 6"
+                  fill="currentColor"
+                  aria-hidden
+                >
+                  <path d="M4.5 6 L0 0 L9 0 Z" />
+                </svg>
+              </div>
               <div className="relative h-3 flex rounded-full overflow-hidden">
                 <div style={{ width: `${seg1}%` }} className="h-full bg-blue-500" />
                 <div style={{ width: `${seg2}%` }} className="h-full bg-green-500" />
                 <div style={{ width: `${seg3}%` }} className="h-full bg-yellow-500" />
                 <div style={{ width: `${seg4}%` }} className="h-full bg-red-500" />
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full border-2 border-background shadow-lg z-10"
-                  style={{
-                    left: `${markerPos}%`,
-                    backgroundColor: 'hsl(var(--foreground))',
-                  }}
-                />
               </div>
               <div className="relative h-3">
                 <span className="absolute text-[9px] text-muted-foreground -translate-x-1/2" style={{ left: `${lbl1}%` }}>18.5</span>
