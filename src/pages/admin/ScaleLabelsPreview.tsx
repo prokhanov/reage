@@ -91,6 +91,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 1. Минимализм — числа под границами оптимума"
         description="Без подписей зон, только две цифры — старт и конец зелёной зоны."
       >
+        <ValueMarkerLabel pos={useOptimalPositions().valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="relative h-4 mt-1">
           <span className="absolute -translate-x-1/2 text-[11px] tabular-nums text-foreground font-medium" style={{ left: `${left}%` }}>
@@ -98,6 +99,9 @@ export default function ScaleLabelsPreview() {
           </span>
           <span className="absolute -translate-x-1/2 text-[11px] tabular-nums text-foreground font-medium" style={{ left: `${right}%` }}>
             {optMax}
+          </span>
+          <span className="absolute -translate-x-1/2 text-[10px] text-muted-foreground top-4" style={{ left: `${(left + right) / 2}%` }}>
+            оптимум
           </span>
         </div>
       </VariantWrapper>
