@@ -39,10 +39,10 @@ function calcPositions(value: number) {
 /** Только стрелка — касается верхней кромки шкалы */
 function ValueArrow({ pos }: { pos: number }) {
   return (
-    <div className="relative h-2">
+    <div className="relative h-[6px]">
       <svg
-        className="absolute bottom-0 -translate-x-1/2 text-foreground"
-        style={{ left: `${pos}%` }}
+        className="absolute -translate-x-1/2 text-foreground"
+        style={{ left: `${pos}%`, bottom: '-1px' }}
         width="9"
         height="6"
         viewBox="0 0 9 6"
@@ -58,8 +58,8 @@ function ValueArrow({ pos }: { pos: number }) {
 function ScenarioRow({ value }: { value: number }) {
   const { valuePos } = calcPositions(value);
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-2">
-      <div className="flex items-baseline justify-between gap-3">
+    <div className="rounded-lg border bg-card p-4">
+      <div className="flex items-baseline justify-between gap-3 mb-3">
         <div className="text-sm text-muted-foreground truncate">ТТГ — Тиреотропный гормон</div>
         <div className="text-sm whitespace-nowrap">
           <span className="text-muted-foreground">Ваш показатель — </span>
@@ -70,10 +70,8 @@ function ScenarioRow({ value }: { value: number }) {
         </div>
       </div>
 
-      <div>
-        <ValueArrow pos={valuePos} />
-        <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
-      </div>
+      <ValueArrow pos={valuePos} />
+      <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
 
       <div className="text-[11px] font-sans text-muted-foreground mt-2 flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--status-optimal))" }} />
