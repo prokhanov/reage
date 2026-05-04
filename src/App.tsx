@@ -39,6 +39,7 @@ import AnalysisBookings from "./pages/admin/AnalysisBookings";
 import MyAssignments from "./pages/admin/MyAssignments";
 import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import ReportVisualsTest from "./pages/admin/ReportVisualsTest";
+import ScaleLabelsPreview from "./pages/admin/ScaleLabelsPreview";
 import EmailSettings from "./pages/admin/EmailSettings";
 import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
@@ -204,6 +205,14 @@ const App = () => (
                 element={
                   <SuperAdminRoute>
                     <ReportVisualsTest />
+                  </SuperAdminRoute>
+                } 
+              />
+              <Route 
+                path="/admin/scale-preview" 
+                element={
+                  <SuperAdminRoute>
+                    <ScaleLabelsPreview />
                   </SuperAdminRoute>
                 } 
               />
