@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
 
-// Mock биомаркер: ТТГ-подобный — норма 0.4–4.0, оптимум 0.7–1.2, крит 0.1–10
+// Mock биомаркер: ТТГ-подобный
 const biomarker = {
   range_mode: "general",
   normal_min: 0.4,
@@ -36,26 +36,28 @@ function calcPositions(value: number) {
   return { valuePos: toPercent(value) };
 }
 
-/** Только стрелка — касается верхней кромки шкалы */
-function ValueArrow({ pos }: { pos: number }) {
+type ArrowSize = { w: number; h: number };
+
+/** Стрелка с настраиваемым размером — касается верхней кромки шкалы */
+function ValueArrow({ pos, size }: { pos: number; size: ArrowSize }) {
   return (
-    <div className="relative h-[6px]">
+    <div className="relative" style={{ height: `${size.h}px` }}>
       <svg
         className="absolute -translate-x-1/2 text-foreground"
         style={{ left: `${pos}%`, bottom: '-1px' }}
-        width="9"
-        height="6"
-        viewBox="0 0 9 6"
+        width={size.w}
+        height={size.h}
+        viewBox={`0 0 ${size.w} ${size.h}`}
         fill="currentColor"
         aria-hidden
       >
-        <path d="M4.5 6 L0 0 L9 0 Z" />
+        <path d={`M${size.w / 2} ${size.h} L0 0 L${size.w} 0 Z`} />
       </svg>
     </div>
   );
 }
 
-function ScenarioRow({ value }: { value: number }) {
+function ScenarioRow({ value, arrowSize }: { value: number; arrowSize: ArrowSize }) {
   const { valuePos } = calcPositions(value);
   return (
     <div className="rounded-lg border bg-card p-4">
@@ -70,7 +72,7 @@ function ScenarioRow({ value }: { value: number }) {
         </div>
       </div>
 
-      <ValueArrow pos={valuePos} />
+      <ValueArrow pos={valuePos} size={arrowSize} />
       <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
 
       <div className="text-[11px] font-sans text-muted-foreground mt-2 flex items-center gap-1.5">
@@ -84,36 +86,44 @@ function ScenarioRow({ value }: { value: number }) {
   );
 }
 
+const ARROW_VARIANTS: { key: string; title: string; description: string; size: ArrowSize }[] = [
+  { key: "S",  title: "Вариант S — компактная",   description: "9×6px (текущая)",         size: { w: 9, h: 6 } },
+  { key: "M",  title: "Вариант M — чуть больше",  description: "12×8px",                  size: { w: 12, h: 8 } },
+  { key: "L",  title: "Вариант L — средняя",      description: "16×10px",                 size: { w: 16, h: 10 } },
+  { key: "XL", title: "Вариант XL — крупная",     description: "20×12px",                 size: { w: 20, h: 12 } },
+  { key: "2XL",title: "Вариант 2XL — максимум",   description: "26×16px",                 size: { w: 26, h: 16 } },
+];
+
 export default function ScaleLabelsPreview() {
   return (
     <div className="container max-w-5xl py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Превью: подписи диапазона и маркера</h1>
+        <h1 className="text-2xl font-bold">Превью: размер стрелки-указателя</h1>
         <p className="text-muted-foreground mt-1">
-          На примере ТТГ. Оптимум {optMin}–{optMax} {unit}. Стрелка указывает на значение пациента.
+          Сравнение размеров от компактного до крупного. Выберите оптимальный — внедрим в продакшн.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Дизайн B. Подпись отдельной строкой</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            «Ваш показатель» вынесен в заголовок карточки, стрелка касается шкалы.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {SCENARIOS.map((s) => (
-              <div key={s.label} className="space-y-1.5">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-sans">
-                  сценарий: {s.label}
+      {ARROW_VARIANTS.map((v) => (
+        <Card key={v.key}>
+          <CardHeader>
+            <CardTitle className="text-base">{v.title}</CardTitle>
+            <p className="text-sm text-muted-foreground">{v.description}</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {SCENARIOS.map((s) => (
+                <div key={s.label} className="space-y-1.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-sans">
+                    сценарий: {s.label}
+                  </div>
+                  <ScenarioRow value={s.value} arrowSize={v.size} />
                 </div>
-                <ScenarioRow value={s.value} />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
