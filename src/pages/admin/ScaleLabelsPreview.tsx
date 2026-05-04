@@ -173,6 +173,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 5. Текст под шкалой (без визуальной привязки)"
         description="Минимум визуальной нагрузки — диапазон вынесен отдельной строкой."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5">
           <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--status-optimal))" }} />
