@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
-import { Badge } from "@/components/ui/badge";
 
 // Mock биомаркер: ТТГ-подобный — норма 0.4–4.0, оптимум 0.7–1.2, крит 0.1–10
 const biomarker = {
@@ -13,13 +12,20 @@ const biomarker = {
   critical_max: 10,
 };
 
-const value = 1.0;
 const unit = "мМЕ/л";
 const optMin = biomarker.optimal_min;
 const optMax = biomarker.optimal_max;
 
+// сценарии для эмуляции
+const SCENARIOS: { label: string; value: number }[] = [
+  { label: "оптимум", value: 1.0 },
+  { label: "допустимо", value: 2.5 },
+  { label: "риск", value: 5.0 },
+  { label: "дефицит", value: 0.3 },
+];
+
 // helper для расчёта позиций оптимума на шкале (повторяет логику BiomarkerRangeBar)
-function useOptimalPositions() {
+function calcPositions(value: number) {
   const points = [value, biomarker.normal_min, biomarker.normal_max, optMin, optMax, biomarker.critical_min, biomarker.critical_max];
   const dataMin = Math.min(...points);
   const dataMax = Math.max(...points);
@@ -32,116 +38,54 @@ function useOptimalPositions() {
   return { left: toPercent(optMin), right: toPercent(optMax), valuePos: toPercent(value) };
 }
 
+/**
+ * Подпись «ваш показатель» с настоящей стрелкой,
+ * указывающей на маркер пациента.
+ */
 function ValueMarkerLabel({ pos }: { pos: number }) {
-  // Clamp so the label doesn't overflow the bar edges
-  const clamped = Math.max(6, Math.min(94, pos));
+  // сдвигаем подпись, но стрелка всё равно встаёт точно над маркером
+  const labelLeft = Math.max(10, Math.min(90, pos));
   return (
-    <div className="relative h-5 mb-1">
-      <div
-        className="absolute -translate-x-1/2 flex flex-col items-center"
-        style={{ left: `${clamped}%` }}
-      >
-        <span className="text-[10px] font-semibold tabular-nums text-primary whitespace-nowrap leading-none">
-          ваш показатель ▼
+    <div className="relative h-7 mb-0.5">
+      <div className="absolute flex flex-col items-center -translate-x-1/2" style={{ left: `${labelLeft}%` }}>
+        <span className="font-sans text-[11px] font-medium tracking-tight text-foreground/80 whitespace-nowrap leading-none">
+          ваш показатель
         </span>
       </div>
+      {/* стрелка точно над маркером значения */}
+      <svg
+        className="absolute top-3.5 -translate-x-1/2 text-foreground"
+        style={{ left: `${pos}%` }}
+        width="10"
+        height="10"
+        viewBox="0 0 10 10"
+        fill="currentColor"
+        aria-hidden
+      >
+        <path d="M5 10 L0 0 L10 0 Z" />
+      </svg>
     </div>
   );
 }
 
-function VariantWrapper({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+function ScenarioRow({ value, variant }: { value: number; variant: 3 | 5 }) {
+  const { left, right, valuePos } = calcPositions(value);
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-lg border bg-card p-4 space-y-3">
-          <div className="flex items-baseline justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground">ТТГ — Тиреотропный гормон</div>
-              <div className="text-2xl font-semibold tabular-nums">
-                {value} <span className="text-sm font-normal text-muted-foreground">{unit}</span>
-              </div>
-            </div>
-            <Badge style={{ backgroundColor: "hsl(var(--status-optimal))", color: "white" }}>Оптимум</Badge>
-          </div>
-          {children}
+    <div className="rounded-lg border bg-card p-4 space-y-2">
+      <div className="flex items-baseline justify-between">
+        <div className="text-sm text-muted-foreground">ТТГ — Тиреотропный гормон</div>
+        <div className="font-mono text-xl font-semibold tabular-nums tracking-tight text-foreground">
+          {value.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">{unit}</span>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function ScaleLabelsPreview() {
-  const { left, right, valuePos } = useOptimalPositions();
-
-  return (
-    <div className="container max-w-4xl py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Превью: подписи оптимального диапазона</h1>
-        <p className="text-muted-foreground mt-1">
-          На примере биомаркера ТТГ. Оптимум {optMin}–{optMax} {unit}, текущее значение {value} {unit}.
-        </p>
       </div>
 
-      {/* Вариант 1 — минимализм: цифры под границами оптимума */}
-      <VariantWrapper
-        title="Вариант 1. Минимализм — числа под границами оптимума"
-        description="Без подписей зон, только две цифры — старт и конец зелёной зоны."
-      >
-        <ValueMarkerLabel pos={valuePos} />
-        <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
-        <div className="relative h-4 mt-1">
-          <span className="absolute -translate-x-1/2 text-[11px] tabular-nums text-foreground font-medium" style={{ left: `${left}%` }}>
-            {optMin}
-          </span>
-          <span className="absolute -translate-x-1/2 text-[11px] tabular-nums text-foreground font-medium" style={{ left: `${right}%` }}>
-            {optMax}
-          </span>
-          <span className="absolute -translate-x-1/2 text-[10px] text-muted-foreground top-4" style={{ left: `${(left + right) / 2}%` }}>
-            оптимум
-          </span>
-        </div>
-      </VariantWrapper>
+      <ValueMarkerLabel pos={valuePos} />
+      <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
 
-      {/* Вариант 2 — скобка под зелёной зоной */}
-      <VariantWrapper
-        title="Вариант 2. Скобка под зелёной зоной"
-        description="Визуальная связь: фигурная скобка явно охватывает зелёную секцию."
-      >
-        <ValueMarkerLabel pos={valuePos} />
-        <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
-        <div className="relative h-6 mt-1">
-          <div
-            className="absolute top-0 border-l border-r border-b rounded-b-md"
-            style={{
-              left: `${left}%`,
-              width: `${right - left}%`,
-              height: "8px",
-              borderColor: "hsl(var(--status-optimal))",
-            }}
-          />
-          <div
-            className="absolute top-2.5 -translate-x-1/2 text-[11px] tabular-nums font-medium"
-            style={{ left: `${(left + right) / 2}%`, color: "hsl(var(--status-optimal))" }}
-          >
-            {optMin} – {optMax} {unit}
-          </div>
-        </div>
-      </VariantWrapper>
-
-      {/* Вариант 3 — pill badge */}
-      <VariantWrapper
-        title="Вариант 3. Pill-бейдж под зелёной зоной (рекомендую)"
-        description="Зелёная таблетка с диапазоном размещена ровно под оптимумом."
-      >
-        <ValueMarkerLabel pos={valuePos} />
-        <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
+      {variant === 3 && (
         <div className="relative h-6 mt-2">
           <div
-            className="absolute top-0 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-semibold tabular-nums whitespace-nowrap"
+            className="absolute top-0 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-medium font-sans tabular-nums whitespace-nowrap"
             style={{
               left: `${(left + right) / 2}%`,
               backgroundColor: "hsl(var(--status-optimal) / 0.15)",
@@ -152,34 +96,65 @@ export default function ScaleLabelsPreview() {
             оптимум {optMin}–{optMax}
           </div>
         </div>
-      </VariantWrapper>
+      )}
 
-      {/* Вариант 4 — медицинский: все границы подписаны */}
-      <VariantWrapper
-        title="Вариант 4. Медицинский — все ключевые границы подписаны"
-        description="Подписаны границы нормы и оптимума с поясняющими тегами."
-      >
-        <ValueMarkerLabel pos={valuePos} />
-        <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" showLabels />
-        <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-1">
-          <span>← дефицит</span>
-          <span style={{ color: "hsl(var(--status-optimal))" }}>оптимум {optMin}–{optMax}</span>
-          <span>избыток →</span>
-        </div>
-      </VariantWrapper>
-
-      {/* Вариант 5 — текстовая подпись под шкалой */}
-      <VariantWrapper
-        title="Вариант 5. Текст под шкалой (без визуальной привязки)"
-        description="Минимум визуальной нагрузки — диапазон вынесен отдельной строкой."
-      >
-        <ValueMarkerLabel pos={valuePos} />
-        <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
-        <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5">
+      {variant === 5 && (
+        <div className="text-[11px] font-sans text-muted-foreground mt-2 flex items-center gap-1.5">
           <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--status-optimal))" }} />
-          Оптимальный диапазон: <span className="font-medium text-foreground tabular-nums">{optMin} – {optMax} {unit}</span>
+          Оптимальный диапазон:{" "}
+          <span className="font-mono font-medium text-foreground tabular-nums">
+            {optMin} – {optMax} {unit}
+          </span>
         </div>
-      </VariantWrapper>
+      )}
+    </div>
+  );
+}
+
+function VariantBlock({ title, description, variant }: { title: string; description: string; variant: 3 | 5 }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {SCENARIOS.map((s) => (
+            <div key={s.label} className="space-y-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-sans">
+                сценарий: {s.label}
+              </div>
+              <ScenarioRow value={s.value} variant={variant} />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function ScaleLabelsPreview() {
+  return (
+    <div className="container max-w-5xl py-8 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Превью: подписи диапазона и маркера</h1>
+        <p className="text-muted-foreground mt-1">
+          На примере ТТГ. Оптимум {optMin}–{optMax} {unit}. Стрелка «ваш показатель» точно указывает на значение пациента.
+        </p>
+      </div>
+
+      <VariantBlock
+        variant={3}
+        title="Дизайн A. Pill-бейдж под зелёной зоной"
+        description="Зелёная таблетка с диапазоном размещена ровно под оптимумом, стрелка указывает на пациента."
+      />
+
+      <VariantBlock
+        variant={5}
+        title="Дизайн B. Подпись отдельной строкой"
+        description="Минимум визуальной нагрузки — диапазон вынесен текстом со зелёным маркером."
+      />
     </div>
   );
 }
