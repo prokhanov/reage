@@ -9,6 +9,8 @@ interface BiomarkerRangeBarProps {
   showLabels?: boolean;
   fillHeight?: boolean;
   hideMarker?: boolean;
+  /** 'arrow' (default) — стрелка-указатель сверху шкалы (S, 9×6); 'dot' — старая точка на шкале */
+  markerStyle?: 'arrow' | 'dot';
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -55,7 +57,7 @@ function getZoneColor(
   return STATUS_COLORS.optimal;
 }
 
-export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false, fillHeight = false, hideMarker = false }: BiomarkerRangeBarProps) {
+export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false, fillHeight = false, hideMarker = false, markerStyle = 'arrow' }: BiomarkerRangeBarProps) {
   const g = (gender === 'male' || gender === 'female') ? gender : 'male';
   const a = age ?? 40;
 
@@ -136,8 +138,26 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
 
   const barClass = fillHeight ? 'h-full' : 'h-3';
 
+  // 'arrow' стиль работает только для обычной (не fillHeight) шкалы
+  const useArrow = markerStyle === 'arrow' && !fillHeight && !hideMarker;
+
   return (
     <div className={fillHeight ? 'h-full' : 'space-y-0.5'}>
+      {useArrow && (
+        <div className="relative" style={{ height: '6px' }}>
+          <svg
+            className="absolute -translate-x-1/2 text-foreground"
+            style={{ left: `${markerPos}%`, bottom: '-1px' }}
+            width={9}
+            height={6}
+            viewBox="0 0 9 6"
+            fill="currentColor"
+            aria-hidden
+          >
+            <path d="M4.5 6 L0 0 L9 0 Z" />
+          </svg>
+        </div>
+      )}
       <div className={`relative ${barClass} flex ${fillHeight ? '' : 'rounded-full'} overflow-hidden`}>
         {segments.map((seg, i) => (
           <div
@@ -149,8 +169,8 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
             className="h-full"
           />
         ))}
-        {/* Value marker */}
-        {!hideMarker && (
+        {/* Value marker (dot — старый стиль или fillHeight) */}
+        {!hideMarker && !useArrow && (
           <div
             className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-background shadow-lg z-10 ${fillHeight ? 'w-4 h-4' : 'w-3 h-3'}`}
             style={{

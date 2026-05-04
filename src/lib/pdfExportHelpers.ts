@@ -119,15 +119,32 @@ export function buildRangeBarCanvas(
     }
   }
 
-  // Value marker
-  const mx = Math.max(3, Math.min(barWidth - 3, toX(bm.value)));
-  canvasItems.push({ type: 'ellipse', x: mx, y: barHeight / 2, r1: 5, r2: 5, color: '#1F2937' });
-  canvasItems.push({ type: 'ellipse', x: mx, y: barHeight / 2, r1: 3, r2: 3, color: '#FFFFFF' });
+  // Стрелка-указатель сверху шкалы (вариант S: 9×6px)
+  const arrowH = 6;
+  const arrowW = 9;
+  const arrowOffsetY = arrowH; // сдвиг шкалы вниз на высоту стрелки
+  // Сдвигаем все сегменты шкалы вниз
+  for (const item of canvasItems) {
+    if (item.type === 'rect') item.y = arrowOffsetY;
+  }
+  const mx = Math.max(arrowW / 2, Math.min(barWidth - arrowW / 2, toX(bm.value)));
+  // Треугольник вершиной вниз, касается верха шкалы
+  canvasItems.push({
+    type: 'polyline',
+    closePath: true,
+    lineColor: '#1F2937',
+    color: '#1F2937',
+    points: [
+      { x: mx - arrowW / 2, y: 0 },
+      { x: mx + arrowW / 2, y: 0 },
+      { x: mx, y: arrowOffsetY },
+    ],
+  });
 
   return {
     canvas: canvasItems,
     width: barWidth,
-    height: barHeight + 2,
+    height: barHeight + arrowOffsetY + 2,
     margin: [0, 2, 0, 4],
   };
 }
