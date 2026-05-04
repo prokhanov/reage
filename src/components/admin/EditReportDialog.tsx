@@ -37,6 +37,7 @@ type FollowUp = {
 };
 
 type AdvisoryBlock = {
+  id: string;
   lifestyle: LifestyleBlock;
   followUps: FollowUp[];
   rawMarkdown?: string;
