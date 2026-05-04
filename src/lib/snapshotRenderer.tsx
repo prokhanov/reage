@@ -161,25 +161,11 @@ function renderBlockWeb(
         >
           {bm && (
             <div className="space-y-2">
-              {/* Имя + код */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-semibold text-foreground">{bm.name}</span>
-                <span className="text-xs text-muted-foreground">({bm.code})</span>
-              </div>
-              {/* Шкала */}
-              <BiomarkerRangeBar
-                biomarker={bm.biomarker}
-                value={bm.value}
-                age={age}
-                gender={gender}
-              />
-              {/* Значение + статус */}
-              <div className="flex items-baseline justify-between">
-                <div className="flex items-baseline gap-1.5">
-                  <span className={`text-lg font-bold tracking-tight ${statusColorMap[bm.status]}`}>
-                    {bm.value}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{bm.unit}</span>
+              {/* Имя + код + статус */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-sm font-semibold text-foreground truncate">{bm.name}</span>
+                  <span className="text-xs text-muted-foreground">({bm.code})</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className={`text-[10px] ${statusColorMap[bm.status]}`}>●</span>
@@ -188,6 +174,15 @@ function renderBlockWeb(
                   </span>
                 </div>
               </div>
+              {/* Унифицированная шкала */}
+              <BiomarkerScale
+                biomarker={bm.biomarker}
+                value={bm.value}
+                age={age}
+                gender={gender}
+                unit={bm.unit}
+                showHeader
+              />
             </div>
           )}
           {trimmedCommentary && (
