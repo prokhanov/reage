@@ -159,6 +159,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 4. Медицинский — все ключевые границы подписаны"
         description="Подписаны границы нормы и оптимума с поясняющими тегами."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" showLabels />
         <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-1">
           <span>← дефицит</span>
