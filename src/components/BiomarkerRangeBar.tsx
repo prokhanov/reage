@@ -55,7 +55,7 @@ function getZoneColor(
   return STATUS_COLORS.optimal;
 }
 
-export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false, fillHeight = false }: BiomarkerRangeBarProps) {
+export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false, fillHeight = false, hideMarker = false }: BiomarkerRangeBarProps) {
   const g = (gender === 'male' || gender === 'female') ? gender : 'male';
   const a = age ?? 40;
 
