@@ -5,7 +5,7 @@
 import React from "react";
 import { AnchorBlock, parseAnchors } from "@/lib/anchorParser";
 import { MarkdownContent } from "@/components/MarkdownContent";
-import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Badge } from "@/components/ui/badge";
 import {
   PdfBiomarkerData,
