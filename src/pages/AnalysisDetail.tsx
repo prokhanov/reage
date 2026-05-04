@@ -36,6 +36,7 @@ import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { getNormalRangeForAge, calculateAge, AgeRanges, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
 import { BiomarkerScale } from "@/components/BiomarkerScale";
+import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
 
 interface Biomarker {
   id: string;
