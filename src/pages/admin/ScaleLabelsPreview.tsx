@@ -111,6 +111,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 2. Скобка под зелёной зоной"
         description="Визуальная связь: фигурная скобка явно охватывает зелёную секцию."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="relative h-6 mt-1">
           <div
