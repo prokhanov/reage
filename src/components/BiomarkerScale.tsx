@@ -58,9 +58,16 @@ export function BiomarkerScale({ biomarker, value, age, gender, unit, compact = 
   const optimal = getOptimalRangeForAge(biomarker, a, g);
   const u = unit ?? biomarker.unit ?? "";
   const hasOptimal = optimal.min !== null || optimal.max !== null;
-  const optText = hasOptimal
-    ? `${optimal.min ?? "—"} – ${optimal.max ?? "—"} ${u}`.trim()
-    : null;
+  let optText: string | null = null;
+  if (hasOptimal) {
+    if (optimal.min !== null && optimal.max !== null) {
+      optText = `${optimal.min} – ${optimal.max} ${u}`.trim();
+    } else if (optimal.max !== null) {
+      optText = `до ${optimal.max} ${u}`.trim();
+    } else if (optimal.min !== null) {
+      optText = `от ${optimal.min} ${u}`.trim();
+    }
+  }
 
   return (
     <div className="w-full">
