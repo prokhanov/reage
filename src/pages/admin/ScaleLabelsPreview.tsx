@@ -137,6 +137,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 3. Pill-бейдж под зелёной зоной (рекомендую)"
         description="Зелёная таблетка с диапазоном размещена ровно под оптимумом."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="relative h-6 mt-2">
           <div
