@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, ShieldCheck, Stethoscope, Utensils, X } from "lucide-react";
+import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, Plus, ShieldCheck, Stethoscope, Trash2, Utensils, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
 import { marked } from 'marked';
@@ -13,6 +15,7 @@ import TurndownService from 'turndown';
 import { format } from "date-fns";
 import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
+import { sanitizeLifestyle, extractFollowUpsFromLifestyle, mergeFollowUps } from "@/components/prescriptions/AdvisorySections";
 
 interface Recommendation {
   id: string;
