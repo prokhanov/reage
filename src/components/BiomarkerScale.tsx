@@ -63,9 +63,9 @@ export function BiomarkerScale({ biomarker, value, age, gender, unit, compact = 
     if (optimal.min !== null && optimal.max !== null) {
       optText = `${optimal.min} – ${optimal.max} ${u}`.trim();
     } else if (optimal.max !== null) {
-      optText = `до ${optimal.max} ${u}`.trim();
+      optText = `≤ ${optimal.max} ${u}`.trim();
     } else if (optimal.min !== null) {
-      optText = `от ${optimal.min} ${u}`.trim();
+      optText = `≥ ${optimal.min} ${u}`.trim();
     }
   }
 
