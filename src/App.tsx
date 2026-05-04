@@ -209,6 +209,14 @@ const App = () => (
                 } 
               />
               <Route 
+                path="/admin/scale-preview" 
+                element={
+                  <SuperAdminRoute>
+                    <ScaleLabelsPreview />
+                  </SuperAdminRoute>
+                } 
+              />
+              <Route 
                 path="/admin/email-settings" 
                 element={
                   <SuperAdminRoute>
