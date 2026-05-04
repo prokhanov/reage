@@ -9,8 +9,6 @@ interface BiomarkerRangeBarProps {
   showLabels?: boolean;
   fillHeight?: boolean;
   hideMarker?: boolean;
-  /** 'arrow' (default) — стрелка-указатель сверху шкалы (S, 9×6); 'dot' — старая точка на шкале */
-  markerStyle?: 'arrow' | 'dot';
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -57,7 +55,7 @@ function getZoneColor(
   return STATUS_COLORS.optimal;
 }
 
-export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false, fillHeight = false, hideMarker = false, markerStyle = 'arrow' }: BiomarkerRangeBarProps) {
+export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = false, fillHeight = false, hideMarker = false }: BiomarkerRangeBarProps) {
   const g = (gender === 'male' || gender === 'female') ? gender : 'male';
   const a = age ?? 40;
 
