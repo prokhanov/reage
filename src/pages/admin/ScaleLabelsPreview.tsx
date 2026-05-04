@@ -29,7 +29,24 @@ function useOptimalPositions() {
   const scaleMax = dataMax + padding;
   const scaleRange = scaleMax - scaleMin;
   const toPercent = (v: number) => ((v - scaleMin) / scaleRange) * 100;
-  return { left: toPercent(optMin), right: toPercent(optMax) };
+  return { left: toPercent(optMin), right: toPercent(optMax), valuePos: toPercent(value) };
+}
+
+function ValueMarkerLabel({ pos }: { pos: number }) {
+  // Clamp so the label doesn't overflow the bar edges
+  const clamped = Math.max(6, Math.min(94, pos));
+  return (
+    <div className="relative h-5 mb-1">
+      <div
+        className="absolute -translate-x-1/2 flex flex-col items-center"
+        style={{ left: `${clamped}%` }}
+      >
+        <span className="text-[10px] font-semibold tabular-nums text-primary whitespace-nowrap leading-none">
+          ваш показатель ▼
+        </span>
+      </div>
+    </div>
+  );
 }
 
 function VariantWrapper({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
