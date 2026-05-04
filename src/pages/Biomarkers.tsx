@@ -12,6 +12,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
 import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
 import { BiomarkerScale } from "@/components/BiomarkerScale";
+import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Progress } from "@/components/ui/progress";
@@ -406,10 +407,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
 
                               <TableCell>
                                 {statusInfo ? (
-                                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.bgClass} ${statusInfo.colorClass} border ${statusInfo.borderClass}`}>
-                                    <span>{statusInfo.emoji}</span>
-                                    <span>{statusInfo.label}</span>
-                                  </div>
+                                  <BiomarkerStatusBadge statusInfo={statusInfo} />
                                 ) : (
                                   <span className="text-sm text-muted-foreground">—</span>
                                 )}

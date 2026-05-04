@@ -36,6 +36,7 @@ import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { getNormalRangeForAge, calculateAge, AgeRanges, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
 import { BiomarkerScale } from "@/components/BiomarkerScale";
+import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
 
 interface Biomarker {
   id: string;
@@ -791,10 +792,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
                                     <TableCell>
                                       {statusInfo ? (
-                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.bgClass} ${statusInfo.colorClass} border ${statusInfo.borderClass}`}>
-                                          <span>{statusInfo.emoji}</span>
-                                          <span>{statusInfo.label}</span>
-                                        </div>
+                                        <BiomarkerStatusBadge statusInfo={statusInfo} />
                                       ) : (
                                         <span className="text-sm text-muted-foreground">—</span>
                                       )}
