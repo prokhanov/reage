@@ -9,6 +9,8 @@ interface BiomarkerRangeBarProps {
   showLabels?: boolean;
   fillHeight?: boolean;
   hideMarker?: boolean;
+  /** 'arrow' (default) — стрелка-указатель сверху шкалы (S, 9×6); 'dot' — старая точка на шкале */
+  markerStyle?: 'arrow' | 'dot';
 }
 
 const STATUS_COLORS: Record<string, string> = {
