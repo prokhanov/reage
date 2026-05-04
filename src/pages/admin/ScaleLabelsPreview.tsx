@@ -70,7 +70,9 @@ function ScenarioRow({ value }: { value: number }) {
         </div>
       </div>
 
-      <ValueArrow pos={valuePos} />
+      <div className="-mb-1.5">
+        <ValueArrow pos={valuePos} />
+      </div>
       <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
 
       <div className="text-[11px] font-sans text-muted-foreground mt-2 flex items-center gap-1.5">
