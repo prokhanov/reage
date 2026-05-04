@@ -78,9 +78,7 @@ export const DEMO_TO_DB_CODE: Record<string, string> = {
   
   // Эндокринная и стрессовая система
   TEST: "TEST",
-  ESTR: "E2",
   E1: "E1",
-  E3: "E3",
   SHBG: "SHBG",
   DHEAS: "DHEA-S",
   VITD: "25-OH D",
