@@ -150,13 +150,15 @@ export function BiomarkerRangeBar({ biomarker, value, age, gender, showLabels = 
           />
         ))}
         {/* Value marker */}
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-background shadow-lg z-10 ${fillHeight ? 'w-4 h-4' : 'w-3 h-3'}`}
-          style={{
-            left: `${markerPos}%`,
-            backgroundColor: 'hsl(var(--foreground))',
-          }}
-        />
+        {!hideMarker && (
+          <div
+            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-background shadow-lg z-10 ${fillHeight ? 'w-4 h-4' : 'w-3 h-3'}`}
+            style={{
+              left: `${markerPos}%`,
+              backgroundColor: 'hsl(var(--foreground))',
+            }}
+          />
+        )}
       </div>
       {showLabels && !fillHeight && labelPoints.length > 0 && (
         <div className="relative h-3">
