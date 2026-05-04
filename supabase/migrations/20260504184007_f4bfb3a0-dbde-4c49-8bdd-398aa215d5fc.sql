@@ -1,0 +1,1 @@
+UPDATE biomarkers SET name = 'Т-супрессоры' WHERE code = 'CD8+';
