@@ -8,7 +8,7 @@ import { X, Search, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { calculateAge, getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, formatNormalRange, getBiomarkerStatus } from "@/lib/biomarkerNorms";
-import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
 import {
   CALCULATED_BIOMARKER_CODES,
   computeAllDerivedValues,
@@ -370,12 +370,14 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                             />
                           </div>
                           {currentValue?.value && !isNaN(parseFloat(currentValue.value)) && (
-                            <BiomarkerRangeBar
+                            <BiomarkerScale
                               biomarker={biomarker}
                               value={parseFloat(currentValue.value)}
                               age={patientAge}
                               gender={patientGender}
-                              showLabels
+                              unit={currentValue?.unitOverride || biomarker.unit}
+                              showHeader
+                              compact
                             />
                           )}
                         </div>
