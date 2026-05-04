@@ -8,6 +8,7 @@ interface BiomarkerRangeBarProps {
   unit?: string;
   showLabels?: boolean;
   fillHeight?: boolean;
+  hideMarker?: boolean;
 }
 
 const STATUS_COLORS: Record<string, string> = {
