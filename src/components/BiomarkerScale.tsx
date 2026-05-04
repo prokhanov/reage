@@ -72,7 +72,7 @@ export function BiomarkerScale({ biomarker, value, age, gender, unit, compact = 
   return (
     <div className="w-full">
       {showHeader && (
-        <div className="flex items-baseline justify-end gap-1 mb-2">
+        <div className="flex items-baseline justify-start gap-1 mb-2">
           <span className={`${compact ? "text-xs" : "text-sm"} text-muted-foreground`}>Ваш показатель —</span>
           <span className={`${compact ? "text-xs" : "text-sm"} font-mono font-semibold tabular-nums tracking-tight text-foreground`}>
             {value}
