@@ -213,7 +213,7 @@ export function EditReportDialog({
         const lifestyle = sanitizeLifestyle(rawLifestyle) as LifestyleBlock;
         const followUps = mergeFollowUps(rawFollowUps, extracted);
 
-        setAdvisory({ lifestyle, followUps, rawMarkdown });
+        setAdvisory({ id: advisoryRow.id, lifestyle, followUps, rawMarkdown });
       } else {
         setAdvisory(null);
       }
