@@ -370,12 +370,14 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
                             />
                           </div>
                           {currentValue?.value && !isNaN(parseFloat(currentValue.value)) && (
-                            <BiomarkerRangeBar
+                            <BiomarkerScale
                               biomarker={biomarker}
                               value={parseFloat(currentValue.value)}
                               age={patientAge}
                               gender={patientGender}
-                              showLabels
+                              unit={currentValue?.unitOverride || biomarker.unit}
+                              showHeader
+                              compact
                             />
                           )}
                         </div>
