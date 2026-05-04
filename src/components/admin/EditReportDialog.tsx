@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, ShieldCheck, Stethoscope, Utensils, X } from "lucide-react";
+import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, Plus, ShieldCheck, Stethoscope, Trash2, Utensils, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
 import { marked } from 'marked';
@@ -13,6 +15,7 @@ import TurndownService from 'turndown';
 import { format } from "date-fns";
 import { EditPrescriptionDialog } from "./EditPrescriptionDialog";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
+import { sanitizeLifestyle, extractFollowUpsFromLifestyle, mergeFollowUps } from "@/components/prescriptions/AdvisorySections";
 
 interface Recommendation {
   id: string;
@@ -34,6 +37,7 @@ type FollowUp = {
 };
 
 type AdvisoryBlock = {
+  id: string;
   lifestyle: LifestyleBlock;
   followUps: FollowUp[];
   rawMarkdown?: string;
@@ -198,24 +202,19 @@ export function EditReportDialog({
       const advisoryRow = rows.find((r: any) => r.type === "Назначения");
       if (advisoryRow) {
         const cj = (advisoryRow as any).content_json;
-        const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
-        const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+        const rawLifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+        const rawFollowUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
         const rawMarkdown = typeof cj?.raw_markdown === "string" ? cj.raw_markdown : undefined;
 
-        console.log("[EditReportDialog] advisoryRow found", {
-          contentJsonType: typeof cj,
-          contentJsonKeys: cj && typeof cj === "object" ? Object.keys(cj) : null,
-          nutritionLen: lifestyle.nutrition?.length || 0,
-          activityLen: lifestyle.activity?.length || 0,
-          sleepLen: lifestyle.sleep?.length || 0,
-          followUpsLen: followUps.length,
-        });
+        // Применяем те же sanitizers, что и в публичном рендере, чтобы:
+        //  - убрать заголовки-ярлыки и follow-up'ы из lifestyle.sleep/activity;
+        //  - перенести «Эндокринолог → ...» в followUps.
+        const extracted = extractFollowUpsFromLifestyle(rawLifestyle);
+        const lifestyle = sanitizeLifestyle(rawLifestyle) as LifestyleBlock;
+        const followUps = mergeFollowUps(rawFollowUps, extracted);
 
-        // Если строка «Назначения» вообще существует — показываем блок,
-        // даже если массивы пустые (отрисуем placeholder).
-        setAdvisory({ lifestyle, followUps, rawMarkdown });
+        setAdvisory({ id: advisoryRow.id, lifestyle, followUps, rawMarkdown });
       } else {
-        console.log("[EditReportDialog] advisoryRow NOT found in recommendations");
         setAdvisory(null);
       }
 
@@ -266,6 +265,59 @@ export function EditReportDialog({
     ));
   };
 
+  type LifestyleKey = "nutrition" | "activity" | "sleep";
+
+  const updateLifestyleItem = (key: LifestyleKey, idx: number, value: string) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...(prev.lifestyle[key] || [])];
+      arr[idx] = value;
+      return { ...prev, lifestyle: { ...prev.lifestyle, [key]: arr } };
+    });
+  };
+
+  const addLifestyleItem = (key: LifestyleKey) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...(prev.lifestyle[key] || []), ""];
+      return { ...prev, lifestyle: { ...prev.lifestyle, [key]: arr } };
+    });
+  };
+
+  const removeLifestyleItem = (key: LifestyleKey, idx: number) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...(prev.lifestyle[key] || [])];
+      arr.splice(idx, 1);
+      return { ...prev, lifestyle: { ...prev.lifestyle, [key]: arr } };
+    });
+  };
+
+  const updateFollowUp = (idx: number, field: keyof FollowUp, value: string) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...prev.followUps];
+      arr[idx] = { ...arr[idx], [field]: value };
+      return { ...prev, followUps: arr };
+    });
+  };
+
+  const addFollowUp = () => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      return { ...prev, followUps: [...prev.followUps, { specialist: "", goal: "", trigger: "" }] };
+    });
+  };
+
+  const removeFollowUp = (idx: number) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...prev.followUps];
+      arr.splice(idx, 1);
+      return { ...prev, followUps: arr };
+    });
+  };
+
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
@@ -296,6 +348,34 @@ export function EditReportDialog({
           .eq("id", section.id);
 
         if (error) throw error;
+      }
+
+      // Сохраняем advisory-блок (Назначения / lifestyle + follow_ups) в content_json,
+      // фильтруя пустые строки и follow-ups без специалиста.
+      if (advisory) {
+        const cleanArr = (a?: string[]) => (a || []).map(s => s.trim()).filter(Boolean);
+        const lifestyle = {
+          nutrition: cleanArr(advisory.lifestyle.nutrition),
+          activity: cleanArr(advisory.lifestyle.activity),
+          sleep: cleanArr(advisory.lifestyle.sleep),
+        };
+        const follow_ups = (advisory.followUps || [])
+          .map(f => ({
+            specialist: (f.specialist || "").trim(),
+            goal: (f.goal || "").trim(),
+            trigger: (f.trigger || "").trim(),
+          }))
+          .filter(f => f.specialist || f.goal);
+
+        const newContentJson: any = { lifestyle, follow_ups };
+        if (advisory.rawMarkdown) newContentJson.raw_markdown = advisory.rawMarkdown;
+
+        const { error: advErr } = await supabase
+          .from("recommendations")
+          // @ts-ignore
+          .update({ content_json: newContentJson })
+          .eq("id", advisory.id);
+        if (advErr) throw advErr;
       }
 
       // Если контент менялся — инвалидируем JSON snapshot у summary этого анализа.
@@ -563,85 +643,125 @@ export function EditReportDialog({
                         </section>
                       )}
 
-                      {advisory && (
-                        ((advisory.lifestyle.nutrition?.length || 0) +
-                          (advisory.lifestyle.activity?.length || 0) +
-                          (advisory.lifestyle.sleep?.length || 0) > 0) && (
-                          <section>
-                            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                              <ClipboardList className="h-5 w-5 text-primary" />
-                              Питание и образ жизни
-                            </h2>
-                            <div className="space-y-4">
-                              {advisory.lifestyle.nutrition && advisory.lifestyle.nutrition.length > 0 && (
-                                <div className="p-4 bg-card/50 rounded-xl border border-border">
-                                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                                    <Utensils className="h-4 w-4 text-primary" />
-                                    Питание
-                                  </h4>
-                                  <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
-                                    {advisory.lifestyle.nutrition.map((item, i) => (
-                                      <li key={i} className="leading-relaxed">{item}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                              {advisory.lifestyle.activity && advisory.lifestyle.activity.length > 0 && (
-                                <div className="p-4 bg-card/50 rounded-xl border border-border">
-                                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                                    <Activity className="h-4 w-4 text-primary" />
-                                    Физическая активность
-                                  </h4>
-                                  <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
-                                    {advisory.lifestyle.activity.map((item, i) => (
-                                      <li key={i} className="leading-relaxed">{item}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                              {advisory.lifestyle.sleep && advisory.lifestyle.sleep.length > 0 && (
-                                <div className="p-4 bg-card/50 rounded-xl border border-border">
-                                  <h4 className="font-medium mb-2 flex items-center gap-2">
-                                    <Moon className="h-4 w-4 text-primary" />
-                                    Сон и восстановление
-                                  </h4>
-                                  <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
-                                    {advisory.lifestyle.sleep.map((item, i) => (
-                                      <li key={i} className="leading-relaxed">{item}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-                          </section>
-                        )
-                      )}
-
-                      {advisory && advisory.followUps.length > 0 && (
-                        <section>
-                          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                            <Stethoscope className="h-5 w-5 text-primary" />
-                            Дополнительные консультации и обследования
-                          </h2>
-                          <div className="space-y-3">
-                            {advisory.followUps.map((f, i) => (
-                              <div key={i} className="p-4 bg-card/50 rounded-xl border border-border">
-                                <div className="font-medium mb-1">{f.specialist || "Специалист"}</div>
-                                {f.goal && (
-                                  <p className="text-sm text-foreground mb-1">
-                                    <span className="text-muted-foreground">Цель:</span> {f.goal}
-                                  </p>
+                      {advisory && (() => {
+                        const renderLifestyleGroup = (
+                          key: LifestyleKey,
+                          label: string,
+                          Icon: any,
+                        ) => {
+                          const items = advisory.lifestyle[key] || [];
+                          return (
+                            <div className="p-4 bg-card/50 rounded-xl border border-border">
+                              <h4 className="font-medium mb-3 flex items-center gap-2">
+                                <Icon className="h-4 w-4 text-primary" />
+                                {label}
+                              </h4>
+                              <div className="space-y-2">
+                                {items.length === 0 && (
+                                  <p className="text-xs text-muted-foreground italic">Пунктов пока нет</p>
                                 )}
-                                {f.trigger && (
-                                  <p className="text-sm text-muted-foreground">
-                                    Основание: {f.trigger}
-                                  </p>
-                                )}
+                                {items.map((item, i) => (
+                                  <div key={i} className="flex items-start gap-2">
+                                    <Textarea
+                                      value={item}
+                                      onChange={(e) => updateLifestyleItem(key, i, e.target.value)}
+                                      className="flex-1 min-h-[60px] text-sm"
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="shrink-0"
+                                      onClick={() => removeLifestyleItem(key, i)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => addLifestyleItem(key)}
+                                >
+                                  <Plus className="h-3.5 w-3.5 mr-1" />
+                                  Добавить пункт
+                                </Button>
                               </div>
-                            ))}
-                          </div>
-                        </section>
-                      )}
+                            </div>
+                          );
+                        };
+
+                        return (
+                          <>
+                            <section>
+                              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                                <ClipboardList className="h-5 w-5 text-primary" />
+                                Питание и образ жизни
+                              </h2>
+                              <div className="space-y-4">
+                                {renderLifestyleGroup("nutrition", "Питание", Utensils)}
+                                {renderLifestyleGroup("activity", "Физическая активность", Activity)}
+                                {renderLifestyleGroup("sleep", "Сон и восстановление", Moon)}
+                              </div>
+                            </section>
+
+                            <section>
+                              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                                <Stethoscope className="h-5 w-5 text-primary" />
+                                Дополнительные консультации и обследования
+                              </h2>
+                              <div className="space-y-3">
+                                {advisory.followUps.length === 0 && (
+                                  <p className="text-xs text-muted-foreground italic">Консультаций пока нет</p>
+                                )}
+                                {advisory.followUps.map((f, i) => (
+                                  <div key={i} className="p-4 bg-card/50 rounded-xl border border-border space-y-2">
+                                    <div className="flex items-start gap-2">
+                                      <div className="flex-1 space-y-2">
+                                        <div>
+                                          <label className="text-xs text-muted-foreground">Специалист</label>
+                                          <Input
+                                            value={f.specialist || ""}
+                                            onChange={(e) => updateFollowUp(i, "specialist", e.target.value)}
+                                            placeholder="Например: Эндокринолог"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="text-xs text-muted-foreground">Цель</label>
+                                          <Textarea
+                                            value={f.goal || ""}
+                                            onChange={(e) => updateFollowUp(i, "goal", e.target.value)}
+                                            className="min-h-[60px]"
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="text-xs text-muted-foreground">Основание</label>
+                                          <Textarea
+                                            value={f.trigger || ""}
+                                            onChange={(e) => updateFollowUp(i, "trigger", e.target.value)}
+                                            className="min-h-[50px]"
+                                          />
+                                        </div>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="shrink-0"
+                                        onClick={() => removeFollowUp(i)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                                <Button variant="outline" size="sm" onClick={addFollowUp}>
+                                  <Plus className="h-3.5 w-3.5 mr-1" />
+                                  Добавить консультацию
+                                </Button>
+                              </div>
+                            </section>
+                          </>
+                        );
+                      })()}
 
                       {advisory?.rawMarkdown && prescriptions.length === 0 && (
                         <section>
