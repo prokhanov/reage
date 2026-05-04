@@ -5,7 +5,7 @@
 import React from "react";
 import { AnchorBlock, parseAnchors } from "@/lib/anchorParser";
 import { MarkdownContent } from "@/components/MarkdownContent";
-import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { Badge } from "@/components/ui/badge";
 import {
   PdfBiomarkerData,
@@ -106,31 +106,26 @@ export function renderInterleavedWeb(
               <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
                   <div className="space-y-2">
-                    {/* Row 1: name (code) */}
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-foreground">{bm.name}</span>
-                      <span className="text-xs text-muted-foreground">({bm.code})</span>
-                    </div>
-                    {/* Row 2: range bar */}
-                    <BiomarkerRangeBar
-                      biomarker={bm.biomarker}
-                      value={bm.value}
-                      age={age}
-                      gender={gender}
-                    />
-                    {/* Row 3: value + status */}
-                    <div className="flex items-baseline justify-between">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className={`text-lg font-bold tracking-tight ${statusColorMap[bm.status]}`}>
-                          {bm.value}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{bm.unit}</span>
+                    {/* Row 1: name (code) + status */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-sm font-semibold text-foreground truncate">{bm.name}</span>
+                        <span className="text-xs text-muted-foreground">({bm.code})</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className={`text-[10px] ${statusColorMap[bm.status]}`}>●</span>
                         <span className={`text-xs font-medium ${statusColorMap[bm.status]}`}>{bm.statusLabel}</span>
                       </div>
                     </div>
+                    {/* Row 2: unified scale (header + arrow + bar + optimal) */}
+                    <BiomarkerScale
+                      biomarker={bm.biomarker}
+                      value={bm.value}
+                      age={age}
+                      gender={gender}
+                      unit={bm.unit}
+                      showHeader
+                    />
                   </div>
                 )}
                 {trimmedContent && (

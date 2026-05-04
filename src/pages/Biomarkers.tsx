@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
 import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
-import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Progress } from "@/components/ui/progress";
@@ -436,24 +436,17 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                                 )}
                               </TableCell>
                               
-                              <TableCell className="min-w-[200px]">
+                              <TableCell className="min-w-[280px]">
                                 {min !== null || max !== null ? (
                                   biomarker.latest_value !== null ? (
-                                    <div className="space-y-1">
-                                      <BiomarkerRangeBar
-                                        biomarker={biomarker}
-                                        value={biomarker.latest_value}
-                                        age={patientAge}
-                                        gender={patientGender}
-                                      />
-                                      <span className="text-xs text-muted-foreground">
-                                        {min !== null && max !== null
-                                          ? `${min}-${max} ${biomarker.unit}`
-                                          : min !== null
-                                          ? `> ${min} ${biomarker.unit}`
-                                          : `< ${max} ${biomarker.unit}`}
-                                      </span>
-                                    </div>
+                                    <BiomarkerScale
+                                      biomarker={biomarker}
+                                      value={biomarker.latest_value}
+                                      age={patientAge}
+                                      gender={patientGender}
+                                      unit={biomarker.unit}
+                                      compact
+                                    />
                                   ) : (
                                     <span className="text-xs text-muted-foreground">
                                       {min !== null && max !== null

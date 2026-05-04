@@ -35,7 +35,7 @@ import { AnalysisStatusBadge } from "@/components/admin/AnalysisStatusBadge";
 import { EditAnalysisWizard } from "@/components/admin/EditAnalysisWizard";
 import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { getNormalRangeForAge, calculateAge, AgeRanges, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
-import { BiomarkerRangeBar } from "@/components/BiomarkerRangeBar";
+import { BiomarkerScale } from "@/components/BiomarkerScale";
 
 interface Biomarker {
   id: string;
@@ -800,23 +800,16 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                       )}
                                     </TableCell>
 
-                                    <TableCell className="min-w-[200px]">
+                                    <TableCell className="min-w-[280px]">
                                       {min !== null || max !== null ? (
-                                        <div className="space-y-1">
-                                          <BiomarkerRangeBar
-                                            biomarker={value.biomarkers}
-                                            value={value.value}
-                                            age={patientAge}
-                                            gender={patientGender}
-                                          />
-                                          <span className="text-xs text-muted-foreground">
-                                            {min !== null && max !== null
-                                              ? `${min}-${max} ${value.biomarkers.unit}`
-                                              : min !== null
-                                              ? `> ${min} ${value.biomarkers.unit}`
-                                              : `< ${max} ${value.biomarkers.unit}`}
-                                          </span>
-                                        </div>
+                                        <BiomarkerScale
+                                          biomarker={value.biomarkers}
+                                          value={value.value}
+                                          age={patientAge}
+                                          gender={patientGender}
+                                          unit={value.biomarkers.unit}
+                                          compact
+                                        />
                                       ) : (
                                         <span className="text-sm text-muted-foreground">-</span>
                                       )}
