@@ -265,6 +265,59 @@ export function EditReportDialog({
     ));
   };
 
+  type LifestyleKey = "nutrition" | "activity" | "sleep";
+
+  const updateLifestyleItem = (key: LifestyleKey, idx: number, value: string) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...(prev.lifestyle[key] || [])];
+      arr[idx] = value;
+      return { ...prev, lifestyle: { ...prev.lifestyle, [key]: arr } };
+    });
+  };
+
+  const addLifestyleItem = (key: LifestyleKey) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...(prev.lifestyle[key] || []), ""];
+      return { ...prev, lifestyle: { ...prev.lifestyle, [key]: arr } };
+    });
+  };
+
+  const removeLifestyleItem = (key: LifestyleKey, idx: number) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...(prev.lifestyle[key] || [])];
+      arr.splice(idx, 1);
+      return { ...prev, lifestyle: { ...prev.lifestyle, [key]: arr } };
+    });
+  };
+
+  const updateFollowUp = (idx: number, field: keyof FollowUp, value: string) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...prev.followUps];
+      arr[idx] = { ...arr[idx], [field]: value };
+      return { ...prev, followUps: arr };
+    });
+  };
+
+  const addFollowUp = () => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      return { ...prev, followUps: [...prev.followUps, { specialist: "", goal: "", trigger: "" }] };
+    });
+  };
+
+  const removeFollowUp = (idx: number) => {
+    setAdvisory(prev => {
+      if (!prev) return prev;
+      const arr = [...prev.followUps];
+      arr.splice(idx, 1);
+      return { ...prev, followUps: arr };
+    });
+  };
+
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
