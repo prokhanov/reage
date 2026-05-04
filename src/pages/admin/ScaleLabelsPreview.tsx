@@ -43,26 +43,28 @@ function calcPositions(value: number) {
  * указывающей на маркер пациента.
  */
 function ValueMarkerLabel({ pos }: { pos: number }) {
-  // сдвигаем подпись, но стрелка всё равно встаёт точно над маркером
   const labelLeft = Math.max(10, Math.min(90, pos));
   return (
-    <div className="relative h-7 mb-0.5">
-      <div className="absolute flex flex-col items-center -translate-x-1/2" style={{ left: `${labelLeft}%` }}>
-        <span className="font-sans text-[11px] font-medium tracking-tight text-foreground/80 whitespace-nowrap leading-none">
+    <div className="relative h-5">
+      <div
+        className="absolute -translate-x-1/2 top-0"
+        style={{ left: `${labelLeft}%` }}
+      >
+        <span className="font-sans text-[10px] font-medium tracking-tight text-foreground/80 whitespace-nowrap leading-none">
           ваш показатель
         </span>
       </div>
-      {/* стрелка точно над маркером значения */}
+      {/* стрелка точно над значением, вплотную к шкале */}
       <svg
-        className="absolute top-3.5 -translate-x-1/2 text-foreground"
+        className="absolute -bottom-px -translate-x-1/2 text-foreground"
         style={{ left: `${pos}%` }}
-        width="10"
-        height="10"
-        viewBox="0 0 10 10"
+        width="9"
+        height="6"
+        viewBox="0 0 9 6"
         fill="currentColor"
         aria-hidden
       >
-        <path d="M5 10 L0 0 L10 0 Z" />
+        <path d="M4.5 6 L0 0 L9 0 Z" />
       </svg>
     </div>
   );
@@ -80,7 +82,7 @@ function ScenarioRow({ value, variant }: { value: number; variant: 3 | 5 }) {
       </div>
 
       <ValueMarkerLabel pos={valuePos} />
-      <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
+      <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
 
       {variant === 3 && (
         <div className="relative h-6 mt-2">
