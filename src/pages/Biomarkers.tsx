@@ -12,6 +12,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { BiomarkerTableSkeleton } from "@/components/skeletons/BiomarkerTableSkeleton";
 import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
 import { BiomarkerScale } from "@/components/BiomarkerScale";
+import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Progress } from "@/components/ui/progress";
