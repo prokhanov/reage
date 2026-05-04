@@ -244,6 +244,24 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
     );
   };
 
+  // Code-first paragraph: "<любое имя> (CODE) Заглавная..." — ловит случаи,
+  // когда AI пишет немного НЕ то имя, что в БД, но код в скобках корректный.
+  // Пример из жизни: в БД у `RDW-SD` имя "Ширина распределения эритроцитов
+  // (SD)", а AI пишет "Ширина распределения эритроцитов (RDW-SD) Этот
+  // индекс...". Без этого regex карточка RDW-SD не получает анкер и её текст
+  // поглощается соседней карточкой RDW.
+  // Защиты:
+  //   • строка не должна быть заголовком (#) или буллетом;
+  //   • до `(CODE)` ≤ 80 символов (это всё ещё «имя» биомаркера, а не проза);
+  //   • после `(CODE)` должен идти разделитель и продолжение строки.
+  const buildCodeFirstParagraphRegex = (code: string) => {
+    const escapedCode = escapeRegex(code);
+    return new RegExp(
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*[^\\n(]{1,80}\\(${escapedCode}\\)(?=[\\s.,;:—–\\-)]|$)[^\\n]*$`,
+      'gm'
+    );
+  };
+
   // Pass 0: Plain-text biomarker lines — "Название" or exact "Название (КОД)" at the
   // start of a line/paragraph. Two-step strategy:
   //   1) Collect ALL candidate matches across all biomarkers in a SINGLE scan, so we
