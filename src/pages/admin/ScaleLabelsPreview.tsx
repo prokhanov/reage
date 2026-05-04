@@ -70,10 +70,10 @@ function ScenarioRow({ value }: { value: number }) {
         </div>
       </div>
 
-      <div className="-mb-2">
+      <div>
         <ValueArrow pos={valuePos} />
+        <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
       </div>
-      <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
 
       <div className="text-[11px] font-sans text-muted-foreground mt-2 flex items-center gap-1.5">
         <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--status-optimal))" }} />
