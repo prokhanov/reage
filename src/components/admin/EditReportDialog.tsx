@@ -201,24 +201,19 @@ export function EditReportDialog({
       const advisoryRow = rows.find((r: any) => r.type === "Назначения");
       if (advisoryRow) {
         const cj = (advisoryRow as any).content_json;
-        const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
-        const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+        const rawLifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+        const rawFollowUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
         const rawMarkdown = typeof cj?.raw_markdown === "string" ? cj.raw_markdown : undefined;
 
-        console.log("[EditReportDialog] advisoryRow found", {
-          contentJsonType: typeof cj,
-          contentJsonKeys: cj && typeof cj === "object" ? Object.keys(cj) : null,
-          nutritionLen: lifestyle.nutrition?.length || 0,
-          activityLen: lifestyle.activity?.length || 0,
-          sleepLen: lifestyle.sleep?.length || 0,
-          followUpsLen: followUps.length,
-        });
+        // Применяем те же sanitizers, что и в публичном рендере, чтобы:
+        //  - убрать заголовки-ярлыки и follow-up'ы из lifestyle.sleep/activity;
+        //  - перенести «Эндокринолог → ...» в followUps.
+        const extracted = extractFollowUpsFromLifestyle(rawLifestyle);
+        const lifestyle = sanitizeLifestyle(rawLifestyle) as LifestyleBlock;
+        const followUps = mergeFollowUps(rawFollowUps, extracted);
 
-        // Если строка «Назначения» вообще существует — показываем блок,
-        // даже если массивы пустые (отрисуем placeholder).
         setAdvisory({ lifestyle, followUps, rawMarkdown });
       } else {
-        console.log("[EditReportDialog] advisoryRow NOT found in recommendations");
         setAdvisory(null);
       }
 
