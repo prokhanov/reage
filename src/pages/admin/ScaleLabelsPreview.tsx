@@ -82,7 +82,7 @@ function ScenarioRow({ value, variant }: { value: number; variant: 3 | 5 }) {
       </div>
 
       <ValueMarkerLabel pos={valuePos} />
-      <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
+      <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" hideMarker />
 
       {variant === 3 && (
         <div className="relative h-6 mt-2">
