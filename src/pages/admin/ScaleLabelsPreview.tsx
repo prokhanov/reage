@@ -29,7 +29,24 @@ function useOptimalPositions() {
   const scaleMax = dataMax + padding;
   const scaleRange = scaleMax - scaleMin;
   const toPercent = (v: number) => ((v - scaleMin) / scaleRange) * 100;
-  return { left: toPercent(optMin), right: toPercent(optMax) };
+  return { left: toPercent(optMin), right: toPercent(optMax), valuePos: toPercent(value) };
+}
+
+function ValueMarkerLabel({ pos }: { pos: number }) {
+  // Clamp so the label doesn't overflow the bar edges
+  const clamped = Math.max(6, Math.min(94, pos));
+  return (
+    <div className="relative h-5 mb-1">
+      <div
+        className="absolute -translate-x-1/2 flex flex-col items-center"
+        style={{ left: `${clamped}%` }}
+      >
+        <span className="text-[10px] font-semibold tabular-nums text-primary whitespace-nowrap leading-none">
+          ваш показатель ▼
+        </span>
+      </div>
+    </div>
+  );
 }
 
 function VariantWrapper({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
@@ -58,7 +75,7 @@ function VariantWrapper({ title, description, children }: { title: string; descr
 }
 
 export default function ScaleLabelsPreview() {
-  const { left, right } = useOptimalPositions();
+  const { left, right, valuePos } = useOptimalPositions();
 
   return (
     <div className="container max-w-4xl py-8 space-y-6">
@@ -74,6 +91,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 1. Минимализм — числа под границами оптимума"
         description="Без подписей зон, только две цифры — старт и конец зелёной зоны."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="relative h-4 mt-1">
           <span className="absolute -translate-x-1/2 text-[11px] tabular-nums text-foreground font-medium" style={{ left: `${left}%` }}>
@@ -81,6 +99,9 @@ export default function ScaleLabelsPreview() {
           </span>
           <span className="absolute -translate-x-1/2 text-[11px] tabular-nums text-foreground font-medium" style={{ left: `${right}%` }}>
             {optMax}
+          </span>
+          <span className="absolute -translate-x-1/2 text-[10px] text-muted-foreground top-4" style={{ left: `${(left + right) / 2}%` }}>
+            оптимум
           </span>
         </div>
       </VariantWrapper>
@@ -90,6 +111,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 2. Скобка под зелёной зоной"
         description="Визуальная связь: фигурная скобка явно охватывает зелёную секцию."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="relative h-6 mt-1">
           <div
@@ -115,6 +137,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 3. Pill-бейдж под зелёной зоной (рекомендую)"
         description="Зелёная таблетка с диапазоном размещена ровно под оптимумом."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="relative h-6 mt-2">
           <div
@@ -136,6 +159,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 4. Медицинский — все ключевые границы подписаны"
         description="Подписаны границы нормы и оптимума с поясняющими тегами."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" showLabels />
         <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-1">
           <span>← дефицит</span>
@@ -149,6 +173,7 @@ export default function ScaleLabelsPreview() {
         title="Вариант 5. Текст под шкалой (без визуальной привязки)"
         description="Минимум визуальной нагрузки — диапазон вынесен отдельной строкой."
       >
+        <ValueMarkerLabel pos={valuePos} />
         <BiomarkerRangeBar biomarker={biomarker} value={value} age={40} gender="male" />
         <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1.5">
           <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--status-optimal))" }} />
