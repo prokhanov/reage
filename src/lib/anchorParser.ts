@@ -306,6 +306,9 @@ function autoInjectAnchors(text: string, biomarkerCodes: string[], nameToCode?: 
       collect(buildStandaloneBiomarkerLineRegex(name, code), false);
       collect(buildLeadingBiomarkerParagraphRegex(name, code), false);
       collect(buildLooseLeadingBiomarkerRegex(name), true);
+      // Code-first: ловим параграфы с правильным `(CODE)`, даже если имя
+      // не совпадает с тем, что в БД (частая причина склейки RDW / RDW-SD).
+      collect(buildCodeFirstParagraphRegex(code), false);
     }
 
     if (hits.length > 0) {
