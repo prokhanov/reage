@@ -76,17 +76,24 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
         {items.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">Нет данных по системам</div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {items.map((it) => {
               const Icon = pickIcon(it.system);
               const c = statusColor(it.score);
               const activeIdx = Math.min(6, Math.floor(it.score / (100 / 7)));
+              const glowRgba =
+                it.score >= 80 ? "rgba(34,197,94,0.5)" :
+                it.score >= 60 ? "rgba(245,158,11,0.5)" :
+                it.score >= 40 ? "rgba(249,115,22,0.5)" :
+                "rgba(239,68,68,0.5)";
               return (
-                <div key={it.system} className="space-y-1.5">
+                <div key={it.system} className="space-y-2">
                   <div className="flex items-end justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Icon className="h-4 w-4 dark:text-white/70 text-slate-500 shrink-0" />
-                      <span className="text-sm font-medium dark:text-white text-slate-800 truncate">{it.system}</span>
+                      <span className="text-sm font-medium dark:text-white text-slate-800 truncate font-display" style={{ fontWeight: 500 }}>
+                        {it.system}
+                      </span>
                       <div className="flex items-center gap-1 ml-1 shrink-0">
                         {SEGMENTS.map((col, i) => (
                           <span
@@ -100,24 +107,22 @@ export function SystemStatusBars({ scores, goals, categoryOrder }: Props) {
                         ))}
                       </div>
                     </div>
-                    <span className={`text-sm font-mono font-bold tabular-nums ${c.text}`}>{it.score}%</span>
+                    <span className={`text-sm font-mono-tech font-bold tabular-nums ${c.text}`}>{it.score}%</span>
                   </div>
 
-                  <div className="relative h-2 rounded-full overflow-hidden dark:bg-white/5 bg-slate-200/70">
+                  <div className="relative h-3 rounded-full overflow-hidden dark:bg-white/5 bg-slate-200/70">
                     <div
-                      className="absolute inset-y-0 left-0 rounded-full transition-all"
+                      className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
                       style={{
                         width: `${it.score}%`,
                         background: `linear-gradient(90deg, ${c.from}, ${c.to})`,
-                        boxShadow: isDark
-                          ? `0 0 12px ${c.from}99, 0 0 4px ${c.from}`
-                          : `0 2px 6px ${c.from}40`,
+                        boxShadow: `0 0 15px ${glowRgba}`,
                       }}
                     />
                   </div>
 
                   {it.goal && (
-                    <p className="text-[11px] dark:text-white/55 text-slate-500 pl-6 truncate">
+                    <p className="text-xs pl-6 truncate" style={{ color: "#94A3B8", fontWeight: 400 }}>
                       Цель: {it.goal}
                     </p>
                   )}
