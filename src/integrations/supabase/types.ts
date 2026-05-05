@@ -636,6 +636,8 @@ export type Database = {
           action_map: Json
           analysis_id: string | null
           chronological_age: number
+          cohort_label: string | null
+          cohort_percentile: number | null
           created_at: string
           current_bio_age: number
           health_index: number | null
@@ -650,6 +652,8 @@ export type Database = {
           action_map?: Json
           analysis_id?: string | null
           chronological_age: number
+          cohort_label?: string | null
+          cohort_percentile?: number | null
           created_at?: string
           current_bio_age: number
           health_index?: number | null
@@ -664,6 +668,8 @@ export type Database = {
           action_map?: Json
           analysis_id?: string | null
           chronological_age?: number
+          cohort_label?: string | null
+          cohort_percentile?: number | null
           created_at?: string
           current_bio_age?: number
           health_index?: number | null
