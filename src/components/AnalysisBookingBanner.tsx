@@ -127,6 +127,19 @@ export function AnalysisBookingBanner() {
   const isReceived = bookingInfo?.status === 'received';
   const isCollected = bookingInfo?.status === 'collected';
 
+  // Dismiss key — unique per booking state, persisted for the session
+  const dismissKey = `bookingBannerDismissed:${bookingInfo?.status || 'none'}:${bookingInfo?.booking_date || ''}:${bookingInfo?.booking_time || ''}`;
+  if (typeof window !== 'undefined' && sessionStorage.getItem(dismissKey) === '1') {
+    return null;
+  }
+
+  const handleDismiss = () => {
+    try {
+      sessionStorage.setItem(dismissKey, '1');
+    } catch {}
+    setShowBanner(false);
+  };
+
   return (
     <>
       <SubscriptionRequiredDialog
