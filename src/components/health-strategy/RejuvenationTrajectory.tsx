@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, CartesianGrid, Area, AreaChart, ComposedChart } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, CartesianGrid, Area, AreaChart } from "recharts";
 import { addMonths, format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { TrendingDown, TrendingUp, Minus, Sparkles } from "lucide-react";
