@@ -195,6 +195,10 @@ ${prescContext || "(нет)"}
     target = Math.min(maxTarget, Math.max(minTarget, target));
     target = Math.round(target * 10) / 10;
 
+    const cohortPct = Number.isFinite(parsed.cohort_percentile)
+      ? Math.min(99, Math.max(1, Math.round(parsed.cohort_percentile)))
+      : null;
+
     const { data: snapshot, error: insErr } = await supabase
       .from("health_strategy_snapshots")
       .insert({
@@ -207,6 +211,8 @@ ${prescContext || "(нет)"}
         system_goals: parsed.system_goals,
         action_map: parsed.action_map,
         rationale: parsed.rationale,
+        cohort_percentile: cohortPct,
+        cohort_label: parsed.cohort_label || null,
         model: "google/gemini-2.5-flash",
       })
       .select()
