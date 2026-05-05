@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, CartesianGrid, Area, AreaChart } from "recharts";
 import { addMonths, format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { TrendingDown, TrendingUp, Minus, Sparkles } from "lucide-react";
+import { TrendingDown, TrendingUp, Minus, Heart, Sparkles } from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface Props {
@@ -92,15 +92,15 @@ export function RejuvenationTrajectory({
 
         <div className="h-[210px] md:h-[240px] -mx-2">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data} margin={{ top: 28, right: 16, left: -10, bottom: 0 }}>
+            <AreaChart data={data} margin={{ top: 28, right: 16, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="bioStroke" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#8b5cf6" />
-                  <stop offset="100%" stopColor="#3b82f6" />
+                  <stop offset="0%" stopColor="#3B82F6" />
+                  <stop offset="100%" stopColor="#8B5CF6" />
                 </linearGradient>
                 <linearGradient id="bioFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={isDark ? 0.35 : 0.20} />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
                 <filter id="bioShadow" x="-20%" y="-20%" width="140%" height="140%">
                   <feDropShadow dx="0" dy="2" stdDeviation={isDark ? "3" : "4"} floodColor="#6366f1" floodOpacity={isDark ? "0.5" : "0.35"} />
@@ -121,20 +121,22 @@ export function RejuvenationTrajectory({
                 labelFormatter={(_l, p) => p?.[0]?.payload?.fullLabel || ""}
                 formatter={(v: any, name: string) => [`${v} лет`, name === "bio" ? "Биологический" : "Хронологический"]}
               />
-              <Area type="monotone" dataKey="bio" stroke="none" fill="url(#bioFill)" />
+              {/* Chronological — dashed white opacity 0.3 in dark per spec */}
               <Line
                 type="monotone"
                 dataKey="chrono"
-                stroke={chronoColor}
+                stroke={isDark ? "rgba(255,255,255,0.3)" : "rgba(71,85,105,0.55)"}
                 strokeWidth={1.5}
                 strokeDasharray="4 4"
                 dot={false}
               />
-              <Line
+              {/* Bio — gradient stroke + 0.2 opacity area fill */}
+              <Area
                 type="monotone"
                 dataKey="bio"
                 stroke="url(#bioStroke)"
                 strokeWidth={bioStrokeWidth}
+                fill="url(#bioFill)"
                 dot={false}
                 filter="url(#bioShadow)"
                 activeDot={{ r: 6, fill: "#8b5cf6", stroke: isDark ? "#0B0C10" : "#fff", strokeWidth: 2 }}
@@ -142,14 +144,14 @@ export function RejuvenationTrajectory({
               <ReferenceDot
                 x={data[0].label} y={data[0].bio} r={6}
                 fill="#8b5cf6" stroke={isDark ? "#0B0C10" : "#fff"} strokeWidth={2}
-                label={{ value: `${currentBioAge.toFixed(1)}`, position: "top", fill: isDark ? "#fff" : "#312e81", fontSize: 14, fontWeight: 800, dy: -8 }}
+                label={{ value: `${currentBioAge.toFixed(1)}`, position: "top", fill: isDark ? "#FFFFFF" : "#312e81", fontSize: 24, fontWeight: 600, dy: -8 }}
               />
               <ReferenceDot
                 x={data[12].label} y={data[12].bio} r={6}
                 fill="#3b82f6" stroke={isDark ? "#0B0C10" : "#fff"} strokeWidth={2}
                 label={{ value: `${targetBioAge.toFixed(1)}`, position: "top", fill: isDark ? "#60a5fa" : "#1e3a8a", fontSize: 14, fontWeight: 800, dy: -8 }}
               />
-            </ComposedChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
 
