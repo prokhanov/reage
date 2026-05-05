@@ -11,11 +11,8 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { RejuvenationTrajectory } from "@/components/health-strategy/RejuvenationTrajectory";
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
-import { LongevityKPI } from "@/components/health-strategy/LongevityKPI";
-import { AgingBlockersStrategy } from "@/components/health-strategy/AgingBlockersStrategy";
-import { SystemTrendsRadar } from "@/components/health-strategy/SystemTrendsRadar";
-import { SmartPrioritiesStrategy } from "@/components/health-strategy/SmartPrioritiesStrategy";
-import { KeyMarkersDynamics } from "@/components/health-strategy/KeyMarkersDynamics";
+import { SystemStatusBars } from "@/components/health-strategy/SystemStatusBars";
+import { ActionMap } from "@/components/health-strategy/ActionMap";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
