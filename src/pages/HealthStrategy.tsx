@@ -221,49 +221,33 @@ export default function HealthStrategy() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-5 md:space-y-6">
-            {/* 1. Longevity KPI — три ключевых показателя */}
-            <LongevityKPI
-              bioAge={snapshot.current_bio_age}
-              chronoAge={snapshot.chronological_age}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            {/* 1. Траектория омоложения */}
+            <RejuvenationTrajectory
+              startDate={startDate}
+              chronologicalAge={snapshot.chronological_age}
+              currentBioAge={snapshot.current_bio_age}
+              targetBioAge={snapshot.target_bio_age}
               healthIndex={snapshot.health_index}
-              cohortPercentile={snapshot.cohort_percentile ?? null}
-              cohortLabel={snapshot.cohort_label ?? null}
+              previousBioAge={previousSnapshot?.current_bio_age ?? null}
+              previousDate={previousAnalysis?.date ?? null}
             />
 
-            {/* 2 + 4. Aging Blockers + Smart Priorities */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-              <AgingBlockersStrategy blockers={blockers} />
-              <SmartPrioritiesStrategy
-                blockers={blockers}
-                prescriptions={prescriptions}
-                actionMap={(snapshot.action_map as any[]) || []}
-              />
-            </div>
-
-            {/* 3. Radar системные тренды */}
-            <SystemTrendsRadar
-              currentScores={currentScores}
-              previousScores={Object.keys(previousScores).length > 0 ? previousScores : undefined}
+            {/* 2. Статус систем организма */}
+            <SystemStatusBars
+              scores={currentScores}
+              goals={(snapshot.system_goals as any[]) || []}
               categoryOrder={categories}
             />
 
-            {/* 5. Динамика ключевых маркеров */}
-            <KeyMarkersDynamics current={values} previous={previousValues} />
+            {/* 3. Активная карта действий */}
+            <ActionMap
+              actions={(snapshot.action_map as any[]) || []}
+              systems={categories}
+            />
 
-            {/* Доп: траектория + дорожная карта */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-              <RejuvenationTrajectory
-                startDate={startDate}
-                chronologicalAge={snapshot.chronological_age}
-                currentBioAge={snapshot.current_bio_age}
-                targetBioAge={snapshot.target_bio_age}
-                healthIndex={snapshot.health_index}
-                previousBioAge={previousSnapshot?.current_bio_age ?? null}
-                previousDate={previousAnalysis?.date ?? null}
-              />
-              <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
-            </div>
+            {/* 4. Контрольные точки */}
+            <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
           </div>
         )}
 
