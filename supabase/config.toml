@@ -17,3 +17,5 @@ project_id = "ilxgodhosirhhkffqryw"
     verify_jwt = true
   [functions.finalize-analysis]
     verify_jwt = false
+  [functions.compute-health-strategy]
+    verify_jwt = true

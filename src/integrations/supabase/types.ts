@@ -631,6 +631,51 @@ export type Database = {
         }
         Relationships: []
       }
+      health_strategy_snapshots: {
+        Row: {
+          action_map: Json
+          analysis_id: string | null
+          chronological_age: number
+          created_at: string
+          current_bio_age: number
+          health_index: number | null
+          id: string
+          model: string | null
+          rationale: string | null
+          system_goals: Json
+          target_bio_age: number
+          user_id: string
+        }
+        Insert: {
+          action_map?: Json
+          analysis_id?: string | null
+          chronological_age: number
+          created_at?: string
+          current_bio_age: number
+          health_index?: number | null
+          id?: string
+          model?: string | null
+          rationale?: string | null
+          system_goals?: Json
+          target_bio_age: number
+          user_id: string
+        }
+        Update: {
+          action_map?: Json
+          analysis_id?: string | null
+          chronological_age?: number
+          created_at?: string
+          current_bio_age?: number
+          health_index?: number | null
+          id?: string
+          model?: string | null
+          rationale?: string | null
+          system_goals?: Json
+          target_bio_age?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       invite_tokens: {
         Row: {
           created_at: string
