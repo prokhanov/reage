@@ -173,7 +173,12 @@ export default function HealthStrategy() {
   const currentScores = (analysis?.biomarkers_metadata?.ai_analysis?.category_scores || {}) as Record<string, number>;
   const previousScores = (previousAnalysis?.biomarkers_metadata?.ai_analysis?.category_scores || {}) as Record<string, number>;
 
-  const blockers = (riskZone?.aging_blockers as any[]) || [];
+  const rawBlockers = riskZone?.aging_blockers as any;
+  const blockers: any[] = Array.isArray(rawBlockers)
+    ? rawBlockers
+    : Array.isArray(rawBlockers?.blockers)
+      ? rawBlockers.blockers
+      : [];
 
   return (
     <div className="relative min-h-screen dark:bg-[#0B0C10] bg-[#F8FAFC]">
