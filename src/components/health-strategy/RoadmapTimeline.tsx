@@ -60,8 +60,9 @@ export function RoadmapTimeline({ startDate, nextCheckupDate }: Props) {
               const current = i === activeIdx;
               const future = i > activeIdx;
               return (
-                <div key={i} className="flex flex-col items-center text-center gap-2 px-1">
-                  <div className="text-[10px] font-mono mb-1 h-3 dark:text-white/50 text-slate-500">
+                <div key={i} className="flex flex-col items-center text-center px-1">
+                  {/* Date — JetBrains Mono per spec */}
+                  <div className="text-[10px] font-mono-tech mb-3 h-3 dark:text-white/55 text-slate-500 tabular-nums">
                     {format(m.date, "d MMM yyyy", { locale: ru })}
                   </div>
 
@@ -69,16 +70,17 @@ export function RoadmapTimeline({ startDate, nextCheckupDate }: Props) {
                     {current && (
                       <div className="absolute inset-0 rounded-full animate-ping" style={{ background: isDark ? "rgba(139,92,246,0.35)" : "rgba(99,102,241,0.30)" }} />
                     )}
+                    {/* Circle 32px diameter per spec */}
                     <div
-                      className={`relative w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 transition-all`}
+                      className="relative w-8 h-8 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300"
                       style={{
                         background: passed
                           ? "linear-gradient(135deg, #6366f1, #3b82f6)"
                           : current
                           ? isDark ? "#0B0C10" : "#fff"
-                          : isDark ? "rgba(255,255,255,0.04)" : "#fff",
-                        borderColor: passed || current ? "#6366f1" : isDark ? "rgba(255,255,255,0.15)" : "#e2e8f0",
-                        color: passed ? "#fff" : current ? "#6366f1" : isDark ? "rgba(255,255,255,0.45)" : "#94a3b8",
+                          : "transparent",
+                        borderColor: passed || current ? "#6366f1" : isDark ? "rgba(255,255,255,0.15)" : "#cbd5e1",
+                        color: passed ? "#fff" : current ? "#6366f1" : isDark ? "rgba(255,255,255,0.40)" : "#94a3b8",
                         boxShadow: passed
                           ? isDark ? "0 0 18px rgba(99,102,241,0.6)" : "0 4px 12px rgba(99,102,241,0.30)"
                           : current
@@ -86,14 +88,15 @@ export function RoadmapTimeline({ startDate, nextCheckupDate }: Props) {
                           : "none",
                       }}
                     >
-                      <m.Icon className="h-4 w-4" />
+                      <m.Icon className="h-3.5 w-3.5" />
                     </div>
                   </div>
 
-                  <div className={`text-xs font-semibold leading-tight mt-1 ${future ? "dark:text-white/50 text-slate-400" : "dark:text-white text-slate-900"}`}>
+                  {/* 12px gap between date and title (mt-3) */}
+                  <div className={`text-xs font-semibold leading-tight mt-3 font-display ${future ? "dark:text-white/50 text-slate-400" : "dark:text-white text-slate-900"}`}>
                     {m.label}
                   </div>
-                  <div className="text-[10px] leading-tight dark:text-white/55 text-slate-500">{m.desc}</div>
+                  <div className="text-[10px] leading-tight mt-1 dark:text-white/55 text-slate-500">{m.desc}</div>
                 </div>
               );
             })}
