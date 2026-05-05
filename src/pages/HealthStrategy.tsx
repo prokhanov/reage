@@ -10,9 +10,12 @@ import { DemoBanner } from "@/components/DemoBanner";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { RejuvenationTrajectory } from "@/components/health-strategy/RejuvenationTrajectory";
-import { SystemMatrix } from "@/components/health-strategy/SystemMatrix";
-import { ActionMap } from "@/components/health-strategy/ActionMap";
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
+import { LongevityKPI } from "@/components/health-strategy/LongevityKPI";
+import { AgingBlockersStrategy } from "@/components/health-strategy/AgingBlockersStrategy";
+import { SystemTrendsRadar } from "@/components/health-strategy/SystemTrendsRadar";
+import { SmartPrioritiesStrategy } from "@/components/health-strategy/SmartPrioritiesStrategy";
+import { KeyMarkersDynamics } from "@/components/health-strategy/KeyMarkersDynamics";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
@@ -25,6 +28,8 @@ interface Snapshot {
   rationale: string | null;
   analysis_id: string;
   created_at: string;
+  cohort_percentile?: number | null;
+  cohort_label?: string | null;
 }
 
 export default function HealthStrategy() {
@@ -43,9 +48,9 @@ export default function HealthStrategy() {
   const [categories, setCategories] = useState<string[]>([]);
   const [nextCheckup, setNextCheckup] = useState<string | null>(null);
   const [hasAnalyses, setHasAnalyses] = useState(false);
+  const [riskZone, setRiskZone] = useState<any>(null);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
 
-  // Only admin/superadmin (or view-as) can force-refresh; for patients strategy
-  // is recalculated automatically only when a new analysis appears.
   const canForceRefresh = isSuperAdmin || isViewMode;
 
   useEffect(() => {
@@ -83,17 +88,33 @@ export default function HealthStrategy() {
       setPreviousAnalysis(prev || null);
       setHasAnalyses(!!latest);
 
-      const { data: nextBooking } = await supabase
-        .from("analysis_bookings")
-        .select("booking_date, next_analysis_date")
-        .eq("user_id", userId)
-        .gte("booking_date", new Date().toISOString().slice(0, 10))
-        .order("booking_date", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      setNextCheckup(nextBooking?.booking_date || nextBooking?.next_analysis_date || null);
+      const [{ data: nextBooking }, { data: rz }, { data: pres }] = await Promise.all([
+        supabase
+          .from("analysis_bookings")
+          .select("booking_date, next_analysis_date")
+          .eq("user_id", userId)
+          .gte("booking_date", new Date().toISOString().slice(0, 10))
+          .order("booking_date", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("risk_zone_analyses")
+          .select("aging_blockers, smart_priorities, analysis_date")
+          .eq("user_id", userId)
+          .order("analysis_date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("prescriptions")
+          .select("id, name, category, reason, effect, status")
+          .eq("user_id", userId)
+          .eq("is_archived", false),
+      ]);
 
-      // Fetch the two latest snapshots for trend comparison
+      setNextCheckup(nextBooking?.booking_date || nextBooking?.next_analysis_date || null);
+      setRiskZone(rz || null);
+      setPrescriptions(pres || []);
+
       const { data: snaps } = await supabase
         .from("health_strategy_snapshots")
         .select("*")
@@ -108,7 +129,6 @@ export default function HealthStrategy() {
         setSnapshot(matched as any);
         setPreviousSnapshot((previous as any) || null);
       } else if (latest) {
-        // New analysis without a snapshot — generate once
         await generate(false);
         setPreviousSnapshot((previous as any) || null);
       }
@@ -146,14 +166,17 @@ export default function HealthStrategy() {
 
   const displayProfile = profile;
   const age = displayProfile?.birth_date ? calculateAge(displayProfile.birth_date) : 40;
-  const gender: "male" | "female" = displayProfile?.gender === "female" ? "female" : "male";
   const startDate = analysis?.date || new Date().toISOString().slice(0, 10);
   const values = analysis?.analysis_values || [];
   const previousValues = previousAnalysis?.analysis_values || [];
 
+  const currentScores = (analysis?.biomarkers_metadata?.ai_analysis?.category_scores || {}) as Record<string, number>;
+  const previousScores = (previousAnalysis?.biomarkers_metadata?.ai_analysis?.category_scores || {}) as Record<string, number>;
+
+  const blockers = (riskZone?.aging_blockers as any[]) || [];
+
   return (
     <div className="relative min-h-screen dark:bg-[#0B0C10] bg-[#F8FAFC]">
-      {/* Ambient background glow */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-32 -left-20 w-[500px] h-[500px] rounded-full dark:bg-violet-500/10 bg-indigo-300/20 blur-[120px]" />
         <div className="absolute top-1/3 -right-20 w-[420px] h-[420px] rounded-full dark:bg-fuchsia-500/10 bg-blue-300/20 blur-[120px]" />
@@ -196,26 +219,49 @@ export default function HealthStrategy() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <RejuvenationTrajectory
-              startDate={startDate}
-              chronologicalAge={snapshot.chronological_age}
-              currentBioAge={snapshot.current_bio_age}
-              targetBioAge={snapshot.target_bio_age}
+          <div className="space-y-5 md:space-y-6">
+            {/* 1. Longevity KPI — три ключевых показателя */}
+            <LongevityKPI
+              bioAge={snapshot.current_bio_age}
+              chronoAge={snapshot.chronological_age}
               healthIndex={snapshot.health_index}
-              previousBioAge={previousSnapshot?.current_bio_age ?? null}
-              previousDate={previousAnalysis?.date ?? null}
+              cohortPercentile={snapshot.cohort_percentile ?? null}
+              cohortLabel={snapshot.cohort_label ?? null}
             />
-            <SystemMatrix
-              values={values}
-              previousValues={previousValues}
-              age={age}
-              gender={gender}
-              systemGoals={snapshot.system_goals || []}
+
+            {/* 2 + 4. Aging Blockers + Smart Priorities */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <AgingBlockersStrategy blockers={blockers} />
+              <SmartPrioritiesStrategy
+                blockers={blockers}
+                prescriptions={prescriptions}
+                actionMap={(snapshot.action_map as any[]) || []}
+              />
+            </div>
+
+            {/* 3. Radar системные тренды */}
+            <SystemTrendsRadar
+              currentScores={currentScores}
+              previousScores={Object.keys(previousScores).length > 0 ? previousScores : undefined}
               categoryOrder={categories}
             />
-            <ActionMap actions={snapshot.action_map || []} systems={categories} />
-            <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
+
+            {/* 5. Динамика ключевых маркеров */}
+            <KeyMarkersDynamics current={values} previous={previousValues} />
+
+            {/* Доп: траектория + дорожная карта */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <RejuvenationTrajectory
+                startDate={startDate}
+                chronologicalAge={snapshot.chronological_age}
+                currentBioAge={snapshot.current_bio_age}
+                targetBioAge={snapshot.target_bio_age}
+                healthIndex={snapshot.health_index}
+                previousBioAge={previousSnapshot?.current_bio_age ?? null}
+                previousDate={previousAnalysis?.date ?? null}
+              />
+              <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
+            </div>
           </div>
         )}
 

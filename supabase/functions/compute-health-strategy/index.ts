@@ -154,8 +154,10 @@ ${prescContext || "(нет)"}
                 additionalProperties: false,
               },
             },
+            cohort_percentile: { type: "integer", description: "Процент людей того же пола и возраста (±5 лет), КОТОРЫХ ПАЦИЕНТ ОПЕРЕЖАЕТ по состоянию здоровья. Например 85 = 'здоровее, чем 85% когорты'. Учитывай дельту био-хроно возраста, тяжесть отклонений биомаркеров, индекс здоровья. Диапазон 1-99." },
+            cohort_label: { type: "string", description: "Описание когорты, например 'женщины 35–40 лет' или 'мужчины 40–45 лет'" },
           },
-          required: ["target_bio_age", "rationale", "system_goals", "action_map"],
+          required: ["target_bio_age", "rationale", "system_goals", "action_map", "cohort_percentile", "cohort_label"],
           additionalProperties: false,
         },
       },
@@ -193,6 +195,10 @@ ${prescContext || "(нет)"}
     target = Math.min(maxTarget, Math.max(minTarget, target));
     target = Math.round(target * 10) / 10;
 
+    const cohortPct = Number.isFinite(parsed.cohort_percentile)
+      ? Math.min(99, Math.max(1, Math.round(parsed.cohort_percentile)))
+      : null;
+
     const { data: snapshot, error: insErr } = await supabase
       .from("health_strategy_snapshots")
       .insert({
@@ -205,6 +211,8 @@ ${prescContext || "(нет)"}
         system_goals: parsed.system_goals,
         action_map: parsed.action_map,
         rationale: parsed.rationale,
+        cohort_percentile: cohortPct,
+        cohort_label: parsed.cohort_label || null,
         model: "google/gemini-2.5-flash",
       })
       .select()
