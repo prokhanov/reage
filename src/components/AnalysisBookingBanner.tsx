@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -52,6 +52,18 @@ export function AnalysisBookingBanner() {
     }
   };
 
+  const isBookingExpired = (b: any) => {
+    if (!b?.booking_date) return false;
+    try {
+      const dateStr = b.booking_date;
+      const timeStr = b.booking_time || '23:59';
+      const dt = new Date(`${dateStr}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
+      return dt.getTime() < Date.now();
+    } catch {
+      return false;
+    }
+  };
+
   const checkBookingStatus = async () => {
     try {
       const userId = await getUserId();
@@ -73,7 +85,7 @@ export function AnalysisBookingBanner() {
       // Prioritize active statuses: collected > received > scheduled > not_scheduled
       const collectedBooking = bookings.find(b => b.status === 'collected');
       const receivedBooking = bookings.find(b => b.status === 'received');
-      const scheduledBooking = bookings.find(b => b.status === 'scheduled');
+      const scheduledBooking = bookings.find(b => b.status === 'scheduled' && !isBookingExpired(b));
       const notScheduledBooking = bookings.find(b => b.status === 'not_scheduled');
 
       const activeBooking = collectedBooking || receivedBooking || scheduledBooking || notScheduledBooking;
@@ -114,6 +126,19 @@ export function AnalysisBookingBanner() {
   const isScheduled = bookingInfo?.status === 'scheduled';
   const isReceived = bookingInfo?.status === 'received';
   const isCollected = bookingInfo?.status === 'collected';
+
+  // Dismiss key — unique per booking state, persisted for the session
+  const dismissKey = `bookingBannerDismissed:${bookingInfo?.status || 'none'}:${bookingInfo?.booking_date || ''}:${bookingInfo?.booking_time || ''}`;
+  if (typeof window !== 'undefined' && sessionStorage.getItem(dismissKey) === '1') {
+    return null;
+  }
+
+  const handleDismiss = () => {
+    try {
+      sessionStorage.setItem(dismissKey, '1');
+    } catch {}
+    setShowBanner(false);
+  };
 
   return (
     <>
@@ -186,6 +211,15 @@ export function AnalysisBookingBanner() {
                 {isScheduled ? 'Изменить' : 'Назначить дату'}
               </Button>
             )}
+            <Button
+              onClick={handleDismiss}
+              size="icon"
+              variant="ghost"
+              className="text-white hover:bg-white/20 h-8 w-8 shrink-0"
+              aria-label="Закрыть напоминание"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
