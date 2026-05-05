@@ -29,7 +29,8 @@ interface Snapshot {
 
 export default function HealthStrategy() {
   const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
-  const { isSuperAdmin } = useUserRole();
+  const { data: roleData } = useUserRole();
+  const isSuperAdmin = !!roleData?.isSuperAdmin;
   const { demoMode, loading: demoLoading, toggleDemoMode } = useDemoMode();
 
   const [loading, setLoading] = useState(true);
