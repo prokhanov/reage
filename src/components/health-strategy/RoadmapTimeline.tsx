@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Flag, Sparkles, Stethoscope, Target } from "lucide-react";
 import { addDays, addMonths, format, isBefore, isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
+import { useTheme } from "next-themes";
 
 interface Props {
   startDate: string;
@@ -9,6 +10,9 @@ interface Props {
 }
 
 export function RoadmapTimeline({ startDate, nextCheckupDate }: Props) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   const start = new Date(startDate);
   const today = new Date();
   const nextCheckup = nextCheckupDate ? new Date(nextCheckupDate) : addMonths(start, 3);
@@ -20,29 +24,32 @@ export function RoadmapTimeline({ startDate, nextCheckupDate }: Props) {
     { date: addMonths(start, 12), label: "Целевой статус", desc: "Достижение цели", Icon: Target },
   ];
 
-  // Find the active (current) milestone — last passed
   let activeIdx = -1;
   milestones.forEach((m, i) => {
     if (isBefore(m.date, today) || isSameDay(m.date, today)) activeIdx = i;
   });
 
   return (
-    <Card className="relative overflow-hidden border-border/40 bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-2xl shadow-2xl">
-      <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-slate-200/60 dark:bg-white/[0.04] bg-white/60 backdrop-blur-2xl dark:shadow-2xl shadow-xl shadow-slate-200/60">
+      <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full dark:bg-violet-500/15 bg-indigo-200/30 blur-3xl pointer-events-none" />
 
       <CardContent className="relative p-5 md:p-6">
         <div className="mb-5">
-          <h3 className="text-lg md:text-xl font-bold">Контрольные точки</h3>
-          <p className="text-xs text-muted-foreground mt-1">Дорожная карта на 12 месяцев</p>
+          <h3 className="text-lg md:text-xl font-bold dark:text-white text-slate-900">Контрольные точки</h3>
+          <p className="text-xs dark:text-white/55 text-slate-500 mt-1">Дорожная карта на 12 месяцев</p>
         </div>
 
         <div className="relative">
           {/* Timeline rail */}
-          <div className="absolute top-12 left-4 right-4 h-[2px] bg-border/40 overflow-hidden rounded-full">
+          <div className="absolute top-12 left-4 right-4 h-[2px] dark:bg-white/10 bg-slate-200 overflow-hidden rounded-full">
             <div
-              className="h-full bg-gradient-to-r from-primary via-accent to-primary/40 transition-all duration-700"
+              className="h-full transition-all duration-700 rounded-full"
               style={{
                 width: activeIdx >= 0 ? `${((activeIdx + 0.5) / (milestones.length - 1)) * 100}%` : "0%",
+                background: "linear-gradient(90deg, #6366f1 0%, #3b82f6 100%)",
+                boxShadow: isDark
+                  ? "0 0 10px rgba(139,92,246,0.7)"
+                  : "0 2px 6px rgba(99,102,241,0.35)",
               }}
             />
           </div>
@@ -54,32 +61,39 @@ export function RoadmapTimeline({ startDate, nextCheckupDate }: Props) {
               const future = i > activeIdx;
               return (
                 <div key={i} className="flex flex-col items-center text-center gap-2 px-1">
-                  <div className="text-[10px] text-muted-foreground font-mono mb-1 h-3">
+                  <div className="text-[10px] font-mono mb-1 h-3 dark:text-white/50 text-slate-500">
                     {format(m.date, "d MMM yyyy", { locale: ru })}
                   </div>
 
-                  {/* Node */}
                   <div className="relative">
                     {current && (
-                      <div className="absolute inset-0 rounded-full bg-primary/30 animate-ping" />
+                      <div className="absolute inset-0 rounded-full animate-ping" style={{ background: isDark ? "rgba(139,92,246,0.35)" : "rgba(99,102,241,0.30)" }} />
                     )}
                     <div
-                      className={`relative w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 transition-all ${
-                        passed
-                          ? "bg-primary text-primary-foreground border-primary shadow-[0_0_16px_hsl(var(--primary)/0.5)]"
+                      className={`relative w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 transition-all`}
+                      style={{
+                        background: passed
+                          ? "linear-gradient(135deg, #6366f1, #3b82f6)"
                           : current
-                          ? "bg-card border-primary text-primary shadow-[0_0_20px_hsl(var(--primary)/0.6)]"
-                          : "bg-card border-border/60 text-muted-foreground"
-                      }`}
+                          ? isDark ? "#0B0C10" : "#fff"
+                          : isDark ? "rgba(255,255,255,0.04)" : "#fff",
+                        borderColor: passed || current ? "#6366f1" : isDark ? "rgba(255,255,255,0.15)" : "#e2e8f0",
+                        color: passed ? "#fff" : current ? "#6366f1" : isDark ? "rgba(255,255,255,0.45)" : "#94a3b8",
+                        boxShadow: passed
+                          ? isDark ? "0 0 18px rgba(99,102,241,0.6)" : "0 4px 12px rgba(99,102,241,0.30)"
+                          : current
+                          ? isDark ? "0 0 22px rgba(99,102,241,0.7)" : "0 4px 14px rgba(99,102,241,0.35)"
+                          : "none",
+                      }}
                     >
                       <m.Icon className="h-4 w-4" />
                     </div>
                   </div>
 
-                  <div className={`text-xs font-semibold leading-tight mt-1 ${future ? "text-muted-foreground" : ""}`}>
+                  <div className={`text-xs font-semibold leading-tight mt-1 ${future ? "dark:text-white/50 text-slate-400" : "dark:text-white text-slate-900"}`}>
                     {m.label}
                   </div>
-                  <div className="text-[10px] text-muted-foreground leading-tight">{m.desc}</div>
+                  <div className="text-[10px] leading-tight dark:text-white/55 text-slate-500">{m.desc}</div>
                 </div>
               );
             })}
