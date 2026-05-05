@@ -33,16 +33,27 @@ serve(async (req) => {
     const { userId, force } = await req.json().catch(() => ({}));
     const targetUserId = userId || user.id;
 
-    // Cached snapshot (24h)
-    if (!force) {
+    // Always reuse snapshot if it's tied to the latest analysis.
+    // Strategy is recalculated ONLY when a new analysis appears (or force=true from admin).
+    const { data: latestAnalysisRow } = await supabase
+      .from("analyses")
+      .select("id")
+      .eq("user_id", targetUserId)
+      .eq("status", "processed")
+      .order("date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!force && latestAnalysisRow) {
       const { data: cached } = await supabase
         .from("health_strategy_snapshots")
         .select("*")
         .eq("user_id", targetUserId)
+        .eq("analysis_id", latestAnalysisRow.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (cached && Date.now() - new Date(cached.created_at).getTime() < 24 * 3600 * 1000) {
+      if (cached) {
         return new Response(JSON.stringify(cached), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
