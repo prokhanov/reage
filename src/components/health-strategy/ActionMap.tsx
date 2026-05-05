@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pill, Sparkles } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
+import { Card, CardContent } from "@/components/ui/card";
+import { Pill } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ActionMapItem {
@@ -18,116 +16,131 @@ interface Props {
   systems: string[];
 }
 
-export function ActionMap({ actions, systems }: Props) {
-  const [hovered, setHovered] = useState<string | null>(null);
+// Soft accent colors for hex nodes (HSL semantic tokens preferred)
+const NODE_COLORS = [
+  "from-primary/40 to-primary/10 border-primary/60 text-primary",
+  "from-accent/40 to-accent/10 border-accent/60 text-accent",
+  "from-status-optimal/40 to-status-optimal/10 border-status-optimal/60 text-status-optimal",
+  "from-status-acceptable/40 to-status-acceptable/10 border-status-acceptable/60 text-status-acceptable",
+  "from-status-risk/40 to-status-risk/10 border-status-risk/60 text-status-risk",
+  "from-primary/40 to-accent/10 border-primary/60 text-primary",
+];
 
-  if (!actions || actions.length === 0) {
-    return (
-      <Card className="bg-card/60 backdrop-blur-xl border-border/40">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base md:text-lg">Карта активных действий</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground py-6 text-center">Нет активных назначений</p>
-        </CardContent>
-      </Card>
-    );
+function getInitials(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const words = trimmed.split(/\s+/);
+  if (words.length === 1) {
+    return trimmed.slice(0, Math.min(3, trimmed.length)).toUpperCase();
   }
+  return (words[0][0] + (words[1]?.[0] || "")).toUpperCase();
+}
 
+export function ActionMap({ actions }: Props) {
+  const [hovered, setHovered] = useState<string | null>(null);
   const hoveredAction = actions.find((a) => a.prescription_name === hovered);
 
   return (
-    <Card className="bg-card/60 backdrop-blur-xl border-border/40">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base md:text-lg">Карта активных действий</CardTitle>
-        <p className="text-xs text-muted-foreground">Наведите на назначение, чтобы увидеть связи</p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <TooltipProvider delayDuration={200}>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-            {actions.map((a) => {
-              const isActive = hovered === a.prescription_name;
-              const isDimmed = hovered && !isActive;
-              return (
-                <Tooltip key={a.prescription_name}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onMouseEnter={() => setHovered(a.prescription_name)}
-                      onMouseLeave={() => setHovered(null)}
-                      onFocus={() => setHovered(a.prescription_name)}
-                      onBlur={() => setHovered(null)}
-                      className={cn(
-                        "group flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all text-center",
-                        isActive
-                          ? "border-primary bg-primary/10 scale-105 shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
-                          : isDimmed
-                          ? "border-border/30 bg-muted/20 opacity-40"
-                          : "border-border/40 bg-muted/30 hover:border-primary/50",
-                      )}
-                    >
-                      <div className={cn(
-                        "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                        isActive ? "bg-primary/20 text-primary" : "bg-muted text-foreground/70",
-                      )}>
-                        <Pill className="h-4 w-4" />
-                      </div>
-                      <span className="text-[10px] font-medium leading-tight line-clamp-2 break-words">
-                        {a.prescription_name}
-                      </span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-xs">
-                    <p className="font-medium mb-1">{a.prescription_name}</p>
-                    <p className="text-xs">{a.expected_effect}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Эффект через {a.effect_eta}</p>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-        </TooltipProvider>
+    <Card className="relative overflow-hidden border-border/40 bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-2xl shadow-2xl">
+      <div className="absolute -top-20 -left-20 w-56 h-56 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -right-20 w-56 h-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-        {/* Connected systems and biomarkers */}
-        <div className="pt-3 border-t border-border/40">
-          <div className="text-[11px] text-muted-foreground mb-2">Системы организма</div>
-          <div className="flex flex-wrap gap-1.5">
-            {systems.map((sys) => {
-              const Icon = getBiomarkerCategoryIcon(sys);
-              const isLinked = hoveredAction?.systems?.includes(sys);
-              return (
-                <div
-                  key={sys}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] transition-all",
-                    isLinked
-                      ? "border-primary bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.5)]"
-                      : hovered
-                      ? "border-border/30 opacity-40"
-                      : "border-border/50 bg-muted/30",
-                  )}
-                >
-                  <Icon className="h-3 w-3" />
-                  {sys}
-                </div>
-              );
-            })}
-          </div>
-
-          {hoveredAction && hoveredAction.biomarker_codes.length > 0 && (
-            <>
-              <div className="text-[11px] text-muted-foreground mt-3 mb-2 flex items-center gap-1">
-                <Sparkles className="h-3 w-3" /> Целевые биомаркеры
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {hoveredAction.biomarker_codes.map((code) => (
-                  <span key={code} className="px-2 py-0.5 rounded-md bg-accent/15 text-accent text-[11px] font-mono border border-accent/30">
-                    {code}
-                  </span>
-                ))}
-              </div>
-            </>
-          )}
+      <CardContent className="relative p-5 md:p-6 space-y-4">
+        <div>
+          <h3 className="text-lg md:text-xl font-bold">Активная карта действий</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            {actions.length === 0 ? "Нет активных назначений" : "Наведите на узел, чтобы увидеть эффект"}
+          </p>
         </div>
+
+        {actions.length === 0 ? (
+          <div className="py-12 flex items-center justify-center">
+            <Pill className="h-10 w-10 text-muted-foreground/40" />
+          </div>
+        ) : (
+          <div className="relative min-h-[180px]">
+            {/* Connecting lines (decorative) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="connLine" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.3" />
+                </linearGradient>
+              </defs>
+            </svg>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-x-3 gap-y-5 relative">
+              {actions.slice(0, 10).map((a, idx) => {
+                const isActive = hovered === a.prescription_name;
+                const isDimmed = hovered && !isActive;
+                const colorClass = NODE_COLORS[idx % NODE_COLORS.length];
+                return (
+                  <button
+                    key={a.prescription_name + idx}
+                    onMouseEnter={() => setHovered(a.prescription_name)}
+                    onMouseLeave={() => setHovered(null)}
+                    onFocus={() => setHovered(a.prescription_name)}
+                    onBlur={() => setHovered(null)}
+                    className={cn(
+                      "group relative flex flex-col items-center gap-1.5 transition-all duration-300",
+                      isActive && "scale-110 z-10",
+                      isDimmed && "opacity-30",
+                    )}
+                  >
+                    {/* Hexagon */}
+                    <div
+                      className={cn(
+                        "relative w-14 h-14 flex items-center justify-center transition-all",
+                        "before:absolute before:inset-0 before:bg-gradient-to-br before:rounded-[12px] before:rotate-45 before:border-2 before:transition-all",
+                        colorClass,
+                      )}
+                      style={{
+                        clipPath: "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)",
+                      }}
+                    >
+                      <div
+                        className={cn(
+                          "absolute inset-0 bg-gradient-to-br border-2 transition-all",
+                          colorClass,
+                          isActive && "shadow-[0_0_24px_currentColor]",
+                        )}
+                        style={{
+                          clipPath: "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)",
+                        }}
+                      />
+                      <span className="relative text-sm font-bold tracking-tight">
+                        {getInitials(a.prescription_name)}
+                      </span>
+                    </div>
+                    <span className="text-[10px] leading-tight text-center text-foreground/80 line-clamp-2 max-w-[80px]">
+                      {a.prescription_name.length > 20
+                        ? a.prescription_name.slice(0, 18) + "…"
+                        : a.prescription_name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Hover detail card */}
+            {hoveredAction && (
+              <div className="mt-4 p-3 rounded-xl bg-card/80 backdrop-blur border border-primary/30 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="text-sm font-semibold text-primary">{hoveredAction.prescription_name}</div>
+                <p className="text-xs text-foreground/80 mt-1 leading-relaxed">{hoveredAction.expected_effect}</p>
+                <div className="flex items-center justify-between mt-2 gap-2">
+                  <div className="flex flex-wrap gap-1">
+                    {hoveredAction.biomarker_codes.slice(0, 4).map((code) => (
+                      <span key={code} className="px-1.5 py-0.5 rounded-md bg-accent/15 text-accent text-[10px] font-mono border border-accent/30">
+                        {code}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">через {hoveredAction.effect_eta}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
