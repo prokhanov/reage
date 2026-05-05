@@ -155,14 +155,14 @@ export function RejuvenationTrajectory({
           </ResponsiveContainer>
         </div>
 
-        {/* Health index + numbers */}
+        {/* Health index ring (RadialBar style, stroke-width 10px per spec) + numbers */}
         <div className="flex items-center gap-4 pt-3 border-t dark:border-white/10 border-slate-200/70">
-          <div className="relative w-[88px] h-[88px] flex items-center justify-center shrink-0">
+          <div className="relative w-[96px] h-[96px] flex items-center justify-center shrink-0">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="38" stroke={isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"} strokeWidth="6" fill="none" />
+              <circle cx="50" cy="50" r="38" stroke={isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"} strokeWidth="10" fill="none" />
               <circle
                 cx="50" cy="50" r="38"
-                stroke="url(#ringGrad)" strokeWidth="6" fill="none"
+                stroke="url(#ringGrad)" strokeWidth="10" fill="none"
                 strokeDasharray={`${ringDash} 999`} strokeLinecap="round"
                 style={{ filter: isDark ? "drop-shadow(0 0 6px rgba(139,92,246,0.6))" : "drop-shadow(0 2px 6px rgba(99,102,241,0.35))" }}
               />
@@ -173,9 +173,9 @@ export function RejuvenationTrajectory({
                 </linearGradient>
               </defs>
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className={`text-2xl font-bold leading-none ${bigNumColor}`}>{healthIndex ?? "—"}</div>
-              <div className="text-[9px] dark:text-white/50 text-slate-500 mt-0.5">/ 100</div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+              <Heart className={`${isDark ? "text-white" : "text-indigo-700"}`} style={{ width: 20, height: 20 }} strokeWidth={2.2} />
+              <div className={`text-base font-bold leading-none font-mono-tech ${bigNumColor}`}>{healthIndex ?? "—"}</div>
             </div>
           </div>
           <div className="flex-1 grid grid-cols-3 gap-2 text-center">
@@ -205,7 +205,7 @@ function Stat({ label, value, unit, accent, muted, isDark }: { label: string; va
   return (
     <div className="space-y-0.5">
       <div className="text-[10px] uppercase tracking-wide dark:text-white/50 text-slate-500">{label}</div>
-      <div className={`text-lg font-bold tabular-nums ${numColor}`}>
+      <div className={`text-lg font-bold tabular-nums font-mono-tech ${numColor}`}>
         {value}<span className="text-[10px] font-normal dark:text-white/50 text-slate-500 ml-0.5">{unit}</span>
       </div>
     </div>
