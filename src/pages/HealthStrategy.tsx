@@ -28,20 +28,28 @@ interface Snapshot {
 }
 
 export default function HealthStrategy() {
-  const { getUserId, viewAsUserId } = useViewAsUser();
-  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
+  const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
+  const { isSuperAdmin } = useUserRole();
+  const { demoMode, loading: demoLoading, toggleDemoMode } = useDemoMode();
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [previousSnapshot, setPreviousSnapshot] = useState<Snapshot | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [previousAnalysis, setPreviousAnalysis] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [nextCheckup, setNextCheckup] = useState<string | null>(null);
   const [hasAnalyses, setHasAnalyses] = useState(false);
 
+  // Only admin/superadmin (or view-as) can force-refresh; for patients strategy
+  // is recalculated automatically only when a new analysis appears.
+  const canForceRefresh = isSuperAdmin || isViewMode;
+
   useEffect(() => {
     setSnapshot(null);
+    setPreviousSnapshot(null);
     setLoading(true);
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,10 +74,12 @@ export default function HealthStrategy() {
         .eq("user_id", userId)
         .eq("status", "processed")
         .order("date", { ascending: false })
-        .limit(1);
+        .limit(2);
 
       const latest = analyses?.[0];
+      const prev = analyses?.[1];
       setAnalysis(latest);
+      setPreviousAnalysis(prev || null);
       setHasAnalyses(!!latest);
 
       const { data: nextBooking } = await supabase
@@ -82,18 +92,24 @@ export default function HealthStrategy() {
         .maybeSingle();
       setNextCheckup(nextBooking?.booking_date || nextBooking?.next_analysis_date || null);
 
-      const { data: snap } = await supabase
+      // Fetch the two latest snapshots for trend comparison
+      const { data: snaps } = await supabase
         .from("health_strategy_snapshots")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(5);
 
-      if (snap && latest && snap.analysis_id === latest.id) {
-        setSnapshot(snap as any);
+      const matched = (snaps || []).find((s: any) => latest && s.analysis_id === latest.id);
+      const previous = (snaps || []).find((s: any) => prev && s.analysis_id === prev.id);
+
+      if (matched) {
+        setSnapshot(matched as any);
+        setPreviousSnapshot((previous as any) || null);
       } else if (latest) {
+        // New analysis without a snapshot — generate once
         await generate(false);
+        setPreviousSnapshot((previous as any) || null);
       }
     } catch (e) {
       console.error(e);
@@ -127,63 +143,58 @@ export default function HealthStrategy() {
     return <div className="p-4 md:p-8"><DashboardSkeleton /></div>;
   }
 
-  // Resolve display data (demo mode override)
   const displayProfile = profile;
   const age = displayProfile?.birth_date ? calculateAge(displayProfile.birth_date) : 40;
   const gender: "male" | "female" = displayProfile?.gender === "female" ? "female" : "male";
   const startDate = analysis?.date || new Date().toISOString().slice(0, 10);
   const values = analysis?.analysis_values || [];
+  const previousValues = previousAnalysis?.analysis_values || [];
 
   return (
-    <div className="p-4 md:p-8 space-y-4 md:space-y-6">
-      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
-
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="space-y-1 min-w-0">
-          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Стратегия здоровья
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Персональный план управления биологическим возрастом
-          </p>
-        </div>
-        {hasAnalyses && (
-          <Button onClick={() => generate(true)} disabled={generating} variant="outline" size="sm">
-            <RefreshCw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-            {generating ? "Анализируем..." : "Обновить"}
-          </Button>
-        )}
+    <div className="relative min-h-screen">
+      {/* Ambient background glow */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-32 -left-20 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute top-1/3 -right-20 w-[420px] h-[420px] rounded-full bg-accent/10 blur-[120px]" />
       </div>
 
-      {!hasAnalyses ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Нет данных анализов</h3>
-            <p className="text-muted-foreground">Добавьте первый анализ для формирования стратегии</p>
-          </CardContent>
-        </Card>
-      ) : !snapshot ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Готовим вашу стратегию</h3>
-            <p className="text-muted-foreground mb-4">AI анализирует биомаркеры и назначения</p>
-            <Button onClick={() => generate(true)} disabled={generating}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-              Рассчитать сейчас
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {snapshot.rationale && (
-            <Alert className="bg-primary/5 border-primary/20">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <AlertDescription className="text-sm">{snapshot.rationale}</AlertDescription>
-            </Alert>
-          )}
+      <div className="p-4 md:p-8 space-y-5 md:space-y-6">
+        {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
 
+        <div className="flex items-end justify-between gap-4 flex-wrap">
+          <div className="space-y-1.5 min-w-0">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+              Стратегия здоровья
+            </h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Персональный план управления биологическим возрастом
+            </p>
+          </div>
+          {hasAnalyses && canForceRefresh && (
+            <Button onClick={() => generate(true)} disabled={generating} variant="outline" size="sm">
+              <RefreshCw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
+              {generating ? "Анализируем..." : "Пересчитать"}
+            </Button>
+          )}
+        </div>
+
+        {!hasAnalyses ? (
+          <Card className="border-dashed bg-card/40 backdrop-blur-xl">
+            <CardContent className="py-16 text-center">
+              <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Нет данных анализов</h3>
+              <p className="text-muted-foreground">Добавьте первый анализ для формирования стратегии</p>
+            </CardContent>
+          </Card>
+        ) : !snapshot ? (
+          <Card className="border-dashed bg-card/40 backdrop-blur-xl">
+            <CardContent className="py-16 text-center">
+              <Sparkles className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+              <h3 className="text-lg font-semibold mb-2">Готовим вашу стратегию</h3>
+              <p className="text-muted-foreground">AI анализирует биомаркеры и назначения…</p>
+            </CardContent>
+          </Card>
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <RejuvenationTrajectory
               startDate={startDate}
@@ -191,9 +202,12 @@ export default function HealthStrategy() {
               currentBioAge={snapshot.current_bio_age}
               targetBioAge={snapshot.target_bio_age}
               healthIndex={snapshot.health_index}
+              previousBioAge={previousSnapshot?.current_bio_age ?? null}
+              previousDate={previousAnalysis?.date ?? null}
             />
             <SystemMatrix
               values={values}
+              previousValues={previousValues}
               age={age}
               gender={gender}
               systemGoals={snapshot.system_goals || []}
@@ -202,8 +216,15 @@ export default function HealthStrategy() {
             <ActionMap actions={snapshot.action_map || []} systems={categories} />
             <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
           </div>
-        </>
-      )}
+        )}
+
+        {snapshot?.rationale && (
+          <p className="text-xs text-muted-foreground/70 italic max-w-3xl">
+            <Sparkles className="inline h-3 w-3 mr-1 text-primary" />
+            {snapshot.rationale}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
