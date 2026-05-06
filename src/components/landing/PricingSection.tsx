@@ -271,7 +271,7 @@ export function PricingSection() {
               e.preventDefault();
               document.getElementById('comparison')?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="inline-flex items-center justify-center gap-2 h-11 px-8 rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors animate-fade-in"
+            className="inline-flex items-center justify-center gap-2 h-14 md:h-16 px-10 md:px-14 rounded-xl text-lg md:text-xl font-semibold text-white bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50 hover:scale-105 transition-all duration-300 animate-fade-in"
             style={{ animationDelay: '0.2s' }}
           >
             Сравнить тарифы
