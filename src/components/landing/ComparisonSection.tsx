@@ -51,7 +51,7 @@ export function ComparisonSection() {
 
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section id="comparison" className="relative py-20 md:py-28 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-background" />
       
