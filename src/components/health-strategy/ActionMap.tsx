@@ -211,7 +211,7 @@ export function ActionMap({ actions, systems }: Props) {
           </div>
         ) : (
           <div className="relative">
-            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 380 }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 520 }}>
               <defs>
                 {/* Gradient for each connection: from prescription color to target indigo */}
                 {connections.map((c, i) => (
