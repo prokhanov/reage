@@ -5,6 +5,7 @@ import {
   Leaf, FlaskConical, Sun, Moon, Apple, Dumbbell, Sparkles,
   Beaker, TestTube, Atom, Microscope, Stethoscope, Salad,
 } from "lucide-react";
+import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 import { useTheme } from "next-themes";
 
 interface ActionMapItem {
