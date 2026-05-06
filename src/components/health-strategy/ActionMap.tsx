@@ -147,54 +147,61 @@ export function ActionMap({ actions, systems }: Props) {
   const isDark = resolvedTheme === "dark";
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const items = actions.slice(0, 8);
-
-  // Build target system list from actions (limited to 4 most-referenced)
+  // Build target system list — все 5 систем организма (или те, что переданы)
   const targetSystems = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const a of items) {
-      for (const s of a.systems || []) {
-        counts.set(s, (counts.get(s) || 0) + 1);
-      }
-    }
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
-      .map(([name]) => name);
-  }, [items]);
+    const fromActions = new Set<string>();
+    for (const a of actions) for (const s of a.systems || []) fromActions.add(s);
+    // приоритет: переданные категории + всё, что упомянуто в назначениях
+    const merged: string[] = [];
+    for (const s of systems) if (!merged.includes(s)) merged.push(s);
+    for (const s of fromActions) if (!merged.includes(s)) merged.push(s);
+    return merged.slice(0, 6);
+  }, [actions, systems]);
 
-  // Layout — wide canvas to span full page width
+  // Сортируем назначения по их главной системе — для логичной раскладки
+  const items = useMemo(() => {
+    const order = new Map(targetSystems.map((s, i) => [s, i] as const));
+    return [...actions]
+      .sort((a, b) => {
+        const ai = a.systems?.[0] ? order.get(a.systems[0]) ?? 999 : 999;
+        const bi = b.systems?.[0] ? order.get(b.systems[0]) ?? 999 : 999;
+        return ai - bi;
+      })
+      .slice(0, 10);
+  }, [actions, targetSystems]);
+
+  // Layout — широкая канва на всю ширину
   const W = 1200;
-  const H = 420;
-  const padX = 80;
-  const padY = 60;
+  const H = 480;
+  const padX = 90;
+  const padY = 50;
 
-  // Prescription nodes — 2 columns on the left/center
+  // Колонка препаратов слева — 1 или 2 ряда, упорядочены по системе-цели
   const prescNodes = useMemo(() => {
     const n = items.length;
     if (n === 0) return [];
-    const cols = n <= 4 ? 1 : 2;
+    const cols = n <= 5 ? 1 : 2;
     const rows = Math.ceil(n / cols);
-    const colW = (W * 0.55 - padX) / Math.max(cols, 1);
+    const colW = (W * 0.5 - padX) / Math.max(cols, 1);
     const rowH = (H - padY * 2) / Math.max(rows - 1, 1);
     return items.map((a, i) => {
       const r = i % rows;
       const c = Math.floor(i / rows);
-      const x = padX + c * colW + colW * 0.4;
+      const x = padX + c * colW + colW * 0.5;
       const y = rows === 1 ? H / 2 : padY + r * rowH;
       const palette = PRESC_COLORS[i % PRESC_COLORS.length];
       return { action: a, x, y, ...palette };
     });
   }, [items]);
 
-  // Target system nodes — right column
+  // Системы — справа, равномерно распределены по высоте
   const sysNodes = useMemo(() => {
     if (targetSystems.length === 0) return [];
     const rowH = (H - padY * 2) / Math.max(targetSystems.length - 1, 1);
     return targetSystems.map((s, i) => {
       const meta = pickSystemMeta(s);
       const y = targetSystems.length === 1 ? H / 2 : padY + i * rowH;
-      return { name: s, x: W - padX - 10, y, ...meta };
+      return { name: s, x: W - padX, y, ...meta };
     });
   }, [targetSystems]);
 
