@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, CartesianGrid, Area, AreaChart } from "recharts";
+import { Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceDot, CartesianGrid, Area, ComposedChart } from "recharts";
 import { addMonths, format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { TrendingDown, TrendingUp, Minus, Heart, Sparkles } from "lucide-react";
@@ -92,7 +92,7 @@ export function RejuvenationTrajectory({
 
         <div className="h-[210px] md:h-[240px] -mx-2">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 28, right: 16, left: -10, bottom: 0 }}>
+            <ComposedChart data={data} margin={{ top: 28, right: 16, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="bioStroke" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#3B82F6" />
@@ -152,7 +152,7 @@ export function RejuvenationTrajectory({
                 fill="#3b82f6" stroke={isDark ? "#0B0C10" : "#fff"} strokeWidth={2}
                 label={{ value: `${targetBioAge.toFixed(1)}`, position: "top", fill: isDark ? "#60a5fa" : "#1e3a8a", fontSize: 14, fontWeight: 800, dy: -8 }}
               />
-            </AreaChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
 

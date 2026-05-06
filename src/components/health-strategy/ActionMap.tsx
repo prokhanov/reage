@@ -5,6 +5,7 @@ import {
   Leaf, FlaskConical, Sun, Moon, Apple, Dumbbell, Sparkles,
   Beaker, TestTube, Atom, Microscope, Stethoscope, Salad,
 } from "lucide-react";
+import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 import { useTheme } from "next-themes";
 
 interface ActionMapItem {
@@ -44,17 +45,18 @@ const SYSTEM_COLORS: Record<string, { stroke: string; fill: string; Icon: any }>
 
 function pickSystemMeta(name: string) {
   const n = name.toLowerCase();
+  const Icon = getBiomarkerCategoryIcon(name);
   if (n.includes("энерг") || n.includes("восст"))
-    return { stroke: "#fbbf24", fill: "#f59e0b", Icon: Zap };
+    return { stroke: "#fbbf24", fill: "#f59e0b", Icon };
   if (n.includes("воспал") || n.includes("иммун"))
-    return { stroke: "#f87171", fill: "#ef4444", Icon: Flame };
+    return { stroke: "#34d399", fill: "#10b981", Icon };
   if (n.includes("сердеч") || n.includes("сосуд"))
-    return { stroke: "#fb7185", fill: "#e11d48", Icon: Heart };
-  if (n.includes("эндокр") || n.includes("стресс") || n.includes("нерв"))
-    return { stroke: "#a78bfa", fill: "#8b5cf6", Icon: Brain };
+    return { stroke: "#fb7185", fill: "#e11d48", Icon };
+  if (n.includes("эндокр") || n.includes("стресс") || n.includes("нерв") || n.includes("гормон"))
+    return { stroke: "#a78bfa", fill: "#8b5cf6", Icon };
   if (n.includes("метабол") || n.includes("деток"))
-    return { stroke: "#60a5fa", fill: "#3b82f6", Icon: Droplet };
-  return SYSTEM_COLORS.default;
+    return { stroke: "#60a5fa", fill: "#3b82f6", Icon };
+  return { ...SYSTEM_COLORS.default, Icon };
 }
 
 function hexPath(cx: number, cy: number, r: number) {
@@ -70,11 +72,11 @@ function pickPrescIcon(name: string) {
   const n = name.toLowerCase();
   if (/(омега|omega|epa|dha|рыб)/.test(n)) return Droplet;
   if (/(вит.*d|витамин d|d3|холекаль)/.test(n)) return Sun;
-  if (/(вит.*b|витамин b|b12|фолиев|folate|метилкоб)/.test(n)) return Atom;
+  if (/(вит.*b|витамин b|b12|b6|b9|фолиев|folate|метилкоб)/.test(n)) return Atom;
   if (/(вит.*c|витамин c|аскорб)/.test(n)) return Apple;
-  if (/(магн|mg|magn)/.test(n)) return Sparkles;
-  if (/(цинк|zn|zinc|селен|se|йод|i2)/.test(n)) return Beaker;
-  if (/(железо|fe|iron|ферр)/.test(n)) return FlaskConical;
+  if (/(магн|\bmg\b|magn)/.test(n)) return Sparkles;
+  if (/(цинк|\bzn\b|zinc|селен|\bse\b|йод|\bi2?\b)/.test(n)) return Beaker;
+  if (/(железо|\bfe\b|iron|ферр)/.test(n)) return FlaskConical;
   if (/(коэнз|coq|q10|убихин)/.test(n)) return Zap;
   if (/(куркум|ресверат|кверцет|полифен|антиокс)/.test(n)) return Leaf;
   if (/(пробио|лакто|бифидо|кишеч|псил|клетч)/.test(n)) return Salad;
@@ -88,8 +90,54 @@ function pickPrescIcon(name: string) {
   return Pill;
 }
 
-function getShortLabel(name: string) {
-  const t = name.trim();
+/**
+ * Сокращение названия нутрицевтика до международного обозначения,
+ * если оно общеизвестно. Иначе — короткое русское имя.
+ */
+function getShortLabel(raw: string) {
+  const t = raw.trim();
+  const n = t.toLowerCase();
+  // Витамины
+  if (/витамин\s*d3|d-?3|холекаль/.test(n)) return "Vit D3";
+  if (/витамин\s*d\b/.test(n)) return "Vit D";
+  if (/витамин\s*c|аскорб/.test(n)) return "Vit C";
+  if (/витамин\s*k2|менахин/.test(n)) return "Vit K2";
+  if (/витамин\s*k\b/.test(n)) return "Vit K";
+  if (/витамин\s*a\b|ретинол/.test(n)) return "Vit A";
+  if (/витамин\s*e\b|токофер/.test(n)) return "Vit E";
+  if (/b\s*12|метилкоб|цианкоб/.test(n)) return "B12";
+  if (/b\s*9|фолиев|folate|метилфол/.test(n)) return "B9";
+  if (/b\s*6|пиридокс/.test(n)) return "B6";
+  if (/b\s*1|тиамин/.test(n)) return "B1";
+  if (/b\s*2|рибофлав/.test(n)) return "B2";
+  if (/b\s*3|ниацин|никотин/.test(n)) return "B3";
+  if (/b\s*5|пантотен/.test(n)) return "B5";
+  if (/(b-?комплекс|витамины\s*группы\s*b)/.test(n)) return "B-комплекс";
+  // Минералы
+  if (/магн|\bmg\b/.test(n)) return "Mg";
+  if (/цинк|\bzn\b/.test(n)) return "Zn";
+  if (/селен|\bse\b/.test(n)) return "Se";
+  if (/железо|\bfe\b|iron|ферр/.test(n)) return "Fe";
+  if (/йод|\biod|\bi\b/.test(n)) return "I";
+  if (/кальц|\bca\b/.test(n)) return "Ca";
+  if (/калий|\bk\b\s*\(/.test(n)) return "K";
+  if (/хром|\bcr\b/.test(n)) return "Cr";
+  if (/медь|\bcu\b/.test(n)) return "Cu";
+  // Прочее популярное
+  if (/омега.?3|epa.*dha|dha.*epa|рыбий\s*жир/.test(n)) return "Omega-3";
+  if (/коэнз|coq.?10|убихин/.test(n)) return "CoQ10";
+  if (/куркум/.test(n)) return "Куркумин";
+  if (/ресверат/.test(n)) return "Ресвератрол";
+  if (/мелатон/.test(n)) return "Мелатонин";
+  if (/пробио/.test(n)) return "Пробиотики";
+  if (/ашваг/.test(n)) return "Ашваганда";
+  if (/родиол/.test(n)) return "Родиола";
+  if (/глутатион/.test(n)) return "Glutathione";
+  if (/nac|n-?ацетил|ацетилцист/.test(n)) return "NAC";
+  if (/тестосте?рон/.test(n)) return "Testo";
+  if (/мет(ф|ph)ормин/.test(n)) return "Metformin";
+  if (/берберин/.test(n)) return "Berberine";
+  if (/статин/.test(n)) return "Statin";
   if (t.length <= 14) return t;
   return t.slice(0, 13) + "…";
 }
@@ -99,54 +147,61 @@ export function ActionMap({ actions, systems }: Props) {
   const isDark = resolvedTheme === "dark";
   const [hovered, setHovered] = useState<string | null>(null);
 
-  const items = actions.slice(0, 8);
-
-  // Build target system list from actions (limited to 4 most-referenced)
+  // Build target system list — все 5 систем организма (или те, что переданы)
   const targetSystems = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const a of items) {
-      for (const s of a.systems || []) {
-        counts.set(s, (counts.get(s) || 0) + 1);
-      }
-    }
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
-      .map(([name]) => name);
-  }, [items]);
+    const fromActions = new Set<string>();
+    for (const a of actions) for (const s of a.systems || []) fromActions.add(s);
+    // приоритет: переданные категории + всё, что упомянуто в назначениях
+    const merged: string[] = [];
+    for (const s of systems) if (!merged.includes(s)) merged.push(s);
+    for (const s of fromActions) if (!merged.includes(s)) merged.push(s);
+    return merged.slice(0, 6);
+  }, [actions, systems]);
 
-  // Layout — wide canvas to span full page width
+  // Сортируем назначения по их главной системе — для логичной раскладки
+  const items = useMemo(() => {
+    const order = new Map(targetSystems.map((s, i) => [s, i] as const));
+    return [...actions]
+      .sort((a, b) => {
+        const ai = a.systems?.[0] ? order.get(a.systems[0]) ?? 999 : 999;
+        const bi = b.systems?.[0] ? order.get(b.systems[0]) ?? 999 : 999;
+        return ai - bi;
+      })
+      .slice(0, 10);
+  }, [actions, targetSystems]);
+
+  // Layout — широкая канва на всю ширину
   const W = 1200;
-  const H = 420;
-  const padX = 80;
-  const padY = 60;
+  const H = 480;
+  const padX = 90;
+  const padY = 50;
 
-  // Prescription nodes — 2 columns on the left/center
+  // Колонка препаратов слева — 1 или 2 ряда, упорядочены по системе-цели
   const prescNodes = useMemo(() => {
     const n = items.length;
     if (n === 0) return [];
-    const cols = n <= 4 ? 1 : 2;
+    const cols = n <= 5 ? 1 : 2;
     const rows = Math.ceil(n / cols);
-    const colW = (W * 0.55 - padX) / Math.max(cols, 1);
+    const colW = (W * 0.5 - padX) / Math.max(cols, 1);
     const rowH = (H - padY * 2) / Math.max(rows - 1, 1);
     return items.map((a, i) => {
       const r = i % rows;
       const c = Math.floor(i / rows);
-      const x = padX + c * colW + colW * 0.4;
+      const x = padX + c * colW + colW * 0.5;
       const y = rows === 1 ? H / 2 : padY + r * rowH;
       const palette = PRESC_COLORS[i % PRESC_COLORS.length];
       return { action: a, x, y, ...palette };
     });
   }, [items]);
 
-  // Target system nodes — right column
+  // Системы — справа, равномерно распределены по высоте
   const sysNodes = useMemo(() => {
     if (targetSystems.length === 0) return [];
     const rowH = (H - padY * 2) / Math.max(targetSystems.length - 1, 1);
     return targetSystems.map((s, i) => {
       const meta = pickSystemMeta(s);
       const y = targetSystems.length === 1 ? H / 2 : padY + i * rowH;
-      return { name: s, x: W - padX - 10, y, ...meta };
+      return { name: s, x: W - padX, y, ...meta };
     });
   }, [targetSystems]);
 
@@ -415,17 +470,19 @@ export function ActionMap({ actions, systems }: Props) {
                         />
                       </div>
                     </foreignObject>
-                    <text
-                      x={s.x}
-                      y={s.y + r + 14}
-                      textAnchor="middle"
-                      fontSize={10}
-                      fontFamily="Inter, sans-serif"
-                      fontWeight={600}
-                      fill={isDark ? "rgba(255,255,255,0.85)" : "#334155"}
-                    >
-                      {getShortLabel(s.name)}
-                    </text>
+                    <foreignObject x={s.x - 75} y={s.y + r + 4} width={150} height={40}>
+                      <div
+                        className="w-full text-center leading-tight"
+                        style={{
+                          fontSize: 10,
+                          fontFamily: "Inter, sans-serif",
+                          fontWeight: 600,
+                          color: isDark ? "rgba(255,255,255,0.85)" : "#334155",
+                        }}
+                      >
+                        {s.name}
+                      </div>
+                    </foreignObject>
                   </g>
                 );
               })}
