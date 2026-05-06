@@ -66,11 +66,26 @@ function hexPath(cx: number, cy: number, r: number) {
   return `M${pts.join(" L")} Z`;
 }
 
-function getInitial(name: string) {
-  const t = name.trim();
-  if (!t) return "?";
-  // Take just the first letter for clean look (M, O, B, K, V...)
-  return t[0].toUpperCase();
+function pickPrescIcon(name: string) {
+  const n = name.toLowerCase();
+  if (/(омега|omega|epa|dha|рыб)/.test(n)) return Droplet;
+  if (/(вит.*d|витамин d|d3|холекаль)/.test(n)) return Sun;
+  if (/(вит.*b|витамин b|b12|фолиев|folate|метилкоб)/.test(n)) return Atom;
+  if (/(вит.*c|витамин c|аскорб)/.test(n)) return Apple;
+  if (/(магн|mg|magn)/.test(n)) return Sparkles;
+  if (/(цинк|zn|zinc|селен|se|йод|i2)/.test(n)) return Beaker;
+  if (/(железо|fe|iron|ферр)/.test(n)) return FlaskConical;
+  if (/(коэнз|coq|q10|убихин)/.test(n)) return Zap;
+  if (/(куркум|ресверат|кверцет|полифен|антиокс)/.test(n)) return Leaf;
+  if (/(пробио|лакто|бифидо|кишеч|псил|клетч)/.test(n)) return Salad;
+  if (/(мелатон|сон|sleep)/.test(n)) return Moon;
+  if (/(статин|липид|холест|нэк|niacin)/.test(n)) return Heart;
+  if (/(метформ|берберин|инсулин|глюкоз)/.test(n)) return TestTube;
+  if (/(адаптог|ашваг|родиол|стресс|нерв)/.test(n)) return Brain;
+  if (/(спорт|трен|нагруз|кардио|hiit)/.test(n)) return Dumbbell;
+  if (/(анализ|чек.?ап|осмотр|обследов)/.test(n)) return Stethoscope;
+  if (/(гормон|тест.*стер|днэа|щитов)/.test(n)) return Microscope;
+  return Pill;
 }
 
 function getShortLabel(name: string) {
