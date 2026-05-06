@@ -45,17 +45,18 @@ const SYSTEM_COLORS: Record<string, { stroke: string; fill: string; Icon: any }>
 
 function pickSystemMeta(name: string) {
   const n = name.toLowerCase();
+  const Icon = getBiomarkerCategoryIcon(name);
   if (n.includes("энерг") || n.includes("восст"))
-    return { stroke: "#fbbf24", fill: "#f59e0b", Icon: Zap };
+    return { stroke: "#fbbf24", fill: "#f59e0b", Icon };
   if (n.includes("воспал") || n.includes("иммун"))
-    return { stroke: "#f87171", fill: "#ef4444", Icon: Flame };
+    return { stroke: "#34d399", fill: "#10b981", Icon };
   if (n.includes("сердеч") || n.includes("сосуд"))
-    return { stroke: "#fb7185", fill: "#e11d48", Icon: Heart };
-  if (n.includes("эндокр") || n.includes("стресс") || n.includes("нерв"))
-    return { stroke: "#a78bfa", fill: "#8b5cf6", Icon: Brain };
+    return { stroke: "#fb7185", fill: "#e11d48", Icon };
+  if (n.includes("эндокр") || n.includes("стресс") || n.includes("нерв") || n.includes("гормон"))
+    return { stroke: "#a78bfa", fill: "#8b5cf6", Icon };
   if (n.includes("метабол") || n.includes("деток"))
-    return { stroke: "#60a5fa", fill: "#3b82f6", Icon: Droplet };
-  return SYSTEM_COLORS.default;
+    return { stroke: "#60a5fa", fill: "#3b82f6", Icon };
+  return { ...SYSTEM_COLORS.default, Icon };
 }
 
 function hexPath(cx: number, cy: number, r: number) {
@@ -71,11 +72,11 @@ function pickPrescIcon(name: string) {
   const n = name.toLowerCase();
   if (/(омега|omega|epa|dha|рыб)/.test(n)) return Droplet;
   if (/(вит.*d|витамин d|d3|холекаль)/.test(n)) return Sun;
-  if (/(вит.*b|витамин b|b12|фолиев|folate|метилкоб)/.test(n)) return Atom;
+  if (/(вит.*b|витамин b|b12|b6|b9|фолиев|folate|метилкоб)/.test(n)) return Atom;
   if (/(вит.*c|витамин c|аскорб)/.test(n)) return Apple;
-  if (/(магн|mg|magn)/.test(n)) return Sparkles;
-  if (/(цинк|zn|zinc|селен|se|йод|i2)/.test(n)) return Beaker;
-  if (/(железо|fe|iron|ферр)/.test(n)) return FlaskConical;
+  if (/(магн|\bmg\b|magn)/.test(n)) return Sparkles;
+  if (/(цинк|\bzn\b|zinc|селен|\bse\b|йод|\bi2?\b)/.test(n)) return Beaker;
+  if (/(железо|\bfe\b|iron|ферр)/.test(n)) return FlaskConical;
   if (/(коэнз|coq|q10|убихин)/.test(n)) return Zap;
   if (/(куркум|ресверат|кверцет|полифен|антиокс)/.test(n)) return Leaf;
   if (/(пробио|лакто|бифидо|кишеч|псил|клетч)/.test(n)) return Salad;
@@ -89,8 +90,54 @@ function pickPrescIcon(name: string) {
   return Pill;
 }
 
-function getShortLabel(name: string) {
-  const t = name.trim();
+/**
+ * Сокращение названия нутрицевтика до международного обозначения,
+ * если оно общеизвестно. Иначе — короткое русское имя.
+ */
+function getShortLabel(raw: string) {
+  const t = raw.trim();
+  const n = t.toLowerCase();
+  // Витамины
+  if (/витамин\s*d3|d-?3|холекаль/.test(n)) return "Vit D3";
+  if (/витамин\s*d\b/.test(n)) return "Vit D";
+  if (/витамин\s*c|аскорб/.test(n)) return "Vit C";
+  if (/витамин\s*k2|менахин/.test(n)) return "Vit K2";
+  if (/витамин\s*k\b/.test(n)) return "Vit K";
+  if (/витамин\s*a\b|ретинол/.test(n)) return "Vit A";
+  if (/витамин\s*e\b|токофер/.test(n)) return "Vit E";
+  if (/b\s*12|метилкоб|цианкоб/.test(n)) return "B12";
+  if (/b\s*9|фолиев|folate|метилфол/.test(n)) return "B9";
+  if (/b\s*6|пиридокс/.test(n)) return "B6";
+  if (/b\s*1|тиамин/.test(n)) return "B1";
+  if (/b\s*2|рибофлав/.test(n)) return "B2";
+  if (/b\s*3|ниацин|никотин/.test(n)) return "B3";
+  if (/b\s*5|пантотен/.test(n)) return "B5";
+  if (/(b-?комплекс|витамины\s*группы\s*b)/.test(n)) return "B-комплекс";
+  // Минералы
+  if (/магн|\bmg\b/.test(n)) return "Mg";
+  if (/цинк|\bzn\b/.test(n)) return "Zn";
+  if (/селен|\bse\b/.test(n)) return "Se";
+  if (/железо|\bfe\b|iron|ферр/.test(n)) return "Fe";
+  if (/йод|\biod|\bi\b/.test(n)) return "I";
+  if (/кальц|\bca\b/.test(n)) return "Ca";
+  if (/калий|\bk\b\s*\(/.test(n)) return "K";
+  if (/хром|\bcr\b/.test(n)) return "Cr";
+  if (/медь|\bcu\b/.test(n)) return "Cu";
+  // Прочее популярное
+  if (/омега.?3|epa.*dha|dha.*epa|рыбий\s*жир/.test(n)) return "Omega-3";
+  if (/коэнз|coq.?10|убихин/.test(n)) return "CoQ10";
+  if (/куркум/.test(n)) return "Куркумин";
+  if (/ресверат/.test(n)) return "Ресвератрол";
+  if (/мелатон/.test(n)) return "Мелатонин";
+  if (/пробио/.test(n)) return "Пробиотики";
+  if (/ашваг/.test(n)) return "Ашваганда";
+  if (/родиол/.test(n)) return "Родиола";
+  if (/глутатион/.test(n)) return "Glutathione";
+  if (/nac|n-?ацетил|ацетилцист/.test(n)) return "NAC";
+  if (/тестосте?рон/.test(n)) return "Testo";
+  if (/мет(ф|ph)ормин/.test(n)) return "Metformin";
+  if (/берберин/.test(n)) return "Berberine";
+  if (/статин/.test(n)) return "Statin";
   if (t.length <= 14) return t;
   return t.slice(0, 13) + "…";
 }
