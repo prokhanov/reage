@@ -134,7 +134,7 @@ export function RejuvenationTrajectory({
               />
               {/* Chronological — dashed, drawn ON TOP so it stays visible */}
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="chrono"
                 stroke={isDark ? "rgba(255,255,255,0.65)" : "rgba(71,85,105,0.75)"}
                 strokeWidth={2}
