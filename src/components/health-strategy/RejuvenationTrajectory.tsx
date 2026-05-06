@@ -121,15 +121,6 @@ export function RejuvenationTrajectory({
                 labelFormatter={(_l, p) => p?.[0]?.payload?.fullLabel || ""}
                 formatter={(v: any, name: string) => [`${v} лет`, name === "bio" ? "Биологический" : "Хронологический"]}
               />
-              {/* Chronological — dashed white opacity 0.3 in dark per spec */}
-              <Line
-                type="monotone"
-                dataKey="chrono"
-                stroke={isDark ? "rgba(255,255,255,0.3)" : "rgba(71,85,105,0.55)"}
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                dot={false}
-              />
               {/* Bio — gradient stroke + 0.2 opacity area fill */}
               <Area
                 type="monotone"
@@ -140,6 +131,16 @@ export function RejuvenationTrajectory({
                 dot={false}
                 filter="url(#bioShadow)"
                 activeDot={{ r: 6, fill: "#8b5cf6", stroke: isDark ? "#0B0C10" : "#fff", strokeWidth: 2 }}
+              />
+              {/* Chronological — dashed, drawn ON TOP so it stays visible */}
+              <Line
+                type="monotone"
+                dataKey="chrono"
+                stroke={isDark ? "rgba(255,255,255,0.65)" : "rgba(71,85,105,0.75)"}
+                strokeWidth={2}
+                strokeDasharray="6 5"
+                dot={false}
+                isAnimationActive={false}
               />
               <ReferenceDot
                 x={data[0].label} y={data[0].bio} r={6}
