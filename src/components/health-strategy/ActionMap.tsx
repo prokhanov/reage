@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Pill, Zap, Flame, Heart, Brain, Activity, Droplet } from "lucide-react";
+import {
+  Pill, Zap, Flame, Heart, Brain, Activity, Droplet,
+  Leaf, FlaskConical, Sun, Moon, Apple, Dumbbell, Sparkles,
+  Beaker, TestTube, Atom, Microscope, Stethoscope, Salad,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface ActionMapItem {
@@ -62,11 +66,26 @@ function hexPath(cx: number, cy: number, r: number) {
   return `M${pts.join(" L")} Z`;
 }
 
-function getInitial(name: string) {
-  const t = name.trim();
-  if (!t) return "?";
-  // Take just the first letter for clean look (M, O, B, K, V...)
-  return t[0].toUpperCase();
+function pickPrescIcon(name: string) {
+  const n = name.toLowerCase();
+  if (/(омега|omega|epa|dha|рыб)/.test(n)) return Droplet;
+  if (/(вит.*d|витамин d|d3|холекаль)/.test(n)) return Sun;
+  if (/(вит.*b|витамин b|b12|фолиев|folate|метилкоб)/.test(n)) return Atom;
+  if (/(вит.*c|витамин c|аскорб)/.test(n)) return Apple;
+  if (/(магн|mg|magn)/.test(n)) return Sparkles;
+  if (/(цинк|zn|zinc|селен|se|йод|i2)/.test(n)) return Beaker;
+  if (/(железо|fe|iron|ферр)/.test(n)) return FlaskConical;
+  if (/(коэнз|coq|q10|убихин)/.test(n)) return Zap;
+  if (/(куркум|ресверат|кверцет|полифен|антиокс)/.test(n)) return Leaf;
+  if (/(пробио|лакто|бифидо|кишеч|псил|клетч)/.test(n)) return Salad;
+  if (/(мелатон|сон|sleep)/.test(n)) return Moon;
+  if (/(статин|липид|холест|нэк|niacin)/.test(n)) return Heart;
+  if (/(метформ|берберин|инсулин|глюкоз)/.test(n)) return TestTube;
+  if (/(адаптог|ашваг|родиол|стресс|нерв)/.test(n)) return Brain;
+  if (/(спорт|трен|нагруз|кардио|hiit)/.test(n)) return Dumbbell;
+  if (/(анализ|чек.?ап|осмотр|обследов)/.test(n)) return Stethoscope;
+  if (/(гормон|тест.*стер|днэа|щитов)/.test(n)) return Microscope;
+  return Pill;
 }
 
 function getShortLabel(name: string) {
@@ -96,11 +115,11 @@ export function ActionMap({ actions, systems }: Props) {
       .map(([name]) => name);
   }, [items]);
 
-  // Layout
-  const W = 560;
-  const H = 360;
-  const padX = 50;
-  const padY = 50;
+  // Layout — wide canvas to span full page width
+  const W = 1200;
+  const H = 420;
+  const padX = 80;
+  const padY = 60;
 
   // Prescription nodes — 2 columns on the left/center
   const prescNodes = useMemo(() => {
@@ -192,7 +211,7 @@ export function ActionMap({ actions, systems }: Props) {
           </div>
         ) : (
           <div className="relative">
-            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 380 }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 520 }}>
               <defs>
                 {/* Gradient for each connection: from prescription color to target indigo */}
                 {connections.map((c, i) => (
@@ -282,7 +301,8 @@ export function ActionMap({ actions, systems }: Props) {
               {prescNodes.map((p, i) => {
                 const isActive = hovered === p.action.prescription_name;
                 const isDimmed = hovered && !isActive;
-                const r = isActive ? 28 : 25;
+                const r = isActive ? 30 : 27;
+                const PIcon = pickPrescIcon(p.action.prescription_name);
                 return (
                   <g
                     key={`p-${i}`}
@@ -315,19 +335,18 @@ export function ActionMap({ actions, systems }: Props) {
                           : "none",
                       }}
                     />
-                    <text
-                      x={p.x}
-                      y={p.y + 1}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize={16}
-                      fontWeight={700}
-                      fontFamily="'JetBrains Mono', ui-monospace, monospace"
-                      fill={isDark ? "#fff" : p.stroke}
-                      style={{ pointerEvents: "none" }}
-                    >
-                      {getInitial(p.action.prescription_name)}
-                    </text>
+                    <foreignObject x={p.x - 13} y={p.y - 13} width={26} height={26} style={{ pointerEvents: "none" }}>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <PIcon
+                          style={{
+                            width: 19,
+                            height: 19,
+                            color: isDark ? "#fff" : p.stroke,
+                          }}
+                          strokeWidth={2.2}
+                        />
+                      </div>
+                    </foreignObject>
                     <text
                       x={p.x}
                       y={p.y + r + 14}

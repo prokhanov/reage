@@ -221,33 +221,28 @@ export default function HealthStrategy() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {/* 1. Траектория омоложения */}
-            <RejuvenationTrajectory
-              startDate={startDate}
-              chronologicalAge={snapshot.chronological_age}
-              currentBioAge={snapshot.current_bio_age}
-              targetBioAge={snapshot.target_bio_age}
-              healthIndex={snapshot.health_index}
-              previousBioAge={previousSnapshot?.current_bio_age ?? null}
-              previousDate={previousAnalysis?.date ?? null}
-            />
+          <div className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              {/* 1. Траектория омоложения */}
+              <RejuvenationTrajectory
+                startDate={startDate}
+                chronologicalAge={snapshot.chronological_age}
+                currentBioAge={snapshot.current_bio_age}
+                targetBioAge={snapshot.target_bio_age}
+                healthIndex={snapshot.health_index}
+                previousBioAge={previousSnapshot?.current_bio_age ?? null}
+                previousDate={previousAnalysis?.date ?? null}
+              />
 
-            {/* 2. Статус систем организма */}
-            <SystemStatusBars
-              scores={currentScores}
-              goals={(snapshot.system_goals as any[]) || []}
-              categoryOrder={categories}
-            />
+              {/* 2. Контрольные точки */}
+              <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
+            </div>
 
-            {/* 3. Активная карта действий */}
+            {/* 3. Активная карта действий — на всю ширину */}
             <ActionMap
               actions={(snapshot.action_map as any[]) || []}
               systems={categories}
             />
-
-            {/* 4. Контрольные точки */}
-            <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
           </div>
         )}
 
