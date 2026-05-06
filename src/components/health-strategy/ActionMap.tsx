@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Pill, Activity } from "lucide-react";
+import { Pill, Zap, Flame, Heart, Brain, Activity, Droplet } from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface ActionMapItem {
@@ -16,67 +16,154 @@ interface Props {
   systems: string[];
 }
 
-const PALETTE = [
-  { dark: "#a78bfa", light: "#7c3aed" },
-  { dark: "#60a5fa", light: "#2563eb" },
-  { dark: "#34d399", light: "#059669" },
-  { dark: "#fbbf24", light: "#d97706" },
-  { dark: "#f472b6", light: "#db2777" },
-  { dark: "#22d3ee", light: "#0891b2" },
-  { dark: "#fb7185", light: "#e11d48" },
-  { dark: "#c084fc", light: "#9333ea" },
+/**
+ * Активная карта действий — сетевой flow «препарат → система».
+ * Левая колонка: гексагоны препаратов (1-2 ряда).
+ * Правая часть: целевые системы как гексагоны-приёмники.
+ * Связи — кривые Безье с анимированным потоком.
+ */
+
+const PRESC_COLORS = [
+  { stroke: "#a78bfa", fill: "#8b5cf6" }, // violet
+  { stroke: "#60a5fa", fill: "#3b82f6" }, // blue
+  { stroke: "#f87171", fill: "#ef4444" }, // red (HCl)
+  { stroke: "#34d399", fill: "#10b981" }, // emerald
+  { stroke: "#fbbf24", fill: "#f59e0b" }, // amber
+  { stroke: "#22d3ee", fill: "#06b6d4" }, // cyan
+  { stroke: "#f472b6", fill: "#ec4899" }, // pink
+  { stroke: "#c084fc", fill: "#a855f7" }, // purple
 ];
 
-// Generate hexagon path centered at (cx, cy) with radius r (flat-top)
+const SYSTEM_COLORS: Record<string, { stroke: string; fill: string; Icon: any }> = {
+  default: { stroke: "#a78bfa", fill: "#8b5cf6", Icon: Activity },
+};
+
+function pickSystemMeta(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("энерг") || n.includes("восст"))
+    return { stroke: "#fbbf24", fill: "#f59e0b", Icon: Zap };
+  if (n.includes("воспал") || n.includes("иммун"))
+    return { stroke: "#f87171", fill: "#ef4444", Icon: Flame };
+  if (n.includes("сердеч") || n.includes("сосуд"))
+    return { stroke: "#fb7185", fill: "#e11d48", Icon: Heart };
+  if (n.includes("эндокр") || n.includes("стресс") || n.includes("нерв"))
+    return { stroke: "#a78bfa", fill: "#8b5cf6", Icon: Brain };
+  if (n.includes("метабол") || n.includes("деток"))
+    return { stroke: "#60a5fa", fill: "#3b82f6", Icon: Droplet };
+  return SYSTEM_COLORS.default;
+}
+
 function hexPath(cx: number, cy: number, r: number) {
   const pts: string[] = [];
   for (let i = 0; i < 6; i++) {
-    const a = (Math.PI / 3) * i - Math.PI / 6; // pointy-top
+    const a = (Math.PI / 3) * i - Math.PI / 2; // pointy-top
     pts.push(`${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`);
   }
   return `M${pts.join(" L")} Z`;
 }
 
-function getInitials(name: string) {
+function getInitial(name: string) {
   const t = name.trim();
   if (!t) return "?";
-  // Prefer chemical-style short token: take first letters of words, max 3 chars
-  const w = t.split(/[\s\-/.,()]+/).filter(Boolean);
-  if (w.length >= 2) return ((w[0][0] || "") + (w[1][0] || "")).toUpperCase();
-  return t.slice(0, 3).toUpperCase();
+  // Take just the first letter for clean look (M, O, B, K, V...)
+  return t[0].toUpperCase();
 }
 
-export function ActionMap({ actions }: Props) {
+function getShortLabel(name: string) {
+  const t = name.trim();
+  if (t.length <= 14) return t;
+  return t.slice(0, 13) + "…";
+}
+
+export function ActionMap({ actions, systems }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const [hovered, setHovered] = useState<string | null>(null);
 
   const items = actions.slice(0, 8);
-  const W = 520;
-  const H = 380;
-  const cx = W / 2;
-  const cy = H / 2;
-  const R = Math.min(W, H) / 2 - 70;
 
-  const nodes = useMemo(() => {
-    const n = items.length || 1;
+  // Build target system list from actions (limited to 4 most-referenced)
+  const targetSystems = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const a of items) {
+      for (const s of a.systems || []) {
+        counts.set(s, (counts.get(s) || 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name]) => name);
+  }, [items]);
+
+  // Layout
+  const W = 560;
+  const H = 360;
+  const padX = 50;
+  const padY = 50;
+
+  // Prescription nodes — 2 columns on the left/center
+  const prescNodes = useMemo(() => {
+    const n = items.length;
+    if (n === 0) return [];
+    const cols = n <= 4 ? 1 : 2;
+    const rows = Math.ceil(n / cols);
+    const colW = (W * 0.55 - padX) / Math.max(cols, 1);
+    const rowH = (H - padY * 2) / Math.max(rows - 1, 1);
     return items.map((a, i) => {
-      const angle = -Math.PI / 2 + (i * 2 * Math.PI) / n;
-      return {
-        action: a,
-        x: cx + Math.cos(angle) * R,
-        y: cy + Math.sin(angle) * R,
-        color: PALETTE[i % PALETTE.length],
-      };
+      const r = i % rows;
+      const c = Math.floor(i / rows);
+      const x = padX + c * colW + colW * 0.4;
+      const y = rows === 1 ? H / 2 : padY + r * rowH;
+      const palette = PRESC_COLORS[i % PRESC_COLORS.length];
+      return { action: a, x, y, ...palette };
     });
-  }, [items, cx, cy, R]);
+  }, [items]);
+
+  // Target system nodes — right column
+  const sysNodes = useMemo(() => {
+    if (targetSystems.length === 0) return [];
+    const rowH = (H - padY * 2) / Math.max(targetSystems.length - 1, 1);
+    return targetSystems.map((s, i) => {
+      const meta = pickSystemMeta(s);
+      const y = targetSystems.length === 1 ? H / 2 : padY + i * rowH;
+      return { name: s, x: W - padX - 10, y, ...meta };
+    });
+  }, [targetSystems]);
 
   const hoveredAction = items.find((a) => a.prescription_name === hovered);
+
+  // Build connections
+  const connections = useMemo(() => {
+    const cs: Array<{
+      from: { x: number; y: number };
+      to: { x: number; y: number };
+      stroke: string;
+      key: string;
+      prescName: string;
+      sysName: string;
+    }> = [];
+    for (const p of prescNodes) {
+      for (const s of p.action.systems || []) {
+        const target = sysNodes.find((sn) => sn.name === s);
+        if (!target) continue;
+        cs.push({
+          from: { x: p.x, y: p.y },
+          to: { x: target.x, y: target.y },
+          stroke: p.stroke,
+          key: `${p.action.prescription_name}__${s}`,
+          prescName: p.action.prescription_name,
+          sysName: s,
+        });
+      }
+    }
+    return cs;
+  }, [prescNodes, sysNodes]);
 
   return (
     <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-slate-200/60 dark:bg-white/[0.03] bg-white/60 backdrop-blur-xl dark:shadow-2xl shadow-xl shadow-slate-200/50 transition-colors duration-300">
       <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full dark:bg-violet-500/10 bg-indigo-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -right-24 w-64 h-64 rounded-full dark:bg-fuchsia-500/10 bg-pink-200/30 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 w-64 h-64 rounded-full dark:bg-amber-500/10 bg-amber-200/30 blur-3xl pointer-events-none" />
 
       <CardContent className="relative p-5 md:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
@@ -87,7 +174,7 @@ export function ActionMap({ actions }: Props) {
             <p className="text-xs dark:text-white/55 text-slate-500 mt-1">
               {items.length === 0
                 ? "Нет активных назначений"
-                : `${items.length} назначений · наведите на узел`}
+                : `${items.length} назначений · ${targetSystems.length} систем-целей`}
             </p>
           </div>
           {items.length > 0 && (
@@ -105,33 +192,43 @@ export function ActionMap({ actions }: Props) {
           </div>
         ) : (
           <div className="relative">
-            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 400 }}>
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" style={{ maxHeight: 380 }}>
               <defs>
-                {nodes.map((n, i) => {
-                  const c = isDark ? n.color.dark : n.color.light;
-                  return (
-                    <linearGradient key={`grad-${i}`} id={`line-grad-${i}`} x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor={isDark ? "#8b5cf6" : "#6366f1"} stopOpacity={isDark ? 0.7 : 0.5} />
-                      <stop offset="100%" stopColor={c} stopOpacity={isDark ? 0.9 : 0.8} />
-                    </linearGradient>
-                  );
-                })}
-                {nodes.map((n, i) => {
-                  const c = isDark ? n.color.dark : n.color.light;
-                  return (
-                    <linearGradient key={`hex-grad-${i}`} id={`hex-grad-${i}`} x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor={c} stopOpacity={isDark ? 0.35 : 0.22} />
-                      <stop offset="100%" stopColor={c} stopOpacity={isDark ? 0.10 : 0.06} />
-                    </linearGradient>
-                  );
-                })}
-                <radialGradient id="core-grad" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor={isDark ? "#a78bfa" : "#818cf8"} stopOpacity={1} />
-                  <stop offset="60%" stopColor="#6366f1" stopOpacity={0.9} />
-                  <stop offset="100%" stopColor={isDark ? "#4338ca" : "#4f46e5"} stopOpacity={0.7} />
-                </radialGradient>
-                <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="4" result="b" />
+                {/* Gradient for each connection: from prescription color to target indigo */}
+                {connections.map((c, i) => (
+                  <linearGradient
+                    key={`cgrad-${i}`}
+                    id={`cgrad-${i}`}
+                    x1={c.from.x}
+                    y1={c.from.y}
+                    x2={c.to.x}
+                    y2={c.to.y}
+                    gradientUnits="userSpaceOnUse"
+                  >
+                    <stop offset="0%" stopColor={c.stroke} stopOpacity={isDark ? 0.95 : 0.85} />
+                    <stop
+                      offset="100%"
+                      stopColor={isDark ? "#a78bfa" : "#6366f1"}
+                      stopOpacity={isDark ? 0.85 : 0.7}
+                    />
+                  </linearGradient>
+                ))}
+                {/* Hex fill gradients per prescription */}
+                {prescNodes.map((p, i) => (
+                  <radialGradient key={`pgrad-${i}`} id={`pgrad-${i}`} cx="50%" cy="40%" r="65%">
+                    <stop offset="0%" stopColor={p.stroke} stopOpacity={isDark ? 0.55 : 0.35} />
+                    <stop offset="100%" stopColor={p.fill} stopOpacity={isDark ? 0.18 : 0.10} />
+                  </radialGradient>
+                ))}
+                {/* Hex fill gradients per system */}
+                {sysNodes.map((s, i) => (
+                  <radialGradient key={`sgrad-${i}`} id={`sgrad-${i}`} cx="50%" cy="40%" r="65%">
+                    <stop offset="0%" stopColor={s.stroke} stopOpacity={isDark ? 0.6 : 0.4} />
+                    <stop offset="100%" stopColor={s.fill} stopOpacity={isDark ? 0.22 : 0.12} />
+                  </radialGradient>
+                ))}
+                <filter id="node-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="b" />
                   <feMerge>
                     <feMergeNode in="b" />
                     <feMergeNode in="SourceGraphic" />
@@ -139,149 +236,189 @@ export function ActionMap({ actions }: Props) {
                 </filter>
               </defs>
 
-              {/* Concentric orbit rings */}
-              {[R * 0.45, R * 0.75, R].map((r, i) => (
-                <circle
-                  key={r}
-                  cx={cx}
-                  cy={cy}
-                  r={r}
-                  fill="none"
-                  stroke={isDark ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.10)"}
-                  strokeWidth={1}
-                  strokeDasharray={i === 2 ? "2 4" : "1 3"}
-                />
-              ))}
-
-              {/* Connection lines (animated stroke-dasharray flow) */}
-              {nodes.map((n, i) => {
-                const isActive = hovered === n.action.prescription_name;
+              {/* Connection curves */}
+              {connections.map((c, i) => {
+                const isActive = hovered === c.prescName;
                 const isDimmed = hovered && !isActive;
-                const c = isDark ? n.color.dark : n.color.light;
-                const mx = (cx + n.x) / 2 + (n.y - cy) * 0.08;
-                const my = (cy + n.y) / 2 - (n.x - cx) * 0.08;
-                const path = `M ${cx} ${cy} Q ${mx} ${my} ${n.x} ${n.y}`;
-
+                const dx = c.to.x - c.from.x;
+                const cp1x = c.from.x + dx * 0.45;
+                const cp2x = c.from.x + dx * 0.55;
+                const path = `M ${c.from.x} ${c.from.y} C ${cp1x} ${c.from.y}, ${cp2x} ${c.to.y}, ${c.to.x} ${c.to.y}`;
                 return (
-                  <g key={`line-${i}`} style={{ opacity: isDimmed ? 0.15 : 1, transition: "opacity 0.25s" }}>
+                  <g
+                    key={c.key}
+                    style={{
+                      opacity: isDimmed ? 0.12 : isActive ? 1 : isDark ? 0.7 : 0.55,
+                      transition: "opacity 0.25s",
+                    }}
+                  >
                     <path
                       d={path}
                       fill="none"
-                      stroke={`url(#line-grad-${i})`}
-                      strokeWidth={isActive ? 2.5 : 1.4}
+                      stroke={`url(#cgrad-${i})`}
+                      strokeWidth={isActive ? 2.4 : 1.4}
                       strokeLinecap="round"
-                      strokeDasharray="6 4"
-                      style={{ transition: "all 0.25s" }}
+                      strokeDasharray="5 4"
+                      style={{ transition: "stroke-width 0.25s" }}
                     >
                       <animate
                         attributeName="stroke-dashoffset"
                         from="0"
-                        to="-20"
-                        dur={isActive ? "0.8s" : "2.2s"}
+                        to="-18"
+                        dur={isActive ? "0.7s" : "2.4s"}
                         repeatCount="indefinite"
                       />
                     </path>
                     {isActive && (
-                      <circle r={3.5} fill={c}>
-                        <animateMotion dur="1.2s" repeatCount="indefinite" path={path} />
+                      <circle r={3} fill={c.stroke}>
+                        <animateMotion dur="1.1s" repeatCount="indefinite" path={path} />
                       </circle>
                     )}
                   </g>
                 );
               })}
 
-              {/* Central core node */}
-              <g filter="url(#soft-glow)">
-                <circle cx={cx} cy={cy} r={36} fill="url(#core-grad)" />
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={36}
-                  fill="none"
-                  stroke={isDark ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.6)"}
-                  strokeWidth={1.5}
-                />
-              </g>
-              <foreignObject x={cx - 30} y={cy - 30} width={60} height={60}>
-                <div className="w-full h-full flex flex-col items-center justify-center text-white">
-                  <Activity className="h-5 w-5 mb-0.5" strokeWidth={2.2} />
-                  <span className="text-[9px] font-bold uppercase tracking-wider">Health</span>
-                </div>
-              </foreignObject>
-
-              {/* Hexagon prescription nodes */}
-              {nodes.map((n, i) => {
-                const isActive = hovered === n.action.prescription_name;
+              {/* Prescription hexagons */}
+              {prescNodes.map((p, i) => {
+                const isActive = hovered === p.action.prescription_name;
                 const isDimmed = hovered && !isActive;
-                const c = isDark ? n.color.dark : n.color.light;
-                const r = isActive ? 30 : 26;
-
+                const r = isActive ? 28 : 25;
                 return (
                   <g
-                    key={`node-${i}`}
+                    key={`p-${i}`}
                     style={{
                       opacity: isDimmed ? 0.35 : 1,
                       transition: "opacity 0.25s",
                       cursor: "pointer",
                     }}
-                    onMouseEnter={() => setHovered(n.action.prescription_name)}
+                    onMouseEnter={() => setHovered(p.action.prescription_name)}
                     onMouseLeave={() => setHovered(null)}
                   >
-                    {/* Halo for active */}
                     {isActive && (
                       <path
-                        d={hexPath(n.x, n.y, r + 10)}
-                        fill={c}
+                        d={hexPath(p.x, p.y, r + 8)}
+                        fill={p.stroke}
                         opacity={isDark ? 0.18 : 0.12}
                       />
                     )}
                     <path
-                      d={hexPath(n.x, n.y, r)}
-                      fill={`url(#hex-grad-${i})`}
-                      stroke={isDark ? "rgba(255,255,255,0.2)" : c}
-                      strokeWidth={isActive ? 1.5 : 1}
+                      d={hexPath(p.x, p.y, r)}
+                      fill={`url(#pgrad-${i})`}
+                      stroke={p.stroke}
+                      strokeWidth={isActive ? 1.8 : 1.2}
                       style={{
                         transition: "all 0.25s",
-                        filter: isActive ? `drop-shadow(0 0 10px ${c}99)` : "none",
+                        filter: isActive
+                          ? `drop-shadow(0 0 10px ${p.stroke}aa)`
+                          : isDark
+                          ? `drop-shadow(0 0 4px ${p.stroke}55)`
+                          : "none",
                       }}
                     />
                     <text
-                      x={n.x}
-                      y={n.y + 1}
+                      x={p.x}
+                      y={p.y + 1}
                       textAnchor="middle"
                       dominantBaseline="middle"
-                      fontSize={14}
+                      fontSize={16}
                       fontWeight={700}
                       fontFamily="'JetBrains Mono', ui-monospace, monospace"
-                      fill={isDark ? "#fff" : c}
+                      fill={isDark ? "#fff" : p.stroke}
                       style={{ pointerEvents: "none" }}
                     >
-                      {getInitials(n.action.prescription_name)}
+                      {getInitial(p.action.prescription_name)}
                     </text>
                     <text
-                      x={n.x}
-                      y={n.y + r + 14}
+                      x={p.x}
+                      y={p.y + r + 14}
                       textAnchor="middle"
                       fontSize={10}
-                      fill={isDark ? "rgba(255,255,255,0.7)" : "#475569"}
+                      fontFamily="Inter, sans-serif"
+                      fill={isDark ? "rgba(255,255,255,0.78)" : "#475569"}
                       style={{ pointerEvents: "none" }}
                     >
-                      {n.action.prescription_name.length > 14
-                        ? n.action.prescription_name.slice(0, 13) + "…"
-                        : n.action.prescription_name}
+                      {getShortLabel(p.action.prescription_name)}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Target system hexagons */}
+              {sysNodes.map((s, i) => {
+                const linkedHover =
+                  hovered &&
+                  prescNodes.find(
+                    (p) =>
+                      p.action.prescription_name === hovered &&
+                      (p.action.systems || []).includes(s.name),
+                  );
+                const isDimmed = hovered && !linkedHover;
+                const r = linkedHover ? 30 : 27;
+                const Icon = s.Icon;
+                return (
+                  <g
+                    key={`s-${i}`}
+                    style={{
+                      opacity: isDimmed ? 0.4 : 1,
+                      transition: "opacity 0.25s",
+                    }}
+                  >
+                    {linkedHover && (
+                      <path
+                        d={hexPath(s.x, s.y, r + 9)}
+                        fill={s.stroke}
+                        opacity={isDark ? 0.2 : 0.14}
+                      />
+                    )}
+                    <path
+                      d={hexPath(s.x, s.y, r)}
+                      fill={`url(#sgrad-${i})`}
+                      stroke={s.stroke}
+                      strokeWidth={linkedHover ? 1.8 : 1.3}
+                      style={{
+                        transition: "all 0.25s",
+                        filter: linkedHover
+                          ? `drop-shadow(0 0 12px ${s.stroke}cc)`
+                          : isDark
+                          ? `drop-shadow(0 0 5px ${s.stroke}66)`
+                          : "none",
+                      }}
+                    />
+                    <foreignObject x={s.x - 12} y={s.y - 12} width={24} height={24}>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Icon
+                          style={{
+                            width: 18,
+                            height: 18,
+                            color: isDark ? "#fff" : s.stroke,
+                          }}
+                          strokeWidth={2.2}
+                        />
+                      </div>
+                    </foreignObject>
+                    <text
+                      x={s.x}
+                      y={s.y + r + 14}
+                      textAnchor="middle"
+                      fontSize={10}
+                      fontFamily="Inter, sans-serif"
+                      fontWeight={600}
+                      fill={isDark ? "rgba(255,255,255,0.85)" : "#334155"}
+                    >
+                      {getShortLabel(s.name)}
                     </text>
                   </g>
                 );
               })}
             </svg>
 
-            {/* Tooltip / detail panel — dark slate per spec */}
+            {/* Tooltip / detail panel */}
             <div className="mt-3 min-h-[88px]">
               {hoveredAction ? (
                 <div
                   className="p-3 rounded-lg animate-in fade-in slide-in-from-bottom-2 duration-200 border"
                   style={{
-                    background: isDark ? "#1E293B" : "#1E293B",
+                    background: "#1E293B",
                     borderColor: "rgba(255,255,255,0.10)",
                     color: "#fff",
                     borderRadius: 8,
@@ -320,7 +457,7 @@ export function ActionMap({ actions }: Props) {
               ) : (
                 <div className="p-3 rounded-xl border border-dashed dark:border-white/10 border-slate-200 text-center">
                   <p className="text-[11px] dark:text-white/45 text-slate-400">
-                    Каждый узел — назначение с прогнозом нормализации. Наведите для деталей.
+                    Поток препарат → система. Наведите на узел, чтобы увидеть прогноз нормализации.
                   </p>
                 </div>
               )}
