@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,6 +29,11 @@ interface EditPrescriptionDialogProps {
   prescription: {
     id: string;
     prescription: string;
+    name?: string | null;
+    form?: string | null;
+    dosage?: string | null;
+    how_to_take?: string | null;
+    duration?: string | null;
     reason: string | null;
     effect: string | null;
     control_date: string | null;
@@ -41,6 +47,11 @@ export function EditPrescriptionDialog({
   prescription,
 }: EditPrescriptionDialogProps) {
   const [prescriptionText, setPrescriptionText] = useState("");
+  const [name, setName] = useState("");
+  const [form, setForm] = useState("");
+  const [dosage, setDosage] = useState("");
+  const [howToTake, setHowToTake] = useState("");
+  const [duration, setDuration] = useState("");
   const [reason, setReason] = useState("");
   const [effect, setEffect] = useState("");
   const [controlDate, setControlDate] = useState<Date | undefined>(undefined);
@@ -51,6 +62,11 @@ export function EditPrescriptionDialog({
   useEffect(() => {
     if (prescription) {
       setPrescriptionText(prescription.prescription);
+      setName(prescription.name || "");
+      setForm(prescription.form || "");
+      setDosage(prescription.dosage || "");
+      setHowToTake(prescription.how_to_take || "");
+      setDuration(prescription.duration || "");
       setReason(prescription.reason || "");
       setEffect(prescription.effect || "");
       setControlDate(prescription.control_date ? new Date(prescription.control_date) : undefined);
@@ -66,6 +82,11 @@ export function EditPrescriptionDialog({
         .from("prescriptions")
         .update({
           prescription: prescriptionText,
+          name: name || null,
+          form: form || null,
+          dosage: dosage || null,
+          how_to_take: howToTake || null,
+          duration: duration || null,
           reason: reason || null,
           effect: effect || null,
           control_date: controlDate ? format(controlDate, "yyyy-MM-dd") : null,
@@ -81,7 +102,7 @@ export function EditPrescriptionDialog({
         title: "Назначение обновлено",
         description: "Изменения успешно сохранены",
       });
-      handleClose();
+      onOpenChange(false);
     },
     onError: (error) => {
       toast({
@@ -93,21 +114,12 @@ export function EditPrescriptionDialog({
     },
   });
 
-  const handleClose = () => {
-    onOpenChange(false);
-    setPrescriptionText("");
-    setReason("");
-    setEffect("");
-    setControlDate(undefined);
-    setStatus("on_review");
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prescriptionText.trim()) {
+    if (!prescriptionText.trim() && !name.trim()) {
       toast({
         title: "Ошибка",
-        description: "Заполните текст назначения",
+        description: "Заполните название или текст назначения",
         variant: "destructive",
       });
       return;
@@ -117,25 +129,76 @@ export function EditPrescriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Редактировать назначение</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="prescription">Назначение *</Label>
+            <Label htmlFor="name">Название</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Например: Магний бисглицинат"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="form">Форма</Label>
+              <Input
+                id="form"
+                value={form}
+                onChange={(e) => setForm(e.target.value)}
+                placeholder="Например: бисглицинат"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dosage">Дозировка</Label>
+              <Input
+                id="dosage"
+                value={dosage}
+                onChange={(e) => setDosage(e.target.value)}
+                placeholder="Например: 400 мг"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="how_to_take">Как принимать</Label>
+            <Textarea
+              id="how_to_take"
+              value={howToTake}
+              onChange={(e) => setHowToTake(e.target.value)}
+              placeholder="Например: вечером, через час после ужина"
+              className="min-h-[60px]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="duration">Длительность</Label>
+            <Input
+              id="duration"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              placeholder="Например: 3 месяца"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="prescription">Полный текст назначения</Label>
             <Textarea
               id="prescription"
               value={prescriptionText}
               onChange={(e) => setPrescriptionText(e.target.value)}
               placeholder="Введите текст назначения"
-              className="min-h-[100px]"
-              required
+              className="min-h-[80px]"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Причина (какой биомаркер)</Label>
+            <Label htmlFor="reason">Причина</Label>
             <Textarea
               id="reason"
               value={reason}
@@ -146,7 +209,7 @@ export function EditPrescriptionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="effect">Эффект (для чего)</Label>
+            <Label htmlFor="effect">На что это влияет</Label>
             <Textarea
               id="effect"
               value={effect}
@@ -197,7 +260,7 @@ export function EditPrescriptionDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Отмена
             </Button>
             <Button type="submit" disabled={updateMutation.isPending}>
