@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Pill, Zap, Flame, Heart, Brain, Activity, Droplet } from "lucide-react";
+import {
+  Pill, Zap, Flame, Heart, Brain, Activity, Droplet,
+  Leaf, FlaskConical, Sun, Moon, Apple, Dumbbell, Sparkles,
+  Beaker, TestTube, Atom, Microscope, Stethoscope, Salad,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface ActionMapItem {
