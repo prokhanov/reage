@@ -265,9 +265,17 @@ export function PricingSection() {
             </span>
           </h2>
           
-          <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Годовая подписка: анализы, расшифровка и рекомендации
-          </p>
+          <a
+            href="#comparison"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('comparison')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="inline-flex items-center justify-center gap-2 h-11 px-8 rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors animate-fade-in"
+            style={{ animationDelay: '0.2s' }}
+          >
+            Сравнить тарифы
+          </a>
         </div>
 
         {/* Pricing Cards */}
