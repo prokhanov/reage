@@ -115,11 +115,11 @@ export function ActionMap({ actions, systems }: Props) {
       .map(([name]) => name);
   }, [items]);
 
-  // Layout
-  const W = 560;
-  const H = 360;
-  const padX = 50;
-  const padY = 50;
+  // Layout — wide canvas to span full page width
+  const W = 1200;
+  const H = 420;
+  const padX = 80;
+  const padY = 60;
 
   // Prescription nodes — 2 columns on the left/center
   const prescNodes = useMemo(() => {
