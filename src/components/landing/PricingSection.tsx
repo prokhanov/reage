@@ -193,6 +193,7 @@ const premiumBiomarkers: BiomarkerCategory[] = [
 
 
 export function PricingSection() {
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const plans = [
     {
       name: "Базовый",
