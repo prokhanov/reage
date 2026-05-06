@@ -470,17 +470,19 @@ export function ActionMap({ actions, systems }: Props) {
                         />
                       </div>
                     </foreignObject>
-                    <text
-                      x={s.x}
-                      y={s.y + r + 14}
-                      textAnchor="middle"
-                      fontSize={10}
-                      fontFamily="Inter, sans-serif"
-                      fontWeight={600}
-                      fill={isDark ? "rgba(255,255,255,0.85)" : "#334155"}
-                    >
-                      {getShortLabel(s.name)}
-                    </text>
+                    <foreignObject x={s.x - 75} y={s.y + r + 4} width={150} height={40}>
+                      <div
+                        className="w-full text-center leading-tight"
+                        style={{
+                          fontSize: 10,
+                          fontFamily: "Inter, sans-serif",
+                          fontWeight: 600,
+                          color: isDark ? "rgba(255,255,255,0.85)" : "#334155",
+                        }}
+                      >
+                        {s.name}
+                      </div>
+                    </foreignObject>
                   </g>
                 );
               })}
