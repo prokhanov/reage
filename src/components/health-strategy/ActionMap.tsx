@@ -301,7 +301,8 @@ export function ActionMap({ actions, systems }: Props) {
               {prescNodes.map((p, i) => {
                 const isActive = hovered === p.action.prescription_name;
                 const isDimmed = hovered && !isActive;
-                const r = isActive ? 28 : 25;
+                const r = isActive ? 30 : 27;
+                const PIcon = pickPrescIcon(p.action.prescription_name);
                 return (
                   <g
                     key={`p-${i}`}
@@ -334,19 +335,18 @@ export function ActionMap({ actions, systems }: Props) {
                           : "none",
                       }}
                     />
-                    <text
-                      x={p.x}
-                      y={p.y + 1}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize={16}
-                      fontWeight={700}
-                      fontFamily="'JetBrains Mono', ui-monospace, monospace"
-                      fill={isDark ? "#fff" : p.stroke}
-                      style={{ pointerEvents: "none" }}
-                    >
-                      {getInitial(p.action.prescription_name)}
-                    </text>
+                    <foreignObject x={p.x - 13} y={p.y - 13} width={26} height={26} style={{ pointerEvents: "none" }}>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <PIcon
+                          style={{
+                            width: 19,
+                            height: 19,
+                            color: isDark ? "#fff" : p.stroke,
+                          }}
+                          strokeWidth={2.2}
+                        />
+                      </div>
+                    </foreignObject>
                     <text
                       x={p.x}
                       y={p.y + r + 14}
