@@ -102,7 +102,7 @@ const CATEGORIES: CategoryGroup[] = [
       { name: "Креатинин", tiers: ALL },
       { name: "eGFR", tiers: ALL },
       { name: "Мочевина", tiers: ALL },
-      { name: "Натрий, Na (панель Na+K+Cl)", tiers: ALL },
+      { name: "Натрий, Na", tiers: ALL },
       { name: "Калий, K", tiers: ALL },
       { name: "Хлор, Cl", tiers: ALL },
       { name: "Кальций, Ca", tiers: ALL },
