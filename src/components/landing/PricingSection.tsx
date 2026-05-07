@@ -230,7 +230,7 @@ export function PricingSection() {
       period: "год",
       description: "Базовый, но умный чек-ап.\n45 показателей, которые показывают, как работает обмен веществ, сердце, печень, почки, и гормональный фон. Подходит для регулярного трекинга здоровья и раннего выявления рисков — до появления симптомов",
       badge: "Старт",
-      biomarkers: "45",
+      biomarkers: String(totalCount(standardBiomarkers)),
       analyses: "3 раза в год",
       consultations: "3",
       biomarkersBySystem: standardBiomarkers,
