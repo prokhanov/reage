@@ -257,7 +257,7 @@ export function PricingSection() {
       period: "год",
       description: "Максимальная глубина чекапа. Дополняет Базовый и Плюс оценкой митохондриальной функции, окислительного стресса и факторов воспаления  — для тех, кто хочет понимать процессы старения на самом глубоком уровне",
       badge: "VIP",
-      biomarkers: "85",
+      biomarkers: String(totalCount(premiumBiomarkers)),
       analyses: "4 раза в год",
       consultations: "4",
       biomarkersBySystem: premiumBiomarkers,
