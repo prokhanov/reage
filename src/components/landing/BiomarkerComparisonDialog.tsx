@@ -22,7 +22,7 @@ const EXPERT_ONLY: Tier[] = ["expert"];
 
 const CATEGORIES: CategoryGroup[] = [
   {
-    name: "Энергия и обмен",
+    name: "Энергия и восстановление",
     rows: [
       { name: "Глюкоза", tiers: ALL },
       { name: "HbA1c", tiers: ALL },
@@ -44,7 +44,7 @@ const CATEGORIES: CategoryGroup[] = [
     ],
   },
   {
-    name: "Сердечно-сосудистая",
+    name: "Сердечно-сосудистая система",
     rows: [
       { name: "Общий холестерин", tiers: ALL },
       { name: "ЛПВП (HDL)", tiers: ALL },
@@ -70,7 +70,7 @@ const CATEGORIES: CategoryGroup[] = [
     ],
   },
   {
-    name: "Воспаление / иммунитет",
+    name: "Воспалительная и иммунная система",
     rows: [
       { name: "Эритроциты", tiers: ALL },
       { name: "Гемоглобин", tiers: ALL },
@@ -95,7 +95,7 @@ const CATEGORIES: CategoryGroup[] = [
     ],
   },
   {
-    name: "Эндокринная",
+    name: "Эндокринная и стрессовая система",
     rows: [
       { name: "ТТГ", tiers: ALL },
       { name: "Т4 свободный", tiers: ALL },
@@ -109,7 +109,7 @@ const CATEGORIES: CategoryGroup[] = [
     ],
   },
   {
-    name: "Обмен / детоксикация",
+    name: "Метаболизм и детоксикация",
     rows: [
       { name: "ALT", tiers: ALL },
       { name: "AST", tiers: ALL },
