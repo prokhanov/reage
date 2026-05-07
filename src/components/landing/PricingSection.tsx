@@ -189,27 +189,27 @@ const DETOX_BASIC = ["АЛТ", "АСТ", "ГГТ", "Билирубин", "Щел
 const DETOX_PLUS_ADD = ["Трансферрин", "Насыщение трансферрина"];
 
 const standardBiomarkers: BiomarkerCategory[] = [
-  { icon: Zap, name: "Энергия и обмен", markers: ENERGY_BASIC },
-  { icon: Heart, name: "Сердечно-сосудистая", markers: CV_BASIC },
-  { icon: Shield, name: "Воспаление и иммунитет", markers: INFL_BASIC },
-  { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: ENDO_BASIC },
-  { icon: RefreshCw, name: "Обмен и детоксикация", markers: DETOX_BASIC },
+  { icon: Zap, name: "Энергия и восстановление", markers: ENERGY_BASIC },
+  { icon: Heart, name: "Сердечно-сосудистая система", markers: CV_BASIC },
+  { icon: Shield, name: "Воспалительная и иммунная система", markers: INFL_BASIC },
+  { icon: HormoneMoleculeIcon, name: "Эндокринная и стрессовая система", markers: ENDO_BASIC },
+  { icon: RefreshCw, name: "Метаболизм и детоксикация", markers: DETOX_BASIC },
 ];
 
 const plusBiomarkers: BiomarkerCategory[] = [
-  { icon: Zap, name: "Энергия и обмен", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD] },
-  { icon: Heart, name: "Сердечно-сосудистая", markers: [...CV_BASIC, ...CV_PLUS_ADD] },
-  { icon: Shield, name: "Воспаление и иммунитет", markers: [...INFL_BASIC, ...INFL_PLUS_ADD] },
-  { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD] },
-  { icon: RefreshCw, name: "Обмен и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
+  { icon: Zap, name: "Энергия и восстановление", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD] },
+  { icon: Heart, name: "Сердечно-сосудистая система", markers: [...CV_BASIC, ...CV_PLUS_ADD] },
+  { icon: Shield, name: "Воспалительная и иммунная система", markers: [...INFL_BASIC, ...INFL_PLUS_ADD] },
+  { icon: HormoneMoleculeIcon, name: "Эндокринная и стрессовая система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD] },
+  { icon: RefreshCw, name: "Метаболизм и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
 ];
 
 const premiumBiomarkers: BiomarkerCategory[] = [
-  { icon: Zap, name: "Энергия и обмен", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD, ...ENERGY_EXPERT_ADD] },
-  { icon: Heart, name: "Сердечно-сосудистая", markers: [...CV_BASIC, ...CV_PLUS_ADD, ...CV_EXPERT_ADD] },
-  { icon: Shield, name: "Воспаление и иммунитет", markers: [...INFL_BASIC, ...INFL_PLUS_ADD, ...INFL_EXPERT_ADD] },
-  { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD, ...ENDO_EXPERT_ADD] },
-  { icon: RefreshCw, name: "Обмен и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
+  { icon: Zap, name: "Энергия и восстановление", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD, ...ENERGY_EXPERT_ADD] },
+  { icon: Heart, name: "Сердечно-сосудистая система", markers: [...CV_BASIC, ...CV_PLUS_ADD, ...CV_EXPERT_ADD] },
+  { icon: Shield, name: "Воспалительная и иммунная система", markers: [...INFL_BASIC, ...INFL_PLUS_ADD, ...INFL_EXPERT_ADD] },
+  { icon: HormoneMoleculeIcon, name: "Эндокринная и стрессовая система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD, ...ENDO_EXPERT_ADD] },
+  { icon: RefreshCw, name: "Метаболизм и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
 ];
 
 const totalCount = (cats: BiomarkerCategory[]) => cats.reduce((s, c) => s + c.markers.length, 0);
