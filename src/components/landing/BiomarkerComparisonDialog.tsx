@@ -177,35 +177,33 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
             <thead className="sticky top-0 bg-background z-10">
               <tr className="border-b border-border">
                 <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground">
-                  Биомаркер
+                  Тариф
                 </th>
                 <th className="text-center py-3 px-2 text-sm font-semibold text-foreground min-w-[100px]">
                   Базовый
-                  <div className="text-xs font-normal text-muted-foreground mt-0.5">
-                    {totals.basic}
-                  </div>
                 </th>
                 <th className="text-center py-3 px-2 text-sm font-semibold text-foreground min-w-[100px] bg-primary/5">
                   Плюс
-                  <div className="text-xs font-normal text-muted-foreground mt-0.5">
-                    {totals.plus}
-                  </div>
                 </th>
                 <th className="text-center py-3 px-2 text-sm font-semibold text-foreground min-w-[100px]">
                   Экспертный
-                  <div className="text-xs font-normal text-muted-foreground mt-0.5">
-                    {totals.expert}
-                  </div>
                 </th>
               </tr>
             </thead>
             <tbody>
+              <tr className="border-b border-border/50 bg-muted/20">
+                <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
+                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">{totals.basic}</td>
+                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground bg-primary/5">{totals.plus}</td>
+                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">{totals.expert}</td>
+              </tr>
               <tr className="border-b border-border/50 bg-muted/20">
                 <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Количество чекапов</td>
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">3 раза в год</td>
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground bg-primary/5">3 раза в год</td>
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">4 раза в год</td>
               </tr>
+
               {CATEGORIES.map((cat) => (
                 <Fragment key={cat.name}>
                   <tr className="bg-muted/40">
