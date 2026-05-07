@@ -176,7 +176,7 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
           <table className="w-full border-collapse">
             <thead className="sticky top-0 bg-background z-10">
               <tr className="border-b border-border">
-                <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground">
+                <th className="text-left py-3 px-2 text-sm font-semibold text-foreground">
                   Тариф
                 </th>
                 <th className="text-center py-3 px-2 text-base font-bold text-primary min-w-[100px]">
