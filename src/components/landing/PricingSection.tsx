@@ -244,7 +244,7 @@ export function PricingSection() {
       description: "Углублённый уровень чекапа. Добавляет расширенную оценку сердечно-сосудистых рисков, дефицитов и гормонального баланса — для более точного понимания причин усталости, снижения энергии и скрытых рисков",
       badge: "Популярный",
       isPopular: true,
-      biomarkers: "60",
+      biomarkers: String(totalCount(plusBiomarkers)),
       analyses: "3 раза в год",
       consultations: "3",
       biomarkersBySystem: plusBiomarkers,
