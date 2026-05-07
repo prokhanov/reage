@@ -203,6 +203,13 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground bg-primary/5">3 раза в год</td>
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">4 раза в год</td>
               </tr>
+              <tr className="border-b border-border/50 bg-muted/20">
+                <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Цена</td>
+                <td className="py-2.5 px-2 text-center text-sm font-bold text-primary">75 000₽</td>
+                <td className="py-2.5 px-2 text-center text-sm font-bold text-primary bg-primary/5">135 000₽</td>
+                <td className="py-2.5 px-2 text-center text-sm font-bold text-primary">220 000₽</td>
+              </tr>
+
 
               {CATEGORIES.map((cat) => (
                 <Fragment key={cat.name}>
