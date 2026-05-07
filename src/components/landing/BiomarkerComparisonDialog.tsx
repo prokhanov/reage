@@ -63,6 +63,10 @@ const CATEGORIES: CategoryGroup[] = [
       { name: "Медь", tiers: PLUS_EXPERT },
       { name: "hs-Troponin I", tiers: EXPERT_ONLY },
       { name: "NT-proBNP", tiers: EXPERT_ONLY },
+      { name: "Фибриноген", tiers: ALL },
+      { name: "ПТИ (протромбиновый индекс)", tiers: PLUS_EXPERT },
+      { name: "МНО", tiers: PLUS_EXPERT },
+      { name: "АЧТВ", tiers: PLUS_EXPERT },
     ],
   },
   {
@@ -125,15 +129,6 @@ const CATEGORIES: CategoryGroup[] = [
       { name: "Альбумин/креатинин мочи (ACR)", tiers: ALL },
       { name: "Трансферрин", tiers: PLUS_EXPERT },
       { name: "Насыщение трансферрина (%)", tiers: PLUS_EXPERT },
-    ],
-  },
-  {
-    name: "Гемостаз",
-    rows: [
-      { name: "Фибриноген", tiers: ALL },
-      { name: "ПТИ (протромбиновый индекс)", tiers: PLUS_EXPERT },
-      { name: "МНО", tiers: PLUS_EXPERT },
-      { name: "АЧТВ", tiers: PLUS_EXPERT },
     ],
   },
 ];
