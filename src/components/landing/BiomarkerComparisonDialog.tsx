@@ -201,7 +201,7 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
             </thead>
             <tbody>
               <tr className="border-b border-border/50 bg-muted/20">
-                <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Количество чек-апов</td>
+                <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Количество чекапов</td>
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">3 раза в год</td>
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground bg-primary/5">3 раза в год</td>
                 <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">4 раза в год</td>
