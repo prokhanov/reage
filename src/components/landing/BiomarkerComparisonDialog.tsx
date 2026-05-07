@@ -179,13 +179,13 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
                 <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground">
                   Тариф
                 </th>
-                <th className="text-center py-3 px-2 text-sm font-semibold text-foreground min-w-[100px]">
+                <th className="text-center py-3 px-2 text-base font-bold text-primary min-w-[100px]">
                   Базовый
                 </th>
-                <th className="text-center py-3 px-2 text-sm font-semibold text-foreground min-w-[100px] bg-primary/5">
+                <th className="text-center py-3 px-2 text-base font-bold text-primary min-w-[100px] bg-primary/5">
                   Плюс
                 </th>
-                <th className="text-center py-3 px-2 text-sm font-semibold text-foreground min-w-[100px]">
+                <th className="text-center py-3 px-2 text-base font-bold text-primary min-w-[100px]">
                   Экспертный
                 </th>
               </tr>
