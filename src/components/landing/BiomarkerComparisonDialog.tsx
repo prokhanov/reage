@@ -192,8 +192,8 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
             </thead>
             <tbody>
               {CATEGORIES.map((cat) => (
-                <>
-                  <tr key={`h-${cat.name}`} className="bg-muted/40">
+                <Fragment key={cat.name}>
+                  <tr className="bg-muted/40">
                     <td
                       colSpan={4}
                       className="py-2 px-2 text-xs font-bold uppercase tracking-wider text-primary"
@@ -218,7 +218,7 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
                       </td>
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
