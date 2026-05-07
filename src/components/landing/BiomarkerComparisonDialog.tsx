@@ -146,8 +146,8 @@ interface Props {
 export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
   const renderCell = (included: boolean) =>
     included ? (
-      <div className="inline-flex w-6 h-6 rounded-full bg-primary/15 items-center justify-center">
-        <Check className="w-4 h-4 text-primary" />
+      <div className="inline-flex w-6 h-6 rounded-full bg-status-good/15 items-center justify-center">
+        <Check className="w-4 h-4 text-status-good" />
       </div>
     ) : (
       <div className="inline-flex w-6 h-6 rounded-full bg-muted items-center justify-center">
