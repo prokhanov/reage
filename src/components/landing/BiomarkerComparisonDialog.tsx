@@ -197,7 +197,7 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
                   </div>
                 </th>
                 <th className="text-center py-3 px-2 text-sm font-semibold text-foreground min-w-[100px]">
-                  Эксперт
+                  Экспертный
                   <div className="text-xs font-normal text-muted-foreground mt-0.5">
                     {totals.expert}
                   </div>
