@@ -168,28 +168,57 @@ function MetricRow({ icon, label, value, isPopular }: {icon: React.ReactNode;lab
 
 }
 
-const standardBiomarkers: BiomarkerCategory[] = [
-{ icon: Zap, name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо"] },
-{ icon: Heart, name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ"] },
-{ icon: Shield, name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы"] },
-{ icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Кортизол", "Инсулин"] },
-{ icon: RefreshCw, name: "Метаболизм и Детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий"] }];
+// Источник синхронизирован с BiomarkerComparisonDialog (тарифная таблица ReAge).
+const ENERGY_BASIC = ["Глюкоза", "HbA1c", "Инсулин", "HOMA-IR", "ЛДГ", "Альбумин", "Магний", "КФК"];
+const ENERGY_PLUS_ADD = ["Витамин B12", "Фолиевая кислота (B9)", "Цинк", "Селен"];
+const ENERGY_EXPERT_ADD = ["Лактат", "Коэнзим Q10", "MDA", "Общий антиоксидантный статус", "Индекс MDA/OAS"];
 
+const CV_BASIC = ["Общий холестерин", "ЛПВП", "ЛПНП", "Триглицериды", "ЛПОНП", "не-HDL холестерин", "Индекс атерогенности", "Ферритин"];
+const CV_PLUS_ADD = ["ApoA1", "ApoB", "ApoB/ApoA1", "Гомоцистеин", "Lp(a)", "Железо", "Медь"];
+const CV_EXPERT_ADD = ["hs-Troponin I", "NT-proBNP"];
+
+const INFL_BASIC = ["Эритроциты", "Гемоглобин", "Гематокрит", "MCV", "MCH", "MCHC", "RDW", "Тромбоциты", "Лейкоциты", "Нейтрофилы", "Лимфоциты", "Моноциты", "Эозинофилы", "Базофилы", "СОЭ", "hs-CRP"];
+const INFL_PLUS_ADD = ["IgM", "IgG"];
+const INFL_EXPERT_ADD = ["IL-6", "TNF-α"];
+
+const ENDO_BASIC = ["ТТГ", "Т4 свободный", "25-ОН витамин D"];
+const ENDO_PLUS_ADD = ["Т3 свободный", "Тестостерон общий", "SHBG", "Кортизол", "DHEA-S"];
+const ENDO_EXPERT_ADD = ["IGF-1"];
+
+const DETOX_BASIC = ["АЛТ", "АСТ", "ГГТ", "Билирубин", "Щелочная фосфатаза", "Общий белок", "Креатинин", "eGFR", "Мочевина", "Натрий", "Калий", "Хлор", "Кальций", "Общий анализ мочи", "Мочевая кислота", "Альбумин/креатинин мочи"];
+const DETOX_PLUS_ADD = ["Трансферрин", "Насыщение трансферрина"];
+
+const HEMO_BASIC = ["Фибриноген"];
+const HEMO_PLUS_ADD = ["ПТИ", "МНО", "АЧТВ"];
+
+const standardBiomarkers: BiomarkerCategory[] = [
+  { icon: Zap, name: "Энергия и обмен", markers: ENERGY_BASIC },
+  { icon: Heart, name: "Сердечно-сосудистая", markers: CV_BASIC },
+  { icon: Shield, name: "Воспаление и иммунитет", markers: INFL_BASIC },
+  { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: ENDO_BASIC },
+  { icon: RefreshCw, name: "Обмен и детоксикация", markers: DETOX_BASIC },
+  { icon: Droplet, name: "Гемостаз", markers: HEMO_BASIC },
+];
 
 const plusBiomarkers: BiomarkerCategory[] = [
-{ icon: Zap, name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо", "Витамин D", "Магний", "Цинк"] },
-{ icon: Heart, name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ", "Аполипопротеин B", "Липопротеин(а)", "Гомоцистеин"] },
-{ icon: Shield, name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы", "Интерлейкин-6", "Фибриноген"] },
-{ icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Кортизол", "Инсулин", "ДГЭА-сульфат", "Тестостерон общий", "ГСПГ"] },
-{ icon: RefreshCw, name: "Метаболизм и Детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий", "Трансферрин", "ОЖСС", "HbA1c"] }];
-
+  { icon: Zap, name: "Энергия и обмен", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD] },
+  { icon: Heart, name: "Сердечно-сосудистая", markers: [...CV_BASIC, ...CV_PLUS_ADD] },
+  { icon: Shield, name: "Воспаление и иммунитет", markers: [...INFL_BASIC, ...INFL_PLUS_ADD] },
+  { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD] },
+  { icon: RefreshCw, name: "Обмен и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
+  { icon: Droplet, name: "Гемостаз", markers: [...HEMO_BASIC, ...HEMO_PLUS_ADD] },
+];
 
 const premiumBiomarkers: BiomarkerCategory[] = [
-{ icon: Zap, name: "Энергия и восстановление", markers: ["Глюкоза", "Гемоглобин", "Ферритин", "Витамин B12", "Фолиевая кислота", "Железо", "Витамин D", "Магний", "Цинк", "Коэнзим Q10", "Селен", "Медь"] },
-{ icon: Heart, name: "Сердечно-сосудистая система", markers: ["Холестерин общий", "ЛПНП", "ЛПВП", "Триглицериды", "АСТ", "АЛТ", "Аполипопротеин B", "Липопротеин(а)", "Гомоцистеин", "NT-proBNP", "hs-CRP", "Фосфолипиды"] },
-{ icon: Shield, name: "Воспаление и иммунитет", markers: ["СОЭ", "Лейкоциты", "С-реактивный белок", "Нейтрофилы", "Интерлейкин-6", "Фибриноген", "TNF-α", "Иммуноглобулин G", "Иммуноглобулин A"] },
-{ icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: ["ТТГ", "Т4 свободный", "Т3 свободный", "Кортизол", "Инсулин", "ДГЭА-сульфат", "Тестостерон общий", "ГСПГ", "Эстрадиол", "Прогестерон", "ИФР-1", "Мелатонин"] },
-{ icon: RefreshCw, name: "Метаболизм и Детоксикация", markers: ["Креатинин", "Мочевина", "Билирубин общий", "Общий белок", "Альбумин", "Мочевая кислота", "ГГТ", "Щелочная фосфатаза", "Калий", "Натрий", "Трансферрин", "ОЖСС", "HbA1c", "Глутатион", "8-OHdG", "МДА"] }];
+  { icon: Zap, name: "Энергия и обмен", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD, ...ENERGY_EXPERT_ADD] },
+  { icon: Heart, name: "Сердечно-сосудистая", markers: [...CV_BASIC, ...CV_PLUS_ADD, ...CV_EXPERT_ADD] },
+  { icon: Shield, name: "Воспаление и иммунитет", markers: [...INFL_BASIC, ...INFL_PLUS_ADD, ...INFL_EXPERT_ADD] },
+  { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD, ...ENDO_EXPERT_ADD] },
+  { icon: RefreshCw, name: "Обмен и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
+  { icon: Droplet, name: "Гемостаз", markers: [...HEMO_BASIC, ...HEMO_PLUS_ADD] },
+];
+
+const totalCount = (cats: BiomarkerCategory[]) => cats.reduce((s, c) => s + c.markers.length, 0);
 
 
 export function PricingSection() {
