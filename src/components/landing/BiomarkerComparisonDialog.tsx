@@ -131,15 +131,6 @@ const CATEGORIES: CategoryGroup[] = [
       { name: "Насыщение трансферрина (%)", tiers: PLUS_EXPERT },
     ],
   },
-  {
-    name: "Гемостаз",
-    rows: [
-      { name: "Фибриноген", tiers: ALL },
-      { name: "ПТИ (протромбиновый индекс)", tiers: PLUS_EXPERT },
-      { name: "МНО", tiers: PLUS_EXPERT },
-      { name: "АЧТВ", tiers: PLUS_EXPERT },
-    ],
-  },
 ];
 
 interface Props {
