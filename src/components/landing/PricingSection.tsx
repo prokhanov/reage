@@ -210,7 +210,6 @@ const premiumBiomarkers: BiomarkerCategory[] = [
   { icon: Shield, name: "Воспаление и иммунитет", markers: [...INFL_BASIC, ...INFL_PLUS_ADD, ...INFL_EXPERT_ADD] },
   { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD, ...ENDO_EXPERT_ADD] },
   { icon: RefreshCw, name: "Обмен и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
-  { icon: Droplet, name: "Гемостаз", markers: [...HEMO_BASIC, ...HEMO_PLUS_ADD] },
 ];
 
 const totalCount = (cats: BiomarkerCategory[]) => cats.reduce((s, c) => s + c.markers.length, 0);
