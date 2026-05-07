@@ -194,7 +194,6 @@ const standardBiomarkers: BiomarkerCategory[] = [
   { icon: Shield, name: "Воспаление и иммунитет", markers: INFL_BASIC },
   { icon: HormoneMoleculeIcon, name: "Эндокринная система", markers: ENDO_BASIC },
   { icon: RefreshCw, name: "Обмен и детоксикация", markers: DETOX_BASIC },
-  { icon: Droplet, name: "Гемостаз", markers: HEMO_BASIC },
 ];
 
 const plusBiomarkers: BiomarkerCategory[] = [
