@@ -141,5 +141,6 @@ export function FAQSection() {
         </div>
       </div>
     </section>
+    </>
   );
 }
