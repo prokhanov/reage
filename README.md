@@ -71,3 +71,60 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Внешний деплой через Coolify (свой VPS)
+
+Lovable остаётся редактором; код синхронизируется в GitHub; production-сборку
+поднимает Coolify на собственном сервере. Бэкенд (Lovable Cloud / Supabase)
+остаётся подключённым через `VITE_SUPABASE_URL` и `VITE_SUPABASE_PUBLISHABLE_KEY`
+и не мигрирует.
+
+### Переменные окружения (Coolify → Environment, все Build Variable = ON)
+
+См. `.env.example`. Минимальный набор:
+
+```
+VITE_SUPABASE_URL=https://ilxgodhosirhhkffqryw.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<anon publishable key>
+VITE_SUPABASE_PROJECT_ID=ilxgodhosirhhkffqryw
+VITE_APP_URL=https://test.reage.life   # на тесте; на бою → https://reage.life
+VITE_NOINDEX=true                       # на тесте; на бою убрать или false
+```
+
+### Build настройки в Coolify
+
+- Build Pack: **Nixpacks**
+- Install Command: `npm ci`
+- Build Command: `npx tsx scripts/generate-sitemap.ts && vite build`
+- Publish Directory: `dist`
+- SPA fallback: включить (для React Router) — Coolify делает это автоматически
+  для статических сайтов через встроенный Caddy.
+
+### Auth (Lovable Cloud)
+
+В Authentication → URL Configuration добавить в **Redirect URLs**:
+- `https://test.reage.life/**` (на этапе теста)
+- `https://reage.life/**`, `https://www.reage.life/**` (для боя)
+
+**Site URL** оставлять `https://reage.life` всё время, пока боевой не
+переключён на новый хостинг — иначе email-письма у действующих
+пользователей пойдут на тестовый домен.
+
+### Переключение DNS на reg.ru
+
+| Этап | Записи DNS | Боевой сайт |
+|---|---|---|
+| Сейчас | `@`, `www` → `185.158.133.1` | Lovable |
+| Тест | + `A test → <IP VPS>`, `A coolify → <IP VPS>` | Lovable (без изменений) |
+| Бой | `@`, `www` → `<IP VPS>` (заменить старые) | Coolify |
+
+За сутки до переключения боевого: снизить TTL у `@` и `www` до 300 с.
+После успешного переключения: в Lovable Project Settings → Domains
+отвязать `reage.life` и `www.reage.life`.
+
+### Что НЕ менять руками
+
+- `.env` — автогенерится Lovable, любые правки будут затёрты.
+- `src/integrations/supabase/client.ts` и `src/integrations/supabase/types.ts`.
+- `supabase/config.toml` (project-level настройки).
+
