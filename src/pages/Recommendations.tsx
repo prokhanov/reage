@@ -109,11 +109,11 @@ export default function Recommendations() {
       .replace(/^-+|-+$/g, "");
 
   useEffect(() => {
-    if (demoLoading || accessLoading) {
+    if (demoLoading) {
       return;
     }
     loadRecommendations();
-  }, [demoMode, demoLoading, accessLoading]);
+  }, [demoMode, demoLoading]);
 
   const loadRecommendations = async () => {
     if (demoMode) {
@@ -738,7 +738,7 @@ export default function Recommendations() {
     }
   };
 
-  if (loading || accessLoading) {
+  if (loading || demoLoading) {
     return <RecommendationsSkeleton />;
   }
 
