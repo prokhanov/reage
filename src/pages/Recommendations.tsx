@@ -430,8 +430,15 @@ export default function Recommendations() {
           };
           setSelectedReport(freshReport);
         }
-      } catch (error) {
-        console.error("Error loading full report recommendations:", error);
+      } catch (error: any) {
+        console.error("[Recommendations][detail] failed", {
+          message: error?.message,
+          code: error?.code,
+          details: error?.details,
+          hint: error?.hint,
+          stack: error?.stack,
+          analysisId: report.analysisId,
+        });
         if (isAbortError(error)) {
           toast({
             title: "Ошибка",
@@ -441,6 +448,11 @@ export default function Recommendations() {
           setViewDialogOpen(false);
           return;
         }
+        toast({
+          title: "Не удалось загрузить отчёт",
+          description: error?.message || "Проверьте соединение и попробуйте ещё раз.",
+          variant: "destructive",
+        });
       }
     }
     
