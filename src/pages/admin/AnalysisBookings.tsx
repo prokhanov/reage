@@ -102,6 +102,7 @@ export default function AnalysisBookings() {
 
   // Setup real-time subscriptions
   useEffect(() => {
+    if (isRealtimeDisabled()) return;
     const channel = supabase
       .channel('analysis-bookings-changes')
       .on(
