@@ -1,148 +1,58 @@
-## Да, план рабочий и сильно проще предыдущего
+## Проблема
 
-Логика верная: твой текущий VPS на reg.ru уже достаёт Supabase (ответ `HTTP/2 404` от cloudflare — это нормально, значит сеть до Frankfurt идёт). Значит отдельный зарубежный VPS не нужен — прокси поднимаем прямо на том же сервере через путь `/supabase` в nginx.
+Ошибки **HTTP 406 / PGRST116** в Network — это не сеть и не Россия. PostgREST возвращает 406, когда клиент шлёт `Accept: application/vnd.pgrst.object+json` (это даёт `.single()`), а в базе для запроса 0 строк. Запрос отрабатывает за 3–10 мс, всё ок на стороне инфраструктуры.
 
-Делаем в 2 этапа: **(A) безопасные правки фронта в этом проекте**, **(B) настройка прокси на VPS (вне Lovable, делаешь руками в Coolify)**.
+Для текущего пользователя `d950e0d2-...`:
+- нет ни одного анализа → `analyses ... .single()` → 406
+- в `profiles` нет height/weight (или строки) → 406
+- нет ближайшей записи на анализ → 406
+- не superadmin → 406
+- нет admin permission на `patients` → 406
 
----
+В коде эти ошибки попадают в `try/catch` хуков и компонентов Dashboard, переводят его в error-состояние, и страница «Моё здоровье» не отрисовывается.
 
-## Этап A. Правки в коде (что сделаю я в build mode)
+## Решение
 
-### 1. `src/integrations/supabase/client.ts` — защита + нормализация
+Заменить `.single()` на `.maybeSingle()` в местах, где «0 строк» — это валидный сценарий, а не ошибка. Это снимет 406, вернёт `data: null`, и компоненты будут штатно показывать «пусто» вместо краша.
 
-```ts
-const RAW_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_URL = (RAW_URL ?? "").replace(/\/+$/, "");
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+## Файлы для правки
 
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error(
-    "Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY. " +
-    "Set them in Coolify → Environment Variables."
-  );
-}
-```
+1. `src/hooks/useDemoMode.ts`
+   - запрос `analyses ... limit(1).single()` → `.maybeSingle()` (нет анализов = norm)
+   - запрос `profiles select height,weight ... .single()` → `.maybeSingle()`
+   - проверить остальные `.single()` в файле (строки ~130, ~172, ~187, ~196)
 
-Зачем: если в Coolify забыли переменную — увидишь явную ошибку, а не молчаливое падение. Trailing slash убираем, чтобы `https://test.reage.life/supabase/` и `https://test.reage.life/supabase` работали одинаково.
+2. `src/hooks/useSuperAdminCheck.ts` (стр. 22)
+   - `user_roles ... role=eq.superadmin .single()` → `.maybeSingle()`
 
-⚠️ Файл помечен «автогенерируемый», но не меняем сигнатуру `createClient` и список env-переменных — Lovable это переживёт.
+3. `src/hooks/usePatientModuleAccess.ts` (стр. 25, 43, 58)
+   - проверки `user_roles` и `admin_permissions` → `.maybeSingle()`
 
-### 2. Новый файл `src/lib/supabaseUrl.ts` — общий helper
+4. `src/hooks/useScheduledBookingsCount.ts` и `src/components/dashboard/NextAnalysisCard.tsx`
+   - запрос ближайшей записи `analysis_bookings ... booking_date=gte ... limit(1).single()` → `.maybeSingle()`
 
-```ts
-export const SUPABASE_BASE_URL = (import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/+$/, "");
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+5. Заодно пройтись по остальным файлам из списка ниже и поправить `.single()` там, где 0 строк не ошибка (роуты ролей `StaffRoute`, `SuperAdminRoute`, `PatientRoute`, `AppSidebar`, `useUserRole`, `useEmailConfirmation`, `useEmailVerificationHandler`, `Auth.tsx`, `Index.tsx`):
+   ```
+   src/components/StaffRoute.tsx
+   src/components/SuperAdminRoute.tsx
+   src/components/PatientRoute.tsx
+   src/components/AppSidebar.tsx
+   src/hooks/useUserRole.ts
+   src/hooks/useEmailConfirmation.ts
+   src/hooks/useEmailVerificationHandler.ts
+   src/pages/Auth.tsx
+   src/pages/Index.tsx
+   ```
+   В каждом — заменить `.single()` → `.maybeSingle()` в SELECT, обработать `data === null` явно (вернуть `false` / пустое состояние / редирект, как уже подразумевалось).
 
-export function edgeFunctionUrl(name: string): string {
-  return `${SUPABASE_BASE_URL}/functions/v1/${name}`;
-}
-```
+## Что НЕ трогаем
 
-### 3. Заменить 3 места на helper
+- nginx / прокси-конфиг — он работает корректно.
+- `.single()` после INSERT/UPDATE с `.select()` — там строка гарантирована.
+- Запросы на админ-страницах, где сущность по id точно должна существовать (`PatientProfile`, `EditReportDialog` и т.п.) — оставляем `.single()`, чтобы реально ловить баги.
 
-- `src/lib/analyzeBiomarkers.ts` (строка 33) → `edgeFunctionUrl("report-orchestrator")`
-- `src/pages/HealthAssistant.tsx` (строка 142) → `edgeFunctionUrl("health-assistant")`
-- `src/components/admin/EditReportDialog.tsx` (строка 100) → `edgeFunctionUrl("report-qa")`
+## Проверка
 
-### 4. `.env.example` и `README.md` — обновить пример
-
-```bash
-# Прямой Supabase:   https://ilxgodhosirhhkffqryw.supabase.co
-# Через прокси VPS:  https://test.reage.life/supabase
-VITE_SUPABASE_URL=https://test.reage.life/supabase
-```
-
-### Что НЕ трогаю
-- `src/integrations/supabase/types.ts` — автогенерируется
-- `supabase/functions/**` — серверный код, использует серверный env `SUPABASE_URL`
-- Бизнес-логика, auth flow, UI — ни одной строки
-- `supabase/config.toml`
-
----
-
-## Этап B. Настройка на VPS (делаешь ты в Coolify, после Sync to GitHub)
-
-### Шаг 1. Поменять `nginx.conf` в проекте
-
-Текущий файл:
-```nginx
-server {
-    listen 80;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
-    location / { try_files $uri $uri/ /index.html; }
-}
-```
-
-Новый — добавляем `location /supabase/`:
-```nginx
-server {
-    listen 80;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # Прокси к Supabase для обхода блокировок РКН.
-    # Всё, что приходит на /supabase/* — переписываем на https://<project>.supabase.co/*
-    location /supabase/ {
-        proxy_pass https://ilxgodhosirhhkffqryw.supabase.co/;
-        proxy_http_version 1.1;
-        proxy_ssl_server_name on;
-        proxy_set_header Host ilxgodhosirhhkffqryw.supabase.co;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # SSE / Realtime / long-polling
-        proxy_buffering off;
-        proxy_cache off;
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
-
-        # WebSocket (для Realtime)
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-
-    location / { try_files $uri $uri/ /index.html; }
-}
-```
-
-Ключевая строка: **`proxy_pass https://...supabase.co/;`** (со слэшем в конце!) — nginx срежет `/supabase` и подставит остаток пути. То есть `https://test.reage.life/supabase/auth/v1/token` → `https://ilxgodhosirhhkffqryw.supabase.co/auth/v1/token`.
-
-### Шаг 2. В Coolify → Environment Variables
-
-Сначала **не меняем** `VITE_SUPABASE_URL`, чтобы убедиться, что код не сломался. Redeploy → открыть `test.reage.life` через VPN → проверить логин/дашборд/AI.
-
-Если ок — меняем:
-```
-VITE_SUPABASE_URL=https://test.reage.life/supabase
-```
-**Redeploy обязателен** (VITE_* вшивается в build).
-
-### Шаг 3. Lovable Auth → Redirect URLs
-
-Ничего менять не надо: redirect URL — это твой фронт (`test.reage.life/**`), а не Supabase URL. Auth-callbacks приходят на фронт, фронт делает запрос на `/supabase/auth/v1/...` через nginx.
-
-### Шаг 4. Тест без VPN
-
-Открыть `test.reage.life` с российского IP → DevTools → Network → должны быть только запросы на `test.reage.life`, **ни одного на `*.supabase.co`**.
-
-### Откат за 30 секунд
-
-В Coolify меняешь `VITE_SUPABASE_URL` обратно на `https://ilxgodhosirhhkffqryw.supabase.co`, Redeploy. nginx можно не трогать — он просто перестанет использоваться.
-
----
-
-## Риски и почему план реалистичен
-
-- ✅ **Auth/JWT** — заголовок `Authorization: Bearer ...` идёт сквозь nginx без изменений
-- ✅ **Storage** — те же `/storage/v1/*` пути, прокси прозрачен
-- ✅ **Edge functions** — `${SUPABASE_URL}/functions/v1/<name>` → через прокси
-- ✅ **Realtime/SSE** — `proxy_buffering off` + WebSocket headers решают
-- ⚠️ **Единственный нюанс**: если VPS reg.ru со временем тоже попадёт под раздачу к Supabase (CF блок) — придётся переезжать. Но сейчас работает, и архитектура от Caddy/зарубежного VPS отличается только одной строкой `proxy_pass` — мигрировать легко.
-
-## Что от тебя нужно для approve
-
-Просто нажми **Implement plan**. Я внесу правки Этапа A. Этап B (nginx + Coolify env) делаешь руками, я могу подсказывать по шагам.
+1. Открыть `/dashboard` под пользователем без анализов — страница должна отрисоваться (пустое состояние), без 406 в Network.
+2. Открыть `/admin/patients` под не-superadmin — 406 на `user_roles`/`admin_permissions` пропадут.
+3. Существующие пользователи с данными — поведение не меняется.
