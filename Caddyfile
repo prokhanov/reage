@@ -1,8 +1,9 @@
 {
 	auto_https off
+	admin off
 }
 
-:80 {
+:{$PORT:80} {
 	@api host api-test.reage.life
 	handle @api {
 		reverse_proxy https://ilxgodhosirhhkffqryw.supabase.co {
