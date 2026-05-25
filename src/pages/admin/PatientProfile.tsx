@@ -39,6 +39,7 @@ export default function PatientProfile() {
   // Setup real-time subscriptions for this specific patient
   useEffect(() => {
     if (!userId) return;
+    if (isRealtimeDisabled()) return;
 
     const channel = supabase
       .channel(`patient-${userId}-changes`)
