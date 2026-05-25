@@ -109,11 +109,11 @@ export default function Recommendations() {
       .replace(/^-+|-+$/g, "");
 
   useEffect(() => {
-    if (demoLoading || accessLoading) {
+    if (demoLoading) {
       return;
     }
     loadRecommendations();
-  }, [demoMode, demoLoading, accessLoading]);
+  }, [demoMode, demoLoading]);
 
   const loadRecommendations = async () => {
     if (demoMode) {
@@ -297,7 +297,7 @@ export default function Recommendations() {
           .from("profiles")
           .select("birth_date, gender")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
         if (profile) {
           gender = (profile.gender === 'female') ? 'female' : 'male';
           const birth = new Date(profile.birth_date);
@@ -521,7 +521,7 @@ export default function Recommendations() {
           .from("profiles")
           .select("first_name, last_name")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
         if (profile) {
           patientName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
         }
@@ -738,7 +738,7 @@ export default function Recommendations() {
     }
   };
 
-  if (loading || accessLoading) {
+  if (loading || demoLoading) {
     return <RecommendationsSkeleton />;
   }
 
