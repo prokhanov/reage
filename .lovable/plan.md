@@ -1,64 +1,94 @@
-## Проблема
+# Переход с nginx на Caddy
 
-На `test.reage.life/analyses/` страница не грузится: запросы идут ~12с и возвращают 200. Через прокси без VPN это особенно заметно.
+## Что меняется
 
-Корень — N+1 в `src/pages/Analyses.tsx`:
+Заменяем nginx на Caddy в Docker-образе. Caddy решает текущие проблемы автоматически:
+- **Keepalive к upstream** — включён по умолчанию, не нужны `upstream{}` блоки
+- **DNS пересолв** — динамический, контейнер не падает если Supabase DNS моргнул на старте
+- **HTTP/2 к upstream** — из коробки, меньше handshake-ов
+- **TLS session reuse** — корректно работает с CloudFlare-фронтендом Supabase
 
-```ts
-const analysesWithCounts = await Promise.all(
-  sorted.map(async (analysis) => {
-    const { count } = await supabase
-      .from("analysis_values")
-      .select("*", { count: "exact", head: true })
-      .eq("analysis_id", analysis.id);
-    ...
-  })
-);
+Конфиг сокращается с ~60 строк nginx до ~15 строк Caddyfile.
+
+## Файлы
+
+### 1. `Caddyfile` (новый, в корне проекта)
+
+```
+{
+    auto_https off
+}
+
+# Прокси к Supabase REST/Auth/Storage/Realtime
+:80 {
+    @api host api-test.reage.life
+    handle @api {
+        reverse_proxy https://ilxgodhosirhhkffqryw.supabase.co {
+            header_up Host ilxgodhosirhhkffqryw.supabase.co
+            header_up -Accept-Encoding
+            transport http {
+                tls
+                tls_server_name ilxgodhosirhhkffqryw.supabase.co
+                keepalive 60s
+                keepalive_idle_conns 64
+                versions h2 1.1
+            }
+        }
+    }
+
+    # SPA для test.reage.life и всего остального
+    handle {
+        root * /usr/share/caddy
+        try_files {path} /index.html
+        file_server
+    }
+}
 ```
 
-Если у пациента 10 анализов — это 10 параллельных HEAD-запросов с `count=exact` (полный COUNT по таблице на каждый анализ). Через nginx-прокси они выстраиваются в очередь, отсюда 12с и пустой UI (`loading` не снимается, пока все не вернутся).
+Что важно:
+- `auto_https off` — TLS терминирует внешний слой (CloudFlare/ingress), Caddy слушает только `:80`
+- `transport http { tls ... keepalive ... }` — пул переиспользуемых TLS-соединений к Supabase, это и есть фикс 12-секундной очереди
+- `header_up -Accept-Encoding` — Supabase возвращает gzip который ломает потоковую отдачу, отключаем (как в текущем nginx)
+- `try_files` — SPA fallback на `index.html` для React Router
 
-## План
+### 2. `Dockerfile` (заменить второй stage)
 
-**1. `src/pages/Analyses.tsx` — один запрос вместо N**
+```dockerfile
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npx tsx scripts/generate-sitemap.ts && npm run build
 
-Заменить `Promise.all(... select count head ...)` на один групповой запрос:
-
-```ts
-const ids = sorted.map(a => a.id);
-const { data: values } = await supabase
-  .from("analysis_values")
-  .select("analysis_id")
-  .in("analysis_id", ids);
-
-const counts = new Map<string, number>();
-(values || []).forEach(v => {
-  counts.set(v.analysis_id, (counts.get(v.analysis_id) || 0) + 1);
-});
-
-const analysesWithCounts = sorted.map(a => ({
-  ...a,
-  biomarkers_count: counts.get(a.id) || 0,
-}));
+FROM caddy:2-alpine
+COPY --from=build /app/dist /usr/share/caddy
+COPY Caddyfile /etc/caddy/Caddyfile
+EXPOSE 80
 ```
 
-Это превращает N+1 в 2 запроса (analyses + analysis_values).
+Первый stage не трогаем — билд React остаётся как был.
 
-**2. Дополнительно — рендерить список сразу, без блокировки на счётчиках**
+### 3. `nginx.conf` — удалить
 
-Сначала `setAnalyses(sorted)` со счётчиками = 0, потом догрузить counts и обновить. Это уберёт пустой экран даже если второй запрос медленный.
+Файл больше не нужен.
 
-**3. Что НЕ трогаем**
+## План тестирования
 
-- `nginx.conf` (уже исправлен в прошлой итерации).
-- `client.ts`, типы Supabase.
-- Realtime-флаг (отдельная диагностика).
-- Другие страницы.
+1. После деплоя проверить `https://test.reage.life/` — лендинг отдаётся
+2. Проверить `https://api-test.reage.life/rest/v1/...` с валидным `apikey` — должен вернуть JSON
+3. Открыть `/analyses/` залогиненным пользователем — список грузится <1с (вместо 12с)
+4. Открыть DevTools → Network → проверить что повторные запросы к `api-test.reage.life` идут по тому же connection (Connection ID одинаковый)
+5. Проверить Realtime (WebSocket) — `reverse_proxy` в Caddy поддерживает WS автоматически, отдельной location не нужно
 
-## Технические детали
+## Откат
 
-- Запрос `select("analysis_id").in("analysis_id", ids)` через RLS вернёт только строки, принадлежащие пользователю (политики уже это обеспечивают).
-- Лимит PostgREST 1000 строк: если у пациента >1000 биомаркеров суммарно, нужно пагинировать или использовать RPC. На текущих объёмах (≤10 анализов × ~50 биомаркеров) безопасно.
-- Время загрузки страницы упадёт с ~N × RTT до 2 × RTT.
+Если что-то ломается — вернуть старый `Dockerfile` и `nginx.conf` из git. Никаких изменений в коде приложения нет, только инфраструктура.
 
-Подтвердить — приступаю к правке.
+## Что НЕ меняется
+
+- Код фронтенда (`src/`)
+- Edge functions
+- Supabase конфигурация
+- DNS записи на `test.reage.life` / `api-test.reage.life`
+- Внешний TLS / CloudFlare настройки

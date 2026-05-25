@@ -1,28 +1,26 @@
 {
-    auto_https off
+	auto_https off
 }
 
-# Прокси к Supabase REST/Auth/Storage/Realtime
 :80 {
-    @api host api-test.reage.life
-    handle @api {
-        reverse_proxy https://ilxgodhosirhhkffqryw.supabase.co {
-            header_up Host ilxgodhosirhhkffqryw.supabase.co
-            header_up -Accept-Encoding
-            transport http {
-                tls
-                tls_server_name ilxgodhosirhhkffqryw.supabase.co
-                keepalive 60s
-                keepalive_idle_conns 64
-                versions h2 1.1
-            }
-        }
-    }
+	@api host api-test.reage.life
+	handle @api {
+		reverse_proxy https://ilxgodhosirhhkffqryw.supabase.co {
+			header_up Host ilxgodhosirhhkffqryw.supabase.co
+			header_up -Accept-Encoding
+			transport http {
+				tls
+				tls_server_name ilxgodhosirhhkffqryw.supabase.co
+				keepalive 60s
+				keepalive_idle_conns 64
+				versions h2 1.1
+			}
+		}
+	}
 
-    # SPA для test.reage.life и всего остального
-    handle {
-        root * /usr/share/caddy
-        try_files {path} /index.html
-        file_server
-    }
+	handle {
+		root * /usr/share/caddy
+		try_files {path} /index.html
+		file_server
+	}
 }
