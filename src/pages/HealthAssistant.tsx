@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Bot, User, Sparkles, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useChatConversations, useChatMessages } from "@/hooks/useChatConversations";
@@ -139,13 +140,13 @@ export default function HealthAssistant() {
       }
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-assistant`,
+        edgeFunctionUrl("health-assistant"),
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({
             messages: newMessages,
