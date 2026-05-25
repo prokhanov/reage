@@ -190,7 +190,7 @@ export default function ExampleReport() {
   const grouped = useMemo(() => groupByType(data.recommendations || []), []);
   const patientData = grouped["Данные пациента"]?.[0];
   const summary = grouped["Общее резюме"]?.[0];
-  const prescriptionsRec = grouped["Назначения"]?.[0];
+  const prescriptionsRec = grouped["Рекомендации"]?.[0];
 
   const lifestyleData = prescriptionsRec?.content_json?.lifestyle as
     | { nutrition?: string[]; activity?: string[]; sleep?: string[] }
@@ -213,7 +213,7 @@ export default function ExampleReport() {
     ([type]) =>
       type !== "Общее резюме" &&
       type !== "Данные пациента" &&
-      type !== "Назначения",
+      type !== "Рекомендации",
   );
 
   const snapshotResult = summary?.content_json
@@ -237,7 +237,7 @@ export default function ExampleReport() {
           ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
         ]),
     ...(hasPrescriptionsBlock
-      ? [{ id: "prescriptions", label: "Назначения" }]
+      ? [{ id: "prescriptions", label: "Рекомендации" }]
       : []),
   ];
 
@@ -387,7 +387,7 @@ export default function ExampleReport() {
                   <div id="section-prescriptions" className="scroll-mt-6">
                     <div className="mb-6">
                       <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                        Назначения
+                        Рекомендации
                       </h2>
                       <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                     </div>
