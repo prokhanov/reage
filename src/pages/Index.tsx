@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getSessionWithTimeout } from "@/lib/authTimeout";
+import { getSessionWithTimeout, withTimeout } from "@/lib/authTimeout";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
@@ -60,31 +60,36 @@ const Index = () => {
   };
 
   const redirectByRole = async (userId: string) => {
-    try {
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
+    // Если backend/прокси завис — не блокируем редирект, отправляем на /dashboard,
+    // там уже ProtectedRoute/PatientRoute сами разберутся (с таймаутом и retry).
+    const rolesRes = await withTimeout(
+      supabase.from("user_roles").select("role").eq("user_id", userId),
+      3000
+    );
 
-      if (roles && roles.length > 0) {
-        const roleList = roles.map((r) => r.role);
-        if (
-          roleList.includes("superadmin") ||
-          roleList.includes("admin") ||
-          roleList.includes("doctor")
-        ) {
-          navigate("/admin/patients", { replace: true });
-          return;
-        }
-        if (roleList.includes("patient")) {
-          navigate("/dashboard", { replace: true });
-          return;
-        }
-      }
+    if (rolesRes.timedOut || rolesRes.error) {
+      console.warn("[Index] redirectByRole timed out, defaulting to /dashboard");
       navigate("/dashboard", { replace: true });
-    } catch (e) {
-      console.error("redirectByRole failed", e);
+      return;
     }
+
+    const roles = rolesRes.value?.data ?? [];
+    if (roles.length > 0) {
+      const roleList = roles.map((r) => r.role);
+      if (
+        roleList.includes("superadmin") ||
+        roleList.includes("admin") ||
+        roleList.includes("doctor")
+      ) {
+        navigate("/admin/patients", { replace: true });
+        return;
+      }
+      if (roleList.includes("patient")) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+    }
+    navigate("/dashboard", { replace: true });
   };
 
   if (loading) {
