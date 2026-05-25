@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isRealtimeDisabled } from "@/lib/realtime";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,7 @@ export default function AnalysisBookings() {
 
   // Setup real-time subscriptions
   useEffect(() => {
+    if (isRealtimeDisabled()) return;
     const channel = supabase
       .channel('analysis-bookings-changes')
       .on(

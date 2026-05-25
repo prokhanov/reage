@@ -1,61 +1,71 @@
 ## Контекст
 
-- На **test.reage.life** (доступен без VPN через nginx reverse-proxy `/supabase/` → `ilxgodhosirhhkffqryw.supabase.co`) страница **«Персональные отчёты»** в режиме `/admin/patients` view-as-patient остаётся пустой.
-- На **reage.life** (прод, прямой URL Supabase, доступен только с VPN) — всё работает.
-- Все XHR возвращают **200**, висящий ранее запрос — это «тяжёлый» `recommendations` с `text + content_json` (~**811 КБ**, ~1 с): `/supabase/rest/v1/recommendations?select=id,type,text,content_json,...&analysis_id=eq.<uuid>`.
+Подтверждено: на страницах админки активно используется Supabase Realtime —
+`src/pages/admin/Patients.tsx` (5 каналов), `src/pages/admin/PatientProfile.tsx` (5 каналов), `MyAssignments`, `AnalysisBookings`, `PatientInfoDialog`. Все они стартуют WebSocket к `/supabase/realtime/v1/websocket`.
 
-Это значит, что проблема не в сетевом fail, а в одном из двух:
-1. nginx возвращает 200, но **режет/искажает большое тело ответа** (gzip / буферизация / chunked) → supabase-js падает в `JSON.parse`/пустой массив без видимой ошибки.
-2. На рендере `view-as-patient` есть JS-исключение, проглатываемое try/catch, → диалог открывается пустым.
+Гипотеза (поддержанная типовыми отчётами): Safari через nginx reverse-proxy в режиме HTTP/2 нестабильно держит WS-апгрейд и стриминг — REST возвращает 200, а часть UI остаётся пустой, потому что подвисает event loop / suspense / повторные подписки.
 
-## Что сделаем (две части)
+## План: идти от дешёвых тестов к глубоким
 
-### 1. Починить nginx-прокси для больших ответов
+Применяем по очереди, каждый шаг — отдельный commit + деплой, чтобы изолировать причину.
 
-В `nginx.conf` в блоке `location /supabase/` сейчас:
+### Шаг A. Поправить nginx (без правки кода)
+
+Файл `nginx.conf`, блок `location /supabase/`:
+- Полностью отключить любую compression-логику для прокси: `proxy_set_header Accept-Encoding "";` и `gzip off;` внутри location.
+- Подтвердить уже стоящие: `proxy_buffering off; proxy_request_buffering off; proxy_cache off; chunked_transfer_encoding off;` (сейчас стоит `on` — поменяем на `off`, т.к. PostgREST сам отдаёт нормальный Content-Length, а Safari иногда плохо ест chunked через прокси).
+
+Блок `location /supabase/realtime/` оставляем как есть (там WS-апгрейд корректный).
+
+Глобально (server-level) на Coolify/nginx-фронте, который терминирует TLS:
+- Проверить директиву `listen 443 ssl http2;` — если есть, временно убрать `http2`, чтобы исключить Safari+HTTP/2+WS-issue. Этот файл, скорее всего, генерится Coolify — отметим в плане, что менять нужно через Coolify-конфиг.
+
+### Шаг B. Заглушить Realtime под фичефлагом (если шаг A не помог)
+
+Не вырываем подписки совсем — заворачиваем все `supabase.channel(...)` вызовы в проверку env-флага `VITE_DISABLE_REALTIME`:
+
+```ts
+if (import.meta.env.VITE_DISABLE_REALTIME !== "true") {
+  const channel = supabase.channel(...).on(...).subscribe();
+  // cleanup
+}
 ```
-proxy_buffering off;
-proxy_cache off;
-```
-…но **нет**: `proxy_set_header Accept-Encoding`, `gzip_proxied`, `chunked_transfer_encoding`. На больших JSON-ответах от PostgREST (>500 КБ) это даёт нестабильное поведение: тело может приходить пустым / обрезанным некоторыми middlebox'ами (а у пользователя без VPN это особенно вероятно).
 
-Изменения в `nginx.conf` в блок `location /supabase/`:
-- Добавить проброс заголовков: `Accept-Encoding`, `Accept`, `Range`, `If-None-Match`, `Prefer`, `Prefer-Headers`, `x-client-info`.
-- Включить корректный chunked-ответ: `chunked_transfer_encoding on;`, `proxy_request_buffering off;`.
-- Расширить лимиты: `client_max_body_size 50m;`, `proxy_buffers 16 64k;`, `proxy_busy_buffers_size 128k;` (на случай если буферизация частично включится).
-- Не трогать realtime-блок (он уже корректный).
+Места правки:
+- `src/pages/admin/Patients.tsx`
+- `src/pages/admin/PatientProfile.tsx`
+- `src/pages/admin/MyAssignments.tsx`
+- `src/pages/admin/AnalysisBookings.tsx`
+- `src/components/admin/PatientInfoDialog.tsx`
 
-### 2. Уменьшить вес «тяжёлого» запроса recommendations
+На test-окружении задать `VITE_DISABLE_REALTIME=true` в Coolify env и передеплоить. Если страница «Персональные отчёты» начинает грузиться в Safari без VPN → причина 100% в WS-канале.
 
-Сейчас `RECOMMENDATIONS_DETAIL_SELECT` в `src/pages/Recommendations.tsx` (стр. 90-98) тянет одной пачкой `text + content_json` по **всем рекомендациям анализа** → ~800 КБ. Это:
-- основная нагрузка на проксированный канал;
-- основной кандидат на «обрезку» вне VPN.
+### Шаг C. Если виноват WS — пофиксить нормально, не отключая
 
-Сделаем стандартный приём:
-- В detail-select оставить только метаданные + `content_json` (структурированные данные нужны для UI).
-- `text` (длинный markdown) грузить **отдельным запросом по `id` каждой рекомендации только при раскрытии конкретного блока** в диалоге — большинство пользователей открывает 1–2 раздела.
-- Альтернативно: оставить `text`, но добавить `?limit=100` и явный `Accept: application/json` (на проксе явно фиксируем тип).
+Варианты, по убыванию приоритета:
+1. На странице **«Персональные отчёты»** (`Recommendations.tsx`) realtime не используется. Но при заходе в `/admin/patients/:id` (откуда обычно открывают отчёты) стартуют 5 каналов из `PatientProfile.tsx`. Уменьшить до 1 объединённого канала с фильтром по `user_id`.
+2. Объединить 5 каналов `Patients.tsx` в 1 (по таблицам admin-list).
+3. Добавить debounce/idle-init: подписку запускать через `requestIdleCallback` после первого рендера, чтобы Safari не блокировал WS-апгрейдом первичный paint.
 
-### 3. Диагностика «empty page» (на случай если #1+#2 не помогут)
+### Шаг D. Диагностика, если ничего не помогло
 
-Добавить временный fallback-обработчик в `Recommendations.tsx` `handleView`:
-- В `catch` логировать `error.message`, `error.cause`, `error.stack` через `console.error('[Recommendations][detail] failed', err)`.
-- В блок рендера диалога добавить fallback-UI «Не удалось загрузить отчёт» вместо пустого окна.
+- В `src/integrations/supabase/client.ts` мы менять не можем (запрет), но можем добавить runtime override через `localStorage.setItem('debug-no-realtime','1')` и читать его в обёртке-хелпере `safeChannel()`.
+- Логирование статуса канала: в каждой подписке логировать `subscribe((status, err) => console.log('[rt]', topic, status, err))` — на test-окружении сразу увидим, висит ли `JOINING`.
 
-Это позволит, если проблема всё-таки в рендере / парсинге, увидеть конкретную ошибку в консоли и не показывать пустую страницу.
+## Файлы, которые тронем (по шагам)
 
-## Файлы, которые тронем
-
-- `nginx.conf` — расширить блок `location /supabase/`.
-- `src/pages/Recommendations.tsx` — разделить detail-select на лёгкий + ленивая подгрузка `text`; добавить fallback UI и подробное логирование ошибок.
+- **Шаг A**: `nginx.conf` (+ инструкция по http2 на Coolify-уровне).
+- **Шаг B**: 5 файлов из списка выше + добавить запись `VITE_DISABLE_REALTIME` в `.env.example`.
+- **Шаг C**: те же файлы, но рефактор объединения каналов.
+- **Шаг D**: создать `src/lib/realtime.ts` с обёрткой `safeChannel`.
 
 ## Что НЕ трогаем
 
-- `src/integrations/supabase/client.ts` (запрещено).
-- Realtime-прокси-блок в `nginx.conf`.
-- Логику админ-режима view-as-patient.
+- `src/integrations/supabase/client.ts`.
+- Realtime блок в `nginx.conf` (он уже корректный).
+- Прод (reage.life) — фикс касается только test-инсталляции.
 
-## Открытые вопросы (можно ответить до старта или после первой итерации)
+## Открытые вопросы
 
-1. После раскатки фикса `nginx.conf` нужно ли мне дополнительно проверить через `browser` тулу страницу на test-окружении? (Тест-окружение у тебя задеплоено отдельно — Lovable preview туда не задеплоит, нужен твой деплой.)
-2. Если после правки nginx + уменьшения payload страница всё ещё пустая — оставить детальное логирование в коде или убрать?
+1. Идём по шагам A → B → C, или хочешь сразу пакетно A+B (фичефлаг)? Я бы предложил **A+B одним коммитом** — флаг по умолчанию `false`, ты на test ставишь `VITE_DISABLE_REALTIME=true`, тестируешь без realtime; если работает — едем в C.
+2. Есть ли у тебя доступ к Coolify-конфигу nginx для проверки `http2`? Если нет — пропустим этот пункт и сосредоточимся на A (compression off) + B (фичефлаг).

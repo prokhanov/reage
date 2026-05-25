@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isRealtimeDisabled } from "@/lib/realtime";
 import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe, Trash2, RefreshCw } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import {
@@ -53,6 +54,7 @@ export default function Patients() {
 
   // Setup real-time subscriptions
   useEffect(() => {
+    if (isRealtimeDisabled()) return;
     const channel = supabase
       .channel('patients-changes')
       .on(

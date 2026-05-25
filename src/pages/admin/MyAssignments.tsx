@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isRealtimeDisabled } from "@/lib/realtime";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +81,7 @@ export default function MyAssignments() {
 
   // Setup real-time subscriptions
   useEffect(() => {
+    if (isRealtimeDisabled()) return;
     const channel = supabase
       .channel('my-assignments-changes')
       .on(

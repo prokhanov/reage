@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isRealtimeDisabled } from "@/lib/realtime";
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -38,6 +39,7 @@ export default function PatientProfile() {
   // Setup real-time subscriptions for this specific patient
   useEffect(() => {
     if (!userId) return;
+    if (isRealtimeDisabled()) return;
 
     const channel = supabase
       .channel(`patient-${userId}-changes`)
