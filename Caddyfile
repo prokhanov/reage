@@ -8,13 +8,12 @@
 	handle @api {
 		reverse_proxy https://ilxgodhosirhhkffqryw.supabase.co {
 			header_up Host ilxgodhosirhhkffqryw.supabase.co
-			header_up -Accept-Encoding
 			transport http {
 				tls
 				tls_server_name ilxgodhosirhhkffqryw.supabase.co
 				keepalive 60s
-				keepalive_idle_conns 64
-				versions 2 1.1
+				keepalive_idle_conns 32
+				versions 1.1
 			}
 		}
 	}
