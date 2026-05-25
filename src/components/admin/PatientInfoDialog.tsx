@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isRealtimeDisabled } from "@/lib/realtime";
 import { useState, useEffect } from "react";
 import {
   Dialog,
