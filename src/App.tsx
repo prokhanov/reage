@@ -44,6 +44,7 @@ import EmailSettings from "./pages/admin/EmailSettings";
 import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import { RouteMeta } from "@/components/RouteMeta";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +71,7 @@ const App = () => (
         <Sonner />
         <EmailVerificationListener />
         <BrowserRouter>
+          <RouteMeta />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
