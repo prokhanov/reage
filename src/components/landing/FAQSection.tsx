@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { cn } from "@/lib/utils";
 
 interface FAQItemProps {
@@ -76,8 +77,25 @@ export function FAQSection() {
     },
   ];
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map((faq) => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer,
+      },
+    })),
+  };
+
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <>
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
+      <section className="relative py-20 md:py-28 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-background" />
       
@@ -123,5 +141,6 @@ export function FAQSection() {
         </div>
       </div>
     </section>
+    </>
   );
 }
