@@ -130,7 +130,7 @@ export const useDemoMode = () => {
         .from('profiles')
         .select('demo_mode_enabled, gender, birth_date, weight, height')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (profile?.demo_mode_enabled) {
         setDemoMode(true);
@@ -151,7 +151,7 @@ export const useDemoMode = () => {
         .from('demo_data_templates')
         .select('*')
         .eq('id', 'default')
-        .single();
+        .maybeSingle();
 
       if (template) {
         const adaptedData = adaptDemoDataToUser(template, userProfile);
@@ -196,7 +196,7 @@ export const useDemoMode = () => {
           .from('profiles')
           .select('gender, birth_date, weight, height')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
         
         if (profile) {
           await loadDemoData(profile);

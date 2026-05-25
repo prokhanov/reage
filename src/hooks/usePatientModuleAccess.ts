@@ -26,7 +26,7 @@ export const usePatientModuleAccess = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "superadmin")
-        .single();
+        .maybeSingle();
 
       const isSuperAdminUser = !superAdminError && !!superAdminData;
       setIsSuperAdmin(isSuperAdminUser);
@@ -45,7 +45,7 @@ export const usePatientModuleAccess = () => {
         .eq("user_id", user.id)
         .eq("module", "patients")
         .eq("enabled", true)
-        .single();
+        .maybeSingle();
 
       if (!personalError && personalPermission) {
         setHasPatientAccess(true);

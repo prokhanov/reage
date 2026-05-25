@@ -76,7 +76,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
         .from("profiles")
         .select("name, email")
         .eq("id", viewAsUserId)
-        .single();
+        .maybeSingle();
       setPatientName(data?.name || "");
       setPatientEmail(data?.email || "");
     } catch (error) {
