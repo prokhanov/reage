@@ -54,6 +54,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
   // Real-time subscription for analysis bookings and subscriptions updates
   useEffect(() => {
     if (!patientId) return;
+    if (isRealtimeDisabled()) return;
 
     const channel = supabase
       .channel('patient-info-changes')
