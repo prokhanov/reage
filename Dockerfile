@@ -15,6 +15,7 @@ RUN apk add --no-cache haproxy nginx
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY haproxy.cfg /etc/haproxy/haproxy.cfg
+COPY nginx-mini.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 
