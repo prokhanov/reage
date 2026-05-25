@@ -1,58 +1,61 @@
-## Проблема
+## Контекст
 
-Ошибки **HTTP 406 / PGRST116** в Network — это не сеть и не Россия. PostgREST возвращает 406, когда клиент шлёт `Accept: application/vnd.pgrst.object+json` (это даёт `.single()`), а в базе для запроса 0 строк. Запрос отрабатывает за 3–10 мс, всё ок на стороне инфраструктуры.
+- На **test.reage.life** (доступен без VPN через nginx reverse-proxy `/supabase/` → `ilxgodhosirhhkffqryw.supabase.co`) страница **«Персональные отчёты»** в режиме `/admin/patients` view-as-patient остаётся пустой.
+- На **reage.life** (прод, прямой URL Supabase, доступен только с VPN) — всё работает.
+- Все XHR возвращают **200**, висящий ранее запрос — это «тяжёлый» `recommendations` с `text + content_json` (~**811 КБ**, ~1 с): `/supabase/rest/v1/recommendations?select=id,type,text,content_json,...&analysis_id=eq.<uuid>`.
 
-Для текущего пользователя `d950e0d2-...`:
-- нет ни одного анализа → `analyses ... .single()` → 406
-- в `profiles` нет height/weight (или строки) → 406
-- нет ближайшей записи на анализ → 406
-- не superadmin → 406
-- нет admin permission на `patients` → 406
+Это значит, что проблема не в сетевом fail, а в одном из двух:
+1. nginx возвращает 200, но **режет/искажает большое тело ответа** (gzip / буферизация / chunked) → supabase-js падает в `JSON.parse`/пустой массив без видимой ошибки.
+2. На рендере `view-as-patient` есть JS-исключение, проглатываемое try/catch, → диалог открывается пустым.
 
-В коде эти ошибки попадают в `try/catch` хуков и компонентов Dashboard, переводят его в error-состояние, и страница «Моё здоровье» не отрисовывается.
+## Что сделаем (две части)
 
-## Решение
+### 1. Починить nginx-прокси для больших ответов
 
-Заменить `.single()` на `.maybeSingle()` в местах, где «0 строк» — это валидный сценарий, а не ошибка. Это снимет 406, вернёт `data: null`, и компоненты будут штатно показывать «пусто» вместо краша.
+В `nginx.conf` в блоке `location /supabase/` сейчас:
+```
+proxy_buffering off;
+proxy_cache off;
+```
+…но **нет**: `proxy_set_header Accept-Encoding`, `gzip_proxied`, `chunked_transfer_encoding`. На больших JSON-ответах от PostgREST (>500 КБ) это даёт нестабильное поведение: тело может приходить пустым / обрезанным некоторыми middlebox'ами (а у пользователя без VPN это особенно вероятно).
 
-## Файлы для правки
+Изменения в `nginx.conf` в блок `location /supabase/`:
+- Добавить проброс заголовков: `Accept-Encoding`, `Accept`, `Range`, `If-None-Match`, `Prefer`, `Prefer-Headers`, `x-client-info`.
+- Включить корректный chunked-ответ: `chunked_transfer_encoding on;`, `proxy_request_buffering off;`.
+- Расширить лимиты: `client_max_body_size 50m;`, `proxy_buffers 16 64k;`, `proxy_busy_buffers_size 128k;` (на случай если буферизация частично включится).
+- Не трогать realtime-блок (он уже корректный).
 
-1. `src/hooks/useDemoMode.ts`
-   - запрос `analyses ... limit(1).single()` → `.maybeSingle()` (нет анализов = norm)
-   - запрос `profiles select height,weight ... .single()` → `.maybeSingle()`
-   - проверить остальные `.single()` в файле (строки ~130, ~172, ~187, ~196)
+### 2. Уменьшить вес «тяжёлого» запроса recommendations
 
-2. `src/hooks/useSuperAdminCheck.ts` (стр. 22)
-   - `user_roles ... role=eq.superadmin .single()` → `.maybeSingle()`
+Сейчас `RECOMMENDATIONS_DETAIL_SELECT` в `src/pages/Recommendations.tsx` (стр. 90-98) тянет одной пачкой `text + content_json` по **всем рекомендациям анализа** → ~800 КБ. Это:
+- основная нагрузка на проксированный канал;
+- основной кандидат на «обрезку» вне VPN.
 
-3. `src/hooks/usePatientModuleAccess.ts` (стр. 25, 43, 58)
-   - проверки `user_roles` и `admin_permissions` → `.maybeSingle()`
+Сделаем стандартный приём:
+- В detail-select оставить только метаданные + `content_json` (структурированные данные нужны для UI).
+- `text` (длинный markdown) грузить **отдельным запросом по `id` каждой рекомендации только при раскрытии конкретного блока** в диалоге — большинство пользователей открывает 1–2 раздела.
+- Альтернативно: оставить `text`, но добавить `?limit=100` и явный `Accept: application/json` (на проксе явно фиксируем тип).
 
-4. `src/hooks/useScheduledBookingsCount.ts` и `src/components/dashboard/NextAnalysisCard.tsx`
-   - запрос ближайшей записи `analysis_bookings ... booking_date=gte ... limit(1).single()` → `.maybeSingle()`
+### 3. Диагностика «empty page» (на случай если #1+#2 не помогут)
 
-5. Заодно пройтись по остальным файлам из списка ниже и поправить `.single()` там, где 0 строк не ошибка (роуты ролей `StaffRoute`, `SuperAdminRoute`, `PatientRoute`, `AppSidebar`, `useUserRole`, `useEmailConfirmation`, `useEmailVerificationHandler`, `Auth.tsx`, `Index.tsx`):
-   ```
-   src/components/StaffRoute.tsx
-   src/components/SuperAdminRoute.tsx
-   src/components/PatientRoute.tsx
-   src/components/AppSidebar.tsx
-   src/hooks/useUserRole.ts
-   src/hooks/useEmailConfirmation.ts
-   src/hooks/useEmailVerificationHandler.ts
-   src/pages/Auth.tsx
-   src/pages/Index.tsx
-   ```
-   В каждом — заменить `.single()` → `.maybeSingle()` в SELECT, обработать `data === null` явно (вернуть `false` / пустое состояние / редирект, как уже подразумевалось).
+Добавить временный fallback-обработчик в `Recommendations.tsx` `handleView`:
+- В `catch` логировать `error.message`, `error.cause`, `error.stack` через `console.error('[Recommendations][detail] failed', err)`.
+- В блок рендера диалога добавить fallback-UI «Не удалось загрузить отчёт» вместо пустого окна.
+
+Это позволит, если проблема всё-таки в рендере / парсинге, увидеть конкретную ошибку в консоли и не показывать пустую страницу.
+
+## Файлы, которые тронем
+
+- `nginx.conf` — расширить блок `location /supabase/`.
+- `src/pages/Recommendations.tsx` — разделить detail-select на лёгкий + ленивая подгрузка `text`; добавить fallback UI и подробное логирование ошибок.
 
 ## Что НЕ трогаем
 
-- nginx / прокси-конфиг — он работает корректно.
-- `.single()` после INSERT/UPDATE с `.select()` — там строка гарантирована.
-- Запросы на админ-страницах, где сущность по id точно должна существовать (`PatientProfile`, `EditReportDialog` и т.п.) — оставляем `.single()`, чтобы реально ловить баги.
+- `src/integrations/supabase/client.ts` (запрещено).
+- Realtime-прокси-блок в `nginx.conf`.
+- Логику админ-режима view-as-patient.
 
-## Проверка
+## Открытые вопросы (можно ответить до старта или после первой итерации)
 
-1. Открыть `/dashboard` под пользователем без анализов — страница должна отрисоваться (пустое состояние), без 406 в Network.
-2. Открыть `/admin/patients` под не-superadmin — 406 на `user_roles`/`admin_permissions` пропадут.
-3. Существующие пользователи с данными — поведение не меняется.
+1. После раскатки фикса `nginx.conf` нужно ли мне дополнительно проверить через `browser` тулу страницу на test-окружении? (Тест-окружение у тебя задеплоено отдельно — Lovable preview туда не задеплоит, нужен твой деплой.)
+2. Если после правки nginx + уменьшения payload страница всё ещё пустая — оставить детальное логирование в коде или убрать?
