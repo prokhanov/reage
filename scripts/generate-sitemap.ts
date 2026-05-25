@@ -1,7 +1,11 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
-const BASE_URL = "https://reage.life";
+// VITE_APP_URL задаётся в окружении деплоя (Coolify/VPS). При отсутствии
+// используем боевой домен — это сохраняет поведение для Lovable preview
+// и текущего хостинга на reage.life без изменений.
+const BASE_URL = process.env.VITE_APP_URL || "https://reage.life";
+const NOINDEX = process.env.VITE_NOINDEX === "true";
 
 interface SitemapEntry {
   path: string;
