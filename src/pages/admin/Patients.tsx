@@ -54,6 +54,7 @@ export default function Patients() {
 
   // Setup real-time subscriptions
   useEffect(() => {
+    if (isRealtimeDisabled()) return;
     const channel = supabase
       .channel('patients-changes')
       .on(
