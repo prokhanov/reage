@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { cn } from "@/lib/utils";
 
 interface FAQItemProps {
