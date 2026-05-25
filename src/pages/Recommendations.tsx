@@ -79,6 +79,31 @@ interface Prescription {
 
 type SectionType = 'patient-data' | 'summary' | string;
 
+const RECOMMENDATIONS_LIST_SELECT = `
+  id,
+  type,
+  created_at,
+  analysis_id,
+  analyses!recommendations_analysis_id_fkey(date, status)
+`;
+
+const RECOMMENDATIONS_DETAIL_SELECT = `
+  id,
+  type,
+  text,
+  content_json,
+  created_at,
+  analysis_id,
+  analyses!recommendations_analysis_id_fkey(date, status)
+`;
+
+const RECOMMENDATIONS_LIST_TIMEOUT_MS = 12000;
+
+const isAbortError = (error: unknown) => {
+  const errorName = (error as { name?: string } | null)?.name;
+  return errorName === "AbortError";
+};
+
 
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
@@ -179,20 +204,25 @@ export default function Recommendations() {
       const userId = await getUserId();
       if (!userId) throw new Error("Не авторизован");
 
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), RECOMMENDATIONS_LIST_TIMEOUT_MS);
+
       const { data, error } = await supabase
         .from("recommendations")
-        .select(`
-          *,
-          analyses!recommendations_analysis_id_fkey(date, status)
-        `)
+        .select(RECOMMENDATIONS_LIST_SELECT)
         .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .abortSignal(controller.signal);
+
+      window.clearTimeout(timeoutId);
 
       if (error) throw error;
       
-      // Преобразуем данные, добавляя analysis_date и status
+      // Для списка отчётов не тянем тяжёлые текстовые поля и JSON.
+      // Полное содержимое догружается только при открытии конкретного отчёта.
       const transformedData = (data || []).map(rec => ({
         ...rec,
+        text: "",
         analysis_date: rec.analyses?.date || null,
         analysis_status: rec.analyses?.status || null,
         analysis_id: rec.analysis_id || null
@@ -222,9 +252,13 @@ export default function Recommendations() {
       setReports(reportsList);
     } catch (error: any) {
       console.error("Error loading recommendations:", error);
+
+      const isTimedOut = isAbortError(error);
       toast({
         title: "Ошибка",
-        description: "Не удалось загрузить отчёты",
+        description: isTimedOut
+          ? "Список отчётов загружается слишком долго. Попробуйте открыть страницу ещё раз."
+          : "Не удалось загрузить отчёты",
         variant: "destructive",
       });
     } finally {
@@ -357,29 +391,47 @@ export default function Recommendations() {
     let freshReport = report;
 
     if (!demoMode && report.analysisId) {
-      const { data, error } = await supabase
-        .from("recommendations")
-        .select(`
-          *,
-          analyses!recommendations_analysis_id_fkey(date, status)
-        `)
-        .eq("analysis_id", report.analysisId)
-        .order("created_at", { ascending: true });
+      try {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), RECOMMENDATIONS_LIST_TIMEOUT_MS);
 
-      if (!error && data) {
-        const freshRecommendations = data.map((rec: any) => ({
-          ...rec,
-          analysis_date: rec.analyses?.date || null,
-          analysis_status: rec.analyses?.status || null,
-          analysis_id: rec.analysis_id || null,
-        }));
+        const { data, error } = await supabase
+          .from("recommendations")
+          .select(RECOMMENDATIONS_DETAIL_SELECT)
+          .eq("analysis_id", report.analysisId)
+          .order("created_at", { ascending: true })
+          .abortSignal(controller.signal);
 
-        freshReport = {
-          ...report,
-          recommendations: freshRecommendations,
-          count: freshRecommendations.length,
-        };
-        setSelectedReport(freshReport);
+        window.clearTimeout(timeoutId);
+
+        if (error) throw error;
+
+        if (data) {
+          const freshRecommendations = data.map((rec: any) => ({
+            ...rec,
+            analysis_date: rec.analyses?.date || null,
+            analysis_status: rec.analyses?.status || null,
+            analysis_id: rec.analysis_id || null,
+          }));
+
+          freshReport = {
+            ...report,
+            recommendations: freshRecommendations,
+            count: freshRecommendations.length,
+          };
+          setSelectedReport(freshReport);
+        }
+      } catch (error) {
+        console.error("Error loading full report recommendations:", error);
+        if (isAbortError(error)) {
+          toast({
+            title: "Ошибка",
+            description: "Полный отчёт загружается слишком долго. Попробуйте ещё раз.",
+            variant: "destructive",
+          });
+          setViewDialogOpen(false);
+          return;
+        }
       }
     }
     
