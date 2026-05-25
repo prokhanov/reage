@@ -18,4 +18,4 @@ COPY haproxy.cfg /etc/haproxy/haproxy.cfg
 
 EXPOSE 80
 
-CMD sh -c "httpd -f -p 127.0.0.1:8080 -h /www & haproxy -f /etc/haproxy/haproxy.cfg"
+CMD ["sh", "-c", "busybox httpd -f -p 127.0.0.1:8080 -h /www & exec haproxy -f /etc/haproxy/haproxy.cfg"]
