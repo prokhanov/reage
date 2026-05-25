@@ -26,6 +26,7 @@ export function PageMeta({ title, description, canonical }: PageMetaProps) {
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
+      {NOINDEX && <meta name="robots" content="noindex,nofollow" />}
       {url && <link rel="canonical" href={url} />}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
