@@ -339,10 +339,19 @@ export default function Recommendations() {
         }
       }
 
+      const biomarkersController = new AbortController();
+      const biomarkersTimeout = window.setTimeout(
+        () => biomarkersController.abort(),
+        RECOMMENDATIONS_LIST_TIMEOUT_MS,
+      );
+
       const { data: valuesData } = await supabase
         .from("analysis_values")
         .select("value, unit_override, biomarker_id, biomarkers!inner(id, name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
-        .eq("analysis_id", analysisId);
+        .eq("analysis_id", analysisId)
+        .abortSignal(biomarkersController.signal);
+
+      window.clearTimeout(biomarkersTimeout);
 
       if (valuesData) {
         const biomarkers = valuesData.map((v: any) => {
