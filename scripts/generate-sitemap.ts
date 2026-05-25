@@ -42,4 +42,13 @@ function generateSitemap(entries: SitemapEntry[]) {
 }
 
 writeFileSync(resolve("public/sitemap.xml"), generateSitemap(entries));
-console.log(`sitemap.xml written (${entries.length} entries)`);
+console.log(`sitemap.xml written (${entries.length} entries, base=${BASE_URL})`);
+
+// robots.txt: на тестовом домене (VITE_NOINDEX=true) закрываем индексацию
+// целиком, чтобы Google не схватил тестовую копию. На боевом — стандартный
+// набор разрешений.
+const robotsTxt = NOINDEX
+  ? `User-agent: *\nDisallow: /\n`
+  : `User-agent: Googlebot\nAllow: /\n\nUser-agent: Bingbot\nAllow: /\n\nUser-agent: Twitterbot\nAllow: /\n\nUser-agent: facebookexternalhit\nAllow: /\n\nUser-agent: *\nAllow: /\n\nSitemap: ${BASE_URL}/sitemap.xml\n`;
+writeFileSync(resolve("public/robots.txt"), robotsTxt);
+console.log(`robots.txt written (noindex=${NOINDEX})`);
