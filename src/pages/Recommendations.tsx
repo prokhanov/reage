@@ -339,10 +339,19 @@ export default function Recommendations() {
         }
       }
 
+      const biomarkersController = new AbortController();
+      const biomarkersTimeout = window.setTimeout(
+        () => biomarkersController.abort(),
+        RECOMMENDATIONS_LIST_TIMEOUT_MS,
+      );
+
       const { data: valuesData } = await supabase
         .from("analysis_values")
         .select("value, unit_override, biomarker_id, biomarkers!inner(id, name, code, unit, category, display_order, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, range_mode, age_ranges)")
-        .eq("analysis_id", analysisId);
+        .eq("analysis_id", analysisId)
+        .abortSignal(biomarkersController.signal);
+
+      window.clearTimeout(biomarkersTimeout);
 
       if (valuesData) {
         const biomarkers = valuesData.map((v: any) => {
@@ -1009,19 +1018,10 @@ export default function Recommendations() {
 
                         {snapshot ? (
                           // Unified snapshot rendering — single source of truth.
-                          // Все блоки (section/summary/biomarker/text/spacer) идут одним
-                          // потоком, биомаркеры привязаны по UUID.
-                          biomarkersLoading ? (
-                            <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
-                              <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-                              <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                              <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
-                            </div>
-                          ) : (
-                            <div id="snapshot-root" className="prose prose-sm max-w-none">
-                              {renderSnapshotWeb(snapshot, webBiomarkers, patientAge, patientGender)}
-                            </div>
-                          )
+                          // Текст всегда рендерится; биомаркеры подмешиваются по мере загрузки.
+                          <div id="snapshot-root" className="prose prose-sm max-w-none">
+                            {renderSnapshotWeb(snapshot, webBiomarkers, patientAge, patientGender)}
+                          </div>
                         ) : (
                           <>
                             {summary && (
@@ -1043,19 +1043,11 @@ export default function Recommendations() {
                                     </h2>
                                     <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                                   </div>
-                                  {biomarkersLoading ? (
-                                    <div className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm space-y-3">
-                                      <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
-                                      <div className="h-4 w-full bg-muted animate-pulse rounded" />
-                                      <div className="h-4 w-5/6 bg-muted animate-pulse rounded" />
+                                  {recs.map((rec) => (
+                                    <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                      {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
                                     </div>
-                                  ) : (
-                                    recs.map((rec) => (
-                                      <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
-                                        {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
-                                      </div>
-                                    ))
-                                  )}
+                                  ))}
                                 </div>
                               </div>
                             ))}
