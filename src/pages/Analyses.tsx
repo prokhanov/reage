@@ -82,25 +82,37 @@ export default function Analyses() {
       const sorted = (data || []).sort(
         (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );
-      
-      // Получаем количество биомаркеров для каждого анализа (не падать при ошибке)
-      const analysesWithCounts = await Promise.all(
-        sorted.map(async (analysis) => {
-          const { count, error: countError } = await supabase
-            .from("analysis_values")
-            .select("*", { count: "exact", head: true })
-            .eq("analysis_id", analysis.id);
-          if (countError) {
-            console.warn("Count error for analysis", analysis.id, countError);
-          }
-          return {
-            ...analysis,
-            biomarkers_count: count || 0,
-          } as Analysis;
-        })
+
+      // Показываем список сразу — счётчики догрузим вторым запросом,
+      // чтобы пустой экран не висел из-за медленного COUNT через прокси.
+      setAnalyses(sorted.map((a: any) => ({ ...a, biomarkers_count: 0 })) as Analysis[]);
+      setLoading(false);
+
+      const ids = sorted.map((a: any) => a.id);
+      if (ids.length === 0) return;
+
+      // Один групповой запрос вместо N+1 HEAD-запросов с count=exact.
+      const { data: values, error: valuesError } = await supabase
+        .from("analysis_values")
+        .select("analysis_id")
+        .in("analysis_id", ids);
+
+      if (valuesError) {
+        console.warn("Failed to load biomarker counts:", valuesError);
+        return;
+      }
+
+      const counts = new Map<string, number>();
+      (values || []).forEach((v: any) => {
+        counts.set(v.analysis_id, (counts.get(v.analysis_id) || 0) + 1);
+      });
+
+      setAnalyses(
+        sorted.map((a: any) => ({
+          ...a,
+          biomarkers_count: counts.get(a.id) || 0,
+        })) as Analysis[]
       );
-      
-      setAnalyses(analysesWithCounts);
     } catch (error: any) {
       console.error("Error loading analyses:", error);
       toast({

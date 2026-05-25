@@ -1,71 +1,64 @@
-## Контекст
+## Проблема
 
-Подтверждено: на страницах админки активно используется Supabase Realtime —
-`src/pages/admin/Patients.tsx` (5 каналов), `src/pages/admin/PatientProfile.tsx` (5 каналов), `MyAssignments`, `AnalysisBookings`, `PatientInfoDialog`. Все они стартуют WebSocket к `/supabase/realtime/v1/websocket`.
+На `test.reage.life/analyses/` страница не грузится: запросы идут ~12с и возвращают 200. Через прокси без VPN это особенно заметно.
 
-Гипотеза (поддержанная типовыми отчётами): Safari через nginx reverse-proxy в режиме HTTP/2 нестабильно держит WS-апгрейд и стриминг — REST возвращает 200, а часть UI остаётся пустой, потому что подвисает event loop / suspense / повторные подписки.
-
-## План: идти от дешёвых тестов к глубоким
-
-Применяем по очереди, каждый шаг — отдельный commit + деплой, чтобы изолировать причину.
-
-### Шаг A. Поправить nginx (без правки кода)
-
-Файл `nginx.conf`, блок `location /supabase/`:
-- Полностью отключить любую compression-логику для прокси: `proxy_set_header Accept-Encoding "";` и `gzip off;` внутри location.
-- Подтвердить уже стоящие: `proxy_buffering off; proxy_request_buffering off; proxy_cache off; chunked_transfer_encoding off;` (сейчас стоит `on` — поменяем на `off`, т.к. PostgREST сам отдаёт нормальный Content-Length, а Safari иногда плохо ест chunked через прокси).
-
-Блок `location /supabase/realtime/` оставляем как есть (там WS-апгрейд корректный).
-
-Глобально (server-level) на Coolify/nginx-фронте, который терминирует TLS:
-- Проверить директиву `listen 443 ssl http2;` — если есть, временно убрать `http2`, чтобы исключить Safari+HTTP/2+WS-issue. Этот файл, скорее всего, генерится Coolify — отметим в плане, что менять нужно через Coolify-конфиг.
-
-### Шаг B. Заглушить Realtime под фичефлагом (если шаг A не помог)
-
-Не вырываем подписки совсем — заворачиваем все `supabase.channel(...)` вызовы в проверку env-флага `VITE_DISABLE_REALTIME`:
+Корень — N+1 в `src/pages/Analyses.tsx`:
 
 ```ts
-if (import.meta.env.VITE_DISABLE_REALTIME !== "true") {
-  const channel = supabase.channel(...).on(...).subscribe();
-  // cleanup
-}
+const analysesWithCounts = await Promise.all(
+  sorted.map(async (analysis) => {
+    const { count } = await supabase
+      .from("analysis_values")
+      .select("*", { count: "exact", head: true })
+      .eq("analysis_id", analysis.id);
+    ...
+  })
+);
 ```
 
-Места правки:
-- `src/pages/admin/Patients.tsx`
-- `src/pages/admin/PatientProfile.tsx`
-- `src/pages/admin/MyAssignments.tsx`
-- `src/pages/admin/AnalysisBookings.tsx`
-- `src/components/admin/PatientInfoDialog.tsx`
+Если у пациента 10 анализов — это 10 параллельных HEAD-запросов с `count=exact` (полный COUNT по таблице на каждый анализ). Через nginx-прокси они выстраиваются в очередь, отсюда 12с и пустой UI (`loading` не снимается, пока все не вернутся).
 
-На test-окружении задать `VITE_DISABLE_REALTIME=true` в Coolify env и передеплоить. Если страница «Персональные отчёты» начинает грузиться в Safari без VPN → причина 100% в WS-канале.
+## План
 
-### Шаг C. Если виноват WS — пофиксить нормально, не отключая
+**1. `src/pages/Analyses.tsx` — один запрос вместо N**
 
-Варианты, по убыванию приоритета:
-1. На странице **«Персональные отчёты»** (`Recommendations.tsx`) realtime не используется. Но при заходе в `/admin/patients/:id` (откуда обычно открывают отчёты) стартуют 5 каналов из `PatientProfile.tsx`. Уменьшить до 1 объединённого канала с фильтром по `user_id`.
-2. Объединить 5 каналов `Patients.tsx` в 1 (по таблицам admin-list).
-3. Добавить debounce/idle-init: подписку запускать через `requestIdleCallback` после первого рендера, чтобы Safari не блокировал WS-апгрейдом первичный paint.
+Заменить `Promise.all(... select count head ...)` на один групповой запрос:
 
-### Шаг D. Диагностика, если ничего не помогло
+```ts
+const ids = sorted.map(a => a.id);
+const { data: values } = await supabase
+  .from("analysis_values")
+  .select("analysis_id")
+  .in("analysis_id", ids);
 
-- В `src/integrations/supabase/client.ts` мы менять не можем (запрет), но можем добавить runtime override через `localStorage.setItem('debug-no-realtime','1')` и читать его в обёртке-хелпере `safeChannel()`.
-- Логирование статуса канала: в каждой подписке логировать `subscribe((status, err) => console.log('[rt]', topic, status, err))` — на test-окружении сразу увидим, висит ли `JOINING`.
+const counts = new Map<string, number>();
+(values || []).forEach(v => {
+  counts.set(v.analysis_id, (counts.get(v.analysis_id) || 0) + 1);
+});
 
-## Файлы, которые тронем (по шагам)
+const analysesWithCounts = sorted.map(a => ({
+  ...a,
+  biomarkers_count: counts.get(a.id) || 0,
+}));
+```
 
-- **Шаг A**: `nginx.conf` (+ инструкция по http2 на Coolify-уровне).
-- **Шаг B**: 5 файлов из списка выше + добавить запись `VITE_DISABLE_REALTIME` в `.env.example`.
-- **Шаг C**: те же файлы, но рефактор объединения каналов.
-- **Шаг D**: создать `src/lib/realtime.ts` с обёрткой `safeChannel`.
+Это превращает N+1 в 2 запроса (analyses + analysis_values).
 
-## Что НЕ трогаем
+**2. Дополнительно — рендерить список сразу, без блокировки на счётчиках**
 
-- `src/integrations/supabase/client.ts`.
-- Realtime блок в `nginx.conf` (он уже корректный).
-- Прод (reage.life) — фикс касается только test-инсталляции.
+Сначала `setAnalyses(sorted)` со счётчиками = 0, потом догрузить counts и обновить. Это уберёт пустой экран даже если второй запрос медленный.
 
-## Открытые вопросы
+**3. Что НЕ трогаем**
 
-1. Идём по шагам A → B → C, или хочешь сразу пакетно A+B (фичефлаг)? Я бы предложил **A+B одним коммитом** — флаг по умолчанию `false`, ты на test ставишь `VITE_DISABLE_REALTIME=true`, тестируешь без realtime; если работает — едем в C.
-2. Есть ли у тебя доступ к Coolify-конфигу nginx для проверки `http2`? Если нет — пропустим этот пункт и сосредоточимся на A (compression off) + B (фичефлаг).
+- `nginx.conf` (уже исправлен в прошлой итерации).
+- `client.ts`, типы Supabase.
+- Realtime-флаг (отдельная диагностика).
+- Другие страницы.
+
+## Технические детали
+
+- Запрос `select("analysis_id").in("analysis_id", ids)` через RLS вернёт только строки, принадлежащие пользователю (политики уже это обеспечивают).
+- Лимит PostgREST 1000 строк: если у пациента >1000 биомаркеров суммарно, нужно пагинировать или использовать RPC. На текущих объёмах (≤10 анализов × ~50 биомаркеров) безопасно.
+- Время загрузки страницы упадёт с ~N × RTT до 2 × RTT.
+
+Подтвердить — приступаю к правке.
