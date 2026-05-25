@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Bot, User, Sparkles, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useChatConversations, useChatMessages } from "@/hooks/useChatConversations";
