@@ -139,13 +139,13 @@ export default function HealthAssistant() {
       }
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-assistant`,
+        edgeFunctionUrl("health-assistant"),
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({
             messages: newMessages,

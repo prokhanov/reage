@@ -97,7 +97,7 @@ export function EditReportDialog({
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-qa`;
+      const url = edgeFunctionUrl("report-qa");
       const resp = await fetch(url, {
         method: "POST",
         headers: {

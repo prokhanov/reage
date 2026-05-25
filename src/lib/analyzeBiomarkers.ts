@@ -30,10 +30,10 @@ async function runOrchestratedPipeline(payload: AnalyzeBiomarkersPayload) {
   const userId = sessionData?.session?.user?.id;
   if (!userId) throw new Error("Сессия пользователя не найдена");
 
-  const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/report-orchestrator`;
+  const baseUrl = edgeFunctionUrl("report-orchestrator");
   const headers = {
     "Content-Type": "application/json",
-    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    apikey: SUPABASE_ANON_KEY,
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   };
 
