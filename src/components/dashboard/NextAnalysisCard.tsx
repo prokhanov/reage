@@ -29,7 +29,7 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
           .gte('booking_date', new Date().toISOString().split('T')[0])
           .order('booking_date', { ascending: true })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         setBooking(data);
       } catch (error) {

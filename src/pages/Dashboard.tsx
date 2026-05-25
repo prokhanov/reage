@@ -82,7 +82,7 @@ export default function Dashboard() {
           .eq('user_id', userId)
           .order('date', { ascending: false })
           .limit(1)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('analyses')
           .select('*')
@@ -145,7 +145,7 @@ export default function Dashboard() {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProfile(data);
@@ -178,7 +178,7 @@ export default function Dashboard() {
         .gte('booking_date', new Date().toISOString().split('T')[0])
         .order('booking_date', { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       setNextBooking(data);
     } catch (error) {

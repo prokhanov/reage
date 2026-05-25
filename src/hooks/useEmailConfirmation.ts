@@ -12,7 +12,7 @@ export function useEmailConfirmation() {
         .from("profiles")
         .select("email_verified")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       return { isConfirmed: profile?.email_verified === true, email: user.email };
     },

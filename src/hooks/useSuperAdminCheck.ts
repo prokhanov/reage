@@ -23,7 +23,7 @@ export const useSuperAdminCheck = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "superadmin")
-        .single();
+        .maybeSingle();
 
       setIsSuperAdmin(!error && !!data);
     } catch (error) {
