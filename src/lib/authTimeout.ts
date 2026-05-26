@@ -55,3 +55,57 @@ export async function withTimeout<T>(
   if (timer) clearTimeout(timer);
   return result;
 }
+
+/**
+ * Запускает асинхронную операцию с таймаутом и одним автоматическим ретраем
+ * при сетевом сбое. Используется в route-гвардах, чтобы разовый 503/таймаут
+ * прокси не отправлял пользователя в экран «Повторить».
+ */
+export async function withTimeoutAndRetry<T>(
+  factory: () => PromiseLike<T>,
+  options: { timeoutMs?: number; retries?: number; label?: string } = {}
+): Promise<{ value: T | null; timedOut: boolean; error: unknown; attempts: number }> {
+  const { timeoutMs = 15000, retries = 1, label = "request" } = options;
+  let lastResult: { value: T | null; timedOut: boolean; error: unknown } = {
+    value: null,
+    timedOut: false,
+    error: null,
+  };
+
+  for (let attempt = 1; attempt <= retries + 1; attempt++) {
+    lastResult = await withTimeout(factory(), timeoutMs);
+    if (!lastResult.timedOut && !lastResult.error) {
+      return { ...lastResult, attempts: attempt };
+    }
+    // Логируем каждую неудачную попытку — поможет в проде увидеть причину.
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[withTimeoutAndRetry] "${label}" attempt ${attempt}/${retries + 1} failed`,
+      {
+        timedOut: lastResult.timedOut,
+        error: lastResult.error,
+      }
+    );
+    if (attempt <= retries) {
+      // Небольшая пауза перед повтором.
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  }
+  return { ...lastResult, attempts: retries + 1 };
+}
+
+/** Формирует читаемую техническую причину для dev-режима. */
+export function describeFailure(
+  label: string,
+  res: { timedOut: boolean; error: unknown }
+): string {
+  if (res.timedOut) return `${label}: timeout (>15s)`;
+  const err = res.error as { message?: string; code?: string; status?: number } | null;
+  const parts = [
+    err?.code ? `code=${err.code}` : null,
+    err?.status ? `status=${err.status}` : null,
+    err?.message ? `message=${err.message}` : null,
+  ].filter(Boolean);
+  return `${label}: ${parts.join(" • ") || "unknown error"}`;
+}
+
