@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { withTimeout } from "@/lib/authTimeout";
+import { withTimeoutAndRetry, describeFailure } from "@/lib/authTimeout";
 import { RouteCheckError } from "@/components/RouteCheckError";
 
 interface SuperAdminRouteProps {
@@ -13,13 +13,21 @@ type CheckState = "loading" | "allowed" | "denied" | "error";
 
 export function SuperAdminRoute({ children }: SuperAdminRouteProps) {
   const [state, setState] = useState<CheckState>("loading");
+  const [errorDetails, setErrorDetails] = useState<string | undefined>(undefined);
   const { toast } = useToast();
 
   const checkSuperAdminRole = useCallback(async () => {
     setState("loading");
+    setErrorDetails(undefined);
 
-    const userRes = await withTimeout(supabase.auth.getUser(), 5000);
+    const userRes = await withTimeoutAndRetry(
+      () => supabase.auth.getUser(),
+      { label: "auth.getUser" }
+    );
     if (userRes.timedOut || userRes.error) {
+      const reason = describeFailure("auth.getUser", userRes);
+      console.error("[SuperAdminRoute]", reason, userRes.error);
+      setErrorDetails(reason);
       setState("error");
       return;
     }
@@ -29,11 +37,14 @@ export function SuperAdminRoute({ children }: SuperAdminRouteProps) {
       return;
     }
 
-    const rolesRes = await withTimeout(
-      supabase.from("user_roles").select("role").eq("user_id", user.id),
-      5000
+    const rolesRes = await withTimeoutAndRetry(
+      () => supabase.from("user_roles").select("role").eq("user_id", user.id),
+      { label: "user_roles.select" }
     );
     if (rolesRes.timedOut || rolesRes.error) {
+      const reason = describeFailure("user_roles.select", rolesRes);
+      console.error("[SuperAdminRoute]", reason, rolesRes.error);
+      setErrorDetails(reason);
       setState("error");
       return;
     }
@@ -66,7 +77,7 @@ export function SuperAdminRoute({ children }: SuperAdminRouteProps) {
   }
 
   if (state === "error") {
-    return <RouteCheckError onRetry={checkSuperAdminRole} />;
+    return <RouteCheckError onRetry={checkSuperAdminRole} devDetails={errorDetails} />;
   }
 
   if (state === "denied") {
