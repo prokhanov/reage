@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { withTimeout } from "@/lib/authTimeout";
+import { withTimeoutAndRetry, describeFailure } from "@/lib/authTimeout";
 import { RouteCheckError } from "@/components/RouteCheckError";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -17,14 +17,26 @@ type CheckState = "loading" | "allowed" | "denied" | "error";
 
 export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
   const [state, setState] = useState<CheckState>("loading");
+  const [errorDetails, setErrorDetails] = useState<string | undefined>(undefined);
   const { toast } = useToast();
 
   const checkModuleAccess = useCallback(async () => {
     setState("loading");
+    setErrorDetails(undefined);
 
-    const userRes = await withTimeout(supabase.auth.getUser(), 5000);
-    if (userRes.timedOut || userRes.error) {
+    const failWith = (label: string, res: { timedOut: boolean; error: unknown }) => {
+      const reason = describeFailure(label, res);
+      console.error("[AdminModuleRoute]", reason, res.error);
+      setErrorDetails(reason);
       setState("error");
+    };
+
+    const userRes = await withTimeoutAndRetry(
+      () => supabase.auth.getUser(),
+      { label: "auth.getUser" }
+    );
+    if (userRes.timedOut || userRes.error) {
+      failWith("auth.getUser", userRes);
       return;
     }
     const user = userRes.value?.data.user;
@@ -34,17 +46,18 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
     }
 
     // 1. superadmin?
-    const superRes = await withTimeout(
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "superadmin")
-        .maybeSingle(),
-      5000
+    const superRes = await withTimeoutAndRetry(
+      () =>
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "superadmin")
+          .maybeSingle(),
+      { label: "user_roles.superadmin" }
     );
     if (superRes.timedOut || superRes.error) {
-      setState("error");
+      failWith("user_roles.superadmin", superRes);
       return;
     }
     if (superRes.value?.data) {
@@ -53,17 +66,18 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
     }
 
     // 2. персональные permissions
-    const personalRes = await withTimeout(
-      supabase
-        .from("admin_permissions")
-        .select("enabled")
-        .eq("user_id", user.id)
-        .eq("module", module)
-        .maybeSingle(),
-      5000
+    const personalRes = await withTimeoutAndRetry(
+      () =>
+        supabase
+          .from("admin_permissions")
+          .select("enabled")
+          .eq("user_id", user.id)
+          .eq("module", module)
+          .maybeSingle(),
+      { label: "admin_permissions.select" }
     );
     if (personalRes.timedOut || personalRes.error) {
-      setState("error");
+      failWith("admin_permissions.select", personalRes);
       return;
     }
     if (personalRes.value?.data?.enabled) {
@@ -72,12 +86,12 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
     }
 
     // 3. permissions через роль
-    const userRolesRes = await withTimeout(
-      supabase.from("user_roles").select("role_id").eq("user_id", user.id),
-      5000
+    const userRolesRes = await withTimeoutAndRetry(
+      () => supabase.from("user_roles").select("role_id").eq("user_id", user.id),
+      { label: "user_roles.role_ids" }
     );
     if (userRolesRes.timedOut || userRolesRes.error) {
-      setState("error");
+      failWith("user_roles.role_ids", userRolesRes);
       return;
     }
 
@@ -85,18 +99,19 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
     const roleIds = userRoles.map((r) => r.role_id).filter(Boolean);
 
     if (roleIds.length > 0) {
-      const rolePermRes = await withTimeout(
-        supabase
-          .from("role_permissions")
-          .select("enabled")
-          .in("role_id", roleIds)
-          .eq("module", module)
-          .eq("enabled", true)
-          .limit(1),
-        5000
+      const rolePermRes = await withTimeoutAndRetry(
+        () =>
+          supabase
+            .from("role_permissions")
+            .select("enabled")
+            .in("role_id", roleIds)
+            .eq("module", module)
+            .eq("enabled", true)
+            .limit(1),
+        { label: "role_permissions.select" }
       );
       if (rolePermRes.timedOut || rolePermRes.error) {
-        setState("error");
+        failWith("role_permissions.select", rolePermRes);
         return;
       }
       if ((rolePermRes.value?.data ?? []).length > 0) {
@@ -126,7 +141,7 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
   }
 
   if (state === "error") {
-    return <RouteCheckError onRetry={checkModuleAccess} />;
+    return <RouteCheckError onRetry={checkModuleAccess} devDetails={errorDetails} />;
   }
 
   if (state === "denied") {
