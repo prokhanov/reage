@@ -1,116 +1,138 @@
-# Ревизия: «ничего не грузится» после логина — это HAProxy, а не фронт
 
-## Диагноз
+# План: перенос только прокси `api-test.reage.life` на Fly.io
 
-Симптом «запросы на `api-test.reage.life` висят/таймаутят» при здоровом Supabase = классический баг конфигурации HAProxy:
+## Что меняем и что НЕ трогаем
 
-1. **Нет `resolvers` блока.** В текущем `haproxy.cfg` бэкенд `supabase` объявлен как `server supabase ilxgodhosirhhkffqryw.supabase.co:443 ssl ...`. HAProxy резолвит этот DNS **один раз при старте** и кэширует навсегда. Supabase сидит за Cloudflare, IP-адреса ротируются — через какое-то время кэш указывает на «мёртвые» IP → TCP открывается, но висит до `timeout server 300s`. Это ровно то, что ты описываешь.
-2. **`http-request del-header Accept-Encoding`** — лишнее. Supabase отлично жмёт ответы, удаление заголовка увеличивает payload и иногда триггерит странности у Cloudflare. Убрать.
-3. **Нет `option httpchk`/health-check на бэкенде** — HAProxy не знает, что апстрим мёртв, и продолжает на него слать.
-4. **Нет `http-reuse`/`option http-server-close`** — для HTTPS-апстрима через Cloudflare надёжнее `http-reuse safe` и явный close, иначе keep-alive застревает.
-5. **Нет проброса `X-Forwarded-For` / `X-Forwarded-Proto`** — некритично для работы, но полезно для логов.
+Меняем:
+- `api-test.reage.life` — переезжает с VPS/Coolify на Fly.io (Frankfurt).
 
-Доп. мысль: после правки HAProxy фронт-код всё равно стоит подстраховать — гварды ролей (`PatientRoute`, `StaffRoute`, `SuperAdminRoute`, `AdminModuleRoute`) сейчас вызывают `supabase.auth.getUser()` и select из `user_roles` **без таймаута**. Если в будущем апстрим снова моргнёт — экран опять будет вечным спиннером. Это вторая, маленькая правка.
+Не трогаем:
+- `test.reage.life` (фронт) — остаётся на Coolify/VPS как сейчас.
+- `reage.life` (бой) — не трогаем вообще.
+- Lovable Cloud / Supabase — без изменений.
+- Код фронта в Lovable — без изменений, меняется только env-переменная в Coolify.
 
-## Что меняем
-
-### 1) `haproxy.cfg` — основное
-
-Полностью переписываем с учётом найденного:
-
-```haproxy
-global
-    log stdout format raw local0
-    maxconn 4096
-
-defaults
-    mode http
-    log global
-    option httplog
-    option dontlognull
-    option forwardfor
-    option http-server-close
-    http-reuse safe
-
-    timeout connect 10s
-    timeout client  60s
-    timeout server  60s
-    timeout http-request  15s
-    timeout http-keep-alive 30s
-    timeout tunnel 1h          # для websocket/realtime
-
-# Публичный DNS, чтобы HAProxy переcпрашивал IP Supabase
-resolvers public_dns
-    nameserver cf1 1.1.1.1:53
-    nameserver cf2 1.0.0.1:53
-    nameserver g1  8.8.8.8:53
-    resolve_retries 3
-    timeout resolve 2s
-    timeout retry   1s
-    hold valid     30s          # перерезолв каждые 30с
-    hold other     10s
-    hold refused   10s
-    hold nx        10s
-    hold timeout   5s
-
-frontend http_in
-    bind *:80
-    http-request set-header X-Forwarded-Proto https if { ssl_fc }
-
-    acl host_api hdr(host) -i api-test.reage.life
-    use_backend supabase_backend if host_api
-
-    default_backend react_frontend
-
-backend react_frontend
-    server frontend 127.0.0.1:8080 check inter 5s
-
-backend supabase_backend
-    # Apex Supabase ждёт правильный SNI/Host
-    http-request set-header Host ilxgodhosirhhkffqryw.supabase.co
-
-    # лёгкий health-check на корень — Supabase отвечает 200/401, что HAProxy считает «жив»
-    option httpchk GET /
-    http-check send hdr Host ilxgodhosirhhkffqryw.supabase.co
-
-    server supabase ilxgodhosirhhkffqryw.supabase.co:443 \
-        ssl sni str(ilxgodhosirhhkffqryw.supabase.co) verify none \
-        resolvers public_dns init-addr none \
-        check inter 10s fall 3 rise 2
+Итоговая схема:
+```text
+Браузер (RU)
+  ├── test.reage.life ───────► Coolify VPS (nginx + dist)  ← как сейчас
+  └── api-test.reage.life ──► Fly.io (Frankfurt, Node proxy)
+                                  └─► ilxgodhosirhhkffqryw.supabase.co
 ```
 
-Ключевое:
-- `resolvers public_dns` + `init-addr none` на server-строке → HAProxy сам перезапрашивает A-записи Supabase каждые 30с, проблема с устаревшим IP уходит.
-- `option httpchk` + `check` → если апстрим мёртв, HAProxy быстро это видит и возвращает 503 (а не висит 5 минут).
-- `timeout server 60s` вместо 300s → клиенту быстрее становится понятно, что что-то не так.
-- `timeout tunnel 1h` → realtime/websocket не будут рваться.
-- Удалили `del-header Accept-Encoding`.
+## Что я подготовлю в репо (build-режим)
 
-### 2) Фронт-страховка от вечного спиннера (минимальные правки)
+Папка `deploy/fly-proxy/` со всем готовым к копированию:
+- `server.js` — последняя рабочая версия (IPv4-first DNS, raw-body, `/healthz`, `/__diag`, 30s timeout, аккуратный 502 с диагностикой).
+- `package.json` — fastify + undici, `"start": "node server.js"`.
+- `Dockerfile` — node:22-alpine, `PORT=8080`.
+- `fly.toml.example` — шаблон с `internal_port = 8080`, `force_https = true`, health-check на `/healthz`.
+- `.dockerignore` — чтобы не тащить лишнее.
+- `README.md` — короткая шпаргалка с командами ниже.
 
-Чтобы при будущих сбоях прокси не было белого экрана:
+## Пошаговая инструкция (для тебя, на Mac)
 
-- **`src/lib/authTimeout.ts`** — добавить универсальный хелпер `withTimeout(promise, ms)`.
-- **`src/components/PatientRoute.tsx`, `StaffRoute.tsx`, `SuperAdminRoute.tsx`, `AdminModuleRoute.tsx`** — обернуть запросы ролей в `withTimeout(5000)`. При таймауте — показать видимую плашку «Не удалось загрузить данные. Повторить?» вместо вечного спиннера. Не редиректить молча в `/profile` по сетевой ошибке.
-- **`src/pages/Index.tsx`** — `redirectByRole()` тоже в `withTimeout(3000)`; при таймауте fallback → `/dashboard`.
+### Шаг 1. Fly.io аккаунт (5 мин)
+1. https://fly.io → Sign up через GitHub.
+2. Billing → Add card (без карты deploy не пустит, hobby всё равно $0).
 
-Логика ролей и RLS не меняются. Это чистая UX-страховка.
+### Шаг 2. flyctl на Mac (3 мин)
+```bash
+brew install flyctl
+fly auth login
+```
 
-## Что НЕ трогаем
+### Шаг 3. Скопировать готовую папку (2 мин)
+1. Из репо после моего деплоя скачать папку `deploy/fly-proxy/` локально (любой способ: GitHub UI «Download», git pull, или просто скопировать 4 файла).
+2. В Terminal:
+   ```bash
+   cd ~/Downloads/fly-proxy   # или куда положил
+   ```
 
-- `Dockerfile`, `nginx-mini.conf`, `supabase/client.ts`, `.env` — не нужны.
-- Coolify-переменные — у тебя там всё правильно.
-- Caddyfile (если остался в репо) — отдельная задача почистить.
+### Шаг 4. fly launch без авто-деплоя (5 мин)
+```bash
+fly launch --no-deploy --name reage-test-proxy --region fra --copy-config
+```
+На вопросы:
+- Postgres → No
+- Redis → No
+- Tigris/Sentry → No
+
+`--copy-config` подхватит мой `fly.toml.example` (предварительно переименуй его в `fly.toml` или Fly сам предложит). Если Fly попросит пересоздать `fly.toml` — соглашайся, потом проверь что `internal_port = 8080`.
+
+### Шаг 5. Первый деплой (3 мин)
+```bash
+fly deploy
+fly status
+```
+Должно быть `running`. Логи: `fly logs`.
+
+### Шаг 6. Проверка на fly.dev (2 мин)
+Открыть в браузере:
+- `https://reage-test-proxy.fly.dev/healthz` → `{"ok":true}`
+- `https://reage-test-proxy.fly.dev/__diag` → JSON с успешным DNS и HTTPS к Supabase
+
+Если `__diag` показывает ошибку — стоп, разбираемся, дальше не идём.
+
+### Шаг 7. DNS в reg.ru (5 мин)
+В зоне `reage.life`:
+1. Удалить `A api-test → <IP VPS>`.
+2. Добавить `CNAME api-test → reage-test-proxy.fly.dev`, TTL `300`.
+3. Сохранить.
+
+### Шаг 8. SSL-сертификат на Fly (5–10 мин ожидания)
+**Порядок важен — сначала DNS, потом certs.**
+```bash
+fly certs add api-test.reage.life -a reage-test-proxy
+fly certs show api-test.reage.life -a reage-test-proxy
+```
+Ждать пока статус станет `Ready` (обычно 1–3 минуты после распространения DNS).
+
+### Шаг 9. Финальная проверка прокси (2 мин)
+- `https://api-test.reage.life/healthz` → `{"ok":true}`
+- `https://api-test.reage.life/__diag` → ok
+
+Если ok — прокси на Fly работает.
+
+### Шаг 10. Переключить фронт в Coolify (5 мин)
+В Coolify → проект `test.reage.life` → Environment:
+- Убедиться что:
+  ```
+  VITE_SUPABASE_URL=https://api-test.reage.life
+  ```
+  (без trailing slash, без `/supabase`)
+- Build Variable = ON.
+- Redeploy (это build-time переменная Vite, нужен полный пересбор).
+
+### Шаг 11. Проверка end-to-end (10 мин активно + сутки наблюдения)
+1. Открыть `https://test.reage.life`, DevTools → Network.
+2. Залогиниться. Проверить:
+   - `POST /auth/v1/token` → 200
+   - `GET /auth/v1/user` → 200
+   - `/rest/v1/*` → 200
+   - Все запросы < 500 мс, без 502/таймаутов.
+3. Покликать страницы, обновлять, выйти/войти.
+4. Сутки понаблюдать.
+
+### Шаг 12. Отключить старый прокси на VPS (после суток ok)
+В Coolify остановить контейнер старого прокси `api-test.reage.life`. VPS не удалять минимум неделю.
+
+## Откат (если что-то пойдёт не так)
+
+В reg.ru вернуть `A api-test → <IP VPS>` (TTL 300 → через 5 минут трафик снова идёт на старый прокси). В Coolify env вернуть прежнее значение `VITE_SUPABASE_URL` если оно отличалось и пересобрать. Ничего на Lovable/Supabase менять не нужно.
+
+## Стоимость
+
+Hobby plan Fly: 1 машина shared-cpu-1x@256MB + 160GB трафика бесплатно. Наш прокси в это укладывается с запасом. Реально $0.
 
 ## Технические заметки
 
-- HAProxy нужно **перезапустить** (не reload без `-W`), чтобы перечитать `resolvers`. В Coolify — пересоздать контейнер прокси.
-- `verify none` оставлен, потому что Cloudflare-серт всё равно валиден, но цепочку HAProxy без `ca-file` может не подтвердить. Если хочешь жёстко — добавь `ca-file /etc/ssl/certs/ca-certificates.crt verify required`.
-- После применения проверь `echo "show servers state" | socat - /var/run/haproxy.sock` (если включён admin socket) — увидишь, что `supabase` периодически перерезолвится.
+- Fly регион `fra` (Frankfurt) — короткий маршрут до AWS us-east-1 (Supabase) через магистрали EU, и Fly anycast даёт стабильный entry-point из RU.
+- `server.js` слушает `process.env.PORT || 8080` — Fly прокинет свой PORT автоматически.
+- Health-check в `fly.toml` на `/healthz` каждые 15с — если контейнер зависает, Fly перезапустит.
+- DNS Supabase резолвится `undici` свежим lookup на каждый коннект через Fly-резолверы — баг устаревших IP, как в HAProxy, здесь воспроизвести нельзя.
+- CORS в `server.js` уже настроен правильно (он же сейчас работает), отдельные правки не нужны.
 
-## Как проверить, что починилось
+## Что я делаю после approval
 
-1. Открыть `https://test.reage.life`, залогиниться → `/dashboard` грузится за ≤ 2с.
-2. DevTools → Network: запросы на `api-test.reage.life/auth/v1/user`, `/rest/v1/user_roles` отдают 200, time < 500мс.
-3. Перезапустить HAProxy → проверить, что после рестарта всё продолжает работать, и через 30+ минут (когда раньше IP «протухал») — тоже.
-4. Если что-то всё-таки моргнёт — фронт покажет плашку с «Повторить», а не белый экран.
+Создам только файлы в `deploy/fly-proxy/` (server.js, package.json, Dockerfile, fly.toml.example, .dockerignore, README.md). Никаких изменений в коде приложения, никаких миграций в БД, никаких правок Lovable env.
