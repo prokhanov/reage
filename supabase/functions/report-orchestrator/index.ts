@@ -43,13 +43,16 @@ type Job = {
   attempts: number;
 };
 
-const MAX_ATTEMPTS_DEFAULT = 2;
-const MAX_ATTEMPTS_CATEGORY = 3;
+// Единый бюджет ретраев для всех шагов (category / prescriptions / finalize).
+// Любой шаг может упереться в 504 IDLE_TIMEOUT — даём 3 попытки на каждый.
+const MAX_ATTEMPTS = 3;
 // Если у running-джобы updated_at старше этого порога — считаем «протухла» и можно стартовать новую.
 const STALE_RUNNING_THRESHOLD_MS = 90_000;
 
-function maxAttemptsFor(kind: StepDef["kind"]): number {
-  return kind === "category" ? MAX_ATTEMPTS_CATEGORY : MAX_ATTEMPTS_DEFAULT;
+function isIdleTimeoutError(err: string | null | undefined): boolean {
+  if (!err) return false;
+  const s = err.toLowerCase();
+  return s.includes("idle timeout") || s.includes("status=504") || s.includes("aborted") || s.includes("timeout");
 }
 
 serve(async (req) => {
@@ -310,27 +313,31 @@ async function handleTick(supabase: any, body: any) {
     return json({ success: true, step: step.id, done: newDone, total: j.steps.length });
   }
 
-  // Шаг упал — ретрай или фейл. Для category допускаем больше попыток,
-  // т.к. analyze-biomarkers иногда упирается в 150с IDLE_TIMEOUT Gemini.
-  const maxAttempts = maxAttemptsFor(step.kind);
+  // Шаг упал — ретрай или фейл. Единый бюджет MAX_ATTEMPTS для всех kind.
+  const idle = isIdleTimeoutError(stepError);
+  const markedError = idle ? `idle_timeout: ${stepError}` : stepError;
   const newAttempts = j.attempts + 1;
-  if (newAttempts < maxAttempts) {
-    console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${maxAttempts}): ${stepError}`);
+  if (newAttempts < MAX_ATTEMPTS) {
+    if (idle) {
+      console.warn(`[job ${j.id}] IDLE_TIMEOUT on step ${step.id} (kind=${step.kind}), retry ${newAttempts}/${MAX_ATTEMPTS}: ${stepError}`);
+    } else {
+      console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${MAX_ATTEMPTS}): ${stepError}`);
+    }
     await supabase.from("report_jobs").update({
       attempts: newAttempts,
-      error: stepError,
+      error: markedError,
     }).eq("id", j.id);
     scheduleTick(j.id, 2000); // короткая пауза перед ретраем
-    return json({ success: false, retrying: true, error: stepError });
+    return json({ success: false, retrying: true, error: markedError });
   }
 
-  console.error(`[job ${j.id}] step ${step.id} failed permanently: ${stepError}`);
+  console.error(`[job ${j.id}] step ${step.id} (kind=${step.kind}) failed permanently after ${MAX_ATTEMPTS} attempts: ${markedError}`);
   await supabase.from("report_jobs").update({
     status: "failed",
-    error: stepError,
+    error: markedError,
     finished_at: new Date().toISOString(),
   }).eq("id", j.id);
-  return json({ success: false, terminal: true, error: stepError });
+  return json({ success: false, terminal: true, error: markedError });
 }
 
 function scheduleTick(jobId: string, delayMs = 0) {
