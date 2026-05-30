@@ -233,13 +233,18 @@ async function handleTick(supabase: any, body: any) {
   }
 
   const step = j.steps[stepIdx];
-  console.log(`[job ${j.id}] running step ${stepIdx + 1}/${j.steps.length}: ${step.id} (attempt ${j.attempts + 1})`);
+  const attemptNo = j.attempts + 1;
+  console.log(
+    `[job ${j.id}] ▶ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" (id=${step.id}, kind=${step.kind}, attempt ${attemptNo}/${MAX_ATTEMPTS}, mode=${j.mode})`,
+  );
 
   await supabase.from("report_jobs").update({
     status: "running",
     current_step: step.id,
     attempts: j.attempts,
   }).eq("id", j.id);
+
+  const stepStartedAt = Date.now();
 
   let stepOk = false;
   let stepError: string | null = null;
@@ -298,9 +303,15 @@ async function handleTick(supabase: any, body: any) {
     stepError = e?.message ?? String(e);
   }
 
+  const stepDurationMs = Date.now() - stepStartedAt;
+  const stepDurationSec = (stepDurationMs / 1000).toFixed(1);
+
   if (stepOk) {
     const newDone = stepIdx + 1;
     const isLast = newDone >= j.steps.length;
+    console.log(
+      `[job ${j.id}] ✅ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" OK за ${stepDurationSec}s (attempt ${attemptNo}/${MAX_ATTEMPTS})${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
+    );
     await supabase.from("report_jobs").update({
       steps_done: newDone,
       attempts: 0,
@@ -312,17 +323,20 @@ async function handleTick(supabase: any, body: any) {
     if (!isLast) scheduleTick(j.id);
     return json({ success: true, step: step.id, done: newDone, total: j.steps.length });
   }
+  console.warn(
+    `[job ${j.id}] ❌ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" FAIL за ${stepDurationSec}s (attempt ${attemptNo}/${MAX_ATTEMPTS}): ${stepError}`,
+  );
+
 
   // Шаг упал — ретрай или фейл. Единый бюджет MAX_ATTEMPTS для всех kind.
   const idle = isIdleTimeoutError(stepError);
   const markedError = idle ? `idle_timeout: ${stepError}` : stepError;
   const newAttempts = j.attempts + 1;
   if (newAttempts < MAX_ATTEMPTS) {
-    if (idle) {
-      console.warn(`[job ${j.id}] IDLE_TIMEOUT on step ${step.id} (kind=${step.kind}), retry ${newAttempts}/${MAX_ATTEMPTS}: ${stepError}`);
-    } else {
-      console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${MAX_ATTEMPTS}): ${stepError}`);
-    }
+    const reason = idle ? "IDLE_TIMEOUT" : "ERROR";
+    console.warn(
+      `[job ${j.id}] 🔁 RETRY "${step.label}" (kind=${step.kind}, ${reason}) → попытка ${newAttempts + 1}/${MAX_ATTEMPTS} через 2s: ${stepError}`,
+    );
     await supabase.from("report_jobs").update({
       attempts: newAttempts,
       error: markedError,
@@ -331,7 +345,7 @@ async function handleTick(supabase: any, body: any) {
     return json({ success: false, retrying: true, error: markedError });
   }
 
-  console.error(`[job ${j.id}] step ${step.id} (kind=${step.kind}) failed permanently after ${MAX_ATTEMPTS} attempts: ${markedError}`);
+  console.error(`[job ${j.id}] 💀 STEP "${step.label}" (kind=${step.kind}) ПРОВАЛЕН после ${MAX_ATTEMPTS} попыток: ${markedError}`);
   await supabase.from("report_jobs").update({
     status: "failed",
     error: markedError,
