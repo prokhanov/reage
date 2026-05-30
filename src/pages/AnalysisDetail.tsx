@@ -391,6 +391,29 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     }
   };
 
+  const handleCancelGeneration = async () => {
+    if (!id || canceling) return;
+    if (!window.confirm("Прервать генерацию отчёта? Текущий шаг доработает в фоне, но дальше процесс остановится.")) {
+      return;
+    }
+    setCanceling(true);
+    try {
+      await supabase.functions.invoke("report-orchestrator", {
+        body: { action: "cancel", analysisId: id },
+      });
+      toast({ title: "Генерация прервана", description: "Можно перегенерировать отчёт заново." });
+    } catch (e: any) {
+      toast({
+        title: "Не удалось прервать",
+        description: e?.message || "Попробуйте ещё раз",
+        variant: "destructive",
+      });
+    } finally {
+      setCanceling(false);
+      setAnalyzing(false);
+    }
+  };
+
   const handleAnalyze = async (mode: "standard" | "deep" = "standard") => {
     if (values.length === 0) {
       toast({
