@@ -458,10 +458,15 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     const generationStartedAt = new Date();
     setAnalysisProgress({ current: 0, total: totalSteps, currentCategory: "", stage: "Подготовка данных..." });
     setAnalyzing(true);
+    console.log(`🚀 START analyze (mode=${mode}, analysisId=${id}, categories=${categories.length}, totalSteps=${totalSteps})`);
 
     // Polling прогресса напрямую из report_jobs — это точный источник истины
     // (steps_done/steps_total/current_step заполняются оркестратором).
     let pollingStopped = false;
+    let loggedJobId: string | null = null;
+    let prevStep = "";
+    let prevAttempts = -1;
+    let prevDone = -1;
     const stepLabelMap: Record<string, string> = {
       "prescriptions": "Подбор назначений и нутрицевтиков...",
       "finalize:summary": "Формирование общего резюме...",
@@ -473,7 +478,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       try {
         const { data: job } = await supabase
           .from("report_jobs")
-          .select("steps_done, steps_total, current_step, status")
+          .select("id, steps_done, steps_total, current_step, status, attempts, error")
           .eq("analysis_id", id!)
           .gte("updated_at", generationStartedAt.toISOString())
           .order("updated_at", { ascending: false })
@@ -482,6 +487,31 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
         if (!job) return;
         const cur = job.current_step || "";
+        const attempts = job.attempts ?? 0;
+        const done = job.steps_done ?? 0;
+        const total = job.steps_total || totalSteps;
+
+        if (job.id !== loggedJobId) {
+          console.log(`🆔 [report job ${job.id}] attached`);
+          loggedJobId = job.id;
+        }
+        if (cur !== prevStep) {
+          console.log(`▶ [report job ${job.id}] NEW STEP "${cur}" (${done}/${total})`);
+          prevStep = cur;
+        }
+        if (attempts !== prevAttempts || done !== prevDone) {
+          console.log(
+            `… [report job ${job.id}] step "${cur}" · ${done}/${total} · попытка ${attempts + 1}/3 · status=${job.status}${job.error ? ` · err=${job.error}` : ""}`,
+          );
+          prevAttempts = attempts;
+          prevDone = done;
+        }
+        if (job.status === "done") {
+          console.log(`✅ [report job ${job.id}] DONE`);
+        } else if (job.status === "failed") {
+          console.warn(`❌ [report job ${job.id}] FAILED: ${job.error ?? "—"}`);
+        }
+
         let stage = stepLabelMap[cur] || "";
         if (!stage && cur.startsWith("category:")) {
           stage = `Анализ: ${cur.replace(/^category:/, "")}...`;
@@ -489,13 +519,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         if (!stage) stage = "Идёт обработка...";
 
         setAnalysisProgress({
-          current: job.steps_done || 0,
-          total: job.steps_total || totalSteps,
+          current: done,
+          total,
           currentCategory: cur,
           stage,
         });
       } catch {}
     }, 2500);
+
 
     try {
       const data = await invokeAnalyzeBiomarkers({ analysisId: id!, mode });
