@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AuthBackground } from "@/components/AuthBackground";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { withTimeout } from "@/lib/authTimeout";
+import { clearLogoutInProgress, isLogoutRedirect } from "@/lib/authLogout";
 
 // Функция для определения посадочной страницы по ролям
 const getDefaultRouteForUser = async (userId: string): Promise<string> => {
@@ -57,49 +59,75 @@ export default function Auth() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const redirectAuthenticatedSession = useCallback(async (incomingSession: Session, source: string) => {
+    if (isLogoutRedirect(location.search)) {
+      console.info("[auth-debug] Auth redirect skipped after logout", { source });
+      setSession(null);
+      return;
+    }
+
+    const userCheck = await withTimeout(supabase.auth.getUser(), 2500);
+    const confirmedUser = userCheck.value?.data?.user;
+    if (userCheck.timedOut || userCheck.error || !confirmedUser) {
+      console.warn("[auth-debug] Auth stale session ignored", {
+        source,
+        timedOut: userCheck.timedOut,
+        hasError: !!userCheck.error,
+      });
+      setSession(null);
+      return;
+    }
+
+    setSession(incomingSession);
+    queryClient.invalidateQueries({ queryKey: ["userRole"] });
+
+    const from = (location.state as any)?.from?.pathname;
+    if (from && from !== "/auth") {
+      console.info("[auth-debug] Auth redirecting to previous route", { source, route: from });
+      navigate(from, { replace: true });
+      return;
+    }
+
+    const defaultRoute = await getDefaultRouteForUser(confirmedUser.id);
+    console.info("[auth-debug] Auth redirecting to default route", { source, route: defaultRoute });
+    navigate(defaultRoute, { replace: true });
+  }, [location, navigate, queryClient]);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setSession(session);
-        if (session) {
-          // Инвалидируем кеш ролей при логине
-          queryClient.invalidateQueries({ queryKey: ["userRole"] });
-          
-          // Определяем посадочную страницу после входа
-          setTimeout(async () => {
-            const from = (location.state as any)?.from?.pathname;
-            if (from && from !== "/auth") {
-              navigate(from, { replace: true });
-            } else {
-              const defaultRoute = await getDefaultRouteForUser(session.user.id);
-              navigate(defaultRoute, { replace: true });
-            }
-          }, 0);
+        console.info("[auth-debug] Auth state change", { event, hasSession: !!session });
+        if (!session) {
+          setSession(null);
+          return;
         }
+        setTimeout(() => {
+          redirectAuthenticatedSession(session, `auth-state:${event}`);
+        }, 0);
       }
     );
 
     // Check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        const from = (location.state as any)?.from?.pathname;
-        if (from && from !== "/auth") {
-          navigate(from, { replace: true });
-        } else {
-          const defaultRoute = await getDefaultRouteForUser(session.user.id);
-          navigate(defaultRoute, { replace: true });
-        }
+      console.info("[auth-debug] Auth getSession", { hasSession: !!session, logoutRedirect: isLogoutRedirect(location.search) });
+      if (!session) {
+        setSession(null);
+        return;
       }
+      await redirectAuthenticatedSession(session, "initial-getSession");
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, location]);
+  }, [location.search, redirectAuthenticatedSession]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    clearLogoutInProgress();
+    if (new URLSearchParams(location.search).get("logout") === "1") {
+      window.history.replaceState(null, "", "/auth");
+    }
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
