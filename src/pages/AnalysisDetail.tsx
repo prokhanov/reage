@@ -93,6 +93,30 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
     loadData();
   }, [id, isDemoAnalysis, demoLoading]);
 
+  // При маунте: если по этому анализу уже идёт генерация — подцепляемся к ней,
+  // вместо того чтобы дать пользователю кликнуть «Сгенерировать» и поднять каскад.
+  useEffect(() => {
+    if (!id || isDemoAnalysis) return;
+    let cancelled = false;
+    (async () => {
+      const { data: job } = await supabase
+        .from("report_jobs")
+        .select("id, status, updated_at")
+        .eq("analysis_id", id)
+        .in("status", ["queued", "running"])
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled || !job) return;
+      // Считаем job живой если updated_at свежее 2 минут — иначе он, скорее всего, мертв.
+      const ageMs = Date.now() - new Date(job.updated_at).getTime();
+      if (ageMs > 120_000) return;
+      if (!analyzing) handleAnalyze("standard");
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isDemoAnalysis]);
+
   useEffect(() => {
     // Auto-expand all categories on load
     const allCategories = [...new Set(values.map(v => v.biomarkers.category))];
