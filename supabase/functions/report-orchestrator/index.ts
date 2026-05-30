@@ -313,18 +313,22 @@ async function handleTick(supabase: any, body: any) {
     return json({ success: true, step: step.id, done: newDone, total: j.steps.length });
   }
 
-  // Шаг упал — ретрай или фейл. Для category допускаем больше попыток,
-  // т.к. analyze-biomarkers иногда упирается в 150с IDLE_TIMEOUT Gemini.
-  const maxAttempts = maxAttemptsFor(step.kind);
+  // Шаг упал — ретрай или фейл. Единый бюджет MAX_ATTEMPTS для всех kind.
+  const idle = isIdleTimeoutError(stepError);
+  const markedError = idle ? `idle_timeout: ${stepError}` : stepError;
   const newAttempts = j.attempts + 1;
-  if (newAttempts < maxAttempts) {
-    console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${maxAttempts}): ${stepError}`);
+  if (newAttempts < MAX_ATTEMPTS) {
+    if (idle) {
+      console.warn(`[job ${j.id}] IDLE_TIMEOUT on step ${step.id} (kind=${step.kind}), retry ${newAttempts}/${MAX_ATTEMPTS}: ${stepError}`);
+    } else {
+      console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${MAX_ATTEMPTS}): ${stepError}`);
+    }
     await supabase.from("report_jobs").update({
       attempts: newAttempts,
-      error: stepError,
+      error: markedError,
     }).eq("id", j.id);
     scheduleTick(j.id, 2000); // короткая пауза перед ретраем
-    return json({ success: false, retrying: true, error: stepError });
+    return json({ success: false, retrying: true, error: markedError });
   }
 
   console.error(`[job ${j.id}] step ${step.id} failed permanently: ${stepError}`);
