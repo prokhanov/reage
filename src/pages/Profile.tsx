@@ -19,6 +19,7 @@ import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Profile {
   name: string;
