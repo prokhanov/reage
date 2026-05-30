@@ -424,6 +424,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       return;
     }
     setCanceling(true);
+    console.log(`🛑 CANCEL requested for analysisId=${id}`);
     try {
       await supabase.functions.invoke("report-orchestrator", {
         body: { action: "cancel", analysisId: id },
