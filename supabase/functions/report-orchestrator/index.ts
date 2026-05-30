@@ -76,6 +76,9 @@ serve(async (req) => {
     if (action === "status") {
       return await handleStatus(supabase, body);
     }
+    if (action === "cancel") {
+      return await handleCancel(supabase, body);
+    }
     return json({ success: false, error: `Unknown action: ${action}` }, 400);
   } catch (e: any) {
     console.error("orchestrator error:", e);
