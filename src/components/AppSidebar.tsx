@@ -86,10 +86,19 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      // Local scope guarantees localStorage cleanup even if the server session is already invalid
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error && !/session|missing|not found/i.test(error.message)) {
+        console.warn("[logout] signOut error (ignored):", error);
+      }
+    } catch (e) {
+      console.warn("[logout] signOut threw (ignored):", e);
+    }
     queryClient.clear();
     toast({ title: "Вы вышли из системы" });
-    navigate("/auth", { replace: true });
+    // Hard reload to fully reset React Router + in-memory auth state and break any redirect loop
+    window.location.replace("/auth");
   };
 
   const handleExitViewMode = () => {
