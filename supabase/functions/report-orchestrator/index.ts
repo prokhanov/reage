@@ -43,7 +43,14 @@ type Job = {
   attempts: number;
 };
 
-const MAX_ATTEMPTS = 2;
+const MAX_ATTEMPTS_DEFAULT = 2;
+const MAX_ATTEMPTS_CATEGORY = 3;
+// Если у running-джобы updated_at старше этого порога — считаем «протухла» и можно стартовать новую.
+const STALE_RUNNING_THRESHOLD_MS = 90_000;
+
+function maxAttemptsFor(kind: StepDef["kind"]): number {
+  return kind === "category" ? MAX_ATTEMPTS_CATEGORY : MAX_ATTEMPTS_DEFAULT;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
