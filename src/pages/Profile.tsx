@@ -149,10 +149,11 @@ export default function Profile() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    queryClient.clear();
     toast({
       title: "Вы вышли из системы",
     });
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   const getAge = () => {
