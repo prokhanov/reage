@@ -344,6 +344,16 @@ async function handleTick(supabase: any, body: any) {
   const stepDurationMs = Date.now() - stepStartedAt;
   const stepDurationSec = (stepDurationMs / 1000).toFixed(1);
 
+  // Перед тем как писать результат, перепроверяем, не отменил ли пользователь джобу
+  // пока мы висели на длинном HTTP-вызове. Если да — не перезаписываем status.
+  const { data: freshStatus } = await supabase
+    .from("report_jobs").select("status, error").eq("id", j.id).maybeSingle();
+  if (freshStatus?.status === "failed" || freshStatus?.status === "done") {
+    console.log(`[job ${j.id}] ⏭ STEP "${step.label}" завершился за ${stepDurationSec}s, но job уже ${freshStatus.status} (${freshStatus.error ?? "—"}). Результат игнорируем.`);
+    return json({ success: true, terminal: true, status: freshStatus.status });
+  }
+
+
   if (stepOk) {
     const newDone = stepIdx + 1;
     const isLast = newDone >= j.steps.length;
