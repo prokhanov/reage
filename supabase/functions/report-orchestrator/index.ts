@@ -43,13 +43,16 @@ type Job = {
   attempts: number;
 };
 
-const MAX_ATTEMPTS_DEFAULT = 2;
-const MAX_ATTEMPTS_CATEGORY = 3;
+// Единый бюджет ретраев для всех шагов (category / prescriptions / finalize).
+// Любой шаг может упереться в 504 IDLE_TIMEOUT — даём 3 попытки на каждый.
+const MAX_ATTEMPTS = 3;
 // Если у running-джобы updated_at старше этого порога — считаем «протухла» и можно стартовать новую.
 const STALE_RUNNING_THRESHOLD_MS = 90_000;
 
-function maxAttemptsFor(kind: StepDef["kind"]): number {
-  return kind === "category" ? MAX_ATTEMPTS_CATEGORY : MAX_ATTEMPTS_DEFAULT;
+function isIdleTimeoutError(err: string | null | undefined): boolean {
+  if (!err) return false;
+  const s = err.toLowerCase();
+  return s.includes("idle timeout") || s.includes("status=504") || s.includes("aborted") || s.includes("timeout");
 }
 
 serve(async (req) => {
