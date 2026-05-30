@@ -33,7 +33,7 @@ export function PatientRoute({ children }: PatientRouteProps) {
     }
     const user = userRes.value?.data.user;
     if (!user) {
-      setState("denied");
+      setState("unauthenticated");
       return;
     }
 
