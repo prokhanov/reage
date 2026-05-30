@@ -41,7 +41,7 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
     }
     const user = userRes.value?.data.user;
     if (!user) {
-      setState("denied");
+      setState("unauthenticated");
       return;
     }
 
