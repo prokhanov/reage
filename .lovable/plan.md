@@ -1,43 +1,42 @@
 ## Проблема
 
-После «Выход» Алину (роль `patient`) выкидывает на `/profile`, страница не грузит данные — вместо чистого выхода на лендинг/логин.
+После «Выход» пользователя крутит в петле `/dashboard ↔ /profile` (видно на `test.reage`).
 
-## Причина
+## Причина (после предыдущего фикса)
 
-Гонка после `signOut()`:
+Гонка сохранилась, потому что `handleLogout` ведёт на `/`, а `Index.tsx` имеет роль‑роутер: если `getSession()` мгновенно вернул ещё не очищенную локальную сессию (или ушёл в таймаут с фоновой проверкой), Index делает `navigate("/dashboard")`. Дальше:
 
-1. `AppSidebar.handleLogout` зовёт `signOut()` и потом `navigate("/")`.
-2. На `/` рендерится `Index.tsx`. У него ещё может быть закешированная сессия (или `getSessionWithTimeout` падает в таймаут) → срабатывает `redirectByRole` → `navigate("/dashboard")`.
-3. `/dashboard` обёрнут в `<PatientRoute>`. Тот зовёт `supabase.auth.getUser()`, получает `user = null` → ставит `state = "denied"` → **`<Navigate to="/profile" replace />`**.
-4. `/profile` сам по себе живёт под `ProtectedRoute`, но из‑за тех же таймаутов/гонок успевает отрендериться раньше, чем `ProtectedRoute` отправит на `/auth`. В итоге пользователь видит пустой `/profile` с 403 `session_not_found` в сети (видно в auth‑логах для `reage.lovable.app`).
+- `/dashboard` рендерит `<PatientRoute>` (внутри `<ProtectedRoute>`). При null‑сессии `ProtectedRoute` асинхронно отправит на `/auth`, но `PatientRoute` уже успевает побежать к `getUser()` и при пустом юзере (фикс ранее) уходит на `/auth` — а до этого мог моргнуть и `/profile`.
+- В реальности пользователь видит мигание `/dashboard` → `/profile` → `/dashboard` → …
 
-То же самое поведение в `StaffRoute` и `AdminModuleRoute` — при отсутствии пользователя они тоже редиректят на `/profile`, что усиливает петлю.
+Корень проблемы — то, что выход маршрутизируется через `Index`, у которого нет защиты от устаревшего кэша сессии.
 
-На `reage.life` (apex) тайминги/куки складываются иначе, и `ProtectedRoute` успевает первым → лендинг/логин. На `test.reage` (preview) — нет.
+## Что меняем (только фронт)
 
-## Что меняем (только фронт, без бизнес‑логики)
+### 1. `src/components/AppSidebar.tsx` — `handleLogout`
+- Навигировать сразу на `/auth`, минуя `Index` и его роль‑роутер:
+  ```ts
+  await supabase.auth.signOut();
+  queryClient.clear();
+  toast({ title: "Вы вышли из системы" });
+  navigate("/auth", { replace: true });
+  ```
 
-### 1. `src/components/PatientRoute.tsx`
-- Если `user === null` (не залогинен) — возвращать `<Navigate to="/auth" replace />` вместо «denied → /profile».
-- «denied» (залогинен, но не пациент) оставить как есть → `/profile`.
+### 2. `src/pages/Profile.tsx` — `handleLogout`
+- То же: `navigate("/auth", { replace: true })` после `signOut + queryClient.clear`.
 
-### 2. `src/components/StaffRoute.tsx`
-- Аналогично: при `user === null` → `<Navigate to="/auth" replace />`.
+### 3. `src/pages/RegisterStaff.tsx` — `signOut`
+- Если используется как «выход» из staff‑регистрации с переходом на главную, оставить как было; здесь ничего не трогаем (вне сценария жалобы).
 
-### 3. `src/components/AdminModuleRoute.tsx`
-- Аналогично: при `user === null` → `<Navigate to="/auth" replace />`.
-
-### 4. `src/components/AppSidebar.tsx` — `handleLogout`
-- После `await supabase.auth.signOut()` дополнительно:
-  - `queryClient.clear()` (а не только invalidate `userRole`) — чтобы кеши не тянули стейл‑данные на следующей странице.
-  - `navigate("/", { replace: true })` — заменяем историю, чтобы «Назад» не возвращал в защищённую зону.
-- Тот же блок применить в `src/pages/Profile.tsx` `handleLogout` (там тоже `signOut` + `navigate("/")`).
+### 4. `src/pages/Index.tsx` — защита от стейл‑сессии (страховка)
+- В `redirectByRole` перед навигацией выполнить дополнительную проверку `supabase.auth.getUser()`; если `user === null` — остаться на лендинге, не редиректить на `/dashboard`.
+- Это убирает риск повторного попадания в защищённую зону при любых будущих сценариях, где logout проходит через `/`.
 
 ## Что НЕ трогаем
 
-- `ProtectedRoute`, `Index.tsx`, генерацию отчётов, бэкенд, edge‑функции — без изменений.
-- Логика «denied для не‑пациента → /profile» остаётся: это валидный кейс (залогинен под другой ролью).
+- `PatientRoute / StaffRoute / AdminModuleRoute` — уже исправлены в прошлой итерации (unauth → `/auth`).
+- `ProtectedRoute`, edge‑функции, бэкенд, пайплайн отчётов.
 
 ## Результат
 
-После «Выход» пользователь всегда попадает на `/` (лендинг) или `/auth`, без промежуточного пустого `/profile` с 403‑ошибками.
+После «Выход» пользователь сразу попадает на `/auth` без промежуточных `/dashboard` и `/profile` и без миганий.
