@@ -86,10 +86,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
 
   const handleLogout = async () => {
-    queryClient.invalidateQueries({ queryKey: ["userRole"] });
     await supabase.auth.signOut();
+    queryClient.clear();
     toast({ title: "Вы вышли из системы" });
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   const handleExitViewMode = () => {

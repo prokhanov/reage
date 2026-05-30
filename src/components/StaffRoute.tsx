@@ -9,7 +9,7 @@ interface StaffRouteProps {
   children: React.ReactNode;
 }
 
-type CheckState = "loading" | "allowed" | "denied" | "error";
+type CheckState = "loading" | "allowed" | "denied" | "unauthenticated" | "error";
 
 export function StaffRoute({ children }: StaffRouteProps) {
   const [state, setState] = useState<CheckState>("loading");
@@ -33,7 +33,7 @@ export function StaffRoute({ children }: StaffRouteProps) {
     }
     const user = userRes.value?.data.user;
     if (!user) {
-      setState("denied");
+      setState("unauthenticated");
       return;
     }
 
@@ -78,6 +78,10 @@ export function StaffRoute({ children }: StaffRouteProps) {
 
   if (state === "error") {
     return <RouteCheckError onRetry={checkStaffRole} devDetails={errorDetails} />;
+  }
+
+  if (state === "unauthenticated") {
+    return <Navigate to="/auth" replace />;
   }
 
   if (state === "denied") {

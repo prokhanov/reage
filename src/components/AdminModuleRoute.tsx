@@ -13,7 +13,7 @@ interface AdminModuleRouteProps {
   module: AdminModule;
 }
 
-type CheckState = "loading" | "allowed" | "denied" | "error";
+type CheckState = "loading" | "allowed" | "denied" | "unauthenticated" | "error";
 
 export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
   const [state, setState] = useState<CheckState>("loading");
@@ -41,7 +41,7 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
     }
     const user = userRes.value?.data.user;
     if (!user) {
-      setState("denied");
+      setState("unauthenticated");
       return;
     }
 
@@ -142,6 +142,10 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
 
   if (state === "error") {
     return <RouteCheckError onRetry={checkModuleAccess} devDetails={errorDetails} />;
+  }
+
+  if (state === "unauthenticated") {
+    return <Navigate to="/auth" replace />;
   }
 
   if (state === "denied") {

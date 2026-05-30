@@ -19,6 +19,7 @@ import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Profile {
   name: string;
@@ -48,6 +49,7 @@ export default function Profile() {
   const [hasAnalyses, setHasAnalyses] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     loadProfile();
@@ -147,10 +149,11 @@ export default function Profile() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    queryClient.clear();
     toast({
       title: "Вы вышли из системы",
     });
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   const getAge = () => {
