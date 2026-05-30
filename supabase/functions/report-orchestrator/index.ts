@@ -345,7 +345,7 @@ async function handleTick(supabase: any, body: any) {
     return json({ success: false, retrying: true, error: markedError });
   }
 
-  console.error(`[job ${j.id}] step ${step.id} (kind=${step.kind}) failed permanently after ${MAX_ATTEMPTS} attempts: ${markedError}`);
+  console.error(`[job ${j.id}] 💀 STEP "${step.label}" (kind=${step.kind}) ПРОВАЛЕН после ${MAX_ATTEMPTS} попыток: ${markedError}`);
   await supabase.from("report_jobs").update({
     status: "failed",
     error: markedError,
