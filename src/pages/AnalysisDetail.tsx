@@ -95,28 +95,78 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }, [id, isDemoAnalysis, demoLoading]);
 
   // При маунте: если по этому анализу уже идёт генерация — подцепляемся к ней,
-  // вместо того чтобы дать пользователю кликнуть «Сгенерировать» и поднять каскад.
+  // показываем диалог прогресса и ждём финал, не запуская новый job.
   useEffect(() => {
     if (!id || isDemoAnalysis) return;
     let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
     (async () => {
       const { data: job } = await supabase
         .from("report_jobs")
-        .select("id, status, updated_at")
+        .select("id, status, updated_at, steps_total, steps_done, current_step, mode")
         .eq("analysis_id", id)
         .in("status", ["queued", "running"])
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (cancelled || !job) return;
-      // Считаем job живой если updated_at свежее 2 минут — иначе он, скорее всего, мертв.
+      // Окно «свежести» — 10 минут (deep-режим может молчать между ретраями).
       const ageMs = Date.now() - new Date(job.updated_at).getTime();
-      if (ageMs > 120_000) return;
-      if (!analyzing) handleAnalyze("standard");
+      if (ageMs > 10 * 60_000) return;
+      if (analyzing) return;
+
+      const totalSteps = job.steps_total || 7;
+      setAnalysisProgress({
+        current: job.steps_done || 0,
+        total: totalSteps,
+        currentCategory: job.current_step || "",
+        stage: "Восстанавливаем прогресс генерации...",
+      });
+      setAnalyzing(true);
+
+      const stepLabelMap: Record<string, string> = {
+        prescriptions: "Подбор назначений и нутрицевтиков...",
+        "finalize:summary": "Формирование общего резюме...",
+        "finalize:bioage": "Расчёт биологического возраста...",
+      };
+
+      interval = setInterval(async () => {
+        if (cancelled) return;
+        const { data: j } = await supabase
+          .from("report_jobs")
+          .select("steps_done, steps_total, current_step, status")
+          .eq("id", job.id)
+          .maybeSingle();
+        if (!j) return;
+        const cur = j.current_step || "";
+        let stage = stepLabelMap[cur] || "";
+        if (!stage && cur.startsWith("category:")) stage = `Анализ: ${cur.replace(/^category:/, "")}...`;
+        if (!stage) stage = j.status === "running" ? "Идёт обработка..." : "Ожидание...";
+        setAnalysisProgress({
+          current: j.steps_done || 0,
+          total: j.steps_total || totalSteps,
+          currentCategory: cur,
+          stage,
+        });
+        if (j.status === "done" || j.status === "failed") {
+          if (interval) clearInterval(interval);
+          setAnalyzing(false);
+          if (j.status === "done") {
+            toast({ title: "Отчёт готов", description: "Генерация завершена." });
+            loadData();
+            setEditReportAnalysisId(id || null);
+            setShowEditReport(true);
+          }
+        }
+      }, 2500);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isDemoAnalysis]);
+
 
   useEffect(() => {
     // Auto-expand all categories on load
