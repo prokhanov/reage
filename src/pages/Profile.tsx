@@ -153,7 +153,7 @@ export default function Profile() {
     toast({
       title: "Вы вышли из системы",
     });
-    navigate("/", { replace: true });
+    navigate("/auth", { replace: true });
   };
 
   const getAge = () => {
