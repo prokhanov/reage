@@ -214,6 +214,41 @@ async function handleStatus(supabase: any, body: any) {
   return json({ success: true, job: data });
 }
 
+async function handleCancel(supabase: any, body: any) {
+  const { jobId, analysisId } = body;
+  if (!jobId && !analysisId) {
+    return json({ success: false, error: "jobId или analysisId обязателен" }, 400);
+  }
+
+  let q = supabase
+    .from("report_jobs")
+    .select("id, status")
+    .in("status", ["queued", "running"])
+    .order("updated_at", { ascending: false })
+    .limit(1);
+  if (jobId) q = q.eq("id", jobId);
+  else q = q.eq("analysis_id", analysisId);
+
+  const { data: job, error } = await q.maybeSingle();
+  if (error) throw error;
+  if (!job) {
+    return json({ success: true, canceled: false, message: "Активной генерации не найдено" });
+  }
+
+  await supabase
+    .from("report_jobs")
+    .update({
+      status: "failed",
+      error: "canceled_by_user",
+      finished_at: new Date().toISOString(),
+      current_step: null,
+    })
+    .eq("id", job.id);
+
+  console.log(`[job ${job.id}] 🛑 CANCELED by user`);
+  return json({ success: true, canceled: true, jobId: job.id });
+}
+
 async function handleTick(supabase: any, body: any) {
   const { jobId } = body;
   if (!jobId) return json({ success: false, error: "jobId обязателен" }, 400);
