@@ -89,7 +89,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     await supabase.auth.signOut();
     queryClient.clear();
     toast({ title: "Вы вышли из системы" });
-    navigate("/", { replace: true });
+    navigate("/auth", { replace: true });
   };
 
   const handleExitViewMode = () => {

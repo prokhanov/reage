@@ -60,6 +60,14 @@ const Index = () => {
   };
 
   const redirectByRole = async (userId: string) => {
+    // Страховка от stale-сессии после logout: подтверждаем юзера через getUser().
+    // Если сервер говорит, что сессии нет — остаёмся на лендинге.
+    const userCheck = await withTimeout(supabase.auth.getUser(), 2000);
+    if (userCheck.timedOut || userCheck.error || !userCheck.value?.data?.user) {
+      console.warn("[Index] redirectByRole: user не подтверждён, остаёмся на лендинге");
+      return;
+    }
+
     // Если backend/прокси завис — не блокируем редирект, отправляем на /dashboard,
     // там уже ProtectedRoute/PatientRoute сами разберутся (с таймаутом и retry).
     const rolesRes = await withTimeout(
