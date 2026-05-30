@@ -60,7 +60,7 @@ export default function Auth() {
   const queryClient = useQueryClient();
 
   const redirectAuthenticatedSession = useCallback(async (incomingSession: Session, source: string) => {
-    if (isLogoutRedirect(location.search)) {
+    if (isLogoutRedirect()) {
       console.info("[auth-debug] Auth redirect skipped after logout", { source });
       setSession(null);
       return;
@@ -110,7 +110,7 @@ export default function Auth() {
 
     // Check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.info("[auth-debug] Auth getSession", { hasSession: !!session, logoutRedirect: isLogoutRedirect(location.search) });
+      console.info("[auth-debug] Auth getSession", { hasSession: !!session, logoutRedirect: isLogoutRedirect() });
       if (!session) {
         setSession(null);
         return;
@@ -119,7 +119,7 @@ export default function Auth() {
     });
 
     return () => subscription.unsubscribe();
-  }, [location.search, redirectAuthenticatedSession]);
+  }, [redirectAuthenticatedSession]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
