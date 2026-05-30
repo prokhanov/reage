@@ -13,7 +13,7 @@ interface AdminModuleRouteProps {
   module: AdminModule;
 }
 
-type CheckState = "loading" | "allowed" | "denied" | "error";
+type CheckState = "loading" | "allowed" | "denied" | "unauthenticated" | "error";
 
 export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
   const [state, setState] = useState<CheckState>("loading");
