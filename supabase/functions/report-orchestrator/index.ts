@@ -233,13 +233,18 @@ async function handleTick(supabase: any, body: any) {
   }
 
   const step = j.steps[stepIdx];
-  console.log(`[job ${j.id}] running step ${stepIdx + 1}/${j.steps.length}: ${step.id} (attempt ${j.attempts + 1})`);
+  const attemptNo = j.attempts + 1;
+  console.log(
+    `[job ${j.id}] ▶ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" (id=${step.id}, kind=${step.kind}, attempt ${attemptNo}/${MAX_ATTEMPTS}, mode=${j.mode})`,
+  );
 
   await supabase.from("report_jobs").update({
     status: "running",
     current_step: step.id,
     attempts: j.attempts,
   }).eq("id", j.id);
+
+  const stepStartedAt = Date.now();
 
   let stepOk = false;
   let stepError: string | null = null;
