@@ -331,13 +331,13 @@ async function handleTick(supabase: any, body: any) {
     return json({ success: false, retrying: true, error: markedError });
   }
 
-  console.error(`[job ${j.id}] step ${step.id} failed permanently: ${stepError}`);
+  console.error(`[job ${j.id}] step ${step.id} (kind=${step.kind}) failed permanently after ${MAX_ATTEMPTS} attempts: ${markedError}`);
   await supabase.from("report_jobs").update({
     status: "failed",
-    error: stepError,
+    error: markedError,
     finished_at: new Date().toISOString(),
   }).eq("id", j.id);
-  return json({ success: false, terminal: true, error: stepError });
+  return json({ success: false, terminal: true, error: markedError });
 }
 
 function scheduleTick(jobId: string, delayMs = 0) {
