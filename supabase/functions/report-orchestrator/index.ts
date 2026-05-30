@@ -310,10 +310,12 @@ async function handleTick(supabase: any, body: any) {
     return json({ success: true, step: step.id, done: newDone, total: j.steps.length });
   }
 
-  // Шаг упал — ретрай или фейл
+  // Шаг упал — ретрай или фейл. Для category допускаем больше попыток,
+  // т.к. analyze-biomarkers иногда упирается в 150с IDLE_TIMEOUT Gemini.
+  const maxAttempts = maxAttemptsFor(step.kind);
   const newAttempts = j.attempts + 1;
-  if (newAttempts < MAX_ATTEMPTS) {
-    console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${MAX_ATTEMPTS}): ${stepError}`);
+  if (newAttempts < maxAttempts) {
+    console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${maxAttempts}): ${stepError}`);
     await supabase.from("report_jobs").update({
       attempts: newAttempts,
       error: stepError,
