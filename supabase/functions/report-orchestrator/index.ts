@@ -303,9 +303,15 @@ async function handleTick(supabase: any, body: any) {
     stepError = e?.message ?? String(e);
   }
 
+  const stepDurationMs = Date.now() - stepStartedAt;
+  const stepDurationSec = (stepDurationMs / 1000).toFixed(1);
+
   if (stepOk) {
     const newDone = stepIdx + 1;
     const isLast = newDone >= j.steps.length;
+    console.log(
+      `[job ${j.id}] ✅ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" OK за ${stepDurationSec}s (attempt ${attemptNo}/${MAX_ATTEMPTS})${isLast ? " — отчёт готов" : ` → next "${j.steps[newDone].label}"`}`,
+    );
     await supabase.from("report_jobs").update({
       steps_done: newDone,
       attempts: 0,
@@ -317,6 +323,10 @@ async function handleTick(supabase: any, body: any) {
     if (!isLast) scheduleTick(j.id);
     return json({ success: true, step: step.id, done: newDone, total: j.steps.length });
   }
+  console.warn(
+    `[job ${j.id}] ❌ STEP ${stepIdx + 1}/${j.steps.length} "${step.label}" FAIL за ${stepDurationSec}s (attempt ${attemptNo}/${MAX_ATTEMPTS}): ${stepError}`,
+  );
+
 
   // Шаг упал — ретрай или фейл. Единый бюджет MAX_ATTEMPTS для всех kind.
   const idle = isIdleTimeoutError(stepError);
