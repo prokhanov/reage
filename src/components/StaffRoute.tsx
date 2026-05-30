@@ -9,7 +9,7 @@ interface StaffRouteProps {
   children: React.ReactNode;
 }
 
-type CheckState = "loading" | "allowed" | "denied" | "error";
+type CheckState = "loading" | "allowed" | "denied" | "unauthenticated" | "error";
 
 export function StaffRoute({ children }: StaffRouteProps) {
   const [state, setState] = useState<CheckState>("loading");
