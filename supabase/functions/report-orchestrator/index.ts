@@ -92,11 +92,38 @@ async function handleStart(supabase: any, body: any) {
   const mode: "standard" | "deep" = body.mode === "deep" ? "deep" : "standard";
   if (!analysisId || !userId) return json({ success: false, error: "analysisId и userId обязательны" }, 400);
 
-  // Гасим предыдущие активные джобы по этому анализу (на случай ретраев)
-  await supabase.from("report_jobs")
-    .update({ status: "failed", error: "superseded", finished_at: new Date().toISOString() })
+  // Идемпотентность: если уже есть свежий running-job для этого анализа —
+  // подцепляемся к нему вместо создания нового. Каскад «superseded» при
+  // повторных кликах ломал генерацию (см. инциденты 30.05.2026).
+  const { data: existing } = await supabase
+    .from("report_jobs")
+    .select("id, status, updated_at, steps_total")
     .eq("analysis_id", analysisId)
-    .in("status", ["queued", "running"]);
+    .in("status", ["queued", "running"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    const updatedAt = existing.updated_at ? new Date(existing.updated_at).getTime() : 0;
+    const ageMs = Date.now() - updatedAt;
+    if (ageMs < STALE_RUNNING_THRESHOLD_MS) {
+      console.log(`[start] attach to existing running job ${existing.id} (age ${Math.round(ageMs / 1000)}s)`);
+      // Перетыкаем tick на всякий случай — если предыдущий планировщик умер, восстановит ход.
+      scheduleTick(existing.id);
+      return json({
+        success: true,
+        jobId: existing.id,
+        steps_total: existing.steps_total,
+        attached: true,
+      });
+    }
+    // Иначе — старый job завис, помечаем failed и стартуем новый.
+    console.warn(`[start] existing job ${existing.id} is stale (age ${Math.round(ageMs / 1000)}s), marking failed`);
+    await supabase.from("report_jobs")
+      .update({ status: "failed", error: "stalled", finished_at: new Date().toISOString() })
+      .eq("id", existing.id);
+  }
 
   // Загружаем актуальный список категорий из БД, отсортированный по display_order
   const { data: cats, error: catsErr } = await supabase
