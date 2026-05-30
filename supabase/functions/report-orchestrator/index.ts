@@ -333,11 +333,10 @@ async function handleTick(supabase: any, body: any) {
   const markedError = idle ? `idle_timeout: ${stepError}` : stepError;
   const newAttempts = j.attempts + 1;
   if (newAttempts < MAX_ATTEMPTS) {
-    if (idle) {
-      console.warn(`[job ${j.id}] IDLE_TIMEOUT on step ${step.id} (kind=${step.kind}), retry ${newAttempts}/${MAX_ATTEMPTS}: ${stepError}`);
-    } else {
-      console.warn(`[job ${j.id}] step ${step.id} failed, retrying (${newAttempts}/${MAX_ATTEMPTS}): ${stepError}`);
-    }
+    const reason = idle ? "IDLE_TIMEOUT" : "ERROR";
+    console.warn(
+      `[job ${j.id}] 🔁 RETRY "${step.label}" (kind=${step.kind}, ${reason}) → попытка ${newAttempts + 1}/${MAX_ATTEMPTS} через 2s: ${stepError}`,
+    );
     await supabase.from("report_jobs").update({
       attempts: newAttempts,
       error: markedError,
