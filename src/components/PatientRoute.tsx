@@ -80,6 +80,10 @@ export function PatientRoute({ children }: PatientRouteProps) {
     return <RouteCheckError onRetry={checkPatientRole} devDetails={errorDetails} />;
   }
 
+  if (state === "unauthenticated") {
+    return <Navigate to="/auth" replace />;
+  }
+
   if (state === "denied") {
     return <Navigate to="/profile" replace />;
   }
