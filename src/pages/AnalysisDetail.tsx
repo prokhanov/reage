@@ -116,6 +116,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       if (analyzing) return;
 
       const totalSteps = job.steps_total || 7;
+      console.log(
+        `🔄 [report job ${job.id}] RESUME · step ${job.steps_done ?? 0}/${totalSteps} · current="${job.current_step ?? ""}" · status=${job.status} · mode=${job.mode}`,
+      );
       setAnalysisProgress({
         current: job.steps_done || 0,
         total: totalSteps,
@@ -130,21 +133,41 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         "finalize:bioage": "Расчёт биологического возраста...",
       };
 
+      let prevStep = job.current_step ?? "";
+      let prevAttempts = -1;
+      let prevDone = job.steps_done ?? -1;
+
       interval = setInterval(async () => {
         if (cancelled) return;
         const { data: j } = await supabase
           .from("report_jobs")
-          .select("steps_done, steps_total, current_step, status")
+          .select("steps_done, steps_total, current_step, status, attempts, error")
           .eq("id", job.id)
           .maybeSingle();
         if (!j) return;
         const cur = j.current_step || "";
+        const attempts = j.attempts ?? 0;
+        const done = j.steps_done ?? 0;
+        const total = j.steps_total || totalSteps;
+
+        if (cur !== prevStep) {
+          console.log(`▶ [report job ${job.id}] NEW STEP "${cur}" (${done}/${total})`);
+          prevStep = cur;
+        }
+        if (attempts !== prevAttempts || done !== prevDone) {
+          console.log(
+            `… [report job ${job.id}] step "${cur}" · ${done}/${total} · попытка ${attempts + 1}/3 · status=${j.status}${j.error ? ` · err=${j.error}` : ""}`,
+          );
+          prevAttempts = attempts;
+          prevDone = done;
+        }
+
         let stage = stepLabelMap[cur] || "";
         if (!stage && cur.startsWith("category:")) stage = `Анализ: ${cur.replace(/^category:/, "")}...`;
         if (!stage) stage = j.status === "running" ? "Идёт обработка..." : "Ожидание...";
         setAnalysisProgress({
-          current: j.steps_done || 0,
-          total: j.steps_total || totalSteps,
+          current: done,
+          total,
           currentCategory: cur,
           stage,
         });
@@ -152,13 +175,17 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           if (interval) clearInterval(interval);
           setAnalyzing(false);
           if (j.status === "done") {
+            console.log(`✅ [report job ${job.id}] DONE`);
             toast({ title: "Отчёт готов", description: "Генерация завершена." });
             loadData();
             setEditReportAnalysisId(id || null);
             setShowEditReport(true);
+          } else {
+            console.warn(`❌ [report job ${job.id}] FAILED: ${j.error ?? "—"}`);
           }
         }
       }, 2500);
+
     })();
     return () => {
       cancelled = true;
