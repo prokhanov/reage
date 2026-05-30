@@ -9,7 +9,7 @@ interface PatientRouteProps {
   children: React.ReactNode;
 }
 
-type CheckState = "loading" | "allowed" | "denied" | "error";
+type CheckState = "loading" | "allowed" | "denied" | "unauthenticated" | "error";
 
 export function PatientRoute({ children }: PatientRouteProps) {
   const [state, setState] = useState<CheckState>("loading");
