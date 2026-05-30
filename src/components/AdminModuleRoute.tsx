@@ -144,6 +144,10 @@ export function AdminModuleRoute({ children, module }: AdminModuleRouteProps) {
     return <RouteCheckError onRetry={checkModuleAccess} devDetails={errorDetails} />;
   }
 
+  if (state === "unauthenticated") {
+    return <Navigate to="/auth" replace />;
+  }
+
   if (state === "denied") {
     return <Navigate to="/profile" replace />;
   }
