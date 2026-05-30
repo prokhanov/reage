@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp, Info, Activity, Brain } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Search, Edit, Trash2, ChevronDown, ChevronUp, Info, Activity, Brain, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,6 +75,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   const [patientGender, setPatientGender] = useState<string | null>(null);
   const [patientAge, setPatientAge] = useState<number | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 7, currentCategory: "", stage: "" });
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
@@ -94,28 +95,78 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }, [id, isDemoAnalysis, demoLoading]);
 
   // При маунте: если по этому анализу уже идёт генерация — подцепляемся к ней,
-  // вместо того чтобы дать пользователю кликнуть «Сгенерировать» и поднять каскад.
+  // показываем диалог прогресса и ждём финал, не запуская новый job.
   useEffect(() => {
     if (!id || isDemoAnalysis) return;
     let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
     (async () => {
       const { data: job } = await supabase
         .from("report_jobs")
-        .select("id, status, updated_at")
+        .select("id, status, updated_at, steps_total, steps_done, current_step, mode")
         .eq("analysis_id", id)
         .in("status", ["queued", "running"])
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (cancelled || !job) return;
-      // Считаем job живой если updated_at свежее 2 минут — иначе он, скорее всего, мертв.
+      // Окно «свежести» — 10 минут (deep-режим может молчать между ретраями).
       const ageMs = Date.now() - new Date(job.updated_at).getTime();
-      if (ageMs > 120_000) return;
-      if (!analyzing) handleAnalyze("standard");
+      if (ageMs > 10 * 60_000) return;
+      if (analyzing) return;
+
+      const totalSteps = job.steps_total || 7;
+      setAnalysisProgress({
+        current: job.steps_done || 0,
+        total: totalSteps,
+        currentCategory: job.current_step || "",
+        stage: "Восстанавливаем прогресс генерации...",
+      });
+      setAnalyzing(true);
+
+      const stepLabelMap: Record<string, string> = {
+        prescriptions: "Подбор назначений и нутрицевтиков...",
+        "finalize:summary": "Формирование общего резюме...",
+        "finalize:bioage": "Расчёт биологического возраста...",
+      };
+
+      interval = setInterval(async () => {
+        if (cancelled) return;
+        const { data: j } = await supabase
+          .from("report_jobs")
+          .select("steps_done, steps_total, current_step, status")
+          .eq("id", job.id)
+          .maybeSingle();
+        if (!j) return;
+        const cur = j.current_step || "";
+        let stage = stepLabelMap[cur] || "";
+        if (!stage && cur.startsWith("category:")) stage = `Анализ: ${cur.replace(/^category:/, "")}...`;
+        if (!stage) stage = j.status === "running" ? "Идёт обработка..." : "Ожидание...";
+        setAnalysisProgress({
+          current: j.steps_done || 0,
+          total: j.steps_total || totalSteps,
+          currentCategory: cur,
+          stage,
+        });
+        if (j.status === "done" || j.status === "failed") {
+          if (interval) clearInterval(interval);
+          setAnalyzing(false);
+          if (j.status === "done") {
+            toast({ title: "Отчёт готов", description: "Генерация завершена." });
+            loadData();
+            setEditReportAnalysisId(id || null);
+            setShowEditReport(true);
+          }
+        }
+      }, 2500);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isDemoAnalysis]);
+
 
   useEffect(() => {
     // Auto-expand all categories on load
@@ -337,6 +388,29 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       setSimPath("/recommendations");
     } else {
       navigate("/recommendations");
+    }
+  };
+
+  const handleCancelGeneration = async () => {
+    if (!id || canceling) return;
+    if (!window.confirm("Прервать генерацию отчёта? Текущий шаг доработает в фоне, но дальше процесс остановится.")) {
+      return;
+    }
+    setCanceling(true);
+    try {
+      await supabase.functions.invoke("report-orchestrator", {
+        body: { action: "cancel", analysisId: id },
+      });
+      toast({ title: "Генерация прервана", description: "Можно перегенерировать отчёт заново." });
+    } catch (e: any) {
+      toast({
+        title: "Не удалось прервать",
+        description: e?.message || "Попробуйте ещё раз",
+        variant: "destructive",
+      });
+    } finally {
+      setCanceling(false);
+      setAnalyzing(false);
     }
   };
 
@@ -702,9 +776,18 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         {/* Progress Dialog */}
         {analyzing && (
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <Card className="w-full max-w-md p-6">
+            <Card className="w-full max-w-md p-6 relative">
+              <button
+                type="button"
+                onClick={handleCancelGeneration}
+                disabled={canceling}
+                aria-label="Прервать генерацию"
+                className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <X className="h-4 w-4" />
+              </button>
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">
+                <h3 className="text-lg font-semibold pr-8">
                   Анализируем ваши показатели...
                 </h3>
                 <div className="space-y-2">
@@ -715,7 +798,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                   <Progress value={analysisProgress.total > 0 ? (analysisProgress.current / analysisProgress.total) * 100 : 0} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Это может занять 2-3 минуты. Создаем детальный отчет с персональными советами...
+                  {canceling
+                    ? "Прерываем процесс..."
+                    : "Это может занять 2-3 минуты. Создаём детальный отчёт с персональными советами. Можно закрыть вкладку — генерация продолжится в фоне."}
                 </p>
               </div>
             </Card>
