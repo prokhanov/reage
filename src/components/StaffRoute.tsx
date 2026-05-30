@@ -33,7 +33,7 @@ export function StaffRoute({ children }: StaffRouteProps) {
     }
     const user = userRes.value?.data.user;
     if (!user) {
-      setState("denied");
+      setState("unauthenticated");
       return;
     }
 
