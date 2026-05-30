@@ -1,138 +1,73 @@
+# Чиним каскад «superseded» (стриминг — следующим шагом)
 
-# План: перенос только прокси `api-test.reage.life` на Fly.io
+## Что реально произошло у Чагина 30 мая
 
-## Что меняем и что НЕ трогаем
+По данным `report_jobs` и логов edge-функций:
 
-Меняем:
-- `api-test.reage.life` — переезжает с VPS/Coolify на Fly.io (Frankfurt).
-
-Не трогаем:
-- `test.reage.life` (фронт) — остаётся на Coolify/VPS как сейчас.
-- `reage.life` (бой) — не трогаем вообще.
-- Lovable Cloud / Supabase — без изменений.
-- Код фронта в Lovable — без изменений, меняется только env-переменная в Coolify.
-
-Итоговая схема:
-```text
-Браузер (RU)
-  ├── test.reage.life ───────► Coolify VPS (nginx + dist)  ← как сейчас
-  └── api-test.reage.life ──► Fly.io (Frankfurt, Node proxy)
-                                  └─► ilxgodhosirhhkffqryw.supabase.co
+```
+14:41:04  job#1   → пользователь нажал ещё раз → superseded
+14:42:24  job#2   → ещё клик → superseded
+14:42:31  job#3   → ещё клик → superseded
+14:42:52  job#4   → ещё клик → superseded
+14:43:17  job#5   → выжил, но analyze-biomarkers упал 504 IDLE_TIMEOUT
+                   на категории «Энергия и восстановление»
+14:43:58  job#6   → тот же IDLE_TIMEOUT
+14:52:10  job#7   → superseded последним кликом
+15:00:23  job#8   → дошёл до done за 10 мин 33 сек
 ```
 
-## Что я подготовлю в репо (build-режим)
+Промпты в `ai_prompt_settings` не менялись с 28 апреля. Архитектуру никто не трогал. Сложились две независимые проблемы:
 
-Папка `deploy/fly-proxy/` со всем готовым к копированию:
-- `server.js` — последняя рабочая версия (IPv4-first DNS, raw-body, `/healthz`, `/__diag`, 30s timeout, аккуратный 502 с диагностикой).
-- `package.json` — fastify + undici, `"start": "node server.js"`.
-- `Dockerfile` — node:22-alpine, `PORT=8080`.
-- `fly.toml.example` — шаблон с `internal_port = 8080`, `force_https = true`, health-check на `/healthz`.
-- `.dockerignore` — чтобы не тащить лишнее.
-- `README.md` — короткая шпаргалка с командами ниже.
+1. **Каскад `superseded`.** `handleStart` тупо гасит любые running-джобы по этому `analysis_id`. UI не показывает прогресс и кнопка остаётся активной → пользователь жмёт повторно → каждый клик убивает идущий job.
+2. **IDLE_TIMEOUT 150 c** в `analyze-biomarkers` на «Энергия и восстановление». Это лимит платформы Supabase (увеличить нельзя). Один синхронный AI-запрос Gemini иногда не успевает.
 
-## Пошаговая инструкция (для тебя, на Mac)
+# Что делаем сейчас
 
-### Шаг 1. Fly.io аккаунт (5 мин)
-1. https://fly.io → Sign up через GitHub.
-2. Billing → Add card (без карты deploy не пустит, hobby всё равно $0).
+Стриминг откладываем на следующий шаг. В этой итерации убираем каскад и делаем UI устойчивым — этого хватит чтобы повторный клик не ломал отчёт, а единичные IDLE_TIMEOUT обрабатывались штатным ретраем оркестратора.
 
-### Шаг 2. flyctl на Mac (3 мин)
-```bash
-brew install flyctl
-fly auth login
-```
+## 1. Идемпотентный `handleStart` (orchestrator)
 
-### Шаг 3. Скопировать готовую папку (2 мин)
-1. Из репо после моего деплоя скачать папку `deploy/fly-proxy/` локально (любой способ: GitHub UI «Download», git pull, или просто скопировать 4 файла).
-2. В Terminal:
-   ```bash
-   cd ~/Downloads/fly-proxy   # или куда положил
-   ```
+В `supabase/functions/report-orchestrator/index.ts`:
 
-### Шаг 4. fly launch без авто-деплоя (5 мин)
-```bash
-fly launch --no-deploy --name reage-test-proxy --region fra --copy-config
-```
-На вопросы:
-- Postgres → No
-- Redis → No
-- Tigris/Sentry → No
+- Перед тем как гасить «running»/«queued», смотрим последний job по `analysis_id`.
+- Если `status='running'` и `updated_at` свежее ~90 c назад → **возвращаем существующий `jobId`**, ничего не пересоздаём (`{ success: true, jobId, attached: true }`).
+- Если `running` но «протух» (>90 c без апдейта) → помечаем `failed` c `error: 'stalled'`, создаём новый.
+- Если `done`/`failed` → создаём новый, как сейчас.
 
-`--copy-config` подхватит мой `fly.toml.example` (предварительно переименуй его в `fly.toml` или Fly сам предложит). Если Fly попросит пересоздать `fly.toml` — соглашайся, потом проверь что `internal_port = 8080`.
+Это убирает каскад: повторный клик подключается к идущей задаче, а не убивает её.
 
-### Шаг 5. Первый деплой (3 мин)
-```bash
-fly deploy
-fly status
-```
-Должно быть `running`. Логи: `fly logs`.
+## 2. Защита на клиенте от двойных стартов
 
-### Шаг 6. Проверка на fly.dev (2 мин)
-Открыть в браузере:
-- `https://reage-test-proxy.fly.dev/healthz` → `{"ok":true}`
-- `https://reage-test-proxy.fly.dev/__diag` → JSON с успешным DNS и HTTPS к Supabase
+В `src/lib/analyzeBiomarkers.ts`:
 
-Если `__diag` показывает ошибку — стоп, разбираемся, дальше не идём.
+- Перед `start` дёргаем `{ action: 'status', analysisId }`. Если есть `running` job — сразу переходим к поллингу его `jobId`, без нового `start`.
+- Вынести «подцепиться к job и ждать done» в отдельную функцию, чтобы переиспользовать.
 
-### Шаг 7. DNS в reg.ru (5 мин)
-В зоне `reage.life`:
-1. Удалить `A api-test → <IP VPS>`.
-2. Добавить `CNAME api-test → reage-test-proxy.fly.dev`, TTL `300`.
-3. Сохранить.
+В компоненте с кнопкой «Сгенерировать отчёт» (страница `AnalysisDetail` + режим «Просмотр как пациент» в админке — найду точно при имплементации):
 
-### Шаг 8. SSL-сертификат на Fly (5–10 мин ожидания)
-**Порядок важен — сначала DNS, потом certs.**
-```bash
-fly certs add api-test.reage.life -a reage-test-proxy
-fly certs show api-test.reage.life -a reage-test-proxy
-```
-Ждать пока статус станет `Ready` (обычно 1–3 минуты после распространения DNS).
+- При маунте читаем `report_jobs` по `analysis_id`. Если есть `running` — показываем прогресс и **дизейблим кнопку**.
+- Подписка на изменения `report_jobs` (realtime или polling раз в 3 c) → прогресс виден сразу после открытия экрана, а не только после клика.
+- Кнопка остаётся `disabled` пока `status='running'`.
 
-### Шаг 9. Финальная проверка прокси (2 мин)
-- `https://api-test.reage.life/healthz` → `{"ok":true}`
-- `https://api-test.reage.life/__diag` → ok
+## 3. Подстраховка ретраями (минимально-инвазивно)
 
-Если ok — прокси на Fly работает.
+Сейчас `MAX_ATTEMPTS = 2`. На пограничных IDLE_TIMEOUT этого может не хватить. Поднимаем до **3** именно для шагов типа `category` (для `finalize` оставляем 2 — там стабильно). Ретрай в orchestrator уже работает корректно, просто увеличиваем бюджет попыток для категорий.
 
-### Шаг 10. Переключить фронт в Coolify (5 мин)
-В Coolify → проект `test.reage.life` → Environment:
-- Убедиться что:
-  ```
-  VITE_SUPABASE_URL=https://api-test.reage.life
-  ```
-  (без trailing slash, без `/supabase`)
-- Build Variable = ON.
-- Redeploy (это build-time переменная Vite, нужен полный пересбор).
+# Что НЕ делаем в этой итерации
 
-### Шаг 11. Проверка end-to-end (10 мин активно + сутки наблюдения)
-1. Открыть `https://test.reage.life`, DevTools → Network.
-2. Залогиниться. Проверить:
-   - `POST /auth/v1/token` → 200
-   - `GET /auth/v1/user` → 200
-   - `/rest/v1/*` → 200
-   - Все запросы < 500 мс, без 502/таймаутов.
-3. Покликать страницы, обновлять, выйти/войти.
-4. Сутки понаблюдать.
+- Не переходим на стриминг fetch к Lovable AI — это следующий шаг, отдельным планом.
+- Не меняем промпты, не трогаем `finalize-analysis`, `prescriptions`-логику, парсеры markdown.
+- Не переписываем pipeline на background-режим.
 
-### Шаг 12. Отключить старый прокси на VPS (после суток ok)
-В Coolify остановить контейнер старого прокси `api-test.reage.life`. VPS не удалять минимум неделю.
+# Файлы
 
-## Откат (если что-то пойдёт не так)
+- `supabase/functions/report-orchestrator/index.ts` — переписать `handleStart` (~30 строк), поднять `MAX_ATTEMPTS` до 3 для `category`-шагов.
+- `src/lib/analyzeBiomarkers.ts` — добавить pre-check активного job, вынести «attach + poll» в функцию.
+- Компонент кнопки «Сгенерировать отчёт» — дизейбл по `running`, начальная подписка на `report_jobs`.
 
-В reg.ru вернуть `A api-test → <IP VPS>` (TTL 300 → через 5 минут трафик снова идёт на старый прокси). В Coolify env вернуть прежнее значение `VITE_SUPABASE_URL` если оно отличалось и пересобрать. Ничего на Lovable/Supabase менять не нужно.
+# Ожидаемый эффект
 
-## Стоимость
-
-Hobby plan Fly: 1 машина shared-cpu-1x@256MB + 160GB трафика бесплатно. Наш прокси в это укладывается с запасом. Реально $0.
-
-## Технические заметки
-
-- Fly регион `fra` (Frankfurt) — короткий маршрут до AWS us-east-1 (Supabase) через магистрали EU, и Fly anycast даёт стабильный entry-point из RU.
-- `server.js` слушает `process.env.PORT || 8080` — Fly прокинет свой PORT автоматически.
-- Health-check в `fly.toml` на `/healthz` каждые 15с — если контейнер зависает, Fly перезапустит.
-- DNS Supabase резолвится `undici` свежим lookup на каждый коннект через Fly-резолверы — баг устаревших IP, как в HAProxy, здесь воспроизвести нельзя.
-- CORS в `server.js` уже настроен правильно (он же сейчас работает), отдельные правки не нужны.
-
-## Что я делаю после approval
-
-Создам только файлы в `deploy/fly-proxy/` (server.js, package.json, Dockerfile, fly.toml.example, .dockerignore, README.md). Никаких изменений в коде приложения, никаких миграций в БД, никаких правок Lovable env.
+- Повторные клики больше не убивают идущий отчёт — подключаются к нему.
+- Пользователь видит прогресс сразу при открытии экрана, кнопка не провоцирует каскад.
+- Единичные IDLE_TIMEOUT на «Энергия и восстановление» переживаются третьим ретраем (как в итоговом успешном job#8 у Чагина — там модель в итоге уложилась).
+- Если IDLE_TIMEOUT станет систематическим — фиксим стримингом на следующем шаге.
