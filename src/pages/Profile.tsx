@@ -49,6 +49,7 @@ export default function Profile() {
   const [hasAnalyses, setHasAnalyses] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     loadProfile();
