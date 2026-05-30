@@ -148,12 +148,17 @@ export default function Profile() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error && !/session|missing|not found/i.test(error.message)) {
+        console.warn("[logout] signOut error (ignored):", error);
+      }
+    } catch (e) {
+      console.warn("[logout] signOut threw (ignored):", e);
+    }
     queryClient.clear();
-    toast({
-      title: "Вы вышли из системы",
-    });
-    navigate("/auth", { replace: true });
+    toast({ title: "Вы вышли из системы" });
+    window.location.replace("/auth");
   };
 
   const getAge = () => {
