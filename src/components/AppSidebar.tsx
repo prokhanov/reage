@@ -1,6 +1,5 @@
 import { Home, FlaskConical, TrendingUp, Lightbulb, User, LogOut, Activity, Settings, Heart, Users, Eye, X, FileText, MessageSquare, Briefcase, CreditCard, Calendar, ClipboardList, AlertTriangle, ChevronLeft, ChevronRight, Target, Mail } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -16,6 +15,7 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEmailConfirmation } from "@/hooks/useEmailConfirmation";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
+import { performSafeLogout } from "@/lib/authLogout";
 
 interface AppSidebarProps {
   isOpen: boolean;
@@ -45,7 +45,6 @@ const adminNavItems = [
 ];
 
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { viewAsUserId, simPath, setSimPath, setViewAsUserId, onExitView } = useContext(ViewAsPatientContext);
@@ -86,19 +85,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
 
 
   const handleLogout = async () => {
-    try {
-      // Local scope guarantees localStorage cleanup even if the server session is already invalid
-      const { error } = await supabase.auth.signOut({ scope: "local" });
-      if (error && !/session|missing|not found/i.test(error.message)) {
-        console.warn("[logout] signOut error (ignored):", error);
-      }
-    } catch (e) {
-      console.warn("[logout] signOut threw (ignored):", e);
-    }
-    queryClient.clear();
     toast({ title: "Вы вышли из системы" });
-    // Hard reload to fully reset React Router + in-memory auth state and break any redirect loop
-    window.location.replace("/auth");
+    await performSafeLogout(queryClient);
   };
 
   const handleExitViewMode = () => {

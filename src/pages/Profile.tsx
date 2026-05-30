@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { ProfileSkeleton } from "@/components/skeletons/ProfileSkeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistor
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { useQueryClient } from "@tanstack/react-query";
+import { performSafeLogout } from "@/lib/authLogout";
 
 interface Profile {
   name: string;
@@ -47,7 +47,6 @@ export default function Profile() {
   const [userId, setUserId] = useState<string | null>(null);
   const [nextAnalysisDate, setNextAnalysisDate] = useState<string | null>(null);
   const [hasAnalyses, setHasAnalyses] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -148,17 +147,8 @@ export default function Profile() {
   };
 
   const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut({ scope: "local" });
-      if (error && !/session|missing|not found/i.test(error.message)) {
-        console.warn("[logout] signOut error (ignored):", error);
-      }
-    } catch (e) {
-      console.warn("[logout] signOut threw (ignored):", e);
-    }
-    queryClient.clear();
     toast({ title: "Вы вышли из системы" });
-    window.location.replace("/auth");
+    await performSafeLogout(queryClient);
   };
 
   const getAge = () => {

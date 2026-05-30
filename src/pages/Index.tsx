@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionWithTimeout, withTimeout } from "@/lib/authTimeout";
+import { isLogoutRedirect } from "@/lib/authLogout";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
@@ -31,6 +32,12 @@ const Index = () => {
 
   const checkAuthAndRedirect = async () => {
     try {
+      if (isLogoutRedirect()) {
+        console.info("[auth-debug] Index auto-redirect skipped after logout");
+        setLoading(false);
+        return;
+      }
+
       // Защита от зависшего backend: если getSession не ответит за 2.5с —
       // показываем лендинг (он публичный). Если сессия найдётся позже,
       // фоновая проверка ниже выполнит редирект.
@@ -41,7 +48,7 @@ const Index = () => {
         setLoading(false);
         // Фоновая проверка: если сессия всё-таки придёт, редиректим.
         supabase.auth.getSession().then(({ data }) => {
-          if (data.session?.user) {
+          if (data.session?.user && !isLogoutRedirect()) {
             redirectByRole(data.session.user.id);
           }
         }).catch(() => { /* ignore */ });
@@ -64,7 +71,10 @@ const Index = () => {
     // Если сервер говорит, что сессии нет — остаёмся на лендинге.
     const userCheck = await withTimeout(supabase.auth.getUser(), 2000);
     if (userCheck.timedOut || userCheck.error || !userCheck.value?.data?.user) {
-      console.warn("[Index] redirectByRole: user не подтверждён, остаёмся на лендинге");
+      console.warn("[auth-debug] Index redirectByRole: user не подтверждён, остаёмся на лендинге", {
+        timedOut: userCheck.timedOut,
+        hasError: !!userCheck.error,
+      });
       return;
     }
 
