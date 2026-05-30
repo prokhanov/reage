@@ -1,41 +1,27 @@
-## Что делаем
+## Проблема
+Серверные логи (оркестратор) пишутся в edge function logs, а в браузерной консоли — пусто. Пользователь хочет видеть прогресс генерации прямо в DevTools.
 
-1. **Крестик в диалоге прогресса** — пользователь может прервать генерацию.
-2. **Авто-восстановление диалога** — если закрыть вкладку и вернуться на страницу анализа, диалог снова появится (генерация и так идёт в фоне на сервере).
-
-## Изменения
-
-### `supabase/functions/report-orchestrator/index.ts`
-- Добавить новый `action: "cancel"` (`POST { action: "cancel", jobId | analysisId }`):
-  - находит активный `running/queued` job по `analysisId` (или по `jobId`),
-  - ставит `status = 'failed'`, `error = 'canceled_by_user'`, `finished_at = now()`.
-- В `handleTick`: если на старте тика `job.status === 'failed'` (включая отмену) — просто выходит (in-flight шаг доработает в холостую, новых тиков не будет).
-- Логи: `[job X] 🛑 CANCELED by user`.
+## Что добавить — только клиентский логгинг
 
 ### `src/pages/AnalysisDetail.tsx`
 
-**Диалог прогресса (строки 702–723):**
-- Добавить кнопку-крестик (`X` из `lucide-react`) в правом верхнем углу карточки.
-- По клику → `confirm("Прервать генерацию отчёта?")` → вызов `supabase.functions.invoke('report-orchestrator', { body: { action: 'cancel', analysisId: id } })` → остановить polling, `setAnalyzing(false)`, тост «Генерация отменена».
-- Сделать кнопку дизейбленой во время самого запроса отмены.
+В обоих местах, где идёт polling `report_jobs` (новая генерация `handleAnalyze` и реконнект `attachToRunningJob`):
 
-**Восстановление при возврате (строки 96–118):**
-- Текущий хук уже находит активный job и вызывает `handleAnalyze("standard")`. Проблема: режим может быть `deep`, и повторный вход в `handleAnalyze` запускает свой `generationStartedAt`, что искажает `gte(updated_at)` для polling.
-- Заменить на отдельную функцию `attachToRunningJob(job)`:
-  - читает `job.mode`, `job.steps_total`,
-  - сразу ставит `setAnalyzing(true)` и стартует тот же polling (по `report_jobs`), плюс single `waitForAnalysisCompletion` для финального открытия редактора,
-  - **не** вызывает `invokeAnalyzeBiomarkers` повторно (оркестратор и так сам тикает).
-- Окно «свежести» расширить с 2 мин до 10 мин (deep-режим может между тиками молчать дольше при ретраях с backoff).
+- Запрашивать также `attempts`, `error`, `mode` из `report_jobs`.
+- При каждом тике polling логировать в консоль одной строкой, например:
+  ```
+  [report job <jobId>] step 3/8 "category:Гормоны" · попытка 1/3 · status=running · mode=deep
+  ```
+- При смене `current_step` — отдельный лог `▶ NEW STEP …`.
+- При терминальном статусе (`done` / `failed`) — лог `✅ DONE` или `❌ FAILED: <error>`.
+- При старте генерации — `🚀 START analyze (mode=…)` и `jobId` после ответа `invokeAnalyzeBiomarkers`.
+- При отмене — `🛑 CANCEL requested`.
 
-## Технические детали
+Сравнение делать по локальному `prevStep`/`prevAttempts`, чтобы не спамить одинаковыми строками 2 раза в секунду — только при изменении.
 
-- Отмена — мягкая: оркестратор просто перестаёт планировать следующие шаги. Текущий in-flight HTTP-вызов к `analyze-biomarkers`/`finalize-analysis` доработает, но его результат не сохранится дальше (тик увидит `status='failed'` и выйдет до `update steps_done`).
-- На клиенте при отмене НЕ дёргаем `loadData()` — частичный отчёт остаётся как есть, пользователь сам решит, перегенерировать или нет.
-- Чек на восстановление работает только на `AnalysisDetail` (как и сейчас) — глобальный баннер вне scope.
+## Что не трогаем
+- Сервер (orchestrator) уже логирует подробно — оставляем как есть.
+- Поведение polling, диалога, retry — без изменений.
 
 ## Файлы
-
-- `supabase/functions/report-orchestrator/index.ts`
 - `src/pages/AnalysisDetail.tsx`
-
-Стрим, промпты, пайплайн — не трогаем.
