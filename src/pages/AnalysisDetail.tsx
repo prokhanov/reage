@@ -776,9 +776,18 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
         {/* Progress Dialog */}
         {analyzing && (
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <Card className="w-full max-w-md p-6">
+            <Card className="w-full max-w-md p-6 relative">
+              <button
+                type="button"
+                onClick={handleCancelGeneration}
+                disabled={canceling}
+                aria-label="Прервать генерацию"
+                className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <X className="h-4 w-4" />
+              </button>
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">
+                <h3 className="text-lg font-semibold pr-8">
                   Анализируем ваши показатели...
                 </h3>
                 <div className="space-y-2">
@@ -789,7 +798,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                   <Progress value={analysisProgress.total > 0 ? (analysisProgress.current / analysisProgress.total) * 100 : 0} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Это может занять 2-3 минуты. Создаем детальный отчет с персональными советами...
+                  {canceling
+                    ? "Прерываем процесс..."
+                    : "Это может занять 2-3 минуты. Создаём детальный отчёт с персональными советами. Можно закрыть вкладку — генерация продолжится в фоне."}
                 </p>
               </div>
             </Card>
