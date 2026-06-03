@@ -163,6 +163,14 @@ All colors MUST be HSL.
   .animate-hue-shift {
     animation: hue-shift 12s ease-in-out infinite;
   }
+
+  /* Отключаем дорогую filter-анимацию на тач-устройствах и при reduced-motion —
+     постоянный hue-rotate на крупном логотипе перегружает мобильный GPU. */
+  @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .animate-hue-shift {
+      animation: none;
+    }
+  }
 }
 
 @keyframes hue-shift {
