@@ -24,7 +24,7 @@ export function ParticleBackground() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true } as any);
+    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!ctx) return;
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
