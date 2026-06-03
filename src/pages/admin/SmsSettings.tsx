@@ -138,7 +138,14 @@ export default function SmsSettings() {
     setCheckingConn(true);
     setConnResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("sms-check-connection", { body: {} });
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess?.session?.access_token;
+      if (!token) throw new Error("Сессия истекла, войдите снова");
+      const { data, error } = await supabase.functions.invoke("sms-check-connection", {
+        body: {},
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       if (error) throw error;
       setConnResult(data);
       if (data?.ok) {
