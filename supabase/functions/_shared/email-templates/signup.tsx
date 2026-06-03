@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Text,
@@ -19,39 +20,45 @@ interface SignupEmailProps {
   siteUrl: string
   recipient: string
   confirmationUrl: string
+  customHeading?: string
+  customBodyText?: string
+  customButtonLabel?: string
+  customFooterText?: string
 }
+
+const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
 
 export const SignupEmail = ({
   siteName,
   siteUrl,
   recipient,
   confirmationUrl,
+  customHeading,
+  customBodyText,
+  customButtonLabel,
+  customFooterText,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+  <Html lang="ru" dir="ltr">
+    <Head><meta charSet="utf-8" /></Head>
+    <Preview>Подтвердите ваш email для ReAge</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
+        <Heading style={h1}>{customHeading || 'Добро пожаловать в ReAge!'}</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
+          {customBodyText || (
+            <>
+              Спасибо за регистрацию в{' '}
+              <Link href={siteUrl} style={link}><strong>ReAge</strong></Link>.
+              {' '}Подтвердите ваш email ({recipient}), нажав на кнопку ниже:
+            </>
+          )}
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Verify Email
+          {customButtonLabel || 'Подтвердить email'}
         </Button>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          {customFooterText || 'Если вы не создавали аккаунт, просто проигнорируйте это письмо.'}
         </Text>
       </Container>
     </Body>
@@ -60,27 +67,29 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
+const container = { padding: '40px 25px' }
+const logo = { margin: '0 0 24px' }
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#2d1a4e',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
+  fontSize: '15px',
+  color: '#6b5b7b',
+  lineHeight: '1.6',
   margin: '0 0 25px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: '#7c3aed', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#7c3aed',
   color: '#ffffff',
-  fontSize: '14px',
+  fontSize: '15px',
+  fontWeight: '600' as const,
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 28px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#9ca3af', margin: '30px 0 0' }

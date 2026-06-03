@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Text,
@@ -16,48 +17,49 @@ import {
 
 interface EmailChangeEmailProps {
   siteName: string
-  // oldEmail is the user's current address (HookData.OldEmail). For the
-  // NEW-recipient half of a secure email_change fanout, `email` equals the
-  // recipient (NEW), so the "from" line must render oldEmail to read
-  // "from OLD to NEW" instead of "from NEW to NEW".
-  oldEmail: string
   email: string
   newEmail: string
   confirmationUrl: string
+  customHeading?: string
+  customBodyText?: string
+  customButtonLabel?: string
+  customFooterText?: string
 }
+
+const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
 
 export const EmailChangeEmail = ({
   siteName,
-  oldEmail,
+  email,
   newEmail,
   confirmationUrl,
+  customHeading,
+  customBodyText,
+  customButtonLabel,
+  customFooterText,
 }: EmailChangeEmailProps) => (
-  <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>Confirm your email change for {siteName}</Preview>
+  <Html lang="ru" dir="ltr">
+    <Head><meta charSet="utf-8" /></Head>
+    <Preview>Подтвердите смену email в ReAge</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email change</Heading>
+        <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
+        <Heading style={h1}>{customHeading || 'Смена email'}</Heading>
         <Text style={text}>
-          You requested to change your email address for {siteName} from{' '}
-          <Link href={`mailto:${oldEmail}`} style={link}>
-            {oldEmail}
-          </Link>{' '}
-          to{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>
-            {newEmail}
-          </Link>
-          .
-        </Text>
-        <Text style={text}>
-          Click the button below to confirm this change:
+          {customBodyText || (
+            <>
+              Вы запросили смену email в ReAge с{' '}
+              <Link href={`mailto:${email}`} style={link}>{email}</Link>{' '}на{' '}
+              <Link href={`mailto:${newEmail}`} style={link}>{newEmail}</Link>.
+              {' '}Нажмите на кнопку ниже, чтобы подтвердить изменение:
+            </>
+          )}
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Confirm Email Change
+          {customButtonLabel || 'Подтвердить смену email'}
         </Button>
         <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
+          {customFooterText || 'Если вы не запрашивали смену email, немедленно обезопасьте ваш аккаунт.'}
         </Text>
       </Container>
     </Body>
@@ -66,27 +68,29 @@ export const EmailChangeEmail = ({
 
 export default EmailChangeEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
+const container = { padding: '40px 25px' }
+const logo = { margin: '0 0 24px' }
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#2d1a4e',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
+  fontSize: '15px',
+  color: '#6b5b7b',
+  lineHeight: '1.6',
   margin: '0 0 25px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: '#7c3aed', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#7c3aed',
   color: '#ffffff',
-  fontSize: '14px',
+  fontSize: '15px',
+  fontWeight: '600' as const,
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 28px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#9ca3af', margin: '30px 0 0' }
