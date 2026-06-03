@@ -1,15 +1,11 @@
 import { Helmet } from "react-helmet-async";
+import { APP_URL as SITE, NOINDEX } from "@/lib/siteEnv";
 
 interface PageMetaProps {
   title: string;
   description: string;
   canonical?: string;
 }
-
-// VITE_APP_URL задаётся в окружении деплоя. Fallback на боевой домен
-// гарантирует корректные canonical/og:url в Lovable preview и на текущем хостинге.
-const SITE = (import.meta.env.VITE_APP_URL as string | undefined) || "https://reage.life";
-const NOINDEX = import.meta.env.VITE_NOINDEX === "true";
 
 /**
  * Устанавливает уникальные <title>, meta description и canonical для страницы.
