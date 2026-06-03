@@ -67,12 +67,14 @@ export async function sendSms(params: {
   const number = normalizePhone(params.phone);
   if (!number) return { ok: false, error: "Пустой номер телефона" };
 
+  // SMS Aero требует sign. Если своя подпись не подтверждена — используем дефолтную "SMS Aero".
+  const sign = params.sign && params.sign.trim() ? params.sign.trim() : "SMS Aero";
   const body: Record<string, unknown> = {
     number,
     text: params.text,
+    sign,
     channel: "DIRECT",
   };
-  if (params.sign && params.sign.trim()) body.sign = params.sign.trim();
 
   const res = await fetch(`${BASE_URL}/sms/send`, {
     method: "POST",
