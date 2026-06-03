@@ -233,7 +233,7 @@ export default function Register() {
           {/* Header */}
           <div className="text-center mb-8 animate-fade-in pt-6">
             <div className="inline-flex items-center gap-2 mb-2">
-              <ThemedLogo className="h-24 w-auto" />
+              <ThemedLogo eager className="h-24 w-auto" />
             </div>
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
             <p className="text-muted-foreground text-lg mb-3">{"\n"}</p>
@@ -298,11 +298,11 @@ export default function Register() {
           </div>
 
           {/* Steps Content */}
-          <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s", isolation: "isolate", contain: "paint" as any }}>
             {/* Card Glow Effect */}
-            <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-            <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+            <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
+            <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+            <div className="hidden md:block absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
             
             <div className="relative z-10">
               <div className={`transition-all duration-500 ${currentStep === 1 ? 'animate-fade-in' : 'hidden'}`}>

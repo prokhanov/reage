@@ -75,7 +75,7 @@ export default function ResetPassword() {
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 mb-2">
-            <ThemedLogo className="h-32 w-auto animate-hue-shift" />
+            <ThemedLogo eager className="h-32 w-auto md:animate-hue-shift" />
           </div>
           <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
             Новый пароль
@@ -83,10 +83,10 @@ export default function ResetPassword() {
           <p className="text-muted-foreground text-lg">Введите новый пароль для вашего аккаунта</p>
         </div>
 
-        <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
-          <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+        <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}>
+          <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
+          <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+          <div className="hidden md:block absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
 
           <div className="relative z-10">
             {success ? (

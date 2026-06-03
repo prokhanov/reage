@@ -21,6 +21,7 @@ export function ParticleBackground() {
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    if (isMobile) return; // на мобильных canvas не рендерим вообще
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -36,7 +37,7 @@ export function ParticleBackground() {
     resize();
     window.addEventListener("resize", resize);
 
-    const particleCount = isMobile ? 24 : 50;
+    const particleCount = 50;
     const colors = [
       "rgba(168, 85, 247, 0.6)",
       "rgba(236, 72, 153, 0.6)",
@@ -70,7 +71,6 @@ export function ParticleBackground() {
     };
     document.addEventListener("visibilitychange", onVisibility);
 
-    // Spatial grid for O(n) neighbor lookup instead of O(n²)
     const cellSize = LINK_DISTANCE;
     const grid = new Map<number, number[]>();
     const cellKey = (cx: number, cy: number) => cx * 100000 + cy;
@@ -86,7 +86,6 @@ export function ParticleBackground() {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Update positions and rebuild grid
       grid.clear();
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
@@ -102,7 +101,6 @@ export function ParticleBackground() {
         else grid.set(key, [i]);
       }
 
-      // Draw particles
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         ctx.beginPath();
@@ -112,7 +110,6 @@ export function ParticleBackground() {
         ctx.fill();
       }
 
-      // Draw connections via spatial grid (only neighboring cells)
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const cx = Math.floor(p.x / cellSize);
@@ -154,6 +151,8 @@ export function ParticleBackground() {
       cancelAnimationFrame(animationFrameId);
     };
   }, [isMobile]);
+
+  if (isMobile) return null;
 
   return (
     <canvas
