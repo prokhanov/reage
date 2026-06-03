@@ -401,11 +401,14 @@ export default function SmsSettings() {
                   {testTpl.variables.map((v) => (
                     <div key={v} className="space-y-1">
                       <Label className="text-xs">{`{{${v}}}`}</Label>
-                      <Input
+                      <Textarea
                         value={testVars[v] || ""}
                         onChange={(e) => setTestVars((prev) => ({ ...prev, [v]: e.target.value }))}
                         placeholder={v}
+                        rows={v === "message" ? 8 : 3}
+                        className={v === "message" ? "min-h-[200px] resize-y" : "min-h-[80px] resize-y"}
                       />
+
                     </div>
                   ))}
                 </div>
