@@ -108,6 +108,7 @@ Deno.serve(async (req) => {
         : `Ошибка отправки: ${result.error}`,
       provider_message_id: result.providerMessageId,
       error: result.ok ? undefined : result.error,
+      raw: result.raw,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
