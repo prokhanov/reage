@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Particle {
   x: number;
@@ -10,15 +11,23 @@ interface Particle {
   opacity: number;
 }
 
+const LINK_DISTANCE = 150;
+const LINK_DISTANCE_SQ = LINK_DISTANCE * LINK_DISTANCE;
+const TARGET_FPS = 30;
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
+
 export function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true } as any);
     if (!ctx) return;
+
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -27,16 +36,15 @@ export function ParticleBackground() {
     resize();
     window.addEventListener("resize", resize);
 
-    const particles: Particle[] = [];
-    const particleCount = 50;
+    const particleCount = isMobile ? 24 : 50;
     const colors = [
-      "rgba(168, 85, 247, 0.6)",  // primary
-      "rgba(236, 72, 153, 0.6)",  // accent
-      "rgba(147, 197, 253, 0.4)",  // light blue
-      "rgba(196, 181, 253, 0.5)",  // light purple
+      "rgba(168, 85, 247, 0.6)",
+      "rgba(236, 72, 153, 0.6)",
+      "rgba(147, 197, 253, 0.4)",
+      "rgba(196, 181, 253, 0.5)",
     ];
 
-    // Initialize particles
+    const particles: Particle[] = [];
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * canvas.width,
@@ -50,52 +58,102 @@ export function ParticleBackground() {
     }
 
     let animationFrameId: number;
+    let lastFrame = 0;
+    let paused = document.hidden;
 
-    const animate = () => {
+    const onVisibility = () => {
+      paused = document.hidden;
+      if (!paused) {
+        lastFrame = 0;
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    // Spatial grid for O(n) neighbor lookup instead of O(n²)
+    const cellSize = LINK_DISTANCE;
+    const grid = new Map<number, number[]>();
+    const cellKey = (cx: number, cy: number) => cx * 100000 + cy;
+
+    const animate = (ts?: number) => {
+      if (paused) return;
+      animationFrameId = requestAnimationFrame(animate);
+
+      if (ts !== undefined) {
+        if (ts - lastFrame < FRAME_INTERVAL) return;
+        lastFrame = ts;
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach((particle, i) => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
+      // Update positions and rebuild grid
+      grid.clear();
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        if (!reducedMotion) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        }
+        const key = cellKey(Math.floor(p.x / cellSize), Math.floor(p.y / cellSize));
+        const bucket = grid.get(key);
+        if (bucket) bucket.push(i);
+        else grid.set(key, [i]);
+      }
 
-        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
-        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
-
+      // Draw particles
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        ctx.fillStyle = particle.color;
-        ctx.globalAlpha = particle.opacity;
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
         ctx.fill();
+      }
 
-        // Draw connections
-        particles.slice(i + 1).forEach((otherParticle) => {
-          const dx = particle.x - otherParticle.x;
-          const dy = particle.y - otherParticle.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 150) {
-            ctx.beginPath();
-            ctx.moveTo(particle.x, particle.y);
-            ctx.lineTo(otherParticle.x, otherParticle.y);
-            ctx.strokeStyle = particle.color;
-            ctx.globalAlpha = (1 - distance / 150) * 0.3;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
+      // Draw connections via spatial grid (only neighboring cells)
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const cx = Math.floor(p.x / cellSize);
+        const cy = Math.floor(p.y / cellSize);
+        for (let ox = -1; ox <= 1; ox++) {
+          for (let oy = -1; oy <= 1; oy++) {
+            const bucket = grid.get(cellKey(cx + ox, cy + oy));
+            if (!bucket) continue;
+            for (let k = 0; k < bucket.length; k++) {
+              const j = bucket[k];
+              if (j <= i) continue;
+              const o = particles[j];
+              const dx = p.x - o.x;
+              const dy = p.y - o.y;
+              const distSq = dx * dx + dy * dy;
+              if (distSq < LINK_DISTANCE_SQ) {
+                const dist = Math.sqrt(distSq);
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(o.x, o.y);
+                ctx.strokeStyle = p.color;
+                ctx.globalAlpha = (1 - dist / LINK_DISTANCE) * 0.3;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+              }
+            }
           }
-        });
-      });
+        }
+      }
 
       ctx.globalAlpha = 1;
-      animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationFrameId = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", onVisibility);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <canvas

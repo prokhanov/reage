@@ -201,7 +201,10 @@ export default function Auth() {
         </div>
 
         {/* Card */}
-        <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
+        <Card
+          className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in"
+          style={{ animationDelay: "0.2s", isolation: "isolate", contain: "paint" as any }}
+        >
           <div className="absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
