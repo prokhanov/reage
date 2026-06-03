@@ -9,7 +9,6 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -17,37 +16,28 @@ import {
 interface RecoveryEmailProps {
   siteName: string
   confirmationUrl: string
-  customHeading?: string
-  customBodyText?: string
-  customButtonLabel?: string
-  customFooterText?: string
 }
-
-const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
 
 export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
-  customHeading,
-  customBodyText,
-  customButtonLabel,
-  customFooterText,
 }: RecoveryEmailProps) => (
-  <Html lang="ru" dir="ltr">
-    <Head><meta charSet="utf-8" /></Head>
-    <Preview>Сброс пароля ReAge</Preview>
+  <Html lang="en" dir="ltr">
+    <Head />
+    <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>{customHeading || 'Сброс пароля'}</Heading>
+        <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
-          {customBodyText || 'Мы получили запрос на сброс пароля для вашего аккаунта ReAge. Нажмите на кнопку ниже, чтобы задать новый пароль.'}
+          We received a request to reset your password for {siteName}. Click
+          the button below to choose a new password.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          {customButtonLabel || 'Сбросить пароль'}
+          Reset Password
         </Button>
         <Text style={footer}>
-          {customFooterText || 'Если вы не запрашивали сброс пароля, проигнорируйте это письмо. Ваш пароль не будет изменён.'}
+          If you didn't request a password reset, you can safely ignore this
+          email. Your password will not be changed.
         </Text>
       </Container>
     </Body>
@@ -56,28 +46,26 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
-const container = { padding: '40px 25px' }
-const logo = { margin: '0 0 24px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#2d1a4e',
+  color: '#000000',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '15px',
-  color: '#6b5b7b',
-  lineHeight: '1.6',
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
   margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: '#7c3aed',
+  backgroundColor: '#000000',
   color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: '600' as const,
+  fontSize: '14px',
   borderRadius: '8px',
-  padding: '14px 28px',
+  padding: '12px 20px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#9ca3af', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }

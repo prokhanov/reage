@@ -9,7 +9,6 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
   Text,
@@ -19,44 +18,33 @@ interface InviteEmailProps {
   siteName: string
   siteUrl: string
   confirmationUrl: string
-  customHeading?: string
-  customBodyText?: string
-  customButtonLabel?: string
-  customFooterText?: string
 }
-
-const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
 
 export const InviteEmail = ({
   siteName,
   siteUrl,
   confirmationUrl,
-  customHeading,
-  customBodyText,
-  customButtonLabel,
-  customFooterText,
 }: InviteEmailProps) => (
-  <Html lang="ru" dir="ltr">
-    <Head><meta charSet="utf-8" /></Head>
-    <Preview>Вас пригласили в ReAge</Preview>
+  <Html lang="en" dir="ltr">
+    <Head />
+    <Preview>You've been invited to join {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={logoUrl} alt="ReAge" width="120" height="auto" style={logo} />
-        <Heading style={h1}>{customHeading || 'Вас пригласили в ReAge'}</Heading>
+        <Heading style={h1}>You've been invited</Heading>
         <Text style={text}>
-          {customBodyText || (
-            <>
-              Вы получили приглашение присоединиться к{' '}
-              <Link href={siteUrl} style={link}><strong>ReAge</strong></Link>.
-              {' '}Нажмите на кнопку ниже, чтобы принять приглашение и создать аккаунт.
-            </>
-          )}
+          You've been invited to join{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          . Click the button below to accept the invitation and create your
+          account.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          {customButtonLabel || 'Принять приглашение'}
+          Accept Invitation
         </Button>
         <Text style={footer}>
-          {customFooterText || 'Если вы не ожидали этого приглашения, просто проигнорируйте это письмо.'}
+          If you weren't expecting this invitation, you can safely ignore this
+          email.
         </Text>
       </Container>
     </Body>
@@ -65,29 +53,27 @@ export const InviteEmail = ({
 
 export default InviteEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }
-const container = { padding: '40px 25px' }
-const logo = { margin: '0 0 24px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#2d1a4e',
+  color: '#000000',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '15px',
-  color: '#6b5b7b',
-  lineHeight: '1.6',
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
   margin: '0 0 25px',
 }
-const link = { color: '#7c3aed', textDecoration: 'underline' }
+const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#7c3aed',
+  backgroundColor: '#000000',
   color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: '600' as const,
+  fontSize: '14px',
   borderRadius: '8px',
-  padding: '14px 28px',
+  padding: '12px 20px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#9ca3af', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
