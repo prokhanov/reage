@@ -255,6 +255,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     template_name: emailType,
     recipient_email: payload.data.email,
     status: 'pending',
+    metadata: { is_test: isTest },
   })
 
   const fromAddress = `${senderSettings.name} <${senderSettings.email}@${senderSettings.domain}>`
