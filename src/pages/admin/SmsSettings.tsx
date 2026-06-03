@@ -324,8 +324,9 @@ export default function SmsSettings() {
                           <Textarea
                             value={t.body_text}
                             onChange={(e) => updateTpl(t.id, "body_text", e.target.value)}
-                            rows={4}
+                            rows={10}
                             placeholder="Введите текст SMS"
+                            className="min-h-[240px] resize-y"
                           />
                           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                             <span>{seg.length} симв.</span>
