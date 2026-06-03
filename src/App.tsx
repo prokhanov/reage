@@ -41,6 +41,7 @@ import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
 import ReportVisualsTest from "./pages/admin/ReportVisualsTest";
 import ScaleLabelsPreview from "./pages/admin/ScaleLabelsPreview";
 import EmailSettings from "./pages/admin/EmailSettings";
+import SmsSettings from "./pages/admin/SmsSettings";
 import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -223,6 +224,14 @@ const App = () => (
                 element={
                   <SuperAdminRoute>
                     <EmailSettings />
+                  </SuperAdminRoute>
+                } 
+              />
+              <Route 
+                path="/admin/sms-settings" 
+                element={
+                  <SuperAdminRoute>
+                    <SmsSettings />
                   </SuperAdminRoute>
                 } 
               />
