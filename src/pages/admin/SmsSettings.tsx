@@ -199,9 +199,14 @@ export default function SmsSettings() {
     setSending(true);
     setLastResult(null);
     try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess?.session?.access_token;
+      if (!token) throw new Error("Сессия истекла, войдите снова");
       const { data, error } = await supabase.functions.invoke("sms-send-test", {
         body: { template_id: testTplId, phone: testPhone, variables: testVars },
+        headers: { Authorization: `Bearer ${token}` },
       });
+
       if (error) throw error;
       if (data?.error || data?.success === false) throw new Error(data?.error || "Ошибка");
       setLastResult({ success: true, message: data?.message || "SMS отправлено" });
