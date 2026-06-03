@@ -281,9 +281,9 @@ export default function EmailSettings() {
               </div>
             ) : (
               <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setLastResult(null); }}>
-                <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 rounded-lg p-1">
+                <TabsList className="w-full justify-start overflow-x-auto">
                   {TEMPLATE_TABS.map((tab) => (
-                    <TabsTrigger key={tab.type} value={tab.type} className="text-xs sm:text-sm px-3 py-2 rounded-md">
+                    <TabsTrigger key={tab.type} value={tab.type} className="flex-shrink-0">
                       {tab.label}
                     </TabsTrigger>
                   ))}
