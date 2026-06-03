@@ -1,251 +1,56 @@
-# Своп доменов test ↔ бой. Инструкция для чайника
 
-## Что мы делаем и зачем
-
-Сейчас у тебя так:
-- `reage.life` (бой, реальные юзеры) — обслуживается Lovable. Чтобы обновить, нажимаешь «Опубликовать» в Lovable.
-- `test.reage.life` (тестовый) — обслуживается твоим сервером Coolify/VPS. Обновляется автоматически при каждом изменении в чате Lovable (через GitHub).
-
-**Проблема:** у нас на боевом сервере (через nginx-прокси на VPS) **Safari ломался** при работе с базой. Поэтому мы подняли Fly-прокси и хотим, чтобы бой ходил в базу через него.
-
-**Цель свопа:** поменять местами.
-- `test.reage.life` будет на Lovable (обновляется кнопкой «Опубликовать»). Ходит в базу напрямую — как делал бой раньше. Тут Safari работает.
-- `reage.life` (бой) — на Coolify/VPS. Ходит в базу через Fly-прокси. Safari работает.
-
-Так мы получим:
-1. Безопасное место для тестов (test), которое не отправляет правки сразу на боевых юзеров.
-2. Кнопку «Опубликовать» в Lovable — теперь она обновляет только test.
-3. Чтобы выкатить на бой — отдельно жмёшь Deploy в Coolify, когда уверен.
-4. Бой защищён Fly-прокси от Safari-бага.
-
-## Финальная архитектура (запомни)
-
-```
-test.reage.life  → Lovable hosting → Supabase напрямую
-reage.life       → Coolify/VPS     → api.reage.life → Fly proxy → Supabase
-www.reage.life   → редирект на reage.life
-```
-
----
-
-# Часть 1. Код. Это делаю я
-
-Тебе тут ничего нажимать не надо. Я подготовлю изменения, ты их увидишь в чате, дашь добро — я закоммичу.
-
-**Что меняется:**
-
-1. **Новый файл `src/lib/siteEnv.ts`**
-   Маленький хелпер, который определяет на каком домене мы сейчас открыты, и отдаёт правильные значения:
-   - `APP_URL` (для canonical/og:url, важно для SEO)
-   - `noindex` (true на test → Google не индексирует тестовый домен)
-
-   Зачем: на Lovable мы не можем задать env-переменные при сборке, поэтому определяем эти штуки уже в браузере по `window.location.hostname`.
-
-2. **Правка `src/components/PageMeta.tsx`**
-   Заставить его читать `APP_URL` и `noindex` из нового хелпера, а не из env. Это даст правильные мета-теги и на test, и на бою.
-
-3. **Правка `src/lib/supabaseUrl.ts`**
-   Добавить дефолт `https://ilxgodhosirhhkffqryw.supabase.co`. Тогда:
-   - На Lovable (test) env не задан → клиент идёт в Supabase напрямую.
-   - На Coolify (бой) env = `https://api.reage.life` → клиент идёт через Fly-прокси.
-
-4. **`src/integrations/supabase/client.ts`** — НЕ трогаем (системный файл Lovable). Он сам подхватит правильный URL.
-
-5. **Проверка `index.html`** — убрать `<link rel="canonical">` если он там захардкожен.
-
-6. **README** — записать финальную схему доменов, чтобы через год не забыть.
-
-**Когда я закончу с кодом, в чате будет сообщение «готово». Ты ничего не нажимаешь — изменения автоматически уйдут в GitHub и пересоберутся.**
-
----
-
-# Часть 2. Действия руками. Это делаешь ты
-
-Делай **строго по порядку**. Не перепрыгивай шаги.
-
-## Шаг 1. За сутки до свопа — снизить TTL в reg.ru
-
-**Зачем:** TTL — это сколько провайдеры кэшируют DNS-записи. Если TTL = 1 час, то после переключения старая запись будет жить у юзеров ещё час. Снизим до 5 минут, чтобы переключение прошло быстро.
-
-**Как:**
-1. Зайти на reg.ru → панель управления → DNS-зоны → `reage.life`.
-2. Найти записи: `@` (A), `www` (A), `test` (A), `api` (если есть, CNAME), `api-test` (CNAME).
-3. У каждой нажать «Изменить» → поставить **TTL = 300** (5 минут) → сохранить.
-4. **Подождать сутки.** Серьёзно. Не сокращай — иначе свап растянется на часы.
-
-## Шаг 2. Добавить домен api.reage.life на Fly
-
-**Зачем:** бой будет ходить в базу через `https://api.reage.life`. Сейчас Fly-прокси умеет только `api-test.reage.life`. Надо добавить второй домен на тот же Fly-app.
-
-**Как (терминал на маке):**
-```bash
-cd ~/путь/к/проекту/deploy/fly-proxy
-fly certs add api.reage.life -a reage-test-proxy
-```
-
-Команда выведет, какую DNS-запись добавить. Скорее всего попросит CNAME (если у тебя уже настроен Fly через CNAME) или сразу скажет что готово.
-
-**В reg.ru:**
-1. DNS-зона `reage.life` → добавить запись:
-   - Тип: **CNAME**
-   - Имя: **api**
-   - Значение: **reage-test-proxy.fly.dev**
-   - TTL: **300**
-2. Сохранить.
-
-**Подождать 10 минут.** Затем проверить:
-```bash
-fly certs show api.reage.life -a reage-test-proxy
-```
-Жди статус **Ready**. Когда готово:
-```bash
-curl https://api.reage.life/healthz
-```
-Должно ответить `{"ok":true,"ts":...}`. Если ответило — Fly готов обслуживать бой.
-
-## Шаг 3. Подготовить новый проект в Coolify (НЕ деплоить ещё)
-
-**Зачем:** бой будет жить в отдельном Coolify-проекте. Создаём его, настраиваем, но пока не запускаем.
-
-**Как:**
-1. Зайти в Coolify → твой существующий test-проект → справа три точки → **Clone**. Или создать с нуля.
-2. Назвать новый проект, например, `reage-production`.
-3. Открыть его → **Domains**: добавить два домена:
-   - `reage.life` (поставить Primary)
-   - `www.reage.life`
-4. Открыть **Environment Variables** → добавить 4 переменные, у каждой галочка **Build Variable = ON**:
-   ```
-   VITE_SUPABASE_URL=https://api.reage.life
-   VITE_SUPABASE_PUBLISHABLE_KEY=<скопировать из .env>
-   VITE_SUPABASE_PROJECT_ID=ilxgodhosirhhkffqryw
-   VITE_APP_URL=https://reage.life
-   ```
-   `VITE_NOINDEX` **не добавлять**.
-5. **Build & Deploy Settings**: скопировать команды из test-проекта (build command, publish directory).
-6. **Auto Deploy: OFF**. Branch: `main`.
-7. **НЕ нажимать Deploy.** Просто оставить проект как есть, ждать своей очереди.
-
-## Шаг 4. Отвязать reage.life от Lovable
-
-**Зачем:** сейчас Lovable владеет доменом `reage.life`. Чтобы передать его Coolify, надо сначала Lovable отпустить.
-
-**Как:**
-1. Открыть Lovable → этот проект → название проекта вверху слева → **Settings**.
-2. Раздел **Project** → **Domains**.
-3. Найти `reage.life` → три точки → **Remove**. Подтвердить.
-4. То же самое с `www.reage.life`.
-
-После этого Lovable перестанет отвечать на `reage.life` в течение пары минут. **Сайт временно станет недоступен — это нормально, продолжаем дальше быстро.**
-
-## Шаг 5. Перенастроить DNS в reg.ru (главный шаг)
-
-**Зачем:** перенаправить домены на новые серверы.
-
-**Как, в reg.ru → DNS-зона `reage.life`:**
-
-| Запись | Тип | Старое значение | Новое значение |
-|---|---|---|---|
-| `@` | A | `185.158.133.1` | `<IP твоего VPS Coolify>` |
-| `www` | A | `185.158.133.1` | `<IP твоего VPS Coolify>` |
-| `test` | A | `<IP VPS>` | `185.158.133.1` |
-| `api` | CNAME | — | `reage-test-proxy.fly.dev` (уже добавил на Шаге 2) |
-| `api-test` | CNAME | `reage-test-proxy.fly.dev` | без изменений |
-
-IP VPS — посмотри в Coolify → Server → IP-адрес сервера. Это тот же IP, который сейчас стоит у `test`.
-
-Сохранить. Подождать **5–10 минут**.
-
-Проверить через DNSChecker.org или в терминале:
-```bash
-dig reage.life +short          # должен показать IP VPS
-dig test.reage.life +short     # должен показать 185.158.133.1
-dig api.reage.life +short      # должен показать что-то fly.dev
-```
-
-## Шаг 6. Привязать test.reage.life к Lovable
-
-**Зачем:** теперь test обслуживается Lovable, надо это формализовать.
-
-**Как:**
-1. Lovable → Settings → Project → Domains → **Connect Domain**.
-2. Ввести: `test.reage.life`.
-3. Lovable сам проверит DNS (он уже указывает на `185.158.133.1`) → верификация пройдёт автоматически.
-4. Ждать пока статус станет **Active** (5–30 минут, плюс выпуск SSL).
-5. Когда Active — открыть `https://test.reage.life` в браузере. Должен загрузиться сайт.
-
-## Шаг 7. Деплой боя через Coolify
-
-**Зачем:** запустить новый бой.
-
-**Как:**
-1. Coolify → проект `reage-production` → большая кнопка **Deploy**.
-2. Подождать билд (~3–5 минут). Смотреть логи, если падает.
-3. Когда зелёная галочка — открыть `https://reage.life` в браузере.
-
-**Проверки в терминале:**
-```bash
-curl -I https://reage.life/                  # должен быть 200 OK
-curl -I https://www.reage.life/              # 301 на reage.life
-curl https://api.reage.life/healthz          # {"ok":true,...}
-```
-
-**Главный тест: открыть `reage.life` в Safari, залогиниться, поскроллить дашборд.** Если работает — Fly-прокси спас бой от Safari-бага.
-
-## Шаг 8. Финальные настройки
-
-1. **Lovable → Settings → Authentication → URL Configuration:**
-   - **Site URL:** `https://reage.life` (оставить как есть).
-   - **Redirect URLs:** убедиться, что в списке есть:
-     ```
-     https://reage.life/**
-     https://www.reage.life/**
-     https://test.reage.life/**
-     ```
-     Если каких-то нет — добавить. Сохранить.
-
-2. **Старый Coolify test-проект** (тот, что обслуживал `test.reage.life` раньше) — теперь не нужен. Можешь удалить или оставить выключенным как backup на пару недель.
-
-3. **Через сутки**, когда убедился что всё стабильно — вернуть TTL в reg.ru обратно на **3600** (1 час). Меньше нагрузка на DNS.
-
----
-
-# Как теперь работать каждый день
-
-| Что ты делаешь | Что обновится | Сколько ждать |
-|---|---|---|
-| Пишешь в чат Lovable | preview в Lovable | сразу |
-| Жмёшь «Опубликовать» в Lovable | `test.reage.life` | ~2 мин |
-| Тестируешь на test, всё ок | — | — |
-| Идёшь в Coolify → жмёшь Deploy в проекте `reage-production` | `reage.life` + `www.reage.life` | ~3–5 мин |
-
-**Никогда не забывай:** после Lovable Publish изменения **не на бою**. На бой их катит **только** ручной Deploy в Coolify.
-
----
-
-# Что делать если всё пошло не так (откат)
-
-1. reg.ru → DNS вернуть:
-   - `@`, `www` → `185.158.133.1`
-   - `test` → `<IP VPS>`
-2. Lovable → Domains → удалить `test.reage.life`, добавить обратно `reage.life` и `www.reage.life`.
-3. Подождать 15 минут на DNS.
-
-Вернёшься к тому, что было до свопа.
-
----
-
-# Что НЕ меняется (для спокойствия)
-
-- База данных, юзеры, анализы, edge functions, секреты — всё на том же Supabase. Ничего не мигрирует.
-- Email-шаблоны, ссылки в письмах — те же.
-- Код приложения — почти не меняется (только мелкие правки в трёх файлах, которые делаю я).
-
----
-
-# Одна вещь, о которой надо помнить
-
-**База одна и та же** на test и на бою. Если ты в Lovable сделаешь миграцию (изменишь структуру базы) или поправишь edge function — это **сразу** уйдёт на боевых юзеров, потому что test и бой ходят в одну базу.
-
-Этого мы здесь не решаем — это отдельная задача (надо было бы поднимать вторую базу). Просто **миграции и правки edge functions делать аккуратно**, желательно вечером, когда мало активных юзеров.
-
-Фронтовые правки (UI, тексты, кнопки) — безопасны, они изолированы между test и боем.
+## 1. Перевод email на очередь
+- `email_domain--setup_email_infra` — создаёт `email_send_log`, `email_send_state`, `suppressed_emails`, `email_unsubscribe_tokens`, pgmq-очереди `auth_emails`/`transactional_emails`, RPC `enqueue_email`, edge `process-email-queue` + pg_cron каждые 5с.
+- Сохраняем текущие 6 русских шаблонов из `supabase/functions/_shared/email-templates/*.tsx`.
+- `email_domain--scaffold_auth_email_templates` с `confirm_overwrite: true` → пересоздаёт `auth-email-hook` под `enqueue_email`.
+- Возвращаем русский текст и брендинг ReAge в шаблоны (без unsubscribe-футера).
+- Перевод `send-test-email` на `enqueue_email` (очередь `transactional_emails`), чтобы тестовые письма тоже логировались.
+- Deploy: `auth-email-hook`, `send-test-email`, `process-email-queue`.
+
+## 2. UI настроек email — фикс вёрстки + новая вкладка
+В `src/pages/admin/EmailSettings.tsx`:
+- Оборачиваем содержимое в верхние табы: «Отправитель и шаблоны» / «Логи и мониторинг».
+- Фикс перекошенной вёрстки: убрать конфликтующие классы у вложенного `TabsList` шаблонов (`flex flex-wrap h-auto bg-muted/50 …` ломает базовый `inline-flex h-12 rounded-full`); вместо них `w-full justify-start overflow-x-auto` + `flex-shrink-0` на триггерах. У сплит-инпута отправителя добавить `min-w-0` / `flex-shrink-0`, ограничить карточку `max-w-2xl`.
+
+Новый компонент `EmailLogsDashboard` (вкладка «Логи и мониторинг»). Suppression list и отписки **не показываем** — у нас только важные технические письма, отписка не предусмотрена.
+
+Фичи дашборда:
+1. **Фильтр периода**: 24ч / 7д / 30д + кастомный диапазон (default 7д).
+2. **Фильтр шаблона**: мульти-select из distinct `template_name`.
+3. **Фильтр статуса**: All / Sent / Failed (dlq) / Pending — цветные badges.
+4. **Карточки статистики**: уникальные письма, отправлено, ошибки — через `DISTINCT ON (message_id) … ORDER BY message_id, created_at DESC`.
+5. **Таблица логов**: дедуп по `message_id`, сортировка по времени desc, пагинация 50; колонки: шаблон, получатель, статус, время, ошибка (для failed). Для упавших — кнопка «Повторить отправку» (повторно вызывает соответствующий триггер; для auth — недоступно, только инфо).
+
+Доступ — только `superadmin` (как и текущая страница).
+
+## 3. Смена email пользователя админом
+В `src/pages/admin/UserManagement.tsx` для активных пользователей — кнопка «Изменить email» (в строке/меню), открывает диалог `ChangeUserEmailDialog`:
+- поле нового email + текущий пароль/подтверждение действия,
+- предупреждение «email будет сразу подтверждён, письмо верификации не отправляется».
+
+Edge `admin-change-user-email` (service role, verify_jwt в коде):
+- проверка вызывающего: `superadmin`,
+- валидация email (zod), проверка уникальности в `auth.users` и `profiles`,
+- `supabase.auth.admin.updateUserById(userId, { email, email_confirm: true })`,
+- `UPDATE profiles SET email = … WHERE id = …`,
+- запись в `patient_interactions` (тип `admin_email_change`, в metadata old/new email).
+
+После смены — существующая кнопка «Отправить повторно» в `EmailConfirmationBadge` работает как обычно (для приглашений/важных писем).
+
+## Файлы
+- `supabase/functions/auth-email-hook/index.ts` — пересоздаётся scaffold-ом
+- `supabase/functions/_shared/email-templates/*.tsx` — восстановить русский текст и брендинг
+- `supabase/functions/send-test-email/index.ts` — перевод на `enqueue_email`
+- `supabase/functions/admin-change-user-email/index.ts` — новый
+- `src/pages/admin/EmailSettings.tsx` — верхние табы + фикс вёрстки
+- `src/components/admin/email/EmailLogsDashboard.tsx` — новый
+- `src/components/admin/email/EmailStatsCards.tsx` — новый
+- `src/components/admin/email/EmailLogTable.tsx` — новый
+- `src/pages/admin/UserManagement.tsx` — кнопка «Изменить email»
+- `src/components/admin/ChangeUserEmailDialog.tsx` — новый
+
+## Результат
+- Все письма (auth + тестовые) идут через очередь с авто-ретраями и попадают в `email_send_log`.
+- В админке во вкладке «Логи и мониторинг» — фильтры, статистика, таблица отправок.
+- Suppression/отписки скрыты (не нужны для технических писем).
+- Суперадмин может сменить пользователю email вручную, новый адрес считается сразу подтверждённым, действие логируется в CRM.
