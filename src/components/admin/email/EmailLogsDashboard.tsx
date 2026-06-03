@@ -87,7 +87,7 @@ export function EmailLogsDashboard() {
     // Fetch wider range; dedupe client-side
     const { data, error } = await supabase
       .from("email_send_log" as any)
-      .select("message_id, template_name, recipient_email, status, error_message, created_at")
+      .select("message_id, template_name, recipient_email, status, error_message, created_at, metadata")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(2000);
