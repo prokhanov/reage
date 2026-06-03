@@ -230,7 +230,16 @@ export function EmailLogsDashboard() {
                   ) : (
                     pageRows.map((r) => (
                       <TableRow key={r.message_id}>
-                        <TableCell className="font-medium">{TEMPLATE_LABELS[r.template_name] || r.template_name}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {TEMPLATE_LABELS[r.template_name] || r.template_name}
+                            {r.metadata?.is_test && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30">
+                                Тест
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-sm">{r.recipient_email}</TableCell>
                         <TableCell>{statusBadge(r.status)}</TableCell>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
