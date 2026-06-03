@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Send, CheckCircle, AlertCircle, Save, User } from "lucide-react";
+import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity } from "lucide-react";
+import { EmailLogsDashboard } from "@/components/admin/email/EmailLogsDashboard";
 
 interface EmailTemplate {
   id?: string;
@@ -193,7 +194,23 @@ export default function EmailSettings() {
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <Tabs defaultValue="settings" className="w-full">
+        <TabsList>
+          <TabsTrigger value="settings" className="gap-2">
+            <Mail className="w-4 h-4" />
+            Отправитель и шаблоны
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="gap-2">
+            <Activity className="w-4 h-4" />
+            Логи и мониторинг
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="logs" className="mt-6">
+          <EmailLogsDashboard />
+        </TabsContent>
+
+        <TabsContent value="settings" className="mt-6 grid gap-6">
         {/* Sender alias card */}
         <Card>
           <CardHeader>
