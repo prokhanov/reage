@@ -72,59 +72,64 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
-## Внешний деплой через Coolify (свой VPS)
-
-Lovable остаётся редактором; код синхронизируется в GitHub; production-сборку
-поднимает Coolify на собственном сервере. Бэкенд (Lovable Cloud / Supabase)
-остаётся подключённым через `VITE_SUPABASE_URL` и `VITE_SUPABASE_PUBLISHABLE_KEY`
-и не мигрирует.
-
-### Переменные окружения (Coolify → Environment, все Build Variable = ON)
-
-См. `.env.example`. Минимальный набор:
+## Архитектура доменов и деплоя
 
 ```
-VITE_SUPABASE_URL=https://ilxgodhosirhhkffqryw.supabase.co
+test.reage.life  → Lovable hosting → Supabase напрямую (ilxgodhosirhhkffqryw.supabase.co)
+reage.life       → Coolify/VPS     → api.reage.life → Fly proxy → Supabase
+www.reage.life   → редирект на reage.life
+```
+
+- **Lovable Publish** обновляет `test.reage.life`.
+- **Coolify Deploy** (ручной) обновляет `reage.life` + `www.reage.life`.
+- База, edge functions, секреты — общие на test и бою (один Supabase-проект).
+- Бой ходит в базу через Fly-прокси (`api.reage.life`) — это лечит Safari-баг,
+  который проявлялся при прямом проксировании через nginx на VPS.
+- Test ходит в базу напрямую — это осознанный компромисс: маршрут API
+  на тесте ≠ боевому, зато тест остаётся максимально нативным Lovable.
+
+### Определение окружения
+
+`APP_URL` и `noindex` определяются в рантайме по `window.location.hostname`
+в `src/lib/siteEnv.ts`. Дополнительно их можно переопределить через
+`VITE_APP_URL` / `VITE_NOINDEX` (используется Coolify при сборке).
+
+`VITE_SUPABASE_URL` — build-time. Если переменная не задана (Lovable hosting),
+клиент идёт на `https://ilxgodhosirhhkffqryw.supabase.co` (дефолт в
+`src/lib/supabaseUrl.ts`). На Coolify проставляется `https://api.reage.life`,
+и трафик идёт через Fly-прокси.
+
+### Переменные окружения Coolify (Environment → все Build Variable = ON)
+
+```
+VITE_SUPABASE_URL=https://api.reage.life
 VITE_SUPABASE_PUBLISHABLE_KEY=<anon publishable key>
 VITE_SUPABASE_PROJECT_ID=ilxgodhosirhhkffqryw
-VITE_APP_URL=https://test.reage.life   # на тесте; на бою → https://reage.life
-VITE_NOINDEX=true                       # на тесте; на бою убрать или false
+VITE_APP_URL=https://reage.life
+# VITE_NOINDEX не задавать
 ```
 
-### Build настройки в Coolify
+### Build настройки Coolify
 
 - Build Pack: **Nixpacks**
 - Install Command: `npm ci`
 - Build Command: `npx tsx scripts/generate-sitemap.ts && vite build`
 - Publish Directory: `dist`
-- SPA fallback: включить (для React Router) — Coolify делает это автоматически
-  для статических сайтов через встроенный Caddy.
+- Auto Deploy: **OFF** (бой выкатывается только ручным Deploy)
+- Branch: `main`
 
-### Auth (Lovable Cloud)
+### Auth (Lovable Cloud → Authentication → URL Configuration)
 
-В Authentication → URL Configuration добавить в **Redirect URLs**:
-- `https://test.reage.life/**` (на этапе теста)
-- `https://reage.life/**`, `https://www.reage.life/**` (для боя)
-
-**Site URL** оставлять `https://reage.life` всё время, пока боевой не
-переключён на новый хостинг — иначе email-письма у действующих
-пользователей пойдут на тестовый домен.
-
-### Переключение DNS на reg.ru
-
-| Этап | Записи DNS | Боевой сайт |
-|---|---|---|
-| Сейчас | `@`, `www` → `185.158.133.1` | Lovable |
-| Тест | + `A test → <IP VPS>`, `A coolify → <IP VPS>` | Lovable (без изменений) |
-| Бой | `@`, `www` → `<IP VPS>` (заменить старые) | Coolify |
-
-За сутки до переключения боевого: снизить TTL у `@` и `www` до 300 с.
-После успешного переключения: в Lovable Project Settings → Domains
-отвязать `reage.life` и `www.reage.life`.
+- **Site URL:** `https://reage.life`
+- **Redirect URLs:**
+  - `https://reage.life/**`
+  - `https://www.reage.life/**`
+  - `https://test.reage.life/**`
 
 ### Что НЕ менять руками
 
-- `.env` — автогенерится Lovable, любые правки будут затёрты.
+- `.env` — автогенерится Lovable, правки затрутся.
 - `src/integrations/supabase/client.ts` и `src/integrations/supabase/types.ts`.
 - `supabase/config.toml` (project-level настройки).
+
 
