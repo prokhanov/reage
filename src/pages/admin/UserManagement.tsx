@@ -801,6 +801,25 @@ export default function UserManagement() {
                                           </TooltipContent>
                                         </Tooltip>
                                       )}
+                                      {user.role !== "superadmin" && (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEmailChangeUser({ id: user.id, name: user.name, email: user.email ?? null });
+                                              }}
+                                            >
+                                              <Mail className="w-4 h-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Изменить email</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      )}
                                       {user.role !== "patient" && user.role !== "superadmin" && (
                                         <Tooltip>
                                           <TooltipTrigger asChild>
@@ -888,6 +907,20 @@ export default function UserManagement() {
           }
         }}
       />
+
+      {emailChangeUser && (
+        <ChangeUserEmailDialog
+          open={!!emailChangeUser}
+          onOpenChange={(o) => !o && setEmailChangeUser(null)}
+          userId={emailChangeUser.id}
+          userName={emailChangeUser.name}
+          currentEmail={emailChangeUser.email}
+          onSuccess={() => {
+            setEmailChangeUser(null);
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }
