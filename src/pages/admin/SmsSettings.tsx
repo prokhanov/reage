@@ -397,7 +397,7 @@ export default function SmsSettings() {
               </div>
 
               {testTpl && testTpl.variables.length > 0 && (
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className={`grid gap-3 ${testTpl.variables.includes("message") ? "" : "sm:grid-cols-2"}`}>
                   {testTpl.variables.map((v) => (
                     <div key={v} className="space-y-1">
                       <Label className="text-xs">{`{{${v}}}`}</Label>
