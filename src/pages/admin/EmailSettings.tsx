@@ -403,7 +403,8 @@ export default function EmailSettings() {
             )}
           </CardContent>
         </Card>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
