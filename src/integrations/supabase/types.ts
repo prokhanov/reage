@@ -1341,6 +1341,105 @@ export type Database = {
           },
         ]
       }
+      sms_send_log: {
+        Row: {
+          body_text: string
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          provider: string
+          provider_message_id: string | null
+          recipient_phone: string
+          status: string
+          template_name: string
+        }
+        Insert: {
+          body_text: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_message_id?: string | null
+          recipient_phone: string
+          status?: string
+          template_name: string
+        }
+        Update: {
+          body_text?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          provider?: string
+          provider_message_id?: string | null
+          recipient_phone?: string
+          status?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
+      sms_sender_settings: {
+        Row: {
+          id: string
+          sender_sign: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          sender_sign?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          sender_sign?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      sms_templates: {
+        Row: {
+          body_text: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          type: string
+          updated_at: string
+          updated_by: string | null
+          variables: Json
+        }
+        Insert: {
+          body_text: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          type: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: Json
+        }
+        Update: {
+          body_text?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          type?: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: Json
+        }
+        Relationships: []
+      }
       subscription_history: {
         Row: {
           action: string
