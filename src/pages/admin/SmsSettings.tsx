@@ -87,13 +87,7 @@ export default function SmsSettings() {
 
   const fetchAdminPhone = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("phone")
-      .eq("id", user.id)
-      .maybeSingle();
-    const phone = (profile as any)?.phone || user.phone || "";
+    const phone = user?.phone || "";
     if (phone) setTestPhone(formatPhone(phone));
   };
 
