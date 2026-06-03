@@ -19,6 +19,7 @@ type LogRow = {
   status: string;
   error_message: string | null;
   created_at: string;
+  metadata: any;
 };
 
 const PERIODS = [
