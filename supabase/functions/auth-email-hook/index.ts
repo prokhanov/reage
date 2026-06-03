@@ -195,6 +195,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   const supabaseAdmin = getSupabaseAdmin()
 
   // Test override (one-time): renders the requested template instead
+  let isTest = false
   if (supabaseAdmin) {
     try {
       const { data: override } = await supabaseAdmin
@@ -204,6 +205,7 @@ async function handleWebhook(req: Request): Promise<Response> {
         .maybeSingle()
       if (override?.template_type) {
         emailType = override.template_type
+        isTest = true
         await supabaseAdmin.from('test_email_overrides').delete().eq('email', payload.data.email)
       }
     } catch (err) {
@@ -253,6 +255,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     template_name: emailType,
     recipient_email: payload.data.email,
     status: 'pending',
+    metadata: { is_test: isTest },
   })
 
   const fromAddress = `${senderSettings.name} <${senderSettings.email}@${senderSettings.domain}>`
