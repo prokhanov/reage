@@ -78,7 +78,14 @@ Deno.serve(async (req) => {
     if (error) {
       // Clean up override on failure
       await supabaseAdmin.from('test_email_overrides').delete().eq('email', email);
-      throw error;
+      const isRateLimit = (error as any).code === 'over_email_send_rate_limit' || /rate limit/i.test(error.message);
+      const msg = isRateLimit
+        ? 'Слишком много тестовых писем подряд. Подождите ~1 минуту и попробуйте снова.'
+        : error.message;
+      return new Response(
+        JSON.stringify({ error: msg, rate_limited: isRateLimit }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const tabLabels: Record<string, string> = {
