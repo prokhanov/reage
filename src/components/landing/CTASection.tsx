@@ -144,7 +144,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row justify-between items-center py-6 border-t border-border/40 gap-3">
           <p className="text-xs text-muted-foreground/70">
-            © {currentYear} ООО «Реэйдж» · ИНН 9704271028 · ОГРН 1267700099985
+            © {currentYear} Реэйдж · ИНН 9704271028 · ОГРН 1267700099985
           </p>
           <p className="text-xs text-muted-foreground/50">
             Сделано с заботой о вашем здоровье
