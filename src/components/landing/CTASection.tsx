@@ -80,9 +80,12 @@ export function Footer() {
             <h3 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-4">
               ReAge
             </h3>
-            <p className="text-muted-foreground mb-6 max-w-sm whitespace-pre-line">
-              {"Сервис по управлению здоровьем.\nУзнайте свой биологический возраст и получите персональные рекомендации."}
-            </p>
+            <div className="text-sm text-muted-foreground mb-6 max-w-sm space-y-3 leading-relaxed">
+              <p>ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.</p>
+              <p>Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.</p>
+              <p>Оператор сервиса: ООО «Реэйдж» (ИНН 9704271028).</p>
+              <p>Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.</p>
+            </div>
             <div className="flex gap-4">
               <ContactButton icon={<Mail className="w-4 h-4" />} label="Email" />
               <ContactButton icon={<Phone className="w-4 h-4" />} label="Телефон" />
@@ -111,24 +114,6 @@ export function Footer() {
               <FooterLink href="#" label="Согласие на получение и обработку исследований" />
               <FooterLink href="#" label="Все документы" />
             </ul>
-          </div>
-        </div>
-        
-        {/* Legal notice */}
-        <div className="pt-8 pb-8 border-t border-border/30">
-          <div className="max-w-4xl mx-auto text-center space-y-3">
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.
-            </p>
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.
-            </p>
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              Оператор сервиса: ООО «Реэйдж» (ИНН 9704271028).
-            </p>
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.
-            </p>
           </div>
         </div>
         
