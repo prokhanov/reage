@@ -68,53 +68,85 @@ export function CTASection() {
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
-  
+
+  const legalLinks = [
+    { href: "/legal/requisites", label: "Реквизиты" },
+    { href: "/legal/privacy", label: "Политика обработки персональных данных" },
+    { href: "/legal/terms", label: "Пользовательское соглашение" },
+    { href: "/legal/consent-data", label: "Согласие на обработку персональных данных" },
+    { href: "/legal/consent-research", label: "Согласие на обработку исследований" },
+    { href: "/legal/documents", label: "Все документы" },
+  ];
+
   return (
-    <footer className="relative py-16 border-t border-border/50">
-      <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20" />
-      
-      <div className="relative z-10 container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-12">
-          {/* Brand */}
-          <div className="lg:col-span-5">
-            <h3 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-4">
+    <footer className="relative border-t border-border/40 overflow-hidden">
+      {/* subtle background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+      <div className="relative z-10 container mx-auto px-6 max-w-7xl">
+        {/* Top: brand + contacts */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-16 pb-12">
+          <div className="md:col-span-7 lg:col-span-8">
+            <h3 className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-3 tracking-tight">
               ReAge
             </h3>
-            <div className="text-sm text-muted-foreground mb-6 space-y-3 leading-relaxed">
-              <p>ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.</p>
-              <p>Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.</p>
-              <p>Оператор сервиса: ООО «Реэйдж» (ИНН 9704271028).</p>
-            </div>
-            <div className="flex gap-3">
+            <p className="text-base text-foreground/80 max-w-xl leading-relaxed">
+              Премиальный сервис годового мониторинга биологического возраста и ключевых показателей здоровья.
+            </p>
+          </div>
+
+          <div className="md:col-span-5 lg:col-span-4 md:text-right">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/70 mb-4">
+              Связаться с нами
+            </p>
+            <div className="flex md:justify-end gap-2.5 mb-5">
               <ContactButton icon={<Mail className="w-4 h-4" />} label="Email" />
               <ContactButton icon={<Phone className="w-4 h-4" />} label="Телефон" />
               <ContactButton icon={<MessageCircle className="w-4 h-4" />} label="Telegram" />
             </div>
-          </div>
-
-          {/* Links */}
-          <div className="lg:col-span-7">
-            <h4 className="font-semibold text-foreground mb-5 text-base">Юридическая информация</h4>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-              <FooterLink href="/legal/requisites" label="Реквизиты" />
-              <FooterLink href="/legal/privacy" label="Политика обработки персональных данных" />
-              <FooterLink href="/legal/terms" label="Пользовательское соглашение" />
-              <FooterLink href="/legal/consent-data" label="Согласие на обработку персональных данных" />
-              <FooterLink href="/legal/consent-research" label="Согласие на обработку исследований" />
-              <FooterLink href="/legal/documents" label="Все документы" />
-            </ul>
-            <p className="text-xs text-muted-foreground/80 mt-6 leading-relaxed">
-              Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.
-            </p>
+            <a
+              href="mailto:team@reage.life"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              team@reage.life
+            </a>
           </div>
         </div>
-        
-        {/* Bottom */}
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border/50 gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {currentYear} ООО «Реэйдж». Все права защищены.
+
+        {/* Legal grid */}
+        <div className="border-t border-border/40 py-10">
+          <div className="flex items-baseline justify-between mb-6">
+            <h4 className="text-xs uppercase tracking-[0.2em] text-muted-foreground/70">
+              Юридическая информация
+            </h4>
+          </div>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-4">
+            {legalLinks.map((link) => (
+              <FooterLink key={link.href} href={link.href} label={link.label} />
+            ))}
+          </ul>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="border-t border-border/40 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs text-muted-foreground/80 leading-relaxed">
+          <p>
+            ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.
           </p>
+          <p>
+            Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.
+          </p>
+          <p>
+            Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.
+          </p>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex flex-col md:flex-row justify-between items-center py-6 border-t border-border/40 gap-3">
           <p className="text-xs text-muted-foreground/70">
+            © {currentYear} ООО «Реэйдж» · ИНН 9704271028 · ОГРН 1267700099985
+          </p>
+          <p className="text-xs text-muted-foreground/50">
             Сделано с заботой о вашем здоровье
           </p>
         </div>
@@ -125,8 +157,8 @@ export function Footer() {
 
 function ContactButton({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <button 
-      className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 border border-border/50 text-muted-foreground hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all duration-300"
+    <button
+      className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/40 border border-border/60 text-muted-foreground hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all duration-300"
       aria-label={label}
     >
       {icon}
@@ -134,13 +166,14 @@ function ContactButton({ icon, label }: { icon: React.ReactNode; label: string }
   );
 }
 
-function FooterLink({ href, label, small }: { href: string; label: string; small?: boolean }) {
+function FooterLink({ href, label }: { href: string; label: string }) {
   return (
     <li className="list-none">
-      <a 
+      <a
         href={href}
-        className={`text-muted-foreground hover:text-primary transition-colors ${small ? "text-sm" : ""}`}
+        className="group inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors"
       >
+        <span className="w-1 h-1 rounded-full bg-primary/40 group-hover:bg-primary group-hover:scale-150 transition-all" />
         {label}
       </a>
     </li>
