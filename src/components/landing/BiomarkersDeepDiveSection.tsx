@@ -223,7 +223,7 @@ export function BiomarkersDeepDiveSection() {
         </div>
 
         {/* Main gallery card */}
-        <div className="relative max-w-6xl mx-auto">
+        <div className="relative max-w-6xl mx-auto min-h-[920px] sm:min-h-[860px] md:min-h-[820px] lg:min-h-[760px]">
           <button
             onClick={prev}
             className="hidden md:flex absolute -left-16 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-card/80 backdrop-blur-sm border border-border/60 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card transition-all shadow-lg"
