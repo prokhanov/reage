@@ -74,7 +74,7 @@ export function Footer() {
       <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20" />
       
       <div className="relative z-10 container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           {/* Brand */}
           <div className="md:col-span-2">
             <h3 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-4">
@@ -92,18 +92,8 @@ export function Footer() {
               <ContactButton icon={<MessageCircle className="w-4 h-4" />} label="Telegram" />
             </div>
           </div>
-          
+
           {/* Links */}
-          <div>
-            <h4 className="font-semibold text-foreground mb-4">Продукт</h4>
-            <ul className="space-y-3">
-              <FooterLink href="#" label="Как это работает" />
-              <FooterLink href="#" label="Тарифы" />
-              <FooterLink href="#" label="Биомаркеры" />
-              <FooterLink href="#" label="Вопрос-ответ" />
-            </ul>
-          </div>
-          
           <div>
             <h4 className="font-semibold text-foreground mb-4">Юридическая информация</h4>
             <ul className="space-y-3">
