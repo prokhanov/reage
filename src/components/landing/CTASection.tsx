@@ -89,9 +89,11 @@ export function Footer() {
         {/* Top: brand + contacts */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-16 pb-12">
           <div className="md:col-span-7 lg:col-span-8">
-            <h3 className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-3 tracking-tight">
-              ReAge
-            </h3>
+            <img
+              src={logoDark}
+              alt="ReAge"
+              className="h-8 w-auto mb-3"
+            />
             <div className="text-sm text-foreground/70 max-w-xl leading-relaxed space-y-3">
               <p>ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.</p>
               <p>Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.</p>
