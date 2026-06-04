@@ -91,28 +91,13 @@ export function Footer() {
             <h3 className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-3 tracking-tight">
               ReAge
             </h3>
-            <p className="text-base text-foreground/80 max-w-xl leading-relaxed">
-              ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.
-            </p>
-          </div>
-
-          <div className="md:col-span-5 lg:col-span-4 md:text-right">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground/70 mb-4">
-              Связаться с нами
-            </p>
-            <div className="flex md:justify-end gap-2.5 mb-5">
-              <ContactButton icon={<Mail className="w-4 h-4" />} label="Email" />
-              <ContactButton icon={<Phone className="w-4 h-4" />} label="Телефон" />
-              <ContactButton icon={<MessageCircle className="w-4 h-4" />} label="Telegram" />
+            <div className="text-sm text-foreground/70 max-w-xl leading-relaxed space-y-3">
+              <p>ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.</p>
+              <p>Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.</p>
+              <p>Оператор сервиса: ООО «Реэйдж» (ИНН 9704271028).</p>
+              <p>Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.</p>
             </div>
-            <a
-              href="mailto:team@reage.life"
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              team@reage.life
-            </a>
           </div>
-        </div>
 
         {/* Legal grid */}
         <div className="border-t border-border/40 py-10">
