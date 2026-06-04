@@ -46,6 +46,12 @@ import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
+import Requisites from "./pages/legal/Requisites";
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsOfService from "./pages/legal/TermsOfService";
+import ConsentData from "./pages/legal/ConsentData";
+import ConsentResearch from "./pages/legal/ConsentResearch";
+import Documents from "./pages/legal/Documents";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -236,6 +242,14 @@ const App = () => (
                 } 
               />
             </Route>
+
+            {/* Legal pages */}
+            <Route path="/legal/requisites" element={<Requisites />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/consent-data" element={<ConsentData />} />
+            <Route path="/legal/consent-research" element={<ConsentResearch />} />
+            <Route path="/legal/documents" element={<Documents />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

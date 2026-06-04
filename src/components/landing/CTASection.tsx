@@ -107,12 +107,12 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Юридическая информация</h4>
             <ul className="space-y-3">
-              <FooterLink href="#" label="Реквизиты" />
-              <FooterLink href="#" label="Политика обработки персональных данных" />
-              <FooterLink href="#" label="Пользовательское соглашение" />
-              <FooterLink href="#" label="Согласие на обработку персональных данных" />
-              <FooterLink href="#" label="Согласие на получение и обработку исследований" />
-              <FooterLink href="#" label="Все документы" />
+              <FooterLink href="/legal/requisites" label="Реквизиты" />
+              <FooterLink href="/legal/privacy" label="Политика обработки персональных данных" />
+              <FooterLink href="/legal/terms" label="Пользовательское соглашение" />
+              <FooterLink href="/legal/consent-data" label="Согласие на обработку персональных данных" />
+              <FooterLink href="/legal/consent-research" label="Согласие на получение и обработку исследований" />
+              <FooterLink href="/legal/documents" label="Все документы" />
             </ul>
           </div>
         </div>
