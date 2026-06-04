@@ -91,9 +91,12 @@ export function Footer() {
             <h3 className="text-3xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-3 tracking-tight">
               ReAge
             </h3>
-            <p className="text-base text-foreground/80 max-w-xl leading-relaxed">
-              ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.
-            </p>
+            <div className="text-sm text-foreground/70 max-w-xl leading-relaxed space-y-3">
+              <p>ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.</p>
+              <p>Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.</p>
+              <p>Оператор сервиса: ООО «Реэйдж» (ИНН 9704271028).</p>
+              <p>Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.</p>
+            </div>
           </div>
 
           <div className="md:col-span-5 lg:col-span-4 md:text-right">
@@ -126,19 +129,6 @@ export function Footer() {
               <FooterLink key={link.href} href={link.href} label={link.label} />
             ))}
           </ul>
-        </div>
-
-        {/* Disclaimer */}
-        <div className="border-t border-border/40 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs text-muted-foreground/80 leading-relaxed">
-          <p>
-            ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.
-          </p>
-          <p>
-            Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.
-          </p>
-          <p>
-            Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.
-          </p>
         </div>
 
         {/* Bottom bar */}
