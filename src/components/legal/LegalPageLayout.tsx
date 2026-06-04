@@ -1,4 +1,4 @@
-import { ArrowLeft, FileText, Shield, ScrollText, ClipboardCheck, FlaskConical, BookOpen } from "lucide-react";
+import { ArrowLeft, FileText, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ReactNode } from "react";
 
@@ -20,9 +20,9 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
         <div className="absolute bottom-0 right-0 w-[600px] h-[400px] bg-accent/5 rounded-full blur-[150px]" />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 print-root">
         {/* Header */}
-        <header className="border-b border-border/40 backdrop-blur-sm sticky top-0 z-50 bg-background/80">
+        <header className="border-b border-border/40 backdrop-blur-sm sticky top-0 z-50 bg-background/80 print:hidden">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <button
               onClick={() => navigate("/")}
@@ -31,40 +31,53 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               На главную
             </button>
-            <span className="text-lg font-bold bg-gradient-hero bg-clip-text text-transparent">
-              ReAge
-            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => window.print()}
+                title="Скачать PDF"
+                className="group inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all text-sm font-medium"
+              >
+                <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+                <span className="hidden sm:inline">Скачать PDF</span>
+              </button>
+              <span className="text-lg font-bold bg-gradient-hero bg-clip-text text-transparent">
+                ReAge
+              </span>
+            </div>
           </div>
         </header>
 
         {/* Hero */}
-        <section className="relative pt-16 pb-8 md:pt-24 md:pb-12">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-6">
+        <section className="relative pt-16 pb-8 md:pt-24 md:pb-12 print:pt-2 print:pb-4">
+          <div className="container mx-auto px-4 print:px-0">
+            <div className="max-w-4xl mx-auto text-center print:text-left">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-6 print:hidden">
                 {icon || <FileText className="w-6 h-6 text-primary" />}
               </div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 leading-tight print:text-2xl print:mb-2 print:text-black">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto print:text-sm print:text-neutral-700">
                   {subtitle}
                 </p>
               )}
+              <div className="hidden print:block mt-3 text-xs text-neutral-500">
+                ReAge · reage.life · {new Date().toLocaleDateString("ru-RU")}
+              </div>
             </div>
           </div>
         </section>
 
         {/* Content */}
-        <section className="pb-24">
-          <div className="container mx-auto px-4">
+        <section className="pb-24 print:pb-0">
+          <div className="container mx-auto px-4 print:px-0">
             <div className="max-w-4xl mx-auto">
-              <div className="relative rounded-3xl overflow-hidden">
+              <div className="relative rounded-3xl overflow-hidden print:rounded-none print:overflow-visible">
                 {/* Gradient border */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-border/50 to-accent/20 rounded-3xl" />
-                <div className="relative m-[1px] rounded-[23px] bg-card/80 backdrop-blur-sm border border-border/30 p-8 md:p-12 lg:p-16">
-                  <div className="prose prose-invert prose-lg max-w-none">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-border/50 to-accent/20 rounded-3xl print:hidden" />
+                <div className="relative m-[1px] rounded-[23px] bg-card/80 backdrop-blur-sm border border-border/30 p-8 md:p-12 lg:p-16 print:m-0 print:rounded-none print:border-0 print:bg-transparent print:p-0 print:backdrop-blur-none">
+                  <div className="prose prose-invert prose-lg max-w-none print:prose-base print:text-black">
                     {children}
                   </div>
                 </div>
@@ -74,7 +87,7 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-border/30 py-8">
+        <footer className="border-t border-border/30 py-8 print:hidden">
           <div className="container mx-auto px-4 text-center">
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} ReAge. Все права защищены.
