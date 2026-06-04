@@ -73,20 +73,19 @@ export function Footer() {
     <footer className="relative py-16 border-t border-border/50">
       <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20" />
       
-      <div className="relative z-10 container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+      <div className="relative z-10 container mx-auto px-4 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-12">
           {/* Brand */}
-          <div className="md:col-span-2">
+          <div className="lg:col-span-5">
             <h3 className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent mb-4">
               ReAge
             </h3>
-            <div className="text-sm text-muted-foreground mb-6 max-w-sm space-y-3 leading-relaxed">
+            <div className="text-sm text-muted-foreground mb-6 space-y-3 leading-relaxed">
               <p>ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.</p>
               <p>Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.</p>
               <p>Оператор сервиса: ООО «Реэйдж» (ИНН 9704271028).</p>
-              <p>Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <ContactButton icon={<Mail className="w-4 h-4" />} label="Email" />
               <ContactButton icon={<Phone className="w-4 h-4" />} label="Телефон" />
               <ContactButton icon={<MessageCircle className="w-4 h-4" />} label="Telegram" />
@@ -94,23 +93,29 @@ export function Footer() {
           </div>
 
           {/* Links */}
-          <div>
-            <h4 className="font-semibold text-foreground mb-4">Юридическая информация</h4>
-            <ul className="space-y-3">
+          <div className="lg:col-span-7">
+            <h4 className="font-semibold text-foreground mb-5 text-base">Юридическая информация</h4>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
               <FooterLink href="/legal/requisites" label="Реквизиты" />
               <FooterLink href="/legal/privacy" label="Политика обработки персональных данных" />
               <FooterLink href="/legal/terms" label="Пользовательское соглашение" />
               <FooterLink href="/legal/consent-data" label="Согласие на обработку персональных данных" />
-              <FooterLink href="/legal/consent-research" label="Согласие на получение и обработку исследований" />
+              <FooterLink href="/legal/consent-research" label="Согласие на обработку исследований" />
               <FooterLink href="/legal/documents" label="Все документы" />
             </ul>
+            <p className="text-xs text-muted-foreground/80 mt-6 leading-relaxed">
+              Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.
+            </p>
           </div>
         </div>
         
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border/50 gap-4">
           <p className="text-sm text-muted-foreground">
-            © {currentYear} ReAge. Все права защищены.
+            © {currentYear} ООО «Реэйдж». Все права защищены.
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            Сделано с заботой о вашем здоровье
           </p>
         </div>
       </div>
