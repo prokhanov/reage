@@ -114,6 +114,24 @@ export function Footer() {
           </div>
         </div>
         
+        {/* Legal notice */}
+        <div className="pt-8 pb-8 border-t border-border/30">
+          <div className="max-w-4xl mx-auto text-center space-y-3">
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              ReAge — информационно-аналитический сервис и не оказывает медицинские услуги. Материалы сервиса не являются медицинским заключением, диагнозом или назначением лечения.
+            </p>
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              Лабораторные исследования выполняются лицензированными медицинскими организациями — партнёрами сервиса.
+            </p>
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              Оператор сервиса: ООО «Реэйдж» (ИНН 9704271028).
+            </p>
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              Используя сайт, вы соглашаетесь с Пользовательским соглашением, Политикой обработки персональных данных и использованием файлов cookie.
+            </p>
+          </div>
+        </div>
+        
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border/50 gap-4">
           <p className="text-sm text-muted-foreground">
