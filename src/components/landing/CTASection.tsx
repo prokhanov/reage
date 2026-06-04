@@ -1,6 +1,7 @@
 import { ArrowRight, Mail, Phone, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import logoDark from "@/assets/reage-logo-dark.png";
 
 export function CTASection() {
   const navigate = useNavigate();
