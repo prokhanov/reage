@@ -40,9 +40,6 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
                 <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
                 <span className="hidden sm:inline">Скачать PDF</span>
               </button>
-              <span className="text-lg font-bold bg-gradient-hero bg-clip-text text-transparent">
-                ReAge
-              </span>
             </div>
           </div>
         </header>
