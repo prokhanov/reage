@@ -136,9 +136,6 @@ export function Footer() {
           <p className="text-xs text-muted-foreground/70">
             © {currentYear} Реэйдж · ИНН 9704271028 · ОГРН 1267700099985
           </p>
-          <p className="text-xs text-muted-foreground/50">
-            Сделано с заботой о вашем здоровье
-          </p>
         </div>
       </div>
     </footer>
