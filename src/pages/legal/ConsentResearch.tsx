@@ -1,125 +1,167 @@
 import { Helmet } from "react-helmet-async";
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
-import { FlaskConical, FileSearch, Lock, CheckCircle2, AlertTriangle } from "lucide-react";
+import {
+  FlaskConical,
+  FileSearch,
+  ClipboardList,
+  Target,
+  CheckCircle2,
+  Clock,
+  Mail,
+  MonitorCheck,
+} from "lucide-react";
 
 export default function ConsentResearch() {
   return (
     <>
       <Helmet>
-        <title>Согласие на получение и обработку исследований — ReAge</title>
-        <meta name="description" content="Согласие на получение, обработку и хранение результатов лабораторных исследований в сервисе ReAge." />
+        <title>Согласие на получение и обработку результатов лабораторных исследований — ReAge</title>
+        <meta
+          name="description"
+          content="Согласие на получение, обработку и хранение результатов лабораторных исследований в сервисе ReAge."
+        />
       </Helmet>
       <LegalPageLayout
-        title="Согласие на получение и обработку исследований"
+        title="Согласие на получение и обработку результатов лабораторных исследований"
         subtitle="Условия передачи и обработки результатов лабораторных исследований"
         icon={<FlaskConical className="w-6 h-6 text-primary" />}
       >
         <div className="mb-10 p-6 rounded-2xl bg-primary/5 border border-primary/20">
           <p className="text-muted-foreground leading-relaxed">
-            Настоящим я, субъект медицинских услуг и пользователь Сервиса ReAge, даю своё информированное
-            добровольное согласие Обществу с ограниченной ответственностью «Реэйдж» (ИНН 9704271028,
-            ОГРН 1267700099985) на получение, обработку и хранение результатов моих лабораторных
-            исследований и медицинских данных.
+            Настоящим я свободно, своей волей и в своём интересе даю согласие Обществу с ограниченной
+            ответственностью «Реэйдж» (ИНН 9704271028, ОГРН 1267700099985) на получение, хранение,
+            обработку и отображение результатов моих лабораторных исследований в сервисе ReAge.
           </p>
         </div>
 
-        <Section icon={<FileSearch className="w-5 h-5" />} title="1. Предмет согласия">
+        <Section icon={<FileSearch className="w-5 h-5" />} title="Предмет согласия">
           <p>
-            1.1. Я даю согласие на получение Оператором результатов моих лабораторных исследований
-            от лицензированных медицинских организаций — партнёров Сервиса, а также на прямое
-            предоставление мной таких результатов через интерфейс Сервиса.
+            <strong className="text-foreground">1.1.</strong> Я подтверждаю своё согласие на получение
+            ООО «Реэйдж» результатов лабораторных исследований, выполненных по моему заказу партнёрскими
+            лабораториями и иными организациями, участвующими в оказании соответствующих услуг.
           </p>
           <p>
-            1.2. К данным, на обработку которых даётся согласие, относятся:
+            <strong className="text-foreground">1.2.</strong> Я разрешаю партнёрским лабораториям передавать
+            ООО «Реэйдж» сведения о результатах проведённых исследований, включая сведения, составляющие
+            врачебную тайну, в объёме, необходимом для функционирования сервиса ReAge и исполнения
+            поручения пользователя.
           </p>
-          <ul className="space-y-2 mt-3">
+          <p>
+            <strong className="text-foreground">1.3.</strong> Настоящее согласие распространяется как на результаты
+            исследований, выполненных после предоставления согласия, так и на результаты исследований,
+            выполненных ранее, если их передача предусмотрена действующим законодательством и моими
+            волеизъявлениями.
+          </p>
+        </Section>
+
+        <Section icon={<ClipboardList className="w-5 h-5" />} title="Перечень передаваемых сведений">
+          <p className="mb-3">
+            Передаче могут подлежать:
+          </p>
+          <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Результаты лабораторных анализов крови, мочи и других биоматериалов</span>
+              <span>сведения о назначенных и выполненных исследованиях;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Значения биомаркеров и их динамика во времени</span>
+              <span>результаты лабораторных исследований;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Сведения о проведённых медицинских исследованиях и их результатах</span>
+              <span>референсные значения показателей;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Сопутствующие медицинские данные, предоставленные вместе с результатами исследований</span>
+              <span>даты проведения исследований;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>
+                сведения, необходимые для корректной идентификации результатов и их отображения в сервисе ReAge.
+              </span>
             </li>
           </ul>
         </Section>
 
-        <Section icon={<CheckCircle2 className="w-5 h-5" />} title="2. Цели обработки">
-          <p>
-            2.1. Согласие дано на обработку результатов исследований в следующих целях:
+        <Section icon={<Target className="w-5 h-5" />} title="Цели получения данных">
+          <p className="mb-3">
+            Результаты исследований могут использоваться ООО «Реэйдж» исключительно для:
           </p>
-          <ul className="space-y-2 mt-3">
+          <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Анализ биомаркеров и построение персонализированных отчётов о состоянии здоровья</span>
+              <span>формирования личного кабинета пользователя;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Отслеживание динамики показателей здоровья во времени</span>
+              <span>отображения результатов исследований;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Формирование рекомендаций по коррекции образа жизни, питания и подходов к здоровью</span>
+              <span>хранения истории показателей;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Интеграция данных с функционалом Сервиса для визуализации и аналитики</span>
+              <span>формирования аналитических материалов;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Хранение истории исследований для долгосрочного мониторинга</span>
+              <span>расчёта индексов и производных показателей;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>визуализации динамики изменений показателей;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>предоставления пользователю информационно-аналитических сервисов.</span>
             </li>
           </ul>
         </Section>
 
-        <Section icon={<Lock className="w-5 h-5" />} title="3. Условия обработки">
+        <Section icon={<CheckCircle2 className="w-5 h-5" />} title="Подтверждение пользователя">
           <p>
-            3.1. Оператор обязуется обеспечить конфиденциальность полученных результатов исследований
-            и не передавать их третьим лицам без моего дополнительного согласия, за исключением случаев,
-            предусмотренных законодательством РФ.
+            <strong className="text-foreground">4.1.</strong> Я подтверждаю, что понимаю, что ООО «Реэйдж» не
+            является исполнителем лабораторных исследований.
           </p>
           <p>
-            3.2. Оператор вправе использовать обезличенные данные для статистических и исследовательских
-            целей при условии, что такие данные не позволяют идентифицировать меня как субъекта.
+            <strong className="text-foreground">4.2.</strong> Я подтверждаю, что результаты исследований
+            формируются и предоставляются соответствующей лабораторией.
           </p>
           <p>
-            3.3. Результаты исследований хранятся в защищённом виде с применением современных средств
-            криптографической защиты и разграничения доступа.
+            <strong className="text-foreground">4.3.</strong> Я подтверждаю, что сервис ReAge использует полученные
+            данные исключительно в информационно-аналитических целях.
           </p>
         </Section>
 
-        <Section icon={<AlertTriangle className="w-5 h-5" />} title="4. Порядок отзыва">
+        <Section icon={<Clock className="w-5 h-5" />} title="Срок действия согласия">
           <p>
-            4.1. Я вправе отозвать настоящее согласие в любое время путём направления письменного
-            уведомления на адрес электронной почты{" "}
+            <strong className="text-foreground">5.1.</strong> Настоящее согласие действует до момента его отзыва
+            пользователем либо прекращения использования сервиса ReAge.
+          </p>
+          <p>
+            <strong className="text-foreground">5.2.</strong> Отзыв согласия осуществляется путём направления
+            письменного уведомления на адрес электронной почты:{" "}
             <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a>.
           </p>
+        </Section>
+
+        <Section icon={<MonitorCheck className="w-5 h-5" />} title="Электронная форма согласия">
           <p>
-            4.2. Отзыв согласия влечёт за собой удаление результатов исследований из Сервиса в течение 30 (тридцати)
-            календарных дней, за исключением данных, обработка которых необходима в соответствии с законодательством РФ.
+            <strong className="text-foreground">6.1.</strong> Настоящее согласие может быть предоставлено в
+            электронной форме путём установки соответствующей отметки на сайте ReAge.
           </p>
           <p>
-            4.3. Отзыв согласия не влияет на законность обработки данных, осуществлённой до момента отзыва.
+            <strong className="text-foreground">6.2.</strong> Установка соответствующей отметки признаётся простой
+            электронной подписью пользователя и подтверждает его согласие с условиями настоящего документа.
           </p>
         </Section>
 
-        <div className="mt-10 p-6 rounded-2xl bg-muted/30 border border-border/30">
+        <div className="mt-12 p-6 rounded-2xl bg-muted/30 border border-border/30">
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Я подтверждаю, что ознакомлен с Политикой обработки персональных данных и Пользовательским
-            соглашением Сервиса ReAge, понимаю характер обрабатываемых данных, цели их обработки,
-            а также свои права, предусмотренные законодательством Российской Федерации.
-          </p>
-          <p className="text-sm text-muted-foreground mt-3">
-            Я понимаю, что Сервис ReAge не оказывает медицинских услуг, а результаты анализа носят
-            информационно-справочный характер и не заменяют консультацию врача.
+            По вопросам, связанным с обработкой данных, обращайтесь по адресу электронной почты:{" "}
+            <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a>.
           </p>
         </div>
       </LegalPageLayout>
@@ -127,10 +169,18 @@ export default function ConsentResearch() {
   );
 }
 
-function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function Section({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="mb-10">
-      <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
+    <div className="mb-12">
+      <h2 className="text-xl font-bold text-foreground mb-5 flex items-center gap-3 pb-3 border-b border-border/20">
         <span className="text-primary">{icon}</span>
         {title}
       </h2>
