@@ -171,9 +171,8 @@ function FooterLink({ href, label }: { href: string; label: string }) {
     <li className="list-none">
       <a
         href={href}
-        className="group inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-primary transition-colors"
+        className="text-sm text-foreground/70 hover:text-primary transition-colors"
       >
-        <span className="w-1 h-1 rounded-full bg-primary/40 group-hover:bg-primary group-hover:scale-150 transition-all" />
         {label}
       </a>
     </li>
