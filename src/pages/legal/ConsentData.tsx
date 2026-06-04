@@ -1,131 +1,293 @@
 import { Helmet } from "react-helmet-async";
 import { LegalPageLayout } from "@/components/legal/LegalPageLayout";
-import { ClipboardCheck, User, Target, Database, Clock } from "lucide-react";
+import {
+  ClipboardCheck,
+  User,
+  HeartPulse,
+  Target,
+  Database,
+  Share2,
+  Clock,
+  Mail,
+  FileCheck,
+} from "lucide-react";
 
 export default function ConsentData() {
   return (
     <>
       <Helmet>
         <title>Согласие на обработку персональных данных — ReAge</title>
-        <meta name="description" content="Форма согласия на обработку персональных данных пользователей сервиса ReAge." />
+        <meta
+          name="description"
+          content="Форма согласия на обработку персональных данных и специальных категорий персональных данных пользователей сервиса ReAge."
+        />
       </Helmet>
       <LegalPageLayout
-        title="Согласие на обработку персональных данных"
+        title="Согласие на обработку персональных данных и специальных категорий персональных данных"
         subtitle="Добровольное согласие пользователя на обработку его персональных данных"
         icon={<ClipboardCheck className="w-6 h-6 text-primary" />}
       >
         <div className="mb-10 p-6 rounded-2xl bg-primary/5 border border-primary/20">
           <p className="text-muted-foreground leading-relaxed">
-            Настоящим я, субъект персональных данных, даю своё добровольное и информированное согласие
-            Обществу с ограниченной ответственностью «Реэйдж» (ИНН 9704271028, ОГРН 1267700099985)
-            на обработку моих персональных данных в соответствии с Федеральным законом № 152-ФЗ
-            «О персональных данных».
+            Настоящим я свободно, своей волей и в своём интересе даю согласие Обществу с ограниченной
+            ответственностью «Реэйдж» (ИНН 9704271028, ОГРН 1267700099985, адрес: 121099, г. Москва,
+            вн. тер. г. муниципальный округ Арбат, пер. 1-й Смоленский, д. 22/10, помещ. 3/П) на обработку
+            моих персональных данных и специальных категорий персональных данных на условиях, изложенных ниже.
           </p>
         </div>
 
-        <Section icon={<User className="w-5 h-5" />} title="1. Субъект персональных данных">
-          <p>
-            Согласие даётся в отношении следующих категорий персональных данных:
+        <Section icon={<User className="w-5 h-5" />} title="Перечень персональных данных">
+          <p className="mb-3">
+            Я даю согласие на обработку следующих персональных данных:
           </p>
-          <ul className="space-y-2 mt-3">
+          <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Общие персональные данные: фамилия, имя, отчество, дата рождения, пол</span>
+              <span>фамилия, имя, отчество;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Контактные данные: номер телефона, адрес электронной почты</span>
+              <span>дата рождения;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Данные о состоянии здоровья, биомаркерах, результатах лабораторных исследований</span>
+              <span>пол;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Сведения о питании, физической активности и образе жизни</span>
+              <span>номер телефона;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>Технические данные: IP-адрес, cookies, сведения об устройстве и браузере</span>
+              <span>адрес электронной почты;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>сведения, содержащиеся в анкетах, опросниках и формах Сервиса;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>сведения об использовании Сервиса;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>иные данные, предоставленные мной самостоятельно.</span>
             </li>
           </ul>
         </Section>
 
-        <Section icon={<Target className="w-5 h-5" />} title="2. Цели обработки">
-          <p>
-            Согласие дано на обработку персональных данных в следующих целях:
+        <Section icon={<HeartPulse className="w-5 h-5" />} title="Специальные категории персональных данных">
+          <p className="mb-3">
+            Я даю отдельное согласие на обработку сведений о состоянии здоровья, включая:
           </p>
-          <ul className="space-y-2 mt-3">
+          <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Идентификация пользователя и предоставление доступа к Сервису</span>
+              <span>результаты лабораторных исследований;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Анализ биомаркеров и формирование персонализированных отчётов и рекомендаций</span>
+              <span>показатели здоровья;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Коммуникация с пользователем: отправка уведомлений, напоминаний, информации об обновлениях</span>
+              <span>биометрические и физиологические показатели, предоставленные мной;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Улучшение качества Сервиса и персонализация пользовательского опыта</span>
+              <span>сведения о самочувствии, образе жизни, питании, физической активности и сне;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>Исполнение требований законодательства Российской Федерации</span>
+              <span>
+                иные сведения о состоянии здоровья, предоставленные мной либо полученные с моего согласия
+                от третьих лиц.
+              </span>
             </li>
           </ul>
         </Section>
 
-        <Section icon={<Database className="w-5 h-5" />} title="3. Способы обработки">
-          <p>
-            Согласие дано на совершение следующих действий с персональными данными с использованием средств
-            автоматизации и без их использования: сбор, запись, систематизация, накопление, хранение,
-            уточнение (обновление, изменение), извлечение, использование, передача (распространение,
-            предоставление, доступ), обезличивание, блокирование, удаление, уничтожение.
+        <Section icon={<Target className="w-5 h-5" />} title="Цели обработки данных">
+          <p className="mb-3">
+            Персональные данные обрабатываются в целях:
           </p>
+          <ul className="space-y-1.5">
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>регистрации и идентификации пользователя;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>предоставления доступа к сервису ReAge;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>формирования аналитических отчётов;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>хранения и отображения данных в личном кабинете;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>организации взаимодействия с партнёрами сервиса;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>технической поддержки пользователей;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>исполнения пользовательского соглашения;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>направления уведомлений, связанных с использованием сервиса;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>улучшения качества работы сервиса.</span>
+            </li>
+          </ul>
+        </Section>
+
+        <Section icon={<Database className="w-5 h-5" />} title="Действия с персональными данными">
+          <p className="mb-3">
+            Оператор вправе осуществлять следующие действия:
+          </p>
+          <ul className="space-y-1.5">
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>сбор;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>запись;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>систематизация;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>накопление;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>хранение;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>уточнение;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>извлечение;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>использование;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>передача;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>обезличивание;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>блокирование;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>удаление;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
+              <span>уничтожение.</span>
+            </li>
+          </ul>
+        </Section>
+
+        <Section icon={<Share2 className="w-5 h-5" />} title="Передача данных третьим лицам">
           <p>
-            Персональные данные могут передаваться третьим лицам исключительно в случаях, предусмотренных
-            законодательством РФ, либо при привлечении партнёров и подрядчиков для оказания услуг
-            пользователю (например, лицензированные медицинские организации для проведения лабораторных исследований).
+            Я выражаю согласие на передачу моих данных партнёрам сервиса в объёме, необходимом для исполнения
+            пользовательского соглашения.
+          </p>
+          <p className="mt-3 mb-2">
+            К таким партнёрам могут относиться:
+          </p>
+          <ul className="space-y-1.5">
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>лаборатории и диагностические организации;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>организации, осуществляющие забор биоматериала;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>организации, обеспечивающие хранение и обработку данных;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>иные подрядчики, привлекаемые для функционирования сервиса.</span>
+            </li>
+          </ul>
+          <p className="mt-3">
+            Я также выражаю согласие на получение ООО «Реэйдж» результатов лабораторных исследований от
+            партнёрских лабораторий при наличии соответствующих оснований и моего волеизъявления.
           </p>
         </Section>
 
-        <Section icon={<Clock className="w-5 h-5" />} title="4. Срок действия согласия">
+        <Section icon={<Clock className="w-5 h-5" />} title="Срок действия согласия">
           <p>
-            Настоящее согласие действует до достижения целей обработки персональных данных или до момента
-            его отзыва. Согласие может быть отозвано путём направления письменного заявления на адрес
-            электронной почты <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a>.
-          </p>
-          <p>
-            В случае отзыва согласия Оператор прекращает обработку персональных данных и уничтожает их
-            в срок, не превышающий 30 (тридцать) дней, за исключением случаев, когда обработка необходима
-            в соответствии с законодательством РФ.
+            Согласие действует с момента его предоставления и до момента его отзыва либо прекращения целей
+            обработки данных.
           </p>
         </Section>
 
-        <div className="mt-10 p-6 rounded-2xl bg-muted/30 border border-border/30">
-          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-            Я подтверждаю, что ознакомлен с Политикой обработки персональных данных Оператора,
-            размещённой по адресу <a href="/legal/privacy" className="text-primary hover:underline">reage.life/legal/privacy</a>,
-            и понимаю свои права, предусмотренные законодательством о персональных данных.
+        <Section icon={<Mail className="w-5 h-5" />} title="Отзыв согласия">
+          <p>
+            Согласие может быть отозвано путём направления письменного уведомления на адрес электронной почты:{" "}
+            <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a>.
           </p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Я согласен с тем, что в случае внесения изменений в настоящее согласие, актуальная версия
-            будет размещена на сайте Сервиса.
+          <p className="mt-3">
+            Отзыв согласия не влияет на законность обработки данных, осуществлённой до момента получения
+            уведомления об отзыве.
           </p>
-        </div>
+        </Section>
+
+        <Section icon={<FileCheck className="w-5 h-5" />} title="Заключительные положения">
+          <p>
+            Подтверждаю, что настоящее согласие предоставлено мной добровольно, условия согласия мне понятны,
+            последствия предоставления согласия разъяснены и понятны.
+          </p>
+          <p className="mt-3">
+            Дата предоставления согласия определяется моментом установки соответствующей отметки на сайте либо
+            совершения действий, свидетельствующих о принятии условий настоящего документа.
+          </p>
+        </Section>
       </LegalPageLayout>
     </>
   );
 }
 
-function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function Section({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="mb-10">
-      <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-3">
+    <div className="mb-12">
+      <h2 className="text-xl font-bold text-foreground mb-5 flex items-center gap-3 pb-3 border-b border-border/20">
         <span className="text-primary">{icon}</span>
         {title}
       </h2>
