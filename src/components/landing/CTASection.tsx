@@ -102,12 +102,14 @@ export function Footer() {
           </div>
           
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Компания</h4>
+            <h4 className="font-semibold text-foreground mb-4">Юридическая информация</h4>
             <ul className="space-y-3">
-              <FooterLink href="#" label="О нас" />
-              <FooterLink href="#" label="Блог" />
-              <FooterLink href="#" label="Контакты" />
-              <FooterLink href="#" label="Карьера" />
+              <FooterLink href="#" label="Реквизиты" />
+              <FooterLink href="#" label="Политика обработки персональных данных" />
+              <FooterLink href="#" label="Пользовательское соглашение" />
+              <FooterLink href="#" label="Согласие на обработку персональных данных" />
+              <FooterLink href="#" label="Согласие на получение и обработку исследований" />
+              <FooterLink href="#" label="Все документы" />
             </ul>
           </div>
         </div>
@@ -117,10 +119,6 @@ export function Footer() {
           <p className="text-sm text-muted-foreground">
             © {currentYear} ReAge. Все права защищены.
           </p>
-          <div className="flex gap-6">
-            <FooterLink href="#" label="Политика конфиденциальности" small />
-            <FooterLink href="#" label="Условия использования" small />
-          </div>
         </div>
       </div>
     </footer>
