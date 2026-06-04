@@ -190,3 +190,41 @@ All colors MUST be HSL.
   33% { opacity: 0.7; transform: translate(-45%, -48%) scale(1.05); }
   66% { opacity: 0.9; transform: translate(-35%, -52%) scale(0.97); }
 }
+
+/* Print styles for legal document PDF export */
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  html, body {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+  .print-root,
+  .print-root * {
+    color: #111111 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  .print-root .prose :is(h1, h2, h3, h4, h5, h6) {
+    color: #000000 !important;
+    page-break-after: avoid;
+  }
+  .print-root .prose p,
+  .print-root .prose li {
+    color: #1a1a1a !important;
+    orphans: 3;
+    widows: 3;
+  }
+  .print-root .prose a {
+    color: #1d4ed8 !important;
+    text-decoration: underline;
+  }
+  /* Hide decorative background blurs/gradients */
+  .fixed.inset-0 {
+    display: none !important;
+  }
+}
