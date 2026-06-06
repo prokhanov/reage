@@ -418,8 +418,10 @@ export default function Patients() {
                       <TableHead>Возраст</TableHead>
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
+                      <TableHead>Тариф</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Анализов</TableHead>
+
                     </TableRow>
                   </TableHeader>
                   <TableBody>
