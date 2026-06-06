@@ -113,13 +113,12 @@ export default function Auth() {
         body: { phone, code: otp },
       });
       if (error) {
-        const ctx: any = (error as any).context;
-        let msg = error.message || "Неверный код";
-        try {
-          const body = ctx && typeof ctx.json === "function" ? await ctx.json() : null;
-          if (body?.error) msg = body.error;
-        } catch (_) { /* ignore */ }
-        toast({ title: "Ошибка", description: msg, variant: "destructive" });
+        toast({ title: "Ошибка", description: error.message || "Неверный код", variant: "destructive" });
+        setOtp("");
+        return;
+      }
+      if (data?.error) {
+        toast({ title: "Ошибка", description: data.error, variant: "destructive" });
         setOtp("");
         return;
       }
