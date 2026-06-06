@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Send, Trash2, Edit3, Power, HelpCircle, RefreshCw, UserPlus } from "lucide-react";
 import EnrollPatientsDialog from "./EnrollPatientsDialog";
 import SeriesSubscribersTab from "./SeriesSubscribersTab";
+import DripLogsTab from "./DripLogsTab";
 
 interface Series { id: string; name: string; description: string | null; trigger_type: string; is_active: boolean; }
 interface Step {
