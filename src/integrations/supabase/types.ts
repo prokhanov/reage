@@ -1780,6 +1780,75 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_notification_log: {
+        Row: {
+          error: string | null
+          event_type: string
+          id: string
+          is_test: boolean
+          payload: Json | null
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          error?: string | null
+          event_type: string
+          id?: string
+          is_test?: boolean
+          payload?: Json | null
+          sent_at?: string
+          status: string
+        }
+        Update: {
+          error?: string | null
+          event_type?: string
+          id?: string
+          is_test?: boolean
+          payload?: Json | null
+          sent_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      telegram_notification_settings: {
+        Row: {
+          bot_token: string | null
+          chat_id: string | null
+          created_at: string
+          enabled_events: Json
+          id: string
+          internal_secret: string
+          is_active: boolean
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bot_token?: string | null
+          chat_id?: string | null
+          created_at?: string
+          enabled_events?: Json
+          id?: string
+          internal_secret?: string
+          is_active?: boolean
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bot_token?: string | null
+          chat_id?: string | null
+          created_at?: string
+          enabled_events?: Json
+          id?: string
+          internal_secret?: string
+          is_active?: boolean
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       test_email_overrides: {
         Row: {
           created_at: string
@@ -1954,6 +2023,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      invoke_telegram_notify: {
+        Args: { p_event_type: string; p_payload: Json }
+        Returns: undefined
       }
       is_patient: { Args: { _user_id: string }; Returns: boolean }
       move_to_dlq: {
