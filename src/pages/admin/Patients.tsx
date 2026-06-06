@@ -415,12 +415,12 @@ export default function Patients() {
                     <TableRow>
                       <TableHead>Пациент</TableHead>
                       <TableHead>Email / Телефон</TableHead>
-                      <TableHead>Возраст</TableHead>
+                      <TableHead className="text-center">Возраст</TableHead>
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
                       <TableHead>Тариф</TableHead>
                       <TableHead>Статус анализа</TableHead>
-                      <TableHead>Анализов</TableHead>
+                      <TableHead className="text-center">Анализов</TableHead>
 
                     </TableRow>
                   </TableHeader>
@@ -514,7 +514,7 @@ export default function Patients() {
                           </TableCell>
 
 
-                          <TableCell>
+                          <TableCell className="text-center">
                             {patient.birth_date ? (
                               calculateAge(patient.birth_date)
                             ) : (
@@ -541,7 +541,7 @@ export default function Patients() {
                             )}
                           </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
-                          <TableCell>
+                          <TableCell className="text-center">
                             {patient.analysisCount}
                           </TableCell>
 
