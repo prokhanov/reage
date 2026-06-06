@@ -464,18 +464,16 @@ export default function Auth() {
                           Код из SMS
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Отправили 6-значный код на{" "}
+                          Отправили 4-значный код на{" "}
                           <span className="text-foreground font-medium">{phone}</span>
                         </p>
                         <div className="flex justify-center pt-2">
-                          <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                          <InputOTP maxLength={4} value={otp} onChange={setOtp} autoFocus>
                             <InputOTPGroup>
-                              <InputOTPSlot index={0} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
-                              <InputOTPSlot index={1} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
-                              <InputOTPSlot index={2} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
-                              <InputOTPSlot index={3} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
-                              <InputOTPSlot index={4} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
-                              <InputOTPSlot index={5} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
+                              <InputOTPSlot index={0} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
+                              <InputOTPSlot index={1} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
+                              <InputOTPSlot index={2} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
+                              <InputOTPSlot index={3} className="h-14 w-14 text-2xl border-border/50 bg-background/50" />
                             </InputOTPGroup>
                           </InputOTP>
                         </div>
@@ -484,8 +482,9 @@ export default function Auth() {
                       <Button
                         type="submit"
                         className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium"
-                        disabled={otpLoading || otp.length !== 6}
+                        disabled={otpLoading || otp.length !== 4}
                       >
+
                         {otpLoading ? (
                           <span className="flex items-center gap-2">
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
