@@ -26,15 +26,14 @@ Deno.serve(async (req) => {
     const { phone: rawPhone } = await req.json().catch(() => ({}));
     const phone = normalizePhone(String(rawPhone || ""));
     if (phone.length !== 11 || !phone.startsWith("7")) {
-      return new Response(JSON.stringify({ error: "Некорректный номер телефона" }), {
-        status: 400,
+      return new Response(JSON.stringify({ ok: false, error: "Некорректный номер телефона" }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // 1. Verify user with this phone exists
     const { data: profile, error: profErr } = await admin
       .from("profiles")
       .select("id")
@@ -43,7 +42,7 @@ Deno.serve(async (req) => {
 
     if (profErr) {
       console.error("[phone-otp-send] profile lookup error", profErr.message);
-      return new Response(JSON.stringify({ error: "Ошибка сервера" }), {
+      return new Response(JSON.stringify({ ok: false, error: "Ошибка сервера" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -51,12 +50,11 @@ Deno.serve(async (req) => {
 
     if (!profile) {
       return new Response(
-        JSON.stringify({ error: "Пользователь с таким номером не найден. Зарегистрируйтесь." }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ ok: false, error: "Пользователь с таким номером не найден. Зарегистрируйтесь." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // 2. Anti-flood
     const sinceDay = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { data: recent } = await admin
       .from("phone_otp_codes")
@@ -67,8 +65,8 @@ Deno.serve(async (req) => {
 
     if (recent && recent.length >= MAX_PER_DAY) {
       return new Response(
-        JSON.stringify({ error: "Превышен дневной лимит SMS. Попробуйте завтра." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ ok: false, error: "Превышен дневной лимит SMS. Попробуйте завтра." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -78,10 +76,11 @@ Deno.serve(async (req) => {
       if (diffSec < RESEND_COOLDOWN_SEC) {
         return new Response(
           JSON.stringify({
+            ok: false,
             error: `Подождите ${RESEND_COOLDOWN_SEC - diffSec} сек. до повторной отправки`,
             resendInSec: RESEND_COOLDOWN_SEC - diffSec,
           }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
     }

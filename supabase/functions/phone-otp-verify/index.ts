@@ -21,15 +21,14 @@ Deno.serve(async (req) => {
     const code = String(rawCode || "").trim();
 
     if (phone.length !== 11 || !/^\d{4}$/.test(code)) {
-      return new Response(JSON.stringify({ error: "Некорректные данные" }), {
-        status: 400,
+      return new Response(JSON.stringify({ ok: false, error: "Некорректные данные" }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // Latest unused, non-expired code
     const { data: row, error: selErr } = await admin
       .from("phone_otp_codes")
       .select("id, code_hash, expires_at, attempts, consumed_at")
@@ -42,7 +41,7 @@ Deno.serve(async (req) => {
 
     if (selErr) {
       console.error("[phone-otp-verify] select error", selErr.message);
-      return new Response(JSON.stringify({ error: "Ошибка сервера" }), {
+      return new Response(JSON.stringify({ ok: false, error: "Ошибка сервера" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -50,8 +49,8 @@ Deno.serve(async (req) => {
 
     if (!row) {
       return new Response(
-        JSON.stringify({ error: "Код истёк или не найден. Запросите новый." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ ok: false, error: "Код истёк или не найден. Запросите новый." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -61,8 +60,8 @@ Deno.serve(async (req) => {
         .update({ consumed_at: new Date().toISOString() })
         .eq("id", row.id);
       return new Response(
-        JSON.stringify({ error: "Слишком много попыток. Запросите новый код." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ ok: false, error: "Слишком много попыток. Запросите новый код." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -73,8 +72,8 @@ Deno.serve(async (req) => {
         .update({ attempts: row.attempts + 1 })
         .eq("id", row.id);
       return new Response(
-        JSON.stringify({ error: "Неверный код", attemptsLeft: MAX_ATTEMPTS - row.attempts - 1 }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ ok: false, error: "Неверный код", attemptsLeft: MAX_ATTEMPTS - row.attempts - 1 }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
