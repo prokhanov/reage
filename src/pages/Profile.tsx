@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
+import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,6 +28,8 @@ interface Profile {
   gender: string;
   height: number | null;
   telegram_id?: string;
+  phone?: string | null;
+  phone_verified_at?: string | null;
 }
 
 interface MedicalCondition {
