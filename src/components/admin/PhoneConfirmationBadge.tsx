@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, cloneElement, isValidElement } from "react";
 import { CheckCircle2, AlertCircle, Loader2, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,10 @@ interface PhoneConfirmationBadgeProps {
   phone: string | null;
   isVerified: boolean;
   onUpdated?: (phone: string) => void;
+  /** Custom trigger element to replace the default badge (only used when not verified) */
+  trigger?: ReactNode;
+  /** If trigger is provided, also hide the verified-state icon */
+  hideVerifiedIcon?: boolean;
 }
 
 function formatDisplay(digits: string | null | undefined): string {
@@ -36,7 +40,7 @@ function formatDisplay(digits: string | null | undefined): string {
   return `+${d}`;
 }
 
-export function PhoneConfirmationBadge({ phone, isVerified, onUpdated }: PhoneConfirmationBadgeProps) {
+export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, hideVerifiedIcon = false }: PhoneConfirmationBadgeProps) {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [stage, setStage] = useState<"edit" | "code">("edit");
@@ -113,6 +117,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated }: PhoneCo
   };
 
   if (isVerified && phone) {
+    if (hideVerifiedIcon) return null;
     return (
       <TooltipProvider>
         <Tooltip>
@@ -125,19 +130,28 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated }: PhoneCo
     );
   }
 
+  const openDialog = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDialogOpen(true);
+  };
+
   return (
     <>
-      <Badge
-        variant="outline"
-        className="text-xs cursor-pointer border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950"
-        onClick={(e) => {
-          e.stopPropagation();
-          setDialogOpen(true);
-        }}
-      >
-        <AlertCircle className="w-3 h-3 mr-1" />
-        Телефон не подтверждён
-      </Badge>
+      {trigger && isValidElement(trigger) ? (
+        cloneElement(trigger as any, { onClick: openDialog })
+      ) : trigger ? (
+        <span onClick={openDialog} className="cursor-pointer">{trigger}</span>
+      ) : (
+        <Badge
+          variant="outline"
+          className="text-xs cursor-pointer border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950"
+          onClick={openDialog}
+        >
+          <AlertCircle className="w-3 h-3 mr-1" />
+          Телефон не подтверждён
+        </Badge>
+      )}
+
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClick={(e) => e.stopPropagation()} className="sm:max-w-md">

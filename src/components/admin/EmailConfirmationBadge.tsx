@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ReactNode, useState, cloneElement, isValidElement } from "react";
 import { CheckCircle2, AlertCircle, Send, Loader2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,10 @@ interface EmailConfirmationBadgeProps {
   allowEmailChange?: boolean;
   /** Callback after email was changed */
   onEmailChanged?: () => void;
+  /** Custom trigger element to replace the default badge (only used when not confirmed) */
+  trigger?: ReactNode;
+  /** If trigger is provided, also hide the verified-state icon */
+  hideVerifiedIcon?: boolean;
 }
 
 export function EmailConfirmationBadge({ 
@@ -34,6 +38,8 @@ export function EmailConfirmationBadge({
   isConfirmed, 
   allowEmailChange = false,
   onEmailChanged,
+  trigger,
+  hideVerifiedIcon = false,
 }: EmailConfirmationBadgeProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resendEmail, setResendEmail] = useState(email || "");
@@ -75,6 +81,7 @@ export function EmailConfirmationBadge({
   };
 
   if (isConfirmed) {
+    if (hideVerifiedIcon) return null;
     return (
       <TooltipProvider>
         <Tooltip>
@@ -87,21 +94,30 @@ export function EmailConfirmationBadge({
     );
   }
 
+  const openDialog = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setResendEmail(email || "");
+    setIsEditing(false);
+    setDialogOpen(true);
+  };
+
   return (
     <>
-      <Badge
-        variant="outline"
-        className="text-xs cursor-pointer border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950"
-        onClick={(e) => {
-          e.stopPropagation();
-          setResendEmail(email || "");
-          setIsEditing(false);
-          setDialogOpen(true);
-        }}
-      >
-        <AlertCircle className="w-3 h-3 mr-1" />
-        Email не подтверждён
-      </Badge>
+      {trigger && isValidElement(trigger) ? (
+        cloneElement(trigger as any, { onClick: openDialog })
+      ) : trigger ? (
+        <span onClick={openDialog} className="cursor-pointer">{trigger}</span>
+      ) : (
+        <Badge
+          variant="outline"
+          className="text-xs cursor-pointer border-orange-400 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950"
+          onClick={openDialog}
+        >
+          <AlertCircle className="w-3 h-3 mr-1" />
+          Email не подтверждён
+        </Badge>
+      )}
+
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent onClick={(e) => e.stopPropagation()}>
