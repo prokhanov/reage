@@ -1144,6 +1144,7 @@ export type Database = {
           last_name: string | null
           name: string
           needs_risk_refresh: boolean | null
+          phone: string | null
           telegram_id: string | null
           updated_at: string
           weight: number | null
@@ -1161,6 +1162,7 @@ export type Database = {
           last_name?: string | null
           name: string
           needs_risk_refresh?: boolean | null
+          phone?: string | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null
@@ -1178,6 +1180,7 @@ export type Database = {
           last_name?: string | null
           name?: string
           needs_risk_refresh?: boolean | null
+          phone?: string | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null
