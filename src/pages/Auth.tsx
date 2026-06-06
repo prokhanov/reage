@@ -63,6 +63,11 @@ export default function Auth() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpResendIn, setOtpResendIn] = useState(0);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     if (otpResendIn <= 0) return;
     const t = setInterval(() => setOtpResendIn((s) => Math.max(0, s - 1)), 1000);
@@ -77,28 +82,70 @@ export default function Auth() {
       return;
     }
     setOtpLoading(true);
-    // UI-only: имитация отправки кода
-    setTimeout(() => {
-      setOtpLoading(false);
+    try {
+      const { data, error } = await supabase.functions.invoke("phone-otp-send", { body: { phone } });
+      if (error) {
+        // Try to extract server error message
+        const ctx: any = (error as any).context;
+        let msg = error.message || "Не удалось отправить код";
+        try {
+          const body = ctx && typeof ctx.json === "function" ? await ctx.json() : null;
+          if (body?.error) msg = body.error;
+        } catch (_) { /* ignore */ }
+        toast({ title: "Ошибка", description: msg, variant: "destructive" });
+        return;
+      }
+      setOtp("");
       setOtpStep("code");
-      setOtpResendIn(60);
-      toast({ title: "Код отправлен", description: `Мы отправили SMS с кодом на ${phone}` });
-    }, 600);
+      setOtpResendIn(data?.resendInSec ?? 60);
+      toast({ title: "Код отправлен", description: "Введите 4-значный код из SMS" });
+    } catch (e: any) {
+      toast({ title: "Ошибка", description: e?.message || "Не удалось отправить код", variant: "destructive" });
+    } finally {
+      setOtpLoading(false);
+    }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length !== 6) return;
+    if (otp.length !== 4) return;
     setOtpLoading(true);
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke("phone-otp-verify", {
+        body: { phone, code: otp },
+      });
+      if (error) {
+        const ctx: any = (error as any).context;
+        let msg = error.message || "Неверный код";
+        try {
+          const body = ctx && typeof ctx.json === "function" ? await ctx.json() : null;
+          if (body?.error) msg = body.error;
+        } catch (_) { /* ignore */ }
+        toast({ title: "Ошибка", description: msg, variant: "destructive" });
+        setOtp("");
+        return;
+      }
+      if (!data?.token_hash || !data?.email) {
+        toast({ title: "Ошибка", description: "Не удалось войти", variant: "destructive" });
+        return;
+      }
+      const { error: vErr } = await supabase.auth.verifyOtp({
+        type: "magiclink",
+        email: data.email,
+        token_hash: data.token_hash,
+      } as any);
+      if (vErr) {
+        toast({ title: "Ошибка входа", description: vErr.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Добро пожаловать!", description: "Вы успешно вошли" });
+    } catch (e: any) {
+      toast({ title: "Ошибка", description: e?.message || "Не удалось проверить код", variant: "destructive" });
+    } finally {
       setOtpLoading(false);
-      toast({ title: "Демо-режим", description: "Вход по SMS пока в разработке — оформление готово." });
-    }, 600);
+    }
   };
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+
 
   const redirectAuthenticatedSession = useCallback(async (incomingSession: Session, source: string) => {
     if (isLogoutRedirect()) {
