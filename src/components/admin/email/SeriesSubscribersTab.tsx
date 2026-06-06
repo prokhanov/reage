@@ -132,9 +132,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   async function cancelUser(userId: string) {
     if (!confirm("Отменить все запланированные письма этому пациенту?")) return;
-    const { error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "cancel_user_series", user_id: userId, series_id: seriesId },
-    });
+    const { error } = await invokeDrip({ action: "cancel_user_series", user_id: userId, series_id: seriesId });
     if (error) return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
     toast({ title: "Отменено" });
     load();
