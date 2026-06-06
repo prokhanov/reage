@@ -14,9 +14,12 @@ const corsHeaders = {
 const SITE_NAME = 'ReAge'
 const ROOT_DOMAIN = 'reage.life'
 const SENDER_DOMAIN = 'notify.reage.life'
-const FROM_ADDRESS = `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`
+const FROM_ADDRESS = `Команда ReAge <hello@${SENDER_DOMAIN}>`
+const REPLY_TO = `hello@${SENDER_DOMAIN}`
+const COMPANY_LEGAL = 'ООО «РиЭйдж», Москва'
 const APP_URL = 'https://reage.life'
 const FUNCTIONS_URL = `${Deno.env.get('SUPABASE_URL')}/functions/v1`
+
 
 interface ProfileRow {
   id: string
