@@ -28,6 +28,7 @@ export interface RegisterFormData {
   password: string;
   firstName: string;
   lastName: string;
+  phone: string;
   gender: string;
   birth_date: Date | undefined;
   weight: string;
