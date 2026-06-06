@@ -156,6 +156,7 @@ export default function Patients() {
             .from("subscriptions")
             .select(`
               status,
+              end_date,
               subscription_plans (
                 display_name
               )
@@ -164,6 +165,7 @@ export default function Patients() {
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
+
 
           // Get analysis booking status: prefer last meaningful (not 'not_scheduled')
           const { data: latestMeaningful } = await supabase
