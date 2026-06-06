@@ -324,15 +324,21 @@ export default function Patients() {
     const formatDate = (d: string) =>
       new Date(d).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
 
-    // Если есть дата окончания — показываем её обычным текстом, цвет по факту истечения
+    // Если есть дата окончания — показываем её обычным текстом, цвет по сроку истечения
     if (endDate) {
-      const expired = new Date(endDate).getTime() < Date.now();
+      const end = new Date(endDate).getTime();
+      const now = Date.now();
+      const twoMonthsMs = 60 * 24 * 60 * 60 * 1000; // ~60 дней
+      const expired = end < now;
+      const warning = !expired && end - now < twoMonthsMs;
       return (
         <span
           className={
             expired
               ? "text-sm text-red-600 dark:text-red-400"
-              : "text-sm text-green-600 dark:text-green-400"
+              : warning
+                ? "text-sm text-yellow-600 dark:text-yellow-400"
+                : "text-sm text-green-600 dark:text-green-400"
           }
         >
           {formatDate(endDate)}
