@@ -166,27 +166,56 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <p className="text-xs text-muted-foreground truncate">
-                    {viewAsUserId ? patientEmail : userEmail}
-                  </p>
-                  {!viewAsUserId && emailStatus?.isConfirmed && (
-                    <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
-                  )}
-                </div>
-                {!viewAsUserId && emailStatus && !emailStatus.isConfirmed && (
-                  <div className="mt-1">
-                    <EmailConfirmationBadge
-                      email={emailStatus.email || userEmail}
-                      isConfirmed={false}
-                      allowEmailChange={true}
-                      onEmailChanged={() => queryClient.invalidateQueries({ queryKey: ["email-confirmation-status"] })}
-                    />
+                {viewAsUserId ? (
+                  <>
+                    <p className="text-xs text-muted-foreground truncate mt-1">{patientEmail}</p>
+                    <p className="text-xs text-primary/70 font-medium mt-0.5">Пациент</p>
+                  </>
+                ) : (
+                  <div className="space-y-1 mt-1">
+                    {/* Email row */}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {emailStatus?.isConfirmed ? (
+                        <>
+                          <p className="text-xs text-muted-foreground truncate flex-1 min-w-0">{userEmail}</p>
+                          <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
+                        </>
+                      ) : emailStatus ? (
+                        <EmailConfirmationBadge
+                          email={emailStatus.email || userEmail}
+                          isConfirmed={false}
+                          allowEmailChange={true}
+                          onEmailChanged={() => queryClient.invalidateQueries({ queryKey: ["email-confirmation-status"] })}
+                        />
+                      ) : (
+                        <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                      )}
+                    </div>
+                    {/* Phone row */}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {userPhone && phoneVerified ? (
+                        <>
+                          <p className="text-xs text-muted-foreground truncate flex-1 min-w-0">
+                            +{userPhone}
+                          </p>
+                          <PhoneConfirmationBadge
+                            phone={userPhone}
+                            isVerified={true}
+                            onUpdated={loadOwnPhone}
+                          />
+                        </>
+                      ) : (
+                        <PhoneConfirmationBadge
+                          phone={userPhone}
+                          isVerified={false}
+                          onUpdated={loadOwnPhone}
+                        />
+                      )}
+                    </div>
+                    {/* Role */}
+                    <p className="text-xs text-primary/70 font-medium pt-0.5">{userRole}</p>
                   </div>
                 )}
-                <p className="text-xs text-primary/70 font-medium mt-0.5">
-                  {viewAsUserId ? "Пациент" : userRole}
-                </p>
               </>
             ) : (
               <button
