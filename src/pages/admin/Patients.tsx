@@ -340,18 +340,13 @@ export default function Patients() {
       );
     }
 
-    const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      active: { label: "Активна", variant: "default" },
-      pending: { label: "Ожидает оплаты", variant: "secondary" },
-      expired: { label: "Истекла", variant: "destructive" },
-      cancelled: { label: "Отменена", variant: "outline" },
+    const labels: Record<string, string> = {
+      active: "Активна",
+      pending: "Ожидает оплаты",
+      expired: "Истекла",
+      cancelled: "Отменена",
     };
-    const config = statusConfig[status] || statusConfig.pending;
-    return (
-      <Badge variant={config.variant} className="text-xs">
-        {config.label}
-      </Badge>
-    );
+    return <span className="text-sm text-muted-foreground">{labels[status] || labels.pending}</span>;
   };
 
 
