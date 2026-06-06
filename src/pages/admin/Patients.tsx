@@ -320,7 +320,6 @@ export default function Patients() {
     const config = statusConfig[status] || statusConfig.pending;
     return (
       <Badge variant={config.variant} className="text-xs">
-        <CreditCard className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
     );
@@ -336,7 +335,6 @@ export default function Patients() {
     const config = statusConfig[status] || statusConfig.not_scheduled;
     return (
       <Badge variant={config.variant} className="text-xs">
-        <Syringe className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
     );
