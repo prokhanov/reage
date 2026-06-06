@@ -6,9 +6,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
+import { invokeDripAdmin } from "@/lib/dripAdmin";
 
 interface Patient {
   user_id: string;
@@ -45,11 +45,13 @@ export default function EnrollPatientsDialog({ open, onOpenChange, seriesId, ser
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "list_patients", series_id: seriesId, limit: 2000 },
-    });
-    if (error) toast({ title: "Ошибка", description: error.message, variant: "destructive" });
-    setPatients(((data as any)?.items as Patient[]) ?? []);
+    try {
+      const data = await invokeDripAdmin<{ items?: Patient[] }>({ action: "list_patients", series_id: seriesId, limit: 2000 });
+      setPatients(data?.items ?? []);
+    } catch (error: any) {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+      setPatients([]);
+    }
     setSelected(new Set());
     setLoading(false);
   }
@@ -94,15 +96,19 @@ export default function EnrollPatientsDialog({ open, onOpenChange, seriesId, ser
   async function enroll() {
     if (selected.size === 0) return;
     setEnrolling(true);
-    const { data, error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "enroll_users", series_id: seriesId, user_ids: Array.from(selected) },
-    });
-    setEnrolling(false);
-    if (error || (data as any)?.error) {
-      return toast({ title: "Ошибка", description: (data as any)?.error || error?.message, variant: "destructive" });
+    let data: { enrolled?: number; skipped?: number } | null = null;
+    let error: Error | null = null;
+    try {
+      data = await invokeDripAdmin<{ enrolled?: number; skipped?: number }>({ action: "enroll_users", series_id: seriesId, user_ids: Array.from(selected) });
+    } catch (e: any) {
+      error = e;
     }
-    const enrolled = (data as any)?.enrolled ?? 0;
-    const skipped = (data as any)?.skipped ?? 0;
+    setEnrolling(false);
+    if (error) {
+      return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    }
+    const enrolled = data?.enrolled ?? 0;
+    const skipped = data?.skipped ?? 0;
     toast({ title: "Готово", description: `Добавлено: ${enrolled}, пропущено: ${skipped}` });
     onEnrolled?.();
     onOpenChange(false);

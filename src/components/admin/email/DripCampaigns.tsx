@@ -16,6 +16,7 @@ import { Plus, Send, Trash2, Edit3, Power, HelpCircle, RefreshCw, UserPlus } fro
 import EnrollPatientsDialog from "./EnrollPatientsDialog";
 import SeriesSubscribersTab from "./SeriesSubscribersTab";
 import DripLogsTab from "./DripLogsTab";
+import { invokeDripAdmin } from "@/lib/dripAdmin";
 
 interface Series { id: string; name: string; description: string | null; trigger_type: string; is_active: boolean; }
 interface Step {
@@ -146,11 +147,10 @@ export default function DripCampaigns() {
 
   async function sendTest(stepId: string) {
     if (!testEmail) return toast({ title: 'Укажите email', variant: 'destructive' });
-    const { data, error } = await supabase.functions.invoke('drip-admin', {
-      body: { action: 'test_send', step_id: stepId, email: testEmail },
-    });
-    if (error || (data as any)?.error) {
-      return toast({ title: 'Ошибка', description: (data as any)?.error || error?.message, variant: 'destructive' });
+    try {
+      await invokeDripAdmin({ action: 'test_send', step_id: stepId, email: testEmail });
+    } catch (error: any) {
+      return toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
     }
     toast({ title: 'Тестовое письмо отправлено', description: testEmail });
   }

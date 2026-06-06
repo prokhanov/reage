@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, RefreshCw, Ban, RotateCcw, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { invokeDripAdmin } from "@/lib/dripAdmin";
 
 interface Subscriber {
   user_id: string;
@@ -72,15 +72,6 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
   const pageSize = 50;
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  async function invokeDrip(body: any) {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    return supabase.functions.invoke("drip-admin", {
-      body,
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
-  }
-
   function toggleOne(id: string) {
     setSelected((prev) => {
       const n = new Set(prev);
@@ -101,20 +92,29 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
       ? "Удалить пациента из этой серии? Вся история отправок по серии будет удалена."
       : `Удалить ${userIds.length} пациентов из этой серии? Вся история отправок по серии будет удалена.`;
     if (!confirm(msg)) return;
-    const { data, error } = await invokeDrip({ action: "remove_users_from_series", series_id: seriesId, user_ids: userIds });
-    if (error) return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
-    toast({ title: "Удалено", description: `Пациентов: ${(data as any)?.users ?? userIds.length}` });
+    try {
+      const data = await invokeDripAdmin<{ users?: number }>({ action: "remove_users_from_series", series_id: seriesId, user_ids: userIds });
+      toast({ title: "Удалено", description: `Пациентов: ${data?.users ?? userIds.length}` });
+    } catch (error: any) {
+      return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    }
     setSelected(new Set());
     load();
   }
 
   async function load() {
     setLoading(true);
-    const { data, error } = await invokeDrip({ action: "series_subscribers", series_id: seriesId, search, status_filter: statusFilter, page, page_size: pageSize });
-    if (error) toast({ title: "Ошибка", description: error.message, variant: "destructive" });
-    setItems(((data as any)?.items as Subscriber[]) ?? []);
-    setSummary((data as any)?.summary ?? null);
-    setTotal((data as any)?.total ?? 0);
+    try {
+      const data = await invokeDripAdmin<{ items?: Subscriber[]; summary?: Summary; total?: number }>({ action: "series_subscribers", series_id: seriesId, search, status_filter: statusFilter, page, page_size: pageSize });
+      setItems(data?.items ?? []);
+      setSummary(data?.summary ?? null);
+      setTotal(data?.total ?? 0);
+    } catch (error: any) {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+      setItems([]);
+      setSummary(null);
+      setTotal(0);
+    }
     setLoading(false);
   }
 
@@ -132,18 +132,23 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   async function cancelUser(userId: string) {
     if (!confirm("Отменить все запланированные письма этому пациенту?")) return;
-    const { error } = await invokeDrip({ action: "cancel_user_series", user_id: userId, series_id: seriesId });
-    if (error) return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    try {
+      await invokeDripAdmin({ action: "cancel_user_series", user_id: userId, series_id: seriesId });
+    } catch (error: any) {
+      return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    }
     toast({ title: "Отменено" });
     load();
   }
 
   async function resetUser(userId: string) {
     if (!confirm("Сбросить серию и запустить заново? Существующая история отправок будет удалена.")) return;
-    const { error: e1 } = await invokeDrip({ action: "reset_user_series", user_id: userId, series_id: seriesId });
-    if (e1) return toast({ title: "Ошибка", description: e1.message, variant: "destructive" });
-    const { error: e2 } = await invokeDrip({ action: "enroll_user", user_id: userId, series_id: seriesId });
-    if (e2) return toast({ title: "Ошибка", description: e2.message, variant: "destructive" });
+    try {
+      await invokeDripAdmin({ action: "reset_user_series", user_id: userId, series_id: seriesId });
+      await invokeDripAdmin({ action: "enroll_user", user_id: userId, series_id: seriesId });
+    } catch (error: any) {
+      return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    }
     toast({ title: "Перезапущено" });
     load();
   }

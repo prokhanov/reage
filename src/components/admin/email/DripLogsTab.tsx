@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Search, RefreshCw } from "lucide-react";
+import { invokeDripAdmin } from "@/lib/dripAdmin";
 
 interface LogItem {
   id: string;
@@ -47,22 +47,30 @@ export default function DripLogsTab() {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("drip-admin", {
-      body: {
+    try {
+      const data = await invokeDripAdmin<{
+        items?: LogItem[];
+        summary?: Record<string, number>;
+        total?: number;
+        series_list?: { id: string; name: string }[];
+      }>({
         action: "drip_logs",
         search,
         status_filter: statusFilter,
         series_id: seriesFilter === "all" ? null : seriesFilter,
         page,
         page_size: pageSize,
-      },
-    });
-    if (error) toast({ title: "Ошибка", description: error.message, variant: "destructive" });
-    const d = data as any;
-    setItems((d?.items as LogItem[]) ?? []);
-    setSummary(d?.summary ?? null);
-    setTotal(d?.total ?? 0);
-    if (Array.isArray(d?.series_list)) setSeriesList(d.series_list);
+      });
+      setItems(data?.items ?? []);
+      setSummary(data?.summary ?? null);
+      setTotal(data?.total ?? 0);
+      if (Array.isArray(data?.series_list)) setSeriesList(data.series_list);
+    } catch (error: any) {
+      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+      setItems([]);
+      setSummary(null);
+      setTotal(0);
+    }
     setLoading(false);
   }
 
