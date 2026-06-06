@@ -72,6 +72,15 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
   const pageSize = 50;
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  async function invokeDrip(body: any) {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    return supabase.functions.invoke("drip-admin", {
+      body,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  }
+
   function toggleOne(id: string) {
     setSelected((prev) => {
       const n = new Set(prev);
