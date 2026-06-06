@@ -314,7 +314,27 @@ export default function Patients() {
     );
   };
 
-  const getSubscriptionBadge = (status: string) => {
+  const getSubscriptionBadge = (status: string, endDate: string | null) => {
+    const formatDate = (d: string) =>
+      new Date(d).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+    // Если есть дата окончания — показываем её, цвет по факту истечения
+    if (endDate) {
+      const expired = new Date(endDate).getTime() < Date.now();
+      return (
+        <Badge
+          variant="outline"
+          className={
+            expired
+              ? "text-xs border-red-500/40 text-red-600 dark:text-red-400 bg-red-500/10"
+              : "text-xs border-green-500/40 text-green-600 dark:text-green-400 bg-green-500/10"
+          }
+        >
+          до {formatDate(endDate)}
+        </Badge>
+      );
+    }
+
     const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
       active: { label: "Активна", variant: "default" },
       pending: { label: "Ожидает оплаты", variant: "secondary" },
@@ -328,6 +348,7 @@ export default function Patients() {
       </Badge>
     );
   };
+
 
   const getBookingBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
