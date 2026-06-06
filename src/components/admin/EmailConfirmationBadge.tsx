@@ -100,7 +100,7 @@ export function EmailConfirmationBadge({
         }}
       >
         <AlertCircle className="w-3 h-3 mr-1" />
-        Не подтверждён
+        Email не подтверждён
       </Badge>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
