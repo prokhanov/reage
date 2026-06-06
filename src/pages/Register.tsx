@@ -71,6 +71,7 @@ export default function Register() {
     password: "",
     firstName: "",
     lastName: "",
+    phone: "",
     gender: "",
     birth_date: undefined,
     weight: "",
