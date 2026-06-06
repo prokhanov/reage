@@ -97,13 +97,14 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
         template_name: `drip-test:${step_id}`,
         recipient_email: email,
         status: 'pending',
-        metadata: { is_test: true, drip_step_id: step_id, sent_by: user.id },
+        metadata: { is_test: true, drip_step_id: step_id, step_id: step_id, sent_by: user.id },
       })
 
       const { error: enqErr } = await admin.rpc('enqueue_email', {
         queue_name: 'transactional_emails',
         payload: {
           message_id: messageId,
+          idempotency_key: messageId,
           to: email,
           from: FROM_ADDRESS,
           sender_domain: SENDER_DOMAIN,
@@ -111,7 +112,8 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
           html,
           text,
           purpose: 'transactional',
-          label: `drip-test-${step_id}`,
+          label: `drip-test:${step_id}`,
+          metadata: { is_test: true, step_id: step_id, drip_step_id: step_id, sent_by: user.id },
           queued_at: new Date().toISOString(),
         },
       })
