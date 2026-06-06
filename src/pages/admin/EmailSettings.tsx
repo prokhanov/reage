@@ -195,8 +195,12 @@ export default function EmailSettings() {
         </p>
       </div>
 
-      <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="w-full flex-wrap">
+      <Tabs defaultValue="drip" className="w-full">
+        <TabsList className="w-full flex-wrap justify-start">
+          <TabsTrigger value="drip" className="gap-2">
+            <Megaphone className="w-4 h-4" />
+            Рассылки
+          </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
             <Mail className="w-4 h-4" />
             Отправитель и шаблоны
@@ -204,10 +208,6 @@ export default function EmailSettings() {
           <TabsTrigger value="logs" className="gap-2">
             <Activity className="w-4 h-4" />
             Логи и мониторинг
-          </TabsTrigger>
-          <TabsTrigger value="drip" className="gap-2">
-            <Megaphone className="w-4 h-4" />
-            Рассылки
           </TabsTrigger>
         </TabsList>
 
