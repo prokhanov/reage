@@ -46,6 +46,8 @@ export default function DripCampaigns() {
   const [showNewSeries, setShowNewSeries] = useState(false);
   const [newSeriesName, setNewSeriesName] = useState("");
   const [newSeriesDesc, setNewSeriesDesc] = useState("");
+  const [enrollDialog, setEnrollDialog] = useState<{ id: string; name: string } | null>(null);
+  const [seriesInnerTab, setSeriesInnerTab] = useState<Record<string, string>>({});
 
   async function load() {
     setLoading(true);
