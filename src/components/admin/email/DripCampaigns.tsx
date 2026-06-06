@@ -228,29 +228,42 @@ export default function DripCampaigns() {
                       </Select>
                       <div className="flex-1" />
                       <Switch checked={sr.is_active} onCheckedChange={v => toggleSeries(sr.id, v)} />
-                      <Button size="sm" variant="outline" onClick={() => enrollAllExisting(sr.id)}>Запустить для всех</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEnrollDialog({ id: sr.id, name: sr.name })}>
+                        <UserPlus className="w-4 h-4 mr-2" />Добавить пациентов
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => deleteSeries(sr.id)}><Trash2 className="w-4 h-4" /></Button>
                     </div>
                     {sr.description && <p className="text-sm text-muted-foreground mt-2">{sr.description}</p>}
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {ss.map(st => (
-                      <div key={st.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/40">
-                        <Badge variant="outline" className="font-mono">{st.order_index}</Badge>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{st.subject}</div>
-                          <div className="text-xs text-muted-foreground flex flex-wrap gap-2">
-                            <span>{delayLabel(st.delay_value, st.delay_unit)}</span>
-                            {(st.cancel_conditions?.length ?? 0) > 0 && <span>· {st.cancel_conditions.length} усл. отмены</span>}
-                            {!st.is_active && <Badge variant="secondary" className="text-[10px]">выключен</Badge>}
+                  <CardContent>
+                    <Tabs value={seriesInnerTab[sr.id] ?? 'steps'} onValueChange={(v) => setSeriesInnerTab(prev => ({ ...prev, [sr.id]: v }))}>
+                      <TabsList>
+                        <TabsTrigger value="steps">Шаги ({ss.length})</TabsTrigger>
+                        <TabsTrigger value="subscribers">Подписчики</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="steps" className="space-y-2 mt-4">
+                        {ss.map(st => (
+                          <div key={st.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/40">
+                            <Badge variant="outline" className="font-mono">{st.order_index}</Badge>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium truncate">{st.subject}</div>
+                              <div className="text-xs text-muted-foreground flex flex-wrap gap-2">
+                                <span>{delayLabel(st.delay_value, st.delay_unit)}</span>
+                                {(st.cancel_conditions?.length ?? 0) > 0 && <span>· {st.cancel_conditions.length} усл. отмены</span>}
+                                {!st.is_active && <Badge variant="secondary" className="text-[10px]">выключен</Badge>}
+                              </div>
+                            </div>
+                            <Button size="sm" variant="ghost" onClick={() => sendTest(st.id)}><Send className="w-4 h-4" /></Button>
+                            <Button size="sm" variant="ghost" onClick={() => setEditingStep(st)}><Edit3 className="w-4 h-4" /></Button>
+                            <Button size="sm" variant="ghost" onClick={() => deleteStep(st.id)}><Trash2 className="w-4 h-4" /></Button>
                           </div>
-                        </div>
-                        <Button size="sm" variant="ghost" onClick={() => sendTest(st.id)}><Send className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditingStep(st)}><Edit3 className="w-4 h-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => deleteStep(st.id)}><Trash2 className="w-4 h-4" /></Button>
-                      </div>
-                    ))}
-                    <Button size="sm" variant="outline" onClick={() => addStep(sr.id)}><Plus className="w-4 h-4 mr-2" />Добавить шаг</Button>
+                        ))}
+                        <Button size="sm" variant="outline" onClick={() => addStep(sr.id)}><Plus className="w-4 h-4 mr-2" />Добавить шаг</Button>
+                      </TabsContent>
+                      <TabsContent value="subscribers" className="mt-4">
+                        {(seriesInnerTab[sr.id] ?? 'steps') === 'subscribers' && <SeriesSubscribersTab seriesId={sr.id} />}
+                      </TabsContent>
+                    </Tabs>
                   </CardContent>
                 </Card>
               );
