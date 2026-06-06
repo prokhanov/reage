@@ -81,6 +81,29 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="phone">Телефон *</Label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+7 (999) 123-45-67"
+              value={formData.phone}
+              onChange={(e) => updateFormData({ phone: e.target.value })}
+              className="pl-10"
+              required
+            />
+          </div>
+          {formData.phone && !isPhoneValid && (
+            <p className="text-xs text-destructive">
+              Введите номер телефона полностью (минимум 11 цифр)
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="password">Пароль *</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
