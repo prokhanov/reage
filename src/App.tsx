@@ -45,6 +45,7 @@ import SmsSettings from "./pages/admin/SmsSettings";
 import TelegramSettings from "./pages/admin/TelegramSettings";
 import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
+import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 import Requisites from "./pages/legal/Requisites";
@@ -97,6 +98,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/register-staff" element={<RegisterStaff />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route
               path="/onboarding"
               element={

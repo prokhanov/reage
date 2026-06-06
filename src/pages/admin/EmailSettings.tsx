@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity } from "lucide-react";
+import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity, Megaphone } from "lucide-react";
 import { EmailLogsDashboard } from "@/components/admin/email/EmailLogsDashboard";
+import DripCampaigns from "@/components/admin/email/DripCampaigns";
 
 interface EmailTemplate {
   id?: string;
@@ -204,10 +205,18 @@ export default function EmailSettings() {
             <Activity className="w-4 h-4" />
             Логи и мониторинг
           </TabsTrigger>
+          <TabsTrigger value="drip" className="gap-2">
+            <Megaphone className="w-4 h-4" />
+            Рассылки
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="logs" className="mt-6">
           <EmailLogsDashboard />
+        </TabsContent>
+
+        <TabsContent value="drip" className="mt-6">
+          <DripCampaigns />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6 grid gap-6">
