@@ -72,6 +72,15 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
   const pageSize = 50;
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  async function invokeDrip(body: any) {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    return supabase.functions.invoke("drip-admin", {
+      body,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  }
+
   function toggleOne(id: string) {
     setSelected((prev) => {
       const n = new Set(prev);
@@ -92,9 +101,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
       ? "Удалить пациента из этой серии? Вся история отправок по серии будет удалена."
       : `Удалить ${userIds.length} пациентов из этой серии? Вся история отправок по серии будет удалена.`;
     if (!confirm(msg)) return;
-    const { data, error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "remove_users_from_series", series_id: seriesId, user_ids: userIds },
-    });
+    const { data, error } = await invokeDrip({ action: "remove_users_from_series", series_id: seriesId, user_ids: userIds });
     if (error) return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
     toast({ title: "Удалено", description: `Пациентов: ${(data as any)?.users ?? userIds.length}` });
     setSelected(new Set());
@@ -103,9 +110,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "series_subscribers", series_id: seriesId, search, status_filter: statusFilter, page, page_size: pageSize },
-    });
+    const { data, error } = await invokeDrip({ action: "series_subscribers", series_id: seriesId, search, status_filter: statusFilter, page, page_size: pageSize });
     if (error) toast({ title: "Ошибка", description: error.message, variant: "destructive" });
     setItems(((data as any)?.items as Subscriber[]) ?? []);
     setSummary((data as any)?.summary ?? null);
@@ -127,9 +132,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   async function cancelUser(userId: string) {
     if (!confirm("Отменить все запланированные письма этому пациенту?")) return;
-    const { error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "cancel_user_series", user_id: userId, series_id: seriesId },
-    });
+    const { error } = await invokeDrip({ action: "cancel_user_series", user_id: userId, series_id: seriesId });
     if (error) return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
     toast({ title: "Отменено" });
     load();
@@ -137,13 +140,9 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   async function resetUser(userId: string) {
     if (!confirm("Сбросить серию и запустить заново? Существующая история отправок будет удалена.")) return;
-    const { error: e1 } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "reset_user_series", user_id: userId, series_id: seriesId },
-    });
+    const { error: e1 } = await invokeDrip({ action: "reset_user_series", user_id: userId, series_id: seriesId });
     if (e1) return toast({ title: "Ошибка", description: e1.message, variant: "destructive" });
-    const { error: e2 } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "enroll_user", user_id: userId, series_id: seriesId },
-    });
+    const { error: e2 } = await invokeDrip({ action: "enroll_user", user_id: userId, series_id: seriesId });
     if (e2) return toast({ title: "Ошибка", description: e2.message, variant: "destructive" });
     toast({ title: "Перезапущено" });
     load();
