@@ -3,7 +3,8 @@ import { format } from "date-fns";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { normalizePhone, isValidPhone } from "@/lib/phone";
+import { normalizePhone } from "@/lib/phone";
+import { isPhoneValid } from "@/components/ui/phone-input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -95,7 +96,7 @@ export default function Register() {
 
     // Check phone uniqueness when leaving step 1
     if (currentStep === 1) {
-      if (!isValidPhone(formData.phone)) {
+      if (!isPhoneValid(formData.phone)) {
         toast({
           title: "Некорректный номер",
           description: "Введите номер в формате +7 (999) 123-45-67",

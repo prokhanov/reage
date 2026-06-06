@@ -9,9 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthBackground } from "@/components/AuthBackground";
-import { Mail, Lock, ArrowLeft, Phone, KeyRound, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowLeft, PhoneIcon, KeyRound, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { withTimeout } from "@/lib/authTimeout";
 import { clearLogoutInProgress, isLogoutRedirect } from "@/lib/authLogout";
@@ -76,9 +77,8 @@ export default function Auth() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length < 11) {
-      toast({ title: "Введите корректный номер", description: "Например, +7 (999) 123-45-67", variant: "destructive" });
+    if (!isPhoneValid(phone)) {
+      toast({ title: "Введите корректный номер", description: "Выберите страну и введите номер полностью", variant: "destructive" });
       return;
     }
     setOtpLoading(true);
@@ -349,7 +349,7 @@ export default function Auth() {
                     value="phone"
                     className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
                   >
-                    <Phone className="h-4 w-4" />
+                    <PhoneIcon className="h-4 w-4" />
                     Телефон
                   </TabsTrigger>
                 </TabsList>
@@ -417,19 +417,16 @@ export default function Auth() {
                     <form onSubmit={handleSendOtp} className="space-y-6">
                       <div className="space-y-2">
                         <Label htmlFor="phone" className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-primary" />
+                          <PhoneIcon className="h-4 w-4 text-primary" />
                           Номер телефона
                         </Label>
-                        <Input
+                        <PhoneInput
                           id="phone"
-                          type="tel"
-                          inputMode="tel"
-                          autoComplete="tel"
-                          placeholder="+7 (999) 123-45-67"
                           value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          required
-                          className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                          onChange={setPhone}
+                          placeholder="+7 (999) 123-45-67"
+                          className="w-full"
+                          inputClassName="bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                         <p className="text-xs text-muted-foreground pt-1">
                           Мы отправим SMS с одноразовым кодом для входа

@@ -1,6 +1,7 @@
-import { Mail, Lock, User, ArrowRight, Phone } from "lucide-react";
+import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { RegisterFormData } from "@/pages/Register";
 
@@ -11,14 +12,12 @@ interface RegisterStep1Props {
 }
 
 export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep1Props) {
-  const phoneDigits = (formData.phone || "").replace(/\D/g, "");
-  const isPhoneValid = phoneDigits.length >= 11;
   const isValid =
     formData.firstName &&
     formData.lastName &&
     formData.email &&
     formData.password &&
-    isPhoneValid;
+    isPhoneValid(formData.phone);
 
   return (
     <div className="space-y-6">
@@ -83,23 +82,16 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
 
           <div className="space-y-2">
             <Label htmlFor="phone">Телефон *</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="+7 (999) 123-45-67"
-                value={formData.phone}
-                onChange={(e) => updateFormData({ phone: e.target.value })}
-                className="pl-10"
-                required
-              />
-            </div>
-            {formData.phone && !isPhoneValid && (
+            <PhoneInput
+              id="phone"
+              value={formData.phone}
+              onChange={(v) => updateFormData({ phone: v })}
+              placeholder="+7 (999) 123-45-67"
+              className="w-full"
+            />
+            {formData.phone && !isPhoneValid(formData.phone) && (
               <p className="text-xs text-destructive">
-                Введите номер телефона полностью (минимум 11 цифр)
+                Введите номер телефона полностью
               </p>
             )}
           </div>
