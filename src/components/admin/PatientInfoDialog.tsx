@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   User,
   Mail,
+  Phone,
   Calendar,
   Activity,
   CreditCard,
@@ -260,6 +261,10 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                     <div className="flex items-center gap-2 mt-1 text-muted-foreground">
                       <Mail className="w-4 h-4" />
                       <span>{patientData.profile.email || "Email не указан"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                      <Phone className="w-4 h-4" />
+                      <span>{patientData.profile.phone ? `+${patientData.profile.phone}` : "Телефон не указан"}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                       <Calendar className="w-4 h-4" />
