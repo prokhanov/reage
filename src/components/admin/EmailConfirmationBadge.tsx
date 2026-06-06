@@ -198,28 +198,31 @@ export function EmailConfirmationBadge({
             </p>
           </div>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Отмена
-            </Button>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                Отмена
+              </Button>
+              <Button onClick={handleResend} disabled={isSending || !resendEmail}>
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                {isEditing && resendEmail !== email ? "Сохранить и отправить" : "Отправить повторно"}
+              </Button>
+            </div>
             {adminMode && userId && (
               <Button
                 variant="secondary"
                 onClick={handleForceConfirm}
                 disabled={isForcing}
+                className="w-full"
               >
                 {isForcing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                 Подтвердить без проверки
               </Button>
             )}
-            <Button onClick={handleResend} disabled={isSending || !resendEmail}>
-              {isSending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
-              {isEditing && resendEmail !== email ? "Сохранить и отправить" : "Отправить повторно"}
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
