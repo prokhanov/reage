@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, Mail, Phone, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, Mail, Phone, RefreshCw, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
@@ -421,7 +421,7 @@ export default function Patients() {
                       <TableHead>Тариф</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead className="text-center">Анализов</TableHead>
-
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -544,12 +544,21 @@ export default function Patients() {
                           <TableCell className="text-center">
                             {patient.analysisCount}
                           </TableCell>
-
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeletePatientId(patient.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                           Пациенты не найдены
                         </TableCell>
                       </TableRow>
