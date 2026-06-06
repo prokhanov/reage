@@ -140,13 +140,9 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   async function resetUser(userId: string) {
     if (!confirm("Сбросить серию и запустить заново? Существующая история отправок будет удалена.")) return;
-    const { error: e1 } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "reset_user_series", user_id: userId, series_id: seriesId },
-    });
+    const { error: e1 } = await invokeDrip({ action: "reset_user_series", user_id: userId, series_id: seriesId });
     if (e1) return toast({ title: "Ошибка", description: e1.message, variant: "destructive" });
-    const { error: e2 } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "enroll_user", user_id: userId, series_id: seriesId },
-    });
+    const { error: e2 } = await invokeDrip({ action: "enroll_user", user_id: userId, series_id: seriesId });
     if (e2) return toast({ title: "Ошибка", description: e2.message, variant: "destructive" });
     toast({ title: "Перезапущено" });
     load();
