@@ -428,11 +428,20 @@ export default function Patients() {
                               {patient.email ? (
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-                                  <span className="text-sm">{patient.email}</span>
-                                  <EmailConfirmationBadge
-                                    email={patient.email}
-                                    isConfirmed={!!patient.emailConfirmed}
-                                  />
+                                  {patient.emailConfirmed ? (
+                                    <span className="text-sm text-green-600 dark:text-green-400">{patient.email}</span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedPatientForInfo(patient.id);
+                                      }}
+                                      className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                                    >
+                                      {patient.email}
+                                    </button>
+                                  )}
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -443,34 +452,27 @@ export default function Patients() {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                                 {patient.phone ? (
-                                  <span className="text-sm">+{patient.phone}</span>
+                                  patient.phone_verified_at ? (
+                                    <span className="text-sm text-green-600 dark:text-green-400">+{patient.phone}</span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedPatientForInfo(patient.id);
+                                      }}
+                                      className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                                    >
+                                      +{patient.phone}
+                                    </button>
+                                  )
                                 ) : (
                                   <span className="text-sm text-muted-foreground">—</span>
-                                )}
-                                {patient.phone_verified_at ? (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs border-green-500/40 text-green-600 dark:text-green-400 bg-green-500/10 gap-1"
-                                  >
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    Подтверждён
-                                  </Badge>
-                                ) : (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-xs cursor-pointer border-red-500/50 text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 gap-1"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedPatientForInfo(patient.id);
-                                    }}
-                                  >
-                                    <AlertCircle className="w-3 h-3" />
-                                    Не подтверждён
-                                  </Badge>
                                 )}
                               </div>
                             </div>
                           </TableCell>
+
                           <TableCell>
                             {patient.birth_date ? (
                               <div className="flex items-center gap-2">
