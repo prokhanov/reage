@@ -388,6 +388,16 @@ export default function DripCampaigns() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {enrollDialog && (
+          <EnrollPatientsDialog
+            open={!!enrollDialog}
+            onOpenChange={(o) => !o && setEnrollDialog(null)}
+            seriesId={enrollDialog.id}
+            seriesName={enrollDialog.name}
+            onEnrolled={load}
+          />
+        )}
       </div>
     </TooltipProvider>
   );
