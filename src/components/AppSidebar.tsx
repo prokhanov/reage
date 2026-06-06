@@ -177,7 +177,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     <div className="flex items-center gap-1.5 min-w-0">
                       {emailStatus?.isConfirmed ? (
                         <>
-                          <p className="text-xs text-muted-foreground truncate flex-1 min-w-0">{userEmail}</p>
+                          <p className="text-xs text-muted-foreground truncate min-w-0">{userEmail}</p>
                           <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
                         </>
                       ) : emailStatus ? (
@@ -195,7 +195,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                     <div className="flex items-center gap-1.5 min-w-0">
                       {userPhone && phoneVerified ? (
                         <>
-                          <p className="text-xs text-muted-foreground truncate flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground truncate min-w-0">
                             +{userPhone}
                           </p>
                           <PhoneConfirmationBadge
