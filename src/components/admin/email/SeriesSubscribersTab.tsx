@@ -70,6 +70,36 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const pageSize = 50;
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }
+  function toggleAll() {
+    setSelected((prev) => {
+      if (prev.size === items.length && items.length > 0) return new Set();
+      return new Set(items.map((i) => i.user_id));
+    });
+  }
+
+  async function removeUsers(userIds: string[]) {
+    if (userIds.length === 0) return;
+    const msg = userIds.length === 1
+      ? "Удалить пациента из этой серии? Вся история отправок по серии будет удалена."
+      : `Удалить ${userIds.length} пациентов из этой серии? Вся история отправок по серии будет удалена.`;
+    if (!confirm(msg)) return;
+    const { data, error } = await supabase.functions.invoke("drip-admin", {
+      body: { action: "remove_users_from_series", series_id: seriesId, user_ids: userIds },
+    });
+    if (error) return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+    toast({ title: "Удалено", description: `Пациентов: ${(data as any)?.users ?? userIds.length}` });
+    setSelected(new Set());
+    load();
+  }
 
   async function load() {
     setLoading(true);
