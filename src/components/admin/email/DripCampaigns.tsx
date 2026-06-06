@@ -161,14 +161,6 @@ export default function DripCampaigns() {
     load();
   }
 
-  async function enrollAllExisting(seriesId: string) {
-    if (!confirm('Запустить серию для всех существующих пациентов? Это может отправить много писем.')) return;
-    const { data, error } = await supabase.functions.invoke('drip-admin', { body: { action: 'enroll_all_existing', series_id: seriesId } });
-    if (error) return toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
-    toast({ title: `Запущено для ${(data as any)?.enrolled_users ?? 0} пациентов` });
-    load();
-  }
-
   function delayLabel(value: number, unit: string) {
     if (value === 0) return 'сразу';
     const u = unit === 'minutes' ? 'мин' : unit === 'hours' ? 'ч' : 'дн';
