@@ -253,7 +253,7 @@ Deno.serve(async (req) => {
     const bodyHtml = await marked.parse(bodyMd, { breaks: true, gfm: true })
 
     const html = renderEmailHtml({ subject, preheader, bodyHtml: bodyHtml as string, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl })
-    const text = bodyMd + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '') + `\n\n---\nОтписаться: ${unsubscribeSeriesUrl}`
+    const text = bodyMd + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '')
 
     const messageId = crypto.randomUUID()
     const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, profile.email)
