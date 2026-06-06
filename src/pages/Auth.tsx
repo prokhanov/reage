@@ -350,7 +350,7 @@ export default function Auth() {
                     value="phone"
                     className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
                   >
-                    <Phone className="h-4 w-4" />
+                    <PhoneIcon className="h-4 w-4" />
                     Телефон
                   </TabsTrigger>
                 </TabsList>
@@ -418,7 +418,7 @@ export default function Auth() {
                     <form onSubmit={handleSendOtp} className="space-y-6">
                       <div className="space-y-2">
                         <Label htmlFor="phone" className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-primary" />
+                          <PhoneIcon className="h-4 w-4 text-primary" />
                           Номер телефона
                         </Label>
                         <Input
