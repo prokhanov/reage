@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, User, Calendar, Activity, Mail, Phone, CreditCard, Syringe, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, User, Activity, Mail, Phone, CreditCard, Syringe, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
@@ -427,10 +427,10 @@ export default function Patients() {
                           <TableCell>
                             <div className="space-y-1">
                               {patient.email ? (
-                                <div className="flex items-center gap-2 flex-wrap">
+                                <div className="flex items-center gap-2 min-w-0">
                                   <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
                                   {patient.emailConfirmed ? (
-                                    <span className="text-sm text-green-600 dark:text-green-400">{patient.email}</span>
+                                    <span className="text-sm text-green-600 dark:text-green-400 truncate">{patient.email}</span>
                                   ) : (
                                     <EmailConfirmationBadge
                                       email={patient.email}
@@ -439,7 +439,7 @@ export default function Patients() {
                                       userId={patient.id}
                                       onConfirmed={() => refetch()}
                                       trigger={
-                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer truncate">
                                           {patient.email}
                                         </span>
                                       }
@@ -452,11 +452,11 @@ export default function Patients() {
                                   <span>—</span>
                                 </div>
                               )}
-                              <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex items-center gap-2 min-w-0">
                                 <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                                 {patient.phone ? (
                                   patient.phone_verified_at ? (
-                                    <span className="text-sm text-green-600 dark:text-green-400">+{patient.phone}</span>
+                                    <span className="text-sm text-green-600 dark:text-green-400 truncate">+{patient.phone}</span>
                                   ) : (
                                     <PhoneConfirmationBadge
                                       phone={patient.phone}
@@ -465,7 +465,7 @@ export default function Patients() {
                                       userId={patient.id}
                                       onUpdated={() => refetch()}
                                       trigger={
-                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer truncate">
                                           +{patient.phone}
                                         </span>
                                       }
@@ -492,10 +492,7 @@ export default function Patients() {
 
                           <TableCell>
                             {patient.birth_date ? (
-                              <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-muted-foreground" />
-                                {calculateAge(patient.birth_date)} лет
-                              </div>
+                              calculateAge(patient.birth_date)
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
