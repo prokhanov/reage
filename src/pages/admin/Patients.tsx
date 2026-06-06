@@ -437,7 +437,7 @@ export default function Patients() {
                                       isConfirmed={false}
                                       adminMode
                                       userId={patient.id}
-                                      onConfirmed={() => fetchPatients?.()}
+                                      onConfirmed={() => refetch()}
                                       trigger={
                                         <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                                           {patient.email}
@@ -463,7 +463,7 @@ export default function Patients() {
                                       isVerified={false}
                                       adminMode
                                       userId={patient.id}
-                                      onUpdated={() => fetchPatients?.()}
+                                      onUpdated={() => refetch()}
                                       trigger={
                                         <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                                           +{patient.phone}
@@ -477,7 +477,7 @@ export default function Patients() {
                                     isVerified={false}
                                     adminMode
                                     userId={patient.id}
-                                    onUpdated={() => fetchPatients?.()}
+                                    onUpdated={() => refetch()}
                                     trigger={
                                       <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                                         Не указан
