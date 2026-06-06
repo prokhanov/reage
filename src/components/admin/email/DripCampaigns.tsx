@@ -39,6 +39,8 @@ export default function DripCampaigns() {
   const [editingStep, setEditingStep] = useState<Step | null>(null);
   const [testEmail, setTestEmail] = useState("");
   const [tab, setTab] = useState("series");
+  const [unsubs, setUnsubs] = useState<any[]>([]);
+  const [scheduleStats, setScheduleStats] = useState<any>(null);
   const [showNewSeries, setShowNewSeries] = useState(false);
   const [newSeriesName, setNewSeriesName] = useState("");
   const [newSeriesDesc, setNewSeriesDesc] = useState("");
