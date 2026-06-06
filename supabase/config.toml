@@ -23,3 +23,7 @@ project_id = "ilxgodhosirhhkffqryw"
     verify_jwt = true
   [functions.admin-change-user-email]
     verify_jwt = true
+  [functions.phone-change-send]
+    verify_jwt = true
+  [functions.phone-change-verify]
+    verify_jwt = true
