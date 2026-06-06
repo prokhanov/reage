@@ -39,6 +39,8 @@ import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialo
 import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
 import { SubscriptionHistoryDialog } from "@/components/admin/SubscriptionHistoryDialog";
 import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTab";
+import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
+import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
@@ -258,13 +260,62 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                   </Avatar>
                   <div className="flex-1">
                     <h3 className="text-2xl font-semibold">{patientData.profile.name || "Без имени"}</h3>
-                    <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                      <Mail className="w-4 h-4" />
-                      <span>{patientData.profile.email || "Email не указан"}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+                      {patientData.profile.email ? (
+                        (patientData.profile as any).email_verified ? (
+                          <span className="text-sm text-green-600 dark:text-green-400">{patientData.profile.email}</span>
+                        ) : (
+                          <EmailConfirmationBadge
+                            email={patientData.profile.email}
+                            isConfirmed={false}
+                            adminMode
+                            userId={patientData.profile.id}
+                            onConfirmed={() => queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] })}
+                            trigger={
+                              <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                {patientData.profile.email}
+                              </span>
+                            }
+                          />
+                        )
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Email не указан</span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                      <Phone className="w-4 h-4" />
-                      <span>{patientData.profile.phone ? `+${patientData.profile.phone}` : "Телефон не указан"}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                      {patientData.profile.phone ? (
+                        (patientData.profile as any).phone_verified_at ? (
+                          <span className="text-sm text-green-600 dark:text-green-400">+{patientData.profile.phone}</span>
+                        ) : (
+                          <PhoneConfirmationBadge
+                            phone={patientData.profile.phone}
+                            isVerified={false}
+                            adminMode
+                            userId={patientData.profile.id}
+                            onUpdated={() => queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] })}
+                            trigger={
+                              <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                +{patientData.profile.phone}
+                              </span>
+                            }
+                          />
+                        )
+                      ) : (
+                        <PhoneConfirmationBadge
+                          phone={null}
+                          isVerified={false}
+                          adminMode
+                          userId={patientData.profile.id}
+                          onUpdated={() => queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] })}
+                          trigger={
+                            <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                              Телефон не указан
+                            </span>
+                          }
+                        />
+                      )}
                     </div>
                     <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                       <Calendar className="w-4 h-4" />
