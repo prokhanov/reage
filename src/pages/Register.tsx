@@ -90,11 +90,44 @@ export default function Register() {
     setFormData(prev => ({ ...prev, ...data }));
   };
 
-  const handleNext = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleNext = async () => {
+    if (currentStep >= steps.length) return;
+
+    // Check phone uniqueness when leaving step 1
+    if (currentStep === 1) {
+      if (!isValidPhone(formData.phone)) {
+        toast({
+          title: "Некорректный номер",
+          description: "Введите номер в формате +7 (999) 123-45-67",
+          variant: "destructive",
+        });
+        return;
+      }
+      try {
+        const { data, error } = await supabase.functions.invoke("check-phone-exists", {
+          body: { phone: formData.phone },
+        });
+        if (error) throw error;
+        if (data?.exists) {
+          toast({
+            title: "Номер уже зарегистрирован",
+            description: "Войдите по SMS или используйте другой номер.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (e: any) {
+        toast({
+          title: "Не удалось проверить номер",
+          description: e?.message || "Попробуйте ещё раз",
+          variant: "destructive",
+        });
+        return;
+      }
     }
+
+    setCurrentStep(prev => prev + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handlePrevious = () => {
