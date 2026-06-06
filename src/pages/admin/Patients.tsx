@@ -156,6 +156,7 @@ export default function Patients() {
             .from("subscriptions")
             .select(`
               status,
+              end_date,
               subscription_plans (
                 display_name
               )
@@ -164,6 +165,7 @@ export default function Patients() {
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
+
 
           // Get analysis booking status: prefer last meaningful (not 'not_scheduled')
           const { data: latestMeaningful } = await supabase
@@ -207,8 +209,10 @@ export default function Patients() {
             analysisCount: analysisCount || 0,
             latestAnalysisDate: latestAnalysis?.date,
             subscriptionStatus: subscription?.status || 'pending',
+            subscriptionEndDate: subscription?.end_date || null,
             subscriptionPlan: subscription?.subscription_plans?.display_name || null,
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
+
             role: primaryRole,
             allRoles: userRoleData.allRoles,
             customRole: userRoleData.customRole,
@@ -310,7 +314,27 @@ export default function Patients() {
     );
   };
 
-  const getSubscriptionBadge = (status: string) => {
+  const getSubscriptionBadge = (status: string, endDate: string | null) => {
+    const formatDate = (d: string) =>
+      new Date(d).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+    // Если есть дата окончания — показываем её, цвет по факту истечения
+    if (endDate) {
+      const expired = new Date(endDate).getTime() < Date.now();
+      return (
+        <Badge
+          variant="outline"
+          className={
+            expired
+              ? "text-xs border-red-500/40 text-red-600 dark:text-red-400 bg-red-500/10"
+              : "text-xs border-green-500/40 text-green-600 dark:text-green-400 bg-green-500/10"
+          }
+        >
+          до {formatDate(endDate)}
+        </Badge>
+      );
+    }
+
     const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
       active: { label: "Активна", variant: "default" },
       pending: { label: "Ожидает оплаты", variant: "secondary" },
@@ -324,6 +348,7 @@ export default function Patients() {
       </Badge>
     );
   };
+
 
   const getBookingBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -393,8 +418,10 @@ export default function Patients() {
                       <TableHead>Возраст</TableHead>
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
+                      <TableHead>Тариф</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Анализов</TableHead>
+
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -504,24 +531,25 @@ export default function Patients() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="space-y-1">
-                              {getSubscriptionBadge(patient.subscriptionStatus)}
-                              {patient.subscriptionPlan && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {patient.subscriptionPlan}
-                                </p>
-                              )}
-                            </div>
+                            {getSubscriptionBadge(patient.subscriptionStatus, patient.subscriptionEndDate)}
+                          </TableCell>
+                          <TableCell>
+                            {patient.subscriptionPlan ? (
+                              <span className="text-sm">{patient.subscriptionPlan}</span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             {patient.analysisCount}
                           </TableCell>
+
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           Пациенты не найдены
                         </TableCell>
                       </TableRow>
