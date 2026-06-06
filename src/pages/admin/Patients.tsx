@@ -466,7 +466,15 @@ export default function Patients() {
                                     />
                                   )
                                 ) : (
-                                  <span className="text-sm text-red-600 dark:text-red-400">Не указан</span>
+                                  <PhoneConfirmationBadge
+                                    phone={null}
+                                    isVerified={false}
+                                    trigger={
+                                      <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                        Не указан
+                                      </span>
+                                    }
+                                  />
                                 )}
                               </div>
                             </div>
