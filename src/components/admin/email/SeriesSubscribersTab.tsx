@@ -101,9 +101,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
       ? "Удалить пациента из этой серии? Вся история отправок по серии будет удалена."
       : `Удалить ${userIds.length} пациентов из этой серии? Вся история отправок по серии будет удалена.`;
     if (!confirm(msg)) return;
-    const { data, error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "remove_users_from_series", series_id: seriesId, user_ids: userIds },
-    });
+    const { data, error } = await invokeDrip({ action: "remove_users_from_series", series_id: seriesId, user_ids: userIds });
     if (error) return toast({ title: "Ошибка", description: error.message, variant: "destructive" });
     toast({ title: "Удалено", description: `Пациентов: ${(data as any)?.users ?? userIds.length}` });
     setSelected(new Set());
