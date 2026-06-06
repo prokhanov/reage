@@ -242,6 +242,14 @@ const App = () => (
                   </SuperAdminRoute>
                 } 
               />
+              <Route 
+                path="/admin/telegram-settings" 
+                element={
+                  <SuperAdminRoute>
+                    <TelegramSettings />
+                  </SuperAdminRoute>
+                } 
+              />
             </Route>
 
             {/* Legal pages */}
