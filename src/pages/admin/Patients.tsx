@@ -395,7 +395,6 @@ export default function Patients() {
                       <TableHead>Подписка</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Анализов</TableHead>
-                      <TableHead className="w-[100px]">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
