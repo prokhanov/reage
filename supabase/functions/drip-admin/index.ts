@@ -6,6 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+async function getOrCreateUnsubscribeToken(admin: any, email: string): Promise<string> {
+  const normalizedEmail = email.trim().toLowerCase()
+  const { data: existing } = await admin
+    .from('email_unsubscribe_tokens')
+    .select('token')
+    .eq('email', normalizedEmail)
+    .maybeSingle()
+
+  if (existing?.token) return existing.token
+
+  const token = crypto.randomUUID()
+  const { data: inserted, error } = await admin
+    .from('email_unsubscribe_tokens')
+    .insert({ email: normalizedEmail, token })
+    .select('token')
+    .single()
+
+  if (error) {
+    const { data: fallback } = await admin
+      .from('email_unsubscribe_tokens')
+      .select('token')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+    if (fallback?.token) return fallback.token
+    throw error
+  }
+
+  return inserted.token
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
@@ -92,6 +122,7 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
       const text = fill(step.body_markdown || '')
 
       const messageId = crypto.randomUUID()
+      const unsubscribeToken = await getOrCreateUnsubscribeToken(admin, email)
       await admin.from('email_send_log').insert({
         message_id: messageId,
         template_name: `drip-test:${step_id}`,
@@ -113,6 +144,7 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
           text,
           purpose: 'transactional',
           label: `drip-test:${step_id}`,
+          unsubscribe_token: unsubscribeToken,
           metadata: { is_test: true, step_id: step_id, drip_step_id: step_id, sent_by: user.id },
           queued_at: new Date().toISOString(),
         },

@@ -95,6 +95,36 @@ async function makeUnsubscribeToken(email: string, scope: string, secret: string
   return `${payloadB64}.${sigB64}`
 }
 
+async function getOrCreateUnsubscribeToken(supabase: any, email: string): Promise<string> {
+  const normalizedEmail = email.trim().toLowerCase()
+  const { data: existing } = await supabase
+    .from('email_unsubscribe_tokens')
+    .select('token')
+    .eq('email', normalizedEmail)
+    .maybeSingle()
+
+  if (existing?.token) return existing.token
+
+  const token = crypto.randomUUID()
+  const { data: inserted, error } = await supabase
+    .from('email_unsubscribe_tokens')
+    .insert({ email: normalizedEmail, token })
+    .select('token')
+    .single()
+
+  if (error) {
+    const { data: fallback } = await supabase
+      .from('email_unsubscribe_tokens')
+      .select('token')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+    if (fallback?.token) return fallback.token
+    throw error
+  }
+
+  return inserted.token
+}
+
 async function checkCancelConditions(supabase: any, userId: string, conditions: any[]): Promise<string | null> {
   if (!Array.isArray(conditions) || conditions.length === 0) return null
   for (const cond of conditions) {
@@ -228,6 +258,7 @@ Deno.serve(async (req) => {
     const text = bodyMd + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '') + `\n\n---\nОтписаться: ${unsubscribeSeriesUrl}`
 
     const messageId = crypto.randomUUID()
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, profile.email)
 
     try {
       // Log pending
@@ -259,6 +290,7 @@ Deno.serve(async (req) => {
         text,
         purpose: 'transactional',
         label: `drip:${row.series_id}:${row.step_id}`,
+        unsubscribe_token: unsubscribeToken,
         metadata: {
           drip_schedule_id: row.id,
           series_id: row.series_id,
