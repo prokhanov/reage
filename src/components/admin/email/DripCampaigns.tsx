@@ -297,6 +297,27 @@ export default function DripCampaigns() {
           </TabsContent>
         </Tabs>
 
+        {/* New series dialog */}
+        <Dialog open={showNewSeries} onOpenChange={setShowNewSeries}>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Новая серия рассылок</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Название серии</Label>
+                <Input value={newSeriesName} onChange={e => setNewSeriesName(e.target.value)} placeholder="Например, Онбординг новых пользователей" />
+              </div>
+              <div>
+                <Label>Описание (необязательно)</Label>
+                <Textarea value={newSeriesDesc} onChange={e => setNewSeriesDesc(e.target.value)} rows={3} placeholder="Краткое описание назначения серии" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowNewSeries(false)}>Отмена</Button>
+              <Button onClick={createSeries} disabled={!newSeriesName.trim()}>Создать серию</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Step editor */}
         <Dialog open={!!editingStep} onOpenChange={(o) => !o && setEditingStep(null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
