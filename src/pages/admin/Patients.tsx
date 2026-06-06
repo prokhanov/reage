@@ -352,7 +352,7 @@ export default function Patients() {
       expired: "Истекла",
       cancelled: "Отменена",
     };
-    return <span className="text-sm text-muted-foreground">{labels[status] || labels.pending}</span>;
+    return <span className="text-sm text-muted-foreground whitespace-nowrap">{labels[status] || labels.pending}</span>;
   };
 
 
