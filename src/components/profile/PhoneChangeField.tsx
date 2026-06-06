@@ -151,7 +151,7 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
 
       <div className="flex gap-2">
         <div className="flex-1">
-          <PhoneInput value={phone} onChange={setPhone} disabled={stage === "code"} />
+          <PhoneInput value={phone} onChange={setPhone} />
         </div>
         {stage === "edit" && (
           <Button
