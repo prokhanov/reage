@@ -492,10 +492,7 @@ export default function Patients() {
 
                           <TableCell>
                             {patient.birth_date ? (
-                              <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-muted-foreground" />
-                                {calculateAge(patient.birth_date)} лет
-                              </div>
+                              calculateAge(patient.birth_date)
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
