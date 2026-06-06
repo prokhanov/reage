@@ -277,6 +277,16 @@ export default function Profile() {
             </div>
           </Card>
 
+          {/* Phone Card */}
+          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
+            <PhoneChangeField
+              currentPhone={profile?.phone || null}
+              isVerified={!!profile?.phone_verified_at}
+              onUpdated={() => loadProfile()}
+            />
+          </Card>
+
+
           {/* Next Analysis Date Card */}
           {nextAnalysisDate && (
             <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
