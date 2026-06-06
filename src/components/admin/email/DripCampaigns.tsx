@@ -200,6 +200,7 @@ export default function DripCampaigns() {
           <TabsList>
             <TabsTrigger value="series">Серии</TabsTrigger>
             <TabsTrigger value="unsubs">Отписавшиеся ({unsubs.length})</TabsTrigger>
+            <TabsTrigger value="logs">Логи</TabsTrigger>
             <TabsTrigger value="help">Справка</TabsTrigger>
           </TabsList>
 
