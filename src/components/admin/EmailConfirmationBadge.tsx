@@ -199,19 +199,14 @@ export function EmailConfirmationBadge({
           </div>
 
           <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                Отмена
-              </Button>
-              <Button onClick={handleResend} disabled={isSending || !resendEmail}>
-                {isSending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 mr-2" />
-                )}
-                {isEditing && resendEmail !== email ? "Сохранить и отправить" : "Отправить повторно"}
-              </Button>
-            </div>
+            <Button onClick={handleResend} disabled={isSending || !resendEmail} className="w-full">
+              {isSending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              {isEditing && resendEmail !== email ? "Сохранить и отправить" : "Отправить повторно"}
+            </Button>
             {adminMode && userId && (
               <Button
                 variant="secondary"
@@ -223,6 +218,9 @@ export function EmailConfirmationBadge({
                 Подтвердить без проверки
               </Button>
             )}
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full">
+              Отмена
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

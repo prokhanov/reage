@@ -255,19 +255,14 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
           <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
             {stage === "edit" ? (
               <>
-                <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2">
-                  <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                    Отмена
-                  </Button>
-                  <Button onClick={handleSend} disabled={!valid || sending}>
-                    {sending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Phone className="w-4 h-4 mr-2" />
-                    )}
-                    Отправить код
-                  </Button>
-                </div>
+                <Button onClick={handleSend} disabled={!valid || sending} className="w-full">
+                  {sending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Phone className="w-4 h-4 mr-2" />
+                  )}
+                  Отправить код
+                </Button>
                 {adminMode && userId && (
                   <Button
                     variant="secondary"
@@ -279,6 +274,9 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                     Подтвердить без проверки
                   </Button>
                 )}
+                <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full">
+                  Отмена
+                </Button>
               </>
             ) : (
               <Button
