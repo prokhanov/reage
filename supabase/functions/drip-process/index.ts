@@ -66,6 +66,22 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 }
 
+function markdownToPlainText(md: string): string {
+  return md
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')   // links
+    .replace(/\*\*(.+?)\*\*/g, '$1')                   // bold **
+    .replace(/__(.+?)__/g, '$1')                       // bold __
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g, '$1$2')        // italic *
+    .replace(/(^|[\s(])_([^_\n]+)_/g, '$1$2')          // italic _
+    .replace(/^#{1,6}\s+/gm, '')                       // headings
+    .replace(/^\s*[-*+]\s+/gm, '• ')                   // bullets
+    .replace(/^\s*>\s?/gm, '')                         // blockquotes
+    .replace(/`([^`]+)`/g, '$1')                       // inline code
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+
 function fillPlaceholders(text: string, profile: ProfileRow, urls: { dashboard: string; unsubscribeSeries: string; unsubscribeAll: string }): string {
   const firstName = profile.first_name || (profile.name ? profile.name.split(' ')[0] : '') || ''
   return text
