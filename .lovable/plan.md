@@ -1,56 +1,73 @@
-# Админ-раздел SMS рассылок
+## Цель
+В личном профиле (страница `/profile`, общая для пациента и сотрудника) дать возможность добавить или изменить номер телефона с подтверждением через SMS-код (SMSAero).
 
-Зеркалит структуру `/admin/email-settings`. Только для superadmin. Провайдер — SMS Aero. Phone Auth не трогаем — это отдельный следующий шаг.
+## UX (в `Profile.tsx` + `EditProfileDialog.tsx`)
 
-## Инструкция по SMS Aero (для пользователя)
+На странице профиля и в диалоге редактирования — отдельный блок «Телефон»:
 
-1. **Регистрация** — smsaero.ru → «Регистрация» → почта + телефон → подтвердить email по ссылке из письма.
-2. **Баланс** — после входа: верхнее меню → «Финансы» → «Пополнить» → карта/СБП. Для теста хватит 300 ₽ (~75 SMS по ~4 ₽).
-3. **API-ключ** — левое меню → «API» → скопировать поле **«Текущий ключ»** (верхнее, длинная строка `FsxdL8_...`). Тестовый ключ снизу — НЕ нужен (он только для Mobile-ID/Flash Call).
-4. **Email-логин** — это тот же email, которым регистрировались.
-5. **(Опционально) Подпись отправителя** — левое меню → «Подписи» → «Добавить» → ввести `ReAge` → отправить на модерацию (до 3 дней). Без подписи SMS идут с дефолтной — это нормально для старта.
-6. **Передача секретов в Lovable** — когда скажете «Реализовать план», появится защищённая форма для ввода `SMSAERO_EMAIL` и `SMSAERO_API_KEY`.
+- Поле ввода номера с маской и выбором страны (используем уже существующий `PhoneInput` из `src/components/ui/phone-input.tsx`).
+- Справа от поля — мини-кнопка **«Подтвердить»** (компактная, иконка ✓). Активна, только если номер валиден и отличается от текущего сохранённого.
+- После нажатия:
+  1. Кнопка превращается в строку с 4-значным `InputOTP` + текстом «Код отправлен на …», ссылкой «Изменить номер» и таймером повторной отправки.
+  2. После корректного ввода кода номер сохраняется в `profiles.phone` (нормализованный, только цифры), показывается toast «Номер подтверждён», блок сворачивается обратно с зелёной галочкой «Подтверждён».
+- Рядом с уже сохранённым номером — бейдж «Подтверждён» (зелёный) либо «Не подтверждён» (серый), кнопка «Изменить».
+- Если пользователь стирает поле и нажимает «Сохранить» — номер можно очистить без OTP (удаление не требует подтверждения).
 
-## База данных
+Та же логика доступна и сотрудникам, т.к. страница профиля одна.
 
-Три новые таблицы (по аналогии с email):
+## Бэкенд
 
-- **`sms_sender_settings`** (одна строка) — `sender_sign` (текст подписи, по умолчанию пусто).
-- **`sms_templates`** — `name` (uniq), `type` (`otp` | `appointment_reminder` | `report_ready` | `custom`), `body_text`, `variables` (jsonb массив имён переменных), `is_active`. Сидим 4 дефолтных шаблона.
-- **`sms_send_log`** — `message_id` (text), `template_name`, `recipient_phone`, `body_text`, `status` (`pending`|`sent`|`failed`|`dlq`), `provider` (`smsaero`), `provider_message_id`, `error_message`, `metadata` (jsonb, в т.ч. `is_test: true`), `created_at`.
+### Новые/доработанные edge-функции
 
-RLS: чтение/запись только для `superadmin` (через `has_role`). GRANT-ы для `authenticated` и `service_role`.
+1. **`phone-change-send`** (новая) — пользователь должен быть авторизован (`verify_jwt = true` через ручную проверку токена, как в остальных функциях; берём `auth.uid()` из заголовка).
+   - Принимает `{ phone }`, нормализует.
+   - Проверяет: номер не занят другим пользователем (через `profiles.phone`), пользователь не превысил лимит (10/сутки, 60 сек cooldown — те же правила, что в `phone-otp-send`).
+   - Генерирует 4-значный код, хэширует SHA-256 и сохраняет в `phone_otp_codes` с дополнительным полем `purpose = 'change'` и `user_id` (см. миграцию ниже).
+   - Отправляет SMS через существующий `_shared/smsaero.ts` (`sendSms`).
+   - Возвращает `{ ok: true, resendInSec }` или `{ ok: false, error }` (200 на бизнес-ошибки).
 
-## Edge functions
+2. **`phone-change-verify`** (новая) — авторизованный пользователь.
+   - Принимает `{ phone, code }`.
+   - Проверяет последний неподтверждённый код по `(user_id, phone, purpose='change')`, не истёк, не более 5 попыток, хэш совпадает.
+   - При успехе: помечает `consumed_at`, обновляет `profiles.phone = <нормализованный номер>` и `profiles.phone_verified_at = now()` (новое поле).
+   - Возвращает `{ ok: true }` или `{ ok: false, error }`.
 
-- **`sms-check-connection`** — `GET https://gate.smsaero.ru/v2/auth` с Basic Auth (`email:api_key`), возвращает `{ok, balance?}`.
-- **`sms-send-test`** — принимает `{template_id, phone, variables}`, рендерит `body_text` подстановкой `{{var}}`, шлёт `POST /v2/sms/send` (`number`, `text`, `sign`), пишет лог в `sms_send_log` с `metadata.is_test=true`.
+### Миграция БД
 
-Общий клиент `_shared/smsaero.ts` (Basic Auth, нормализация телефона `+7XXXXXXXXXX` → `7XXXXXXXXXX`, парсинг ответа).
+- В `phone_otp_codes` добавить:
+  - `purpose text NOT NULL DEFAULT 'login'` (значения: `login`, `change`).
+  - `user_id uuid NULL` (для `purpose='change'` — id владельца смены).
+  - индекс на `(user_id, phone, purpose)`.
+- В `profiles` добавить:
+  - `phone_verified_at timestamptz NULL`.
 
-Секреты: `SMSAERO_EMAIL`, `SMSAERO_API_KEY` — запрашиваются через `add_secret` после одобрения плана.
+RLS для `phone_otp_codes` оставляем закрытыми (доступ только через service role в edge-функциях).
 
-## Frontend — `/admin/sms-settings`
+### Клиент
 
-Маршрут под `SuperAdminRoute` в `App.tsx`. Пункт «SMS рассылки» в сайдбаре под «Email рассылки».
+- В `Profile.tsx` подгружать `phone` и `phone_verified_at` из `profiles`, передавать в `EditProfileDialog` и/или показывать в отдельной карточке.
+- В `EditProfileDialog.tsx` добавить компонент `PhoneChangeField` (новый, `src/components/profile/PhoneChangeField.tsx`):
+  - Состояния: `idle | sending | code | verifying | verified`.
+  - Использует `supabase.functions.invoke("phone-change-send" | "phone-change-verify")`.
+  - При успехе вызывает `onSuccess()` родителя (перезагрузка профиля).
+- Сохранение остальных полей профиля идёт отдельной кнопкой «Сохранить», как сейчас; смена телефона — независимый поток.
 
-Страница `SmsSettings.tsx` с 4 табами (shadcn Tabs):
+## Технические детали
 
-1. **Отправитель** — поле `sender_sign`, статус ключа (маска), кнопка «Проверить подключение» → вызов `sms-check-connection`, тост с балансом.
-2. **Шаблоны** — список карточек, редактор `body_text` с подсветкой переменных `{{...}}`, счётчик символов (1 SMS = 70 кириллицы / 160 латиницы), кнопка «Сохранить».
-3. **Тестовая отправка** — селект шаблона → телефон (по умолчанию из профиля админа, маска `+7 ___ ___-__-__`) → динамические поля переменных → preview итогового текста → «Отправить тестовое SMS» → тост + бейдж результата.
-4. **Логи** — `SmsLogsDashboard.tsx` (копия `EmailLogsDashboard.tsx`): фильтры периода / типа / статуса, статус-карточки (total/sent/failed), таблица с маскированным телефоном, пагинация по 50, дедуп `DISTINCT ON (message_id)`.
+- Все SMS-сообщения шлются через уже подключённый SMSAero (`SMSAERO_EMAIL`, `SMSAERO_API_KEY` уже в секретах).
+- Текст SMS: «Ваш код подтверждения номера в ReAge: {code}. Никому не сообщайте.»
+- Нормализация: digits-only, с международным префиксом (используем тот же подход, что в `phone-input.tsx` — `guessCountry` + цифры).
+- Логирование send-результата идёт в существующую таблицу логов SMS, если она используется в `sendSms`.
+- CORS — используем стандартные `corsHeaders` из `npm:@supabase/supabase-js@2/cors`.
 
-## Чего НЕ делаем в этой итерации
+## Файлы
 
-- Phone Auth, Send SMS Hook, реальные OTP пользователям — следующий шаг.
-- Массовые рассылки, расписания, шаблоны для писем-уведомлений в продакшене.
+Создать:
+- `supabase/functions/phone-change-send/index.ts`
+- `supabase/functions/phone-change-verify/index.ts`
+- `src/components/profile/PhoneChangeField.tsx`
+- миграция: добавить колонки `purpose`, `user_id` в `phone_otp_codes` и `phone_verified_at` в `profiles`.
 
-## Порядок реализации
-
-1. Миграция (3 таблицы + RLS + сид 4 шаблонов).
-2. `add_secret` для `SMSAERO_EMAIL` и `SMSAERO_API_KEY`.
-3. Edge functions + shared client.
-4. Страница + табы + дашборд логов.
-5. Маршрут + пункт сайдбара.
-6. Дымовой тест: «Проверить подключение» + тестовое SMS на ваш номер.
+Изменить:
+- `src/pages/Profile.tsx` — загрузка/отображение телефона + статус подтверждения.
+- `src/components/profile/EditProfileDialog.tsx` — встроить `PhoneChangeField`.
