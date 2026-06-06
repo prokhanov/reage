@@ -84,7 +84,7 @@ export default function DripCampaigns() {
   }
 
   async function changeTrigger(id: string, trigger: string) {
-    await supabase.from('email_drip_series').update({ trigger_type: trigger }).eq('id', id);
+    await supabase.from('email_drip_series').update({ trigger_type: trigger as 'manual' | 'registration' | 'subscription_paid' }).eq('id', id);
     load();
   }
 
