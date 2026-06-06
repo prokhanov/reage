@@ -63,6 +63,7 @@ export default function Auth() {
   const [otpStep, setOtpStep] = useState<"phone" | "code">("phone");
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpResendIn, setOtpResendIn] = useState(0);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
