@@ -15,6 +15,7 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEmailConfirmation } from "@/hooks/useEmailConfirmation";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
+import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import { performSafeLogout } from "@/lib/authLogout";
 
 interface AppSidebarProps {
@@ -55,6 +56,8 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const { data: emailStatus } = useEmailConfirmation();
   const [patientName, setPatientName] = useState<string>("");
   const [patientEmail, setPatientEmail] = useState<string>("");
+  const [userPhone, setUserPhone] = useState<string | null>(null);
+  const [phoneVerified, setPhoneVerified] = useState<boolean>(false);
 
   // Извлекаем данные из React Query
   const isSuperAdmin = roleData?.isSuperAdmin ?? false;
@@ -68,6 +71,28 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
       loadPatientData();
     }
   }, [viewAsUserId]);
+
+  useEffect(() => {
+    if (!viewAsUserId) {
+      loadOwnPhone();
+    }
+  }, [viewAsUserId, userEmail]);
+
+  const loadOwnPhone = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("phone, phone_verified_at")
+        .eq("id", user.id)
+        .maybeSingle();
+      setUserPhone(data?.phone || null);
+      setPhoneVerified(!!data?.phone_verified_at);
+    } catch (e) {
+      console.error("Error loading phone:", e);
+    }
+  };
 
   const loadPatientData = async () => {
     if (!viewAsUserId) return;
