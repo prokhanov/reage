@@ -196,7 +196,7 @@ export default function EmailSettings() {
       </div>
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList>
+        <TabsList className="w-full flex-wrap">
           <TabsTrigger value="settings" className="gap-2">
             <Mail className="w-4 h-4" />
             Отправитель и шаблоны

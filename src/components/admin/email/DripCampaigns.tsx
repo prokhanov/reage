@@ -41,6 +41,9 @@ export default function DripCampaigns() {
   const [tab, setTab] = useState("series");
   const [unsubs, setUnsubs] = useState<any[]>([]);
   const [scheduleStats, setScheduleStats] = useState<any>(null);
+  const [showNewSeries, setShowNewSeries] = useState(false);
+  const [newSeriesName, setNewSeriesName] = useState("");
+  const [newSeriesDesc, setNewSeriesDesc] = useState("");
 
   async function load() {
     setLoading(true);
@@ -65,10 +68,17 @@ export default function DripCampaigns() {
   useEffect(() => { load(); }, []);
 
   async function createSeries() {
-    const name = prompt('Название новой серии:');
-    if (!name) return;
-    const { error } = await supabase.from('email_drip_series').insert({ name, trigger_type: 'registration', is_active: false });
+    if (!newSeriesName.trim()) return;
+    const { error } = await supabase.from('email_drip_series').insert({
+      name: newSeriesName.trim(),
+      description: newSeriesDesc.trim() || null,
+      trigger_type: 'registration',
+      is_active: false,
+    });
     if (error) return toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
+    setNewSeriesName("");
+    setNewSeriesDesc("");
+    setShowNewSeries(false);
     load();
   }
 
@@ -201,7 +211,7 @@ export default function DripCampaigns() {
               <Input placeholder="your-test-email@example.com" value={testEmail} onChange={e => setTestEmail(e.target.value)} className="max-w-xs" />
               <span className="text-xs text-muted-foreground">— email для тестовых отправок</span>
               <div className="flex-1" />
-              <Button size="sm" onClick={createSeries}><Plus className="w-4 h-4 mr-2" />Новая серия</Button>
+              <Button size="sm" onClick={() => setShowNewSeries(true)}><Plus className="w-4 h-4 mr-2" />Новая серия</Button>
             </div>
 
             {loading ? <p className="text-sm text-muted-foreground">Загрузка...</p> : series.map(sr => {
@@ -286,6 +296,27 @@ export default function DripCampaigns() {
             </CardContent></Card>
           </TabsContent>
         </Tabs>
+
+        {/* New series dialog */}
+        <Dialog open={showNewSeries} onOpenChange={setShowNewSeries}>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Новая серия рассылок</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Название серии</Label>
+                <Input value={newSeriesName} onChange={e => setNewSeriesName(e.target.value)} placeholder="Например, Онбординг новых пользователей" />
+              </div>
+              <div>
+                <Label>Описание (необязательно)</Label>
+                <Textarea value={newSeriesDesc} onChange={e => setNewSeriesDesc(e.target.value)} rows={3} placeholder="Краткое описание назначения серии" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowNewSeries(false)}>Отмена</Button>
+              <Button onClick={createSeries} disabled={!newSeriesName.trim()}>Создать серию</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Step editor */}
         <Dialog open={!!editingStep} onOpenChange={(o) => !o && setEditingStep(null)}>
