@@ -531,19 +531,20 @@ export default function Patients() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="space-y-1">
-                              {getSubscriptionBadge(patient.subscriptionStatus)}
-                              {patient.subscriptionPlan && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {patient.subscriptionPlan}
-                                </p>
-                              )}
-                            </div>
+                            {getSubscriptionBadge(patient.subscriptionStatus, patient.subscriptionEndDate)}
+                          </TableCell>
+                          <TableCell>
+                            {patient.subscriptionPlan ? (
+                              <span className="text-sm">{patient.subscriptionPlan}</span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
                             {patient.analysisCount}
                           </TableCell>
+
                         </TableRow>
                       ))
                     ) : (
