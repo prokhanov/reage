@@ -421,16 +421,13 @@ export default function Auth() {
                           <PhoneIcon className="h-4 w-4 text-primary" />
                           Номер телефона
                         </Label>
-                        <Input
+                        <PhoneInput
                           id="phone"
-                          type="tel"
-                          inputMode="tel"
-                          autoComplete="tel"
-                          placeholder="+7 (999) 123-45-67"
                           value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          required
-                          className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                          onChange={setPhone}
+                          placeholder="+7 (999) 123-45-67"
+                          className="w-full"
+                          inputClassName="bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                         <p className="text-xs text-muted-foreground pt-1">
                           Мы отправим SMS с одноразовым кодом для входа
