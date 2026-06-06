@@ -292,61 +292,185 @@ export default function Auth() {
                 </button>
               </form>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-primary" />
+              <Tabs value={authMethod} onValueChange={(v) => setAuthMethod(v as "email" | "phone")} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6 h-12 p-1 bg-background/40 border border-border/50">
+                  <TabsTrigger
+                    value="email"
+                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
                     Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="flex items-center gap-2">
-                      <Lock className="h-4 w-4 text-primary" />
-                      Пароль
-                    </Label>
-                    <button
-                      type="button"
-                      onClick={() => { setForgotMode(true); setForgotEmail(formData.email); }}
-                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="phone"
+                    className="h-full data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-neon-primary transition-all duration-300 gap-2"
+                  >
+                    <Phone className="h-4 w-4" />
+                    Телефон
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="email" className="mt-0 animate-fade-in">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-primary" />
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                        className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="password" className="flex items-center gap-2">
+                          <Lock className="h-4 w-4 text-primary" />
+                          Пароль
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={() => { setForgotMode(true); setForgotEmail(formData.email); }}
+                          className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          Забыли пароль?
+                        </button>
+                      </div>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        required
+                        className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium"
+                      disabled={loading}
                     >
-                      Забыли пароль?
-                    </button>
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium" 
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Загрузка...
-                    </span>
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Загрузка...
+                        </span>
+                      ) : (
+                        "Войти"
+                      )}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="phone" className="mt-0 animate-fade-in">
+                  {otpStep === "phone" ? (
+                    <form onSubmit={handleSendOtp} className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-primary" />
+                          Номер телефона
+                        </Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          inputMode="tel"
+                          autoComplete="tel"
+                          placeholder="+7 (999) 123-45-67"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          required
+                          className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                        <p className="text-xs text-muted-foreground pt-1">
+                          Мы отправим SMS с одноразовым кодом для входа
+                        </p>
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium group"
+                        disabled={otpLoading}
+                      >
+                        {otpLoading ? (
+                          <span className="flex items-center gap-2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Отправка...
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            Получить код
+                            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                          </span>
+                        )}
+                      </Button>
+                    </form>
                   ) : (
-                    "Войти"
+                    <form onSubmit={handleVerifyOtp} className="space-y-6">
+                      <div className="space-y-3">
+                        <Label className="flex items-center gap-2">
+                          <KeyRound className="h-4 w-4 text-primary" />
+                          Код из SMS
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Отправили 6-значный код на{" "}
+                          <span className="text-foreground font-medium">{phone}</span>
+                        </p>
+                        <div className="flex justify-center pt-2">
+                          <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
+                              <InputOTPSlot index={1} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
+                              <InputOTPSlot index={2} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
+                              <InputOTPSlot index={3} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
+                              <InputOTPSlot index={4} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
+                              <InputOTPSlot index={5} className="h-12 w-12 text-lg border-border/50 bg-background/50" />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full h-12 bg-gradient-primary hover:shadow-neon-primary transition-all duration-300 text-base font-medium"
+                        disabled={otpLoading || otp.length !== 6}
+                      >
+                        {otpLoading ? (
+                          <span className="flex items-center gap-2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Проверка...
+                          </span>
+                        ) : (
+                          "Войти"
+                        )}
+                      </Button>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <button
+                          type="button"
+                          onClick={() => { setOtpStep("phone"); setOtp(""); }}
+                          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <ArrowLeft className="h-3 w-3" />
+                          Изменить номер
+                        </button>
+                        <button
+                          type="button"
+                          disabled={otpResendIn > 0}
+                          onClick={() => { setOtpResendIn(60); toast({ title: "Код отправлен повторно" }); }}
+                          className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:hover:text-muted-foreground"
+                        >
+                          {otpResendIn > 0 ? `Отправить снова через ${otpResendIn}с` : "Отправить код снова"}
+                        </button>
+                      </div>
+                    </form>
                   )}
-                </Button>
-              </form>
+                </TabsContent>
+              </Tabs>
             )}
           </div>
         </Card>
