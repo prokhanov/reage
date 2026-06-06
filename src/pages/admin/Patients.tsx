@@ -515,6 +515,13 @@ export default function Patients() {
 
 
                           <TableCell className="text-center">
+                            {patient.birth_date ? (
+                              calculateAge(patient.birth_date)
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             {patient.gender ? (
                               <Badge variant="outline">
                                 {patient.gender === "male" ? "М" : "Ж"}
