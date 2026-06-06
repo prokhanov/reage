@@ -96,7 +96,7 @@ export default function Register() {
 
     // Check phone uniqueness when leaving step 1
     if (currentStep === 1) {
-      if (!isValidPhone(formData.phone)) {
+      if (!isPhoneValid(formData.phone)) {
         toast({
           title: "Некорректный номер",
           description: "Введите номер в формате +7 (999) 123-45-67",
