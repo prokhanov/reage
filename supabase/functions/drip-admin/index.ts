@@ -337,6 +337,114 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
       return new Response(JSON.stringify({ items }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
+    if (action === 'remove_users_from_series') {
+      const { series_id } = body
+      const userIds: string[] = Array.isArray(body?.user_ids) ? body.user_ids.filter((x: any) => typeof x === 'string') : []
+      if (!series_id || userIds.length === 0) {
+        return new Response(JSON.stringify({ error: 'series_id and user_ids required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      const { error, count } = await admin.from('email_drip_schedule')
+        .delete({ count: 'exact' })
+        .eq('series_id', series_id)
+        .in('user_id', userIds)
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ success: true, removed: count ?? 0, users: userIds.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    if (action === 'drip_logs') {
+      const search: string = (body?.search ?? '').toString().trim().toLowerCase()
+      const statusFilter: string = body?.status_filter ?? 'all'
+      const seriesFilter: string | null = body?.series_id ?? null
+      const page: number = Math.max(1, Number(body?.page ?? 1))
+      const pageSize: number = Math.min(200, Math.max(10, Number(body?.page_size ?? 50)))
+
+      const { data: logs, error: logsErr } = await admin.from('email_send_log')
+        .select('id, message_id, template_name, recipient_email, status, error_message, metadata, created_at')
+        .like('template_name', 'drip%')
+        .order('created_at', { ascending: false })
+        .limit(3000)
+      if (logsErr) return new Response(JSON.stringify({ error: logsErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+
+      // Deduplicate by message_id -> latest (rows already ordered desc)
+      const latestByMsg = new Map<string, any>()
+      for (const l of (logs ?? []) as any[]) {
+        const key = l.message_id ?? l.id
+        if (!latestByMsg.has(key)) latestByMsg.set(key, l)
+      }
+      let rows = Array.from(latestByMsg.values())
+
+      if (seriesFilter) {
+        rows = rows.filter((l) => {
+          const md = l.metadata || {}
+          if (md.series_id === seriesFilter) return true
+          if (typeof l.template_name === 'string' && l.template_name.startsWith(`drip:${seriesFilter}:`)) return true
+          return false
+        })
+      }
+
+      const { data: seriesRows } = await admin.from('email_drip_series').select('id, name')
+      const seriesMap = new Map<string, string>()
+      ;(seriesRows ?? []).forEach((s: any) => seriesMap.set(s.id, s.name))
+
+      const { data: stepsAll } = await admin.from('email_drip_steps').select('id, series_id, order_index, subject')
+      const stepMap = new Map<string, any>()
+      ;(stepsAll ?? []).forEach((s: any) => stepMap.set(s.id, s))
+
+      const emails = Array.from(new Set(rows.map((r) => (r.recipient_email ?? '').toLowerCase()).filter(Boolean)))
+      const { data: profiles } = emails.length
+        ? await admin.from('profiles').select('id, first_name, last_name, email').in('email', emails as any)
+        : { data: [] as any[] }
+      const profByEmail = new Map<string, any>()
+      ;(profiles ?? []).forEach((p: any) => p.email && profByEmail.set(p.email.toLowerCase(), p))
+
+      let items = rows.map((l) => {
+        const md = l.metadata || {}
+        let seriesId: string | null = md.series_id ?? null
+        let stepId: string | null = md.drip_step_id ?? md.step_id ?? null
+        const isTest = !!md.is_test || (typeof l.template_name === 'string' && l.template_name.startsWith('drip-test:'))
+        if (!seriesId && typeof l.template_name === 'string' && l.template_name.startsWith('drip:')) {
+          const parts = l.template_name.split(':')
+          if (parts.length >= 3) { seriesId = parts[1]; stepId = stepId ?? parts[2] }
+        }
+        if (!stepId && typeof l.template_name === 'string' && l.template_name.startsWith('drip-test:')) {
+          stepId = l.template_name.slice('drip-test:'.length)
+        }
+        const step = stepId ? stepMap.get(stepId) : null
+        const prof = profByEmail.get((l.recipient_email ?? '').toLowerCase()) ?? null
+        return {
+          id: l.id,
+          message_id: l.message_id,
+          recipient_email: l.recipient_email,
+          first_name: prof?.first_name ?? null,
+          last_name: prof?.last_name ?? null,
+          series_id: seriesId,
+          series_name: seriesId ? (seriesMap.get(seriesId) ?? null) : null,
+          step_id: stepId,
+          step_order_index: step?.order_index ?? null,
+          step_subject: step?.subject ?? null,
+          status: l.status,
+          error_message: l.error_message,
+          created_at: l.created_at,
+          is_test: isTest,
+        }
+      })
+
+      if (search) {
+        items = items.filter((r) => `${r.first_name ?? ''} ${r.last_name ?? ''} ${r.recipient_email ?? ''}`.toLowerCase().includes(search))
+      }
+      if (statusFilter && statusFilter !== 'all') {
+        items = items.filter((r) => r.status === statusFilter)
+      }
+
+      const summary: Record<string, number> = { total: items.length, sent: 0, pending: 0, failed: 0, bounced: 0, complained: 0, suppressed: 0, dlq: 0 }
+      for (const r of items) summary[r.status] = (summary[r.status] ?? 0) + 1
+
+      const total = items.length
+      const start = (page - 1) * pageSize
+      const paged = items.slice(start, start + pageSize)
+      return new Response(JSON.stringify({ items: paged, total, page, page_size: pageSize, summary, series_list: Array.from(seriesMap.entries()).map(([id, name]) => ({ id, name })) }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err: any) {
     console.error('drip-admin error', err)
