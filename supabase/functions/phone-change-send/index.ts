@@ -105,7 +105,32 @@ Deno.serve(async (req) => {
     }
 
     const text = `Ваш код подтверждения номера в ReAge: ${code}. Никому не сообщайте.`;
+    const messageId = `phone-change-${crypto.randomUUID()}`;
+
+    await admin.from("sms_send_log").insert({
+      message_id: messageId,
+      template_name: "phone_change_otp",
+      recipient_phone: phone,
+      body_text: text,
+      status: "pending",
+      provider: "smsaero",
+      metadata: { user_id: userId, purpose: "change" },
+    });
+
     const sendRes = await sendSms({ phone, text });
+
+    await admin.from("sms_send_log").insert({
+      message_id: messageId,
+      template_name: "phone_change_otp",
+      recipient_phone: phone,
+      body_text: text,
+      status: sendRes.ok ? "sent" : "failed",
+      provider: "smsaero",
+      provider_message_id: sendRes.providerMessageId,
+      error_message: sendRes.ok ? null : (sendRes.error ?? "Unknown error"),
+      metadata: { user_id: userId, purpose: "change", provider_status: sendRes.status },
+    });
+
     if (!sendRes.ok) {
       console.error("[phone-change-send] sms send failed", sendRes.error);
       return json({ ok: false, error: "Не удалось отправить SMS. Попробуйте позже." }, 502);
