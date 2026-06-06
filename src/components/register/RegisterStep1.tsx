@@ -1,4 +1,4 @@
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,14 @@ interface RegisterStep1Props {
 }
 
 export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep1Props) {
-  const isValid = formData.firstName && formData.lastName && formData.email && formData.password;
+  const phoneDigits = (formData.phone || "").replace(/\D/g, "");
+  const isPhoneValid = phoneDigits.length >= 11;
+  const isValid =
+    formData.firstName &&
+    formData.lastName &&
+    formData.email &&
+    formData.password &&
+    isPhoneValid;
 
   return (
     <div className="space-y-6">
