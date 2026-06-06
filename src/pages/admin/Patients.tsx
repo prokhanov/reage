@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, User, Activity, Mail, Phone, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, User, Mail, Phone, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
@@ -516,10 +516,7 @@ export default function Patients() {
                           </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Activity className="w-4 h-4 text-muted-foreground" />
-                              {patient.analysisCount}
-                            </div>
+                            {patient.analysisCount}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
