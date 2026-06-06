@@ -146,21 +146,195 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    if (action === 'enroll_all_existing') {
-      // For a series, enroll every patient who doesn't already have a row for any step of the series
+    if (action === 'enroll_users' || action === 'enroll_all_existing') {
       const { series_id } = body
-      const { data: patients } = await admin.rpc('has_role', { _user_id: '00000000-0000-0000-0000-000000000000', _role: 'patient' })
-      // simpler: get all profiles that have patient role
-      const { data: patientRoleRows } = await admin.from('user_roles').select('user_id').eq('role', 'patient')
-      const userIds = (patientRoleRows ?? []).map((r: any) => r.user_id)
+      if (!series_id) {
+        return new Response(JSON.stringify({ error: 'series_id required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      let userIds: string[] = []
+      if (action === 'enroll_all_existing' || body?.all === true) {
+        const { data: patientRoleRows } = await admin.from('user_roles').select('user_id').eq('role', 'patient')
+        userIds = (patientRoleRows ?? []).map((r: any) => r.user_id)
+      } else {
+        userIds = Array.isArray(body?.user_ids) ? body.user_ids.filter((x: any) => typeof x === 'string') : []
+      }
       let enrolled = 0
+      let skipped = 0
       for (const uid of userIds) {
         const { data: existing } = await admin.from('email_drip_schedule').select('id').eq('user_id', uid).eq('series_id', series_id).limit(1)
-        if (existing && existing.length > 0) continue
+        if (existing && existing.length > 0) { skipped++; continue }
         await admin.rpc('enroll_user_in_series', { p_user_id: uid, p_series_id: series_id, p_base_time: new Date().toISOString() })
         enrolled++
       }
-      return new Response(JSON.stringify({ success: true, enrolled_users: enrolled }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ success: true, enrolled, skipped, enrolled_users: enrolled }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    if (action === 'series_subscribers') {
+      const { series_id } = body
+      const search: string = (body?.search ?? '').toString().trim().toLowerCase()
+      const statusFilter: string = body?.status_filter ?? 'all'
+      const page: number = Math.max(1, Number(body?.page ?? 1))
+      const pageSize: number = Math.min(200, Math.max(10, Number(body?.page_size ?? 50)))
+      if (!series_id) {
+        return new Response(JSON.stringify({ error: 'series_id required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const { data: rows } = await admin.from('email_drip_schedule')
+        .select('id, user_id, status, send_at, sent_at, step_id, error_message')
+        .eq('series_id', series_id)
+
+      const { data: stepsData } = await admin.from('email_drip_steps')
+        .select('id, order_index, subject').eq('series_id', series_id).order('order_index')
+      const stepMap = new Map<string, { order_index: number; subject: string }>()
+      ;(stepsData ?? []).forEach((s: any) => stepMap.set(s.id, { order_index: s.order_index, subject: s.subject }))
+      const totalSteps = (stepsData ?? []).length
+
+      type UserAgg = {
+        user_id: string; total: number; sent: number; pending: number; skipped: number; failed: number; cancelled: number;
+        last_send_at: string | null; last_sent_at: string | null; last_step_id: string | null;
+      }
+      const map = new Map<string, UserAgg>()
+      for (const r of (rows ?? []) as any[]) {
+        let a = map.get(r.user_id)
+        if (!a) { a = { user_id: r.user_id, total: 0, sent: 0, pending: 0, skipped: 0, failed: 0, cancelled: 0, last_send_at: null, last_sent_at: null, last_step_id: null }; map.set(r.user_id, a) }
+        a.total++
+        if (r.status === 'sent') a.sent++
+        else if (r.status === 'pending') a.pending++
+        else if (r.status === 'skipped') a.skipped++
+        else if (r.status === 'failed') a.failed++
+        else if (r.status === 'cancelled') a.cancelled++
+        if (r.sent_at && (!a.last_sent_at || r.sent_at > a.last_sent_at)) {
+          a.last_sent_at = r.sent_at; a.last_step_id = r.step_id
+        }
+        if (!a.last_send_at || (r.send_at && r.send_at > a.last_send_at)) a.last_send_at = r.send_at
+      }
+      const userIds = Array.from(map.keys())
+
+      const { data: profiles } = userIds.length
+        ? await admin.from('profiles').select('id, first_name, last_name, email').in('id', userIds)
+        : { data: [] as any[] }
+      const profMap = new Map<string, any>()
+      ;(profiles ?? []).forEach((p: any) => profMap.set(p.id, p))
+
+      const emails = (profiles ?? []).map((p: any) => p.email).filter(Boolean)
+      const { data: unsubs } = emails.length
+        ? await admin.from('email_unsubscribes').select('email, scope').in('email', emails)
+        : { data: [] as any[] }
+      const unsubMap = new Map<string, string>()
+      ;(unsubs ?? []).forEach((u: any) => unsubMap.set(u.email.toLowerCase(), u.scope))
+
+      const { data: logs } = emails.length
+        ? await admin.from('email_send_log')
+            .select('recipient_email, status, created_at, metadata')
+            .in('recipient_email', emails)
+            .order('created_at', { ascending: false })
+            .limit(2000)
+        : { data: [] as any[] }
+      const deliveryByUser = new Map<string, { status: string; created_at: string }>()
+      for (const l of (logs ?? []) as any[]) {
+        const md = l.metadata || {}
+        if (md.series_id !== series_id) continue
+        const prof = (profiles ?? []).find((p: any) => p.email?.toLowerCase() === l.recipient_email?.toLowerCase())
+        if (!prof) continue
+        if (!deliveryByUser.has(prof.id)) deliveryByUser.set(prof.id, { status: l.status, created_at: l.created_at })
+      }
+
+      const { data: subscriptions } = userIds.length
+        ? await admin.from('subscriptions').select('user_id, status').in('user_id', userIds).eq('status', 'active')
+        : { data: [] as any[] }
+      const activeSubs = new Set<string>((subscriptions ?? []).map((s: any) => s.user_id))
+
+      let result = Array.from(map.values()).map((a) => {
+        const p = profMap.get(a.user_id) || {}
+        const email = p.email ?? ''
+        const unsubScope = unsubMap.get(email.toLowerCase()) ?? null
+        let overall: string
+        if (unsubScope) overall = 'unsubscribed'
+        else if (a.pending > 0) overall = 'active'
+        else if (a.failed > 0 && a.sent === 0) overall = 'failed'
+        else if (a.cancelled === a.total) overall = 'cancelled'
+        else if (a.sent > 0 && a.sent + a.skipped + a.cancelled + a.failed === a.total) overall = 'completed'
+        else overall = 'mixed'
+        const lastStep = a.last_step_id ? stepMap.get(a.last_step_id) : null
+        const delivery = deliveryByUser.get(a.user_id) ?? null
+        return {
+          user_id: a.user_id,
+          first_name: p.first_name ?? null,
+          last_name: p.last_name ?? null,
+          email,
+          overall_status: overall,
+          progress_sent: a.sent,
+          progress_total: Math.max(a.total, totalSteps),
+          counts: { pending: a.pending, sent: a.sent, skipped: a.skipped, failed: a.failed, cancelled: a.cancelled },
+          last_step_subject: lastStep?.subject ?? null,
+          last_step_index: lastStep?.order_index ?? null,
+          last_sent_at: a.last_sent_at,
+          next_send_at: a.pending > 0 ? a.last_send_at : null,
+          delivery_status: delivery?.status ?? null,
+          delivery_at: delivery?.created_at ?? null,
+          unsubscribe_scope: unsubScope,
+          has_active_subscription: activeSubs.has(a.user_id),
+        }
+      })
+
+      if (search) result = result.filter((r) => `${r.first_name ?? ''} ${r.last_name ?? ''} ${r.email}`.toLowerCase().includes(search))
+      if (statusFilter && statusFilter !== 'all') result = result.filter((r) => r.overall_status === statusFilter)
+      result.sort((a, b) => {
+        if (a.overall_status === 'active' && b.overall_status !== 'active') return -1
+        if (b.overall_status === 'active' && a.overall_status !== 'active') return 1
+        return (b.last_sent_at ?? '').localeCompare(a.last_sent_at ?? '')
+      })
+
+      const total = result.length
+      const start = (page - 1) * pageSize
+      const items = result.slice(start, start + pageSize)
+      const summary: any = { active: 0, completed: 0, unsubscribed: 0, failed: 0, cancelled: 0, mixed: 0 }
+      for (const r of result) summary[r.overall_status] = (summary[r.overall_status] ?? 0) + 1
+      return new Response(JSON.stringify({ items, total, page, page_size: pageSize, summary }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    if (action === 'list_patients') {
+      const { series_id } = body
+      const search: string = (body?.search ?? '').toString().trim().toLowerCase()
+      const limit: number = Math.min(2000, Math.max(10, Number(body?.limit ?? 500)))
+
+      const { data: patientRoleRows } = await admin.from('user_roles').select('user_id').eq('role', 'patient')
+      const userIds = (patientRoleRows ?? []).map((r: any) => r.user_id)
+      if (userIds.length === 0) {
+        return new Response(JSON.stringify({ items: [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      const { data: profiles } = await admin.from('profiles').select('id, first_name, last_name, email, phone, created_at').in('id', userIds)
+
+      let enrolledSet = new Set<string>()
+      if (series_id) {
+        const { data: sched } = await admin.from('email_drip_schedule').select('user_id').eq('series_id', series_id)
+        ;(sched ?? []).forEach((s: any) => enrolledSet.add(s.user_id))
+      }
+      const emails = (profiles ?? []).map((p: any) => p.email).filter(Boolean)
+      const { data: unsubs } = emails.length
+        ? await admin.from('email_unsubscribes').select('email, scope').in('email', emails)
+        : { data: [] as any[] }
+      const unsubMap = new Map<string, string>()
+      ;(unsubs ?? []).forEach((u: any) => unsubMap.set(u.email.toLowerCase(), u.scope))
+
+      const { data: subs } = await admin.from('subscriptions').select('user_id, status').in('user_id', userIds).eq('status', 'active')
+      const subsSet = new Set<string>((subs ?? []).map((s: any) => s.user_id))
+
+      let items: any[] = (profiles ?? []).map((p: any) => ({
+        user_id: p.id,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        email: p.email,
+        phone: p.phone,
+        created_at: p.created_at,
+        enrolled: enrolledSet.has(p.id),
+        unsubscribed: !!unsubMap.get((p.email ?? '').toLowerCase()),
+        has_active_subscription: subsSet.has(p.id),
+      }))
+      if (search) items = items.filter((p) => `${p.first_name ?? ''} ${p.last_name ?? ''} ${p.email ?? ''} ${p.phone ?? ''}`.toLowerCase().includes(search))
+      items.sort((a, b) => (a.enrolled === b.enrolled ? 0 : a.enrolled ? 1 : -1))
+      items = items.slice(0, limit)
+      return new Response(JSON.stringify({ items }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     return new Response(JSON.stringify({ error: 'Unknown action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
