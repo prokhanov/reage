@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { normalizePhone, isValidPhone } from "@/lib/phone";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -89,11 +90,44 @@ export default function Register() {
     setFormData(prev => ({ ...prev, ...data }));
   };
 
-  const handleNext = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleNext = async () => {
+    if (currentStep >= steps.length) return;
+
+    // Check phone uniqueness when leaving step 1
+    if (currentStep === 1) {
+      if (!isValidPhone(formData.phone)) {
+        toast({
+          title: "Некорректный номер",
+          description: "Введите номер в формате +7 (999) 123-45-67",
+          variant: "destructive",
+        });
+        return;
+      }
+      try {
+        const { data, error } = await supabase.functions.invoke("check-phone-exists", {
+          body: { phone: formData.phone },
+        });
+        if (error) throw error;
+        if (data?.exists) {
+          toast({
+            title: "Номер уже зарегистрирован",
+            description: "Войдите по SMS или используйте другой номер.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (e: any) {
+        toast({
+          title: "Не удалось проверить номер",
+          description: e?.message || "Попробуйте ещё раз",
+          variant: "destructive",
+        });
+        return;
+      }
     }
+
+    setCurrentStep(prev => prev + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handlePrevious = () => {
@@ -132,7 +166,7 @@ export default function Register() {
           last_name: formData.lastName,
           name: `${formData.firstName} ${formData.lastName}`.trim(),
           email: formData.email,
-          phone: formData.phone || null,
+          phone: formData.phone ? normalizePhone(formData.phone) : null,
           gender: formData.gender,
           birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : undefined,
           weight: formData.weight ? parseFloat(formData.weight) : null,
