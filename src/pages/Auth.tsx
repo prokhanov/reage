@@ -78,19 +78,20 @@ export default function Auth() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPhoneError(null);
     if (!isPhoneValid(phone)) {
-      toast({ title: "Введите корректный номер", description: "Выберите страну и введите номер полностью", variant: "destructive" });
+      setPhoneError("Введите корректный номер телефона");
       return;
     }
     setOtpLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("phone-otp-send", { body: { phone } });
       if (error) {
-        toast({ title: "Ошибка", description: error.message || "Не удалось отправить код", variant: "destructive" });
+        setPhoneError(error.message || "Не удалось отправить код");
         return;
       }
       if (data?.error) {
-        toast({ title: "Ошибка", description: data.error, variant: "destructive" });
+        setPhoneError(data.error);
         if (data.resendInSec) setOtpResendIn(data.resendInSec);
         return;
       }
@@ -99,7 +100,7 @@ export default function Auth() {
       setOtpResendIn(data?.resendInSec ?? 60);
       toast({ title: "Код отправлен", description: "Введите 4-значный код из SMS" });
     } catch (e: any) {
-      toast({ title: "Ошибка", description: e?.message || "Не удалось отправить код", variant: "destructive" });
+      setPhoneError(e?.message || "Не удалось отправить код");
     } finally {
       setOtpLoading(false);
     }
