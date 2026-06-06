@@ -466,7 +466,7 @@ export default function Patients() {
                                     />
                                   )
                                 ) : (
-                                  <span className="text-sm text-muted-foreground">—</span>
+                                  <span className="text-sm text-red-600 dark:text-red-400">Не указан</span>
                                 )}
                               </div>
                             </div>
