@@ -268,7 +268,8 @@ export default function Patients() {
   const filteredPatients = patients?.filter(
     (p) =>
       p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.gender?.toLowerCase().includes(searchQuery.toLowerCase())
+      p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.phone?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Pagination calculations
