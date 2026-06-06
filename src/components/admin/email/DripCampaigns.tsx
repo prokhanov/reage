@@ -211,7 +211,7 @@ export default function DripCampaigns() {
               <Input placeholder="your-test-email@example.com" value={testEmail} onChange={e => setTestEmail(e.target.value)} className="max-w-xs" />
               <span className="text-xs text-muted-foreground">— email для тестовых отправок</span>
               <div className="flex-1" />
-              <Button size="sm" onClick={createSeries}><Plus className="w-4 h-4 mr-2" />Новая серия</Button>
+              <Button size="sm" onClick={() => setShowNewSeries(true)}><Plus className="w-4 h-4 mr-2" />Новая серия</Button>
             </div>
 
             {loading ? <p className="text-sm text-muted-foreground">Загрузка...</p> : series.map(sr => {
