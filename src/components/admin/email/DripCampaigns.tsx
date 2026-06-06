@@ -12,7 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Send, Trash2, Edit3, Power, HelpCircle, RefreshCw } from "lucide-react";
+import { Plus, Send, Trash2, Edit3, Power, HelpCircle, RefreshCw, UserPlus } from "lucide-react";
+import EnrollPatientsDialog from "./EnrollPatientsDialog";
+import SeriesSubscribersTab from "./SeriesSubscribersTab";
 
 interface Series { id: string; name: string; description: string | null; trigger_type: string; is_active: boolean; }
 interface Step {
