@@ -342,7 +342,7 @@ export default function Patients() {
 
     const labels: Record<string, string> = {
       active: "Активна",
-      pending: "Ожидает оплаты",
+      pending: "Не оплачен",
       expired: "Истекла",
       cancelled: "Отменена",
     };
