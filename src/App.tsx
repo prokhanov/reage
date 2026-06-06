@@ -98,6 +98,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/register-staff" element={<RegisterStaff />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route
               path="/onboarding"
               element={
