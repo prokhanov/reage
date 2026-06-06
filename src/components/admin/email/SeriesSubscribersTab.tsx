@@ -192,6 +192,11 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
         </Button>
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => removeUsers(Array.from(selected))}>
+            <Trash2 className="w-4 h-4 mr-2" />Удалить из серии ({selected.size})
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -200,6 +205,13 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
             <table className="w-full text-sm">
               <thead className="bg-muted/40">
                 <tr>
+                  <th className="p-3 w-10">
+                    <Checkbox
+                      checked={items.length > 0 && selected.size === items.length}
+                      onCheckedChange={toggleAll}
+                      aria-label="Выбрать всех"
+                    />
+                  </th>
                   <th className="text-left p-3">Пациент</th>
                   <th className="text-left p-3">Статус</th>
                   <th className="text-left p-3">Прогресс</th>
@@ -211,17 +223,24 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
               </thead>
               <tbody>
                 {loading && (
-                  <tr><td colSpan={7} className="p-12 text-center text-muted-foreground">
+                  <tr><td colSpan={8} className="p-12 text-center text-muted-foreground">
                     <Loader2 className="w-5 h-5 animate-spin inline mr-2" />Загрузка...
                   </td></tr>
                 )}
                 {!loading && items.length === 0 && (
-                  <tr><td colSpan={7} className="p-12 text-center text-muted-foreground">Пока никто не подписан на эту серию</td></tr>
+                  <tr><td colSpan={8} className="p-12 text-center text-muted-foreground">Пока никто не подписан на эту серию</td></tr>
                 )}
                 {!loading && items.map((s) => {
                   const pct = s.progress_total > 0 ? Math.round((s.progress_sent / s.progress_total) * 100) : 0;
                   return (
                     <tr key={s.user_id} className="border-t hover:bg-muted/20">
+                      <td className="p-3">
+                        <Checkbox
+                          checked={selected.has(s.user_id)}
+                          onCheckedChange={() => toggleOne(s.user_id)}
+                          aria-label="Выбрать"
+                        />
+                      </td>
                       <td className="p-3">
                         <div className="font-medium">{displayName(s)}</div>
                         <div className="text-xs text-muted-foreground">{s.email}</div>
@@ -286,6 +305,9 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
                         )}
                         <Button size="sm" variant="ghost" onClick={() => resetUser(s.user_id)} title="Сбросить и перезапустить">
                           <RotateCcw className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => removeUsers([s.user_id])} title="Удалить из серии">
+                          <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </td>
                     </tr>
