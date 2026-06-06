@@ -110,9 +110,7 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("drip-admin", {
-      body: { action: "series_subscribers", series_id: seriesId, search, status_filter: statusFilter, page, page_size: pageSize },
-    });
+    const { data, error } = await invokeDrip({ action: "series_subscribers", series_id: seriesId, search, status_filter: statusFilter, page, page_size: pageSize });
     if (error) toast({ title: "Ошибка", description: error.message, variant: "destructive" });
     setItems(((data as any)?.items as Subscriber[]) ?? []);
     setSummary((data as any)?.summary ?? null);
