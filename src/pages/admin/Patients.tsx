@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, User, Mail, Phone, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, Mail, Phone, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
@@ -395,7 +395,6 @@ export default function Patients() {
                       <TableHead>Подписка</TableHead>
                       <TableHead>Статус анализа</TableHead>
                       <TableHead>Анализов</TableHead>
-                      <TableHead className="w-[100px]">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -518,37 +517,11 @@ export default function Patients() {
                           <TableCell>
                             {patient.analysisCount}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedPatientForInfo(patient.id);
-                                }}
-                              >
-                                <User className="w-4 h-4 mr-2" />
-                                Открыть
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeletePatientId(patient.id);
-                                }}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                           Пациенты не найдены
                         </TableCell>
                       </TableRow>
