@@ -290,6 +290,10 @@ export default function DripCampaigns() {
             </CardContent></Card>
           </TabsContent>
 
+          <TabsContent value="logs" className="mt-4">
+            {tab === 'logs' && <DripLogsTab />}
+          </TabsContent>
+
           <TabsContent value="help" className="mt-4 space-y-3 text-sm">
             <Card><CardContent className="p-4 space-y-2">
               <h3 className="font-semibold">Как это работает</h3>
