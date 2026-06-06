@@ -399,17 +399,31 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
       const profByEmail = new Map<string, any>()
       ;(profiles ?? []).forEach((p: any) => p.email && profByEmail.set(p.email.toLowerCase(), p))
 
+      const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
       let items = rows.map((l) => {
         const md = l.metadata || {}
         let seriesId: string | null = md.series_id ?? null
         let stepId: string | null = md.drip_step_id ?? md.step_id ?? null
-        const isTest = !!md.is_test || (typeof l.template_name === 'string' && l.template_name.startsWith('drip-test:'))
-        if (!seriesId && typeof l.template_name === 'string' && l.template_name.startsWith('drip:')) {
-          const parts = l.template_name.split(':')
+        const tn: string = typeof l.template_name === 'string' ? l.template_name : ''
+        const isTest = !!md.is_test || tn.startsWith('drip-test:') || tn.startsWith('drip-test-')
+        // Colon format: drip:<series>:<step> or drip-test:<step>
+        if (!seriesId && tn.startsWith('drip:')) {
+          const parts = tn.split(':')
           if (parts.length >= 3) { seriesId = parts[1]; stepId = stepId ?? parts[2] }
         }
-        if (!stepId && typeof l.template_name === 'string' && l.template_name.startsWith('drip-test:')) {
-          stepId = l.template_name.slice('drip-test:'.length)
+        if (!stepId && tn.startsWith('drip-test:')) {
+          stepId = tn.slice('drip-test:'.length)
+        }
+        // Dash fallback for legacy rows from process-email-queue:
+        // drip-test-<stepUUID> or drip-<seriesUUID>-<stepUUID>
+        if ((!stepId || !seriesId) && (tn.startsWith('drip-') || tn.startsWith('drip:'))) {
+          const uuids = tn.match(UUID_RE) || []
+          if (tn.startsWith('drip-test-') || tn.startsWith('drip-test:')) {
+            if (!stepId && uuids[0]) stepId = uuids[0]
+          } else {
+            if (!seriesId && uuids[0]) seriesId = uuids[0]
+            if (!stepId && uuids[1]) stepId = uuids[1]
+          }
         }
         const step = stepId ? stepMap.get(stepId) : null
         const prof = profByEmail.get((l.recipient_email ?? '').toLowerCase()) ?? null
