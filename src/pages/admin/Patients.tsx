@@ -209,8 +209,10 @@ export default function Patients() {
             analysisCount: analysisCount || 0,
             latestAnalysisDate: latestAnalysis?.date,
             subscriptionStatus: subscription?.status || 'pending',
+            subscriptionEndDate: subscription?.end_date || null,
             subscriptionPlan: subscription?.subscription_plans?.display_name || null,
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
+
             role: primaryRole,
             allRoles: userRoleData.allRoles,
             customRole: userRoleData.customRole,
