@@ -56,6 +56,45 @@ export default function Auth() {
     email: "",
     password: "",
   });
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpStep, setOtpStep] = useState<"phone" | "code">("phone");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpResendIn, setOtpResendIn] = useState(0);
+
+  useEffect(() => {
+    if (otpResendIn <= 0) return;
+    const t = setInterval(() => setOtpResendIn((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [otpResendIn]);
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 11) {
+      toast({ title: "Введите корректный номер", description: "Например, +7 (999) 123-45-67", variant: "destructive" });
+      return;
+    }
+    setOtpLoading(true);
+    // UI-only: имитация отправки кода
+    setTimeout(() => {
+      setOtpLoading(false);
+      setOtpStep("code");
+      setOtpResendIn(60);
+      toast({ title: "Код отправлен", description: `Мы отправили SMS с кодом на ${phone}` });
+    }, 600);
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length !== 6) return;
+    setOtpLoading(true);
+    setTimeout(() => {
+      setOtpLoading(false);
+      toast({ title: "Демо-режим", description: "Вход по SMS пока в разработке — оформление готово." });
+    }, 600);
+  };
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
