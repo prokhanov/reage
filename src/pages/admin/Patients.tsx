@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, User, Calendar, Activity, Mail, CreditCard, Syringe, Trash2, RefreshCw } from "lucide-react";
+import { Search, User, Calendar, Activity, Mail, Phone, CreditCard, Syringe, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import {
   Table,
@@ -390,7 +390,7 @@ export default function Patients() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Пациент</TableHead>
-                      <TableHead>Email</TableHead>
+                      <TableHead>Email / Телефон</TableHead>
                       <TableHead>Возраст</TableHead>
                       <TableHead>Пол</TableHead>
                       <TableHead>Подписка</TableHead>
@@ -424,30 +424,52 @@ export default function Patients() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {patient.email ? (
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <Mail className="w-4 h-4 text-muted-foreground" />
+                            <div className="space-y-1">
+                              {patient.email ? (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
                                   <span className="text-sm">{patient.email}</span>
-                                  {patient.emailConfirmed && (
-                                    <EmailConfirmationBadge
-                                      email={patient.email}
-                                      isConfirmed={true}
-                                    />
-                                  )}
+                                  <EmailConfirmationBadge
+                                    email={patient.email}
+                                    isConfirmed={!!patient.emailConfirmed}
+                                  />
                                 </div>
-                                {!patient.emailConfirmed && (
-                                  <div className="mt-1 ml-6">
-                                    <EmailConfirmationBadge
-                                      email={patient.email}
-                                      isConfirmed={false}
-                                    />
-                                  </div>
+                              ) : (
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Mail className="w-4 h-4 shrink-0" />
+                                  <span>—</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+                                {patient.phone ? (
+                                  <span className="text-sm">+{patient.phone}</span>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">—</span>
+                                )}
+                                {patient.phone_verified_at ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs border-green-500/40 text-green-600 dark:text-green-400 bg-green-500/10 gap-1"
+                                  >
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    Подтверждён
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs cursor-pointer border-red-500/50 text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 gap-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedPatientForInfo(patient.id);
+                                    }}
+                                  >
+                                    <AlertCircle className="w-3 h-3" />
+                                    Не подтверждён
+                                  </Badge>
                                 )}
                               </div>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {patient.birth_date ? (
