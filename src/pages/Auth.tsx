@@ -506,12 +506,13 @@ export default function Auth() {
                         </button>
                         <button
                           type="button"
-                          disabled={otpResendIn > 0}
-                          onClick={() => { setOtpResendIn(60); toast({ title: "Код отправлен повторно" }); }}
+                          disabled={otpResendIn > 0 || otpLoading}
+                          onClick={() => handleSendOtp(new Event("submit") as any)}
                           className="text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 disabled:hover:text-muted-foreground"
                         >
                           {otpResendIn > 0 ? `Отправить снова через ${otpResendIn}с` : "Отправить код снова"}
                         </button>
+
                       </div>
                     </form>
                   )}
