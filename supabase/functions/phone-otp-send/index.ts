@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
 
     if (!profile) {
       return new Response(
-        JSON.stringify({ ok: false, error: "Пользователь с таким номером не найден. Зарегистрируйтесь." }),
+        JSON.stringify({ ok: false, error: "Пользователь с таким номером не найден. Проверьте введённый номер или попробуйте авторизоваться по email." }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

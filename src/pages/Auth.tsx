@@ -63,6 +63,7 @@ export default function Auth() {
   const [otpStep, setOtpStep] = useState<"phone" | "code">("phone");
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpResendIn, setOtpResendIn] = useState(0);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,19 +78,20 @@ export default function Auth() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPhoneError(null);
     if (!isPhoneValid(phone)) {
-      toast({ title: "Введите корректный номер", description: "Выберите страну и введите номер полностью", variant: "destructive" });
+      setPhoneError("Введите корректный номер телефона");
       return;
     }
     setOtpLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("phone-otp-send", { body: { phone } });
       if (error) {
-        toast({ title: "Ошибка", description: error.message || "Не удалось отправить код", variant: "destructive" });
+        setPhoneError(error.message || "Не удалось отправить код");
         return;
       }
       if (data?.error) {
-        toast({ title: "Ошибка", description: data.error, variant: "destructive" });
+        setPhoneError(data.error);
         if (data.resendInSec) setOtpResendIn(data.resendInSec);
         return;
       }
@@ -98,7 +100,7 @@ export default function Auth() {
       setOtpResendIn(data?.resendInSec ?? 60);
       toast({ title: "Код отправлен", description: "Введите 4-значный код из SMS" });
     } catch (e: any) {
-      toast({ title: "Ошибка", description: e?.message || "Не удалось отправить код", variant: "destructive" });
+      setPhoneError(e?.message || "Не удалось отправить код");
     } finally {
       setOtpLoading(false);
     }
@@ -423,14 +425,18 @@ export default function Auth() {
                         <PhoneInput
                           id="phone"
                           value={phone}
-                          onChange={setPhone}
+                          onChange={(v) => { setPhone(v); if (phoneError) setPhoneError(null); }}
                           placeholder="+7 (999) 123-45-67"
                           className="w-full"
                           inputClassName="bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                         />
-                        <p className="text-xs text-muted-foreground pt-1">
-                          Мы отправим SMS с одноразовым кодом для входа
-                        </p>
+                        {phoneError ? (
+                          <p className="text-xs text-destructive pt-1">{phoneError}</p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground pt-1">
+                            Мы отправим SMS с одноразовым кодом для входа
+                          </p>
+                        )}
                       </div>
                       <Button
                         type="submit"
