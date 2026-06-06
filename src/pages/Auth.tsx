@@ -77,9 +77,8 @@ export default function Auth() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const digits = phone.replace(/\D/g, "");
-    if (digits.length < 11) {
-      toast({ title: "Введите корректный номер", description: "Например, +7 (999) 123-45-67", variant: "destructive" });
+    if (!isPhoneValid(phone)) {
+      toast({ title: "Введите корректный номер", description: "Выберите страну и введите номер полностью", variant: "destructive" });
       return;
     }
     setOtpLoading(true);
