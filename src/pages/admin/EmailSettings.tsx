@@ -211,12 +211,12 @@ export default function EmailSettings() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="logs" className="mt-6">
-          <EmailLogsDashboard />
-        </TabsContent>
-
         <TabsContent value="drip" className="mt-6">
           <DripCampaigns />
+        </TabsContent>
+
+        <TabsContent value="logs" className="mt-6">
+          <EmailLogsDashboard />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6 grid gap-6">
