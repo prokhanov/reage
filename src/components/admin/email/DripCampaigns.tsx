@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Send, Trash2, Edit3, Power, HelpCircle, RefreshCw, UserPlus } from "lucide-react";
 import EnrollPatientsDialog from "./EnrollPatientsDialog";
 import SeriesSubscribersTab from "./SeriesSubscribersTab";
+import DripLogsTab from "./DripLogsTab";
 
 interface Series { id: string; name: string; description: string | null; trigger_type: string; is_active: boolean; }
 interface Step {
@@ -199,6 +200,7 @@ export default function DripCampaigns() {
           <TabsList>
             <TabsTrigger value="series">Серии</TabsTrigger>
             <TabsTrigger value="unsubs">Отписавшиеся ({unsubs.length})</TabsTrigger>
+            <TabsTrigger value="logs">Логи</TabsTrigger>
             <TabsTrigger value="help">Справка</TabsTrigger>
           </TabsList>
 
@@ -286,6 +288,10 @@ export default function DripCampaigns() {
                 </table>
               </div>
             </CardContent></Card>
+          </TabsContent>
+
+          <TabsContent value="logs" className="mt-4">
+            {tab === 'logs' && <DripLogsTab />}
           </TabsContent>
 
           <TabsContent value="help" className="mt-4 space-y-3 text-sm">
