@@ -29,6 +29,10 @@ interface PhoneConfirmationBadgeProps {
   trigger?: ReactNode;
   /** If trigger is provided, also hide the verified-state icon */
   hideVerifiedIcon?: boolean;
+  /** Admin mode: show "force confirm" button. Requires userId. */
+  adminMode?: boolean;
+  /** Target user id (required for adminMode) */
+  userId?: string;
 }
 
 function formatDisplay(digits: string | null | undefined): string {
@@ -40,7 +44,7 @@ function formatDisplay(digits: string | null | undefined): string {
   return `+${d}`;
 }
 
-export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, hideVerifiedIcon = false }: PhoneConfirmationBadgeProps) {
+export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, hideVerifiedIcon = false, adminMode = false, userId }: PhoneConfirmationBadgeProps) {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [stage, setStage] = useState<"edit" | "code">("edit");
@@ -48,7 +52,32 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
   const [otp, setOtp] = useState("");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [forcing, setForcing] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+
+  const handleForceConfirm = async () => {
+    if (!userId) return;
+    if (!valid && !phone) {
+      toast({ title: "Укажите корректный номер", variant: "destructive" });
+      return;
+    }
+    setForcing(true);
+    try {
+      const finalPhone = valid ? normalized : (phone ?? "");
+      const { data, error } = await supabase.functions.invoke("admin-force-confirm", {
+        body: { userId, type: "phone", phone: finalPhone },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Телефон подтверждён без проверки" });
+      onUpdated?.(finalPhone);
+      setDialogOpen(false);
+    } catch (e: any) {
+      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+    } finally {
+      setForcing(false);
+    }
+  };
 
   useEffect(() => {
     if (!dialogOpen) {

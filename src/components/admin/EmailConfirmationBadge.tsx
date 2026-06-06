@@ -31,6 +31,12 @@ interface EmailConfirmationBadgeProps {
   trigger?: ReactNode;
   /** If trigger is provided, also hide the verified-state icon */
   hideVerifiedIcon?: boolean;
+  /** Admin mode: show "force confirm" button. Requires userId. */
+  adminMode?: boolean;
+  /** Target user id (required for adminMode) */
+  userId?: string;
+  /** Callback after admin force-confirmed */
+  onConfirmed?: () => void;
 }
 
 export function EmailConfirmationBadge({ 
@@ -40,12 +46,35 @@ export function EmailConfirmationBadge({
   onEmailChanged,
   trigger,
   hideVerifiedIcon = false,
+  adminMode = false,
+  userId,
+  onConfirmed,
 }: EmailConfirmationBadgeProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resendEmail, setResendEmail] = useState(email || "");
   const [isEditing, setIsEditing] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isForcing, setIsForcing] = useState(false);
   const { toast } = useToast();
+
+  const handleForceConfirm = async () => {
+    if (!userId) return;
+    setIsForcing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-force-confirm', {
+        body: { userId, type: 'email' },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Email подтверждён без проверки" });
+      setDialogOpen(false);
+      onConfirmed?.();
+    } catch (err: any) {
+      toast({ title: "Ошибка", description: err.message, variant: "destructive" });
+    } finally {
+      setIsForcing(false);
+    }
+  };
 
   const handleResend = async () => {
     if (!resendEmail) return;
@@ -169,10 +198,20 @@ export function EmailConfirmationBadge({
             </p>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Отмена
             </Button>
+            {adminMode && userId && (
+              <Button
+                variant="secondary"
+                onClick={handleForceConfirm}
+                disabled={isForcing}
+              >
+                {isForcing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                Подтвердить без проверки
+              </Button>
+            )}
             <Button onClick={handleResend} disabled={isSending || !resendEmail}>
               {isSending ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
