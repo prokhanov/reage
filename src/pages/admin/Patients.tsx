@@ -268,7 +268,8 @@ export default function Patients() {
   const filteredPatients = patients?.filter(
     (p) =>
       p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.gender?.toLowerCase().includes(searchQuery.toLowerCase())
+      p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.phone?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Pagination calculations
@@ -408,7 +409,7 @@ export default function Patients() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск по имени или полу..."
+                placeholder="Поиск по имени, email или телефону..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
