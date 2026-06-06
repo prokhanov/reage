@@ -64,43 +64,45 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email *</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={formData.email}
-              onChange={(e) => updateFormData({ email: e.target.value })}
-              className="pl-10"
-              required
-            />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email *</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={formData.email}
+                onChange={(e) => updateFormData({ email: e.target.value })}
+                className="pl-10"
+                required
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">Телефон *</Label>
-          <div className="relative">
-            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="+7 (999) 123-45-67"
-              value={formData.phone}
-              onChange={(e) => updateFormData({ phone: e.target.value })}
-              className="pl-10"
-              required
-            />
+          <div className="space-y-2">
+            <Label htmlFor="phone">Телефон *</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+7 (999) 123-45-67"
+                value={formData.phone}
+                onChange={(e) => updateFormData({ phone: e.target.value })}
+                className="pl-10"
+                required
+              />
+            </div>
+            {formData.phone && !isPhoneValid && (
+              <p className="text-xs text-destructive">
+                Введите номер телефона полностью (минимум 11 цифр)
+              </p>
+            )}
           </div>
-          {formData.phone && !isPhoneValid && (
-            <p className="text-xs text-destructive">
-              Введите номер телефона полностью (минимум 11 цифр)
-            </p>
-          )}
         </div>
 
         <div className="space-y-2">
