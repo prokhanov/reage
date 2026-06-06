@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, User, Activity, Mail, Phone, CreditCard, Syringe, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, User, Activity, Mail, Phone, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
@@ -320,7 +320,6 @@ export default function Patients() {
     const config = statusConfig[status] || statusConfig.pending;
     return (
       <Badge variant={config.variant} className="text-xs">
-        <CreditCard className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
     );
@@ -336,7 +335,6 @@ export default function Patients() {
     const config = statusConfig[status] || statusConfig.not_scheduled;
     return (
       <Badge variant={config.variant} className="text-xs">
-        <Syringe className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
     );
