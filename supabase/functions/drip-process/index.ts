@@ -265,10 +265,11 @@ Deno.serve(async (req) => {
     const bodyHtml = await marked.parse(bodyMd, { breaks: true, gfm: true })
 
     const html = renderEmailHtml({ subject, preheader, bodyHtml: bodyHtml as string, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl })
-    const text = bodyMd + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '')
+    const text = markdownToPlainText(bodyMd) + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '') + `\n\n—\n${SITE_NAME} · ${ROOT_DOMAIN}\n${COMPANY_LEGAL}\nОтписаться: ${unsubscribeSeriesUrl}`
 
     const messageId = crypto.randomUUID()
     const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, profile.email)
+    const shortLabel = step.order_index === 1 ? 'welcome' : `drip-${step.order_index}`
 
     try {
       // Log pending
@@ -294,13 +295,15 @@ Deno.serve(async (req) => {
         idempotency_key: messageId,
         to: profile.email,
         from: FROM_ADDRESS,
+        reply_to: REPLY_TO,
         sender_domain: SENDER_DOMAIN,
         subject,
         html,
         text,
         purpose: 'transactional',
-        label: `drip:${row.series_id}:${row.step_id}`,
+        label: shortLabel,
         unsubscribe_token: unsubscribeToken,
+
         metadata: {
           drip_schedule_id: row.id,
           series_id: row.series_id,
