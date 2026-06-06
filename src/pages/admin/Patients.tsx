@@ -152,19 +152,25 @@ export default function Patients() {
             .maybeSingle();
 
           // Get subscription status with plan details
-          const { data: subscription } = await supabase
+          // Приоритет: активная подписка с end_date, иначе — самая свежая запись
+          const { data: subscriptions } = await supabase
             .from("subscriptions")
             .select(`
               status,
               end_date,
+              created_at,
               subscription_plans (
                 display_name
               )
             `)
             .eq("user_id", profile.id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .order("created_at", { ascending: false });
+
+          const subscription =
+            subscriptions?.find((s) => s.status === "active" && s.end_date) ||
+            subscriptions?.find((s) => s.end_date) ||
+            subscriptions?.[0] ||
+            null;
 
 
           // Get analysis booking status: prefer last meaningful (not 'not_scheduled')
