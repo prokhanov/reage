@@ -54,11 +54,9 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:
         ${ctaBlock}
       </td></tr>
       <tr><td style="padding:20px 32px 28px 32px;border-top:1px solid #e5e7eb;font-size:12px;color:#6b7280;line-height:1.6;font-family:Arial,sans-serif;">
-        Вы получили это письмо как пользователь сервиса ${SITE_NAME}.<br>
-        <a href="${unsubscribeSeriesUrl}" style="color:#6b7280;text-decoration:underline;">Отписаться от этой серии</a>
-        &nbsp;·&nbsp;
-        <a href="${unsubscribeAllUrl}" style="color:#6b7280;text-decoration:underline;">Отписаться от всех рассылок</a>
+        ${SITE_NAME} · ${ROOT_DOMAIN}
       </td></tr>
+
     </table>
     <div style="max-width:560px;margin-top:14px;font-size:11px;color:#9ca3af;text-align:center;font-family:Arial,sans-serif;">
       ${SITE_NAME} · ${ROOT_DOMAIN}
@@ -255,7 +253,7 @@ Deno.serve(async (req) => {
     const bodyHtml = await marked.parse(bodyMd, { breaks: true, gfm: true })
 
     const html = renderEmailHtml({ subject, preheader, bodyHtml: bodyHtml as string, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl })
-    const text = bodyMd + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '') + `\n\n---\nОтписаться: ${unsubscribeSeriesUrl}`
+    const text = bodyMd + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '')
 
     const messageId = crypto.randomUUID()
     const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, profile.email)
