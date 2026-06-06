@@ -39,6 +39,8 @@ import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialo
 import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
 import { SubscriptionHistoryDialog } from "@/components/admin/SubscriptionHistoryDialog";
 import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTab";
+import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
+import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
