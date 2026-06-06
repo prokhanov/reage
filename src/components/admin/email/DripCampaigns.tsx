@@ -68,10 +68,17 @@ export default function DripCampaigns() {
   useEffect(() => { load(); }, []);
 
   async function createSeries() {
-    const name = prompt('Название новой серии:');
-    if (!name) return;
-    const { error } = await supabase.from('email_drip_series').insert({ name, trigger_type: 'registration', is_active: false });
+    if (!newSeriesName.trim()) return;
+    const { error } = await supabase.from('email_drip_series').insert({
+      name: newSeriesName.trim(),
+      description: newSeriesDesc.trim() || null,
+      trigger_type: 'registration',
+      is_active: false,
+    });
     if (error) return toast({ title: 'Ошибка', description: error.message, variant: 'destructive' });
+    setNewSeriesName("");
+    setNewSeriesDesc("");
+    setShowNewSeries(false);
     load();
   }
 
