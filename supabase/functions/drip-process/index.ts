@@ -233,10 +233,16 @@ Deno.serve(async (req) => {
       // Log pending
       await supabase.from('email_send_log').insert({
         message_id: messageId,
-        template_name: `drip:${seriesRow.name}#${step.order_index}`,
+        template_name: `drip:${row.series_id}:${row.step_id}`,
         recipient_email: profile.email,
         status: 'pending',
-        metadata: { drip_schedule_id: row.id, series_id: row.series_id, step_id: row.step_id },
+        metadata: {
+          drip_schedule_id: row.id,
+          series_id: row.series_id,
+          step_id: row.step_id,
+          series_name: seriesRow.name,
+          step_order_index: step.order_index,
+        },
       })
     } catch { /* logging best-effort */ }
 
@@ -244,6 +250,7 @@ Deno.serve(async (req) => {
       queue_name: 'transactional_emails',
       payload: {
         message_id: messageId,
+        idempotency_key: messageId,
         to: profile.email,
         from: FROM_ADDRESS,
         sender_domain: SENDER_DOMAIN,
@@ -251,7 +258,14 @@ Deno.serve(async (req) => {
         html,
         text,
         purpose: 'transactional',
-        label: `drip-${row.series_id}-${row.step_id}`,
+        label: `drip:${row.series_id}:${row.step_id}`,
+        metadata: {
+          drip_schedule_id: row.id,
+          series_id: row.series_id,
+          step_id: row.step_id,
+          series_name: seriesRow.name,
+          step_order_index: step.order_index,
+        },
         queued_at: new Date().toISOString(),
       },
     })
