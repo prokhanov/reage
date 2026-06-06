@@ -35,36 +35,25 @@ function renderEmailHtml(opts: {
   unsubscribeSeriesUrl: string
   unsubscribeAllUrl: string
 }) {
-  const { subject, preheader, bodyHtml, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl } = opts
+  const { subject, preheader, bodyHtml, ctaLabel, ctaUrl, unsubscribeSeriesUrl } = opts
   const ctaBlock = ctaLabel && ctaUrl
-    ? `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 28px 0;"><tr><td><a href="${ctaUrl}" style="display:inline-block;background:#0f172a;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:15px;font-family:Arial,sans-serif;">${escapeHtml(ctaLabel)}</a></td></tr></table>`
+    ? `<p style="margin:24px 0;"><a href="${ctaUrl}" style="color:#0f172a;">${escapeHtml(ctaLabel)} →</a></p>`
     : ''
   return `<!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(subject)}</title></head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
-${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0;">${escapeHtml(preheader)}</div>` : ''}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;">
-  <tr><td align="center" style="padding:32px 16px;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
-      <tr><td style="padding:28px 32px 8px 32px;text-align:left;">
-        <div style="font-size:22px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;">${SITE_NAME}</div>
-      </td></tr>
-      <tr><td style="padding:8px 32px 24px 32px;font-size:16px;line-height:1.6;color:#1f2937;">
-        <div style="font-size:15px;line-height:1.65;">${bodyHtml}</div>
-        ${ctaBlock}
-      </td></tr>
-      <tr><td style="padding:20px 32px 28px 32px;border-top:1px solid #e5e7eb;font-size:12px;color:#6b7280;line-height:1.6;font-family:Arial,sans-serif;">
-        ${SITE_NAME} · ${ROOT_DOMAIN}
-      </td></tr>
-
-    </table>
-    <div style="max-width:560px;margin-top:14px;font-size:11px;color:#9ca3af;text-align:center;font-family:Arial,sans-serif;">
-      ${SITE_NAME} · ${ROOT_DOMAIN}
-    </div>
-  </td></tr>
-</table>
+<html lang="ru"><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
+<body style="margin:0;padding:24px 16px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1f2937;font-size:15px;line-height:1.6;">
+${preheader ? `<div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(preheader)}</div>` : ''}
+<div style="max-width:560px;margin:0 auto;">
+${bodyHtml}
+${ctaBlock}
+<p style="margin-top:32px;color:#9ca3af;font-size:12px;">
+${SITE_NAME}, ${ROOT_DOMAIN}<br>
+<a href="${unsubscribeSeriesUrl}" style="color:#9ca3af;">Отписаться от рассылки</a>
+</p>
+</div>
 </body></html>`
 }
+
 
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
