@@ -28,6 +28,7 @@ export interface RegisterFormData {
   password: string;
   firstName: string;
   lastName: string;
+  phone: string;
   gender: string;
   birth_date: Date | undefined;
   weight: string;
@@ -70,6 +71,7 @@ export default function Register() {
     password: "",
     firstName: "",
     lastName: "",
+    phone: "",
     gender: "",
     birth_date: undefined,
     weight: "",
@@ -130,6 +132,7 @@ export default function Register() {
           last_name: formData.lastName,
           name: `${formData.firstName} ${formData.lastName}`.trim(),
           email: formData.email,
+          phone: formData.phone || null,
           gender: formData.gender,
           birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : undefined,
           weight: formData.weight ? parseFloat(formData.weight) : null,

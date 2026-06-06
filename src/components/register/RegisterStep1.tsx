@@ -1,4 +1,4 @@
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,14 @@ interface RegisterStep1Props {
 }
 
 export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep1Props) {
-  const isValid = formData.firstName && formData.lastName && formData.email && formData.password;
+  const phoneDigits = (formData.phone || "").replace(/\D/g, "");
+  const isPhoneValid = phoneDigits.length >= 11;
+  const isValid =
+    formData.firstName &&
+    formData.lastName &&
+    formData.email &&
+    formData.password &&
+    isPhoneValid;
 
   return (
     <div className="space-y-6">
@@ -71,6 +78,29 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
               required
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Телефон *</Label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+7 (999) 123-45-67"
+              value={formData.phone}
+              onChange={(e) => updateFormData({ phone: e.target.value })}
+              className="pl-10"
+              required
+            />
+          </div>
+          {formData.phone && !isPhoneValid && (
+            <p className="text-xs text-destructive">
+              Введите номер телефона полностью (минимум 11 цифр)
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
