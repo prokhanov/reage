@@ -568,6 +568,161 @@ export type Database = {
         }
         Relationships: []
       }
+      email_drip_schedule: {
+        Row: {
+          attempt: number
+          created_at: string
+          error_message: string | null
+          id: string
+          send_at: string
+          sent_at: string | null
+          series_id: string
+          skip_reason: string | null
+          status: Database["public"]["Enums"]["drip_schedule_status"]
+          step_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          send_at: string
+          sent_at?: string | null
+          series_id: string
+          skip_reason?: string | null
+          status?: Database["public"]["Enums"]["drip_schedule_status"]
+          step_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          send_at?: string
+          sent_at?: string | null
+          series_id?: string
+          skip_reason?: string | null
+          status?: Database["public"]["Enums"]["drip_schedule_status"]
+          step_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_drip_schedule_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "email_drip_series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_drip_schedule_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "email_drip_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_drip_series: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          trigger_config: Json
+          trigger_type: Database["public"]["Enums"]["drip_trigger_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          trigger_config?: Json
+          trigger_type?: Database["public"]["Enums"]["drip_trigger_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          trigger_config?: Json
+          trigger_type?: Database["public"]["Enums"]["drip_trigger_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_drip_steps: {
+        Row: {
+          body_markdown: string
+          cancel_conditions: Json
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          delay_unit: Database["public"]["Enums"]["drip_delay_unit"]
+          delay_value: number
+          id: string
+          is_active: boolean
+          order_index: number
+          preheader: string | null
+          send_time_local: string | null
+          series_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_markdown?: string
+          cancel_conditions?: Json
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          delay_unit?: Database["public"]["Enums"]["drip_delay_unit"]
+          delay_value?: number
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          preheader?: string | null
+          send_time_local?: string | null
+          series_id: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body_markdown?: string
+          cancel_conditions?: Json
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          delay_unit?: Database["public"]["Enums"]["drip_delay_unit"]
+          delay_value?: number
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          preheader?: string | null
+          send_time_local?: string | null
+          series_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_drip_steps_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "email_drip_series"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -715,6 +870,33 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+        }
+        Relationships: []
+      }
+      email_unsubscribes: {
+        Row: {
+          email: string
+          id: string
+          reason: string | null
+          scope: string
+          unsubscribed_at: string
+          user_id: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          reason?: string | null
+          scope: string
+          unsubscribed_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          reason?: string | null
+          scope?: string
+          unsubscribed_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1987,6 +2169,17 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      enroll_in_active_series: {
+        Args: {
+          p_trigger_type: Database["public"]["Enums"]["drip_trigger_type"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      enroll_user_in_series: {
+        Args: { p_base_time?: string; p_series_id: string; p_user_id: string }
+        Returns: number
+      }
       get_slots_for_date_range: {
         Args: {
           p_end_date: string
@@ -2070,6 +2263,14 @@ export type Database = {
         | "my_assignments"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
+      drip_delay_unit: "minutes" | "hours" | "days"
+      drip_schedule_status:
+        | "pending"
+        | "sent"
+        | "skipped"
+        | "failed"
+        | "cancelled"
+      drip_trigger_type: "registration" | "subscription_paid" | "manual"
       interaction_status:
         | "completed"
         | "scheduled"
@@ -2223,6 +2424,15 @@ export const Constants = {
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],
+      drip_delay_unit: ["minutes", "hours", "days"],
+      drip_schedule_status: [
+        "pending",
+        "sent",
+        "skipped",
+        "failed",
+        "cancelled",
+      ],
+      drip_trigger_type: ["registration", "subscription_paid", "manual"],
       interaction_status: [
         "completed",
         "scheduled",

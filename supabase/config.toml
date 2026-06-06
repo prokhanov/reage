@@ -27,3 +27,9 @@ project_id = "ilxgodhosirhhkffqryw"
     verify_jwt = true
   [functions.phone-change-verify]
     verify_jwt = true
+  [functions.drip-process]
+    verify_jwt = false
+  [functions.drip-unsubscribe]
+    verify_jwt = false
+  [functions.drip-admin]
+    verify_jwt = true
