@@ -435,6 +435,9 @@ export default function Patients() {
                                     <EmailConfirmationBadge
                                       email={patient.email}
                                       isConfirmed={false}
+                                      adminMode
+                                      userId={patient.id}
+                                      onConfirmed={() => refetch()}
                                       trigger={
                                         <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                                           {patient.email}
@@ -458,6 +461,9 @@ export default function Patients() {
                                     <PhoneConfirmationBadge
                                       phone={patient.phone}
                                       isVerified={false}
+                                      adminMode
+                                      userId={patient.id}
+                                      onUpdated={() => refetch()}
                                       trigger={
                                         <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                                           +{patient.phone}
@@ -469,6 +475,9 @@ export default function Patients() {
                                   <PhoneConfirmationBadge
                                     phone={null}
                                     isVerified={false}
+                                    adminMode
+                                    userId={patient.id}
+                                    onUpdated={() => refetch()}
                                     trigger={
                                       <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                                         Не указан
