@@ -452,11 +452,11 @@ export default function Patients() {
                                   <span>—</span>
                                 </div>
                               )}
-                              <div className="flex items-center gap-2 flex-wrap">
+                              <div className="flex items-center gap-2 min-w-0">
                                 <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                                 {patient.phone ? (
                                   patient.phone_verified_at ? (
-                                    <span className="text-sm text-green-600 dark:text-green-400">+{patient.phone}</span>
+                                    <span className="text-sm text-green-600 dark:text-green-400 truncate">+{patient.phone}</span>
                                   ) : (
                                     <PhoneConfirmationBadge
                                       phone={patient.phone}
@@ -465,7 +465,7 @@ export default function Patients() {
                                       userId={patient.id}
                                       onUpdated={() => refetch()}
                                       trigger={
-                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer truncate">
                                           +{patient.phone}
                                         </span>
                                       }
