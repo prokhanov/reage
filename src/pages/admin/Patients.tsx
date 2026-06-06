@@ -427,10 +427,10 @@ export default function Patients() {
                           <TableCell>
                             <div className="space-y-1">
                               {patient.email ? (
-                                <div className="flex items-center gap-2 flex-wrap">
+                                <div className="flex items-center gap-2 min-w-0">
                                   <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
                                   {patient.emailConfirmed ? (
-                                    <span className="text-sm text-green-600 dark:text-green-400">{patient.email}</span>
+                                    <span className="text-sm text-green-600 dark:text-green-400 truncate">{patient.email}</span>
                                   ) : (
                                     <EmailConfirmationBadge
                                       email={patient.email}
@@ -439,7 +439,7 @@ export default function Patients() {
                                       userId={patient.id}
                                       onConfirmed={() => refetch()}
                                       trigger={
-                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer truncate">
                                           {patient.email}
                                         </span>
                                       }
