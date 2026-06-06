@@ -517,32 +517,6 @@ export default function Patients() {
                           <TableCell>
                             {patient.analysisCount}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedPatientForInfo(patient.id);
-                                }}
-                              >
-                                <User className="w-4 h-4 mr-2" />
-                                Открыть
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeletePatientId(patient.id);
-                                }}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
