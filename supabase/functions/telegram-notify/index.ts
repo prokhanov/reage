@@ -1,0 +1,165 @@
+// Internal endpoint called by DB triggers via pg_net.
+// Reads settings, formats event payload, sends to Telegram, logs result.
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
+};
+
+function escapeHtml(s: unknown): string {
+  if (s === null || s === undefined) return "";
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function formatDate(iso?: string): string {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("ru-RU", { timeZone: "Europe/Moscow", dateStyle: "short", timeStyle: "short" });
+  } catch {
+    return String(iso);
+  }
+}
+
+function formatAmount(n: unknown): string {
+  const num = Number(n);
+  if (!isFinite(num)) return String(n ?? "");
+  return new Intl.NumberFormat("ru-RU").format(num) + " ₽";
+}
+
+export function buildMessage(eventType: string, payload: Record<string, any>, isTest = false): string {
+  const prefix = isTest ? "🧪 <b>[ТЕСТ]</b>\n" : "";
+  const e = (v: unknown) => escapeHtml(v);
+
+  switch (eventType) {
+    case "user_registered": {
+      const name = [payload.first_name, payload.last_name].filter(Boolean).join(" ") || "—";
+      return (
+        prefix +
+        "🆕 <b>Новая регистрация</b>\n" +
+        `👤 ${e(name)}\n` +
+        `📧 ${e(payload.email || "—")}\n` +
+        `📱 ${e(payload.phone || "—")}\n` +
+        `🕒 ${e(formatDate(payload.created_at))}`
+      );
+    }
+    case "subscription_paid": {
+      const name = [payload.first_name, payload.last_name].filter(Boolean).join(" ") || payload.email || "—";
+      return (
+        prefix +
+        "💰 <b>Новая оплата</b>\n" +
+        `👤 ${e(name)} (${e(payload.email || "—")})\n` +
+        `📦 Тариф: ${e(payload.plan_name || payload.plan_type || "—")}\n` +
+        `💵 ${e(formatAmount(payload.amount))}\n` +
+        (payload.payment_method ? `💳 ${e(payload.payment_method)}\n` : "") +
+        `🕒 ${e(formatDate(payload.start_date || new Date().toISOString()))}`
+      );
+    }
+    default:
+      return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    const eventType: string = body.event_type;
+    const payload = body.payload ?? {};
+    const isTest = !!body.is_test;
+
+    if (!eventType) {
+      return new Response(JSON.stringify({ error: "event_type required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Load settings
+    const { data: settings, error: sErr } = await supabase
+      .from("telegram_notification_settings")
+      .select("*")
+      .eq("singleton", true)
+      .maybeSingle();
+
+    if (sErr || !settings) {
+      return new Response(JSON.stringify({ error: "settings not found" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify internal secret (allow bypass when called by superadmin via test endpoint — that uses telegram-settings, not here)
+    const provided = req.headers.get("x-internal-secret");
+    if (!provided || provided !== settings.internal_secret) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!settings.is_active || !settings.bot_token || !settings.chat_id) {
+      await supabase.from("telegram_notification_log").insert({
+        event_type: eventType,
+        payload,
+        status: "skipped",
+        error: "not configured or inactive",
+        is_test: isTest,
+      });
+      return new Response(JSON.stringify({ ok: true, skipped: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const enabled = (settings.enabled_events ?? {})[eventType];
+    if (!isTest && !enabled) {
+      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "event disabled" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const text = buildMessage(eventType, payload, isTest);
+
+    const tgResp = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: settings.chat_id,
+        text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      }),
+    });
+    const tgData = await tgResp.json().catch(() => ({}));
+
+    const ok = tgResp.ok && tgData?.ok;
+    await supabase.from("telegram_notification_log").insert({
+      event_type: eventType,
+      payload,
+      status: ok ? "sent" : "failed",
+      error: ok ? null : (tgData?.description || `HTTP ${tgResp.status}`),
+      is_test: isTest,
+    });
+
+    return new Response(JSON.stringify({ ok, telegram: tgData }), {
+      status: ok ? 200 : 502,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("telegram-notify error", err);
+    return new Response(JSON.stringify({ error: String(err) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
