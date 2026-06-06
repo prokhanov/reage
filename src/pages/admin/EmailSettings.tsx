@@ -186,7 +186,7 @@ export default function EmailSettings() {
   const hasButton = (type: string) => type !== "reauthentication";
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Настройки Email</h1>
         <p className="text-muted-foreground mt-1">
