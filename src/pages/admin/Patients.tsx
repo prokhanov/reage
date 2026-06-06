@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
 import { Search, User, Calendar, Activity, Mail, Phone, CreditCard, Syringe, Trash2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
+import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
   Table,
   TableBody,
@@ -431,16 +432,15 @@ export default function Patients() {
                                   {patient.emailConfirmed ? (
                                     <span className="text-sm text-green-600 dark:text-green-400">{patient.email}</span>
                                   ) : (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedPatientForInfo(patient.id);
-                                      }}
-                                      className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer"
-                                    >
-                                      {patient.email}
-                                    </button>
+                                    <EmailConfirmationBadge
+                                      email={patient.email}
+                                      isConfirmed={false}
+                                      trigger={
+                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                          {patient.email}
+                                        </span>
+                                      }
+                                    />
                                   )}
                                 </div>
                               ) : (
@@ -455,16 +455,15 @@ export default function Patients() {
                                   patient.phone_verified_at ? (
                                     <span className="text-sm text-green-600 dark:text-green-400">+{patient.phone}</span>
                                   ) : (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedPatientForInfo(patient.id);
-                                      }}
-                                      className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer"
-                                    >
-                                      +{patient.phone}
-                                    </button>
+                                    <PhoneConfirmationBadge
+                                      phone={patient.phone}
+                                      isVerified={false}
+                                      trigger={
+                                        <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                                          +{patient.phone}
+                                        </span>
+                                      }
+                                    />
                                   )
                                 ) : (
                                   <span className="text-sm text-muted-foreground">—</span>
@@ -472,6 +471,7 @@ export default function Patients() {
                               </div>
                             </div>
                           </TableCell>
+
 
                           <TableCell>
                             {patient.birth_date ? (
