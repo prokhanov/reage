@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthBackground } from "@/components/AuthBackground";
-import { Mail, Lock, ArrowLeft, KeyRound, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowLeft, PhoneIcon, KeyRound, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
