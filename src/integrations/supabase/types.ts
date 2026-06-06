@@ -987,6 +987,8 @@ export type Database = {
           expires_at: string
           id: string
           phone: string
+          purpose: string
+          user_id: string | null
         }
         Insert: {
           attempts?: number
@@ -996,6 +998,8 @@ export type Database = {
           expires_at: string
           id?: string
           phone: string
+          purpose?: string
+          user_id?: string | null
         }
         Update: {
           attempts?: number
@@ -1005,6 +1009,8 @@ export type Database = {
           expires_at?: string
           id?: string
           phone?: string
+          purpose?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1175,6 +1181,7 @@ export type Database = {
           name: string
           needs_risk_refresh: boolean | null
           phone: string | null
+          phone_verified_at: string | null
           telegram_id: string | null
           updated_at: string
           weight: number | null
@@ -1193,6 +1200,7 @@ export type Database = {
           name: string
           needs_risk_refresh?: boolean | null
           phone?: string | null
+          phone_verified_at?: string | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null
@@ -1211,6 +1219,7 @@ export type Database = {
           name?: string
           needs_risk_refresh?: boolean | null
           phone?: string | null
+          phone_verified_at?: string | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null
