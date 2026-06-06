@@ -14,9 +14,12 @@ const corsHeaders = {
 const SITE_NAME = 'ReAge'
 const ROOT_DOMAIN = 'reage.life'
 const SENDER_DOMAIN = 'notify.reage.life'
-const FROM_ADDRESS = `${SITE_NAME} <noreply@${SENDER_DOMAIN}>`
+const FROM_ADDRESS = `Команда ReAge <hello@${SENDER_DOMAIN}>`
+const REPLY_TO = `hello@${SENDER_DOMAIN}`
+const COMPANY_LEGAL = 'ООО «РиЭйдж», Москва'
 const APP_URL = 'https://reage.life'
 const FUNCTIONS_URL = `${Deno.env.get('SUPABASE_URL')}/functions/v1`
+
 
 interface ProfileRow {
   id: string
@@ -35,29 +38,49 @@ function renderEmailHtml(opts: {
   unsubscribeSeriesUrl: string
   unsubscribeAllUrl: string
 }) {
-  const { subject, preheader, bodyHtml, ctaLabel, ctaUrl, unsubscribeSeriesUrl } = opts
+  const { subject, preheader, bodyHtml, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl } = opts
   const ctaBlock = ctaLabel && ctaUrl
     ? `<p style="margin:24px 0;"><a href="${ctaUrl}" style="color:#0f172a;">${escapeHtml(ctaLabel)} →</a></p>`
     : ''
   return `<!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
-<body style="margin:0;padding:24px 16px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1f2937;font-size:15px;line-height:1.6;">
-${preheader ? `<div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(preheader)}</div>` : ''}
+<html lang="ru"><head><meta charset="utf-8"><title>${SITE_NAME}</title>
+<!--[if mso]><style>body,table,td,a{font-family:Arial,Helvetica,sans-serif !important}</style><![endif]-->
+</head>
+<body style="margin:0;padding:24px 16px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:15px;line-height:1.6;">
+${preheader ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(preheader)}</div>` : ''}
 <div style="max-width:560px;margin:0 auto;">
 ${bodyHtml}
 ${ctaBlock}
-<p style="margin-top:32px;color:#9ca3af;font-size:12px;">
-${SITE_NAME}, ${ROOT_DOMAIN}<br>
-<a href="${unsubscribeSeriesUrl}" style="color:#9ca3af;">Отписаться от рассылки</a>
+<p style="margin-top:32px;color:#6b7280;font-size:12px;line-height:1.6;">
+${SITE_NAME} · ${ROOT_DOMAIN}<br>
+${COMPANY_LEGAL}<br>
+<a href="${unsubscribeSeriesUrl}" style="color:#6b7280;">Отписаться от этой серии</a> · <a href="${unsubscribeAllUrl}" style="color:#6b7280;">Отписаться от всех писем</a>
 </p>
 </div>
 </body></html>`
 }
 
 
+
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
 }
+
+function markdownToPlainText(md: string): string {
+  return md
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1 ($2)')   // links
+    .replace(/\*\*(.+?)\*\*/g, '$1')                   // bold **
+    .replace(/__(.+?)__/g, '$1')                       // bold __
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g, '$1$2')        // italic *
+    .replace(/(^|[\s(])_([^_\n]+)_/g, '$1$2')          // italic _
+    .replace(/^#{1,6}\s+/gm, '')                       // headings
+    .replace(/^\s*[-*+]\s+/gm, '• ')                   // bullets
+    .replace(/^\s*>\s?/gm, '')                         // blockquotes
+    .replace(/`([^`]+)`/g, '$1')                       // inline code
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 
 function fillPlaceholders(text: string, profile: ProfileRow, urls: { dashboard: string; unsubscribeSeries: string; unsubscribeAll: string }): string {
   const firstName = profile.first_name || (profile.name ? profile.name.split(' ')[0] : '') || ''
@@ -242,10 +265,11 @@ Deno.serve(async (req) => {
     const bodyHtml = await marked.parse(bodyMd, { breaks: true, gfm: true })
 
     const html = renderEmailHtml({ subject, preheader, bodyHtml: bodyHtml as string, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl })
-    const text = bodyMd + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '')
+    const text = markdownToPlainText(bodyMd) + (ctaLabel && ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : '') + `\n\n—\n${SITE_NAME} · ${ROOT_DOMAIN}\n${COMPANY_LEGAL}\nОтписаться: ${unsubscribeSeriesUrl}`
 
     const messageId = crypto.randomUUID()
     const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, profile.email)
+    const shortLabel = step.order_index === 1 ? 'welcome' : `drip-${step.order_index}`
 
     try {
       // Log pending
@@ -271,13 +295,15 @@ Deno.serve(async (req) => {
         idempotency_key: messageId,
         to: profile.email,
         from: FROM_ADDRESS,
+        reply_to: REPLY_TO,
         sender_domain: SENDER_DOMAIN,
         subject,
         html,
         text,
         purpose: 'transactional',
-        label: `drip:${row.series_id}:${row.step_id}`,
+        label: shortLabel,
         unsubscribe_token: unsubscribeToken,
+
         metadata: {
           drip_schedule_id: row.id,
           series_id: row.series_id,
