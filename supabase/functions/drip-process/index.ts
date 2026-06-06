@@ -38,23 +38,21 @@ function renderEmailHtml(opts: {
   unsubscribeSeriesUrl: string
   unsubscribeAllUrl: string
 }) {
-  const { subject, preheader, bodyHtml, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl } = opts
+  const { preheader, bodyHtml, ctaLabel, ctaUrl, unsubscribeSeriesUrl, unsubscribeAllUrl } = opts
   const ctaBlock = ctaLabel && ctaUrl
-    ? `<p style="margin:24px 0;"><a href="${ctaUrl}" style="color:#0f172a;">${escapeHtml(ctaLabel)} →</a></p>`
+    ? `<p style="margin:20px 0;"><a href="${ctaUrl}" style="color:#0f172a;">${escapeHtml(ctaLabel)}</a></p>`
     : ''
   return `<!DOCTYPE html>
-<html lang="ru"><head><meta charset="utf-8"><title>${SITE_NAME}</title>
-<!--[if mso]><style>body,table,td,a{font-family:Arial,Helvetica,sans-serif !important}</style><![endif]-->
-</head>
+<html lang="ru"><head><meta charset="utf-8"><title>${SITE_NAME}</title></head>
 <body style="margin:0;padding:24px 16px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:15px;line-height:1.6;">
-${preheader ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(preheader)}</div>` : ''}
+${preheader ? `<div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(preheader)}</div>` : ''}
 <div style="max-width:560px;margin:0 auto;">
 ${bodyHtml}
 ${ctaBlock}
-<p style="margin-top:32px;color:#6b7280;font-size:12px;line-height:1.6;">
-${SITE_NAME} · ${ROOT_DOMAIN}<br>
+<p style="margin-top:28px;color:#6b7280;font-size:12px;line-height:1.6;">
+${SITE_NAME}, ${ROOT_DOMAIN}<br>
 ${COMPANY_LEGAL}<br>
-<a href="${unsubscribeSeriesUrl}" style="color:#6b7280;">Отписаться от этой серии</a> · <a href="${unsubscribeAllUrl}" style="color:#6b7280;">Отписаться от всех писем</a>
+<a href="${unsubscribeSeriesUrl}" style="color:#6b7280;">Отписаться</a>
 </p>
 </div>
 </body></html>`
