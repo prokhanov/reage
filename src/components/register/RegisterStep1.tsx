@@ -18,6 +18,9 @@ const isEmailValid = (email: string) => EMAIL_REGEX.test(email.trim());
 
 export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep1Props) {
   const [agreed, setAgreed] = useState(false);
+  const [touched, setTouched] = useState<{ email?: boolean; phone?: boolean }>({});
+  const emailInvalid = !!formData.email && !isEmailValid(formData.email);
+  const phoneInvalid = !!formData.phone && !isPhoneValid(formData.phone);
   const isValid =
     formData.firstName &&
     formData.lastName &&
