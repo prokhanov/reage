@@ -86,11 +86,12 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
                 placeholder="your@email.com"
                 value={formData.email}
                 onChange={(e) => updateFormData({ email: e.target.value })}
+                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
                 className="pl-10"
                 required
               />
             </div>
-            {formData.email && !isEmailValid(formData.email) && (
+            {touched.email && emailInvalid && (
               <p className="text-xs text-destructive">
                 Введите корректный email
               </p>
@@ -106,12 +107,15 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
               placeholder="+7 (999) 123-45-67"
               className="w-full"
             />
-            {formData.phone && !isPhoneValid(formData.phone) && (
-              <p className="text-xs text-destructive">
-                Введите номер телефона полностью
-              </p>
-            )}
+            <div onBlur={() => setTouched((t) => ({ ...t, phone: true }))}>
+              {touched.phone && phoneInvalid && (
+                <p className="text-xs text-destructive">
+                  Введите номер телефона полностью
+                </p>
+              )}
+            </div>
           </div>
+
         </div>
 
         <div className="space-y-2">
