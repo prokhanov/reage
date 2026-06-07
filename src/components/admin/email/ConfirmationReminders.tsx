@@ -355,6 +355,10 @@ export default function ConfirmationReminders() {
             );
           })}
         </Tabs>
+
+        <div className="mt-8">
+          <ReminderLogs />
+        </div>
       </CardContent>
       <ReminderStopListDialog open={stopListOpen} onOpenChange={setStopListOpen} />
     </Card>
