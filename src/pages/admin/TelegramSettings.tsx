@@ -160,38 +160,6 @@ export default function TelegramSettings() {
         {statusBadge}
       </div>
 
-      {/* Step-by-step guide */}
-      <Collapsible defaultOpen={!status?.configured}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <BookOpen className="w-5 h-5" />
-                  Пошаговая инструкция (для чайника)
-                </CardTitle>
-                <ChevronDown className="w-5 h-5" />
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-2 text-sm leading-relaxed">
-              <ol className="list-decimal list-inside space-y-2">
-                <li>Открой в Telegram чат с <b>@BotFather</b>, отправь <code>/newbot</code>.</li>
-                <li>Введи имя бота (например, <code>ReAge Notifications</code>) и username (<code>reage_notify_bot</code>).</li>
-                <li>BotFather пришлёт строку вида <code>1234567890:ABCdef…</code>. Это <b>Bot Token</b> — скопируй его.</li>
-                <li>Создай Telegram-группу (или используй личный чат). Добавь туда бота как участника. Если это группа — выдай боту права админа.</li>
-                <li>Отправь в этот чат любое сообщение (например, «привет»).</li>
-                <li>Открой в браузере: <code>https://api.telegram.org/bot&lt;ТВОЙ_ТОКЕН&gt;/getUpdates</code> — найди в ответе <code>"chat":{"{"}id: …{"}"}</code>. Это <b>Chat ID</b> (для групп он отрицательный, например <code>-1001234567890</code>).</li>
-                <li>Вставь Token и Chat ID в форму ниже → нажми «Сохранить» → «Проверить подключение». Должно прийти сообщение «✅ Подключение успешно».</li>
-                <li>Включи переключатель <b>«Уведомления активны»</b> и нужные события.</li>
-                <li>Нажми «Отправить тестовое» рядом с событием — убедись, что в чате появилось тестовое уведомление.</li>
-                <li>Готово. При реальной регистрации/оплате уведомления будут приходить автоматически.</li>
-              </ol>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
 
       {/* Block 1: Connection */}
       <Card>
