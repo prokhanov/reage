@@ -121,6 +121,30 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
         </div>
       </div>
 
+      <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/30 p-4">
+        <Checkbox
+          id="agree"
+          checked={agreed}
+          onCheckedChange={(v) => setAgreed(v === true)}
+          className="mt-0.5"
+        />
+        <Label htmlFor="agree" className="text-sm font-normal leading-relaxed cursor-pointer text-muted-foreground">
+          Я принимаю{" "}
+          <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            пользовательское соглашение
+          </a>
+          ,{" "}
+          <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            политику конфиденциальности
+          </a>{" "}
+          и даю{" "}
+          <a href="/legal/consent-data" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            согласие на обработку персональных данных
+          </a>
+          .
+        </Label>
+      </div>
+
       <Button 
         onClick={onNext}
         disabled={!isValid}
