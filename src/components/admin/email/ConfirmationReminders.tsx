@@ -296,6 +296,7 @@ export default function ConfirmationReminders() {
           })}
         </Tabs>
       </CardContent>
+      <ReminderStopListDialog open={stopListOpen} onOpenChange={setStopListOpen} />
     </Card>
   );
 }
