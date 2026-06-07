@@ -27,12 +27,14 @@ const TEMPLATE_TABS = [
   { type: "signup", label: "Регистрация" },
   { type: "recovery", label: "Восстановление пароля" },
   { type: "invite", label: "Приглашение" },
+  { type: "analysis_booking", label: "Запись на анализы" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
   signup: "Будет отправлен шаблон регистрации",
   recovery: "Будет отправлен шаблон сброса пароля",
   invite: "Будет отправлен шаблон приглашения",
+  analysis_booking: "Будет отправлено подтверждение записи на анализы с примерными данными",
 };
 
 export default function EmailSettings() {
