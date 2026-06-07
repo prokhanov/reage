@@ -42,6 +42,7 @@ export default function ConfirmationReminders() {
   const [loading, setLoading] = useState(true);
   const [savingType, setSavingType] = useState<string | null>(null);
   const [runNow, setRunNow] = useState(false);
+  const [stopListOpen, setStopListOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ReminderType>("confirm_reminder_email");
   const [templates, setTemplates] = useState<Record<string, ReminderTemplate>>({});
   const [settings, setSettings] = useState<Record<string, ReminderSettings>>({});
