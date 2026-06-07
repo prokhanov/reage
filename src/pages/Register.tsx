@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
   Heart, User, Calendar, Weight, Ruler, 
-  ChevronLeft, ChevronRight, Check, Mail, Lock, Sparkles
+  ChevronLeft, ChevronRight, Check, Mail, Lock,
 } from "lucide-react";
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
@@ -276,7 +276,6 @@ export default function Register() {
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
             <p className="text-muted-foreground text-lg mb-3">{"\n"}</p>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">Создание аккаунта — бесплатно</span>
             </div>
           </div>
