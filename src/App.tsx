@@ -29,6 +29,7 @@ import HealthAssistant from "./pages/HealthAssistant";
 import Subscription from "./pages/Subscription";
 import HealthStrategy from "./pages/HealthStrategy";
 import ExampleReport from "./pages/ExampleReport";
+import AnalysisPrep from "./pages/AnalysisPrep";
 
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
