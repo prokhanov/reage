@@ -104,7 +104,7 @@ export default function TelegramSettings() {
     setTesting(true);
     setConnStatus(null);
     const payload: any = { action: "test_connection", chat_id: chatId };
-    if (botToken && !botToken.includes("…")) payload.bot_token = botToken;
+    if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
     const { data, error } = await supabase.functions.invoke("telegram-settings", { body: payload });
     setTesting(false);
     if (error) {
