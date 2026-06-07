@@ -88,8 +88,7 @@ export default function TelegramSettings() {
       is_active: isActive,
       enabled_events: enabledEvents,
     };
-    // Only send token if user replaced it
-    if (botToken && !botToken.includes("…")) payload.bot_token = botToken;
+    if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
 
     const { data, error } = await supabase.functions.invoke("telegram-settings", { body: payload });
     setSaving(false);
