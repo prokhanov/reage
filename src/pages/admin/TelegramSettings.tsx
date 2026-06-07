@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Send, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Send, CheckCircle2, XCircle, AlertCircle, Loader2, Eye, EyeOff, Copy } from "lucide-react";
 
 type EventDef = { key: string; label: string; description: string };
 
@@ -21,7 +21,7 @@ interface Status {
   configured: boolean;
   is_active: boolean;
   chat_id: string | null;
-  bot_token_mask: string;
+  bot_token: string;
   enabled_events: Record<string, boolean>;
 }
 
@@ -47,6 +47,7 @@ export default function TelegramSettings() {
   const [testingEvent, setTestingEvent] = useState<string | null>(null);
   const [connStatus, setConnStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
+  const [showToken, setShowToken] = useState(false);
 
   async function loadStatus() {
     setLoading(true);
@@ -57,7 +58,7 @@ export default function TelegramSettings() {
       toast({ title: "Ошибка загрузки", description: error.message, variant: "destructive" });
     } else if (data) {
       setStatus(data);
-      setBotToken(data.bot_token_mask || "");
+      setBotToken(data.bot_token || "");
       setChatId(data.chat_id || "");
       setIsActive(data.is_active);
       setEnabledEvents(data.enabled_events || {});
@@ -87,8 +88,7 @@ export default function TelegramSettings() {
       is_active: isActive,
       enabled_events: enabledEvents,
     };
-    // Only send token if user replaced it
-    if (botToken && !botToken.includes("…")) payload.bot_token = botToken;
+    if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
 
     const { data, error } = await supabase.functions.invoke("telegram-settings", { body: payload });
     setSaving(false);
@@ -104,7 +104,7 @@ export default function TelegramSettings() {
     setTesting(true);
     setConnStatus(null);
     const payload: any = { action: "test_connection", chat_id: chatId };
-    if (botToken && !botToken.includes("…")) payload.bot_token = botToken;
+    if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
     const { data, error } = await supabase.functions.invoke("telegram-settings", { body: payload });
     setTesting(false);
     if (error) {
@@ -169,15 +169,41 @@ export default function TelegramSettings() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="bot-token">Bot Token</Label>
-            <Input
-              id="bot-token"
-              type="text"
-              value={botToken}
-              onChange={(e) => setBotToken(e.target.value)}
-              placeholder="1234567890:ABCdefGhIJKlmNoPQRsTUvwxyz"
-              autoComplete="off"
-            />
-            <p className="text-xs text-muted-foreground">Если поле уже маскированно (например <code>123456…abcd</code>) — оставь как есть, чтобы не менять токен.</p>
+            <div className="flex items-center gap-2">
+              <Input
+                id="bot-token"
+                type={showToken ? "text" : "password"}
+                value={botToken}
+                onChange={(e) => setBotToken(e.target.value)}
+                placeholder="1234567890:ABCdefGhIJKlmNoPQRsTUvwxyz"
+                autoComplete="off"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setShowToken((v) => !v)}
+                title={showToken ? "Скрыть" : "Показать"}
+              >
+                {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  if (!botToken) return;
+                  navigator.clipboard.writeText(botToken).then(() => {
+                    toast({ title: "Скопировано" });
+                  });
+                }}
+                title="Копировать"
+                disabled={!botToken}
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="chat-id">Chat ID</Label>
