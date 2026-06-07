@@ -90,14 +90,11 @@ Deno.serve(async (req) => {
 
   switch (action) {
     case "get_status": {
-      const tokenMasked = settings.bot_token
-        ? settings.bot_token.slice(0, 6) + "…" + settings.bot_token.slice(-4)
-        : "";
       return json({
         configured: !!settings.bot_token && !!settings.chat_id,
         is_active: settings.is_active,
         chat_id: settings.chat_id,
-        bot_token_mask: tokenMasked,
+        bot_token: settings.bot_token || "",
         enabled_events: settings.enabled_events,
       });
     }
