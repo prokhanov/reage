@@ -13,12 +13,15 @@ interface RegisterStep1Props {
   onNext: () => void;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const isEmailValid = (email: string) => EMAIL_REGEX.test(email.trim());
+
 export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep1Props) {
   const [agreed, setAgreed] = useState(false);
   const isValid =
     formData.firstName &&
     formData.lastName &&
-    formData.email &&
+    isEmailValid(formData.email) &&
     formData.password &&
     isPhoneValid(formData.phone) &&
     agreed;
