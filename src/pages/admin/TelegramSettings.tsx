@@ -21,7 +21,7 @@ interface Status {
   configured: boolean;
   is_active: boolean;
   chat_id: string | null;
-  bot_token_mask: string;
+  bot_token: string;
   enabled_events: Record<string, boolean>;
 }
 
@@ -47,6 +47,7 @@ export default function TelegramSettings() {
   const [testingEvent, setTestingEvent] = useState<string | null>(null);
   const [connStatus, setConnStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
+  const [showToken, setShowToken] = useState(false);
 
   async function loadStatus() {
     setLoading(true);
