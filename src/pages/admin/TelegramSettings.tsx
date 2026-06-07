@@ -169,15 +169,41 @@ export default function TelegramSettings() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="bot-token">Bot Token</Label>
-            <Input
-              id="bot-token"
-              type="text"
-              value={botToken}
-              onChange={(e) => setBotToken(e.target.value)}
-              placeholder="1234567890:ABCdefGhIJKlmNoPQRsTUvwxyz"
-              autoComplete="off"
-            />
-            <p className="text-xs text-muted-foreground">Если поле уже маскированно (например <code>123456…abcd</code>) — оставь как есть, чтобы не менять токен.</p>
+            <div className="flex items-center gap-2">
+              <Input
+                id="bot-token"
+                type={showToken ? "text" : "password"}
+                value={botToken}
+                onChange={(e) => setBotToken(e.target.value)}
+                placeholder="1234567890:ABCdefGhIJKlmNoPQRsTUvwxyz"
+                autoComplete="off"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setShowToken((v) => !v)}
+                title={showToken ? "Скрыть" : "Показать"}
+              >
+                {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  if (!botToken) return;
+                  navigator.clipboard.writeText(botToken).then(() => {
+                    toast({ title: "Скопировано" });
+                  });
+                }}
+                title="Копировать"
+                disabled={!botToken}
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="chat-id">Chat ID</Label>
