@@ -27,12 +27,14 @@ const TEMPLATE_TABS = [
   { type: "signup", label: "Регистрация" },
   { type: "recovery", label: "Восстановление пароля" },
   { type: "invite", label: "Приглашение" },
+  { type: "analysis_booking", label: "Запись на анализы" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
   signup: "Будет отправлен шаблон регистрации",
   recovery: "Будет отправлен шаблон сброса пароля",
   invite: "Будет отправлен шаблон приглашения",
+  analysis_booking: "Будет отправлено подтверждение записи на анализы с примерными данными",
 };
 
 export default function EmailSettings() {
@@ -165,9 +167,14 @@ export default function EmailSettings() {
     setLastResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("send-test-email", {
-        body: { email: testEmail, template_type: activeTab },
-      });
+      const isBooking = activeTab === "analysis_booking";
+      const { data, error } = isBooking
+        ? await supabase.functions.invoke("send-analysis-booking-email", {
+            body: { test: true, recipient_email: testEmail },
+          })
+        : await supabase.functions.invoke("send-test-email", {
+            body: { email: testEmail, template_type: activeTab },
+          });
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
