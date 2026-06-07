@@ -208,11 +208,11 @@ export default function ConfirmationReminders() {
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ReminderType)}>
-          <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsList className="w-full justify-start">
             {REMINDER_TABS.map((tab) => {
               const Icon = tab.icon;
               return (
-                <TabsTrigger key={tab.type} value={tab.type} className="gap-2 flex-shrink-0">
+                <TabsTrigger key={tab.type} value={tab.type} className="gap-2">
                   <Icon className="w-4 h-4" />
                   {tab.label}
                 </TabsTrigger>
