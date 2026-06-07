@@ -167,9 +167,14 @@ export default function EmailSettings() {
     setLastResult(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("send-test-email", {
-        body: { email: testEmail, template_type: activeTab },
-      });
+      const isBooking = activeTab === "analysis_booking";
+      const { data, error } = isBooking
+        ? await supabase.functions.invoke("send-analysis-booking-email", {
+            body: { test: true, recipient_email: testEmail },
+          })
+        : await supabase.functions.invoke("send-test-email", {
+            body: { email: testEmail, template_type: activeTab },
+          });
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
