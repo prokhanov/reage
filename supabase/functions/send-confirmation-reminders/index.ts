@@ -268,6 +268,7 @@ Deno.serve(async (req) => {
     const html = renderHtml(template, ctaUrl)
     const text = renderText(template, ctaUrl)
     const messageId = crypto.randomUUID()
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, u.email)
 
     try {
       await supabase.from('email_send_log').insert({
@@ -293,6 +294,7 @@ Deno.serve(async (req) => {
         text,
         purpose: 'transactional',
         label: type,
+        unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
         metadata: { reminder_type: type, user_id: u.id, attempt: sentCount + 1 },
       },
