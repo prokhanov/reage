@@ -17,7 +17,7 @@ interface SitemapEntry {
 const entries: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/example-report", changefreq: "weekly", priority: "0.8" },
-  { path: "/kak-podgotovitsya-k-sdache-analizov", changefreq: "monthly", priority: "0.7" },
+  { path: "/prep", changefreq: "monthly", priority: "0.7" },
 ];
 
 function generateSitemap(entries: SitemapEntry[]) {
