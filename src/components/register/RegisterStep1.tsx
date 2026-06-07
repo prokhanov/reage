@@ -6,6 +6,7 @@ import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RegisterFormData } from "@/pages/Register";
+import { cn } from "@/lib/utils";
 
 interface RegisterStep1Props {
   formData: RegisterFormData;
