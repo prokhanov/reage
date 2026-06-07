@@ -8,9 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity, Megaphone } from "lucide-react";
+import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity, Megaphone, BellRing } from "lucide-react";
 import { EmailLogsDashboard } from "@/components/admin/email/EmailLogsDashboard";
 import DripCampaigns from "@/components/admin/email/DripCampaigns";
+import ConfirmationReminders from "@/components/admin/email/ConfirmationReminders";
 
 interface EmailTemplate {
   id?: string;
