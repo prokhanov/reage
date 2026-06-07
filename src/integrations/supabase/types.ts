@@ -481,6 +481,60 @@ export type Database = {
         }
         Relationships: []
       }
+      confirmation_reminder_log: {
+        Row: {
+          id: string
+          reminder_type: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          reminder_type: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          reminder_type?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      confirmation_reminder_settings: {
+        Row: {
+          enabled: boolean
+          first_delay_hours: number
+          frequency_hours: number
+          id: string
+          max_reminders: number
+          reminder_type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          first_delay_hours?: number
+          frequency_hours?: number
+          id?: string
+          max_reminders?: number
+          reminder_type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          first_delay_hours?: number
+          frequency_hours?: number
+          id?: string
+          max_reminders?: number
+          reminder_type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       custom_roles: {
         Row: {
           created_at: string
