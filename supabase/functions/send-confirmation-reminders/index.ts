@@ -126,6 +126,7 @@ Deno.serve(async (req) => {
 
   for (const u of allUsers) {
     if (!u.email) { skipped++; continue }
+    if (stopSet.has(u.id)) { skipped++; continue }
 
     const emailConfirmed = !!u.email_confirmed_at
     const phoneConfirmed = !!u.phone_confirmed_at
