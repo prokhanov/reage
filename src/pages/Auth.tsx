@@ -274,11 +274,22 @@ export default function Auth() {
       <AuthBackground />
       
       <div className="w-full max-w-md relative z-10">
+        {/* Back to home link */}
+        <div className="mb-4 -ml-1">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <span>На главную</span>
+          </Link>
+        </div>
+
         {/* Header with Logo */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center gap-2 mb-2">
+          <Link to="/" className="inline-flex items-center gap-2 mb-2">
             <ThemedLogo eager className="h-32 w-auto md:animate-hue-shift" />
-          </div>
+          </Link>
           <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
             {forgotMode ? "Сброс пароля" : "Добро пожаловать"}
           </h1>
