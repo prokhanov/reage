@@ -46,6 +46,35 @@ export default function ConfirmationReminders() {
   const [activeTab, setActiveTab] = useState<ReminderType>("confirm_reminder_email");
   const [templates, setTemplates] = useState<Record<string, ReminderTemplate>>({});
   const [settings, setSettings] = useState<Record<string, ReminderSettings>>({});
+  const [testEmail, setTestEmail] = useState("");
+  const [sendingTest, setSendingTest] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) setTestEmail(user.email);
+    })();
+  }, []);
+
+  const handleSendTest = async (type: ReminderType) => {
+    if (!testEmail) {
+      toast({ title: "Ошибка", description: "Введите email для тестовой отправки", variant: "destructive" });
+      return;
+    }
+    setSendingTest(type);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-confirmation-reminders", {
+        body: { test_email: testEmail, test_type: type },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Отправлено", description: `Тестовое письмо отправлено на ${testEmail}` });
+    } catch (e: any) {
+      toast({ title: "Ошибка отправки", description: e.message, variant: "destructive" });
+    } finally {
+      setSendingTest(null);
+    }
+  };
 
   useEffect(() => {
     void load();
