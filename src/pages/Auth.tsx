@@ -271,20 +271,18 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Back to home link — corner on desktop */}
+      <Link
+        to="/"
+        className="absolute top-4 left-4 md:top-8 md:left-8 z-20 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group"
+      >
+        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+        <span className="hidden sm:inline">На главную</span>
+      </Link>
+
       <AuthBackground />
       
       <div className="w-full max-w-md relative z-10">
-        {/* Back to home link */}
-        <div className="mb-4 -ml-1">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group"
-          >
-            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-            <span>На главную</span>
-          </Link>
-        </div>
-
         {/* Header with Logo */}
         <div className="text-center mb-8 animate-fade-in">
           <Link to="/" className="inline-flex items-center gap-2 mb-2">
