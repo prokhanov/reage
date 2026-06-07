@@ -87,15 +87,18 @@ Deno.serve(async (req) => {
     }
   } catch { /* ignore */ }
 
-  // 1. Load settings and templates
-  const [{ data: settingsRows }, { data: templateRows }] = await Promise.all([
+  // 1. Load settings, templates and stop-list
+  const [{ data: settingsRows }, { data: templateRows }, { data: stopRows }] = await Promise.all([
     supabase.from('confirmation_reminder_settings').select('*'),
     supabase.from('email_templates').select('*').in('template_type', [
       'confirm_reminder_email',
       'confirm_reminder_phone',
       'confirm_reminder_both',
     ]),
+    supabase.from('reminder_stop_list').select('user_id'),
   ])
+
+  const stopSet = new Set<string>((stopRows ?? []).map((r: any) => r.user_id))
 
   const settingsByType = new Map<ReminderType, Settings>()
   for (const s of (settingsRows ?? []) as Settings[]) settingsByType.set(s.reminder_type, s)
@@ -123,6 +126,7 @@ Deno.serve(async (req) => {
 
   for (const u of allUsers) {
     if (!u.email) { skipped++; continue }
+    if (stopSet.has(u.id)) { skipped++; continue }
 
     const emailConfirmed = !!u.email_confirmed_at
     const phoneConfirmed = !!u.phone_confirmed_at

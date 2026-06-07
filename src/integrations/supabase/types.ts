@@ -1500,6 +1500,30 @@ export type Database = {
           },
         ]
       }
+      reminder_stop_list: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       report_jobs: {
         Row: {
           analysis_id: string

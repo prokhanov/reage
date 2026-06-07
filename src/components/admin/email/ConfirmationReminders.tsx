@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, Send, BellRing, Mail, Phone, Users } from "lucide-react";
+import { Save, Send, BellRing, Mail, Phone, Users, UserX } from "lucide-react";
+import ReminderStopListDialog from "./ReminderStopListDialog";
 
 const REMINDER_TABS = [
   { type: "confirm_reminder_email", label: "Только email", icon: Mail },
@@ -41,6 +42,7 @@ export default function ConfirmationReminders() {
   const [loading, setLoading] = useState(true);
   const [savingType, setSavingType] = useState<string | null>(null);
   const [runNow, setRunNow] = useState(false);
+  const [stopListOpen, setStopListOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ReminderType>("confirm_reminder_email");
   const [templates, setTemplates] = useState<Record<string, ReminderTemplate>>({});
   const [settings, setSettings] = useState<Record<string, ReminderSettings>>({});
@@ -153,20 +155,26 @@ export default function ConfirmationReminders() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <BellRing className="h-5 w-5 text-primary" />
-              Напоминания о подтверждении
+              Напоминания
             </CardTitle>
             <CardDescription>
               Автоматические письма пользователям, не подтвердившим контакты. Cron-задача проверяет каждый час.
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={handleRunNow} disabled={runNow} className="gap-2">
-            {runNow ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-            Запустить сейчас
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => setStopListOpen(true)} className="gap-2">
+              <UserX className="h-4 w-4" />
+              Стоп-лист
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleRunNow} disabled={runNow} className="gap-2">
+              {runNow ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Запустить сейчас
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -288,6 +296,7 @@ export default function ConfirmationReminders() {
           })}
         </Tabs>
       </CardContent>
+      <ReminderStopListDialog open={stopListOpen} onOpenChange={setStopListOpen} />
     </Card>
   );
 }

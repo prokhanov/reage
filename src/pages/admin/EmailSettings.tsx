@@ -208,7 +208,7 @@ export default function EmailSettings() {
           </TabsTrigger>
           <TabsTrigger value="reminders" className="gap-2">
             <BellRing className="w-4 h-4" />
-            Напоминания о подтверждении
+            Напоминания
           </TabsTrigger>
           <TabsTrigger value="logs" className="gap-2">
             <Activity className="w-4 h-4" />
