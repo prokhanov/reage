@@ -67,6 +67,32 @@ function renderText(t: Template, ctaUrl: string): string {
   return `${t.heading}\n\n${t.body_text}${t.button_label ? `\n\n${t.button_label}: ${ctaUrl}` : ''}\n\n—\n${t.footer_text}\n${SITE_NAME} · ${ROOT_DOMAIN}\n${COMPANY_LEGAL}`
 }
 
+async function getOrCreateUnsubscribeToken(supabase: any, email: string): Promise<string> {
+  const normalizedEmail = email.trim().toLowerCase()
+  const { data: existing } = await supabase
+    .from('email_unsubscribe_tokens')
+    .select('token')
+    .eq('email', normalizedEmail)
+    .maybeSingle()
+  if (existing?.token) return existing.token
+  const token = crypto.randomUUID()
+  const { data: inserted, error } = await supabase
+    .from('email_unsubscribe_tokens')
+    .insert({ email: normalizedEmail, token })
+    .select('token')
+    .single()
+  if (error) {
+    const { data: fallback } = await supabase
+      .from('email_unsubscribe_tokens')
+      .select('token')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+    if (fallback?.token) return fallback.token
+    throw error
+  }
+  return inserted.token
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -112,6 +138,7 @@ Deno.serve(async (req) => {
     const html = renderHtml(template, ctaUrl)
     const text = renderText(template, ctaUrl)
     const messageId = crypto.randomUUID()
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, testEmail)
 
     try {
       await supabase.from('email_send_log').insert({
@@ -137,6 +164,7 @@ Deno.serve(async (req) => {
         text,
         purpose: 'transactional',
         label: testType,
+        unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
         metadata: { reminder_type: testType, test: true },
       },
@@ -240,6 +268,7 @@ Deno.serve(async (req) => {
     const html = renderHtml(template, ctaUrl)
     const text = renderText(template, ctaUrl)
     const messageId = crypto.randomUUID()
+    const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, u.email)
 
     try {
       await supabase.from('email_send_log').insert({
@@ -265,6 +294,7 @@ Deno.serve(async (req) => {
         text,
         purpose: 'transactional',
         label: type,
+        unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
         metadata: { reminder_type: type, user_id: u.id, attempt: sentCount + 1 },
       },

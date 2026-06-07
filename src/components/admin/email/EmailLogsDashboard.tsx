@@ -43,6 +43,9 @@ const TEMPLATE_LABELS: Record<string, string> = {
   magiclink: "Magic link",
   email_change: "Смена email",
   reauthentication: "Код подтверждения",
+  confirm_reminder_email: "Напоминание: email",
+  confirm_reminder_phone: "Напоминание: телефон",
+  confirm_reminder_both: "Напоминание: email+телефон",
 };
 
 function statusBadge(status: string) {

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, Send, BellRing, Mail, Phone, Users, UserX } from "lucide-react";
 import ReminderStopListDialog from "./ReminderStopListDialog";
+import ReminderLogs from "./ReminderLogs";
 
 const REMINDER_TABS = [
   { type: "confirm_reminder_email", label: "Только email", icon: Mail },
@@ -354,6 +355,10 @@ export default function ConfirmationReminders() {
             );
           })}
         </Tabs>
+
+        <div className="mt-8">
+          <ReminderLogs />
+        </div>
       </CardContent>
       <ReminderStopListDialog open={stopListOpen} onOpenChange={setStopListOpen} />
     </Card>
