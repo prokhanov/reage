@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RegisterFormData } from "@/pages/Register";
 
 interface RegisterStep1Props {
@@ -12,12 +14,14 @@ interface RegisterStep1Props {
 }
 
 export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep1Props) {
+  const [agreed, setAgreed] = useState(false);
   const isValid =
     formData.firstName &&
     formData.lastName &&
     formData.email &&
     formData.password &&
-    isPhoneValid(formData.phone);
+    isPhoneValid(formData.phone) &&
+    agreed;
 
   return (
     <div className="space-y-6">
