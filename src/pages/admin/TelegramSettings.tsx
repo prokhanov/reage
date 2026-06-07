@@ -58,7 +58,7 @@ export default function TelegramSettings() {
       toast({ title: "Ошибка загрузки", description: error.message, variant: "destructive" });
     } else if (data) {
       setStatus(data);
-      setBotToken(data.bot_token_mask || "");
+      setBotToken(data.bot_token || "");
       setChatId(data.chat_id || "");
       setIsActive(data.is_active);
       setEnabledEvents(data.enabled_events || {});
