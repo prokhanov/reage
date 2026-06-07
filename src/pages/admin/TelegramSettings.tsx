@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Send, CheckCircle2, XCircle, AlertCircle, ChevronDown, Loader2, BookOpen } from "lucide-react";
+import { Send, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
 
 type EventDef = { key: string; label: string; description: string };
 
