@@ -46,6 +46,35 @@ export default function ConfirmationReminders() {
   const [activeTab, setActiveTab] = useState<ReminderType>("confirm_reminder_email");
   const [templates, setTemplates] = useState<Record<string, ReminderTemplate>>({});
   const [settings, setSettings] = useState<Record<string, ReminderSettings>>({});
+  const [testEmail, setTestEmail] = useState("");
+  const [sendingTest, setSendingTest] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) setTestEmail(user.email);
+    })();
+  }, []);
+
+  const handleSendTest = async (type: ReminderType) => {
+    if (!testEmail) {
+      toast({ title: "Ошибка", description: "Введите email для тестовой отправки", variant: "destructive" });
+      return;
+    }
+    setSendingTest(type);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-confirmation-reminders", {
+        body: { test_email: testEmail, test_type: type },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Отправлено", description: `Тестовое письмо отправлено на ${testEmail}` });
+    } catch (e: any) {
+      toast({ title: "Ошибка отправки", description: e.message, variant: "destructive" });
+    } finally {
+      setSendingTest(null);
+    }
+  };
 
   useEffect(() => {
     void load();
@@ -291,6 +320,36 @@ export default function ConfirmationReminders() {
                   )}
                   Сохранить
                 </Button>
+
+                {/* Test email */}
+                <div className="border-t border-border pt-4 mt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-foreground">Тестовая отправка</p>
+                    <p className="text-xs text-muted-foreground">Будет отправлен шаблон «{tab.label}»</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Input
+                      type="email"
+                      placeholder="test@example.com"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      className="h-10 flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => handleSendTest(tab.type)}
+                      disabled={sendingTest === tab.type || !testEmail}
+                      className="h-10 gap-2"
+                    >
+                      {sendingTest === tab.type ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      Отправить
+                    </Button>
+                  </div>
+                </div>
               </TabsContent>
             );
           })}
