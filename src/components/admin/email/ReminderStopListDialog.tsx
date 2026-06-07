@@ -85,11 +85,11 @@ export default function ReminderStopListDialog({ open, onOpenChange }: Props) {
     const ops: Promise<any>[] = [];
     if (toAdd.length > 0) {
       ops.push(
-        supabase.from("reminder_stop_list").insert(toAdd.map((user_id) => ({ user_id })))
+        Promise.resolve(supabase.from("reminder_stop_list").insert(toAdd.map((user_id) => ({ user_id }))))
       );
     }
     if (toRemove.length > 0) {
-      ops.push(supabase.from("reminder_stop_list").delete().in("user_id", toRemove));
+      ops.push(Promise.resolve(supabase.from("reminder_stop_list").delete().in("user_id", toRemove)));
     }
 
     try {
