@@ -29,6 +29,7 @@ import HealthAssistant from "./pages/HealthAssistant";
 import Subscription from "./pages/Subscription";
 import HealthStrategy from "./pages/HealthStrategy";
 import ExampleReport from "./pages/ExampleReport";
+import AnalysisPrep from "./pages/AnalysisPrep";
 
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
@@ -95,6 +96,7 @@ const App = () => (
               }
             />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/analysis-prep" element={<AnalysisPrep />} />
             <Route path="/register" element={<Register />} />
             <Route path="/register-staff" element={<RegisterStaff />} />
             <Route path="/reset-password" element={<ResetPassword />} />
