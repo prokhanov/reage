@@ -78,14 +78,82 @@ Deno.serve(async (req) => {
     { auth: { autoRefreshToken: false, persistSession: false } }
   )
 
-  // Optional dryRun for admin "send now" preview
+  // Optional dryRun / test send for admin preview
   let dryRun = false
+  let testEmail: string | null = null
+  let testType: ReminderType | null = null
   try {
     if (req.method === 'POST') {
       const body = await req.json().catch(() => ({}))
       dryRun = !!body?.dryRun
+      if (body?.test_email && body?.test_type) {
+        testEmail = String(body.test_email)
+        testType = body.test_type as ReminderType
+      }
     }
   } catch { /* ignore */ }
+
+  // Handle test send: render template and enqueue one email, bypass all scheduling/stop-list
+  if (testEmail && testType) {
+    const { data: tpl } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('template_type', testType)
+      .maybeSingle()
+
+    if (!tpl) {
+      return new Response(JSON.stringify({ error: 'Template not found' }), {
+        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const template = tpl as Template
+    const ctaUrl = testType === 'confirm_reminder_phone' ? `${APP_URL}/profile` : `${APP_URL}/auth`
+    const html = renderHtml(template, ctaUrl)
+    const text = renderText(template, ctaUrl)
+    const messageId = crypto.randomUUID()
+
+    try {
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: testType,
+        recipient_email: testEmail,
+        status: 'pending',
+        metadata: { reminder_type: testType, test: true },
+      })
+    } catch { /* best effort */ }
+
+    const { error: enqErr } = await supabase.rpc('enqueue_email', {
+      queue_name: 'transactional_emails',
+      payload: {
+        message_id: messageId,
+        idempotency_key: `test:${testType}:${testEmail}:${Date.now()}`,
+        to: testEmail,
+        from: FROM_ADDRESS,
+        reply_to: REPLY_TO,
+        sender_domain: SENDER_DOMAIN,
+        subject: `[ТЕСТ] ${template.subject}`,
+        html,
+        text,
+        purpose: 'transactional',
+        label: testType,
+        queued_at: new Date().toISOString(),
+        metadata: { reminder_type: testType, test: true },
+      },
+    })
+
+    if (enqErr) {
+      return new Response(JSON.stringify({ error: enqErr.message }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    return new Response(
+      JSON.stringify({ ok: true, test: true, sent_to: testEmail, type: testType }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
 
   // 1. Load settings, templates and stop-list
   const [{ data: settingsRows }, { data: templateRows }, { data: stopRows }] = await Promise.all([
