@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Save, Send, BellRing, Mail, Phone, Users } from "lucide-react";
+import { Save, Send, BellRing, Mail, Phone, Users, UserX } from "lucide-react";
+import ReminderStopListDialog from "./ReminderStopListDialog";
 
 const REMINDER_TABS = [
   { type: "confirm_reminder_email", label: "Только email", icon: Mail },
