@@ -320,6 +320,36 @@ export default function ConfirmationReminders() {
                   )}
                   Сохранить
                 </Button>
+
+                {/* Test email */}
+                <div className="border-t border-border pt-4 mt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-foreground">Тестовая отправка</p>
+                    <p className="text-xs text-muted-foreground">Будет отправлен шаблон «{tab.label}»</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Input
+                      type="email"
+                      placeholder="test@example.com"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      className="h-10 flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => handleSendTest(tab.type)}
+                      disabled={sendingTest === tab.type || !testEmail}
+                      className="h-10 gap-2"
+                    >
+                      {sendingTest === tab.type ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      Отправить
+                    </Button>
+                  </div>
+                </div>
               </TabsContent>
             );
           })}
