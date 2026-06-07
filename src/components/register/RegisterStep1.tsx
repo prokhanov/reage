@@ -78,6 +78,8 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
               <Input
                 id="email"
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 placeholder="your@email.com"
                 value={formData.email}
                 onChange={(e) => updateFormData({ email: e.target.value })}
@@ -85,6 +87,11 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
                 required
               />
             </div>
+            {formData.email && !isEmailValid(formData.email) && (
+              <p className="text-xs text-destructive">
+                Введите корректный email
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
