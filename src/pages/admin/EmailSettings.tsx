@@ -204,7 +204,11 @@ export default function EmailSettings() {
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
             <Mail className="w-4 h-4" />
-            Отправитель и шаблоны
+            Технические письма
+          </TabsTrigger>
+          <TabsTrigger value="reminders" className="gap-2">
+            <BellRing className="w-4 h-4" />
+            Напоминания о подтверждении
           </TabsTrigger>
           <TabsTrigger value="logs" className="gap-2">
             <Activity className="w-4 h-4" />
@@ -214,6 +218,10 @@ export default function EmailSettings() {
 
         <TabsContent value="drip" className="mt-6">
           <DripCampaigns />
+        </TabsContent>
+
+        <TabsContent value="reminders" className="mt-6">
+          <ConfirmationReminders />
         </TabsContent>
 
         <TabsContent value="logs" className="mt-6">
