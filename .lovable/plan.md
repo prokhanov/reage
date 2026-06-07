@@ -1,27 +1,41 @@
-Проблема найдена: в React роут `/prep` уже есть, sitemap тоже обновлён, но боевой Coolify использует `deploy/nginx/default.conf` с whitelist SPA-маршрутов. В этом whitelist нет `/prep`, поэтому nginx отдаёт настоящий 404 до загрузки приложения.
+## План: Яндекс.Метрика на reage.life
 
-План исправления:
+Счётчик **109706546** в SPA-режиме: Вебвизор, кликмапа, точный показатель отказов, отслеживание ссылок, ecommerce dataLayer.
 
-1. Обновить `deploy/nginx/default.conf`
-   - Добавить `location = /prep { try_files /index.html =404; }` в блок публичных SPA-маршрутов.
-   - Заодно синхронизировать whitelist с `src/App.tsx` и добавить отсутствующий публичный `/unsubscribe`, чтобы он не сломался так же.
+### Шаг 1. Вставить счётчик в `index.html`
+- В `<head>` добавить `<script>`-блок Метрики ровно как прислан (init с `ssr:true, webvisor, clickmap, ecommerce:"dataLayer", accurateTrackBounce, trackLinks`).
+- `<noscript>` с пиксельным фолбэком кладу **в `<body>`** (в `<head>` Lovable запрещает `<noscript><img>` — там разрешены только metadata-теги).
 
-2. Проверить соответствие маршрутов
-   - Убедиться, что `src/App.tsx`, `public/sitemap.xml`, `scripts/generate-sitemap.ts` уже указывают на `/prep`.
-   - Не менять URL повторно.
+### Шаг 2. SPA-трекинг роутов React Router
+Создать `src/components/YandexMetrika.tsx`:
+- использует `useLocation()`;
+- при смене pathname+search вызывает `window.ym(109706546, 'hit', window.location.href, { title: document.title, referer: prevUrl })`;
+- prev URL хранится в `useRef`;
+- первый рендер пропускает (init уже отправил первый хит).
 
-3. После правки
-   - Нужно пересобрать/перезапустить деплой в Coolify, потому что nginx-конфиг попадает в Docker-образ на этапе сборки.
+Монтируется один раз внутри `<BrowserRouter>` в `src/App.tsx`, чтобы трекать все роуты: `/`, `/prep`, `/auth`, `/dashboard`, админка.
 
-Технически причина такая:
-
-```text
-reage.life/prep
-  -> Coolify nginx
-  -> deploy/nginx/default.conf
-  -> /prep отсутствует в whitelist
-  -> nginx return 404
-  -> React Router даже не запускается
+### Шаг 3. TypeScript-типы
+В `src/vite-env.d.ts`:
+```ts
+declare global {
+  interface Window {
+    ym?: (counterId: number, action: string, ...args: unknown[]) => void;
+  }
+}
+export {};
 ```
 
-После добавления `/prep` в whitelist nginx будет отдавать `index.html`, и уже React Router покажет страницу памятки.
+### Шаг 4. Деплой
+- Lovable Preview — сразу.
+- `reage.lovable.app` — **Publish → Update**.
+- **reage.life** (Coolify) — пересобрать Docker-образ, чтобы новый `index.html` со счётчиком попал в прод.
+
+### Шаг 5. Проверка
+1. DevTools → Network: запросы `mc.yandex.ru/metrika/tag.js?id=109706546` и `mc.yandex.ru/watch/109706546`.
+2. В кабинете Метрики — «Счётчик установлен корректно».
+3. Переходы `/` → `/prep` → `/auth` — отдельные хиты в реальном времени.
+4. Вебвизор пишет сессии.
+
+### Вне scope
+Кастомные цели (`ym('reachGoal', ...)`) для регистрации/покупки — добавим отдельно по запросу.

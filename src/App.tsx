@@ -49,6 +49,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
+import { YandexMetrika } from "@/components/YandexMetrika";
 import Requisites from "./pages/legal/Requisites";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import TermsOfService from "./pages/legal/TermsOfService";
@@ -81,6 +82,7 @@ const App = () => (
         <Sonner />
         <EmailVerificationListener />
         <BrowserRouter>
+          <YandexMetrika />
           <RouteMeta />
           <Routes>
             {/* Public routes */}
