@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -297,8 +297,8 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                 {bookings.map((b) => {
                   const isExpanded = expandedId === b.id;
                   return (
-                    <>
-                      <TableRow key={b.id}>
+                    <Fragment key={b.id}>
+                      <TableRow>
                         <TableCell>
                           <button
                             onClick={() => setEditing(b)}
@@ -402,13 +402,13 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                         </TableCell>
                       </TableRow>
                       {isExpanded && (
-                        <TableRow key={`${b.id}-history`} className="hover:bg-transparent">
+                        <TableRow className="hover:bg-transparent">
                           <TableCell colSpan={7} className="p-0">
                             <BookingNotificationsHistory bookingId={b.id} />
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </TableBody>
