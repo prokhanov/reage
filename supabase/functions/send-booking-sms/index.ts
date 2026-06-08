@@ -21,7 +21,6 @@ const ALLOWED_TEMPLATES = new Set([
   "booking_received",
   "booking_collected",
   "booking_uploaded",
-  "appointment_reminder",
 ]);
 
 const APP_URL = "https://reage.life";
@@ -87,11 +86,11 @@ Deno.serve(async (req) => {
     const normalized = normalizePhone(phoneSource);
     if (normalized.length < 11) return json({ error: "Некорректный номер телефона" }, 400);
 
-    // Resolve template name: explicit > by status > legacy fallback.
+    // Resolve template name: explicit > by status > default to scheduled.
     let templateName =
       (requestedTemplate && ALLOWED_TEMPLATES.has(requestedTemplate) && requestedTemplate) ||
       STATUS_TO_TEMPLATE[booking.status as string] ||
-      "appointment_reminder";
+      "booking_scheduled";
 
     let { data: tpl } = await admin
       .from("sms_templates")
@@ -99,15 +98,15 @@ Deno.serve(async (req) => {
       .eq("name", templateName)
       .maybeSingle();
 
-    // Fallback to legacy template if status template not provisioned yet
-    if (!tpl && templateName !== "appointment_reminder") {
+    // Fallback to scheduled template if status template not provisioned yet
+    if (!tpl && templateName !== "booking_scheduled") {
       const { data: legacy } = await admin
         .from("sms_templates")
         .select("id, name, body_text")
-        .eq("name", "appointment_reminder")
+        .eq("name", "booking_scheduled")
         .maybeSingle();
       tpl = legacy;
-      templateName = "appointment_reminder";
+      templateName = "booking_scheduled";
     }
     if (!tpl) return json({ error: `Шаблон ${templateName} не найден` }, 404);
 
