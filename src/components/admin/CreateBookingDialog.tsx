@@ -231,9 +231,11 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
               >
                 <Command shouldFilter={false}>
                   <CommandInput
-                    placeholder="Поиск по имени, email, телефону..."
+                    placeholder="Поиск: имя, почта, телефон..."
                     value={patientSearch}
                     onValueChange={setPatientSearch}
+                    autoComplete="off"
+                    name="patient-search-no-autofill"
                   />
                   <CommandList>
                     <CommandEmpty>Не найдено</CommandEmpty>
