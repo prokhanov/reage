@@ -174,7 +174,7 @@ export default function EmailSettings() {
     setLastResult(null);
 
     try {
-      const isBooking = activeTab === "analysis_booking" || activeTab.startsWith("booking_");
+      const isBooking = activeTab.startsWith("booking_");
       const { data, error } = isBooking
         ? await supabase.functions.invoke("send-analysis-booking-email", {
             body: { test: true, recipient_email: testEmail, template_type: activeTab },

@@ -15,7 +15,7 @@ const FROM_ADDRESS = `Команда ReAge <hello@${SENDER_DOMAIN}>`
 const REPLY_TO = `hello@${SENDER_DOMAIN}`
 const APP_URL = 'https://reage.life'
 const COMPANY_LEGAL = 'ООО «РиЭйдж», Москва'
-const DEFAULT_TEMPLATE_TYPE = 'analysis_booking'
+const DEFAULT_TEMPLATE_TYPE = 'booking_scheduled'
 
 const STATUS_TO_TEMPLATE: Record<string, string> = {
   scheduled: 'booking_scheduled',
@@ -25,7 +25,6 @@ const STATUS_TO_TEMPLATE: Record<string, string> = {
 }
 
 const ALLOWED_TEMPLATES = new Set([
-  'analysis_booking',
   'booking_scheduled',
   'booking_received',
   'booking_collected',
