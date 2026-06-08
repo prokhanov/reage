@@ -437,27 +437,26 @@ export function PatientBookingsCard({ userId, patient }: Props) {
         />
       )}
 
-      {confirmContact && (
-        <ContactConfirmDialog
-          type={confirmContact.type}
+      {sendDialog && (
+        <SendRemindersDialog
+          booking={sendDialog}
           userId={userId}
-          initialValue={
-            confirmContact.type === "email"
-              ? patient.email || ""
-              : patient.phone || ""
-          }
-          onClose={() => setConfirmContact(null)}
-          onConfirm={async (value) => {
-            const b = confirmContact.booking;
-            if (confirmContact.type === "email") {
-              await sendEmail.mutateAsync({ b, email: value });
-            } else {
-              await sendSms.mutateAsync({ b, phone: value });
-            }
-            setConfirmContact(null);
+          initialEmail={patient.email || ""}
+          initialPhone={patient.phone || ""}
+          onClose={() => setSendDialog(null)}
+          onSend={async ({ sendEmailOn, email, sendSmsOn, phone, sendTgOn }) => {
+            const b = sendDialog;
+            const tasks: Promise<unknown>[] = [];
+            if (sendEmailOn) tasks.push(sendEmail.mutateAsync({ b, email }));
+            if (sendSmsOn) tasks.push(sendSms.mutateAsync({ b, phone }));
+            if (sendTgOn) tasks.push(sendTg.mutateAsync(b));
+            await Promise.allSettled(tasks);
+            setSendDialog(null);
           }}
         />
       )}
+
+
 
 
 
