@@ -606,65 +606,85 @@ function CreateBookingForPatientDialog({
   );
 }
 
-function ContactConfirmDialog({
-  type,
+function SendRemindersDialog({
+  booking,
   userId,
-  initialValue,
+  initialEmail,
+  initialPhone,
   onClose,
-  onConfirm,
+  onSend,
 }: {
-  type: "email" | "sms";
+  booking: Booking;
   userId: string;
-  initialValue: string;
+  initialEmail: string;
+  initialPhone: string;
   onClose: () => void;
-  onConfirm: (value: string) => Promise<void>;
+  onSend: (args: {
+    sendEmailOn: boolean;
+    email: string;
+    sendSmsOn: boolean;
+    phone: string;
+    sendTgOn: boolean;
+  }) => Promise<void>;
 }) {
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [value, setValue] = useState(initialValue);
+  const [emailOn, setEmailOn] = useState(true);
+  const [smsOn, setSmsOn] = useState(true);
+  const [tgOn, setTgOn] = useState(true);
+  const [email, setEmail] = useState(initialEmail);
+  const [phone, setPhone] = useState(initialPhone);
   const [submitting, setSubmitting] = useState(false);
 
-  const isEmail = type === "email";
-  const label = isEmail ? "Email пациента" : "Телефон пациента";
-  const placeholder = isEmail ? "name@example.com" : "79991234567";
-  const title = isEmail
-    ? "Отправка email-подтверждения"
-    : "Отправка SMS-напоминания";
-
-  const validate = (v: string): string | null => {
-    const t = v.trim();
-    if (!t) return "Поле обязательно";
-    if (isEmail) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)) return "Некорректный email";
-    } else {
-      const digits = t.replace(/\D/g, "");
-      if (digits.length < 10 || digits.length > 15) return "Некорректный номер";
-    }
-    return null;
+  const validateEmail = (v: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const validatePhone = (v: string) => {
+    const d = v.replace(/\D/g, "");
+    return d.length >= 10 && d.length <= 15;
   };
 
   const handleSubmit = async () => {
-    const trimmed = value.trim();
-    const err = validate(trimmed);
-    if (err) {
-      toast({ title: err, variant: "destructive" });
+    if (!emailOn && !smsOn && !tgOn) {
+      toast({ title: "Выберите хотя бы один канал", variant: "destructive" });
       return;
     }
-    const normalized = isEmail ? trimmed.toLowerCase() : trimmed.replace(/\D/g, "");
+    const emailNorm = email.trim().toLowerCase();
+    const phoneNorm = phone.replace(/\D/g, "");
+    if (emailOn && !validateEmail(emailNorm)) {
+      toast({ title: "Некорректный email", variant: "destructive" });
+      return;
+    }
+    if (smsOn && !validatePhone(phoneNorm)) {
+      toast({ title: "Некорректный телефон", variant: "destructive" });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      if (normalized !== (initialValue || "").trim()) {
-        const patch = isEmail ? { email: normalized } : { phone: normalized };
+      const patch: Record<string, string> = {};
+      if (emailOn && emailNorm && emailNorm !== initialEmail.trim().toLowerCase()) {
+        patch.email = emailNorm;
+      }
+      if (smsOn && phoneNorm && phoneNorm !== initialPhone.replace(/\D/g, "")) {
+        patch.phone = phoneNorm;
+      }
+      if (Object.keys(patch).length > 0) {
         const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
         if (error) throw error;
         qc.invalidateQueries({ queryKey: ["patient-profile", userId] });
         qc.invalidateQueries({ queryKey: ["patient-info", userId] });
       }
-      await onConfirm(normalized);
+      await onSend({
+        sendEmailOn: emailOn,
+        email: emailNorm,
+        sendSmsOn: smsOn,
+        phone: phoneNorm,
+        sendTgOn: tgOn,
+      });
     } catch (e: any) {
       toast({
         title: "Ошибка",
-        description: e?.message || "Не удалось сохранить",
+        description: e?.message || "Не удалось отправить",
         variant: "destructive",
       });
     } finally {
@@ -674,24 +694,66 @@ function ContactConfirmDialog({
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[460px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>Отправить напоминания</DialogTitle>
         </DialogHeader>
-        <div className="space-y-2 py-2">
-          <Label htmlFor="contact-value">{label}</Label>
-          <Input
-            id="contact-value"
-            type={isEmail ? "email" : "tel"}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={placeholder}
-            autoFocus
-          />
+        <div className="space-y-4 py-2">
+          <div className="space-y-2 rounded-md border p-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={emailOn}
+                onChange={(e) => setEmailOn(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <Mail className="w-4 h-4" />
+              <span className="font-medium text-sm">Email пациенту</span>
+            </label>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              disabled={!emailOn}
+            />
+          </div>
+
+          <div className="space-y-2 rounded-md border p-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={smsOn}
+                onChange={(e) => setSmsOn(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <MessageSquare className="w-4 h-4" />
+              <span className="font-medium text-sm">SMS пациенту</span>
+            </label>
+            <Input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="79991234567"
+              disabled={!smsOn}
+            />
+          </div>
+
+          <div className="rounded-md border p-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={tgOn}
+                onChange={(e) => setTgOn(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <Send className="w-4 h-4" />
+              <span className="font-medium text-sm">Telegram администраторам</span>
+            </label>
+          </div>
+
           <p className="text-xs text-muted-foreground">
-            {initialValue
-              ? "Значение из профиля. Можно изменить — будет сохранено и использовано для отправки."
-              : "В профиле пациента контакт не указан. Введите значение — оно будет сохранено."}
+            Изменённые email/телефон будут сохранены в профиль пациента.
           </p>
         </div>
         <DialogFooter>
@@ -706,3 +768,4 @@ function ContactConfirmDialog({
     </Dialog>
   );
 }
+
