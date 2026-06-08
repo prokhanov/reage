@@ -76,6 +76,13 @@ export async function sendSms(params: {
     channel: "DIRECT",
   };
 
+  // Привязываем callback для получения реального статуса доставки.
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const webhookSecret = Deno.env.get("SMSAERO_WEBHOOK_SECRET") ?? "";
+  if (supabaseUrl && webhookSecret) {
+    body.callbackUrl = `${supabaseUrl}/functions/v1/sms-aero-webhook?token=${encodeURIComponent(webhookSecret)}`;
+  }
+
   const res = await fetch(`${BASE_URL}/sms/send`, {
     method: "POST",
     headers: {
