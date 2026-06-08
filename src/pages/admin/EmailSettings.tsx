@@ -27,7 +27,11 @@ const TEMPLATE_TABS = [
   { type: "signup", label: "Регистрация" },
   { type: "recovery", label: "Восстановление пароля" },
   { type: "invite", label: "Приглашение" },
-  { type: "analysis_booking", label: "Запись на анализы" },
+  { type: "analysis_booking", label: "Запись (общий)" },
+  { type: "booking_scheduled", label: "Запись назначена" },
+  { type: "booking_received", label: "Биоматериал получен" },
+  { type: "booking_collected", label: "Анализ в работе" },
+  { type: "booking_uploaded", label: "Отчёт готов" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
@@ -35,7 +39,12 @@ const TEST_NOTES: Record<string, string> = {
   recovery: "Будет отправлен шаблон сброса пароля",
   invite: "Будет отправлен шаблон приглашения",
   analysis_booking: "Будет отправлено подтверждение записи на анализы с примерными данными",
+  booking_scheduled: "Письмо «запись назначена» с примерными датой/временем/адресом",
+  booking_received: "Письмо «биоматериал получен»",
+  booking_collected: "Письмо «анализ в работе»",
+  booking_uploaded: "Письмо «отчёт готов» с ссылкой на личный кабинет",
 };
+
 
 export default function EmailSettings() {
   const { toast } = useToast();
