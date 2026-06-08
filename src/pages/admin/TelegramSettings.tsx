@@ -103,10 +103,12 @@ export default function TelegramSettings() {
       chat_id: chatId,
       is_active: isActive,
       enabled_events: enabledEvents,
+      booking_templates: bookingTemplates,
     };
     if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
 
     const { data, error } = await supabase.functions.invoke("telegram-settings", { body: payload });
+
     setSaving(false);
     if (error || data?.error) {
       toast({ title: "Не удалось сохранить", description: error?.message || data?.error, variant: "destructive" });
