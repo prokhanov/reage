@@ -374,20 +374,18 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Уведомления</DropdownMenuLabel>
                           <DropdownMenuItem
-                            disabled={!patient.email || sendEmail.isPending}
-                            onClick={() => sendEmail.mutate(b)}
-                            title={!patient.email ? "У пациента не указан email" : undefined}
+                            disabled={sendEmail.isPending}
+                            onClick={() => setConfirmContact({ type: "email", booking: b })}
                           >
                             <Mail className="w-4 h-4 mr-2" />
-                            Email подтверждение {!patient.email && "(нет email)"}
+                            Email подтверждение
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            disabled={!patient.phone || sendSms.isPending}
-                            onClick={() => sendSms.mutate(b)}
-                            title={!patient.phone ? "У пациента не указан телефон в профиле" : undefined}
+                            disabled={sendSms.isPending}
+                            onClick={() => setConfirmContact({ type: "sms", booking: b })}
                           >
                             <MessageSquare className="w-4 h-4 mr-2" />
-                            SMS-напоминание {!patient.phone && "(нет телефона)"}
+                            SMS-напоминание
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             disabled={sendTg.isPending}
