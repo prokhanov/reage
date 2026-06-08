@@ -279,9 +279,9 @@ export default function Register() {
         <div className="w-full">
           {/* Header */}
           <div className="text-center mb-8 animate-fade-in pt-6">
-            <div className="inline-flex items-center gap-2 mb-2">
+            <Link to="/" className="inline-flex items-center gap-2 mb-2">
               <ThemedLogo eager className="h-24 w-auto" />
-            </div>
+            </Link>
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
             <p className="text-muted-foreground text-lg mb-3">{"\n"}</p>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
