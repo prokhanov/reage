@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
         template_name: templateType,
         recipient_email: recipient,
         status: 'pending',
-        metadata: { test: isTest, ...(bookingId ? { booking_id: bookingId } : {}) },
+        metadata: { test: isTest, ...(sentBy ? { sent_by: sentBy } : {}), ...(bookingId ? { booking_id: bookingId } : {}) },
       })
     } catch { /* best effort */ }
 
