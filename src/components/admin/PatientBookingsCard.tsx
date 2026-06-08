@@ -98,6 +98,43 @@ const statusColors: Record<BookingStatus, string> = {
   uploaded: "bg-emerald-600 text-white border-emerald-600",
 };
 
+type TemplateKey = "scheduled" | "received" | "collected" | "uploaded";
+
+const TEMPLATE_LABELS: Record<TemplateKey, string> = {
+  scheduled: "Запись назначена",
+  received: "Биоматериал получен",
+  collected: "Анализ в работе",
+  uploaded: "Отчёт готов",
+};
+
+const SMS_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
+  scheduled: "booking_scheduled",
+  received: "booking_received",
+  collected: "booking_collected",
+  uploaded: "booking_uploaded",
+};
+
+const EMAIL_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
+  scheduled: "booking_scheduled",
+  received: "booking_received",
+  collected: "booking_collected",
+  uploaded: "booking_uploaded",
+};
+
+const TG_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
+  scheduled: "booking_scheduled",
+  received: "booking_received",
+  collected: "booking_collected",
+  uploaded: "booking_uploaded",
+};
+
+const STATUS_TO_TEMPLATE_KEY: Partial<Record<BookingStatus, TemplateKey>> = {
+  scheduled: "scheduled",
+  received: "received",
+  collected: "collected",
+  uploaded: "uploaded",
+};
+
 interface Booking {
   id: string;
   user_id: string;
