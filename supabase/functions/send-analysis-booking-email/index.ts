@@ -152,13 +152,15 @@ Deno.serve(async (req) => {
     const messageId = crypto.randomUUID()
     const unsubscribeToken = await getOrCreateUnsubscribeToken(supabase, recipient)
 
+    const bookingId: string | undefined = body.booking_id || body.vars?.booking_id
+
     try {
       await supabase.from('email_send_log').insert({
         message_id: messageId,
         template_name: TEMPLATE_TYPE,
         recipient_email: recipient,
         status: 'pending',
-        metadata: { test: isTest },
+        metadata: { test: isTest, ...(bookingId ? { booking_id: bookingId } : {}) },
       })
     } catch { /* best effort */ }
 
@@ -181,7 +183,7 @@ Deno.serve(async (req) => {
         label: TEMPLATE_TYPE,
         unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
-        metadata: { test: isTest, vars },
+        metadata: { test: isTest, vars, ...(bookingId ? { booking_id: bookingId } : {}) },
       },
     })
 

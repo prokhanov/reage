@@ -26,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
+import { PatientBookingsCard } from "@/components/admin/PatientBookingsCard";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -324,31 +325,12 @@ export default function PatientProfile() {
           </CardContent>
         </Card>
 
-        {/* Next Analysis Date Card */}
-        {latestBooking && latestBooking.status === 'collected' && latestBooking.next_analysis_date && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Следующий анализ</p>
-                    <p className="text-lg font-semibold">
-                      {format(new Date(latestBooking.next_analysis_date), "PPP", { locale: ru })}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowNextAnalysisDialog(true)}
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Изменить
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Bookings management */}
+        {userId && (
+          <PatientBookingsCard
+            userId={userId}
+            patient={{ name: profile.name, email: profile.email, phone: profile.phone }}
+          />
         )}
 
         <Tabs defaultValue="medical-history" className="space-y-4">
