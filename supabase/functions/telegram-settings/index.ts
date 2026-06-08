@@ -96,6 +96,7 @@ Deno.serve(async (req) => {
         chat_id: settings.chat_id,
         bot_token: settings.bot_token || "",
         enabled_events: settings.enabled_events,
+        booking_templates: (settings as any).booking_templates ?? {},
       });
     }
 
@@ -111,6 +112,9 @@ Deno.serve(async (req) => {
       if (body.enabled_events && typeof body.enabled_events === "object") {
         update.enabled_events = body.enabled_events;
       }
+      if (body.booking_templates && typeof body.booking_templates === "object") {
+        update.booking_templates = body.booking_templates;
+      }
       const { error } = await admin
         .from("telegram_notification_settings")
         .update(update)
@@ -118,6 +122,7 @@ Deno.serve(async (req) => {
       if (error) return json({ error: error.message }, 500);
       return json({ ok: true });
     }
+
 
     case "test_connection": {
       const botToken = (typeof body.bot_token === "string" && body.bot_token.trim() && !body.bot_token.includes("…"))
