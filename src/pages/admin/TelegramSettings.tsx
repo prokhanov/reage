@@ -54,12 +54,14 @@ export default function TelegramSettings() {
   const [chatId, setChatId] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [enabledEvents, setEnabledEvents] = useState<Record<string, boolean>>({});
+  const [bookingTemplates, setBookingTemplates] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testingEvent, setTestingEvent] = useState<string | null>(null);
   const [connStatus, setConnStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [showToken, setShowToken] = useState(false);
+
 
   async function loadStatus() {
     setLoading(true);
