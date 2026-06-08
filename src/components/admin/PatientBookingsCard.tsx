@@ -622,3 +622,104 @@ function CreateBookingForPatientDialog({
     </Dialog>
   );
 }
+
+function ContactConfirmDialog({
+  type,
+  userId,
+  initialValue,
+  onClose,
+  onConfirm,
+}: {
+  type: "email" | "sms";
+  userId: string;
+  initialValue: string;
+  onClose: () => void;
+  onConfirm: (value: string) => Promise<void>;
+}) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [value, setValue] = useState(initialValue);
+  const [submitting, setSubmitting] = useState(false);
+
+  const isEmail = type === "email";
+  const label = isEmail ? "Email пациента" : "Телефон пациента";
+  const placeholder = isEmail ? "name@example.com" : "79991234567";
+  const title = isEmail
+    ? "Отправка email-подтверждения"
+    : "Отправка SMS-напоминания";
+
+  const validate = (v: string): string | null => {
+    const t = v.trim();
+    if (!t) return "Поле обязательно";
+    if (isEmail) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)) return "Некорректный email";
+    } else {
+      const digits = t.replace(/\D/g, "");
+      if (digits.length < 10 || digits.length > 15) return "Некорректный номер";
+    }
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    const trimmed = value.trim();
+    const err = validate(trimmed);
+    if (err) {
+      toast({ title: err, variant: "destructive" });
+      return;
+    }
+    const normalized = isEmail ? trimmed.toLowerCase() : trimmed.replace(/\D/g, "");
+    setSubmitting(true);
+    try {
+      if (normalized !== (initialValue || "").trim()) {
+        const patch = isEmail ? { email: normalized } : { phone: normalized };
+        const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
+        if (error) throw error;
+        qc.invalidateQueries({ queryKey: ["patient-profile", userId] });
+        qc.invalidateQueries({ queryKey: ["patient-info", userId] });
+      }
+      await onConfirm(normalized);
+    } catch (e: any) {
+      toast({
+        title: "Ошибка",
+        description: e?.message || "Не удалось сохранить",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-2">
+          <Label htmlFor="contact-value">{label}</Label>
+          <Input
+            id="contact-value"
+            type={isEmail ? "email" : "tel"}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={placeholder}
+            autoFocus
+          />
+          <p className="text-xs text-muted-foreground">
+            {initialValue
+              ? "Значение из профиля. Можно изменить — будет сохранено и использовано для отправки."
+              : "В профиле пациента контакт не указан. Введите значение — оно будет сохранено."}
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={submitting}>
+            Отмена
+          </Button>
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Отправка…" : "Отправить"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
