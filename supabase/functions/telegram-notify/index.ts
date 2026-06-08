@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const text = buildMessage(eventType, payload, isTest);
+    const text = buildMessage(eventType, payload, isTest, (settings as any).booking_templates ?? null);
 
     const tgResp = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
       method: "POST",
