@@ -236,7 +236,6 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
                     onValueChange={setPatientSearch}
                     autoComplete="off"
                     name="patient-search-no-autofill"
-                    type="search"
                   />
                   <CommandList>
                     <CommandEmpty>Не найдено</CommandEmpty>
