@@ -9,7 +9,14 @@ export type SendStatus =
   | "suppressed"
   | "bounced"
   | "complained"
-  | "skipped";
+  | "skipped"
+  | "delivered"
+  | "undelivered"
+  | "expired"
+  | "wrongnumber"
+  | "rejected"
+  | "moderation"
+  | "queued";
 
 export type NotificationChannel = "email" | "sms" | "telegram";
 
@@ -22,6 +29,7 @@ export interface NotificationEvent {
   errorMessage: string | null;
   sentBy: string | null;
   createdAt: string;
+  deliveredAt?: string | null;
 }
 
 export interface BookingNotifications {
@@ -31,7 +39,17 @@ export interface BookingNotifications {
   pendingCount: number;
 }
 
-const failedStatuses: SendStatus[] = ["failed", "dlq", "bounced", "complained"];
+const failedStatuses: SendStatus[] = [
+  "failed",
+  "dlq",
+  "bounced",
+  "complained",
+  "undelivered",
+  "expired",
+  "wrongnumber",
+  "rejected",
+];
+const deliveredStatuses: SendStatus[] = ["sent", "delivered"];
 
 export function useBookingNotifications(bookingId: string | null) {
   return useQuery<BookingNotifications>({
@@ -51,7 +69,7 @@ export function useBookingNotifications(bookingId: string | null) {
           .limit(50),
         supabase
           .from("sms_send_log")
-          .select("id, message_id, status, created_at, error_message, template_name, recipient_phone, metadata")
+          .select("id, message_id, status, created_at, error_message, template_name, recipient_phone, metadata, delivered_at")
           .filter("metadata->>booking_id", "eq", bookingId)
           .order("created_at", { ascending: false })
           .limit(50),
@@ -100,6 +118,7 @@ export function useBookingNotifications(bookingId: string | null) {
           errorMessage: row.error_message,
           sentBy: (meta.sent_by as string | undefined) ?? null,
           createdAt: row.created_at,
+          deliveredAt: (row as any).delivered_at ?? null,
         });
       }
 
@@ -126,9 +145,9 @@ export function useBookingNotifications(bookingId: string | null) {
       let failedCount = 0;
       let pendingCount = 0;
       for (const e of events) {
-        if (e.status === "sent") sentCount++;
+        if (deliveredStatuses.includes(e.status)) sentCount++;
         else if (failedStatuses.includes(e.status)) failedCount++;
-        else if (e.status === "pending") pendingCount++;
+        else pendingCount++;
       }
 
       return { events, sentCount, failedCount, pendingCount };
