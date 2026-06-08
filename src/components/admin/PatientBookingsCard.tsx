@@ -374,25 +374,11 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Уведомления</DropdownMenuLabel>
                           <DropdownMenuItem
-                            disabled={sendEmail.isPending}
-                            onClick={() => setConfirmContact({ type: "email", booking: b })}
-                          >
-                            <Mail className="w-4 h-4 mr-2" />
-                            Email подтверждение
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={sendSms.isPending}
-                            onClick={() => setConfirmContact({ type: "sms", booking: b })}
-                          >
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            SMS-напоминание
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={sendTg.isPending}
-                            onClick={() => sendTg.mutate(b)}
+                            disabled={sendEmail.isPending || sendSms.isPending || sendTg.isPending}
+                            onClick={() => setSendDialog(b)}
                           >
                             <Send className="w-4 h-4 mr-2" />
-                            Telegram админам
+                            Отправить напоминания
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
