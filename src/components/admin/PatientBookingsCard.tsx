@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -66,7 +66,8 @@ import { cn } from "@/lib/utils";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import AssignStaffDialog from "@/components/admin/AssignStaffDialog";
-import { BookingNotificationBadges } from "@/components/admin/BookingNotificationBadges";
+import { BookingNotificationsCell } from "@/components/admin/BookingNotificationsCell";
+import { BookingNotificationsHistory } from "@/components/admin/BookingNotificationsHistory";
 
 type BookingStatus =
   | "waiting_call"
@@ -124,6 +125,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [sendDialog, setSendDialog] = useState<Booking | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["patient-bookings", userId],
@@ -292,105 +294,123 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {bookings.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell>
-                      <button
-                        onClick={() => setEditing(b)}
-                        className="text-left hover:text-primary"
-                      >
-                        <div className="font-medium border-b border-dotted border-current">
-                          {format(new Date(b.booking_date), "d MMM yyyy", { locale: ru })}
-                        </div>
-                        <div className="text-xs text-muted-foreground border-b border-dotted border-current inline-block">
-                          {(b.booking_time || "").slice(0, 5)}
-                        </div>
-                      </button>
-                    </TableCell>
-                    <TableCell className="max-w-[220px]">
-                      <button
-                        onClick={() => setEditing(b)}
-                        className="truncate border-b border-dotted border-current hover:text-primary block max-w-full text-left"
-                      >
-                        {b.address || "—"}
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={b.status}
-                        onValueChange={(v) =>
-                          statusMutation.mutate({ id: b.id, status: v as BookingStatus })
-                        }
-                      >
-                        <SelectTrigger className="h-7 w-auto gap-1 border-none p-0 bg-transparent shadow-none">
-                          <Badge
-                            variant="outline"
-                            className={cn("font-normal cursor-pointer", statusColors[b.status])}
+                {bookings.map((b) => {
+                  const isExpanded = expandedId === b.id;
+                  return (
+                    <Fragment key={b.id}>
+                      <TableRow>
+                        <TableCell>
+                          <button
+                            onClick={() => setEditing(b)}
+                            className="text-left hover:text-primary"
                           >
-                            {statusLabels[b.status]}
-                          </Badge>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(Object.keys(statusLabels) as BookingStatus[]).map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {statusLabels[s]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() => setAssignFor(b)}
-                        className="border-b border-dotted border-current hover:text-primary"
-                      >
-                        {b.assigned_staff_id
-                          ? staffMap?.[b.assigned_staff_id] ?? "—"
-                          : "Назначить"}
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() => setEditingNext(b)}
-                        className="border-b border-dotted border-current hover:text-primary text-sm"
-                      >
-                        {b.next_analysis_date
-                          ? format(new Date(b.next_analysis_date), "d MMM yyyy", { locale: ru })
-                          : "—"}
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <BookingNotificationBadges bookingId={b.id} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Уведомления</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            disabled={sendEmail.isPending || sendSms.isPending || sendTg.isPending}
-                            onClick={() => setSendDialog(b)}
+                            <div className="font-medium border-b border-dotted border-current">
+                              {format(new Date(b.booking_date), "d MMM yyyy", { locale: ru })}
+                            </div>
+                            <div className="text-xs text-muted-foreground border-b border-dotted border-current inline-block">
+                              {(b.booking_time || "").slice(0, 5)}
+                            </div>
+                          </button>
+                        </TableCell>
+                        <TableCell className="max-w-[220px]">
+                          <button
+                            onClick={() => setEditing(b)}
+                            className="truncate border-b border-dotted border-current hover:text-primary block max-w-full text-left"
                           >
-                            <Send className="w-4 h-4 mr-2" />
-                            Отправить напоминания
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => setDeleteId(b.id)}
+                            {b.address || "—"}
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={b.status}
+                            onValueChange={(v) =>
+                              statusMutation.mutate({ id: b.id, status: v as BookingStatus })
+                            }
                           >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Удалить запись
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                            <SelectTrigger className="h-7 w-auto gap-1 border-none p-0 bg-transparent shadow-none">
+                              <Badge
+                                variant="outline"
+                                className={cn("font-normal cursor-pointer", statusColors[b.status])}
+                              >
+                                {statusLabels[b.status]}
+                              </Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.keys(statusLabels) as BookingStatus[]).map((s) => (
+                                <SelectItem key={s} value={s}>
+                                  {statusLabels[s]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => setAssignFor(b)}
+                            className="border-b border-dotted border-current hover:text-primary"
+                          >
+                            {b.assigned_staff_id
+                              ? staffMap?.[b.assigned_staff_id] ?? "—"
+                              : "Назначить"}
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => setEditingNext(b)}
+                            className="border-b border-dotted border-current hover:text-primary text-sm"
+                          >
+                            {b.next_analysis_date
+                              ? format(new Date(b.next_analysis_date), "d MMM yyyy", { locale: ru })
+                              : "—"}
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <BookingNotificationsCell
+                            bookingId={b.id}
+                            expanded={isExpanded}
+                            onToggle={() =>
+                              setExpandedId((cur) => (cur === b.id ? null : b.id))
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Уведомления</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                disabled={sendEmail.isPending || sendSms.isPending || sendTg.isPending}
+                                onClick={() => setSendDialog(b)}
+                              >
+                                <Send className="w-4 h-4 mr-2" />
+                                Отправить напоминания
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => setDeleteId(b.id)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Удалить запись
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && (
+                        <TableRow className="hover:bg-transparent">
+                          <TableCell colSpan={7} className="p-0">
+                            <BookingNotificationsHistory bookingId={b.id} />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
