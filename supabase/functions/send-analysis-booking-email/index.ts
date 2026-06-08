@@ -15,7 +15,23 @@ const FROM_ADDRESS = `Команда ReAge <hello@${SENDER_DOMAIN}>`
 const REPLY_TO = `hello@${SENDER_DOMAIN}`
 const APP_URL = 'https://reage.life'
 const COMPANY_LEGAL = 'ООО «РиЭйдж», Москва'
-const TEMPLATE_TYPE = 'analysis_booking'
+const DEFAULT_TEMPLATE_TYPE = 'analysis_booking'
+
+const STATUS_TO_TEMPLATE: Record<string, string> = {
+  scheduled: 'booking_scheduled',
+  received: 'booking_received',
+  collected: 'booking_collected',
+  uploaded: 'booking_uploaded',
+}
+
+const ALLOWED_TEMPLATES = new Set([
+  'analysis_booking',
+  'booking_scheduled',
+  'booking_received',
+  'booking_collected',
+  'booking_uploaded',
+])
+
 
 interface Template {
   template_type: string
