@@ -131,12 +131,19 @@ export default function SmsSettings() {
         ...t,
         variables: Array.isArray(t.variables) ? t.variables : [],
       })) as SmsTemplate[];
+      list.sort((a, b) => {
+        const oa = TYPE_ORDER[a.type] ?? 99;
+        const ob = TYPE_ORDER[b.type] ?? 99;
+        if (oa !== ob) return oa - ob;
+        return (a.name || "").localeCompare(b.name || "");
+      });
       setTemplates(list);
       if (list.length && !activeTpl) setActiveTpl(list[0].id);
       if (list.length && !testTplId) setTestTplId(list[0].id);
     }
     setLoadingTpl(false);
   };
+
 
   const handleSaveSender = async () => {
     setSavingSender(true);
