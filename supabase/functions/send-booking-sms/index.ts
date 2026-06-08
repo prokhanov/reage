@@ -1,4 +1,5 @@
-// Sends SMS reminder for an analysis booking. Admin-authenticated.
+// Sends SMS reminder/notification for an analysis booking. Admin-authenticated.
+// Template is chosen by `template_name` if provided, otherwise auto-mapped from booking.status.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
 import { normalizePhone, renderTemplate, sendSms } from "../_shared/smsaero.ts";
 
@@ -7,6 +8,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const STATUS_TO_TEMPLATE: Record<string, string> = {
+  scheduled: "booking_scheduled",
+  received: "booking_received",
+  collected: "booking_collected",
+  uploaded: "booking_uploaded",
+};
+
+const ALLOWED_TEMPLATES = new Set([
+  "booking_scheduled",
+  "booking_received",
+  "booking_collected",
+  "booking_uploaded",
+  "appointment_reminder",
+]);
+
+const APP_URL = "https://reage.life";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -43,12 +61,16 @@ Deno.serve(async (req) => {
     if (!perm) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
-    const { booking_id, phone_override } = body as { booking_id?: string; phone_override?: string };
+    const { booking_id, phone_override, template_name: requestedTemplate } = body as {
+      booking_id?: string;
+      phone_override?: string;
+      template_name?: string;
+    };
     if (!booking_id) return json({ error: "booking_id is required" }, 400);
 
     const { data: booking, error: bErr } = await admin
       .from("analysis_bookings")
-      .select("id, user_id, booking_date, booking_time, address")
+      .select("id, user_id, booking_date, booking_time, address, status")
       .eq("id", booking_id)
       .maybeSingle();
     if (bErr || !booking) return json({ error: "Booking not found" }, 404);
@@ -65,12 +87,29 @@ Deno.serve(async (req) => {
     const normalized = normalizePhone(phoneSource);
     if (normalized.length < 11) return json({ error: "Некорректный номер телефона" }, 400);
 
-    const { data: tpl } = await admin
+    // Resolve template name: explicit > by status > legacy fallback.
+    let templateName =
+      (requestedTemplate && ALLOWED_TEMPLATES.has(requestedTemplate) && requestedTemplate) ||
+      STATUS_TO_TEMPLATE[booking.status as string] ||
+      "appointment_reminder";
+
+    let { data: tpl } = await admin
       .from("sms_templates")
       .select("id, name, body_text")
-      .eq("name", "appointment_reminder")
+      .eq("name", templateName)
       .maybeSingle();
-    if (!tpl) return json({ error: "Шаблон appointment_reminder не найден" }, 404);
+
+    // Fallback to legacy template if status template not provisioned yet
+    if (!tpl && templateName !== "appointment_reminder") {
+      const { data: legacy } = await admin
+        .from("sms_templates")
+        .select("id, name, body_text")
+        .eq("name", "appointment_reminder")
+        .maybeSingle();
+      tpl = legacy;
+      templateName = "appointment_reminder";
+    }
+    if (!tpl) return json({ error: `Шаблон ${templateName} не найден` }, 404);
 
     const dateStr = new Date(booking.booking_date).toLocaleDateString("ru-RU", {
       day: "2-digit",
@@ -82,7 +121,8 @@ Deno.serve(async (req) => {
       date: dateStr,
       time: (booking.booking_time || "").slice(0, 5),
       address: booking.address || "",
-      name: profile.name || "",
+      name: profile?.name || "",
+      url: `${APP_URL}/profile`,
     });
 
     const { data: sender } = await admin
@@ -100,7 +140,7 @@ Deno.serve(async (req) => {
       body_text: text,
       status: "pending",
       provider: "smsaero",
-      metadata: { booking_id, sent_by: user.id },
+      metadata: { booking_id, sent_by: user.id, template_name: tpl.name },
     });
 
     const result = await sendSms({
@@ -118,13 +158,14 @@ Deno.serve(async (req) => {
       provider: "smsaero",
       provider_message_id: result.providerMessageId,
       error_message: result.ok ? null : (result.error ?? "Unknown error"),
-      metadata: { booking_id, sent_by: user.id, provider_status: result.status },
+      metadata: { booking_id, sent_by: user.id, provider_status: result.status, template_name: tpl.name },
     });
 
     return json({
       success: result.ok,
       message: result.ok ? `SMS отправлено на ${normalized}` : `Ошибка: ${result.error}`,
       error: result.ok ? undefined : result.error,
+      template_name: tpl.name,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
