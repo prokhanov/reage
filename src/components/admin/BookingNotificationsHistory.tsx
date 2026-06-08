@@ -19,8 +19,8 @@ function channelMeta(c: NotificationChannel) {
   return { icon: Send, label: "Telegram" };
 }
 
-function statusBadge(status: SendStatus) {
-  if (status === "sent") {
+function statusBadge(status: SendStatus, channel: NotificationChannel) {
+  if (status === "delivered") {
     return {
       icon: <Check className="w-3 h-3" />,
       label: "Доставлено",
@@ -28,10 +28,21 @@ function statusBadge(status: SendStatus) {
         "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
     };
   }
-  if (status === "pending") {
+  if (status === "sent") {
+    // Для SMS «sent» значит «принято шлюзом», финальный статус ждём от webhook.
+    return {
+      icon: channel === "sms" ? <Clock className="w-3 h-3" /> : <Check className="w-3 h-3" />,
+      label: channel === "sms" ? "Отправлено" : "Доставлено",
+      className:
+        channel === "sms"
+          ? "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-900"
+          : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
+    };
+  }
+  if (status === "pending" || status === "queued" || status === "moderation") {
     return {
       icon: <Clock className="w-3 h-3" />,
-      label: "В очереди",
+      label: status === "moderation" ? "Модерация" : "В очереди",
       className:
         "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900",
     };
@@ -43,16 +54,19 @@ function statusBadge(status: SendStatus) {
       className: "bg-muted text-muted-foreground border-muted",
     };
   }
+  const failLabels: Record<string, string> = {
+    dlq: "Не доставлено",
+    bounced: "Отскок",
+    complained: "Жалоба",
+    undelivered: "Не доставлено",
+    expired: "Истёк срок",
+    wrongnumber: "Неверный номер",
+    rejected: "Отклонено",
+    failed: "Ошибка",
+  };
   return {
     icon: <X className="w-3 h-3" />,
-    label:
-      status === "dlq"
-        ? "Не доставлено"
-        : status === "bounced"
-        ? "Отскок"
-        : status === "complained"
-        ? "Жалоба"
-        : "Ошибка",
+    label: failLabels[status] ?? "Ошибка",
     className:
       "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900",
   };
