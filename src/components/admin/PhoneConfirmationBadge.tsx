@@ -209,7 +209,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
 
           {stage === "edit" ? (
             <div className="space-y-4 py-2">
-              <PhoneInput value={input} onChange={setInput} />
+              <PhoneInput value={input} onChange={setInput} className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
               <p className="text-xs text-muted-foreground">
                 Начните с «+» и кода страны. Страна определится автоматически.
               </p>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
@@ -115,13 +115,16 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
 
           <div className="space-y-2">
             <Label htmlFor="phone">Телефон *</Label>
-            <PhoneInput
-              id="phone"
-              value={formData.phone}
-              onChange={(v) => updateFormData({ phone: v })}
-              placeholder="+7 (999) 123-45-67"
-              className={cn("w-full", showErrors && errors.phone && "border-destructive focus-visible:ring-destructive")}
-            />
+            <div className="relative">
+              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <PhoneInput
+                id="phone"
+                value={formData.phone}
+                onChange={(v) => updateFormData({ phone: v })}
+                placeholder="+7 (999) 123-45-67"
+                className={cn("pl-10 w-full", showErrors && errors.phone && "border-destructive focus-visible:ring-destructive")}
+              />
+            </div>
             {showErrors && errors.phone && (
               <p className="text-xs text-destructive">
                 Введите номер телефона полностью
