@@ -201,12 +201,12 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendEmail = useMutation({
-    mutationFn: async (b: Booking) => {
-      if (!patient.email) throw new Error("У пациента не указан email");
+    mutationFn: async ({ b, email }: { b: Booking; email: string }) => {
+      if (!email) throw new Error("Не указан email");
       const dateStr = format(new Date(b.booking_date), "d MMMM yyyy", { locale: ru });
       const { error } = await supabase.functions.invoke("send-analysis-booking-email", {
         body: {
-          recipient_email: patient.email,
+          recipient_email: email,
           booking_id: b.id,
           vars: {
             patient_name: patient.name || "",
@@ -227,9 +227,10 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendSms = useMutation({
-    mutationFn: async (b: Booking) => {
+    mutationFn: async ({ b, phone }: { b: Booking; phone: string }) => {
+      if (!phone) throw new Error("Не указан телефон");
       const { data, error } = await supabase.functions.invoke("send-booking-sms", {
-        body: { booking_id: b.id },
+        body: { booking_id: b.id, phone_override: phone },
       });
       if (error) throw error;
       if (data && (data as any).success === false) {
