@@ -107,9 +107,11 @@ Deno.serve(async (req) => {
     const updates: Record<string, unknown> = {
       status: mapped.status,
       provider_status: String(rawStatus ?? ""),
+      // Всегда перезаписываем error_message актуальным значением,
+      // чтобы при переходе из expired/failed → delivered не оставался устаревший текст.
+      error_message: mapped.reason ?? null,
     };
     if (mapped.delivered) updates.delivered_at = new Date().toISOString();
-    if (mapped.reason) updates.error_message = mapped.reason;
 
     const { error, data } = await supabase
       .from("sms_send_log")
