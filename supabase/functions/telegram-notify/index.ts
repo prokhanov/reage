@@ -62,6 +62,27 @@ export function buildMessage(eventType: string, payload: Record<string, any>, is
         `🕒 ${e(formatDate(payload.start_date || new Date().toISOString()))}`
       );
     }
+    case "booking_status_changed": {
+      const statusLabels: Record<string, string> = {
+        waiting_call: "Ожидает звонка",
+        no_answer: "Не дозвонились",
+        not_scheduled: "Не назначен",
+        scheduled: "Назначен",
+        received: "Получен",
+        collected: "Обрабатывается",
+        uploaded: "Загружен",
+      };
+      const statusLabel = statusLabels[String(payload.status)] || String(payload.status || "—");
+      return (
+        prefix +
+        "📅 <b>Запись на анализ</b>\n" +
+        `👤 ${e(payload.name || "—")} (${e(payload.email || "—")})\n` +
+        `📱 ${e(payload.phone || "—")}\n` +
+        `🗓 ${e(payload.booking_date || "—")} ${e((payload.booking_time || "").slice(0,5))}\n` +
+        `📍 ${e(payload.address || "—")}\n` +
+        `🏷 Статус: <b>${e(statusLabel)}</b>`
+      );
+    }
     default:
       return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
   }
