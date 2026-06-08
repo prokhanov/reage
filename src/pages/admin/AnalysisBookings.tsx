@@ -517,6 +517,10 @@ export default function AnalysisBookings() {
         <TabsContent value="slots">
           <DaySlotsManager />
         </TabsContent>
+
+        <TabsContent value="settings">
+          <BookingModeSettings />
+        </TabsContent>
       </Tabs>
 
       {selectedBookingForStaff && (
