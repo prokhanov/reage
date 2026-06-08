@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePhone } from "@/lib/phone";
@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { 
   Heart, User, Calendar, Weight, Ruler, 
   ChevronLeft, ChevronRight, Check, Mail, Lock,
+  ArrowLeft,
 } from "lucide-react";
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
@@ -265,14 +266,22 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground />
-      
+
+      <Link
+        to="/"
+        className="absolute top-4 left-4 md:top-8 md:left-8 z-20 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group"
+      >
+        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+        <span className="hidden sm:inline">На главную</span>
+      </Link>
+
       <div className={cn("w-full relative z-10", currentStep === 2 ? "max-w-5xl" : "max-w-2xl")}>
         <div className="w-full">
           {/* Header */}
           <div className="text-center mb-8 animate-fade-in pt-6">
-            <div className="inline-flex items-center gap-2 mb-2">
+            <Link to="/" className="inline-flex items-center gap-2 mb-2">
               <ThemedLogo eager className="h-24 w-auto" />
-            </div>
+            </Link>
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
             <p className="text-muted-foreground text-lg mb-3">{"\n"}</p>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
