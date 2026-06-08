@@ -345,8 +345,11 @@ export default function AnalysisBookings() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="waiting_call">Ожидает звонка</SelectItem>
+              <SelectItem value="no_answer">Не дозвонились</SelectItem>
               <SelectItem value="scheduled">Назначен</SelectItem>
-              <SelectItem value="collected">Получен</SelectItem>
+              <SelectItem value="received">Получен</SelectItem>
+              <SelectItem value="collected">Обрабатывается</SelectItem>
               <SelectItem value="uploaded">Загружен</SelectItem>
             </SelectContent>
           </Select>
