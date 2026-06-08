@@ -201,13 +201,14 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendEmail = useMutation({
-    mutationFn: async ({ b, email }: { b: Booking; email: string }) => {
+    mutationFn: async ({ b, email, templateKey }: { b: Booking; email: string; templateKey: TemplateKey }) => {
       if (!email) throw new Error("Не указан email");
       const dateStr = format(new Date(b.booking_date), "d MMMM yyyy", { locale: ru });
       const { error } = await supabase.functions.invoke("send-analysis-booking-email", {
         body: {
           recipient_email: email,
           booking_id: b.id,
+          template_type: EMAIL_TEMPLATE_BY_KEY[templateKey],
           vars: {
             patient_name: patient.name || "",
             appointment_date: dateStr,
@@ -227,10 +228,10 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendSms = useMutation({
-    mutationFn: async ({ b, phone }: { b: Booking; phone: string }) => {
+    mutationFn: async ({ b, phone, templateKey }: { b: Booking; phone: string; templateKey: TemplateKey }) => {
       if (!phone) throw new Error("Не указан телефон");
       const { data, error } = await supabase.functions.invoke("send-booking-sms", {
-        body: { booking_id: b.id, phone_override: phone },
+        body: { booking_id: b.id, phone_override: phone, template_name: SMS_TEMPLATE_BY_KEY[templateKey] },
       });
       if (error) throw error;
       if (data && (data as any).success === false) {
@@ -246,9 +247,9 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendTg = useMutation({
-    mutationFn: async (b: Booking) => {
+    mutationFn: async ({ b, templateKey }: { b: Booking; templateKey: TemplateKey }) => {
       const { data, error } = await supabase.functions.invoke("send-booking-telegram", {
-        body: { booking_id: b.id },
+        body: { booking_id: b.id, template_key: TG_TEMPLATE_BY_KEY[templateKey] },
       });
       if (error) throw error;
       if (data && (data as any).success === false) {
