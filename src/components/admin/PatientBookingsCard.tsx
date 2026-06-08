@@ -683,6 +683,7 @@ function SendRemindersDialog({
     sendSmsOn: boolean;
     phone: string;
     sendTgOn: boolean;
+    templateKey: TemplateKey;
   }) => Promise<void>;
 }) {
   const { toast } = useToast();
@@ -692,6 +693,9 @@ function SendRemindersDialog({
   const [tgOn, setTgOn] = useState(true);
   const [email, setEmail] = useState(initialEmail);
   const [phone, setPhone] = useState(initialPhone);
+  const [templateKey, setTemplateKey] = useState<TemplateKey>(
+    STATUS_TO_TEMPLATE_KEY[booking.status] ?? "scheduled"
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const validateEmail = (v: string) =>
