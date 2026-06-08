@@ -28,12 +28,10 @@ type SmsTemplate = {
 
 const TYPE_LABELS: Record<string, string> = {
   otp: "Код подтверждения",
-  appointment_reminder: "Напоминание о записи (старый шаблон)",
-  booking_scheduled: "Запись на анализы — назначена",
-  booking_received: "Запись на анализы — биоматериал получен",
-  booking_collected: "Запись на анализы — в работе",
-  booking_uploaded: "Запись на анализы — отчёт готов",
-  report_ready: "Отчёт готов",
+  booking_scheduled: "Запись назначена",
+  booking_received: "Биоматериал получен",
+  booking_collected: "Анализ в работе",
+  booking_uploaded: "Отчёт готов",
   custom: "Произвольное",
 };
 
@@ -43,9 +41,7 @@ const TYPE_ORDER: Record<string, number> = {
   booking_received: 11,
   booking_collected: 12,
   booking_uploaded: 13,
-  appointment_reminder: 14,
   otp: 20,
-  report_ready: 21,
   custom: 30,
 };
 
