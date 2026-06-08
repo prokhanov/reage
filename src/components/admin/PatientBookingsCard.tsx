@@ -762,6 +762,24 @@ function SendRemindersDialog({
           <DialogTitle>Отправить напоминания</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>Шаблон уведомления</Label>
+            <Select value={templateKey} onValueChange={(v) => setTemplateKey(v as TemplateKey)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(TEMPLATE_LABELS) as TemplateKey[]).map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {TEMPLATE_LABELS[k]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              По умолчанию выбран шаблон, соответствующий текущему статусу записи.
+            </p>
+          </div>
           <div className="space-y-2 rounded-md border p-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
