@@ -28,8 +28,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock, Settings } from "lucide-react";
+import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock, Settings, Plus } from "lucide-react";
 import { BookingModeSettings } from "@/components/admin/BookingModeSettings";
+import { CreateBookingDialog } from "@/components/admin/CreateBookingDialog";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -99,6 +100,7 @@ export default function AnalysisBookings() {
   const [selectedBookingForStaff, setSelectedBookingForStaff] = useState<string | null>(null);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<{
     id: string;
     date: string;
@@ -368,6 +370,11 @@ export default function AnalysisBookings() {
               ))}
             </SelectContent>
           </Select>
+
+          <Button onClick={() => setCreateOpen(true)} className="md:ml-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Добавить запись
+          </Button>
           </div>
         </CardHeader>
         
@@ -571,6 +578,8 @@ export default function AnalysisBookings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CreateBookingDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }
