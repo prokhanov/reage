@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Send, CheckCircle2, XCircle, AlertCircle, Loader2, Eye, EyeOff, Copy } from "lucide-react";
 
@@ -17,12 +18,22 @@ const EVENTS: EventDef[] = [
   { key: "subscription_paid", label: "Новая оплата", description: "Когда подписка переходит в статус «активна»" },
 ];
 
+const BOOKING_TEMPLATE_KEYS: { key: string; label: string; description: string }[] = [
+  { key: "booking_scheduled", label: "Запись назначена", description: "Когда админ вручную отправляет уведомление при статусе «Назначен»" },
+  { key: "booking_received", label: "Биоматериал получен", description: "Когда курьер передал пробу в лабораторию" },
+  { key: "booking_collected", label: "Анализ в работе", description: "Когда лаборатория обрабатывает анализы" },
+  { key: "booking_uploaded", label: "Отчёт готов", description: "Когда персональный отчёт загружен в кабинет" },
+];
+
+const BOOKING_PLACEHOLDERS = "Доступные переменные: {patient}, {email}, {phone}, {date}, {time}, {address}, {status}, {url}. Поддерживается HTML: <b>, <i>, <a href=\"…\">.";
+
 interface Status {
   configured: boolean;
   is_active: boolean;
   chat_id: string | null;
   bot_token: string;
   enabled_events: Record<string, boolean>;
+  booking_templates?: Record<string, string>;
 }
 
 interface LogRow {
@@ -33,6 +44,7 @@ interface LogRow {
   is_test: boolean;
   sent_at: string;
 }
+
 
 export default function TelegramSettings() {
   const { toast } = useToast();
