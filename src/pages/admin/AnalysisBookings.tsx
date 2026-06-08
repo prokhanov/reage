@@ -28,7 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock } from "lucide-react";
+import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock, Settings } from "lucide-react";
+import { BookingModeSettings } from "@/components/admin/BookingModeSettings";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
