@@ -403,7 +403,11 @@ export default function AnalysisBookings() {
               </TableHeader>
               <TableBody>
                 {bookings.map((booking) => (
-                  <TableRow key={booking.id}>
+                  <TableRow
+                    key={booking.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedPatientId(booking.user_id)}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -421,12 +425,15 @@ export default function AnalysisBookings() {
                     </TableCell>
                     <TableCell>
                       <button
-                        onClick={() => setEditingBooking({
-                          id: booking.id,
-                          date: booking.booking_date,
-                          time: booking.booking_time,
-                          address: booking.address
-                        })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingBooking({
+                            id: booking.id,
+                            date: booking.booking_date,
+                            time: booking.booking_time,
+                            address: booking.address
+                          });
+                        }}
                         className="text-left hover:text-primary transition-colors cursor-pointer"
                       >
                         <div className="font-medium border-b border-dotted border-current">
@@ -439,12 +446,15 @@ export default function AnalysisBookings() {
                     </TableCell>
                     <TableCell className="max-w-[200px]">
                       <button
-                        onClick={() => setEditingBooking({
-                          id: booking.id,
-                          date: booking.booking_date,
-                          time: booking.booking_time,
-                          address: booking.address
-                        })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingBooking({
+                            id: booking.id,
+                            date: booking.booking_date,
+                            time: booking.booking_time,
+                            address: booking.address
+                          });
+                        }}
                         className="truncate border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer block max-w-full"
                       >
                         {booking.address}
@@ -460,7 +470,10 @@ export default function AnalysisBookings() {
                     </TableCell>
                     <TableCell>
                       <button
-                        onClick={() => setSelectedBookingForStaff(booking.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedBookingForStaff(booking.id);
+                        }}
                         className="font-medium border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
                       >
                         {booking.assigned_staff ? booking.assigned_staff.name : "Не назначен"}
@@ -472,7 +485,7 @@ export default function AnalysisBookings() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="sm">
                               <MoreVertical className="h-4 w-4" />
                             </Button>
@@ -505,7 +518,10 @@ export default function AnalysisBookings() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setSelectedPatientId(booking.user_id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPatientId(booking.user_id);
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
