@@ -1680,12 +1680,14 @@ export type Database = {
         Row: {
           body_text: string
           created_at: string
+          delivered_at: string | null
           error_message: string | null
           id: string
           message_id: string | null
           metadata: Json | null
           provider: string
           provider_message_id: string | null
+          provider_status: string | null
           recipient_phone: string
           status: string
           template_name: string
@@ -1693,12 +1695,14 @@ export type Database = {
         Insert: {
           body_text: string
           created_at?: string
+          delivered_at?: string | null
           error_message?: string | null
           id?: string
           message_id?: string | null
           metadata?: Json | null
           provider?: string
           provider_message_id?: string | null
+          provider_status?: string | null
           recipient_phone: string
           status?: string
           template_name: string
@@ -1706,12 +1710,14 @@ export type Database = {
         Update: {
           body_text?: string
           created_at?: string
+          delivered_at?: string | null
           error_message?: string | null
           id?: string
           message_id?: string | null
           metadata?: Json | null
           provider?: string
           provider_message_id?: string | null
+          provider_status?: string | null
           recipient_phone?: string
           status?: string
           template_name?: string
