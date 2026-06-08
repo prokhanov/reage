@@ -133,7 +133,7 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
             {events.map((e) => {
               const meta = channelMeta(e.channel);
               const Icon = meta.icon;
-              const badge = statusBadge(e.status);
+              const badge = statusBadge(e.status, e.channel);
               const senderName = e.sentBy
                 ? senderMap?.[e.sentBy] ?? "—"
                 : "Система";
