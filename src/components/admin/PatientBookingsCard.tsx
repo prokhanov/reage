@@ -742,6 +742,7 @@ function SendRemindersDialog({
         sendSmsOn: smsOn,
         phone: phoneNorm,
         sendTgOn: tgOn,
+        templateKey,
       });
     } catch (e: any) {
       toast({
