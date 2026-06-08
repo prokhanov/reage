@@ -46,8 +46,6 @@ export function HeroSection() {
       </div>
 
 
-      {/* Logo - top left */}
-      <ThemedLogo className="absolute top-4 left-4 md:left-8 z-10 h-16 md:h-20 w-auto animate-hue-shift" />
 
       {/* Theme Toggle */}
       {mounted &&
