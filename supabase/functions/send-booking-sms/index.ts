@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     if (!perm) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
-    const { booking_id } = body as { booking_id?: string };
+    const { booking_id, phone_override } = body as { booking_id?: string; phone_override?: string };
     if (!booking_id) return json({ error: "booking_id is required" }, 400);
 
     const { data: booking, error: bErr } = await admin
@@ -58,9 +58,11 @@ Deno.serve(async (req) => {
       .select("phone, name")
       .eq("id", booking.user_id)
       .maybeSingle();
-    if (!profile?.phone) return json({ error: "У пациента не указан телефон" }, 400);
 
-    const normalized = normalizePhone(profile.phone);
+    const phoneSource = (phone_override && phone_override.trim()) || profile?.phone || "";
+    if (!phoneSource) return json({ error: "У пациента не указан телефон" }, 400);
+
+    const normalized = normalizePhone(phoneSource);
     if (normalized.length < 11) return json({ error: "Некорректный номер телефона" }, 400);
 
     const { data: tpl } = await admin

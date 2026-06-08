@@ -123,6 +123,9 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   const [assignFor, setAssignFor] = useState<Booking | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [confirmContact, setConfirmContact] = useState<
+    { type: "email" | "sms"; booking: Booking } | null
+  >(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["patient-bookings", userId],
@@ -198,12 +201,12 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendEmail = useMutation({
-    mutationFn: async (b: Booking) => {
-      if (!patient.email) throw new Error("У пациента не указан email");
+    mutationFn: async ({ b, email }: { b: Booking; email: string }) => {
+      if (!email) throw new Error("Не указан email");
       const dateStr = format(new Date(b.booking_date), "d MMMM yyyy", { locale: ru });
       const { error } = await supabase.functions.invoke("send-analysis-booking-email", {
         body: {
-          recipient_email: patient.email,
+          recipient_email: email,
           booking_id: b.id,
           vars: {
             patient_name: patient.name || "",
@@ -224,9 +227,10 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendSms = useMutation({
-    mutationFn: async (b: Booking) => {
+    mutationFn: async ({ b, phone }: { b: Booking; phone: string }) => {
+      if (!phone) throw new Error("Не указан телефон");
       const { data, error } = await supabase.functions.invoke("send-booking-sms", {
-        body: { booking_id: b.id },
+        body: { booking_id: b.id, phone_override: phone },
       });
       if (error) throw error;
       if (data && (data as any).success === false) {
@@ -370,20 +374,18 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Уведомления</DropdownMenuLabel>
                           <DropdownMenuItem
-                            disabled={!patient.email || sendEmail.isPending}
-                            onClick={() => sendEmail.mutate(b)}
-                            title={!patient.email ? "У пациента не указан email" : undefined}
+                            disabled={sendEmail.isPending}
+                            onClick={() => setConfirmContact({ type: "email", booking: b })}
                           >
                             <Mail className="w-4 h-4 mr-2" />
-                            Email подтверждение {!patient.email && "(нет email)"}
+                            Email подтверждение
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            disabled={!patient.phone || sendSms.isPending}
-                            onClick={() => sendSms.mutate(b)}
-                            title={!patient.phone ? "У пациента не указан телефон в профиле" : undefined}
+                            disabled={sendSms.isPending}
+                            onClick={() => setConfirmContact({ type: "sms", booking: b })}
                           >
                             <MessageSquare className="w-4 h-4 mr-2" />
-                            SMS-напоминание {!patient.phone && "(нет телефона)"}
+                            SMS-напоминание
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             disabled={sendTg.isPending}
@@ -450,6 +452,30 @@ export function PatientBookingsCard({ userId, patient }: Props) {
           onCreated={invalidateAll}
         />
       )}
+
+      {confirmContact && (
+        <ContactConfirmDialog
+          type={confirmContact.type}
+          userId={userId}
+          initialValue={
+            confirmContact.type === "email"
+              ? patient.email || ""
+              : patient.phone || ""
+          }
+          onClose={() => setConfirmContact(null)}
+          onConfirm={async (value) => {
+            const b = confirmContact.booking;
+            if (confirmContact.type === "email") {
+              await sendEmail.mutateAsync({ b, email: value });
+            } else {
+              await sendSms.mutateAsync({ b, phone: value });
+            }
+            setConfirmContact(null);
+          }}
+        />
+      )}
+
+
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
@@ -590,6 +616,107 @@ function CreateBookingForPatientDialog({
             onClick={() => createM.mutate()}
           >
             {createM.isPending ? "Создание…" : "Создать"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ContactConfirmDialog({
+  type,
+  userId,
+  initialValue,
+  onClose,
+  onConfirm,
+}: {
+  type: "email" | "sms";
+  userId: string;
+  initialValue: string;
+  onClose: () => void;
+  onConfirm: (value: string) => Promise<void>;
+}) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [value, setValue] = useState(initialValue);
+  const [submitting, setSubmitting] = useState(false);
+
+  const isEmail = type === "email";
+  const label = isEmail ? "Email пациента" : "Телефон пациента";
+  const placeholder = isEmail ? "name@example.com" : "79991234567";
+  const title = isEmail
+    ? "Отправка email-подтверждения"
+    : "Отправка SMS-напоминания";
+
+  const validate = (v: string): string | null => {
+    const t = v.trim();
+    if (!t) return "Поле обязательно";
+    if (isEmail) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)) return "Некорректный email";
+    } else {
+      const digits = t.replace(/\D/g, "");
+      if (digits.length < 10 || digits.length > 15) return "Некорректный номер";
+    }
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    const trimmed = value.trim();
+    const err = validate(trimmed);
+    if (err) {
+      toast({ title: err, variant: "destructive" });
+      return;
+    }
+    const normalized = isEmail ? trimmed.toLowerCase() : trimmed.replace(/\D/g, "");
+    setSubmitting(true);
+    try {
+      if (normalized !== (initialValue || "").trim()) {
+        const patch = isEmail ? { email: normalized } : { phone: normalized };
+        const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
+        if (error) throw error;
+        qc.invalidateQueries({ queryKey: ["patient-profile", userId] });
+        qc.invalidateQueries({ queryKey: ["patient-info", userId] });
+      }
+      await onConfirm(normalized);
+    } catch (e: any) {
+      toast({
+        title: "Ошибка",
+        description: e?.message || "Не удалось сохранить",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-2">
+          <Label htmlFor="contact-value">{label}</Label>
+          <Input
+            id="contact-value"
+            type={isEmail ? "email" : "tel"}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={placeholder}
+            autoFocus
+          />
+          <p className="text-xs text-muted-foreground">
+            {initialValue
+              ? "Значение из профиля. Можно изменить — будет сохранено и использовано для отправки."
+              : "В профиле пациента контакт не указан. Введите значение — оно будет сохранено."}
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={submitting}>
+            Отмена
+          </Button>
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Отправка…" : "Отправить"}
           </Button>
         </DialogFooter>
       </DialogContent>
