@@ -98,6 +98,43 @@ const statusColors: Record<BookingStatus, string> = {
   uploaded: "bg-emerald-600 text-white border-emerald-600",
 };
 
+type TemplateKey = "scheduled" | "received" | "collected" | "uploaded";
+
+const TEMPLATE_LABELS: Record<TemplateKey, string> = {
+  scheduled: "Запись назначена",
+  received: "Биоматериал получен",
+  collected: "Анализ в работе",
+  uploaded: "Отчёт готов",
+};
+
+const SMS_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
+  scheduled: "booking_scheduled",
+  received: "booking_received",
+  collected: "booking_collected",
+  uploaded: "booking_uploaded",
+};
+
+const EMAIL_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
+  scheduled: "booking_scheduled",
+  received: "booking_received",
+  collected: "booking_collected",
+  uploaded: "booking_uploaded",
+};
+
+const TG_TEMPLATE_BY_KEY: Record<TemplateKey, string> = {
+  scheduled: "booking_scheduled",
+  received: "booking_received",
+  collected: "booking_collected",
+  uploaded: "booking_uploaded",
+};
+
+const STATUS_TO_TEMPLATE_KEY: Partial<Record<BookingStatus, TemplateKey>> = {
+  scheduled: "scheduled",
+  received: "received",
+  collected: "collected",
+  uploaded: "uploaded",
+};
+
 interface Booking {
   id: string;
   user_id: string;
@@ -201,13 +238,14 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendEmail = useMutation({
-    mutationFn: async ({ b, email }: { b: Booking; email: string }) => {
+    mutationFn: async ({ b, email, templateKey }: { b: Booking; email: string; templateKey: TemplateKey }) => {
       if (!email) throw new Error("Не указан email");
       const dateStr = format(new Date(b.booking_date), "d MMMM yyyy", { locale: ru });
       const { error } = await supabase.functions.invoke("send-analysis-booking-email", {
         body: {
           recipient_email: email,
           booking_id: b.id,
+          template_type: EMAIL_TEMPLATE_BY_KEY[templateKey],
           vars: {
             patient_name: patient.name || "",
             appointment_date: dateStr,
@@ -227,10 +265,10 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendSms = useMutation({
-    mutationFn: async ({ b, phone }: { b: Booking; phone: string }) => {
+    mutationFn: async ({ b, phone, templateKey }: { b: Booking; phone: string; templateKey: TemplateKey }) => {
       if (!phone) throw new Error("Не указан телефон");
       const { data, error } = await supabase.functions.invoke("send-booking-sms", {
-        body: { booking_id: b.id, phone_override: phone },
+        body: { booking_id: b.id, phone_override: phone, template_name: SMS_TEMPLATE_BY_KEY[templateKey] },
       });
       if (error) throw error;
       if (data && (data as any).success === false) {
@@ -246,9 +284,9 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   });
 
   const sendTg = useMutation({
-    mutationFn: async (b: Booking) => {
+    mutationFn: async ({ b, templateKey }: { b: Booking; templateKey: TemplateKey }) => {
       const { data, error } = await supabase.functions.invoke("send-booking-telegram", {
-        body: { booking_id: b.id },
+        body: { booking_id: b.id, template_key: TG_TEMPLATE_BY_KEY[templateKey] },
       });
       if (error) throw error;
       if (data && (data as any).success === false) {
@@ -464,12 +502,12 @@ export function PatientBookingsCard({ userId, patient }: Props) {
           initialEmail={patient.email || ""}
           initialPhone={patient.phone || ""}
           onClose={() => setSendDialog(null)}
-          onSend={async ({ sendEmailOn, email, sendSmsOn, phone, sendTgOn }) => {
+          onSend={async ({ sendEmailOn, email, sendSmsOn, phone, sendTgOn, templateKey }) => {
             const b = sendDialog;
             const tasks: Promise<unknown>[] = [];
-            if (sendEmailOn) tasks.push(sendEmail.mutateAsync({ b, email }));
-            if (sendSmsOn) tasks.push(sendSms.mutateAsync({ b, phone }));
-            if (sendTgOn) tasks.push(sendTg.mutateAsync(b));
+            if (sendEmailOn) tasks.push(sendEmail.mutateAsync({ b, email, templateKey }));
+            if (sendSmsOn) tasks.push(sendSms.mutateAsync({ b, phone, templateKey }));
+            if (sendTgOn) tasks.push(sendTg.mutateAsync({ b, templateKey }));
             await Promise.allSettled(tasks);
             setSendDialog(null);
           }}
@@ -645,6 +683,7 @@ function SendRemindersDialog({
     sendSmsOn: boolean;
     phone: string;
     sendTgOn: boolean;
+    templateKey: TemplateKey;
   }) => Promise<void>;
 }) {
   const { toast } = useToast();
@@ -654,6 +693,9 @@ function SendRemindersDialog({
   const [tgOn, setTgOn] = useState(true);
   const [email, setEmail] = useState(initialEmail);
   const [phone, setPhone] = useState(initialPhone);
+  const [templateKey, setTemplateKey] = useState<TemplateKey>(
+    STATUS_TO_TEMPLATE_KEY[booking.status] ?? "scheduled"
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const validateEmail = (v: string) =>
@@ -700,6 +742,7 @@ function SendRemindersDialog({
         sendSmsOn: smsOn,
         phone: phoneNorm,
         sendTgOn: tgOn,
+        templateKey,
       });
     } catch (e: any) {
       toast({
@@ -719,6 +762,24 @@ function SendRemindersDialog({
           <DialogTitle>Отправить напоминания</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>Шаблон уведомления</Label>
+            <Select value={templateKey} onValueChange={(v) => setTemplateKey(v as TemplateKey)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(TEMPLATE_LABELS) as TemplateKey[]).map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {TEMPLATE_LABELS[k]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              По умолчанию выбран шаблон, соответствующий текущему статусу записи.
+            </p>
+          </div>
           <div className="space-y-2 rounded-md border p-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
