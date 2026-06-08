@@ -127,6 +127,17 @@ Deno.serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
+    // Capture caller user id (if request is signed in) so admin sends are attributed.
+    let sentBy: string | null = null
+    try {
+      const authHeader = req.headers.get('Authorization') ?? ''
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+      if (token) {
+        const { data: userRes } = await supabase.auth.getUser(token)
+        sentBy = userRes?.user?.id ?? null
+      }
+    } catch { /* ignore */ }
+
     const body = await req.json().catch(() => ({}))
     const isTest = !!body.test
     const recipient: string = String(body.recipient_email || body.test_email || '').trim()
