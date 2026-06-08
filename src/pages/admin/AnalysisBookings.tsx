@@ -319,6 +319,10 @@ export default function AnalysisBookings() {
             <CalendarClock className="h-4 w-4 mr-2" />
             Управление слотами
           </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="h-4 w-4 mr-2" />
+            Настройки
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="bookings">
