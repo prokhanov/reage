@@ -41,6 +41,7 @@ import { SubscriptionHistoryDialog } from "@/components/admin/SubscriptionHistor
 import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTab";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
+import { PatientBookingsCard } from "@/components/admin/PatientBookingsCard";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
