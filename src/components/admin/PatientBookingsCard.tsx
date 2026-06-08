@@ -453,6 +453,30 @@ export function PatientBookingsCard({ userId, patient }: Props) {
         />
       )}
 
+      {confirmContact && (
+        <ContactConfirmDialog
+          type={confirmContact.type}
+          userId={userId}
+          initialValue={
+            confirmContact.type === "email"
+              ? patient.email || ""
+              : patient.phone || ""
+          }
+          onClose={() => setConfirmContact(null)}
+          onConfirm={async (value) => {
+            const b = confirmContact.booking;
+            if (confirmContact.type === "email") {
+              await sendEmail.mutateAsync({ b, email: value });
+            } else {
+              await sendSms.mutateAsync({ b, phone: value });
+            }
+            setConfirmContact(null);
+          }}
+        />
+      )}
+
+
+
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
