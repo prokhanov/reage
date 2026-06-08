@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
-import { Calendar, X } from "lucide-react";
+import { Calendar, X, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { AnalysisBookingDialog } from "./AnalysisBookingDialog";
+import { CallbackRequestDialog } from "./CallbackRequestDialog";
 import { SubscriptionRequiredDialog } from "./SubscriptionRequiredDialog";
+import {
+  useBookingModeSettings,
+  getStatusText,
+} from "@/hooks/useBookingModeSettings";
 
 interface BookingInfo {
+  id: string;
   booking_date: string;
   booking_time: string;
   address: string;
@@ -15,40 +21,38 @@ interface BookingInfo {
   next_analysis_date?: string;
 }
 
-interface Subscription {
-  status: string;
-}
-
 export function AnalysisBookingBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [bookingInfo, setBookingInfo] = useState<BookingInfo | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [callbackDialogOpen, setCallbackDialogOpen] = useState(false);
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const { data: userRoleData, isLoading } = useUserRole();
   const { getUserId, isViewMode } = useViewAsUser();
+  const { data: modeSettings } = useBookingModeSettings();
+  const mode = modeSettings?.mode ?? "phone";
 
   useEffect(() => {
     checkBookingStatus();
     checkSubscriptionStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkSubscriptionStatus = async () => {
     try {
       const userId = await getUserId();
       if (!userId) return;
-
       const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('status')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .from("subscriptions")
+        .select("status")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-
-      setHasActiveSubscription(subscription?.status === 'active');
+      setHasActiveSubscription(subscription?.status === "active");
     } catch (error) {
-      console.error('Error checking subscription status:', error);
+      console.error("Error checking subscription status:", error);
     }
   };
 
@@ -56,8 +60,10 @@ export function AnalysisBookingBanner() {
     if (!b?.booking_date) return false;
     try {
       const dateStr = b.booking_date;
-      const timeStr = b.booking_time || '23:59';
-      const dt = new Date(`${dateStr}T${timeStr.length === 5 ? timeStr + ':00' : timeStr}`);
+      const timeStr = b.booking_time || "23:59";
+      const dt = new Date(
+        `${dateStr}T${timeStr.length === 5 ? timeStr + ":00" : timeStr}`
+      );
       return dt.getTime() < Date.now();
     } catch {
       return false;
@@ -70,40 +76,51 @@ export function AnalysisBookingBanner() {
       if (!userId) return;
 
       const { data: bookings } = await supabase
-        .from('analysis_bookings')
-        .select('*')
-        .eq('user_id', userId)
-        .order('booking_date', { ascending: false });
+        .from("analysis_bookings")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
-      // Show banner if no bookings
       if (!bookings || bookings.length === 0) {
         setShowBanner(true);
         setBookingInfo(null);
         return;
       }
 
-      // Prioritize active statuses: collected > received > scheduled > not_scheduled
-      const collectedBooking = bookings.find(b => b.status === 'collected');
-      const receivedBooking = bookings.find(b => b.status === 'received');
-      const scheduledBooking = bookings.find(b => b.status === 'scheduled' && !isBookingExpired(b));
-      const notScheduledBooking = bookings.find(b => b.status === 'not_scheduled');
+      // Priority order
+      const find = (status: string, requireFuture = false) =>
+        bookings.find(
+          (b) =>
+            b.status === status && (!requireFuture || !isBookingExpired(b))
+        );
 
-      const activeBooking = collectedBooking || receivedBooking || scheduledBooking || notScheduledBooking;
+      const active =
+        find("collected") ||
+        find("received") ||
+        find("scheduled", true) ||
+        find("no_answer") ||
+        find("waiting_call") ||
+        find("not_scheduled");
 
-      if (activeBooking) {
+      if (active) {
         setShowBanner(true);
-        setBookingInfo(activeBooking as BookingInfo);
+        setBookingInfo(active as BookingInfo);
       } else {
-        setShowBanner(false);
+        setShowBanner(true);
+        setBookingInfo(null);
       }
     } catch (error) {
-      console.error('Error checking booking status:', error);
+      console.error("Error checking booking status:", error);
     }
   };
 
   const handleSchedule = () => {
     if (!hasActiveSubscription) {
       setSubscriptionDialogOpen(true);
+      return;
+    }
+    if (mode === "phone") {
+      setCallbackDialogOpen(true);
     } else {
       setDialogOpen(true);
     }
@@ -111,34 +128,98 @@ export function AnalysisBookingBanner() {
 
   const handleSubscriptionSuccess = () => {
     checkSubscriptionStatus();
-    // Delay opening booking dialog slightly to let subscription dialog close
     setTimeout(() => {
-      setDialogOpen(true);
+      if (mode === "phone") setCallbackDialogOpen(true);
+      else setDialogOpen(true);
     }, 300);
   };
 
-  // Don't render while loading or if banner should not be shown
   if (isLoading || !showBanner) return null;
-
-  // Don't show banner to admins in their own account (only in view mode)
   if (!userRoleData?.isPatient && !isViewMode) return null;
 
-  const isScheduled = bookingInfo?.status === 'scheduled';
-  const isReceived = bookingInfo?.status === 'received';
-  const isCollected = bookingInfo?.status === 'collected';
+  // Determine displayed status key
+  const statusKey = bookingInfo?.status ?? "empty";
 
-  // Dismiss key — unique per booking state, persisted for the session
-  const dismissKey = `bookingBannerDismissed:${bookingInfo?.status || 'none'}:${bookingInfo?.booking_date || ''}:${bookingInfo?.booking_time || ''}`;
-  if (typeof window !== 'undefined' && sessionStorage.getItem(dismissKey) === '1') {
+  const dismissKey = `bookingBannerDismissed:${mode}:${statusKey}:${
+    bookingInfo?.booking_date || ""
+  }:${bookingInfo?.booking_time || ""}`;
+  if (
+    typeof window !== "undefined" &&
+    sessionStorage.getItem(dismissKey) === "1"
+  ) {
     return null;
   }
 
   const handleDismiss = () => {
     try {
-      sessionStorage.setItem(dismissKey, '1');
+      sessionStorage.setItem(dismissKey, "1");
     } catch {}
     setShowBanner(false);
   };
+
+  // Build dynamic texts
+  const fallbackMap: Record<string, { title: string; subtitle: string }> = {
+    empty: {
+      title: "Запишитесь на анализы",
+      subtitle:
+        mode === "phone"
+          ? "Оставьте заявку — менеджер перезвонит"
+          : "Медсестра приедет к вам домой в удобное время",
+    },
+    waiting_call: {
+      title: "Ожидайте звонка менеджера",
+      subtitle: "Мы свяжемся с вами для согласования даты визита",
+    },
+    no_answer: {
+      title: "Не дозвонились",
+      subtitle: "Запросите повторный звонок",
+    },
+    not_scheduled: {
+      title: "Запишитесь на анализы",
+      subtitle: "Медсестра приедет к вам домой в удобное время",
+    },
+    scheduled: {
+      title: "Ожидайте визита специалиста",
+      subtitle: "{date} в {time} • {address}",
+    },
+    received: {
+      title: "Ваши анализы получены!",
+      subtitle: "Скоро результаты появятся. Обычно это занимает 5 дней",
+    },
+    collected: {
+      title: "Анализы обрабатываются",
+      subtitle: "Результаты скоро появятся в вашем профиле",
+    },
+  };
+
+  const text = getStatusText(modeSettings, statusKey, fallbackMap[statusKey] ?? fallbackMap.empty);
+
+  // Interpolate placeholders for scheduled
+  let subtitle = text.subtitle;
+  if (bookingInfo && statusKey === "scheduled") {
+    const dateStr = new Date(bookingInfo.booking_date).toLocaleDateString(
+      "ru-RU",
+      { day: "numeric", month: "long" }
+    );
+    subtitle = subtitle
+      .replace(/\{date\}/g, dateStr)
+      .replace(/\{time\}/g, bookingInfo.booking_time || "")
+      .replace(/\{address\}/g, bookingInfo.address || "");
+  }
+
+  // Decide whether to show action button
+  const terminalStatuses = ["received", "collected", "scheduled"];
+  const showButton = !terminalStatuses.includes(statusKey);
+  let buttonLabel = "Назначить дату";
+  if (mode === "phone") {
+    if (statusKey === "waiting_call") buttonLabel = "Изменить телефон";
+    else if (statusKey === "no_answer") buttonLabel = "Запросить звонок";
+    else buttonLabel = "Оставить заявку";
+  } else if (statusKey === "scheduled") {
+    buttonLabel = "Изменить";
+  }
+
+  const Icon = mode === "phone" ? Phone : Calendar;
 
   return (
     <>
@@ -147,9 +228,15 @@ export function AnalysisBookingBanner() {
         onOpenChange={setSubscriptionDialogOpen}
         onSuccess={handleSubscriptionSuccess}
       />
-      <AnalysisBookingDialog 
-        open={dialogOpen} 
+      <AnalysisBookingDialog
+        open={dialogOpen}
         onOpenChange={setDialogOpen}
+        onSuccess={checkBookingStatus}
+      />
+      <CallbackRequestDialog
+        open={callbackDialogOpen}
+        onOpenChange={setCallbackDialogOpen}
+        existingBookingId={bookingInfo?.id ?? null}
         onSuccess={checkBookingStatus}
       />
       <div className="bg-gradient-primary text-white shadow-neon-primary animate-fade-in">
@@ -157,58 +244,20 @@ export function AnalysisBookingBanner() {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-1">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
-                <Calendar className="h-5 w-5" />
+                <Icon className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                {isCollected ? (
-                  <>
-                    <p className="font-medium text-sm sm:text-base">
-                      Анализы обрабатываются
-                    </p>
-                    <p className="text-xs sm:text-sm text-white/90">
-                      Результаты скоро появятся в вашем профиле
-                    </p>
-                  </>
-                ) : isReceived ? (
-                  <>
-                    <p className="font-medium text-sm sm:text-base">
-                      Ваши анализы получены!
-                    </p>
-                    <p className="text-xs sm:text-sm text-white/90">
-                      Скоро результаты появятся. Обычно это занимает 5 дней
-                    </p>
-                  </>
-                ) : isScheduled ? (
-                  <>
-                    <p className="font-medium text-sm sm:text-base">
-                      Ожидайте визита специалиста
-                    </p>
-                    <p className="text-xs sm:text-sm text-white/90">
-                      {new Date(bookingInfo.booking_date).toLocaleDateString('ru-RU', { 
-                        day: 'numeric', 
-                        month: 'long' 
-                      })} в {bookingInfo.booking_time} • {bookingInfo.address}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p className="font-medium text-sm sm:text-base">
-                      Запишитесь на анализы
-                    </p>
-                    <p className="text-xs sm:text-sm text-white/90">
-                      Медсестра приедет к вам домой в удобное время
-                    </p>
-                  </>
-                )}
+                <p className="font-medium text-sm sm:text-base">{text.title}</p>
+                <p className="text-xs sm:text-sm text-white/90">{subtitle}</p>
               </div>
             </div>
-            {!isReceived && !isCollected && (
+            {showButton && (
               <Button
                 onClick={handleSchedule}
                 size="sm"
                 className="bg-white text-primary hover:bg-white/90 shadow-lg"
               >
-                {isScheduled ? 'Изменить' : 'Назначить дату'}
+                {buttonLabel}
               </Button>
             )}
             <Button

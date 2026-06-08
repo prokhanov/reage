@@ -28,7 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock } from "lucide-react";
+import { Calendar, Search, Eye, MoreVertical, Trash2, CalendarClock, Settings } from "lucide-react";
+import { BookingModeSettings } from "@/components/admin/BookingModeSettings";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -49,7 +50,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type BookingStatus = "scheduled" | "collected" | "uploaded";
+type BookingStatus = "waiting_call" | "no_answer" | "scheduled" | "collected" | "uploaded" | "received" | "not_scheduled";
 
 interface BookingData {
   id: string;
@@ -71,13 +72,21 @@ interface BookingData {
 }
 
 const statusLabels: Record<BookingStatus, string> = {
+  waiting_call: "Ожидает звонка",
+  no_answer: "Не дозвонились",
+  not_scheduled: "Не назначен",
   scheduled: "Назначен",
-  collected: "Получен",
+  received: "Получен",
+  collected: "Обрабатывается",
   uploaded: "Загружен",
 };
 
 const statusColors: Record<BookingStatus, string> = {
+  waiting_call: "bg-amber-50 text-amber-700 border-amber-200",
+  no_answer: "bg-orange-50 text-orange-700 border-orange-200",
+  not_scheduled: "bg-slate-50 text-slate-700 border-slate-200",
   scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  received: "bg-teal-50 text-teal-700 border-teal-200",
   collected: "bg-green-100 text-green-700 border-green-200",
   uploaded: "bg-emerald-600 text-white border-emerald-600",
 };
@@ -310,6 +319,10 @@ export default function AnalysisBookings() {
             <CalendarClock className="h-4 w-4 mr-2" />
             Управление слотами
           </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="h-4 w-4 mr-2" />
+            Настройки
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="bookings">
@@ -332,8 +345,11 @@ export default function AnalysisBookings() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="waiting_call">Ожидает звонка</SelectItem>
+              <SelectItem value="no_answer">Не дозвонились</SelectItem>
               <SelectItem value="scheduled">Назначен</SelectItem>
-              <SelectItem value="collected">Получен</SelectItem>
+              <SelectItem value="received">Получен</SelectItem>
+              <SelectItem value="collected">Обрабатывается</SelectItem>
               <SelectItem value="uploaded">Загружен</SelectItem>
             </SelectContent>
           </Select>
@@ -500,6 +516,10 @@ export default function AnalysisBookings() {
 
         <TabsContent value="slots">
           <DaySlotsManager />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <BookingModeSettings />
         </TabsContent>
       </Tabs>
 

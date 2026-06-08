@@ -398,6 +398,39 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_mode_settings: {
+        Row: {
+          callback_phone: string | null
+          created_at: string
+          id: string
+          mode: string
+          online_status_texts: Json
+          phone_status_texts: Json
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          callback_phone?: string | null
+          created_at?: string
+          id?: string
+          mode?: string
+          online_status_texts?: Json
+          phone_status_texts?: Json
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          callback_phone?: string | null
+          created_at?: string
+          id?: string
+          mode?: string
+          online_status_texts?: Json
+          phone_status_texts?: Json
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_conversations: {
         Row: {
           created_at: string
