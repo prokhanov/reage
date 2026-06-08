@@ -502,12 +502,12 @@ export function PatientBookingsCard({ userId, patient }: Props) {
           initialEmail={patient.email || ""}
           initialPhone={patient.phone || ""}
           onClose={() => setSendDialog(null)}
-          onSend={async ({ sendEmailOn, email, sendSmsOn, phone, sendTgOn }) => {
+          onSend={async ({ sendEmailOn, email, sendSmsOn, phone, sendTgOn, templateKey }) => {
             const b = sendDialog;
             const tasks: Promise<unknown>[] = [];
-            if (sendEmailOn) tasks.push(sendEmail.mutateAsync({ b, email }));
-            if (sendSmsOn) tasks.push(sendSms.mutateAsync({ b, phone }));
-            if (sendTgOn) tasks.push(sendTg.mutateAsync(b));
+            if (sendEmailOn) tasks.push(sendEmail.mutateAsync({ b, email, templateKey }));
+            if (sendSmsOn) tasks.push(sendSms.mutateAsync({ b, phone, templateKey }));
+            if (sendTgOn) tasks.push(sendTg.mutateAsync({ b, templateKey }));
             await Promise.allSettled(tasks);
             setSendDialog(null);
           }}
