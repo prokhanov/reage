@@ -9,7 +9,14 @@ export type SendStatus =
   | "suppressed"
   | "bounced"
   | "complained"
-  | "skipped";
+  | "skipped"
+  | "delivered"
+  | "undelivered"
+  | "expired"
+  | "wrongnumber"
+  | "rejected"
+  | "moderation"
+  | "queued";
 
 export type NotificationChannel = "email" | "sms" | "telegram";
 
@@ -22,6 +29,7 @@ export interface NotificationEvent {
   errorMessage: string | null;
   sentBy: string | null;
   createdAt: string;
+  deliveredAt?: string | null;
 }
 
 export interface BookingNotifications {
@@ -31,7 +39,17 @@ export interface BookingNotifications {
   pendingCount: number;
 }
 
-const failedStatuses: SendStatus[] = ["failed", "dlq", "bounced", "complained"];
+const failedStatuses: SendStatus[] = [
+  "failed",
+  "dlq",
+  "bounced",
+  "complained",
+  "undelivered",
+  "expired",
+  "wrongnumber",
+  "rejected",
+];
+const deliveredStatuses: SendStatus[] = ["sent", "delivered"];
 
 export function useBookingNotifications(bookingId: string | null) {
   return useQuery<BookingNotifications>({
