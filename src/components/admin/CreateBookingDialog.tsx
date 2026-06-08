@@ -103,7 +103,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
 
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, name, email, phone, address")
+        .select("id, name, email, phone")
         .in("id", ids);
       if (error) throw error;
       return profiles ?? [];
@@ -127,12 +127,6 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
 
   const selectedPatient = patients?.find((p) => p.id === patientId) ?? null;
 
-  // Подставляем адрес из профиля при выборе
-  useEffect(() => {
-    if (selectedPatient?.address && !address) {
-      setAddress(selectedPatient.address);
-    }
-  }, [selectedPatient]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Проверка активной записи у выбранного пациента
   const { data: activeBooking } = useQuery({
