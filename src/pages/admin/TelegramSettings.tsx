@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Send, CheckCircle2, XCircle, AlertCircle, Loader2, Eye, EyeOff, Copy } from "lucide-react";
 
@@ -17,12 +18,22 @@ const EVENTS: EventDef[] = [
   { key: "subscription_paid", label: "Новая оплата", description: "Когда подписка переходит в статус «активна»" },
 ];
 
+const BOOKING_TEMPLATE_KEYS: { key: string; label: string; description: string }[] = [
+  { key: "booking_scheduled", label: "Запись назначена", description: "Когда админ вручную отправляет уведомление при статусе «Назначен»" },
+  { key: "booking_received", label: "Биоматериал получен", description: "Когда курьер передал пробу в лабораторию" },
+  { key: "booking_collected", label: "Анализ в работе", description: "Когда лаборатория обрабатывает анализы" },
+  { key: "booking_uploaded", label: "Отчёт готов", description: "Когда персональный отчёт загружен в кабинет" },
+];
+
+const BOOKING_PLACEHOLDERS = "Доступные переменные: {patient}, {email}, {phone}, {date}, {time}, {address}, {status}, {url}. Поддерживается HTML: <b>, <i>, <a href=\"…\">.";
+
 interface Status {
   configured: boolean;
   is_active: boolean;
   chat_id: string | null;
   bot_token: string;
   enabled_events: Record<string, boolean>;
+  booking_templates?: Record<string, string>;
 }
 
 interface LogRow {
@@ -34,6 +45,7 @@ interface LogRow {
   sent_at: string;
 }
 
+
 export default function TelegramSettings() {
   const { toast } = useToast();
   const [status, setStatus] = useState<Status | null>(null);
@@ -42,12 +54,14 @@ export default function TelegramSettings() {
   const [chatId, setChatId] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [enabledEvents, setEnabledEvents] = useState<Record<string, boolean>>({});
+  const [bookingTemplates, setBookingTemplates] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testingEvent, setTestingEvent] = useState<string | null>(null);
   const [connStatus, setConnStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [showToken, setShowToken] = useState(false);
+
 
   async function loadStatus() {
     setLoading(true);
@@ -62,9 +76,11 @@ export default function TelegramSettings() {
       setChatId(data.chat_id || "");
       setIsActive(data.is_active);
       setEnabledEvents(data.enabled_events || {});
+      setBookingTemplates(data.booking_templates || {});
     }
     setLoading(false);
   }
+
 
   async function loadLogs() {
     const { data } = await supabase
@@ -87,10 +103,12 @@ export default function TelegramSettings() {
       chat_id: chatId,
       is_active: isActive,
       enabled_events: enabledEvents,
+      booking_templates: bookingTemplates,
     };
     if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
 
     const { data, error } = await supabase.functions.invoke("telegram-settings", { body: payload });
+
     setSaving(false);
     if (error || data?.error) {
       toast({ title: "Не удалось сохранить", description: error?.message || data?.error, variant: "destructive" });
@@ -279,6 +297,44 @@ export default function TelegramSettings() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Block 2b: Booking templates per status */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Шаблоны уведомлений по статусам записи</CardTitle>
+          <CardDescription>
+            Используются, когда админ отправляет уведомление в Telegram из карточки записи на анализы.
+            Если оставить шаблон пустым — будет использован стандартный формат.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {BOOKING_TEMPLATE_KEYS.map((t) => (
+            <div key={t.key} className="space-y-1.5">
+              <Label htmlFor={`tg-tpl-${t.key}`} className="text-sm font-medium">
+                {t.label}
+              </Label>
+              <p className="text-xs text-muted-foreground">{t.description}</p>
+              <Textarea
+                id={`tg-tpl-${t.key}`}
+                rows={4}
+                value={bookingTemplates[t.key] || ""}
+                onChange={(e) =>
+                  setBookingTemplates((prev) => ({ ...prev, [t.key]: e.target.value }))
+                }
+                placeholder="Текст сообщения с переменными {patient}, {date}, {time}, {address}, {url}…"
+                className="font-mono text-sm"
+              />
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground">{BOOKING_PLACEHOLDERS}</p>
+          <Button onClick={handleSave} disabled={saving} size="sm">
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Сохранить шаблоны
+          </Button>
+        </CardContent>
+      </Card>
+
+
 
       {/* Block 3: Logs */}
       <Card>

@@ -2111,6 +2111,7 @@ export type Database = {
       }
       telegram_notification_settings: {
         Row: {
+          booking_templates: Json
           bot_token: string | null
           chat_id: string | null
           created_at: string
@@ -2123,6 +2124,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          booking_templates?: Json
           bot_token?: string | null
           chat_id?: string | null
           created_at?: string
@@ -2135,6 +2137,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          booking_templates?: Json
           bot_token?: string | null
           chat_id?: string | null
           created_at?: string

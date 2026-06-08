@@ -28,10 +28,27 @@ type SmsTemplate = {
 
 const TYPE_LABELS: Record<string, string> = {
   otp: "Код подтверждения",
-  appointment_reminder: "Напоминание о записи",
+  appointment_reminder: "Напоминание о записи (старый шаблон)",
+  booking_scheduled: "Запись на анализы — назначена",
+  booking_received: "Запись на анализы — биоматериал получен",
+  booking_collected: "Запись на анализы — в работе",
+  booking_uploaded: "Запись на анализы — отчёт готов",
   report_ready: "Отчёт готов",
   custom: "Произвольное",
 };
+
+// Stable ordering inside SMS templates tab — group booking_* together.
+const TYPE_ORDER: Record<string, number> = {
+  booking_scheduled: 10,
+  booking_received: 11,
+  booking_collected: 12,
+  booking_uploaded: 13,
+  appointment_reminder: 14,
+  otp: 20,
+  report_ready: 21,
+  custom: 30,
+};
+
 
 function smsSegments(text: string): { length: number; segments: number; isCyrillic: boolean } {
   const length = text.length;
@@ -114,12 +131,19 @@ export default function SmsSettings() {
         ...t,
         variables: Array.isArray(t.variables) ? t.variables : [],
       })) as SmsTemplate[];
+      list.sort((a, b) => {
+        const oa = TYPE_ORDER[a.type] ?? 99;
+        const ob = TYPE_ORDER[b.type] ?? 99;
+        if (oa !== ob) return oa - ob;
+        return (a.name || "").localeCompare(b.name || "");
+      });
       setTemplates(list);
       if (list.length && !activeTpl) setActiveTpl(list[0].id);
       if (list.length && !testTplId) setTestTplId(list[0].id);
     }
     setLoadingTpl(false);
   };
+
 
   const handleSaveSender = async () => {
     setSavingSender(true);

@@ -15,7 +15,23 @@ const FROM_ADDRESS = `Команда ReAge <hello@${SENDER_DOMAIN}>`
 const REPLY_TO = `hello@${SENDER_DOMAIN}`
 const APP_URL = 'https://reage.life'
 const COMPANY_LEGAL = 'ООО «РиЭйдж», Москва'
-const TEMPLATE_TYPE = 'analysis_booking'
+const DEFAULT_TEMPLATE_TYPE = 'analysis_booking'
+
+const STATUS_TO_TEMPLATE: Record<string, string> = {
+  scheduled: 'booking_scheduled',
+  received: 'booking_received',
+  collected: 'booking_collected',
+  uploaded: 'booking_uploaded',
+}
+
+const ALLOWED_TEMPLATES = new Set([
+  'analysis_booking',
+  'booking_scheduled',
+  'booking_received',
+  'booking_collected',
+  'booking_uploaded',
+])
+
 
 interface Template {
   template_type: string
@@ -133,11 +149,33 @@ Deno.serve(async (req) => {
 
     const ctaUrl: string = body.cta_url || `${APP_URL}/profile`
 
-    const { data: tpl, error: tplErr } = await supabase
+    // Resolve template type: explicit > by booking status > default
+    const requestedType: string | undefined =
+      typeof body.template_type === 'string' ? body.template_type : undefined
+    const statusType: string | undefined =
+      typeof body.booking_status === 'string' ? STATUS_TO_TEMPLATE[body.booking_status] : undefined
+    let templateType =
+      (requestedType && ALLOWED_TEMPLATES.has(requestedType) && requestedType) ||
+      statusType ||
+      DEFAULT_TEMPLATE_TYPE
+
+    let { data: tpl, error: tplErr } = await supabase
       .from('email_templates')
       .select('*')
-      .eq('template_type', TEMPLATE_TYPE)
+      .eq('template_type', templateType)
       .maybeSingle()
+
+    // Fallback to default template if status-specific one isn't provisioned
+    if ((!tpl || tplErr) && templateType !== DEFAULT_TEMPLATE_TYPE) {
+      const fb = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('template_type', DEFAULT_TEMPLATE_TYPE)
+        .maybeSingle()
+      tpl = fb.data
+      tplErr = fb.error
+      templateType = DEFAULT_TEMPLATE_TYPE
+    }
 
     if (tplErr || !tpl) {
       return new Response(JSON.stringify({ error: 'Template not found' }), {
@@ -157,7 +195,7 @@ Deno.serve(async (req) => {
     try {
       await supabase.from('email_send_log').insert({
         message_id: messageId,
-        template_name: TEMPLATE_TYPE,
+        template_name: templateType,
         recipient_email: recipient,
         status: 'pending',
         metadata: { test: isTest, ...(bookingId ? { booking_id: bookingId } : {}) },
@@ -165,7 +203,7 @@ Deno.serve(async (req) => {
     } catch { /* best effort */ }
 
     const idempotencyKey = body.idempotency_key
-      || (isTest ? `test:${TEMPLATE_TYPE}:${recipient}:${Date.now()}` : `${TEMPLATE_TYPE}:${recipient}:${Date.now()}`)
+      || (isTest ? `test:${templateType}:${recipient}:${Date.now()}` : `${templateType}:${recipient}:${Date.now()}`)
 
     const { error: enqErr } = await supabase.rpc('enqueue_email', {
       queue_name: 'transactional_emails',
@@ -180,12 +218,13 @@ Deno.serve(async (req) => {
         html,
         text,
         purpose: 'transactional',
-        label: TEMPLATE_TYPE,
+        label: templateType,
         unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
         metadata: { test: isTest, vars, ...(bookingId ? { booking_id: bookingId } : {}) },
       },
     })
+
 
     if (enqErr) {
       return new Response(JSON.stringify({ error: enqErr.message }), {

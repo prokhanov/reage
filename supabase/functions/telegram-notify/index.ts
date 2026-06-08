@@ -34,7 +34,38 @@ function formatAmount(n: unknown): string {
   return new Intl.NumberFormat("ru-RU").format(num) + " ₽";
 }
 
-export function buildMessage(eventType: string, payload: Record<string, any>, isTest = false): string {
+const STATUS_LABELS: Record<string, string> = {
+  waiting_call: "Ожидает звонка",
+  no_answer: "Не дозвонились",
+  not_scheduled: "Не назначен",
+  scheduled: "Назначен",
+  received: "Получен",
+  collected: "Обрабатывается",
+  uploaded: "Загружен",
+};
+
+function applyBookingVars(template: string, payload: Record<string, any>): string {
+  const date = payload.booking_date ? String(payload.booking_date) : "";
+  const time = payload.booking_time ? String(payload.booking_time).slice(0, 5) : "";
+  const vars: Record<string, string> = {
+    patient: escapeHtml(payload.name || "—"),
+    email: escapeHtml(payload.email || "—"),
+    phone: escapeHtml(payload.phone || "—"),
+    date: escapeHtml(date),
+    time: escapeHtml(time),
+    address: escapeHtml(payload.address || "—"),
+    status: escapeHtml(STATUS_LABELS[String(payload.status)] || String(payload.status || "—")),
+    url: escapeHtml(payload.url || "https://reage.life/profile"),
+  };
+  return template.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
+}
+
+export function buildMessage(
+  eventType: string,
+  payload: Record<string, any>,
+  isTest = false,
+  bookingTemplates: Record<string, string> | null = null,
+): string {
   const prefix = isTest ? "🧪 <b>[ТЕСТ]</b>\n" : "";
   const e = (v: unknown) => escapeHtml(v);
 
@@ -63,16 +94,16 @@ export function buildMessage(eventType: string, payload: Record<string, any>, is
       );
     }
     case "booking_status_changed": {
-      const statusLabels: Record<string, string> = {
-        waiting_call: "Ожидает звонка",
-        no_answer: "Не дозвонились",
-        not_scheduled: "Не назначен",
-        scheduled: "Назначен",
-        received: "Получен",
-        collected: "Обрабатывается",
-        uploaded: "Загружен",
-      };
-      const statusLabel = statusLabels[String(payload.status)] || String(payload.status || "—");
+      // Prefer custom per-status template from settings if available
+      const key: string | null = payload.template_key || null;
+      const tplText = key && bookingTemplates && typeof bookingTemplates[key] === "string"
+        ? bookingTemplates[key]
+        : null;
+      if (tplText && tplText.trim()) {
+        return prefix + applyBookingVars(tplText, payload);
+      }
+
+      const statusLabel = STATUS_LABELS[String(payload.status)] || String(payload.status || "—");
       return (
         prefix +
         "📅 <b>Запись на анализ</b>\n" +
@@ -87,6 +118,7 @@ export function buildMessage(eventType: string, payload: Record<string, any>, is
       return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
   }
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -149,7 +181,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const text = buildMessage(eventType, payload, isTest);
+    const text = buildMessage(eventType, payload, isTest, (settings as any).booking_templates ?? null);
 
     const tgResp = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
       method: "POST",
