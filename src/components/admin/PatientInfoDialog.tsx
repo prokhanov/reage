@@ -474,60 +474,17 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                     </CardContent>
                   </Card>
 
-                  {/* Следующий анализ */}
-                  <Card className="md:col-span-2">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Activity className="w-5 h-5" />
-                        Следующий анализ
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground flex items-center gap-1">
-                          <Syringe className="w-4 h-4" /> Статус бронирования:
-                        </span>
-                        {getBookingBadge(patientData.booking?.status || "not_scheduled")}
-                      </div>
-                      {patientData.booking && patientData.booking.status !== "not_scheduled" && (
-                        <>
-                          {patientData.booking.booking_date && (
-                            <>
-                              <Separator />
-                              <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Дата записи:</span>
-                                <span>
-                                  {new Date(patientData.booking.booking_date).toLocaleDateString("ru-RU")}{" "}
-                                  {patientData.booking.booking_time}
-                                </span>
-                              </div>
-                            </>
-                          )}
-                          {patientData.booking.address && (
-                            <>
-                              <Separator />
-                              <div className="flex flex-col gap-1 text-sm">
-                                <span className="text-muted-foreground">Адрес:</span>
-                                <span className="font-medium">{patientData.booking.address}</span>
-                              </div>
-                            </>
-                          )}
-                        </>
-                      )}
-                      <Separator />
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Дата следующего анализа:</span>
-                        <button
-                          onClick={() => setIsEditDateOpen(true)}
-                          className="font-medium border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer"
-                        >
-                          {patientData.booking?.next_analysis_date
-                            ? new Date(patientData.booking.next_analysis_date).toLocaleDateString("ru-RU")
-                            : "Не назначена"}
-                        </button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {/* Все записи на анализы */}
+                  <div className="md:col-span-2">
+                    <PatientBookingsCard
+                      userId={patientData.profile.id}
+                      patient={{
+                        name: patientData.profile.name,
+                        email: patientData.profile.email,
+                        phone: patientData.profile.phone,
+                      }}
+                    />
+                  </div>
                 </div>
               </TabsContent>
 
