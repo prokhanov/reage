@@ -171,14 +171,14 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-default">
-                            {formatDistanceToNow(new Date(e.createdAt), {
-                              addSuffix: true,
+                            {format(new Date(e.createdAt), "dd.MM.yyyy HH:mm:ss", {
                               locale: ru,
                             })}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {format(new Date(e.createdAt), "d MMMM yyyy, HH:mm:ss", {
+                          {formatDistanceToNow(new Date(e.createdAt), {
+                            addSuffix: true,
                             locale: ru,
                           })}
                         </TooltipContent>
