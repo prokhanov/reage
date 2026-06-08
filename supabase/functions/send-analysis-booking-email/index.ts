@@ -127,6 +127,17 @@ Deno.serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
+    // Capture caller user id (if request is signed in) so admin sends are attributed.
+    let sentBy: string | null = null
+    try {
+      const authHeader = req.headers.get('Authorization') ?? ''
+      const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+      if (token) {
+        const { data: userRes } = await supabase.auth.getUser(token)
+        sentBy = userRes?.user?.id ?? null
+      }
+    } catch { /* ignore */ }
+
     const body = await req.json().catch(() => ({}))
     const isTest = !!body.test
     const recipient: string = String(body.recipient_email || body.test_email || '').trim()
@@ -197,7 +208,7 @@ Deno.serve(async (req) => {
         template_name: templateType,
         recipient_email: recipient,
         status: 'pending',
-        metadata: { test: isTest, ...(bookingId ? { booking_id: bookingId } : {}) },
+        metadata: { test: isTest, ...(sentBy ? { sent_by: sentBy } : {}), ...(bookingId ? { booking_id: bookingId } : {}) },
       })
     } catch { /* best effort */ }
 
@@ -220,7 +231,7 @@ Deno.serve(async (req) => {
         label: templateType,
         unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
-        metadata: { test: isTest, vars, ...(bookingId ? { booking_id: bookingId } : {}) },
+        metadata: { test: isTest, vars, ...(sentBy ? { sent_by: sentBy } : {}), ...(bookingId ? { booking_id: bookingId } : {}) },
       },
     })
 
