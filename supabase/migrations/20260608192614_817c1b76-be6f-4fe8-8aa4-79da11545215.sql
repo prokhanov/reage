@@ -1,0 +1,1 @@
+UPDATE public.sms_send_log SET error_message = NULL WHERE status = 'delivered' AND error_message IS NOT NULL;
