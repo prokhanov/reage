@@ -437,7 +437,7 @@ export default function Auth() {
                           onChange={(v) => { setPhone(v); if (phoneError) setPhoneError(null); }}
                           placeholder="+7 (999) 123-45-67"
                           className="w-full"
-                          inputClassName="bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                          inputClassName="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                         {phoneError ? (
                           <p className="text-xs text-destructive pt-1">{phoneError}</p>
