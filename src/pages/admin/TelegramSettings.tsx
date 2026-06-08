@@ -298,6 +298,44 @@ export default function TelegramSettings() {
         </CardContent>
       </Card>
 
+      {/* Block 2b: Booking templates per status */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Шаблоны уведомлений по статусам записи</CardTitle>
+          <CardDescription>
+            Используются, когда админ отправляет уведомление в Telegram из карточки записи на анализы.
+            Если оставить шаблон пустым — будет использован стандартный формат.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {BOOKING_TEMPLATE_KEYS.map((t) => (
+            <div key={t.key} className="space-y-1.5">
+              <Label htmlFor={`tg-tpl-${t.key}`} className="text-sm font-medium">
+                {t.label}
+              </Label>
+              <p className="text-xs text-muted-foreground">{t.description}</p>
+              <Textarea
+                id={`tg-tpl-${t.key}`}
+                rows={4}
+                value={bookingTemplates[t.key] || ""}
+                onChange={(e) =>
+                  setBookingTemplates((prev) => ({ ...prev, [t.key]: e.target.value }))
+                }
+                placeholder="Текст сообщения с переменными {patient}, {date}, {time}, {address}, {url}…"
+                className="font-mono text-sm"
+              />
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground">{BOOKING_PLACEHOLDERS}</p>
+          <Button onClick={handleSave} disabled={saving} size="sm">
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Сохранить шаблоны
+          </Button>
+        </CardContent>
+      </Card>
+
+
+
       {/* Block 3: Logs */}
       <Card>
         <CardHeader>
