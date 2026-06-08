@@ -188,12 +188,7 @@ export function PhoneInput({
       onChange={handleInputChange}
       onFocus={handleFocus}
       required={required}
-      className={cn(
-        "h-12 bg-background/50 border-border/50",
-        "focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all",
-        className,
-        inputClassName
-      )}
+      className={cn(className, inputClassName)}
     />
   );
 }
