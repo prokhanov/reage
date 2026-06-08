@@ -76,9 +76,11 @@ export default function TelegramSettings() {
       setChatId(data.chat_id || "");
       setIsActive(data.is_active);
       setEnabledEvents(data.enabled_events || {});
+      setBookingTemplates(data.booking_templates || {});
     }
     setLoading(false);
   }
+
 
   async function loadLogs() {
     const { data } = await supabase
