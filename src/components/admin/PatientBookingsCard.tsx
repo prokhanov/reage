@@ -123,6 +123,9 @@ export function PatientBookingsCard({ userId, patient }: Props) {
   const [assignFor, setAssignFor] = useState<Booking | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [confirmContact, setConfirmContact] = useState<
+    { type: "email" | "sms"; booking: Booking } | null
+  >(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["patient-bookings", userId],
