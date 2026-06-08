@@ -265,7 +265,15 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground />
-      
+
+      <Link
+        to="/"
+        className="absolute top-4 left-4 md:top-8 md:left-8 z-20 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group"
+      >
+        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+        <span className="hidden sm:inline">На главную</span>
+      </Link>
+
       <div className={cn("w-full relative z-10", currentStep === 2 ? "max-w-5xl" : "max-w-2xl")}>
         <div className="w-full">
           {/* Header */}
