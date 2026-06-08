@@ -16,19 +16,18 @@ function mapStatus(raw: string | number | undefined | null): {
   reason?: string;
 } {
   const s = String(raw ?? "").toLowerCase().trim();
-  // Числовые коды SMS Aero
-  // 0 queue, 1 sent, 2 wrong number, 3 delivered, 4 not delivered, 5 send fail,
-  // 6 moderation, 7 reject, 8 expired, 9 reading
+  // Числовые коды в callback SMS Aero:
+  // 0 queue, 1 delivered, 2 not delivered, 3 expired, 4 wrong number,
+  // 6 rejected (по их док-ции коды callback и API send различаются).
   const numericMap: Record<string, { status: string; delivered: boolean; reason?: string }> = {
     "0": { status: "queued", delivered: false },
-    "1": { status: "sent", delivered: false },
-    "2": { status: "wrongnumber", delivered: false, reason: "Неверный номер" },
-    "3": { status: "delivered", delivered: true },
-    "4": { status: "undelivered", delivered: false, reason: "Не доставлено" },
+    "1": { status: "delivered", delivered: true },
+    "2": { status: "undelivered", delivered: false, reason: "Не доставлено" },
+    "3": { status: "expired", delivered: false, reason: "Истёк срок доставки" },
+    "4": { status: "wrongnumber", delivered: false, reason: "Неверный номер" },
     "5": { status: "failed", delivered: false, reason: "Ошибка отправки" },
-    "6": { status: "moderation", delivered: false },
-    "7": { status: "rejected", delivered: false, reason: "Отклонено оператором" },
-    "8": { status: "expired", delivered: false, reason: "Истёк срок доставки" },
+    "6": { status: "rejected", delivered: false, reason: "Отклонено оператором" },
+    "8": { status: "delivered", delivered: true },
     "9": { status: "delivered", delivered: true },
   };
   if (numericMap[s]) return numericMap[s];
