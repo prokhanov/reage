@@ -231,7 +231,7 @@ Deno.serve(async (req) => {
         label: templateType,
         unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
-        metadata: { test: isTest, vars, ...(bookingId ? { booking_id: bookingId } : {}) },
+        metadata: { test: isTest, vars, ...(sentBy ? { sent_by: sentBy } : {}), ...(bookingId ? { booking_id: bookingId } : {}) },
       },
     })
 
