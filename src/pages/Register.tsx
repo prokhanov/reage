@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { 
   Heart, User, Calendar, Weight, Ruler, 
   ChevronLeft, ChevronRight, Check, Mail, Lock,
+  ArrowLeft,
 } from "lucide-react";
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
