@@ -37,7 +37,7 @@ export function PreventiveMedicineSection() {
                 <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20">
                   <ShieldCheck className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое превентивная медицина?</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое превентивный подход к здоровью?</h3>
               </div>
 
               <div className="flex flex-col flex-1 space-y-5 text-muted-foreground leading-relaxed">
