@@ -40,7 +40,7 @@ function ComparisonRow({ feature, reage, labs, genetics }: ComparisonRowProps) {
 export function ComparisonSection() {
   const comparisons: ComparisonRowProps[] = [
   { feature: "Расшифровка показателей", reage: true, labs: false, genetics: false },
-  { feature: "Рекомендации врача", reage: true, labs: false, genetics: false },
+  { feature: "Информационные рекомендации", reage: true, labs: false, genetics: false },
   { feature: "Тренды здоровья", reage: "3× в год", labs: false, genetics: false },
   { feature: "Биологический возраст", reage: true, labs: false, genetics: false },
   { feature: "Анализ систем организма", reage: "5 систем", labs: "Частично", genetics: "Риски" },

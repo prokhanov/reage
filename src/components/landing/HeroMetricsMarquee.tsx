@@ -8,7 +8,7 @@ const bullets = [
   },
   {
     icon: <Activity className="w-5 h-5 text-primary" />,
-    title: "Глубокая\nдиагностика",
+    title: "Глубокий\nанализ",
     subtitle: "Анализ крови на 85+ показателей для комплексной проверки здоровья",
   },
   {
@@ -18,7 +18,7 @@ const bullets = [
   },
   {
     icon: <Stethoscope className="w-5 h-5 text-primary" />,
-    title: "Рекомендации\nврача ",
+    title: "Информационные\nрекомендации",
     subtitle: "Составляем персональный план по приему витаминов и минералов, питанию и образу жизни",
   },
 ];
