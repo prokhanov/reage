@@ -37,18 +37,18 @@ export function PreventiveMedicineSection() {
                 <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20">
                   <ShieldCheck className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое превентивная медицина?</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-foreground">Что такое превентивный подход к здоровью?</h3>
               </div>
 
               <div className="flex flex-col flex-1 space-y-5 text-muted-foreground leading-relaxed">
                 <p>
-                  Превентивная медицина — это система, которая работает на опережение. Вместо того чтобы лечить уже возникшую болезнь, мы помогаем вам не допустить её появления.
+                  Превентивный подход — это система, которая работает на опережение. Вместо того чтобы лечить уже возникшую болезнь, мы помогаем вам не допустить её появления.
                   <br />
                   Организм часто молчит до последнего. Повышенный инсулин не болит, но через 5–10 лет может привести к диабету. Высокое давление не даёт симптомов — пока не случится инсульт.
                 </p>
                 <div className="mt-auto rounded-2xl bg-primary/5 border border-primary/10 p-5">
                   <p className="text-sm">
-                    Задача превентивной медицины — увидеть изменения на ранней стадии, когда всё ещё можно скорректировать витаминами, питанием и образом жизни
+                    Задача превентивного подхода — увидеть изменения на ранней стадии, когда возможна коррекция образа жизни и питания (по согласованию с врачом)
                   </p>
                 </div>
               </div>
