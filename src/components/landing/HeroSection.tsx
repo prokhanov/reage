@@ -67,7 +67,7 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
             <span className="text-xs sm:text-sm font-medium text-primary text-center leading-relaxed">
-              85+ биомаркеров • Комплексная диагностика • Тренды здоровья • Биологический возраст
+              85+ биомаркеров • Комплексный анализ • Тренды здоровья • Биологический возраст
             </span>
           </div>
 
@@ -86,7 +86,7 @@ export function HeroSection() {
           <p
             className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in whitespace-pre-line"
             style={{ animationDelay: '0.2s' }}>
-            {"Регулярно берём анализы у вас дома и предоставляем комплексный отчёт\nпо системам организма - с динамикой и рекомендациями врача"}
+            {"Регулярно берём анализы у вас дома и предоставляем комплексный отчёт\nпо системам организма — с динамикой и информационными рекомендациями"}
           </p>
 
           {/* Value bullets */}
