@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { LegalPageLayout, DocumentCard } from "@/components/legal/LegalPageLayout";
-import { BookOpen, Building2, Shield, ScrollText, ClipboardCheck, FlaskConical } from "lucide-react";
+import { BookOpen, Building2, Shield, ScrollText, ClipboardCheck, FlaskConical, ShieldCheck } from "lucide-react";
 
 export default function Documents() {
   const documents = [
@@ -33,6 +33,12 @@ export default function Documents() {
       description: "Условия передачи, обработки и хранения результатов лабораторных исследований в сервисе.",
       icon: <FlaskConical className="w-6 h-6 text-primary" />,
       to: "/legal/consent-research",
+    },
+    {
+      title: "Compliance — для банков и регуляторов",
+      description: "Ответы на типовые вопросы банков, платёжных систем и регуляторов о характере деятельности сервиса.",
+      icon: <ShieldCheck className="w-6 h-6 text-primary" />,
+      to: "/compliance",
     },
   ];
 
