@@ -1,6 +1,8 @@
 project_id = "ilxgodhosirhhkffqryw"
 
 [functions]
+  [functions.robokassa-result]
+    verify_jwt = false
   [functions.analyze-risk-zones]
     verify_jwt = true
   [functions.auth-email-hook]

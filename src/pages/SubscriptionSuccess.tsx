@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Loader2, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 /**
  * /subscription/success — страница возврата с Робокассы после успешной оплаты.
- * Не активирует подписку сама; ждёт, пока ResultURL обработается на сервере
- * и подписка станет active. Опрос с экспоненциальным бэкоффом.
+ * Опрашивает payment_orders по InvId:
+ *  - paid     → ждёт активации подписки и показывает success
+ *  - test_paid → тестовый платёж принят (подписка НЕ активируется)
+ *  - pending  → продолжаем опрос
+ *  - таймаут  → «платёж в обработке»
  */
 export default function SubscriptionSuccess() {
   const [searchParams] = useSearchParams();
   const invId = searchParams.get("InvId");
-  const [status, setStatus] = useState<"waiting" | "active" | "timeout">("waiting");
+  const [status, setStatus] = useState<"waiting" | "active" | "test_paid" | "timeout">("waiting");
 
   useEffect(() => {
     let cancelled = false;
@@ -22,23 +25,41 @@ export default function SubscriptionSuccess() {
     const check = async () => {
       if (cancelled) return;
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        // Если пользователь не залогинен — просто покажем «ожидание подтверждения»
-        return;
+      if (!user) return;
+
+      // 1. Статус заказа по InvId
+      if (invId) {
+        const { data: order } = await supabase
+          .from("payment_orders")
+          .select("status, is_test")
+          .eq("inv_id", Number(invId))
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (order?.status === "test_paid") {
+          setStatus("test_paid");
+          return;
+        }
+
+        if (order?.status === "paid") {
+          // 2. Проверяем активацию подписки
+          const { data: sub } = await supabase
+            .from("subscriptions")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (cancelled) return;
+          if (sub) {
+            setStatus("active");
+            return;
+          }
+        }
       }
-      const { data } = await supabase
-        .from("subscriptions")
-        .select("id, status")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (cancelled) return;
-      if (data) {
-        setStatus("active");
-        return;
-      }
+
       if (attempt >= delays.length) {
         setStatus("timeout");
         return;
@@ -50,7 +71,7 @@ export default function SubscriptionSuccess() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [invId]);
 
   return (
     <div className="container max-w-2xl mx-auto px-4 py-16 text-center">
@@ -74,6 +95,26 @@ export default function SubscriptionSuccess() {
           <Button asChild>
             <Link to="/dashboard">Перейти в Контрольную панель</Link>
           </Button>
+        </>
+      )}
+      {status === "test_paid" && (
+        <>
+          <FlaskConical className="h-14 w-14 text-yellow-500 mx-auto mb-6" />
+          <h1 className="text-2xl md:text-3xl font-bold mb-3">Тестовый платёж принят</h1>
+          <p className="text-muted-foreground mb-8">
+            Платёжный шлюз работает в тестовом режиме. Реальные средства не списаны,
+            подписка не активируется. Чтобы принимать боевые платежи, переключите режим
+            в админ-панели «Платёжный шлюз».
+            {invId && <span className="block mt-2 text-xs">Номер счёта: {invId}</span>}
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Button variant="outline" asChild>
+              <Link to="/subscription">К подпискам</Link>
+            </Button>
+            <Button asChild>
+              <Link to="/admin/payment-gateway">Настройки шлюза</Link>
+            </Button>
+          </div>
         </>
       )}
       {status === "timeout" && (
