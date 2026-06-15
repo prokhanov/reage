@@ -97,21 +97,14 @@ export default function SubscriptionSuccess() {
       )}
       {status === "admin_test" && (
         <>
-          <FlaskConical className="h-14 w-14 text-yellow-500 mx-auto mb-6" />
-          <h1 className="text-2xl md:text-3xl font-bold mb-3">Тестовый платёж проведён</h1>
+          <CheckCircle2 className="h-14 w-14 text-green-500 mx-auto mb-6" />
+          <h1 className="text-2xl md:text-3xl font-bold mb-3">Подписка активирована</h1>
           <p className="text-muted-foreground mb-8">
-            Это админская тест-оплата «Оплатить как клиент». Подписка намеренно
-            не активирована, чтобы не повлиять на аккаунт пользователя.
-            {invId && <span className="block mt-2 text-xs">Номер счёта: {invId}</span>}
+            Спасибо! Добро пожаловать в ReAge.
           </p>
-          <div className="flex gap-3 justify-center">
-            <Button variant="outline" asChild>
-              <Link to="/admin/payment-gateway">К логам оплат</Link>
-            </Button>
-            <Button asChild>
-              <Link to="/admin/payment-gateway">В админку</Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link to="/admin/payment-gateway">К логам оплат</Link>
+          </Button>
         </>
       )}
       {status === "timeout" && (
