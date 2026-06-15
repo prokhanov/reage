@@ -206,15 +206,15 @@ export default function Compliance() {
   return (
     <>
       <Helmet>
-        <title>Compliance — ответы на вопросы регуляторов и банков — ReAge</title>
+        <title>Compliance — ответы на вопросы регулирования — ReAge</title>
         <meta
           name="description"
-          content="Информационно-правовая позиция сервиса ReAge: ответы на типовые вопросы банков, платёжных систем и регуляторов о характере деятельности сервиса."
+          content="Информационно-правовая позиция сервиса ReAge: ответы на типовые вопросы регулирования деятельности сервиса."
         />
       </Helmet>
       <LegalPageLayout
         title="Compliance"
-        subtitle="Ответы на типовые вопросы банков, платёжных систем и регуляторов о характере деятельности сервиса ReAge"
+        subtitle="Ответы на типовые вопросы регулирования деятельности сервиса ReAge"
         icon={<ShieldCheck className="w-6 h-6 text-primary" />}
       >
         <div className="mb-10 p-6 rounded-2xl bg-primary/5 border border-primary/20">
