@@ -83,7 +83,7 @@ export default function ConsentData() {
           <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>результаты лабораторных исследований;</span>
+              <span>результаты лабораторных исследований, полученные от партнёрских лабораторий по поручению или с согласия Пользователя;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
