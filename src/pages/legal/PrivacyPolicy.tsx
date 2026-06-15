@@ -163,7 +163,7 @@ export default function PrivacyPolicy() {
           <ul className="space-y-1.5 mt-2">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
-              <span>результаты лабораторных исследований;</span>
+              <span>результаты лабораторных исследований, полученные от партнерских лабораторий с согласия пользователя;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 flex-shrink-0" />
@@ -243,6 +243,9 @@ export default function PrivacyPolicy() {
               <span>обеспечение информационной безопасности.</span>
             </li>
           </ul>
+          <p className="mt-3">
+            <strong className="text-foreground">4.2.</strong> Сведения о состоянии здоровья пользователя обрабатываются исключительно для целей предоставления информационно-аналитических сервисов, формирования отчетов, расчета показателей здоровья, отображения динамики изменений и не используются для ведения медицинской документации, медицинских карт пациентов, постановки диагнозов, назначения лечения или оказания медицинской помощи.
+          </p>
         </Section>
 
         <Section icon={<FileText className="w-5 h-5" />} title="Правовые основания обработки">
@@ -268,6 +271,9 @@ export default function PrivacyPolicy() {
               <span>иных законных оснований, предусмотренных законодательством Российской Федерации.</span>
             </li>
           </ul>
+          <p className="mt-3">
+            <strong className="text-foreground">5.2.</strong> Обработка специальных категорий персональных данных, включая сведения о состоянии здоровья пользователя, осуществляется исключительно на основании отдельного согласия субъекта персональных данных в соответствии со статьей 10 Федерального закона № 152-ФЗ «О персональных данных».
+          </p>
         </Section>
 
         <Section icon={<Database className="w-5 h-5" />} title="Порядок обработки и хранения данных">
@@ -300,7 +306,7 @@ export default function PrivacyPolicy() {
           <ul className="space-y-1.5 mt-2">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-              <span>лабораториям и иным организациям, осуществляющим исследования;</span>
+              <span>партнерским медицинским организациям и лабораториям для организации, проведения и получения результатов исследований;</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
