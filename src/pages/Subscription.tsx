@@ -12,7 +12,6 @@ export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const [creating, setCreating] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { data: plans, isLoading } = useSubscriptionPlans();
 
   // Check for active subscription
