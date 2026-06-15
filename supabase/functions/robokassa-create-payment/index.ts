@@ -64,9 +64,27 @@ Deno.serve(async (req) => {
     const userEmail = userData.user.email ?? "";
 
     const body = await req.json().catch(() => ({}));
-    const { planId, pricingId } = body as { planId?: string; pricingId?: string };
+    const { planId, pricingId, admin_test: adminTestRaw } = body as {
+      planId?: string;
+      pricingId?: string;
+      admin_test?: boolean;
+    };
     if (!planId || !pricingId) {
       return json({ error: "Не указан plan/pricing" }, 400);
+    }
+
+    // admin_test разрешён только для superadmin
+    let adminTest = false;
+    if (adminTestRaw === true) {
+      const { data: isSuper } = await userClient.rpc("has_role", {
+        _user_id: userId,
+        _role: "superadmin",
+      });
+      if (isSuper === true) {
+        adminTest = true;
+      } else {
+        return json({ error: "admin_test разрешён только администраторам" }, 403);
+      }
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
@@ -117,6 +135,7 @@ Deno.serve(async (req) => {
         out_sum: amount,
         status: "pending",
         is_test: isTest,
+        admin_test: adminTest,
       })
       .select("inv_id")
       .single();

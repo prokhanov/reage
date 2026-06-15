@@ -36,7 +36,7 @@ export function AdminPaymentTester() {
         return;
       }
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
-        body: { planId, pricingId },
+        body: { planId, pricingId, admin_test: true },
       });
       if (error) throw error;
       if (!data?.url) throw new Error("Не получен платёжный URL");
@@ -66,6 +66,11 @@ export function AdminPaymentTester() {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm">
+        Это админская тест-оплата. Заказ пройдёт реальный путь через Робокассу,
+        но <strong>подписка пользователя НЕ будет активирована</strong> — даже если
+        шлюз в боевом режиме. В test-режиме шлюза реальные деньги не списываются.
+      </div>
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-center py-8">Нет доступных цен для тестирования.</p>
       ) : (

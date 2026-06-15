@@ -1303,6 +1303,7 @@ export type Database = {
       }
       payment_orders: {
         Row: {
+          admin_test: boolean
           created_at: string
           id: string
           inv_id: number
@@ -1319,6 +1320,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_test?: boolean
           created_at?: string
           id?: string
           inv_id?: number
@@ -1335,6 +1337,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_test?: boolean
           created_at?: string
           id?: string
           inv_id?: number
