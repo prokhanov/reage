@@ -5,7 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AdminPaymentTester } from "@/components/admin/pricing/AdminPaymentTester";
+import { AdminPaymentLogs } from "@/components/admin/pricing/AdminPaymentLogs";
 
 interface GatewaySettings {
   id: string;
@@ -70,7 +73,7 @@ export default function PaymentGatewaySettings() {
   }
 
   return (
-    <div className="container max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="container max-w-7xl mx-auto px-4 py-8 space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold">Платёжный шлюз</h1>
         <p className="text-muted-foreground mt-1">Настройки интеграции с Robokassa</p>
@@ -95,40 +98,68 @@ export default function PaymentGatewaySettings() {
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Robokassa</CardTitle>
-          <CardDescription>
-            Переключатель режима. Использует разные пароли (тестовые/боевые), которые
-            хранятся в секретах проекта. Тестовые пароли берутся в личном кабинете
-            Robokassa в разделе «Технические настройки → Пароли».
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-1">
-              <Label htmlFor="test-mode" className="text-base font-medium">
-                Тестовый режим
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                При включении в платёжный URL добавляется <code>IsTest=1</code> и подпись
-                считается тестовым паролем.
-              </p>
-            </div>
-            <Switch
-              id="test-mode"
-              checked={!!settings?.test_mode}
-              disabled={saving}
-              onCheckedChange={toggleTestMode}
-            />
-          </div>
+      <Tabs defaultValue="settings">
+        <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="settings">Настройки</TabsTrigger>
+          <TabsTrigger value="test-payment">Тест оплаты</TabsTrigger>
+          <TabsTrigger value="logs">Логи оплат</TabsTrigger>
+        </TabsList>
 
-          <div className="text-xs text-muted-foreground">
-            Последнее обновление:{" "}
-            {settings?.updated_at ? new Date(settings.updated_at).toLocaleString("ru-RU") : "—"}
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="settings" className="mt-6">
+          <Card className="max-w-3xl">
+            <CardHeader>
+              <CardTitle>Robokassa</CardTitle>
+              <CardDescription>
+                Переключатель режима. Использует разные пароли (тестовые/боевые), которые
+                хранятся в секретах проекта. Тестовые пароли берутся в личном кабинете
+                Robokassa в разделе «Технические настройки → Пароли».
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-1">
+                  <Label htmlFor="test-mode" className="text-base font-medium">
+                    Тестовый режим
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    При включении в платёжный URL добавляется <code>IsTest=1</code> и подпись
+                    считается тестовым паролем.
+                  </p>
+                </div>
+                <Switch
+                  id="test-mode"
+                  checked={!!settings?.test_mode}
+                  disabled={saving}
+                  onCheckedChange={toggleTestMode}
+                />
+              </div>
+
+              <div className="text-xs text-muted-foreground">
+                Последнее обновление:{" "}
+                {settings?.updated_at ? new Date(settings.updated_at).toLocaleString("ru-RU") : "—"}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="test-payment" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Тестирование оплаты</CardTitle>
+              <CardDescription>
+                Запустите оплату любого тарифа от лица текущего админ-аккаунта — поведение полностью идентично клиентскому потоку на странице /subscription.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminPaymentTester />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="logs" className="mt-6">
+          <AdminPaymentLogs />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

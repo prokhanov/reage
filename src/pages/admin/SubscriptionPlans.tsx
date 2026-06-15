@@ -11,8 +11,6 @@ import {
 import { CreatePlanDialog } from "@/components/admin/CreatePlanDialog";
 import { PlansList } from "@/components/admin/PlansList";
 import { PricingTable } from "@/components/admin/PricingTable";
-import { AdminPaymentTester } from "@/components/admin/pricing/AdminPaymentTester";
-import { AdminPaymentLogs } from "@/components/admin/pricing/AdminPaymentLogs";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { Skeleton } from "@/components/ui/skeleton";
 
