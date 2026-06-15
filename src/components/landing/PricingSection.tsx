@@ -1,9 +1,11 @@
-import { Check, Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
+import { Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BiomarkerComparisonDialog } from "./BiomarkerComparisonDialog";
+import { useSubscriptionPlans, type PlanWithPricing } from "@/hooks/useSubscriptionPlans";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Helper to wrap raw SVG paths into a Lucide-compatible icon
 const makeIcon = (paths: React.ReactNode): LucideIcon =>
@@ -25,7 +27,6 @@ const makeIcon = (paths: React.ReactNode): LucideIcon =>
     </svg>
   )) as unknown as LucideIcon;
 
-// Молекула гормона — иконка эндокринной системы (как в "Что мы измеряем")
 const HormoneMoleculeIcon = makeIcon(
   <>
     <circle cx="12" cy="12" r="2.5" />
@@ -59,18 +60,17 @@ interface PricingCardProps {
   isPopular?: boolean;
   badge?: string;
   delay: number;
+  onSelect: () => void;
 }
 
-function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay }: PricingCardProps) {
-  const navigate = useNavigate();
-
+function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay, onSelect }: PricingCardProps) {
   return (
     <div
       className="group relative h-full animate-fade-in"
       style={{ animationDelay: `${delay}s` }}>
-      
+
       <div className="absolute -inset-0.5 rounded-3xl opacity-50 blur-xl" style={{ background: glowColor }} />
-      
+
       <div className="relative h-full rounded-3xl border border-primary/30 p-8 transition-all duration-500 flex flex-col bg-gradient-to-b from-card to-card/80 shadow-2xl shadow-primary/10">
 
         {badge &&
@@ -83,11 +83,10 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
             {badge}
           </div>
         }
-        
-        {/* Header */}
+
         <div className="text-center mb-6">
           <h3 className="text-xl font-bold text-foreground mb-4">{name}</h3>
-          
+
           <div className="flex items-baseline justify-center gap-1">
             <span className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold whitespace-nowrap ${isPopular ? "bg-gradient-hero bg-clip-text text-transparent" : "text-foreground"}`}>
               {price}
@@ -96,21 +95,19 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
           </div>
         </div>
 
-        {/* Key metrics */}
         <div className="space-y-3 mb-6">
           <BiomarkersMetricRow biomarkers={biomarkers} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
           <MetricRow icon={<CalendarCheck className="w-4 h-4" />} label="Анализов" value={analyses} isPopular={isPopular} />
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={`${consultations} в год`} isPopular={isPopular} />
         </div>
 
-        {/* Description */}
         <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1 whitespace-pre-line">{description}</p>
-        
+
         <Button
           className={`w-full ${isPopular ? "shadow-neon-primary" : ""}`}
           variant={isPopular ? "default" : "outline"}
           size="lg"
-          onClick={() => navigate("/register")}>
+          onClick={onSelect}>
           Выбрать план
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
@@ -214,59 +211,85 @@ const premiumBiomarkers: BiomarkerCategory[] = [
 
 const totalCount = (cats: BiomarkerCategory[]) => cats.reduce((s, c) => s + c.markers.length, 0);
 
+// Маппинг slug плана (subscription_plans.name) -> локальный список биомаркеров по системам.
+// Это «визуальный» разрез для popover. Сам факт включения биомаркеров и их количество
+// идут из БД (plan_biomarkers / features), но детализацию по системам мы храним здесь,
+// потому что в БД нет группировки «по системам» в человекочитаемом виде.
+const biomarkersByPlanSlug: Record<string, BiomarkerCategory[]> = {
+  basic: standardBiomarkers,
+  plus: plusBiomarkers,
+  expert: premiumBiomarkers,
+};
+
+const glowByPlanSlug: Record<string, string> = {
+  basic: "linear-gradient(135deg, hsl(175, 70%, 55%), hsl(165, 65%, 50%))",
+  plus: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))",
+  expert: "linear-gradient(135deg, hsl(210, 75%, 60%), hsl(220, 70%, 55%))",
+};
+
+// Парсим количество из строк features вида «3 анализа в год», «4 консультации в год».
+function extractCount(features: string[], keywords: string[]): string | null {
+  for (const f of features) {
+    const lower = f.toLowerCase();
+    if (keywords.some((k) => lower.includes(k))) {
+      const m = f.match(/\d+/);
+      if (m) return m[0];
+    }
+  }
+  return null;
+}
+
+function planToCard(plan: PlanWithPricing, index: number) {
+  // Берём годовую цену — это базовая публичная цена.
+  const annual = plan.pricing.find((p) => p.period === "annual" && p.is_enabled !== false);
+  const pricing = annual ?? plan.pricing.find((p) => p.is_enabled !== false) ?? plan.pricing[0];
+  const amount = pricing?.amount ?? 0;
+  const priceStr = `${Math.round(amount).toLocaleString("ru-RU")}₽`;
+  const periodStr = pricing?.period === "annual" ? "год"
+    : pricing?.period === "semiannual" ? "полгода"
+    : pricing?.period === "quarterly" ? "квартал"
+    : pricing?.period === "monthly" ? "мес"
+    : "год";
+
+  const slug = (plan.name || "").toLowerCase();
+  const biomarkersBySystem = biomarkersByPlanSlug[slug] ?? standardBiomarkers;
+  const biomarkersCount = plan.included_biomarkers && plan.included_biomarkers.length > 0
+    ? plan.included_biomarkers.length
+    : totalCount(biomarkersBySystem);
+
+  const analyses = extractCount(plan.features, ["анализ"]) ?? "3";
+  const consultations = extractCount(plan.features, ["консульт"]) ?? "3";
+
+  const isPopular = plan.badge_color === "primary" || plan.display_order === 2;
+
+  return {
+    id: plan.id,
+    name: plan.display_name,
+    price: priceStr,
+    period: periodStr,
+    description: plan.description ?? "",
+    badge: plan.badge_text ?? undefined,
+    isPopular,
+    biomarkers: String(biomarkersCount),
+    analyses: `${analyses} раза в год`,
+    consultations,
+    biomarkersBySystem,
+    glowColor: glowByPlanSlug[slug] ?? glowByPlanSlug.basic,
+    delay: 0.1 + index * 0.1,
+  };
+}
 
 export function PricingSection() {
   const [comparisonOpen, setComparisonOpen] = useState(false);
-  const plans = [
-    {
-      name: "Базовый",
-      price: "75 000₽",
-      period: "год",
-      description: "Базовый, но умный чек-ап.\n52 показателя, которые показывают, как работает обмен веществ, сердце, печень, почки, и гормональный фон. Подходит для регулярного трекинга здоровья и раннего выявления рисков — до появления симптомов",
-      badge: "Старт",
-      biomarkers: String(totalCount(standardBiomarkers)),
-      analyses: "3 раза в год",
-      consultations: "3",
-      biomarkersBySystem: standardBiomarkers,
-      glowColor: "linear-gradient(135deg, hsl(175, 70%, 55%), hsl(165, 65%, 50%))",
-      delay: 0.1
-    },
-    {
-      name: "Плюс",
-      price: "135 000₽",
-      period: "год",
-      description: "Углублённый уровень чекапа. Добавляет расширенную оценку сердечно-сосудистых рисков, дефицитов и гормонального баланса — для более точного понимания причин усталости, снижения энергии и скрытых рисков",
-      badge: "Популярный",
-      isPopular: true,
-      biomarkers: String(totalCount(plusBiomarkers)),
-      analyses: "3 раза в год",
-      consultations: "3",
-      biomarkersBySystem: plusBiomarkers,
-      glowColor: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))",
-      delay: 0.2
-    },
-    {
-      name: "Экспертный",
-      price: "220 000₽",
-      period: "год",
-      description: "Максимальная глубина чекапа. Дополняет Базовый и Плюс оценкой митохондриальной функции, окислительного стресса и факторов воспаления  — для тех, кто хочет понимать процессы старения на самом глубоком уровне",
-      badge: "VIP",
-      biomarkers: String(totalCount(premiumBiomarkers)),
-      analyses: "4 раза в год",
-      consultations: "4",
-      biomarkersBySystem: premiumBiomarkers,
-      glowColor: "linear-gradient(135deg, hsl(210, 75%, 60%), hsl(220, 70%, 55%))",
-      delay: 0.3
-    }
-  ];
+  const navigate = useNavigate();
+  const { data: plans, isLoading } = useSubscriptionPlans();
 
+  const cards = (plans ?? []).map((p, i) => planToCard(p, i));
 
   return (
     <section className="relative py-20 md:py-28 overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
-      
-      {/* Grid pattern */}
+
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `
           linear-gradient(to right, hsl(var(--primary)) 1px, transparent 1px),
@@ -274,22 +297,20 @@ export function PricingSection() {
         `,
         backgroundSize: '60px 60px'
       }} />
-      
-      {/* Floating orbs */}
+
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px]" />
 
       <div className="relative z-10 container mx-auto px-4">
-        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
-          
+
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Выберите свой </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
               план мониторинга
             </span>
           </h2>
-          
+
           <button
             type="button"
             onClick={() => setComparisonOpen(true)}
@@ -302,24 +323,26 @@ export function PricingSection() {
 
         <BiomarkerComparisonDialog open={comparisonOpen} onOpenChange={setComparisonOpen} />
 
-        {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
-          {plans.map((plan, index) =>
-          <PricingCard key={index} {...plan} />
+          {isLoading ? (
+            [0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-[520px] rounded-3xl" />
+            ))
+          ) : cards.length === 0 ? (
+            <div className="col-span-full text-center text-muted-foreground py-12">
+              Тарифы временно недоступны. Загляните позже.
+            </div>
+          ) : (
+            cards.map((card) => (
+              <PricingCard
+                key={card.id}
+                {...card}
+                onSelect={() => navigate("/register")}
+              />
+            ))
           )}
         </div>
-
-        {/* Trust badges */}
       </div>
     </section>);
-
-}
-
-function TrustBadge({ icon, text }: {icon: string;text: string;}) {
-  return (
-    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50">
-      <span>{icon}</span>
-      <span className="text-sm text-muted-foreground">{text}</span>
-    </div>);
 
 }
