@@ -35,11 +35,9 @@ export default function SubscriptionPlans() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 flex-wrap h-auto">
+        <TabsList className="mb-6">
           <TabsTrigger value="plans">Тарифы</TabsTrigger>
           <TabsTrigger value="pricing">Цены и периоды</TabsTrigger>
-          <TabsTrigger value="test-payment">Тест оплаты</TabsTrigger>
-          <TabsTrigger value="logs">Логи оплат</TabsTrigger>
         </TabsList>
 
         <TabsContent value="plans">
@@ -111,24 +109,6 @@ export default function SubscriptionPlans() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="test-payment">
-          <Card>
-            <CardHeader>
-              <CardTitle>Тестирование оплаты</CardTitle>
-              <CardDescription>
-                Запустите оплату любого тарифа от лица текущего админ-аккаунта — поведение полностью идентично клиентскому потоку на странице /subscription.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminPaymentTester />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="logs">
-          <AdminPaymentLogs />
         </TabsContent>
       </Tabs>
     </div>
