@@ -5,8 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { PlanCard } from "@/components/subscription/PlanCard";
-import { addMonths } from "date-fns";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ActiveSubscription } from "@/components/subscription/ActiveSubscription";
 
 export default function Subscription() {
@@ -48,52 +47,32 @@ export default function Subscription() {
     setCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const pricing = plans
-        ?.flatMap(p => p.pricing)
-        .find(p => p.id === pricingId);
-
-      if (!pricing) throw new Error('Pricing not found');
-
-      const startDate = new Date();
-      const endDate = addMonths(startDate, pricing.duration_months);
-
-      const { error } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: user.id,
-          plan_id: planId,
-          pricing_id: pricingId,
-          plan_type: pricing.period,
-          amount: pricing.amount,
-          status: 'active',
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-          payment_method: 'card'
+      if (!user) {
+        toast({
+          title: "Требуется вход",
+          description: "Войдите в аккаунт, чтобы оформить подписку.",
+          variant: "destructive",
         });
+        setCreating(false);
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
+        body: { planId, pricingId },
+      });
 
       if (error) throw error;
+      if (!data?.url) throw new Error("Не получен платёжный URL");
 
-      toast({
-        title: "Подписка активирована!",
-        description: "Ваша подписка успешно оформлена. Добро пожаловать в ReAge!",
-      });
-
-      // Обновляем все связанные запросы
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
-      if (user.id) {
-        queryClient.invalidateQueries({ queryKey: ['patient-info', user.id] });
-      }
+      // Робокасса позовёт ResultURL → бэкенд активирует подписку.
+      window.location.href = data.url as string;
     } catch (error) {
-      console.error('Error creating subscription:', error);
+      console.error("Error creating payment:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось оформить подписку. Попробуйте позже.",
+        description: "Не удалось создать платёж. Попробуйте позже.",
         variant: "destructive",
       });
-    } finally {
       setCreating(false);
     }
   };

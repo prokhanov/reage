@@ -27,6 +27,8 @@ import Trends from "./pages/Trends";
 import MyState from "./pages/MyState";
 import HealthAssistant from "./pages/HealthAssistant";
 import Subscription from "./pages/Subscription";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import SubscriptionFail from "./pages/SubscriptionFail";
 import HealthStrategy from "./pages/HealthStrategy";
 import ExampleReport from "./pages/ExampleReport";
 import AnalysisPrep from "./pages/AnalysisPrep";
@@ -267,6 +269,9 @@ const App = () => (
             <Route path="/legal/consent-research" element={<ConsentResearch />} />
             <Route path="/legal/documents" element={<Documents />} />
             <Route path="/compliance" element={<Compliance />} />
+            {/* Robokassa return pages */}
+            <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+            <Route path="/subscription/fail" element={<SubscriptionFail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
