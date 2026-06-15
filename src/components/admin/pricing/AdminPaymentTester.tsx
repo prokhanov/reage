@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { AlertTriangle, Loader2, CreditCard } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
-import { usePaymentGatewayTestMode } from "@/hooks/usePaymentGatewayTestMode";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
