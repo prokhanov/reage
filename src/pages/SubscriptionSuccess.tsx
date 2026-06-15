@@ -109,7 +109,7 @@ export default function SubscriptionSuccess() {
               <Link to="/admin/payment-gateway">К логам оплат</Link>
             </Button>
             <Button asChild>
-              <Link to="/admin">В админку</Link>
+              <Link to="/admin/payment-gateway">В админку</Link>
             </Button>
           </div>
         </>
