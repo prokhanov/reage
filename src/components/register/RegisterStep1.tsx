@@ -175,13 +175,13 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
           <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
             политику конфиденциальности
           </a>{" "}
-          и даю{" "}
+          и даю согласие на обработку{" "}
           <a href="/legal/consent-data" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-            согласие на обработку персональных данных
+            персональных данных
           </a>{" "}
           и{" "}
           <a href="/legal/consent-research" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-            согласие на обработку специальных категорий персональных данных
+            специальных категорий персональных данных
           </a>
           .
         </Label>
