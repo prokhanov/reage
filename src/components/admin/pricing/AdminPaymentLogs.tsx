@@ -36,9 +36,19 @@ type CallbackRow = {
   inv_id: number | null;
   signature_valid: boolean;
   error: string | null;
-  raw_body: unknown;
-  headers: unknown;
+  raw_body: Record<string, unknown> | null;
+  headers: Record<string, unknown> | null;
   created_at: string;
+};
+
+const pickField = (obj: Record<string, unknown> | null | undefined, ...keys: string[]) => {
+  if (!obj) return undefined;
+  for (const k of keys) {
+    if (obj[k] != null) return obj[k];
+    const lower = Object.keys(obj).find((x) => x.toLowerCase() === k.toLowerCase());
+    if (lower && obj[lower] != null) return obj[lower];
+  }
+  return undefined;
 };
 
 const fmt = (s: string | null | undefined) =>
