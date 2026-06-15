@@ -69,18 +69,6 @@ export function AdminPaymentTester() {
 
   return (
     <div className="space-y-4">
-      <Alert variant={isTestMode ? "destructive" : "default"}>
-        <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>
-          Платёжный шлюз: {isTestMode ? "ТЕСТОВЫЙ режим" : "БОЕВОЙ режим"}
-        </AlertTitle>
-        <AlertDescription>
-          {isTestMode
-            ? "Реальные деньги не спишутся. Подписка после такой оплаты не активируется."
-            : "Внимание: будет проведён реальный платёж. Подписка активируется на ваш админ-аккаунт."}
-        </AlertDescription>
-      </Alert>
-
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-center py-8">Нет доступных цен для тестирования.</p>
       ) : (
