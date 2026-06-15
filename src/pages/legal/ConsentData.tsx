@@ -126,6 +126,18 @@ export default function ConsentData() {
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>формирования, хранения и отображения истории показателей здоровья Пользователя;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>отображения динамики изменений показателей здоровья;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>расчёта производных показателей, индексов и метрик здоровья;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
               <span>хранения и отображения данных в личном кабинете;</span>
             </li>
             <li className="flex items-start gap-2">
@@ -149,6 +161,9 @@ export default function ConsentData() {
               <span>улучшения качества работы сервиса.</span>
             </li>
           </ul>
+          <p className="mt-3">
+            Сведения о состоянии здоровья Пользователя обрабатываются исключительно для целей предоставления информационно-аналитических сервисов ReAge и не используются для ведения медицинской документации, медицинских карт пациентов, постановки диагнозов, назначения лечения или оказания медицинской помощи.
+          </p>
         </Section>
 
         <Section icon={<Database className="w-5 h-5" />} title="Действия с персональными данными">
