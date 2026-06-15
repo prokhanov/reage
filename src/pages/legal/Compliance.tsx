@@ -234,8 +234,7 @@ export default function Compliance() {
 
         <div className="mt-12 p-6 rounded-2xl bg-muted/30 border border-border/30">
           <p className="text-sm text-muted-foreground m-0">
-            По дополнительным юридическим вопросам банки, платёжные системы и регуляторы
-            могут направлять запросы по адресу{" "}
+            По дополнительным вопросам отправьте запрос по адресу{" "}
             <a href="mailto:team@reage.life" className="text-primary hover:underline">
               team@reage.life
             </a>
