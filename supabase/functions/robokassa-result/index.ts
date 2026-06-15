@@ -1,6 +1,15 @@
 // robokassa-result: серверный callback от Робокассы.
 // Поддерживает тестовый и боевой режим (определяется по параметру IsTest или is_test заказа).
 // Тестовые платежи НЕ активируют подписку.
+//
+// ВАЖНО: Result URL в кабинете Робокассы должен указывать на Fly reverse-proxy:
+//   https://api.reage.life/functions/v1/robokassa-result   (метод POST, MD5)
+// НЕ использовать прямой URL Supabase (ilxgodhosirhhkffqryw.supabase.co) —
+// весь внешний трафик идёт через api.reage.life (Fly → Supabase).
+//
+// verify_jwt = false (см. supabase/config.toml) — Робокасса не присылает
+// пользовательский JWT, аутентификация callback'а основана на MD5-подписи
+// с ROBOKASSA_PASSWORD_2 / ROBOKASSA_TEST_PASSWORD_2.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createHash } from "node:crypto";
