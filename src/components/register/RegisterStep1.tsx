@@ -178,6 +178,10 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
           и даю{" "}
           <a href="/legal/consent-data" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
             согласие на обработку персональных данных
+          </a>{" "}
+          и{" "}
+          <a href="/legal/consent-research" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            согласие на обработку специальных категорий персональных данных
           </a>
           .
         </Label>
