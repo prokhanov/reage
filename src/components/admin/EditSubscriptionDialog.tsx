@@ -280,6 +280,17 @@ export function EditSubscriptionDialog({
               placeholder="120000"
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payment_method">Способ оплаты</Label>
+            <Input
+              id="payment_method"
+              type="text"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              placeholder="robokassa / manual / ..."
+            />
+          </div>
         </div>
 
         <DialogFooter>
