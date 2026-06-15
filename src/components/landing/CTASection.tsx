@@ -73,7 +73,7 @@ export function Footer() {
   const legalLinks = [
     { href: "/legal/requisites", label: "Реквизиты" },
     { href: "/legal/privacy", label: "Политика обработки персональных данных" },
-    { href: "/legal/terms", label: "Пользовательское соглашение" },
+    { href: "/legal/terms", label: "Пользовательское соглашение (оферта)" },
     { href: "/legal/consent-data", label: "Согласие на обработку персональных данных" },
     { href: "/legal/consent-research", label: "Согласие на обработку исследований" },
     { href: "/compliance", label: "Compliance" },
