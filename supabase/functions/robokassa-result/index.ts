@@ -1,6 +1,6 @@
 // robokassa-result: серверный callback от Робокассы.
-// Проверяет подпись на Password2, идемпотентно активирует подписку.
-// Отвечает строго text/plain "OK<InvId>" при успехе или "bad sign" при ошибке.
+// Поддерживает тестовый и боевой режим (определяется по параметру IsTest или is_test заказа).
+// Тестовые платежи НЕ активируют подписку.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createHash } from "node:crypto";
@@ -9,10 +9,6 @@ function md5(input: string): string {
   return createHash("md5").update(input).digest("hex");
 }
 
-/** Подпись для ResultURL.
- *  Без shp_*: md5(OutSum:InvId:Password2)
- *  С shp_*:   md5(OutSum:InvId:Password2:shp_a=...:shp_b=...) — алфавитный порядок.
- */
 function buildResultSignature(
   outSum: string,
   invId: number,
@@ -35,14 +31,13 @@ function textPlain(body: string, status = 200): Response {
 }
 
 Deno.serve(async (req) => {
-  // Robokassa server-to-server (нет CORS preflight). Принимаем POST и GET (на всякий).
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const password2 = Deno.env.get("ROBOKASSA_PASSWORD_2");
+  const livePassword2 = Deno.env.get("ROBOKASSA_PASSWORD_2");
+  const testPassword2 = Deno.env.get("ROBOKASSA_TEST_PASSWORD_2");
 
   const admin = createClient(supabaseUrl, serviceKey);
 
-  // Собираем входные параметры (POST form-urlencoded или query string)
   let params: URLSearchParams;
   let rawBody = "";
   try {
@@ -72,8 +67,8 @@ Deno.serve(async (req) => {
   const invIdStr = params.get("InvId") ?? "";
   const signature = (params.get("SignatureValue") ?? "").toLowerCase();
   const invId = Number(invIdStr);
+  const isTestParam = params.get("IsTest") === "1";
 
-  // shp_* parameters (case-insensitive on prefix; Robokassa requires lowercase "shp_")
   const shp: Record<string, string> = {};
   for (const [k, v] of Object.entries(all)) {
     if (k.startsWith("shp_") || k.startsWith("Shp_") || k.startsWith("SHP_")) {
@@ -87,15 +82,6 @@ Deno.serve(async (req) => {
     headers: collectHeaders(req),
   };
 
-  if (!password2) {
-    await admin.from("payment_callback_log").insert({
-      ...logBase,
-      signature_valid: false,
-      error: "ROBOKASSA_PASSWORD_2 not configured",
-    });
-    return textPlain("server misconfigured", 500);
-  }
-
   if (!outSum || !Number.isFinite(invId) || !signature) {
     await admin.from("payment_callback_log").insert({
       ...logBase,
@@ -105,6 +91,36 @@ Deno.serve(async (req) => {
     return textPlain("bad request", 400);
   }
 
+  // Сначала находим заказ — он несёт is_test, по нему выбираем пароль
+  const { data: order, error: orderErr } = await admin
+    .from("payment_orders")
+    .select("id, user_id, plan_id, pricing_id, out_sum, status, is_test")
+    .eq("inv_id", invId)
+    .maybeSingle();
+
+  if (orderErr || !order) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: false,
+      error: `order not found for inv_id=${invId}`,
+    });
+    return textPlain("order not found", 404);
+  }
+
+  const isTest = order.is_test === true || isTestParam;
+  const password2 = isTest ? testPassword2 : livePassword2;
+
+  if (!password2) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: false,
+      error: isTest
+        ? "ROBOKASSA_TEST_PASSWORD_2 not configured"
+        : "ROBOKASSA_PASSWORD_2 not configured",
+    });
+    return textPlain("server misconfigured", 500);
+  }
+
   const expected = buildResultSignature(outSum, invId, password2, shp).toLowerCase();
   const valid = expected === signature;
 
@@ -112,33 +128,17 @@ Deno.serve(async (req) => {
     await admin.from("payment_callback_log").insert({
       ...logBase,
       signature_valid: false,
-      error: `signature mismatch expected=${expected} got=${signature}`,
+      error: `signature mismatch (mode=${isTest ? "test" : "live"}) expected=${expected} got=${signature}`,
     });
     return textPlain("bad sign", 400);
   }
 
-  // Подпись валидна — обрабатываем заказ идемпотентно.
-  const { data: order, error: orderErr } = await admin
-    .from("payment_orders")
-    .select("id, user_id, plan_id, pricing_id, out_sum, status")
-    .eq("inv_id", invId)
-    .maybeSingle();
-
-  if (orderErr || !order) {
+  // Идемпотентность
+  if (order.status === "paid" || order.status === "test_paid") {
     await admin.from("payment_callback_log").insert({
       ...logBase,
       signature_valid: true,
-      error: `order not found for inv_id=${invId}`,
-    });
-    return textPlain("order not found", 404);
-  }
-
-  if (order.status === "paid") {
-    // Идемпотентность: уже активировали ранее.
-    await admin.from("payment_callback_log").insert({
-      ...logBase,
-      signature_valid: true,
-      error: "already paid (idempotent)",
+      error: `already ${order.status} (idempotent)`,
     });
     return textPlain(`OK${invId}`);
   }
@@ -160,7 +160,29 @@ Deno.serve(async (req) => {
     return textPlain("amount mismatch", 400);
   }
 
-  // Получаем pricing для расчёта end_date / plan_type
+  // Ветка тестового платежа: помечаем заказ, подписку НЕ выдаём
+  if (isTest) {
+    const { error: updErr } = await admin
+      .from("payment_orders")
+      .update({
+        status: "test_paid",
+        paid_amount: paidAmount,
+        robokassa_signature: signature,
+        raw_callback: all,
+        paid_at: new Date().toISOString(),
+      })
+      .eq("inv_id", invId);
+
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: true,
+      error: updErr ? `test order update failed: ${updErr.message}` : "test mode: subscription NOT activated",
+    });
+
+    return textPlain(`OK${invId}`);
+  }
+
+  // Боевая ветка — активируем подписку
   let endDate: string | null = null;
   let planType = "annual";
   if (order.pricing_id) {
@@ -179,7 +201,6 @@ Deno.serve(async (req) => {
   }
   const startDate = new Date().toISOString();
 
-  // Помечаем заказ paid
   const { error: updErr } = await admin
     .from("payment_orders")
     .update({
@@ -200,14 +221,12 @@ Deno.serve(async (req) => {
     return textPlain("db error", 500);
   }
 
-  // Деактивируем предыдущие active подписки этого пользователя
   await admin
     .from("subscriptions")
     .update({ status: "expired" })
     .eq("user_id", order.user_id)
     .eq("status", "active");
 
-  // Создаём активную подписку (service role обходит RLS)
   const { error: subErr } = await admin.from("subscriptions").insert({
     user_id: order.user_id,
     plan_id: order.plan_id,
