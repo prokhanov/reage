@@ -315,42 +315,95 @@ export function AdminPaymentLogs() {
                   <TableRow>
                     <TableHead>Дата</TableHead>
                     <TableHead>InvId</TableHead>
+                    <TableHead>Режим</TableHead>
+                    <TableHead className="text-right">OutSum</TableHead>
+                    <TableHead>SignatureValue</TableHead>
                     <TableHead>Подпись</TableHead>
+                    <TableHead>Пользователь</TableHead>
                     <TableHead>Ошибка</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(callbacksQuery.data || []).map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="whitespace-nowrap text-xs">{fmt(c.created_at)}</TableCell>
-                      <TableCell className="font-mono text-xs">{c.inv_id ?? "—"}</TableCell>
-                      <TableCell>
-                        {c.signature_valid ? (
-                          <Badge variant="default">валидна</Badge>
-                        ) : (
-                          <Badge variant="destructive">невалидна</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs text-destructive max-w-md truncate">
-                        {c.error || "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            setDetails({
-                              title: `Колбэк ${c.id.slice(0, 8)} (InvId=${c.inv_id ?? "—"})`,
-                              data: { headers: c.headers, body: c.raw_body, error: c.error },
-                            })
-                          }
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {(callbacksQuery.data || []).map((c) => {
+                    const body = c.raw_body || {};
+                    const outSum = pickField(body, "OutSum", "out_summ", "OutSumm");
+                    const sig = pickField(body, "SignatureValue", "signature_value", "Signature") as string | undefined;
+                    const isTestRaw = pickField(body, "IsTest", "is_test");
+                    const relatedOrder = (ordersQuery.data || []).find((o) => o.inv_id === c.inv_id);
+                    const isTest =
+                      isTestRaw != null
+                        ? String(isTestRaw) === "1" || isTestRaw === true || String(isTestRaw).toLowerCase() === "true"
+                        : relatedOrder?.is_test;
+                    const prof = relatedOrder ? profileMap.get(relatedOrder.user_id) : undefined;
+                    return (
+                      <TableRow key={c.id}>
+                        <TableCell className="whitespace-nowrap text-xs">{fmt(c.created_at)}</TableCell>
+                        <TableCell className="font-mono text-xs">{c.inv_id ?? "—"}</TableCell>
+                        <TableCell>
+                          {isTest === true ? (
+                            <Badge variant="outline">тест</Badge>
+                          ) : isTest === false ? (
+                            <Badge variant="secondary">боевой</Badge>
+                          ) : (
+                            <Badge variant="outline">—</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums text-xs">
+                          {outSum != null ? `${Number(outSum).toLocaleString("ru-RU")} ₽` : "—"}
+                        </TableCell>
+                        <TableCell className="font-mono text-[10px] max-w-[140px] truncate" title={sig || ""}>
+                          {sig || "—"}
+                        </TableCell>
+                        <TableCell>
+                          {c.signature_valid ? (
+                            <Badge variant="default">валидна</Badge>
+                          ) : (
+                            <Badge variant="destructive">невалидна</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {prof ? (
+                            <>
+                              <div className="font-medium">
+                                {`${prof.first_name || ""} ${prof.last_name || ""}`.trim() || "—"}
+                              </div>
+                              <div className="text-muted-foreground">{prof.email}</div>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs text-destructive max-w-md truncate" title={c.error || ""}>
+                          {c.error || "—"}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              setDetails({
+                                title: `Колбэк ${c.id.slice(0, 8)} (InvId=${c.inv_id ?? "—"})`,
+                                data: {
+                                  id: c.id,
+                                  created_at: c.created_at,
+                                  inv_id: c.inv_id,
+                                  signature_valid: c.signature_valid,
+                                  is_test: isTest,
+                                  error: c.error,
+                                  headers: c.headers,
+                                  body: c.raw_body,
+                                  related_order: relatedOrder || null,
+                                },
+                              })
+                            }
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
