@@ -1247,6 +1247,84 @@ export type Database = {
           },
         ]
       }
+      payment_callback_log: {
+        Row: {
+          created_at: string
+          error: string | null
+          headers: Json | null
+          id: string
+          inv_id: number | null
+          raw_body: Json | null
+          signature_valid: boolean
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          headers?: Json | null
+          id?: string
+          inv_id?: number | null
+          raw_body?: Json | null
+          signature_valid?: boolean
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          headers?: Json | null
+          id?: string
+          inv_id?: number | null
+          raw_body?: Json | null
+          signature_valid?: boolean
+        }
+        Relationships: []
+      }
+      payment_orders: {
+        Row: {
+          created_at: string
+          id: string
+          inv_id: number
+          out_sum: number
+          paid_amount: number | null
+          paid_at: string | null
+          plan_id: string | null
+          pricing_id: string | null
+          raw_callback: Json | null
+          robokassa_signature: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inv_id?: number
+          out_sum: number
+          paid_amount?: number | null
+          paid_at?: string | null
+          plan_id?: string | null
+          pricing_id?: string | null
+          raw_callback?: Json | null
+          robokassa_signature?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inv_id?: number
+          out_sum?: number
+          paid_amount?: number | null
+          paid_at?: string | null
+          plan_id?: string | null
+          pricing_id?: string | null
+          raw_callback?: Json | null
+          robokassa_signature?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       phone_otp_codes: {
         Row: {
           attempts: number
