@@ -100,10 +100,10 @@ Deno.serve(async (req) => {
     return textPlain("bad request", 400);
   }
 
-  // Сначала находим заказ — он несёт is_test, по нему выбираем пароль
+  // Сначала находим заказ — он несёт is_test/admin_test, по нему выбираем пароль
   const { data: order, error: orderErr } = await admin
     .from("payment_orders")
-    .select("id, user_id, plan_id, pricing_id, out_sum, status, is_test")
+    .select("id, user_id, plan_id, pricing_id, out_sum, status, is_test, admin_test")
     .eq("inv_id", invId)
     .maybeSingle();
 
@@ -117,6 +117,7 @@ Deno.serve(async (req) => {
   }
 
   const isTest = order.is_test === true || isTestParam;
+  const isAdminTest = order.admin_test === true;
   const password2 = isTest ? testPassword2 : livePassword2;
 
   if (!password2) {
@@ -143,11 +144,11 @@ Deno.serve(async (req) => {
   }
 
   // Идемпотентность
-  if (order.status === "paid" || order.status === "test_paid") {
+  if (order.status === "paid") {
     await admin.from("payment_callback_log").insert({
       ...logBase,
       signature_valid: true,
-      error: `already ${order.status} (idempotent)`,
+      error: `already paid (idempotent)`,
     });
     return textPlain(`OK${invId}`);
   }
@@ -169,29 +170,39 @@ Deno.serve(async (req) => {
     return textPlain("amount mismatch", 400);
   }
 
-  // Ветка тестового платежа: помечаем заказ, подписку НЕ выдаём
-  if (isTest) {
-    const { error: updErr } = await admin
-      .from("payment_orders")
-      .update({
-        status: "test_paid",
-        paid_amount: paidAmount,
-        robokassa_signature: signature,
-        raw_callback: all,
-        paid_at: new Date().toISOString(),
-      })
-      .eq("inv_id", invId);
+  // Помечаем заказ оплаченным (и для боевых, и для тестов шлюза, и для админских тестов)
+  const { error: orderUpdErr } = await admin
+    .from("payment_orders")
+    .update({
+      status: "paid",
+      paid_amount: paidAmount,
+      robokassa_signature: signature,
+      raw_callback: all,
+      paid_at: new Date().toISOString(),
+    })
+    .eq("inv_id", invId);
 
+  if (orderUpdErr) {
     await admin.from("payment_callback_log").insert({
       ...logBase,
       signature_valid: true,
-      error: updErr ? `test order update failed: ${updErr.message}` : "test mode: subscription NOT activated",
+      error: `order update failed: ${orderUpdErr.message}`,
     });
+    return textPlain("db error", 500);
+  }
 
+  // Админский тест: подписку не создаём, активные не трогаем
+  if (isAdminTest) {
+    console.log(`admin test: subscription NOT activated for inv_id=${invId}`);
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: true,
+      error: null,
+    });
     return textPlain(`OK${invId}`);
   }
 
-  // Боевая ветка — активируем подписку
+  // Обычная оплата (включая test-режим шлюза) — активируем подписку
   let endDate: string | null = null;
   let planType = "annual";
   if (order.pricing_id) {
