@@ -268,6 +268,11 @@ export function AdminPaymentLogs() {
                         <TableCell>
                           {o.is_test ? <Badge variant="outline">тест</Badge> : <Badge variant="secondary">боевой</Badge>}
                         </TableCell>
+                        <TableCell>
+                          {o.admin_test
+                            ? <Badge variant="destructive">админ-тест</Badge>
+                            : <Badge variant="secondary">клиент</Badge>}
+                        </TableCell>
                         <TableCell className="whitespace-nowrap text-xs">{fmt(o.paid_at)}</TableCell>
                         <TableCell>
                           <Button
