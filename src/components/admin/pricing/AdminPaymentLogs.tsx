@@ -25,6 +25,7 @@ type OrderRow = {
   paid_amount: number | null;
   status: string;
   is_test: boolean;
+  admin_test: boolean;
   paid_at: string | null;
   created_at: string;
   raw_callback: unknown;
@@ -232,7 +233,8 @@ export function AdminPaymentLogs() {
                     <TableHead className="text-right">Сумма</TableHead>
                     <TableHead className="text-right">Оплачено</TableHead>
                     <TableHead>Статус</TableHead>
-                    <TableHead>Режим</TableHead>
+                    <TableHead>Режим шлюза</TableHead>
+                    <TableHead>Источник</TableHead>
                     <TableHead>Оплачен</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
