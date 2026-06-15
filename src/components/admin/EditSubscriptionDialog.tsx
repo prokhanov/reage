@@ -44,7 +44,8 @@ export function EditSubscriptionDialog({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: plans, isLoading: loadingPlans } = useSubscriptionPlans();
@@ -57,6 +58,7 @@ export function EditSubscriptionDialog({
       setStartDate(subscription.start_date ? format(new Date(subscription.start_date), "yyyy-MM-dd") : "");
       setEndDate(subscription.end_date ? format(new Date(subscription.end_date), "yyyy-MM-dd") : "");
       setAmount(subscription.amount?.toString() || "");
+      setPaymentMethod(subscription.payment_method || "");
     }
   }, [subscription]);
 
@@ -64,18 +66,20 @@ export function EditSubscriptionDialog({
   const selectedPlan = plans?.find(p => p.id === selectedPlanId);
   const availablePricing = selectedPlan?.pricing || [];
 
-  // Auto-calculate end date when pricing changes
-  useEffect(() => {
-    if (selectedPricingId && startDate) {
-      const pricing = availablePricing.find(p => p.id === selectedPricingId);
-      if (pricing) {
+  // Автозаполнение суммы/даты окончания ТОЛЬКО при ручной смене тарифа/периода,
+  // чтобы не перетирать введённые админом значения при смене даты начала.
+  const handlePricingChange = (newPricingId: string) => {
+    setSelectedPricingId(newPricingId);
+    const pricing = availablePricing.find(p => p.id === newPricingId);
+    if (pricing) {
+      setAmount(pricing.amount.toString());
+      if (startDate) {
         const start = new Date(startDate);
         const end = addMonths(start, pricing.duration_months);
         setEndDate(format(end, "yyyy-MM-dd"));
-        setAmount(pricing.amount.toString());
       }
     }
-  }, [selectedPricingId, startDate, availablePricing]);
+  };
 
   const handleSave = async () => {
     if (!selectedPlanId || !selectedPricingId || !status || !startDate) {
@@ -102,9 +106,10 @@ export function EditSubscriptionDialog({
         pricing_id: selectedPricingId,
         plan_type: pricing.period,
         status,
-        start_date: startDate,
-        end_date: endDate || null,
+        start_date: startDate ? new Date(startDate).toISOString() : null,
+        end_date: endDate ? new Date(endDate).toISOString() : null,
         amount: amount ? parseFloat(amount) : pricing.amount,
+        payment_method: paymentMethod || null,
       };
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -131,6 +136,7 @@ export function EditSubscriptionDialog({
             start_date: subscription.start_date,
             end_date: subscription.end_date,
             amount: subscription.amount,
+            payment_method: subscription.payment_method,
           },
           new_data: subscriptionData,
         });
@@ -211,7 +217,7 @@ export function EditSubscriptionDialog({
           {selectedPlanId && (
             <div className="space-y-2">
               <Label htmlFor="pricing">Период оплаты</Label>
-              <Select value={selectedPricingId} onValueChange={setSelectedPricingId}>
+              <Select value={selectedPricingId} onValueChange={handlePricingChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите период" />
                 </SelectTrigger>
@@ -272,6 +278,17 @@ export function EditSubscriptionDialog({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="120000"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payment_method">Способ оплаты</Label>
+            <Input
+              id="payment_method"
+              type="text"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              placeholder="robokassa / manual / ..."
             />
           </div>
         </div>
