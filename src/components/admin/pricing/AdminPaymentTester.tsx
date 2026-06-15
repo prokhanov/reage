@@ -23,7 +23,6 @@ export function AdminPaymentTester() {
     includeInactivePlans: true,
     includeDisabledPricing: true,
   });
-  const { data: isTestMode } = usePaymentGatewayTestMode();
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
 
   const handlePay = async (planId: string, pricingId: string) => {
