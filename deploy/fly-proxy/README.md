@@ -80,3 +80,17 @@ fly deploy
 
 В reg.ru вернуть `A api-test → <IP VPS>`, TTL 300 → через 5 минут трафик снова через VPS.
 Fly-приложение можно оставить или удалить: `fly apps destroy reage-test-proxy`.
+
+## Robokassa callback
+
+Result URL в личном кабинете Robokassa (и для тестового, и для боевого магазина):
+
+```
+https://api.reage.life/functions/v1/robokassa-result
+```
+
+- Метод: **POST**
+- Подпись: **MD5**
+- НЕ использовать прямой URL `https://ilxgodhosirhhkffqryw.supabase.co/...` — весь внешний трафик к edge-функциям идёт через `api.reage.life` (Fly → Supabase).
+- Функция `robokassa-result` задеплоена с `verify_jwt = false` (см. `supabase/config.toml`), т.к. Робокасса не присылает пользовательский JWT. Аутентификация callback'а — по MD5-подписи с `ROBOKASSA_PASSWORD_2` / `ROBOKASSA_TEST_PASSWORD_2`.
+- Success/Fail URL фронта: `https://reage.life/subscription/success` и `https://reage.life/subscription/fail` (на сам прокси НЕ направлять).
