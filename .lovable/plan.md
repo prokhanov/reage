@@ -1,59 +1,58 @@
-## Что добавлю в админку «Управление тарифами» (`/admin/subscription-plans`)
+## Проблема
 
-Две новые вкладки рядом с существующими «Тарифы» и «Цены и периоды»:
+1. Колбэк по `InvId=1000007` упал: `robokassa-result` ставит несуществующий статус `test_paid` (CHECK допускает `pending|paid|failed`). Заказ остаётся `pending` → success-страница крутит «Подтверждаем оплату…».
+2. Текущий флаг `payment_orders.is_test` смешивает два разных понятия: «шлюз в test-режиме» и «админ нажал Оплатить как клиент». Нужно их развести.
 
-### 1. Вкладка «Тест оплаты»
+## Принципы
 
-Таблица: тариф × период × сумма × кнопка **«Оплатить как клиент»**.
+- **Тестовый режим шлюза** (`payment_gateway_settings.test_mode=true`): обычный поток, подписка активируется как в бою. Это просто площадка Робокассы.
+- **Админская тест-оплата «Оплатить как клиент»**: никогда не активирует подписку, чей бы аккаунт ни использовался.
+- Решение принимается по новому флагу на заказе, выставляемому только из админского тестера.
 
-Кнопка вызывает **ту же самую** edge-функцию `robokassa-create-payment` с `{ planId, pricingId }`, что и клиент со страницы `/subscription`, и редиректит текущего админа на страницу Робокассы. Никакой отдельной логики — поведение 1-в-1 как у клиента (включая режим тест/боевой из `payment_gateway_settings`).
+## Что меняем
 
-Сверху — алерт, который показывает, в каком режиме сейчас платёжный шлюз (тестовый/боевой), берём из существующего хука `usePaymentGatewayTestMode`. Под кнопкой — предупреждение «оплата будет произведена от вашего админ-аккаунта, подписка активируется на него».
+### 1. БД — миграция
+- Добавить колонку `payment_orders.admin_test boolean NOT NULL DEFAULT false`.
+- Колонку `payment_orders.is_test` оставить как есть (она отражает test-режим шлюза для отладки логов).
 
-### 2. Вкладка «Логи оплат»
+### 2. Edge-функция `robokassa-create-payment`
+- Принимать опциональный параметр `admin_test: boolean`.
+- Разрешать его выставлять **только** если вызывающий пользователь — superadmin (проверка через `has_role(auth.uid(),'superadmin')`).
+- Сохранять `admin_test` в создаваемый `payment_orders`.
 
-Два блока на одной странице:
+### 3. Edge-функция `robokassa-result`
+- Убрать статус `test_paid` полностью.
+- Логика после валидации подписи и суммы:
+  - Обновить заказ: `status='paid'`, `paid_amount`, `paid_at`, `robokassa_signature`, `raw_callback`.
+  - Если `order.admin_test === true` → подписку **не** создавать, активные не трогать, в `payment_callback_log` записать `signature_valid=true`, `error=null`, плюс `console.log("admin test: subscription NOT activated")`.
+  - Иначе (обычный платёж, включая test-режим шлюза) → текущая ветка активации подписки.
+- Идемпотентность по `status==='paid'`.
 
-**A. Заказы (`payment_orders`)** — таблица колонок:
-- Дата создания
-- `inv_id` (короткий ID для Робокассы)
-- Пользователь (email/имя — джойн с `profiles`)
-- Тариф + период (джойн с `subscription_plans`, `subscription_pricing`)
-- Сумма (`out_sum`) / реально оплачено (`paid_amount`)
-- Статус (`pending` / `paid` / `failed`) — цветной бейдж
-- Тестовый ли (`is_test`)
-- Дата оплаты (`paid_at`)
-- Кнопка «Подробности» → диалог с полным `raw_callback` (JSON) и подписью.
+### 4. Фронт `AdminPaymentTester`
+- При вызове `supabase.functions.invoke("robokassa-create-payment", { body: { planId, pricingId, admin_test: true } })`.
+- Видимая подпись на форме: «Это админская тест-оплата. Деньги в test-режиме шлюза не списываются. Подписка пользователя НЕ будет активирована.»
 
-Фильтры: статус (все/pending/paid/failed), поиск по email, последние 100 записей с пагинацией «загрузить ещё».
+### 5. Фронт `SubscriptionSuccess.tsx`
+- Если по заказу пришёл `status='paid'` и `admin_test=true`:
+  - остановить ожидание подписки,
+  - показать сообщение «Тестовый платёж проведён. Подписка намеренно не активирована (админский тест)» + кнопка «Назад в админку».
+- Обычные платежи (включая `is_test=true` от шлюза) — без изменений: ждём подписку и редиректим.
 
-**B. Колбэки от Робокассы (`payment_callback_log`)** — таблица:
-- Дата
-- `inv_id`
-- `signature_valid` ✅/❌
-- `error` (если есть)
-- Кнопка «Подробности» → диалог с полным `raw_body` и `headers`.
+### 6. Логи оплат в админке
+- В таблице «Заказы» добавить колонку «Источник»: бейдж «админ-тест» (если `admin_test=true`), иначе «обычный».
+- Колонка «Режим» (test/live шлюз) остаётся.
+- В колбэках в детальном диалоге показывать `admin_test` связанного заказа.
 
-Это даст полную картину для дебага: что пришло от Робокассы, прошла ли подпись, привязалось ли к заказу.
+## Что НЕ делаем
 
-### Технические детали
+- Не чиним вручную заказ `1000007`.
+- Не меняем CHECK на `payment_orders.status`.
+- Триггер `notify_telegram_subscription_paid` не трогаем — для админ-тестов подписка не создаётся, уведомление и так не уйдёт.
 
-Новые файлы:
-- `src/components/admin/pricing/AdminPaymentTester.tsx` — вкладка «Тест оплаты». Использует `useSubscriptionPlans({ includeInactivePlans: true, includeDisabledPricing: true })` и тот же `supabase.functions.invoke("robokassa-create-payment", ...)` + `window.location.href = data.url`.
-- `src/components/admin/pricing/AdminPaymentLogs.tsx` — вкладка «Логи оплат». Два таб-секции / два списка.
-- `src/components/admin/pricing/PaymentOrderDetailsDialog.tsx` — диалог с JSON-просмотром.
-
-Правка одного файла:
-- `src/pages/admin/SubscriptionPlans.tsx` — добавить два `TabsTrigger` и два `TabsContent`.
-
-RLS на `payment_orders` и `payment_callback_log` уже позволяет суперадмину читать всё (policy «Superadmins view all payment orders», «Superadmins read callback log») — менять схему/политики не надо.
-
-Edge-функция `robokassa-create-payment` уже умеет работать с любым авторизованным юзером (она берёт `user_id` из JWT) — никаких изменений в бэкенде не требуется.
-
-### Проверка после реализации
-
-1. Открываю вкладку «Тест оплаты» под суперадмином → вижу таблицу всех тарифов и периодов.
-2. Жму «Оплатить как клиент» на любом → меня редиректит на Робокассу с правильной суммой.
-3. После оплаты возвращаюсь во вкладку «Логи оплат» — вижу новую запись в `payment_orders` со статусом `paid` и колбэк в `payment_callback_log` с `signature_valid=true`.
-
-Менять что-либо ещё (UI клиента, edge-функции, лендинг) не буду — задача чисто админская.
+## Файлы
+- Миграция: `payment_orders.admin_test`.
+- `supabase/functions/robokassa-create-payment/index.ts`
+- `supabase/functions/robokassa-result/index.ts`
+- `src/components/admin/pricing/AdminPaymentTester.tsx`
+- `src/pages/SubscriptionSuccess.tsx`
+- `src/components/admin/pricing/AdminPaymentLogs.tsx` (колонка «Источник»)

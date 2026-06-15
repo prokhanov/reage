@@ -1,0 +1,1 @@
+ALTER TABLE public.payment_orders ADD COLUMN IF NOT EXISTS admin_test boolean NOT NULL DEFAULT false;
