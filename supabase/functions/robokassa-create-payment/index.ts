@@ -1,5 +1,5 @@
 // robokassa-create-payment: создаёт payment_orders (pending) и возвращает URL Робокассы.
-// Требует JWT — определяется в коде через supabase.auth.getUser().
+// Тестовый/боевой режим переключается в админке (payment_gateway_settings.test_mode).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createHash } from "node:crypto";
@@ -16,10 +16,6 @@ function md5(input: string): string {
   return createHash("md5").update(input).digest("hex");
 }
 
-/** Подпись для создания платежа.
- *  Без shp_*: md5(MerchantLogin:OutSum:InvId:Password1)
- *  С shp_*:   md5(MerchantLogin:OutSum:InvId:Password1:shp_a=...:shp_b=...) — алфавитный порядок ключей.
- */
 function buildCreateSignature(
   login: string,
   outSum: string,
@@ -45,9 +41,10 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const merchantLogin = Deno.env.get("ROBOKASSA_MERCHANT_LOGIN");
-    const password1 = Deno.env.get("ROBOKASSA_PASSWORD_1");
+    const livePassword1 = Deno.env.get("ROBOKASSA_PASSWORD_1");
+    const testPassword1 = Deno.env.get("ROBOKASSA_TEST_PASSWORD_1");
 
-    if (!merchantLogin || !password1) {
+    if (!merchantLogin) {
       return json({ error: "Платёжный шлюз не настроен" }, 500);
     }
 
@@ -74,6 +71,23 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
+    // Determine test/live mode from gateway settings
+    const { data: gateway } = await admin
+      .from("payment_gateway_settings")
+      .select("test_mode")
+      .eq("provider", "robokassa")
+      .maybeSingle();
+    const isTest = gateway?.test_mode !== false; // по умолчанию тест, если не настроено
+    const password1 = isTest ? testPassword1 : livePassword1;
+
+    if (!password1) {
+      return json({
+        error: isTest
+          ? "Не настроен ROBOKASSA_TEST_PASSWORD_1"
+          : "Не настроен ROBOKASSA_PASSWORD_1",
+      }, 500);
+    }
+
     // Fetch pricing to ensure trusted amount
     const { data: pricing, error: priceErr } = await admin
       .from("subscription_pricing")
@@ -93,7 +107,7 @@ Deno.serve(async (req) => {
     }
     const outSum = amount.toFixed(2);
 
-    // Create pending order (inv_id from sequence default)
+    // Create pending order
     const { data: order, error: orderErr } = await admin
       .from("payment_orders")
       .insert({
@@ -102,6 +116,7 @@ Deno.serve(async (req) => {
         pricing_id: pricingId,
         out_sum: amount,
         status: "pending",
+        is_test: isTest,
       })
       .select("inv_id")
       .single();
@@ -117,16 +132,17 @@ Deno.serve(async (req) => {
       MerchantLogin: merchantLogin,
       OutSum: outSum,
       InvId: String(invId),
-      Description: `ReAge: оплата подписки #${invId}`,
+      Description: `ReAge: оплата подписки #${invId}${isTest ? " (TEST)" : ""}`,
       SignatureValue: signature,
       Culture: "ru",
       Encoding: "utf-8",
     });
     if (userEmail) params.set("Email", userEmail);
+    if (isTest) params.set("IsTest", "1");
 
     const paymentUrl = `${ROBOKASSA_URL}?${params.toString()}`;
 
-    return json({ url: paymentUrl, invId });
+    return json({ url: paymentUrl, invId, isTest });
   } catch (e) {
     console.error("robokassa-create-payment error", e);
     return json({ error: "Внутренняя ошибка" }, 500);

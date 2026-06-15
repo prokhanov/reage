@@ -41,6 +41,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import AnalysisBookings from "./pages/admin/AnalysisBookings";
 import MyAssignments from "./pages/admin/MyAssignments";
 import SubscriptionPlans from "./pages/admin/SubscriptionPlans";
+import PaymentGatewaySettings from "./pages/admin/PaymentGatewaySettings";
 import ReportVisualsTest from "./pages/admin/ReportVisualsTest";
 import ScaleLabelsPreview from "./pages/admin/ScaleLabelsPreview";
 import EmailSettings from "./pages/admin/EmailSettings";
@@ -216,6 +217,14 @@ const App = () => (
                 element={
                   <SuperAdminRoute>
                     <SubscriptionPlans />
+                  </SuperAdminRoute>
+                } 
+              />
+              <Route 
+                path="/admin/payment-gateway" 
+                element={
+                  <SuperAdminRoute>
+                    <PaymentGatewaySettings />
                   </SuperAdminRoute>
                 } 
               />

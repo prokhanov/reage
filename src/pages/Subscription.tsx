@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -7,12 +7,15 @@ import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { PlanCard } from "@/components/subscription/PlanCard";
 import { useQuery } from "@tanstack/react-query";
 import { ActiveSubscription } from "@/components/subscription/ActiveSubscription";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { usePaymentGatewayTestMode } from "@/hooks/usePaymentGatewayTestMode";
 
 export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const [creating, setCreating] = useState(false);
   const { toast } = useToast();
   const { data: plans, isLoading } = useSubscriptionPlans();
+  const { data: isTestMode } = usePaymentGatewayTestMode();
 
   // Check for active subscription
   const { data: activeSubscription, isLoading: loadingSubscription } = useQuery({
@@ -121,6 +124,17 @@ export default function Subscription() {
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
+      {isTestMode && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Тестовый режим оплаты</AlertTitle>
+          <AlertDescription>
+            Платёжный шлюз сейчас работает в тестовом режиме. Реальные деньги не спишутся,
+            и подписка не будет активирована после оплаты.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Hero Section */}
       <div className="text-center space-y-4 mb-12">
         <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-4">
