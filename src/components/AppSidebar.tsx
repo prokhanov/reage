@@ -39,6 +39,7 @@ const adminNavItems = [
   { to: "/admin/my-assignments", label: "Назначены мне", icon: ClipboardList },
   { to: "/admin/user-management", label: "Пользователи", icon: Briefcase },
   { to: "/admin/subscription-plans", label: "Тарифы", icon: CreditCard, requiresSuperAdmin: true },
+  { to: "/admin/payment-gateway", label: "Платёжный шлюз", icon: CreditCard, requiresSuperAdmin: true },
   { to: "/admin/report-visuals", label: "Тест отчета", icon: Eye, requiresSuperAdmin: true },
   { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings },
   { to: "/admin/email-settings", label: "Email", icon: Mail, requiresSuperAdmin: true },
