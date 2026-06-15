@@ -56,6 +56,7 @@ import TermsOfService from "./pages/legal/TermsOfService";
 import ConsentData from "./pages/legal/ConsentData";
 import ConsentResearch from "./pages/legal/ConsentResearch";
 import Documents from "./pages/legal/Documents";
+import Compliance from "./pages/legal/Compliance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -265,6 +266,8 @@ const App = () => (
             <Route path="/legal/consent-data" element={<ConsentData />} />
             <Route path="/legal/consent-research" element={<ConsentResearch />} />
             <Route path="/legal/documents" element={<Documents />} />
+            <Route path="/compliance" element={<Compliance />} />
+            <Route path="/complience" element={<Navigate to="/compliance" replace />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
