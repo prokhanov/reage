@@ -136,6 +136,7 @@ export function EditSubscriptionDialog({
             start_date: subscription.start_date,
             end_date: subscription.end_date,
             amount: subscription.amount,
+            payment_method: subscription.payment_method,
           },
           new_data: subscriptionData,
         });
