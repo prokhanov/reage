@@ -1277,11 +1277,36 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_gateway_settings: {
+        Row: {
+          id: string
+          provider: string
+          test_mode: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          provider?: string
+          test_mode?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          provider?: string
+          test_mode?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       payment_orders: {
         Row: {
           created_at: string
           id: string
           inv_id: number
+          is_test: boolean
           out_sum: number
           paid_amount: number | null
           paid_at: string | null
@@ -1297,6 +1322,7 @@ export type Database = {
           created_at?: string
           id?: string
           inv_id?: number
+          is_test?: boolean
           out_sum: number
           paid_amount?: number | null
           paid_at?: string | null
@@ -1312,6 +1338,7 @@ export type Database = {
           created_at?: string
           id?: string
           inv_id?: number
+          is_test?: boolean
           out_sum?: number
           paid_amount?: number | null
           paid_at?: string | null
