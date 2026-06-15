@@ -1,0 +1,247 @@
+// robokassa-result: серверный callback от Робокассы.
+// Проверяет подпись на Password2, идемпотентно активирует подписку.
+// Отвечает строго text/plain "OK<InvId>" при успехе или "bad sign" при ошибке.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHash } from "node:crypto";
+
+function md5(input: string): string {
+  return createHash("md5").update(input).digest("hex");
+}
+
+/** Подпись для ResultURL.
+ *  Без shp_*: md5(OutSum:InvId:Password2)
+ *  С shp_*:   md5(OutSum:InvId:Password2:shp_a=...:shp_b=...) — алфавитный порядок.
+ */
+function buildResultSignature(
+  outSum: string,
+  invId: number,
+  password2: string,
+  shp: Record<string, string>,
+): string {
+  const keys = Object.keys(shp).sort();
+  const shpStr = keys.map((k) => `${k}=${shp[k]}`).join(":");
+  const base = [outSum, String(invId), password2, shpStr]
+    .filter(Boolean)
+    .join(":");
+  return md5(base);
+}
+
+function textPlain(body: string, status = 200): Response {
+  return new Response(body, {
+    status,
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
+}
+
+Deno.serve(async (req) => {
+  // Robokassa server-to-server (нет CORS preflight). Принимаем POST и GET (на всякий).
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const password2 = Deno.env.get("ROBOKASSA_PASSWORD_2");
+
+  const admin = createClient(supabaseUrl, serviceKey);
+
+  // Собираем входные параметры (POST form-urlencoded или query string)
+  let params: URLSearchParams;
+  let rawBody = "";
+  try {
+    if (req.method === "POST") {
+      rawBody = await req.text();
+      params = new URLSearchParams(rawBody);
+    } else {
+      params = new URL(req.url).searchParams;
+      rawBody = params.toString();
+    }
+  } catch (e) {
+    await admin.from("payment_callback_log").insert({
+      signature_valid: false,
+      error: `parse failed: ${(e as Error).message}`,
+      raw_body: { raw: rawBody },
+      headers: collectHeaders(req),
+    });
+    return textPlain("bad request", 400);
+  }
+
+  const all: Record<string, string> = {};
+  params.forEach((v, k) => {
+    all[k] = v;
+  });
+
+  const outSum = params.get("OutSum") ?? "";
+  const invIdStr = params.get("InvId") ?? "";
+  const signature = (params.get("SignatureValue") ?? "").toLowerCase();
+  const invId = Number(invIdStr);
+
+  // shp_* parameters (case-insensitive on prefix; Robokassa requires lowercase "shp_")
+  const shp: Record<string, string> = {};
+  for (const [k, v] of Object.entries(all)) {
+    if (k.startsWith("shp_") || k.startsWith("Shp_") || k.startsWith("SHP_")) {
+      shp[k.toLowerCase()] = v;
+    }
+  }
+
+  const logBase = {
+    inv_id: Number.isFinite(invId) ? invId : null,
+    raw_body: all,
+    headers: collectHeaders(req),
+  };
+
+  if (!password2) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: false,
+      error: "ROBOKASSA_PASSWORD_2 not configured",
+    });
+    return textPlain("server misconfigured", 500);
+  }
+
+  if (!outSum || !Number.isFinite(invId) || !signature) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: false,
+      error: "missing OutSum/InvId/SignatureValue",
+    });
+    return textPlain("bad request", 400);
+  }
+
+  const expected = buildResultSignature(outSum, invId, password2, shp).toLowerCase();
+  const valid = expected === signature;
+
+  if (!valid) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: false,
+      error: `signature mismatch expected=${expected} got=${signature}`,
+    });
+    return textPlain("bad sign", 400);
+  }
+
+  // Подпись валидна — обрабатываем заказ идемпотентно.
+  const { data: order, error: orderErr } = await admin
+    .from("payment_orders")
+    .select("id, user_id, plan_id, pricing_id, out_sum, status")
+    .eq("inv_id", invId)
+    .maybeSingle();
+
+  if (orderErr || !order) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: true,
+      error: `order not found for inv_id=${invId}`,
+    });
+    return textPlain("order not found", 404);
+  }
+
+  if (order.status === "paid") {
+    // Идемпотентность: уже активировали ранее.
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: true,
+      error: "already paid (idempotent)",
+    });
+    return textPlain(`OK${invId}`);
+  }
+
+  const paidAmount = Number(outSum);
+  if (Math.abs(paidAmount - Number(order.out_sum)) > 0.01) {
+    await admin.from("payment_orders").update({
+      status: "failed",
+      paid_amount: paidAmount,
+      robokassa_signature: signature,
+      raw_callback: all,
+    }).eq("inv_id", invId);
+
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: true,
+      error: `amount mismatch expected=${order.out_sum} got=${paidAmount}`,
+    });
+    return textPlain("amount mismatch", 400);
+  }
+
+  // Получаем pricing для расчёта end_date / plan_type
+  let endDate: string | null = null;
+  let planType = "annual";
+  if (order.pricing_id) {
+    const { data: pr } = await admin
+      .from("subscription_pricing")
+      .select("period, duration_months")
+      .eq("id", order.pricing_id)
+      .maybeSingle();
+    if (pr) {
+      planType = pr.period ?? "annual";
+      const months = Number(pr.duration_months) || 12;
+      const d = new Date();
+      d.setMonth(d.getMonth() + months);
+      endDate = d.toISOString();
+    }
+  }
+  const startDate = new Date().toISOString();
+
+  // Помечаем заказ paid
+  const { error: updErr } = await admin
+    .from("payment_orders")
+    .update({
+      status: "paid",
+      paid_amount: paidAmount,
+      robokassa_signature: signature,
+      raw_callback: all,
+      paid_at: new Date().toISOString(),
+    })
+    .eq("inv_id", invId);
+
+  if (updErr) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: true,
+      error: `order update failed: ${updErr.message}`,
+    });
+    return textPlain("db error", 500);
+  }
+
+  // Деактивируем предыдущие active подписки этого пользователя
+  await admin
+    .from("subscriptions")
+    .update({ status: "expired" })
+    .eq("user_id", order.user_id)
+    .eq("status", "active");
+
+  // Создаём активную подписку (service role обходит RLS)
+  const { error: subErr } = await admin.from("subscriptions").insert({
+    user_id: order.user_id,
+    plan_id: order.plan_id,
+    pricing_id: order.pricing_id,
+    plan_type: planType,
+    amount: order.out_sum,
+    status: "active",
+    start_date: startDate,
+    end_date: endDate,
+    payment_method: "robokassa",
+  });
+
+  if (subErr) {
+    await admin.from("payment_callback_log").insert({
+      ...logBase,
+      signature_valid: true,
+      error: `subscription insert failed: ${subErr.message}`,
+    });
+    return textPlain("db error", 500);
+  }
+
+  await admin.from("payment_callback_log").insert({
+    ...logBase,
+    signature_valid: true,
+    error: null,
+  });
+
+  return textPlain(`OK${invId}`);
+});
+
+function collectHeaders(req: Request): Record<string, string> {
+  const h: Record<string, string> = {};
+  req.headers.forEach((v, k) => {
+    h[k] = v;
+  });
+  return h;
+}
