@@ -217,7 +217,7 @@ export function EditSubscriptionDialog({
           {selectedPlanId && (
             <div className="space-y-2">
               <Label htmlFor="pricing">Период оплаты</Label>
-              <Select value={selectedPricingId} onValueChange={setSelectedPricingId}>
+              <Select value={selectedPricingId} onValueChange={handlePricingChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите период" />
                 </SelectTrigger>
