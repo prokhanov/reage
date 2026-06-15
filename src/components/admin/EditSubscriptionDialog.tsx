@@ -106,9 +106,10 @@ export function EditSubscriptionDialog({
         pricing_id: selectedPricingId,
         plan_type: pricing.period,
         status,
-        start_date: startDate,
-        end_date: endDate || null,
+        start_date: startDate ? new Date(startDate).toISOString() : null,
+        end_date: endDate ? new Date(endDate).toISOString() : null,
         amount: amount ? parseFloat(amount) : pricing.amount,
+        payment_method: paymentMethod || null,
       };
 
       const { data: { user } } = await supabase.auth.getUser();
