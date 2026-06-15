@@ -221,25 +221,7 @@ Deno.serve(async (req) => {
   }
   const startDate = new Date().toISOString();
 
-  const { error: updErr } = await admin
-    .from("payment_orders")
-    .update({
-      status: "paid",
-      paid_amount: paidAmount,
-      robokassa_signature: signature,
-      raw_callback: all,
-      paid_at: new Date().toISOString(),
-    })
-    .eq("inv_id", invId);
 
-  if (updErr) {
-    await admin.from("payment_callback_log").insert({
-      ...logBase,
-      signature_valid: true,
-      error: `order update failed: ${updErr.message}`,
-    });
-    return textPlain("db error", 500);
-  }
 
   await admin
     .from("subscriptions")
