@@ -267,8 +267,6 @@ const App = () => (
             <Route path="/legal/consent-research" element={<ConsentResearch />} />
             <Route path="/legal/documents" element={<Documents />} />
             <Route path="/compliance" element={<Compliance />} />
-            <Route path="/complience" element={<Navigate to="/compliance" replace />} />
-
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

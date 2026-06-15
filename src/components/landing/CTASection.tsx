@@ -76,7 +76,7 @@ export function Footer() {
     { href: "/legal/terms", label: "Пользовательское соглашение" },
     { href: "/legal/consent-data", label: "Согласие на обработку персональных данных" },
     { href: "/legal/consent-research", label: "Согласие на обработку исследований" },
-    { href: "/compliance", label: "Compliance — для банков и регуляторов" },
+    { href: "/compliance", label: "Compliance" },
     { href: "/legal/documents", label: "Все документы" },
   ];
 
