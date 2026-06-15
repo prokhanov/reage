@@ -214,7 +214,7 @@ export default function Compliance() {
       </Helmet>
       <LegalPageLayout
         title="Compliance"
-        subtitle="Ответы на типовые вопросы регулирования деятельности сервиса ReAge"
+        subtitle="Ответы на типовые вопросы о регулировании деятельности сервиса ReAge"
         icon={<ShieldCheck className="w-6 h-6 text-primary" />}
       >
         <div className="mb-10 p-6 rounded-2xl bg-primary/5 border border-primary/20">
