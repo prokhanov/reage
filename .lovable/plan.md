@@ -1,48 +1,42 @@
-## Проблема
+## План: автосинхронизация клиник LabQuest
 
-В админке диалог «Редактировать подписку» (`EditSubscriptionDialog`) шлёт `UPDATE`/`INSERT` в `public.subscriptions` напрямую от клиента. На таблице есть только эти политики записи:
+### 1. Миграция БД
+Добавить колонку в существующую таблицу `lab_locations`:
+- `region text` (nullable) — для значений «Москва», «Московская область», «Санкт-Петербург».
 
-- `INSERT`: `auth.uid() = user_id AND status = 'pending'`
-- `UPDATE`: `auth.uid() = user_id AND status = 'pending'`
+Грантов и RLS таблицы трогать не нужно — они уже настроены.
 
-Суперадмин не является владельцем подписки пациента → RLS блокирует и `UPDATE`, и `INSERT`. Ошибка PostgREST приходит и показывается в toast как «не удалось сохранить», но визуально это выглядит как «ничего не происходит».
+### 2. Edge Function `sync-labquest-clinics`
+Файл: `supabase/functions/sync-labquest-clinics/index.ts`.
 
-## Что меняем
+Логика:
+1. Скачивает три страницы labquest.ru (Москва / МО / СПб) с `User-Agent: Mozilla/5.0`.
+2. Парсит HTML через `cheerio` (npm-спецификатор).
+3. Для каждого `li[itemtype="http://schema.org/Place"]` достаёт поля по селекторам из ТЗ.
+4. Маппит в схему `lab_locations`:
+   - `provider = 'labquest'`
+   - `external_id = data-id`
+   - `region`, `metro`, `address_short`, `title`, `city`, `lat`, `lng`, `full_address`, `email`, `page_url`
+   - `phones` и `hours` → `text[]` (так уже в таблице)
+   - `is_active = true`, `updated_at = now()`
+5. Фильтрует записи без `external_id` / координат.
+6. `upsert` по `(provider, external_id)` через service role.
+7. Возвращает `{ ok: true, count, by_region: {...} }`. CORS-заголовки на всех ответах. Только superadmin: проверяем JWT и роль на входе.
 
-### 1. Миграция RLS на `public.subscriptions`
-Добавить три политики для суперадмина (без ограничений по статусу — тестировщику нужно менять всё, включая `active`, даты, сумму):
+Доступ через `verify_jwt = true` по умолчанию (ничего в config.toml не трогаем).
 
-```sql
-CREATE POLICY "Superadmins can insert any subscription"
-  ON public.subscriptions FOR INSERT TO authenticated
-  WITH CHECK (has_role(auth.uid(), 'superadmin'::app_role));
+### 3. UI на `/admin/labs`
+В `src/pages/admin/LabLocations.tsx` добавить кнопку «Обновить клиники LabQuest» рядом с импортом JSON:
+- При клике: `supabase.functions.invoke('sync-labquest-clinics')`.
+- Индикатор загрузки (spinner), блокировка кнопки.
+- По завершении — `toast.success("Обновлено клиник: X")` и рефетч списка.
+- При ошибке — `toast.error(...)`.
 
-CREATE POLICY "Superadmins can update any subscription"
-  ON public.subscriptions FOR UPDATE TO authenticated
-  USING (has_role(auth.uid(), 'superadmin'::app_role))
-  WITH CHECK (has_role(auth.uid(), 'superadmin'::app_role));
+### Технические детали
+- Использовать `npm:cheerio@1.0.0` (без esm.sh, чтобы избежать проблем с deno.lock).
+- Парсить `lat/lng` как `Number`, отсеивать `NaN`.
+- `page_url`: префикс `https://www.labquest.ru` если относительный путь.
+- Чанк upsert по 500 записей на случай больших ответов.
+- Записи labquest, которых нет в свежем ответе, помечать `is_active = false` (опционально, если хочешь — скажи, добавлю).
 
-CREATE POLICY "Superadmins can delete any subscription"
-  ON public.subscriptions FOR DELETE TO authenticated
-  USING (has_role(auth.uid(), 'superadmin'::app_role));
-```
-
-Существующие пользовательские политики не трогаем.
-
-### 2. `EditSubscriptionDialog.tsx`
-- Сделать поля действительно произвольными для теста: убрать автоперезапись `endDate`/`amount` каждый раз при смене `pricing_id`, если поле уже было отредактировано вручную. Достаточно простого флага «pristine» либо: автоподстановка срабатывает только при смене `selectedPricingId` (не при смене `startDate`). Сейчас `useEffect` зависит ещё и от `startDate` и `availablePricing` — это перезатирает руками введённые значения.
-- Сохранять `start_date`/`end_date` как полноценные ISO timestamps (`new Date(value).toISOString()`), чтобы дата экспирации совпадала с тем, что использует фронт (`end_date timestamptz`), а не как обрезанная `yyyy-MM-dd`-строка.
-- Добавить поле `payment_method` (текст) — для тестов админу полезно явно менять способ оплаты (`robokassa`, `manual`, и т.п.).
-- Текст ошибки из Supabase прокидывать в toast как есть (уже есть `error.message`), плюс добавить `console.error` с полным объектом — уже есть.
-
-### 3. Проверка после миграции
-Сразу после миграции из админки открыть диалог редактирования подписки конкретного пациента, сменить статус/даты/сумму, сохранить — запись должна обновиться, в `subscription_history` появится `updated`-запись.
-
-## Что НЕ делаем
-- Не открываем запись подписок для обычных пользователей шире, чем сейчас.
-- Не трогаем `subscription_history` RLS (там `INSERT WITH CHECK (true)` уже работает).
-- Не меняем триггер `notify_telegram_subscription_paid` (он сработает только если админ сам выставит status=active на ранее не-active записи — это допустимо для теста).
-
-## Файлы
-- Миграция: `subscriptions` RLS (3 политики для superadmin).
-- `src/components/admin/EditSubscriptionDialog.tsx`: убрать перетирание полей, поддержать timestamptz, добавить `payment_method`.
+Подтверди — запускаю реализацию.

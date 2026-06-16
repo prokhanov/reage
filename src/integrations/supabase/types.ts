@@ -1094,6 +1094,7 @@ export type Database = {
           page_url: string | null
           phones: string[]
           provider: string
+          region: string | null
           title: string
           updated_at: string
         }
@@ -1113,6 +1114,7 @@ export type Database = {
           page_url?: string | null
           phones?: string[]
           provider?: string
+          region?: string | null
           title: string
           updated_at?: string
         }
@@ -1132,6 +1134,7 @@ export type Database = {
           page_url?: string | null
           phones?: string[]
           provider?: string
+          region?: string | null
           title?: string
           updated_at?: string
         }
