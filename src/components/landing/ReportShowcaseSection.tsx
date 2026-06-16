@@ -48,13 +48,13 @@ const reportFeatures = [
 
 export function ReportShowcaseSection() {
   return (
-    <section className="py-20 md:py-28 relative overflow-hidden">
+    <section className="py-16 md:py-20 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-3xl opacity-30" />
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16 md:mb-20 animate-fade-in">
+        <div className="text-center mb-12 md:mb-16 animate-fade-in">
           <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm hover:bg-primary/10 transition-none">
             <Sparkles className="w-4 h-4 mr-2 inline transition-none" />
             Что я получу?
