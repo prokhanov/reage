@@ -335,7 +335,7 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
         <Textarea
           value={formData.healthNote}
           onChange={(e) => updateFormData({ healthNote: e.target.value })}
-          placeholder="Укажите всё, о чём мы не спросили: особые условия сдачи, хронические боли, недавние события, иное..."
+          placeholder="Укажите всё, о чём хотели бы упомянуть: особые условия сдачи, хронические боли, недавние события, иное..."
           rows={4}
           maxLength={2000}
         />
