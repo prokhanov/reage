@@ -199,7 +199,7 @@ export default function LabLocationsMap({ items }: { items: LabMapItem[] }) {
           <TileLayer
             key={styleKey}
             url={style.url}
-            subdomains={style.subdomains as any}
+            subdomains={(style.subdomains ?? "abc") as any}
             maxZoom={style.maxZoom}
             detectRetina
           />
