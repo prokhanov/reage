@@ -238,52 +238,54 @@ export function BiomarkersDeepDiveSection() {
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          <AnimatePresence mode="wait" custom={direction} initial={false}>
-            <motion.div
-              key={cat.id}
-              custom={direction}
-              initial={{ opacity: 0, x: direction > 0 ? 60 : -60 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: direction > 0 ? -60 : 60 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 overflow-hidden shadow-2xl shadow-primary/[0.03] min-h-[880px] sm:min-h-[820px] md:min-h-[780px] lg:min-h-[560px]"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr]">
-                {/* Image side */}
-                <div className="relative flex items-center justify-center p-8 lg:p-12 bg-gradient-to-br from-muted/80 via-muted/40 to-transparent">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] to-transparent" />
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="relative w-48 h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 object-contain drop-shadow-2xl"
-                  />
-                  <div className="absolute bottom-6 left-6 lg:bottom-8 lg:left-8">
-                    <div className="flex items-baseline gap-1.5 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/40 shadow-lg">
-                      <span className="text-3xl font-bold text-foreground">{cat.markers.length}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {(() => {
-                          const n = cat.markers.length;
-                          const mod10 = n % 10;
-                          const mod100 = n % 100;
-                          if (mod10 === 1 && mod100 !== 11) return "маркер";
-                          if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "маркера";
-                          return "маркеров";
-                        })()}
+          <div className="relative min-h-[880px] sm:min-h-[820px] md:min-h-[780px] lg:min-h-[560px]">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <motion.div
+                key={cat.id}
+                custom={direction}
+                initial={{ opacity: 0, x: direction > 0 ? 60 : -60 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction > 0 ? -60 : 60 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 overflow-hidden shadow-2xl shadow-primary/[0.03] min-h-[880px] sm:min-h-[820px] md:min-h-[780px] lg:min-h-[560px]"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] min-h-[880px] sm:min-h-[820px] md:min-h-[780px] lg:min-h-[560px]">
+                  {/* Image side */}
+                  <div className="relative flex items-center justify-center p-8 lg:p-12 bg-gradient-to-br from-muted/80 via-muted/40 to-transparent">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.06] to-transparent" />
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="relative w-48 h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 object-contain drop-shadow-2xl"
+                    />
+                    <div className="absolute bottom-6 left-6 lg:bottom-8 lg:left-8">
+                      <div className="flex items-baseline gap-1.5 px-4 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border/40 shadow-lg">
+                        <span className="text-3xl font-bold text-foreground">{cat.markers.length}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {(() => {
+                            const n = cat.markers.length;
+                            const mod10 = n % 10;
+                            const mod100 = n % 100;
+                            if (mod10 === 1 && mod100 !== 11) return "маркер";
+                            if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "маркера";
+                            return "маркеров";
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="absolute top-6 right-6 lg:top-8 lg:right-8">
+                      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        {active + 1} / {biomarkerCategories.length}
                       </span>
                     </div>
                   </div>
-                  <div className="absolute top-6 right-6 lg:top-8 lg:right-8">
-                    <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                      {active + 1} / {biomarkerCategories.length}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Content side */}
-                <CategoryContent cat={cat} />
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                  {/* Content side */}
+                  <CategoryContent cat={cat} />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           {/* Dots with arrows */}
           <div className="flex items-center justify-center gap-3 mt-8">
