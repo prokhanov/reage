@@ -54,6 +54,14 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
       const userId = await getUserId();
       if (!userId) return;
 
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("passport_series, passport_number")
+        .eq("id", userId)
+        .maybeSingle();
+      setPassportSeries((profile as any)?.passport_series || "");
+      setPassportNumber((profile as any)?.passport_number || "");
+
       const { data: bookings } = await supabase
         .from('analysis_bookings')
         .select('*')
@@ -82,7 +90,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
-  const isValid = bookingDate && bookingTime && selectedSlotId && bookingAddress.trim().length > 0;
+  const isValid =
+    bookingDate &&
+    bookingTime &&
+    selectedSlotId &&
+    bookingAddress.trim().length > 0 &&
+    isPassportValid(passportSeries, passportNumber);
 
   const handleSubmit = async () => {
     if (!isValid || !bookingDate || !selectedSlotId) return;
