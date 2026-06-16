@@ -618,7 +618,7 @@ export default function MyState() {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-bold">Спасибо за заполнение! ✨</h3>
+                      <h3 className="text-2xl font-bold">Спасибо за заполнение!</h3>
                       <p className="text-muted-foreground">
                         Вы уже заполнили опрос. Следующий опрос будет доступен через
                       </p>
