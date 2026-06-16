@@ -947,9 +947,9 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                                       </div>
                                     </TableCell>
 
-                                    <TableCell>
+                                    <TableCell className="whitespace-nowrap">
                                       <span
-                                        className="text-lg font-bold"
+                                        className="text-lg font-bold whitespace-nowrap"
                                         style={{
                                           color: statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))"
                                         }}
