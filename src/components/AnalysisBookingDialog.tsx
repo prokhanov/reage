@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { usePatientSlots } from "@/hooks/usePatientSlots";
+import { PassportFields, isPassportValid } from "./PassportFields";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -32,6 +33,8 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [bookingTime, setBookingTime] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [bookingAddress, setBookingAddress] = useState("");
+  const [passportSeries, setPassportSeries] = useState("");
+  const [passportNumber, setPassportNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
