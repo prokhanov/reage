@@ -148,7 +148,6 @@ export function BiomarkersDeepDiveSection() {
   const [active, setActive] = useState(0);
   const [direction, setDirection] = useState(0);
   const [userInteracted, setUserInteracted] = useState(false);
-  const cat = biomarkerCategories[active];
 
   const go = useCallback((idx: number, isUser = false) => {
     if (isUser) setUserInteracted(true);
