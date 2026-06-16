@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Sparkles, Loader2, AlertTriangle } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle, PiggyBank, ShieldCheck, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -168,8 +168,9 @@ export default function Subscription() {
         </ToggleGroup>
         
         {getMaxDiscount() > 0 && (
-          <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300">
-            💰 Сэкономьте до {getMaxDiscount()}% при годовой оплате
+          <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300 inline-flex items-center gap-2">
+            <PiggyBank className="h-4 w-4 text-primary" />
+            Сэкономьте до {getMaxDiscount()}% при годовой оплате
           </p>
         )}
       </div>
@@ -199,9 +200,11 @@ export default function Subscription() {
 
       {/* Trust Indicators */}
       <div className="text-center space-y-4 pt-8 border-t border-border/50">
-        <p className="text-sm text-muted-foreground">
-          🔒 Безопасная оплата • 🎯 Без скрытых платежей • ✨ Отмена в любое время
-        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" />Безопасная оплата</span>
+          <span className="inline-flex items-center gap-2"><Target className="h-4 w-4 text-primary" />Без скрытых платежей</span>
+          <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" />Отмена в любое время</span>
+        </div>
       </div>
     </div>
   );

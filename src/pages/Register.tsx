@@ -246,7 +246,7 @@ export default function Register() {
       });
 
       toast({
-        title: "Регистрация успешна! 🎉",
+        title: "Регистрация успешна",
         description: "Добро пожаловать в ReAge"
       });
 

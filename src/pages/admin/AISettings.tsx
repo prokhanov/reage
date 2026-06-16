@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Edit, Search } from "lucide-react";
+import { Edit, Search, Bot, TrendingUp, FlaskConical, Map as MapIcon, Dna, Target, Pill, ClipboardList, BarChart3, type LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +30,7 @@ const standaloneSections = [
   {
     id: 'health_assistant',
     name: 'AI Ассистент',
-    emoji: '🤖',
+    icon: Bot as LucideIcon,
     description: 'Промпт для AI-чата с пациентом (роль, правила, стиль общения)',
     promptKey: 'health_assistant',
     group: 'assistant'
@@ -38,7 +38,7 @@ const standaloneSections = [
   {
     id: 'trends_summary',
     name: 'Тренды',
-    emoji: '📈',
+    icon: TrendingUp as LucideIcon,
     description: 'Промпт для генерации текстового описания трендов биомаркеров',
     promptKey: 'trends_summary_prompt',
     group: 'trends'
@@ -50,7 +50,7 @@ const pairedSections = [
   {
     id: 'biological_age',
     name: 'Биологический возраст',
-    emoji: '🧪',
+    icon: FlaskConical as LucideIcon,
     description: 'Промпты для расчёта биологического возраста на основе биомаркеров',
     systemKey: 'biological_age_system',
     userKey: 'biological_age_user'
@@ -62,21 +62,21 @@ const riskZoneSections = [
   { 
     id: 'risk_map', 
     name: 'Карта рисков', 
-    emoji: '🗺️',
+    icon: MapIcon as LucideIcon,
     description: 'Промпт для анализа карты рисков по системам организма',
     promptKey: 'risk_zones_risk_map'
   },
   { 
     id: 'aging_blockers', 
     name: 'Факторы старения', 
-    emoji: '🧬',
+    icon: Dna as LucideIcon,
     description: 'Промпт для определения факторов, тормозящих anti-aging прогресс',
     promptKey: 'risk_zones_aging_blockers'
   },
   { 
     id: 'smart_priorities', 
     name: 'Умные приоритеты', 
-    emoji: '🎯',
+    icon: Target as LucideIcon,
     description: 'Промпт для генерации стратегических приоритетов и задач',
     promptKey: 'risk_zones_smart_priorities'
   }
@@ -87,7 +87,7 @@ const reportSections = [
   { 
     id: 'prescriptions', 
     name: 'Назначения', 
-    emoji: '💊',
+    icon: Pill as LucideIcon,
     description: 'Промпты для генерации персонализированных назначений',
     systemKey: 'prescriptions_system',
     userKey: 'prescriptions_user'
@@ -95,7 +95,7 @@ const reportSections = [
   { 
     id: 'summary', 
     name: 'Общее резюме', 
-    emoji: '📋',
+    icon: ClipboardList as LucideIcon,
     description: 'Промпты для формирования итогового резюме отчёта',
     systemKey: 'summary_system',
     userKey: 'summary_user'
@@ -286,7 +286,7 @@ export default function AISettings() {
                 <AccordionItem key={sp.section.id} value={sp.section.id} className="border rounded-lg">
                   <AccordionTrigger className="px-6 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{sp.section.emoji}</span>
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><sp.section.icon className="h-5 w-5 text-primary" /></div>
                       <div className="text-left">
                         <div className="font-semibold">{sp.section.name}</div>
                         <div className="text-sm text-muted-foreground">{sp.section.description}</div>
@@ -341,7 +341,7 @@ export default function AISettings() {
                 <AccordionItem key={pp.section.id} value={pp.section.id} className="border rounded-lg">
                   <AccordionTrigger className="px-6 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{pp.section.emoji}</span>
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><pp.section.icon className="h-5 w-5 text-primary" /></div>
                       <div className="text-left">
                         <div className="font-semibold">{pp.section.name}</div>
                         <div className="text-sm text-muted-foreground">{pp.section.description}</div>
@@ -424,7 +424,7 @@ export default function AISettings() {
                 >
                   <AccordionTrigger className="px-6 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{rp.section.emoji}</span>
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><rp.section.icon className="h-5 w-5 text-primary" /></div>
                       <div className="text-left">
                         <div className="font-semibold">{rp.section.name}</div>
                         <div className="text-sm text-muted-foreground">
@@ -686,7 +686,7 @@ export default function AISettings() {
                 >
                   <AccordionTrigger className="px-6 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{rz.section.emoji}</span>
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><rz.section.icon className="h-5 w-5 text-primary" /></div>
                       <div className="text-left">
                         <div className="font-semibold">{rz.section.name}</div>
                         <div className="text-sm text-muted-foreground">

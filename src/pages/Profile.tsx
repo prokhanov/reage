@@ -183,8 +183,8 @@ export default function Profile() {
     );
   }
 
-  const genderEmoji = profile?.gender === "female" ? "👩" : "👨";
   const age = getAge();
+
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -247,7 +247,6 @@ export default function Profile() {
                   <label className="text-sm text-muted-foreground">Пол и возраст</label>
                 </div>
                 <p className="text-lg font-medium">
-                  <span className="mr-2">{genderEmoji}</span>
                   {profile?.gender === "female" ? "Женщина" : "Мужчина"}
                   {age && <span className="text-muted-foreground ml-2">• {age} лет</span>}
                 </p>

@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle, Trash2, ClipboardList } from "lucide-react";
 import { getSymptomCategoryIcon } from "@/lib/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -428,7 +428,7 @@ export default function MyState() {
 
       if (symptomsData.length === 0 && Object.keys(adherenceAnswers).length === 0) {
         toast({
-          title: "Все отлично! 🎉",
+          title: "Все отлично!",
           description: "Данные сохранены"
         });
         setEditingDate(null);
@@ -618,7 +618,7 @@ export default function MyState() {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-bold">Спасибо за заполнение! ✨</h3>
+                      <h3 className="text-2xl font-bold">Спасибо за заполнение!</h3>
                       <p className="text-muted-foreground">
                         Вы уже заполнили опрос. Следующий опрос будет доступен через
                       </p>
@@ -665,7 +665,9 @@ export default function MyState() {
                 <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-4xl">📋</span>
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <ClipboardList className="w-6 h-6 text-primary" />
+                      </div>
                       <h2 className="text-2xl font-bold">Соблюдение назначений</h2>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -1056,7 +1058,9 @@ export default function MyState() {
                 <div className="space-y-6">
                   <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-4xl">📋</span>
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <ClipboardList className="w-6 h-6 text-primary" />
+                      </div>
                       <h2 className="text-2xl font-bold">Соблюдение назначений</h2>
                     </div>
                     <p className="text-sm text-muted-foreground">

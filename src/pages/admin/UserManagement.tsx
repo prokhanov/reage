@@ -421,7 +421,7 @@ export default function UserManagement() {
     }
 
     toast({
-      title: "✓ Ссылка валидна",
+      title: "Ссылка валидна",
       description: "Приглашение активно и готово к использованию",
     });
   };
