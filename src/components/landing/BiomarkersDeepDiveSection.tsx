@@ -245,7 +245,7 @@ export function BiomarkersDeepDiveSection() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: direction > 0 ? -60 : 60 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 overflow-hidden shadow-2xl shadow-primary/[0.03]"
+              className="rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 overflow-hidden shadow-2xl shadow-primary/[0.03] min-h-[880px] sm:min-h-[820px] md:min-h-[780px] lg:min-h-[560px]"
             >
               <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr]">
                 {/* Image side */}
