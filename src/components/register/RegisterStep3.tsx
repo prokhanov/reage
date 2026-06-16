@@ -1,12 +1,10 @@
-import { useState, useEffect } from "react";
-import { Check, ArrowLeft, Heart, Brain, Utensils, Activity, Bone, Shield, Flower2, Droplet, Baby, BabyIcon, Eye, Pill, ChevronRight } from "lucide-react";
+import { useState, KeyboardEvent } from "react";
+import { ArrowLeft, ChevronRight, Plus, Info, AlertTriangle, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { RegisterFormData } from "@/pages/Register";
-import { ChevronDown } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface RegisterStep3Props {
   formData: RegisterFormData;
@@ -15,214 +13,324 @@ interface RegisterStep3Props {
   onBack: () => void;
 }
 
-export function RegisterStep3({ formData, updateFormData, onNext, onBack }: RegisterStep3Props) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [openCategories, setOpenCategories] = useState<string[]>([]);
-  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+const CHRONIC_KEY = "Хронические заболевания";
 
-  useEffect(() => {
-    loadMedicalConditions();
-  }, []);
+const CHRONIC_CHIPS = [
+  "Сахарный диабет",
+  "Гипертония",
+  "Анемия",
+  "ХБП (почки)",
+  "Заболевания щитовидной железы",
+  "Заболевания печени",
+  "Сердечная недостаточность",
+  "Аутоиммунные заболевания",
+  "ВИЧ / иммунодефицит",
+  "Онкология",
+  "Нет хронических заболеваний",
+];
 
-  const loadMedicalConditions = async () => {
-    try {
-      const { data: conditions } = await supabase
-        .from("medical_conditions_templates")
-        .select("*")
-        .order("display_order", { ascending: true });
+const MEDICATIONS_CHIPS = [
+  "Антибиотики",
+  "Антикоагулянты (варфарин, ксарелто и др.)",
+  "Гормоны / контрацептивы",
+  "Глюкокортикоиды (преднизолон и др.)",
+  "НПВС (аспирин, ибупрофен)",
+  "Мочегонные",
+  "Иммуносупрессоры",
+  "Химиотерапия",
+  "Витамин С > 1г/сут",
+  "Биодобавки / БАД",
+  "Ничего из перечисленного",
+];
 
-      if (conditions && conditions.length > 0) {
-        // Extract unique categories preserving order of first appearance
-        const categoryOrder: string[] = [];
-        const categoryMap: Record<string, string[]> = {};
-        
-        for (const c of conditions) {
-          if (!categoryMap[c.category]) {
-            categoryMap[c.category] = [];
-            categoryOrder.push(c.category);
-          }
-          categoryMap[c.category].push(c.condition);
-        }
+const OPERATIONS = [
+  { key: "surgery_year", label: "Операции за последний год" },
+  { key: "transfusion_3m", label: "Переливание крови за последние 3 мес." },
+  { key: "donation_3m", label: "Сдавали кровь как донор < 3 мес." },
+  { key: "vaccination_2w", label: "Вакцинация за последние 2 недели" },
+];
 
-        const grouped = categoryOrder.map(cat => ({
-          title: cat,
-          icon: getCategoryIcon(cat),
-          conditions: categoryMap[cat]
-        }));
-        
-        setDynamicCategories(grouped);
-      }
-    } catch (error) {
-      console.error("Error loading medical conditions:", error);
-    } finally {
-      setIsLoading(false);
+interface ChipsBlockProps {
+  title: string;
+  chips: string[];
+  selected: string[];
+  onToggle: (v: string) => void;
+  placeholder: string;
+  customValue: string;
+  setCustomValue: (v: string) => void;
+  onAddCustom: () => void;
+}
+
+function ChipsBlock({
+  title,
+  chips,
+  selected,
+  onToggle,
+  placeholder,
+  customValue,
+  setCustomValue,
+  onAddCustom,
+}: ChipsBlockProps) {
+  const customs = selected.filter((s) => !chips.includes(s));
+
+  const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onAddCustom();
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    const iconMap: Record<string, any> = {
-      "🫀 Сердечно-сосудистая система": Heart,
-      "🧠 Нервная система": Brain,
-      "🍽 Пищеварительная система": Utensils,
-      "🩸 Метаболические нарушения": Droplet,
-      "🧘‍♀️ Гормональные нарушения": Activity,
-      "💪 Опорно-двигательная система": Bone,
-      "🦠 Иммунная система": Shield,
-      "🩸 Кроветворная система": Droplet,
-      "💊 Инфекционные заболевания": Pill,
-      "🧬 Онкология": Activity
-    };
-    return iconMap[category] || Activity;
-  };
-
-  const toggleCondition = (category: string, condition: string) => {
-    const key = `${category}|${condition}`;
-    const newHistory = formData.medicalHistory.includes(key)
-      ? formData.medicalHistory.filter(c => c !== key)
-      : [...formData.medicalHistory, key];
-    
-    updateFormData({ medicalHistory: newHistory });
-  };
-
-  const isSelected = (category: string, condition: string) => {
-    return formData.medicalHistory.includes(`${category}|${condition}`);
-  };
-
-  const toggleCategory = (title: string) => {
-    setOpenCategories(prev =>
-      prev.includes(title)
-        ? prev.filter(c => c !== title)
-        : [...prev, title]
-    );
-  };
-
-  // Use dynamic categories loaded from DB
-  const categoriesToUse = dynamicCategories;
-
-  const filteredCategories = categoriesToUse.map(category => ({
-    ...category,
-    conditions: category.conditions.filter(c =>
-      c.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(category => category.conditions.length > 0);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Загрузка...</p>
+  return (
+    <div className="space-y-4">
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <div className="flex flex-wrap gap-2">
+        {chips.map((chip) => {
+          const isSelected = selected.includes(chip);
+          return (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => onToggle(chip)}
+              className={cn(
+                "px-3.5 py-2 rounded-full border text-sm transition-all",
+                isSelected
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 bg-background hover:border-primary/40 hover:bg-muted/50"
+              )}
+            >
+              {isSelected && <Check className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />}
+              {chip}
+            </button>
+          );
+        })}
+        {customs.map((c) => (
+          <span
+            key={c}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-primary bg-primary/10 text-primary text-sm"
+          >
+            {c}
+            <button
+              type="button"
+              onClick={() => onToggle(c)}
+              className="hover:opacity-70"
+              aria-label="Удалить"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </span>
+        ))}
       </div>
-    );
-  }
+      <div className="flex gap-2">
+        <Input
+          value={customValue}
+          onChange={(e) => setCustomValue(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onAddCustom}
+          disabled={!customValue.trim()}
+          className="shrink-0"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Добавить
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function RegisterStep3({ formData, updateFormData, onNext, onBack }: RegisterStep3Props) {
+  const [customChronic, setCustomChronic] = useState("");
+  const [customMed, setCustomMed] = useState("");
+
+  // Chronic selections are stored as "Хронические заболевания|<name>"
+  const chronicSelected = formData.medicalHistory
+    .filter((s) => s.startsWith(`${CHRONIC_KEY}|`))
+    .map((s) => s.split("|")[1]);
+
+  const toggleChronic = (name: string) => {
+    const key = `${CHRONIC_KEY}|${name}`;
+    let next = formData.medicalHistory.includes(key)
+      ? formData.medicalHistory.filter((c) => c !== key)
+      : [...formData.medicalHistory, key];
+
+    // "Нет хронических заболеваний" — exclusive
+    if (name === "Нет хронических заболеваний" && !formData.medicalHistory.includes(key)) {
+      next = [key];
+    } else if (name !== "Нет хронических заболеваний") {
+      next = next.filter((c) => c !== `${CHRONIC_KEY}|Нет хронических заболеваний`);
+    }
+    updateFormData({ medicalHistory: next });
+  };
+
+  const addCustomChronic = () => {
+    const v = customChronic.trim();
+    if (!v) return;
+    const key = `${CHRONIC_KEY}|${v}`;
+    if (!formData.medicalHistory.includes(key)) {
+      updateFormData({ medicalHistory: [...formData.medicalHistory, key] });
+    }
+    setCustomChronic("");
+  };
+
+  const toggleMed = (name: string) => {
+    let next = formData.medications.includes(name)
+      ? formData.medications.filter((m) => m !== name)
+      : [...formData.medications, name];
+
+    if (name === "Ничего из перечисленного" && !formData.medications.includes(name)) {
+      next = [name];
+    } else if (name !== "Ничего из перечисленного") {
+      next = next.filter((m) => m !== "Ничего из перечисленного");
+    }
+    updateFormData({ medications: next });
+  };
+
+  const addCustomMed = () => {
+    const v = customMed.trim();
+    if (!v) return;
+    if (!formData.medications.includes(v)) {
+      updateFormData({ medications: [...formData.medications, v] });
+    }
+    setCustomMed("");
+  };
+
+  const setOperation = (key: string, value: boolean) => {
+    updateFormData({ operations: { ...formData.operations, [key]: value } });
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
+    <div className="space-y-8">
+      <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">История болезней</h2>
-        <p className="text-muted-foreground">
-          Отметьте перенесенные заболевания (необязательно)
+        <p className="text-muted-foreground text-sm">
+          Эти ответы помогают точнее интерпретировать показатели крови. Все поля необязательны.
         </p>
       </div>
 
-      {/* Selected Count */}
-      {formData.medicalHistory.length > 0 && (
-        <div className="flex items-center justify-center">
-          <Badge variant="secondary" className="text-sm">
-            Выбрано: {formData.medicalHistory.length}
-          </Badge>
-        </div>
-      )}
+      {/* Хронические заболевания */}
+      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-4">
+        <header>
+          <h3 className="text-lg font-semibold">Хронические заболевания</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Выберите всё, что относится к вам. Можно добавить своё.
+          </p>
+        </header>
+        <ChipsBlock
+          title="Есть ли у вас диагностированные заболевания?"
+          chips={CHRONIC_CHIPS}
+          selected={chronicSelected}
+          onToggle={toggleChronic}
+          placeholder="Другие диагнозы..."
+          customValue={customChronic}
+          setCustomValue={setCustomChronic}
+          onAddCustom={addCustomChronic}
+        />
+      </section>
 
-      {/* Search */}
-      <Input
-        type="text"
-        placeholder="Поиск по заболеваниям..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full"
-      />
-
-      {/* Categories */}
-      <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-        {filteredCategories.map((category) => {
-          const Icon = category.icon;
-          const selectedCount = category.conditions.filter(c => 
-            isSelected(category.title, c)
-          ).length;
-
-          return (
-            <Collapsible
-              key={category.title}
-              open={openCategories.includes(category.title)}
-              onOpenChange={() => toggleCategory(category.title)}
-            >
-              <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors cursor-pointer bg-card">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium">{category.title.replace(/^\p{Extended_Pictographic}(\u200d\p{Extended_Pictographic})*\ufe0f?\s*/u, '')}</p>
-                      {selectedCount > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          {selectedCount} выбрано
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronDown 
-                    className={`h-5 w-5 text-muted-foreground transition-transform ${
-                      openCategories.includes(category.title) ? 'rotate-180' : ''
-                    }`}
-                  />
+      {/* Операции и процедуры */}
+      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-4">
+        <header>
+          <h3 className="text-lg font-semibold">Операции и процедуры</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Хирургические вмешательства влияют на показатели крови до нескольких месяцев.
+          </p>
+        </header>
+        <div className="divide-y divide-border/50">
+          {OPERATIONS.map((op) => {
+            const value = formData.operations[op.key];
+            return (
+              <div
+                key={op.key}
+                className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+              >
+                <span className="text-sm text-foreground">{op.label}</span>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setOperation(op.key, false)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm border transition-all",
+                      value === false
+                        ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
+                        : "border-border/60 hover:border-primary/40"
+                    )}
+                  >
+                    Нет
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOperation(op.key, true)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm border transition-all",
+                      value === true
+                        ? "border-rose-500/50 bg-rose-500/15 text-rose-500"
+                        : "border-border/60 hover:border-primary/40"
+                    )}
+                  >
+                    Да
+                  </button>
                 </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 space-y-2 pl-4">
-                {category.conditions.map((condition) => {
-                  const selected = isSelected(category.title, condition);
-                  
-                  return (
-                    <button
-                      key={condition}
-                      onClick={() => toggleCondition(category.title, condition)}
-                      className={`
-                        w-full text-left p-3 rounded-md border transition-all text-sm
-                        ${selected 
-                          ? 'border-primary bg-primary/10 text-primary' 
-                          : 'border-border/50 hover:border-primary/30'
-                        }
-                      `}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{condition}</span>
-                        {selected && <Check className="h-4 w-4" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </CollapsibleContent>
-            </Collapsible>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Препараты и добавки */}
+      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-4">
+        <header>
+          <h3 className="text-lg font-semibold">Препараты и добавки</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Многие лекарства меняют картину крови и мочи.
+          </p>
+        </header>
+        <ChipsBlock
+          title="Принимаете ли сейчас какие-либо из перечисленных?"
+          chips={MEDICATIONS_CHIPS}
+          selected={formData.medications}
+          onToggle={toggleMed}
+          placeholder="Другие препараты (название, доза)..."
+          customValue={customMed}
+          setCustomValue={setCustomMed}
+          onAddCustom={addCustomMed}
+        />
+      </section>
+
+      {/* Свободный комментарий */}
+      <section className="rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6 space-y-3">
+        <header>
+          <h3 className="text-lg font-semibold">Что-то ещё, что может быть важно?</h3>
+        </header>
+        <Textarea
+          value={formData.healthNote}
+          onChange={(e) => updateFormData({ healthNote: e.target.value })}
+          placeholder="Укажите всё, о чём мы не спросили: особые условия сдачи, хронические боли, недавние события, иное..."
+          rows={4}
+          maxLength={2000}
+        />
+        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+          <Info className="h-3.5 w-3.5" />
+          Эта информация передаётся лечащему врачу вместе с результатами.
+        </p>
+      </section>
+
+      <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
+        <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+        <span>Ваши ответы будут приняты во внимание при интерпретации результатов и не влияют на стоимость услуги.</span>
       </div>
 
-      <div className="flex gap-3 pt-4">
-        <Button 
-          variant="outline" 
-          onClick={onBack}
-          className="flex-1"
-          size="lg"
-        >
+      <div className="flex gap-3 pt-2">
+        <Button variant="outline" onClick={onBack} className="flex-1" size="lg">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Назад
         </Button>
-        <Button 
-          onClick={onNext}
-          className="flex-1"
-          size="lg"
-        >
-          Продолжить
+        <Button onClick={onNext} className="flex-1" size="lg">
+          Отправить
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

@@ -37,6 +37,9 @@ export interface RegisterFormData {
   weight: string;
   height: string;
   medicalHistory: string[];
+  operations: Record<string, boolean>;
+  medications: string[];
+  healthNote: string;
 }
 
 const steps = [
@@ -79,7 +82,10 @@ export default function Register() {
     birth_date: undefined,
     weight: "",
     height: "",
-    medicalHistory: []
+    medicalHistory: [],
+    operations: {},
+    medications: [],
+    healthNote: ""
   });
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlanData | null>(null);
   
@@ -172,7 +178,10 @@ export default function Register() {
           gender: formData.gender,
           birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : undefined,
           weight: formData.weight ? parseFloat(formData.weight) : null,
-          height: formData.height ? parseFloat(formData.height) : null
+          height: formData.height ? parseFloat(formData.height) : null,
+          operations: formData.operations as any,
+          medications: formData.medications,
+          health_note: formData.healthNote?.trim() || null
         });
 
       if (profileError) throw profileError;
