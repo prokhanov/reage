@@ -126,11 +126,16 @@ Deno.serve(async (req) => {
       all.push(...items);
     }
 
+    // Dedupe by (provider, external_id) — last occurrence wins
+    const dedupMap = new Map<string, Clinic>();
+    for (const c of all) dedupMap.set(`${c.provider}:${c.external_id}`, c);
+    const deduped = Array.from(dedupMap.values());
+
     // Chunked upsert
     const CHUNK = 500;
     let upserted = 0;
-    for (let i = 0; i < all.length; i += CHUNK) {
-      const chunk = all.slice(i, i + CHUNK);
+    for (let i = 0; i < deduped.length; i += CHUNK) {
+      const chunk = deduped.slice(i, i + CHUNK);
       const { error } = await admin
         .from("lab_locations")
         .upsert(chunk, { onConflict: "provider,external_id" });
