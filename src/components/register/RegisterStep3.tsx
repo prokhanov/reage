@@ -243,38 +243,62 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
         <div className="divide-y divide-border/50">
           {OPERATIONS.map((op) => {
             const value = formData.operations[op.key];
+            const showSurgeryDetails = op.key === "surgery_year" && value === true;
             return (
               <div
                 key={op.key}
-                className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+                className="py-3 first:pt-0 last:pb-0 space-y-3"
               >
-                <span className="text-sm text-foreground">{op.label}</span>
-                <div className="flex gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setOperation(op.key, false)}
-                    className={cn(
-                      "px-4 py-1.5 rounded-full text-sm border transition-all",
-                      value === false
-                        ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
-                        : "border-border/60 hover:border-primary/40"
-                    )}
-                  >
-                    Нет
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOperation(op.key, true)}
-                    className={cn(
-                      "px-4 py-1.5 rounded-full text-sm border transition-all",
-                      value === true
-                        ? "border-rose-500/50 bg-rose-500/15 text-rose-500"
-                        : "border-border/60 hover:border-primary/40"
-                    )}
-                  >
-                    Да
-                  </button>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-foreground">{op.label}</span>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setOperation(op.key, false)}
+                      className={cn(
+                        "px-4 py-1.5 rounded-full text-sm border transition-all",
+                        value === false
+                          ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
+                          : "border-border/60 hover:border-primary/40"
+                      )}
+                    >
+                      Нет
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOperation(op.key, true)}
+                      className={cn(
+                        "px-4 py-1.5 rounded-full text-sm border transition-all",
+                        value === true
+                          ? "border-rose-500/50 bg-rose-500/15 text-rose-500"
+                          : "border-border/60 hover:border-primary/40"
+                      )}
+                    >
+                      Да
+                    </button>
+                  </div>
                 </div>
+                {showSurgeryDetails && (
+                  <div className="space-y-1.5">
+                    <Input
+                      value={(formData.operations.surgery_year_details as string) || ""}
+                      onChange={(e) =>
+                        updateFormData({
+                          operations: {
+                            ...formData.operations,
+                            surgery_year_details: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Какая именно операция и когда? (например, аппендэктомия, март 2025)"
+                      maxLength={300}
+                    />
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <Info className="h-3.5 w-3.5" />
+                      Кратко опишите тип вмешательства и примерную дату.
+                    </p>
+                  </div>
+                )}
               </div>
             );
           })}
