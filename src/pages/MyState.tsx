@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Calendar, TrendingUp, AlertCircle, Edit, CheckCircle, Trash2, ClipboardList } from "lucide-react";
 import { getSymptomCategoryIcon } from "@/lib/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
