@@ -665,7 +665,9 @@ export default function MyState() {
                 <Card className="p-6 md:p-8 bg-card/50 backdrop-blur border-border/50">
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-4xl">📋</span>
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <ClipboardList className="w-6 h-6 text-primary" />
+                      </div>
                       <h2 className="text-2xl font-bold">Соблюдение назначений</h2>
                     </div>
                     <p className="text-sm text-muted-foreground">
