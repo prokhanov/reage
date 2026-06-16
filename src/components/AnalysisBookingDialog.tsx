@@ -438,6 +438,14 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
               className="h-12"
             />
           </div>
+
+          {/* Passport data (required) */}
+          <PassportFields
+            series={passportSeries}
+            number={passportNumber}
+            onSeriesChange={setPassportSeries}
+            onNumberChange={setPassportNumber}
+          />
         </div>
 
         <div className="space-y-3 pt-4">
