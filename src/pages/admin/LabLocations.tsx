@@ -83,6 +83,32 @@ export default function LabLocations() {
   const [editing, setEditing] = useState<EditState | null>(null);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSyncLabquest = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-labquest-clinics");
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || "Не удалось обновить");
+      const byRegion = data.by_region
+        ? " (" + Object.entries(data.by_region).map(([r, n]) => `${r}: ${n}`).join(", ") + ")"
+        : "";
+      toast({
+        title: "Синхронизация завершена",
+        description: `Обновлено клиник: ${data.count}${byRegion}`,
+      });
+      load();
+    } catch (e: any) {
+      toast({
+        title: "Ошибка синхронизации",
+        description: e?.message || String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
