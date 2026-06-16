@@ -117,13 +117,13 @@ export function AppFeaturesSection() {
   const Icon = feature.icon;
 
   return (
-    <section className="relative py-16 md:py-20 overflow-hidden bg-muted/30">
+    <section className="relative py-12 md:py-16 overflow-hidden bg-muted/30">
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
 
       <div className="container mx-auto px-4">
         {/* Section header */}
-        <div className="text-center mb-12 md:mb-16 animate-fade-in">
+        <div className="text-center mb-10 md:mb-12 animate-fade-in">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
             <span className="text-foreground">Полный контроль в вашем </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">
@@ -186,7 +186,7 @@ export function AppFeaturesSection() {
           </div>
 
           {/* Demo CTA — outside widget */}
-          <div className="mt-10 text-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="mt-6 text-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <Button asChild size="lg" className="rounded-full px-8">
               <Link to="/register">Попробовать демо бесплатно</Link>
             </Button>

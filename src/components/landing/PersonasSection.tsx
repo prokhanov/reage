@@ -95,7 +95,7 @@ export function PersonasSection() {
   const activeData = personas[activePersona];
 
   return (
-    <section className="relative py-16 md:py-20 overflow-hidden">
+    <section className="relative py-12 md:py-16 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
       
@@ -111,7 +111,7 @@ export function PersonasSection() {
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
             <Heart className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Для кого это</span>
@@ -126,7 +126,7 @@ export function PersonasSection() {
         </div>
 
         {/* Persona Switcher */}
-        <div className="relative mb-12 md:mb-16">
+        <div className="relative mb-10 md:mb-12">
           {/* Scrollable container */}
           <div className="relative overflow-hidden">
             {/* Gradient masks */}
