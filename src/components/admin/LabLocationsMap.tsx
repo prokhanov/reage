@@ -67,7 +67,6 @@ const buildIcon = () =>
       position: relative;
       width: 28px;
       height: 36px;
-      transform: translate(-14px, -36px);
     ">
       <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
         <path d="M14 0C6.27 0 0 6.27 0 14c0 9.5 12.4 21 13.07 21.6a1.4 1.4 0 0 0 1.86 0C15.6 35 28 23.5 28 14 28 6.27 21.73 0 14 0z"
