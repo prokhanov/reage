@@ -324,6 +324,14 @@ export default function LabLocations() {
           />
           <Button
             variant="outline"
+            onClick={handleSyncLabquest}
+            disabled={syncing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Обновление..." : "Обновить клиники LabQuest"}
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
           >
