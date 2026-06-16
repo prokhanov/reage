@@ -18,7 +18,6 @@ import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { RegisterStep5, SelectedPlanData } from "@/components/register/RegisterStep5";
-import { addMonths } from "date-fns";
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
 import { ThemedLogo } from "@/components/ThemedLogo";
@@ -157,94 +156,23 @@ export default function Register() {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             first_name: formData.firstName,
-            last_name: formData.lastName
+            last_name: formData.lastName,
+            phone: formData.phone ? normalizePhone(formData.phone) : null,
+            gender: formData.gender,
+            birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : null,
+            weight: formData.weight || null,
+            height: formData.height || null,
+            operations: formData.operations,
+            medications: formData.medications,
+            health_note: formData.healthNote?.trim() || null,
+            medical_history: formData.medicalHistory,
+            selected_plan: selectedPlan,
           }
         }
       });
 
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error("Не удалось создать пользователя");
-
-      // 2. Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
-          email: formData.email,
-          phone: formData.phone ? normalizePhone(formData.phone) : null,
-          gender: formData.gender,
-          birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : undefined,
-          weight: formData.weight ? parseFloat(formData.weight) : null,
-          height: formData.height ? parseFloat(formData.height) : null,
-          operations: formData.operations as any,
-          medications: formData.medications,
-          health_note: formData.healthNote?.trim() || null
-        });
-
-      if (profileError) throw profileError;
-
-      // Insert initial weight into weight_history
-      if (formData.weight) {
-        await supabase
-          .from('weight_history')
-          .insert({
-            user_id: authData.user.id,
-            weight: parseFloat(formData.weight)
-          });
-      }
-
-      // Note: user_roles is automatically created by trigger on auth.users
-
-      // 3. Save medical history
-      if (formData.medicalHistory.length > 0) {
-        const medicalData = formData.medicalHistory.map(condition => {
-          const [category, conditionName] = condition.split('|');
-          return {
-            user_id: authData.user.id,
-            category,
-            condition: conditionName
-          };
-        });
-
-        const { error: medicalError } = await supabase
-          .from('medical_history')
-          .insert(medicalData);
-
-        if (medicalError) throw medicalError;
-      }
-
-      // 4. Save subscription
-      if (selectedPlan && !selectedPlan.skipPayment) {
-        const startDate = new Date();
-        const endDate = addMonths(startDate, selectedPlan.durationMonths);
-        const { error: subscriptionError } = await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: authData.user.id,
-            status: 'active',
-            plan_id: selectedPlan.planId,
-            pricing_id: selectedPlan.pricingId,
-            plan_type: selectedPlan.period,
-            amount: selectedPlan.amount,
-            start_date: startDate.toISOString(),
-            end_date: endDate.toISOString(),
-            payment_method: 'card'
-          });
-        if (subscriptionError) throw subscriptionError;
-      } else {
-        const { error: subscriptionError } = await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: authData.user.id,
-            status: 'pending',
-            plan_type: 'none',
-            amount: 0,
-          });
-        if (subscriptionError) throw subscriptionError;
-      }
 
       // Celebrate with confetti!
       confetti({
