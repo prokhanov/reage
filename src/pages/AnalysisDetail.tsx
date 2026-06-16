@@ -908,14 +908,14 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="px-6 pb-4">
-                        <div className="mt-4 border rounded-lg overflow-hidden">
+                        <div className="mt-4 border rounded-lg overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-secondary/50">
-                                <TableHead className="font-semibold">Название</TableHead>
-                                <TableHead className="font-semibold">Значение</TableHead>
-                                <TableHead className="font-semibold">Статус</TableHead>
-                                <TableHead className="font-semibold">Шкала</TableHead>
+                                <TableHead className="font-semibold w-[260px]">Название</TableHead>
+                                <TableHead className="font-semibold w-[200px] whitespace-nowrap">Значение</TableHead>
+                                <TableHead className="font-semibold w-[140px]">Статус</TableHead>
+                                <TableHead className="font-semibold min-w-[280px]">Шкала</TableHead>
                                 <TableHead className="font-semibold w-16"></TableHead>
                               </TableRow>
                             </TableHeader>
