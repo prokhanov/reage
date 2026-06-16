@@ -1058,7 +1058,9 @@ export default function MyState() {
                 <div className="space-y-6">
                   <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-4xl">📋</span>
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <ClipboardList className="w-6 h-6 text-primary" />
+                      </div>
                       <h2 className="text-2xl font-bold">Соблюдение назначений</h2>
                     </div>
                     <p className="text-sm text-muted-foreground">
