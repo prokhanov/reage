@@ -558,6 +558,10 @@ export default function LabLocations() {
           })()}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
             <DialogTitle>{editing?.id ? "Редактировать адрес" : "Новый адрес"}</DialogTitle>
             <DialogDescription>
               Заполните поля. Телефоны и часы — по одной строке на значение.
