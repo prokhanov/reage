@@ -14,6 +14,7 @@ import { Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { PassportFields, isPassportValid } from "./PassportFields";
 
 interface CallbackRequestDialogProps {
   open: boolean;
@@ -43,6 +44,8 @@ export function CallbackRequestDialog({
   existingBookingId,
 }: CallbackRequestDialogProps) {
   const [phone, setPhone] = useState("");
+  const [passportSeries, setPassportSeries] = useState("");
+  const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { getUserId } = useViewAsUser();
@@ -54,10 +57,12 @@ export function CallbackRequestDialog({
       if (!userId) return;
       const { data } = await supabase
         .from("profiles")
-        .select("phone")
+        .select("phone, passport_series, passport_number")
         .eq("id", userId)
         .maybeSingle();
       if (data?.phone) setPhone(formatPhone(data.phone));
+      setPassportSeries((data as any)?.passport_series || "");
+      setPassportNumber((data as any)?.passport_number || "");
     })();
   }, [open, getUserId]);
 
@@ -71,13 +76,27 @@ export function CallbackRequestDialog({
       });
       return;
     }
+    if (!isPassportValid(passportSeries, passportNumber)) {
+      toast({
+        title: "Заполните паспортные данные",
+        description: "Серия — 4 цифры, номер — 6 цифр",
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading(true);
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("Не удалось определить пользователя");
 
-      // Сохраняем телефон в профиль, если изменился
-      await supabase.from("profiles").update({ phone: normalized }).eq("id", userId);
+      await supabase
+        .from("profiles")
+        .update({
+          phone: normalized,
+          passport_series: passportSeries,
+          passport_number: passportNumber,
+        } as any)
+        .eq("id", userId);
 
       if (existingBookingId) {
         const { error } = await supabase
@@ -129,15 +148,24 @@ export function CallbackRequestDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2 py-2">
-          <Label htmlFor="callback-phone-input">Ваш телефон</Label>
-          <Input
-            id="callback-phone-input"
-            type="tel"
-            inputMode="tel"
-            value={phone}
-            onChange={(e) => setPhone(formatPhone(e.target.value))}
-            placeholder="+7 (___) ___-__-__"
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="callback-phone-input">Ваш телефон</Label>
+            <Input
+              id="callback-phone-input"
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              placeholder="+7 (___) ___-__-__"
+            />
+          </div>
+          <PassportFields
+            series={passportSeries}
+            number={passportNumber}
+            onSeriesChange={setPassportSeries}
+            onNumberChange={setPassportNumber}
+            showIcon={false}
           />
         </div>
 
@@ -145,7 +173,10 @@ export function CallbackRequestDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Отмена
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !isPassportValid(passportSeries, passportNumber)}
+          >
             {loading ? "Отправка..." : "Подтвердить"}
           </Button>
         </DialogFooter>
