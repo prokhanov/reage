@@ -80,6 +80,22 @@ const buildIcon = () =>
     popupAnchor: [0, -32],
   });
 
+function CustomZoomControl() {
+  const map = useMap();
+  useEffect(() => {
+    const control = L.control.zoom({
+      position: "topright",
+      zoomInTitle: "Приблизить",
+      zoomOutTitle: "Отдалить",
+    });
+    map.addControl(control);
+    return () => {
+      map.removeControl(control);
+    };
+  }, [map]);
+  return null;
+}
+
 function FitBounds({ items }: { items: LabMapItem[] }) {
   const map = useMap();
   useEffect(() => {
@@ -176,19 +192,45 @@ export default function LabLocationsMap({ items }: { items: LabMapItem[] }) {
           center={center}
           zoom={10}
           scrollWheelZoom
+          attributionControl={false}
+          zoomControl={false}
           style={{ height: "70vh", width: "100%" }}
         >
           <TileLayer
             key={styleKey}
-            attribution={style.attribution}
             url={style.url}
             subdomains={style.subdomains as any}
             maxZoom={style.maxZoom}
             detectRetina
           />
+          <CustomZoomControl />
           <FitBounds items={items} />
           <ClusterLayer items={items} />
         </MapContainer>
+        <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
+          <span>©</span>
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:underline text-primary"
+          >
+            OpenStreetMap
+          </a>
+          {styleKey !== "osm" && (
+            <>
+              <span>|</span>
+              <a
+                href="https://carto.com/attributions"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline text-primary"
+              >
+                CARTO
+              </a>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
