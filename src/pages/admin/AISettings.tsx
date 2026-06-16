@@ -30,7 +30,7 @@ const standaloneSections = [
   {
     id: 'health_assistant',
     name: 'AI Ассистент',
-    emoji: '🤖',
+    icon: Bot as LucideIcon,
     description: 'Промпт для AI-чата с пациентом (роль, правила, стиль общения)',
     promptKey: 'health_assistant',
     group: 'assistant'
@@ -38,7 +38,7 @@ const standaloneSections = [
   {
     id: 'trends_summary',
     name: 'Тренды',
-    emoji: '📈',
+    icon: TrendingUp as LucideIcon,
     description: 'Промпт для генерации текстового описания трендов биомаркеров',
     promptKey: 'trends_summary_prompt',
     group: 'trends'
@@ -50,7 +50,7 @@ const pairedSections = [
   {
     id: 'biological_age',
     name: 'Биологический возраст',
-    emoji: '🧪',
+    icon: FlaskConical as LucideIcon,
     description: 'Промпты для расчёта биологического возраста на основе биомаркеров',
     systemKey: 'biological_age_system',
     userKey: 'biological_age_user'
@@ -62,21 +62,21 @@ const riskZoneSections = [
   { 
     id: 'risk_map', 
     name: 'Карта рисков', 
-    emoji: '🗺️',
+    icon: MapIcon as LucideIcon,
     description: 'Промпт для анализа карты рисков по системам организма',
     promptKey: 'risk_zones_risk_map'
   },
   { 
     id: 'aging_blockers', 
     name: 'Факторы старения', 
-    emoji: '🧬',
+    icon: Dna as LucideIcon,
     description: 'Промпт для определения факторов, тормозящих anti-aging прогресс',
     promptKey: 'risk_zones_aging_blockers'
   },
   { 
     id: 'smart_priorities', 
     name: 'Умные приоритеты', 
-    emoji: '🎯',
+    icon: Target as LucideIcon,
     description: 'Промпт для генерации стратегических приоритетов и задач',
     promptKey: 'risk_zones_smart_priorities'
   }
@@ -87,7 +87,7 @@ const reportSections = [
   { 
     id: 'prescriptions', 
     name: 'Назначения', 
-    emoji: '💊',
+    icon: Pill as LucideIcon,
     description: 'Промпты для генерации персонализированных назначений',
     systemKey: 'prescriptions_system',
     userKey: 'prescriptions_user'
@@ -95,7 +95,7 @@ const reportSections = [
   { 
     id: 'summary', 
     name: 'Общее резюме', 
-    emoji: '📋',
+    icon: ClipboardList as LucideIcon,
     description: 'Промпты для формирования итогового резюме отчёта',
     systemKey: 'summary_system',
     userKey: 'summary_user'
