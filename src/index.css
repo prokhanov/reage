@@ -228,3 +228,90 @@ All colors MUST be HSL.
     display: none !important;
   }
 }
+
+/* Leaflet popup styling — соответствует дизайну приложения */
+.leaflet-container {
+  background: hsl(var(--muted));
+  font-family: inherit;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground)) !important;
+  padding: 6px 8px !important;
+}
+.lab-popup-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: hsl(var(--foreground));
+  margin-bottom: 8px;
+}
+.lab-popup-row {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 4px;
+}
+.lab-popup-icon {
+  flex-shrink: 0;
+}
+.lab-popup-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid hsl(var(--border));
+}
+.lab-popup-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 4px;
+}
+.lab-popup-link {
+  color: hsl(var(--primary));
+  text-decoration: none;
+}
+.lab-popup-link:hover {
+  text-decoration: underline;
+}
+.lab-popup-cta {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: 6px;
+  font-size: 12px;
+  text-decoration: none;
+  font-weight: 500;
+}
+.lab-popup-cta:hover {
+  opacity: 0.9;
+}
+.leaflet-control-attribution {
+  background: hsl(var(--card) / 0.8) !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+.leaflet-control-attribution a {
+  color: hsl(var(--primary)) !important;
+}
+.leaflet-bar a {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+/* В тёмной теме инвертируем светлые OSM-тайлы для попадания в общий стиль */
+.dark .leaflet-tile-pane {
+  filter: hue-rotate(180deg) invert(0.92) brightness(0.9) contrast(0.95);
+}

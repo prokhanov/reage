@@ -40,7 +40,11 @@ import {
   Search,
   ExternalLink,
   RefreshCw,
+  Map as MapIcon,
+  List as ListIcon,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import LabLocationsMap from "@/components/admin/LabLocationsMap";
 
 type LabLocation = {
   id: string;
@@ -345,136 +349,215 @@ export default function LabLocations() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Поиск по метро, адресу, названию..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={cityFilter} onValueChange={setCityFilter}>
-          <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder="Город" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все города</SelectItem>
-            {cities.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={providerFilter} onValueChange={setProviderFilter}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Провайдер" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все провайдеры</SelectItem>
-            {providers.map((p) => (
-              <SelectItem key={p} value={p}>
-                {p}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList>
+          <TabsTrigger value="list" className="gap-2">
+            <ListIcon className="h-4 w-4" /> Список
+          </TabsTrigger>
+          <TabsTrigger value="map" className="gap-2">
+            <MapIcon className="h-4 w-4" /> Карта
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="text-sm text-muted-foreground">
-        Всего: {items.length}. Показано: {filtered.length}.
-      </div>
+        <TabsContent value="list" className="space-y-4 mt-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Поиск по метро, адресу, названию..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={cityFilter} onValueChange={setCityFilter}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue placeholder="Город" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все города</SelectItem>
+                {cities.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={providerFilter} onValueChange={setProviderFilter}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="Провайдер" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все провайдеры</SelectItem>
+                {providers.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      <div className="rounded-md border bg-card">
-        <div className="w-full overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Провайдер</TableHead>
-                <TableHead>Метро</TableHead>
-                <TableHead className="min-w-[260px]">Адрес</TableHead>
-                <TableHead>Город</TableHead>
-                <TableHead>Телефоны</TableHead>
-                <TableHead>Часы</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading
-                ? [...Array(6)].map((_, i) => (
-                    <TableRow key={i}>
-                      {[...Array(8)].map((__, j) => (
-                        <TableCell key={j}>
-                          <Skeleton className="h-4 w-full" />
-                        </TableCell>
+          <div className="text-sm text-muted-foreground">
+            Всего: {items.length}. Показано: {filtered.length}.
+          </div>
+
+          <div className="rounded-md border bg-card">
+            <div className="w-full overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Провайдер</TableHead>
+                    <TableHead>Метро</TableHead>
+                    <TableHead className="min-w-[260px]">Адрес</TableHead>
+                    <TableHead>Город</TableHead>
+                    <TableHead>Телефоны</TableHead>
+                    <TableHead>Часы</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead className="text-right">Действия</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading
+                    ? [...Array(6)].map((_, i) => (
+                        <TableRow key={i}>
+                          {[...Array(8)].map((__, j) => (
+                            <TableCell key={j}>
+                              <Skeleton className="h-4 w-full" />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    : filtered.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell>
+                            <Badge variant="secondary">{row.provider}</Badge>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">{row.metro ?? "—"}</TableCell>
+                          <TableCell>
+                            <div className="font-medium">{row.title}</div>
+                            {row.full_address && (
+                              <div className="text-xs text-muted-foreground">
+                                {row.full_address}
+                              </div>
+                            )}
+                            {row.page_url && (
+                              <a
+                                href={row.page_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs text-primary inline-flex items-center gap-1 mt-1"
+                              >
+                                страница <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">{row.city ?? "—"}</TableCell>
+                          <TableCell className="text-xs whitespace-pre-line">
+                            {row.phones.join("\n") || "—"}
+                          </TableCell>
+                          <TableCell className="text-xs whitespace-pre-line">
+                            {row.hours.join("\n") || "—"}
+                          </TableCell>
+                          <TableCell>
+                            <Switch
+                              checked={row.is_active}
+                              onCheckedChange={() => toggleActive(row)}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap">
+                            <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => handleDelete(row.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </TableRow>
-                  ))
-                : filtered.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell>
-                        <Badge variant="secondary">{row.provider}</Badge>
+                  {!loading && filtered.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-10">
+                        Нет адресов. Загрузите JSON или добавьте вручную.
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">{row.metro ?? "—"}</TableCell>
-                      <TableCell>
-                        <div className="font-medium">{row.title}</div>
-                        {row.full_address && (
-                          <div className="text-xs text-muted-foreground">
-                            {row.full_address}
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="map" className="space-y-3 mt-4">
+          {(() => {
+            const activeAll = items.filter((i) => i.is_active);
+            const withCoords = activeAll.filter(
+              (i) => i.lat != null && i.lng != null,
+            );
+            const withoutCoords = activeAll.filter(
+              (i) => i.lat == null || i.lng == null,
+            );
+            return (
+              <>
+                <div className="text-sm text-muted-foreground">
+                  Показано на карте: <span className="font-medium text-foreground">{withCoords.length}</span> из{" "}
+                  <span className="font-medium text-foreground">{activeAll.length}</span> активных лабораторий.
+                  {withoutCoords.length > 0 && (
+                    <> Без координат: <span className="text-foreground">{withoutCoords.length}</span>.</>
+                  )}
+                </div>
+                {loading ? (
+                  <Skeleton className="h-[70vh] w-full rounded-lg" />
+                ) : withCoords.length === 0 ? (
+                  <div className="rounded-lg border border-border bg-card p-10 text-center text-muted-foreground">
+                    Нет активных лабораторий с координатами для отображения на карте.
+                  </div>
+                ) : (
+                  <LabLocationsMap
+                    items={withCoords.map((i) => ({
+                      id: i.id,
+                      title: i.title,
+                      metro: i.metro,
+                      city: i.city,
+                      address_short: i.address_short,
+                      full_address: i.full_address,
+                      phones: i.phones,
+                      hours: i.hours,
+                      page_url: i.page_url,
+                      lat: i.lat as number,
+                      lng: i.lng as number,
+                    }))}
+                  />
+                )}
+                {withoutCoords.length > 0 && (
+                  <details className="rounded-lg border border-border bg-card p-4 text-sm">
+                    <summary className="cursor-pointer font-medium">
+                      Активные лаборатории без координат ({withoutCoords.length})
+                    </summary>
+                    <ul className="mt-3 space-y-2 text-muted-foreground">
+                      {withoutCoords.map((i) => (
+                        <li key={i.id} className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                          <div>
+                            <div className="text-foreground">{i.title}</div>
+                            {i.full_address && (
+                              <div className="text-xs">{i.full_address}</div>
+                            )}
                           </div>
-                        )}
-                        {row.page_url && (
-                          <a
-                            href={row.page_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs text-primary inline-flex items-center gap-1 mt-1"
-                          >
-                            страница <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">{row.city ?? "—"}</TableCell>
-                      <TableCell className="text-xs whitespace-pre-line">
-                        {row.phones.join("\n") || "—"}
-                      </TableCell>
-                      <TableCell className="text-xs whitespace-pre-line">
-                        {row.hours.join("\n") || "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Switch
-                          checked={row.is_active}
-                          onCheckedChange={() => toggleActive(row)}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        <Button size="icon" variant="ghost" onClick={() => openEdit(row)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleDelete(row.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              {!loading && filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-10">
-                    Нет адресов. Загрузите JSON или добавьте вручную.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </>
+            );
+          })()}
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
