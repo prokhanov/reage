@@ -37,7 +37,7 @@ export interface RegisterFormData {
   weight: string;
   height: string;
   medicalHistory: string[];
-  operations: Record<string, boolean>;
+  operations: Record<string, boolean | string>;
   medications: string[];
   healthNote: string;
 }
