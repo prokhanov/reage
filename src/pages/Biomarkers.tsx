@@ -354,12 +354,12 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-secondary/50">
-                          <TableHead className="font-semibold">Название</TableHead>
-                          <TableHead className="font-semibold">Последнее значение</TableHead>
-                          <TableHead className="font-semibold">Статус</TableHead>
-                          <TableHead className="font-semibold">Тренд</TableHead>
-                          <TableHead className="font-semibold">Дата теста</TableHead>
-                          <TableHead className="font-semibold">Шкала</TableHead>
+                          <TableHead className="font-semibold w-[260px]">Название</TableHead>
+                          <TableHead className="font-semibold w-[200px] whitespace-nowrap">Последнее значение</TableHead>
+                          <TableHead className="font-semibold w-[140px]">Статус</TableHead>
+                          <TableHead className="font-semibold w-[140px]">Тренд</TableHead>
+                          <TableHead className="font-semibold w-[130px] whitespace-nowrap">Дата теста</TableHead>
+                          <TableHead className="font-semibold min-w-[280px]">Шкала</TableHead>
                           <TableHead className="font-semibold w-16"></TableHead>
                         </TableRow>
                       </TableHeader>
