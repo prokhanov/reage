@@ -82,7 +82,10 @@ export default function Register() {
     birth_date: undefined,
     weight: "",
     height: "",
-    medicalHistory: []
+    medicalHistory: [],
+    operations: {},
+    medications: [],
+    healthNote: ""
   });
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlanData | null>(null);
   
