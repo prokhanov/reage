@@ -200,7 +200,11 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
   };
 
   const setOperation = (key: string, value: boolean) => {
-    updateFormData({ operations: { ...formData.operations, [key]: value } });
+    const next = { ...formData.operations, [key]: value };
+    if (key === "surgery_year" && value === false) {
+      delete (next as Record<string, unknown>).surgery_year_details;
+    }
+    updateFormData({ operations: next });
   };
 
   return (
