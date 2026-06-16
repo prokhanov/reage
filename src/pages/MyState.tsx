@@ -428,7 +428,7 @@ export default function MyState() {
 
       if (symptomsData.length === 0 && Object.keys(adherenceAnswers).length === 0) {
         toast({
-          title: "Все отлично! 🎉",
+          title: "Все отлично!",
           description: "Данные сохранены"
         });
         setEditingDate(null);
