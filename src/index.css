@@ -299,13 +299,6 @@ All colors MUST be HSL.
 .lab-popup-cta:hover {
   opacity: 0.9;
 }
-.leaflet-control-attribution {
-  background: hsl(var(--card) / 0.8) !important;
-  color: hsl(var(--muted-foreground)) !important;
-}
-.leaflet-control-attribution a {
-  color: hsl(var(--primary)) !important;
-}
 .leaflet-bar a {
   background: hsl(var(--card)) !important;
   color: hsl(var(--foreground)) !important;
