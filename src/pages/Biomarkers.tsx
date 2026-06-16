@@ -390,10 +390,10 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                                 </div>
                               </TableCell>
                               
-                              <TableCell>
+                              <TableCell className="whitespace-nowrap">
                                 {biomarker.latest_value !== null ? (
                                   <span 
-                                    className="text-lg font-bold"
+                                    className="text-lg font-bold whitespace-nowrap"
                                     style={{
                                       color: statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))"
                                     }}
