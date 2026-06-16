@@ -319,6 +319,17 @@ export default function PatientProfile() {
                       <p className="font-medium">{bmi || "—"}</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2 md:col-span-2">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Паспорт</p>
+                      <p className="font-medium whitespace-nowrap">
+                        {(profile as any)?.passport_series && (profile as any)?.passport_number
+                          ? `${(profile as any).passport_series} ${(profile as any).passport_number}`
+                          : "Не заполнен"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

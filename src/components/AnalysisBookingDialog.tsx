@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { usePatientSlots } from "@/hooks/usePatientSlots";
+import { PassportFields, isPassportValid } from "./PassportFields";
 
 interface AnalysisBookingDialogProps {
   open: boolean;
@@ -32,6 +33,8 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [bookingTime, setBookingTime] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [bookingAddress, setBookingAddress] = useState("");
+  const [passportSeries, setPassportSeries] = useState("");
+  const [passportNumber, setPassportNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBookingId, setExistingBookingId] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -50,6 +53,14 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     try {
       const userId = await getUserId();
       if (!userId) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("passport_series, passport_number")
+        .eq("id", userId)
+        .maybeSingle();
+      setPassportSeries((profile as any)?.passport_series || "");
+      setPassportNumber((profile as any)?.passport_number || "");
 
       const { data: bookings } = await supabase
         .from('analysis_bookings')
@@ -79,7 +90,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     }
   };
 
-  const isValid = bookingDate && bookingTime && selectedSlotId && bookingAddress.trim().length > 0;
+  const isValid =
+    bookingDate &&
+    bookingTime &&
+    selectedSlotId &&
+    bookingAddress.trim().length > 0 &&
+    isPassportValid(passportSeries, passportNumber);
 
   const handleSubmit = async () => {
     if (!isValid || !bookingDate || !selectedSlotId) return;
@@ -88,6 +104,15 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
     try {
       const userId = await getUserId();
       if (!userId) throw new Error("User not authenticated");
+
+      // Persist passport data to profile
+      await supabase
+        .from("profiles")
+        .update({
+          passport_series: passportSeries,
+          passport_number: passportNumber,
+        } as any)
+        .eq("id", userId);
 
       // If updating and slot changed, cancel old slot first
       if (existingBookingId && existingSlotId && existingSlotId !== selectedSlotId) {
@@ -413,6 +438,14 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
               className="h-12"
             />
           </div>
+
+          {/* Passport data (required) */}
+          <PassportFields
+            series={passportSeries}
+            number={passportNumber}
+            onSeriesChange={setPassportSeries}
+            onNumberChange={setPassportNumber}
+          />
         </div>
 
         <div className="space-y-3 pt-4">

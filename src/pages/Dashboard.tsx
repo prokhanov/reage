@@ -15,6 +15,7 @@ import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
+import { PassportReminderCard } from "@/components/PassportReminderCard";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -264,6 +265,9 @@ export default function Dashboard() {
     <div className="p-4 md:p-8 space-y-6">
       {/* Demo Banner */}
       {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
+
+      {/* Passport data reminder (paid users only, until filled) */}
+      {!demoMode && <PassportReminderCard />}
 
       {/* Header */}
         <div className="space-y-1">
