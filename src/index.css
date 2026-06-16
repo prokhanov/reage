@@ -311,7 +311,3 @@ All colors MUST be HSL.
   color: hsl(var(--foreground)) !important;
   border-color: hsl(var(--border)) !important;
 }
-/* В тёмной теме инвертируем светлые OSM-тайлы для попадания в общий стиль */
-.dark .leaflet-tile-pane {
-  filter: hue-rotate(180deg) invert(0.92) brightness(0.9) contrast(0.95);
-}

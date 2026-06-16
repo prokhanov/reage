@@ -1,10 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import { useTheme } from "next-themes";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export type LabMapItem = {
   id: string;
@@ -20,7 +22,44 @@ export type LabMapItem = {
   lng: number;
 };
 
-// Кастомная SVG-метка в primary-цвете (использует hsl(var(--primary)))
+type TileStyleKey = "carto-dark" | "carto-light" | "carto-voyager" | "osm";
+
+const TILE_STYLES: Record<
+  TileStyleKey,
+  { label: string; url: string; attribution: string; subdomains?: string; maxZoom: number }
+> = {
+  "carto-dark": {
+    label: "Тёмный",
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 20,
+  },
+  "carto-light": {
+    label: "Светлый",
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 20,
+  },
+  "carto-voyager": {
+    label: "Voyager",
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 20,
+  },
+  osm: {
+    label: "OSM",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  },
+};
+
 const buildIcon = () =>
   L.divIcon({
     className: "lab-map-marker",
@@ -100,26 +139,57 @@ function escapeAttr(s: string) {
 }
 
 export default function LabLocationsMap({ items }: { items: LabMapItem[] }) {
+  const { resolvedTheme } = useTheme();
+  const defaultStyle: TileStyleKey = resolvedTheme === "light" ? "carto-light" : "carto-dark";
+  const [styleKey, setStyleKey] = useState<TileStyleKey>(defaultStyle);
+
   const center = useMemo<[number, number]>(() => {
     if (!items.length) return [55.7558, 37.6173];
     return [items[0].lat, items[0].lng];
   }, [items]);
 
+  const style = TILE_STYLES[styleKey];
+
   return (
-    <div className="rounded-lg border border-border overflow-hidden bg-card">
-      <MapContainer
-        center={center}
-        zoom={10}
-        scrollWheelZoom
-        style={{ height: "70vh", width: "100%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <FitBounds items={items} />
-        <ClusterLayer items={items} />
-      </MapContainer>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Стиль карты:</span>
+          <ToggleGroup
+            type="single"
+            size="sm"
+            value={styleKey}
+            onValueChange={(v) => v && setStyleKey(v as TileStyleKey)}
+          >
+            {(Object.keys(TILE_STYLES) as TileStyleKey[]).map((k) => (
+              <ToggleGroupItem key={k} value={k} aria-label={TILE_STYLES[k].label}>
+                {TILE_STYLES[k].label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
+        <span className="text-xs text-muted-foreground">{items.length} точек</span>
+      </div>
+
+      <div className="rounded-lg border border-border overflow-hidden bg-card">
+        <MapContainer
+          center={center}
+          zoom={10}
+          scrollWheelZoom
+          style={{ height: "70vh", width: "100%" }}
+        >
+          <TileLayer
+            key={styleKey}
+            attribution={style.attribution}
+            url={style.url}
+            subdomains={style.subdomains as any}
+            maxZoom={style.maxZoom}
+            detectRetina
+          />
+          <FitBounds items={items} />
+          <ClusterLayer items={items} />
+        </MapContainer>
+      </div>
     </div>
   );
 }
