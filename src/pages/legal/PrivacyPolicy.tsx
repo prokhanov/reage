@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
             </p>
             <p>
               Телефон:{" "}
-              <a href="tel:+79967897404" className="text-primary hover:underline">+7 996 789-74-04</a>
+              <a href="tel:+79959984638" className="text-primary hover:underline">+7 995 998-46-38</a>
             </p>
           </div>
           <p className="mt-3">
@@ -443,7 +443,7 @@ export default function PrivacyPolicy() {
             По вопросам, связанным с обработкой персональных данных, обращайтесь по адресу электронной почты:{" "}
             <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a>{" "}
             или по телефону:{" "}
-            <a href="tel:+79967897404" className="text-primary hover:underline">+7 996 789-74-04</a>.
+            <a href="tel:+79959984638" className="text-primary hover:underline">+7 995 998-46-38</a>.
           </p>
         </div>
       </LegalPageLayout>

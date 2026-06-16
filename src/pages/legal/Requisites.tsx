@@ -10,7 +10,7 @@ export default function Requisites() {
     { label: "ОГРН", value: "1267700099985", icon: <FileCheck className="w-5 h-5" /> },
     { label: "Юридический адрес", value: "121099, г. Москва, вн.тер.г. муниципальный округ Арбат, пер. 1-й Смоленский, д. 22/10, помещ. 3/П", icon: <Building2 className="w-5 h-5" /> },
     { label: "Генеральный директор", value: "Святодумов Владислав Артурович", icon: <User className="w-5 h-5" /> },
-    { label: "Телефон", value: "+7 (996) 789-74-04", icon: <Phone className="w-5 h-5" /> },
+    { label: "Телефон", value: "+7 (995) 998-46-38", icon: <Phone className="w-5 h-5" /> },
     { label: "Электронная почта", value: "team@reage.life", icon: <Mail className="w-5 h-5" /> },
   ];
 
