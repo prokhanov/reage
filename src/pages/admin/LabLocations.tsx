@@ -39,6 +39,7 @@ import {
   Trash2,
   Search,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 
 type LabLocation = {
