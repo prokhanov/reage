@@ -168,8 +168,9 @@ export default function Subscription() {
         </ToggleGroup>
         
         {getMaxDiscount() > 0 && (
-          <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300">
-            💰 Сэкономьте до {getMaxDiscount()}% при годовой оплате
+          <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300 inline-flex items-center gap-2">
+            <PiggyBank className="h-4 w-4 text-primary" />
+            Сэкономьте до {getMaxDiscount()}% при годовой оплате
           </p>
         )}
       </div>
