@@ -37,6 +37,9 @@ export interface RegisterFormData {
   weight: string;
   height: string;
   medicalHistory: string[];
+  operations: Record<string, boolean>;
+  medications: string[];
+  healthNote: string;
 }
 
 const steps = [
