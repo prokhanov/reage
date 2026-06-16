@@ -40,7 +40,11 @@ import {
   Search,
   ExternalLink,
   RefreshCw,
+  Map as MapIcon,
+  List as ListIcon,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import LabLocationsMap from "@/components/admin/LabLocationsMap";
 
 type LabLocation = {
   id: string;
