@@ -51,7 +51,7 @@ export default function TermsOfService() {
             <p><strong className="font-semibold">ОГРН:</strong> 1267700099985</p>
             <p><strong className="font-semibold">Адрес:</strong> 121099, г. Москва, вн. тер. г. муниципальный округ Арбат, пер. 1-й Смоленский, д. 22/10, помещ. 3/П</p>
             <p><strong className="font-semibold">Генеральный директор:</strong> Святодумов Владислав Артурович</p>
-            <p><strong className="font-semibold">Телефон:</strong> <a href="tel:+79967897404" className="text-primary hover:underline">+7 996 789-74-04</a></p>
+            <p><strong className="font-semibold">Телефон:</strong> <a href="tel:+79959984638" className="text-primary hover:underline">+7 995 998-46-38</a></p>
             <p><strong className="font-semibold">Электронная почта:</strong> <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a></p>
           </div>
         </Section>
@@ -675,7 +675,7 @@ export default function TermsOfService() {
             <p>ОГРН: 1267700099985</p>
             <p>Адрес: 121099, г. Москва, вн. тер. г. муниципальный округ Арбат, пер. 1-й Смоленский, д. 22/10, помещ. 3/П</p>
             <p>Генеральный директор: Святодумов Владислав Артурович</p>
-            <p>Телефон: <a href="tel:+79967897404" className="text-primary hover:underline">+7 996 789-74-04</a></p>
+            <p>Телефон: <a href="tel:+79959984638" className="text-primary hover:underline">+7 995 998-46-38</a></p>
             <p>Электронная почта: <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a></p>
             <p>Расчётный счёт: 40702810620000299478</p>
             <p>Банк: ООО «Банк Точка»</p>

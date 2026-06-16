@@ -84,7 +84,7 @@ export default function Documents() {
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-              Телефон: <a href="tel:+79967897404" className="text-primary hover:underline">+7 (996) 789-74-04</a>
+              Телефон: <a href="tel:+79959984638" className="text-primary hover:underline">+7 (995) 998-46-38</a>
             </li>
             <li className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
