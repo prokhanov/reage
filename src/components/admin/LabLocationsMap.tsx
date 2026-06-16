@@ -80,6 +80,22 @@ const buildIcon = () =>
     popupAnchor: [0, -32],
   });
 
+function CustomZoomControl() {
+  const map = useMap();
+  useEffect(() => {
+    const control = L.control.zoom({
+      position: "topright",
+      zoomInTitle: "Приблизить",
+      zoomOutTitle: "Отдалить",
+    });
+    map.addControl(control);
+    return () => {
+      map.removeControl(control);
+    };
+  }, [map]);
+  return null;
+}
+
 function FitBounds({ items }: { items: LabMapItem[] }) {
   const map = useMap();
   useEffect(() => {
