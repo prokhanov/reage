@@ -163,7 +163,7 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
                       <Icon className="h-5 w-5 text-primary" />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium">{category.title}</p>
+                      <p className="font-medium">{category.title.replace(/^\p{Extended_Pictographic}(\u200d\p{Extended_Pictographic})*\ufe0f?\s*/u, '')}</p>
                       {selectedCount > 0 && (
                         <p className="text-xs text-muted-foreground">
                           {selectedCount} выбрано
