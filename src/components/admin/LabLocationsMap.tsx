@@ -298,7 +298,7 @@ export default function LabLocationsMap({ items }: { items: LabMapItem[] }) {
                 Настройки вида
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-80 space-y-4">
+            <PopoverContent align="end" className="w-80 space-y-4 z-[9999] relative">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Внешний вид</span>
                 <Button
