@@ -1615,11 +1615,14 @@ export type Database = {
           email_verified: boolean | null
           first_name: string
           gender: string
+          health_note: string | null
           height: number | null
           id: string
           last_name: string | null
+          medications: string[] | null
           name: string
           needs_risk_refresh: boolean | null
+          operations: Json | null
           phone: string | null
           phone_verified_at: string | null
           telegram_id: string | null
@@ -1634,11 +1637,14 @@ export type Database = {
           email_verified?: boolean | null
           first_name: string
           gender: string
+          health_note?: string | null
           height?: number | null
           id: string
           last_name?: string | null
+          medications?: string[] | null
           name: string
           needs_risk_refresh?: boolean | null
+          operations?: Json | null
           phone?: string | null
           phone_verified_at?: string | null
           telegram_id?: string | null
@@ -1653,11 +1659,14 @@ export type Database = {
           email_verified?: boolean | null
           first_name?: string
           gender?: string
+          health_note?: string | null
           height?: number | null
           id?: string
           last_name?: string | null
+          medications?: string[] | null
           name?: string
           needs_risk_refresh?: boolean | null
+          operations?: Json | null
           phone?: string | null
           phone_verified_at?: string | null
           telegram_id?: string | null
