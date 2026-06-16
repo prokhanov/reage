@@ -47,6 +47,7 @@ import ScaleLabelsPreview from "./pages/admin/ScaleLabelsPreview";
 import EmailSettings from "./pages/admin/EmailSettings";
 import SmsSettings from "./pages/admin/SmsSettings";
 import TelegramSettings from "./pages/admin/TelegramSettings";
+import LabLocations from "./pages/admin/LabLocations";
 import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
