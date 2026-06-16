@@ -286,7 +286,7 @@ export default function AISettings() {
                 <AccordionItem key={sp.section.id} value={sp.section.id} className="border rounded-lg">
                   <AccordionTrigger className="px-6 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{sp.section.emoji}</span>
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><sp.section.icon className="h-5 w-5 text-primary" /></div>
                       <div className="text-left">
                         <div className="font-semibold">{sp.section.name}</div>
                         <div className="text-sm text-muted-foreground">{sp.section.description}</div>
