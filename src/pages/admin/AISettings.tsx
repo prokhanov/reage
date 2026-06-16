@@ -424,7 +424,7 @@ export default function AISettings() {
                 >
                   <AccordionTrigger className="px-6 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{rp.section.emoji}</span>
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><rp.section.icon className="h-5 w-5 text-primary" /></div>
                       <div className="text-left">
                         <div className="font-semibold">{rp.section.name}</div>
                         <div className="text-sm text-muted-foreground">
