@@ -45,6 +45,7 @@ const adminNavItems = [
   { to: "/admin/email-settings", label: "Email", icon: Mail, requiresSuperAdmin: true },
   { to: "/admin/sms-settings", label: "SMS", icon: MessageSquare, requiresSuperAdmin: true },
   { to: "/admin/telegram-settings", label: "Telegram", icon: Send, requiresSuperAdmin: true },
+  { to: "/admin/labs", label: "Лаборатории", icon: MapPin, requiresSuperAdmin: true },
   { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical },
 ];
 
