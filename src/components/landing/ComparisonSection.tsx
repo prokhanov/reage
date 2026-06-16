@@ -51,7 +51,7 @@ export function ComparisonSection() {
 
 
   return (
-    <section id="comparison" className="relative py-16 md:py-20 overflow-hidden">
+    <section id="comparison" className="relative py-12 md:py-16 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-background" />
       
@@ -64,7 +64,7 @@ export function ComparisonSection() {
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Почему ReAge — это не</span>

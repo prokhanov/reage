@@ -7,7 +7,7 @@ export function CTASection() {
   const navigate = useNavigate();
 
   return (
-    <section className="relative py-16 md:py-20 overflow-hidden">
+    <section className="relative py-12 md:py-16 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
       

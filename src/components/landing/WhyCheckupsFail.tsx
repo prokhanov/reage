@@ -25,13 +25,13 @@ const problems = [
 
 export function WhyCheckupsFail() {
   return (
-    <section className="relative py-16 md:py-20 overflow-hidden">
+    <section className="relative py-12 md:py-16 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
       <div className="relative z-10 container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 leading-tight animate-fade-in">
             <span className="text-foreground">Почему обычные чекапы</span>
             <br />
