@@ -178,7 +178,10 @@ export default function Register() {
           gender: formData.gender,
           birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : undefined,
           weight: formData.weight ? parseFloat(formData.weight) : null,
-          height: formData.height ? parseFloat(formData.height) : null
+          height: formData.height ? parseFloat(formData.height) : null,
+          operations: formData.operations as any,
+          medications: formData.medications,
+          health_note: formData.healthNote?.trim() || null
         });
 
       if (profileError) throw profileError;
