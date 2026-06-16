@@ -1,42 +1,71 @@
-## План: автосинхронизация клиник LabQuest
+## Цель
 
-### 1. Миграция БД
-Добавить колонку в существующую таблицу `lab_locations`:
-- `region text` (nullable) — для значений «Москва», «Московская область», «Санкт-Петербург».
+Добавить интерактивную карту на **Leaflet + OpenStreetMap** в админку `/admin/labs` как отдельную вкладку «Карта». На карте — все активные лаборатории с координатами; клик по метке открывает карточку с адресом, метро, телефонами, часами работы и ссылкой на провайдера. Это тестовая площадка перед интеграцией в пациентский диалог бронирования.
 
-Грантов и RLS таблицы трогать не нужно — они уже настроены.
+## Почему Leaflet + OSM
 
-### 2. Edge Function `sync-labquest-clinics`
-Файл: `supabase/functions/sync-labquest-clinics/index.ts`.
+- Полностью бесплатно, без API-ключей и привязки к доменам.
+- OSM-тайлы можно отдавать с серверов OpenStreetMap (для dev) и легко переключить на российский тайл-провайдер позже, если потребуется.
+- Открытая лицензия, библиотека ~40 КБ, отлично работает с React через `react-leaflet`.
 
-Логика:
-1. Скачивает три страницы labquest.ru (Москва / МО / СПб) с `User-Agent: Mozilla/5.0`.
-2. Парсит HTML через `cheerio` (npm-спецификатор).
-3. Для каждого `li[itemtype="http://schema.org/Place"]` достаёт поля по селекторам из ТЗ.
-4. Маппит в схему `lab_locations`:
-   - `provider = 'labquest'`
-   - `external_id = data-id`
-   - `region`, `metro`, `address_short`, `title`, `city`, `lat`, `lng`, `full_address`, `email`, `page_url`
-   - `phones` и `hours` → `text[]` (так уже в таблице)
-   - `is_active = true`, `updated_at = now()`
-5. Фильтрует записи без `external_id` / координат.
-6. `upsert` по `(provider, external_id)` через service role.
-7. Возвращает `{ ok: true, count, by_region: {...} }`. CORS-заголовки на всех ответах. Только superadmin: проверяем JWT и роль на входе.
+## Что нужно сделать
 
-Доступ через `verify_jwt = true` по умолчанию (ничего в config.toml не трогаем).
+### 1. Зависимости
+- `bun add leaflet react-leaflet`
+- `bun add -d @types/leaflet`
+- Импорт CSS: `import 'leaflet/dist/leaflet.css'` в компоненте карты.
 
-### 3. UI на `/admin/labs`
-В `src/pages/admin/LabLocations.tsx` добавить кнопку «Обновить клиники LabQuest» рядом с импортом JSON:
-- При клике: `supabase.functions.invoke('sync-labquest-clinics')`.
-- Индикатор загрузки (spinner), блокировка кнопки.
-- По завершении — `toast.success("Обновлено клиник: X")` и рефетч списка.
-- При ошибке — `toast.error(...)`.
+### 2. Компонент `LabLocationsMap`
+- Запрос React Query: `select id,title,full_address,address_short,metro,phones,hours,page_url,lat,lng from lab_locations where is_active=true and lat is not null and lng is not null`.
+- `<MapContainer>` с центром Москва `[55.7558, 37.6173]`, zoom 10, высота ~70vh, рамка/радиус в нашем дизайне (`border border-border rounded-lg overflow-hidden`).
+- `<TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap'>` — для dev. В коде комментарий, что для прод можно подменить URL на коммерческий/российский провайдер.
+- Авто-fit карты по `LatLngBounds` всех меток (через `useMap()` хелпер).
+- Метки — кастомный `divIcon` со SVG в primary-цвете (не дефолтная синяя иконка, чтобы не тащить картинки Leaflet и попадать в дизайн).
+- Кластеризация — `leaflet.markercluster` (`bun add leaflet.markercluster @types/leaflet.markercluster`), иначе 60+ точек в Москве сливаются.
 
-### Технические детали
-- Использовать `npm:cheerio@1.0.0` (без esm.sh, чтобы избежать проблем с deno.lock).
-- Парсить `lat/lng` как `Number`, отсеивать `NaN`.
-- `page_url`: префикс `https://www.labquest.ru` если относительный путь.
-- Чанк upsert по 500 записей на случай больших ответов.
-- Записи labquest, которых нет в свежем ответе, помечать `is_active = false` (опционально, если хочешь — скажи, добавлю).
+### 3. Карточка лаборатории
+- В Leaflet `<Popup>` рендерим React-контент через `<Popup>` из `react-leaflet`:
+  - Название (`title`)
+  - Метро (если есть) с иконкой
+  - Полный адрес
+  - Телефоны — кликабельные `tel:`
+  - Часы работы построчно
+  - Кнопка-ссылка «Открыть на сайте провайдера» → `page_url` в новой вкладке
+- Стилизуем `.leaflet-popup-content-wrapper` через глобальный CSS, чтобы поповер не был белым на тёмной теме.
 
-Подтверди — запускаю реализацию.
+### 4. Интеграция в `/admin/labs`
+- В `src/pages/admin/LabLocations.tsx` оборачиваем содержимое в `Tabs`:
+  - `Tabs.List`: «Список» (текущая таблица) | «Карта»
+  - `Tabs.Content "map"`: статусная строка («Показано N из M активных; M−N без координат») + `<LabLocationsMap />` + сворачиваемый блок «Без координат» со списком таких лаб.
+
+### 5. Тёмная тема тайлов
+- OSM-тайлы светлые. Чтобы вписать в тёмный фон, добавляем CSS-фильтр на `.leaflet-tile-pane { filter: hue-rotate(180deg) invert(0.92) brightness(0.9) contrast(0.95); }` только в тёмной теме. Это известный приём, держит карту читабельной без замены тайлов.
+
+## Технические детали
+
+```text
+src/
+  hooks/
+    useActiveLabLocations.ts — React Query, активные лабы с lat/lng
+  components/
+    admin/
+      LabLocationsMap.tsx    — MapContainer + кластеризатор + меток
+      LabMapPopup.tsx        — содержимое popup
+  pages/admin/
+    LabLocations.tsx         — оборачиваем в Tabs «Список / Карта»
+  index.css                  — стили .leaflet-popup и тёмный фильтр тайлов
+```
+
+- Тип `LabLocation` из `Database['public']['Tables']['lab_locations']['Row']`.
+- Стили — design tokens (`bg-card`, `text-foreground`, `border-border`), без хардкода цветов.
+- Кэш React Query: ключ `['admin','lab-locations','active-with-coords']`, stale 5 мин.
+
+## Что НЕ входит
+
+- Геокодирование лаб без координат — отдельной задачей (можно сделать edge-функцией через Nominatim/Yandex Geocoder).
+- Перенос карты в пациентский `AnalysisBookingDialog` — после того как откатаем UI в админке.
+- Фильтры/поиск/маршруты.
+
+## Следующий шаг
+
+После одобрения сразу ставлю зависимости и реализую вкладку «Карта» — секреты не нужны.
