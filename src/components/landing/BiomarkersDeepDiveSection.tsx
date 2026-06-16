@@ -169,7 +169,7 @@ export function BiomarkersDeepDiveSection() {
   }, [userInteracted]);
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-16 md:py-20 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/[0.04] rounded-full blur-[180px]" />
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-primary/[0.03] rounded-full blur-[150px]" />
@@ -177,7 +177,7 @@ export function BiomarkersDeepDiveSection() {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16 md:mb-20">
+        <div className="text-center mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fade-in">
             5 систем · 85+ биомаркеров
           </div>

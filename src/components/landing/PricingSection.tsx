@@ -287,7 +287,7 @@ export function PricingSection() {
   const cards = (plans ?? []).map((p, i) => planToCard(p, i));
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-16 md:py-20 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
 
       <div className="absolute inset-0 opacity-[0.02]" style={{
@@ -302,7 +302,7 @@ export function PricingSection() {
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px]" />
 
       <div className="relative z-10 container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <span className="text-foreground">Выберите свой </span>

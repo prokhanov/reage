@@ -117,13 +117,13 @@ export function AppFeaturesSection() {
   const Icon = feature.icon;
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden bg-muted/30">
+    <section className="relative py-16 md:py-20 overflow-hidden bg-muted/30">
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[150px]" />
 
       <div className="container mx-auto px-4">
         {/* Section header */}
-        <div className="text-center mb-16 md:mb-20 animate-fade-in">
+        <div className="text-center mb-12 md:mb-16 animate-fade-in">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
             <span className="text-foreground">Полный контроль в вашем </span>
             <span className="bg-gradient-hero bg-clip-text text-transparent">

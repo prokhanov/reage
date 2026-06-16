@@ -2,7 +2,7 @@ import { ShieldCheck, Microscope, Brain, Lightbulb } from "lucide-react";
 
 export function PreventiveMedicineSection() {
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-16 md:py-20 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-background to-background" />
       <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[180px]" />
@@ -10,7 +10,7 @@ export function PreventiveMedicineSection() {
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fade-in">
             <Lightbulb className="w-4 h-4" />
             Интегративный подход

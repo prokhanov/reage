@@ -114,7 +114,7 @@ export function TestimonialsSection() {
   ];
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-16 md:py-20 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/30 to-background" />
       
@@ -128,7 +128,7 @@ export function TestimonialsSection() {
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
             <Star className="w-4 h-4 text-primary fill-primary" />
             <span className="text-sm font-medium text-primary">Отзывы клиентов</span>
