@@ -1,0 +1,1 @@
+ALTER TABLE public.lab_locations ADD COLUMN IF NOT EXISTS region text;
