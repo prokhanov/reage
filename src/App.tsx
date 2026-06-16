@@ -269,6 +269,14 @@ const App = () => (
                   </SuperAdminRoute>
                 } 
               />
+              <Route
+                path="/admin/labs"
+                element={
+                  <SuperAdminRoute>
+                    <LabLocations />
+                  </SuperAdminRoute>
+                }
+              />
             </Route>
 
             {/* Legal pages */}
