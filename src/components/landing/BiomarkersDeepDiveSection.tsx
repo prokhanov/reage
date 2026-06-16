@@ -94,8 +94,8 @@ const biomarkerCategories = [
 
 function CategoryContent({ cat }: { cat: typeof biomarkerCategories[0] }) {
   return (
-    <div className="p-6 md:p-8 lg:p-10 space-y-6">
-      <h3 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
+    <div className="p-6 md:p-8 lg:p-10 flex flex-col gap-6 h-full">
+      <h3 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3 min-h-[3.5rem]">
         <cat.icon className="w-7 h-7 text-primary shrink-0" strokeWidth={1.75} />
         <span>{cat.name}</span>
       </h3>
@@ -126,7 +126,7 @@ function CategoryContent({ cat }: { cat: typeof biomarkerCategories[0] }) {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-border/30">
+      <div className="mt-auto pt-4 border-t border-border/30">
         <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-3">Выявляемые риски</h4>
         <div className="flex flex-wrap gap-1.5">
           {cat.risks.map((risk) => (
@@ -142,6 +142,7 @@ function CategoryContent({ cat }: { cat: typeof biomarkerCategories[0] }) {
     </div>
   );
 }
+
 
 export function BiomarkersDeepDiveSection() {
   const [active, setActive] = useState(0);
