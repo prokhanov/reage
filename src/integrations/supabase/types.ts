@@ -1623,6 +1623,8 @@ export type Database = {
           name: string
           needs_risk_refresh: boolean | null
           operations: Json | null
+          passport_number: string | null
+          passport_series: string | null
           phone: string | null
           phone_verified_at: string | null
           telegram_id: string | null
@@ -1645,6 +1647,8 @@ export type Database = {
           name: string
           needs_risk_refresh?: boolean | null
           operations?: Json | null
+          passport_number?: string | null
+          passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
           telegram_id?: string | null
@@ -1667,6 +1671,8 @@ export type Database = {
           name?: string
           needs_risk_refresh?: boolean | null
           operations?: Json | null
+          passport_number?: string | null
+          passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
           telegram_id?: string | null
