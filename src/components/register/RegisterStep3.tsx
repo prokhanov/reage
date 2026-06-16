@@ -315,7 +315,7 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
         />
         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
           <Info className="h-3.5 w-3.5" />
-          Эта информация передаётся лечащему врачу вместе с результатами.
+          Эта информация передаётся врачу вместе с результатами.
         </p>
       </section>
 
