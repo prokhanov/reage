@@ -18,7 +18,6 @@ import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { RegisterStep5, SelectedPlanData } from "@/components/register/RegisterStep5";
-import { addMonths } from "date-fns";
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
 import { ThemedLogo } from "@/components/ThemedLogo";
