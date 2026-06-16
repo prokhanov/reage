@@ -58,12 +58,11 @@ function ClusterLayer({ items }: { items: LabMapItem[] }) {
   useEffect(() => {
     if (!items.length) return;
     const icon = buildIcon();
-    // @ts-expect-error markerClusterGroup is added by leaflet.markercluster
-    const cluster: L.MarkerClusterGroup = L.markerClusterGroup({
+    const cluster = (L as any).markerClusterGroup({
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
       maxClusterRadius: 50,
-    });
+    }) as L.LayerGroup;
 
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon });
