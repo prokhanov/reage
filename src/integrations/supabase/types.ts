@@ -1077,6 +1077,66 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_locations: {
+        Row: {
+          address_short: string | null
+          city: string | null
+          created_at: string
+          email: string | null
+          external_id: string | null
+          full_address: string | null
+          hours: string[]
+          id: string
+          is_active: boolean
+          lat: number | null
+          lng: number | null
+          metro: string | null
+          page_url: string | null
+          phones: string[]
+          provider: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          address_short?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          external_id?: string | null
+          full_address?: string | null
+          hours?: string[]
+          id?: string
+          is_active?: boolean
+          lat?: number | null
+          lng?: number | null
+          metro?: string | null
+          page_url?: string | null
+          phones?: string[]
+          provider?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          address_short?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          external_id?: string | null
+          full_address?: string | null
+          hours?: string[]
+          id?: string
+          is_active?: boolean
+          lat?: number | null
+          lng?: number | null
+          metro?: string | null
+          page_url?: string | null
+          phones?: string[]
+          provider?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medical_condition_categories: {
         Row: {
           created_at: string
