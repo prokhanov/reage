@@ -498,63 +498,20 @@ export default function LabLocations() {
             const withCoords = activeAll.filter(
               (i) => i.lat != null && i.lng != null,
             );
-            const withoutCoords = activeAll.filter(
-              (i) => i.lat == null || i.lng == null,
-            );
-            return (
-              <>
-                <div className="text-sm text-muted-foreground">
-                  Показано на карте: <span className="font-medium text-foreground">{withCoords.length}</span> из{" "}
-                  <span className="font-medium text-foreground">{activeAll.length}</span> активных лабораторий.
-                  {withoutCoords.length > 0 && (
-                    <> Без координат: <span className="text-foreground">{withoutCoords.length}</span>.</>
-                  )}
-                </div>
-                {loading ? (
-                  <Skeleton className="h-[70vh] w-full rounded-lg" />
-                ) : withCoords.length === 0 ? (
-                  <div className="rounded-lg border border-border bg-card p-10 text-center text-muted-foreground">
-                    Нет активных лабораторий с координатами для отображения на карте.
-                  </div>
-                ) : (
-                  <LabLocationsMap
-                    items={withCoords.map((i) => ({
-                      id: i.id,
-                      title: i.title,
-                      metro: i.metro,
-                      city: i.city,
-                      address_short: i.address_short,
-                      full_address: i.full_address,
-                      phones: i.phones,
-                      hours: i.hours,
-                      page_url: i.page_url,
-                      lat: i.lat as number,
-                      lng: i.lng as number,
-                    }))}
-                  />
-                )}
-                {withoutCoords.length > 0 && (
-                  <details className="rounded-lg border border-border bg-card p-4 text-sm">
-                    <summary className="cursor-pointer font-medium">
-                      Активные лаборатории без координат ({withoutCoords.length})
-                    </summary>
-                    <ul className="mt-3 space-y-2 text-muted-foreground">
-                      {withoutCoords.map((i) => (
-                        <li key={i.id} className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                          <div>
-                            <div className="text-foreground">{i.title}</div>
-                            {i.full_address && (
-                              <div className="text-xs">{i.full_address}</div>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-              </>
-            );
+            const mapItems = withCoords.map((i) => ({
+              id: i.id,
+              title: i.title,
+              metro: i.metro,
+              city: i.city,
+              address_short: i.address_short,
+              full_address: i.full_address,
+              phones: i.phones,
+              hours: i.hours,
+              page_url: i.page_url,
+              lat: i.lat as number,
+              lng: i.lng as number,
+            }));
+            return <LabMapContextsTable items={mapItems} />;
           })()}
         </TabsContent>
       </Tabs>
