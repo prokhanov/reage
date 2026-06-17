@@ -97,6 +97,10 @@ type TileFilters = {
   hueRotate: number;
 };
 
+type MarkerClusterFactory = typeof L & {
+  markerClusterGroup: (options: Record<string, unknown>) => L.LayerGroup;
+};
+
 const DEFAULT_FILTERS: TileFilters = {
   brightness: 100,
   contrast: 100,
@@ -133,19 +137,17 @@ function CustomZoomControl() {
 function InvalidateSize() {
   const map = useMap();
   useEffect(() => {
-    const invalidate = () => map.invalidateSize();
-    // Multiple delayed invalidations to catch dialog/popover open transitions
-    const t1 = setTimeout(invalidate, 50);
-    const t2 = setTimeout(invalidate, 200);
-    const t3 = setTimeout(invalidate, 500);
+    const invalidate = () => map.invalidateSize({ pan: false });
+    const t1 = setTimeout(invalidate, 80);
+    const t2 = setTimeout(invalidate, 250);
     const container = map.getContainer();
-    const ro = new ResizeObserver(() => invalidate());
-    ro.observe(container);
+    const resizeTarget = container.parentElement ?? container;
+    const ro = new ResizeObserver(() => requestAnimationFrame(invalidate));
+    ro.observe(resizeTarget);
     window.addEventListener("resize", invalidate);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
-      clearTimeout(t3);
       ro.disconnect();
       window.removeEventListener("resize", invalidate);
     };
@@ -168,11 +170,11 @@ function ClusterLayer({ items }: { items: LabMapItem[] }) {
   useEffect(() => {
     if (!items.length) return;
     const icon = buildIcon();
-    const cluster = (L as any).markerClusterGroup({
+    const cluster = (L as unknown as MarkerClusterFactory).markerClusterGroup({
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
       maxClusterRadius: 50,
-    }) as L.LayerGroup;
+    });
 
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon });
@@ -436,7 +438,7 @@ export default function LabLocationsMap({
       </div>
 
       <div className="rounded-lg border border-border overflow-hidden bg-card">
-        <style>{`.lab-map-tiles .leaflet-tile-pane { filter: ${filterCss(filters)}; }`}</style>
+        <style>{`.lab-map-tiles .leaflet-tile { filter: ${filterCss(filters)}; }`}</style>
         <MapContainer
           center={center}
           zoom={zoomProp ?? 10}
@@ -449,9 +451,12 @@ export default function LabLocationsMap({
           <TileLayer
             key={styleKey}
             url={style.url}
-            subdomains={(style.subdomains ?? "abc") as any}
+            subdomains={style.subdomains ?? "abc"}
             maxZoom={style.maxZoom}
             detectRetina
+            updateWhenIdle={false}
+            updateWhenZooming
+            keepBuffer={4}
           />
           <CustomZoomControl />
           <InvalidateSize />
