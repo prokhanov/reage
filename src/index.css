@@ -234,6 +234,18 @@ All colors MUST be HSL.
   background: hsl(var(--muted));
   font-family: inherit;
 }
+.lab-map-marker {
+  background: transparent !important;
+  border: none !important;
+  width: 28px !important;
+  height: 36px !important;
+}
+.lab-map-marker img {
+  width: 28px !important;
+  height: 36px !important;
+  display: block !important;
+  max-width: none !important;
+}
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: hsl(var(--card));
