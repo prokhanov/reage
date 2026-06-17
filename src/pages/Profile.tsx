@@ -363,57 +363,15 @@ export default function Profile() {
             </Card>
           )}
 
-          {/* Medical History Card */}
-          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                  <Heart className="h-6 w-6 text-red-500" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold">История болезней</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {medicalHistory.length > 0 
-                      ? `${medicalHistory.length} ${medicalHistory.length === 1 ? 'заболевание' : 'заболеваний'}`
-                      : "Нет записей"
-                    }
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditMedicalOpen(true)}
-              >
-                <Edit2 className="h-4 w-4 mr-2" />
-                Редактировать
-              </Button>
-            </div>
+          {/* Medical Anketa Card */}
+          <MedicalAnketaCard
+            medicalHistory={medicalHistory}
+            operations={profile?.operations ?? null}
+            medications={profile?.medications ?? null}
+            healthNote={profile?.health_note ?? null}
+            onEdit={() => setEditMedicalOpen(true)}
+          />
 
-            {medicalHistory.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Heart className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>История болезней не заполнена</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {Object.entries(groupedMedical).map(([category, conditions]) => (
-                  <div key={category} className="p-4 rounded-lg bg-background/50 border border-border/50">
-                    <h3 className="font-medium mb-3 text-sm text-muted-foreground">
-                      {category}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {conditions.map((condition, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {condition}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
 
           {/* Demo Mode Card */}
           <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
