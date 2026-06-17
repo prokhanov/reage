@@ -260,7 +260,19 @@ All colors MUST be HSL.
 }
 .leaflet-popup-close-button {
   color: hsl(var(--muted-foreground)) !important;
-  padding: 6px 8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font: 700 18px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+  top: 6px !important;
+  right: 6px !important;
+  border-radius: 6px !important;
+}
+.leaflet-popup-close-button:hover {
+  background: hsl(var(--muted)) !important;
 }
 .lab-popup-title {
   font-weight: 600;
