@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { PhoneInput, getNormalizedPhone, isPhoneValid } from "@/components/ui/phone-input";
+import { PhoneInput, getNormalizedPhone, isPhoneValid, formatPhone } from "@/components/ui/phone-input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { CheckCircle2, ShieldCheck, Loader2, Pencil } from "lucide-react";
 
@@ -28,7 +28,11 @@ function formatDisplay(digits: string | null | undefined): string {
 export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneChangeFieldProps) {
   const { toast } = useToast();
   const [stage, setStage] = useState<Stage>("view");
-  const [phone, setPhone] = useState<string>(currentPhone ? `+${currentPhone}` : "");
+  const initialPhone = (() => {
+    const d = (currentPhone || "").replace(/\D/g, "");
+    return d ? formatPhone(d) : "";
+  })();
+  const [phone, setPhone] = useState<string>(initialPhone);
   const [otp, setOtp] = useState("");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -41,7 +45,8 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
   }, [resendIn]);
 
   useEffect(() => {
-    setPhone(currentPhone ? `+${currentPhone}` : "");
+    const d = (currentPhone || "").replace(/\D/g, "");
+    setPhone(d ? formatPhone(d) : "");
   }, [currentPhone]);
 
   const normalized = useMemo(() => getNormalizedPhone(phone), [phone]);
@@ -141,7 +146,8 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
           onClick={() => {
             setStage("view");
             setOtp("");
-            setPhone(currentPhone ? `+${currentPhone}` : "");
+            const d = (currentPhone || "").replace(/\D/g, "");
+            setPhone(d ? formatPhone(d) : "");
           }}
           className="text-xs text-muted-foreground hover:text-foreground"
         >

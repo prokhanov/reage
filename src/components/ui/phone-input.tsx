@@ -132,7 +132,7 @@ function guessCountry(digits: string): Country | undefined {
   return sorted.find((c) => digits.startsWith(c.dial));
 }
 
-function formatPhone(digits: string): string {
+export function formatPhone(digits: string): string {
   if (!digits) return "";
   const c = guessCountry(digits);
   if (!c) return `+${digits}`;
