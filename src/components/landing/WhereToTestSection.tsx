@@ -100,7 +100,7 @@ export function WhereToTestSection() {
   const filtered = useMemo(() => filterByCity(items, city), [items, city]);
 
   const cityMeta = CITIES.find((c) => c.key === city)!;
-  const heightPx = Math.min(Math.max(ctx?.height_px ?? 480, 360), 640);
+  const heightPx = Math.min(Math.max(ctx?.height_px ?? 560, 400), 720);
   const showMap = !!ctx?.is_enabled;
 
   return (
