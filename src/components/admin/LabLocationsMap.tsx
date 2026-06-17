@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Settings2, RotateCcw } from "lucide-react";
-import locationIconAsset from "@/assets/location_icon.png.asset.json";
+import locationIconUrl from "@/assets/location_icon.png";
 
 export type LabMapItem = {
   id: string;
@@ -112,7 +112,7 @@ const DEFAULT_FILTERS: TileFilters = {
 const buildIcon = () =>
   L.divIcon({
     className: "lab-map-marker",
-    html: `<img src="${locationIconAsset.url}" style="width:28px !important;height:36px !important;display:block;" alt="" />`,
+    html: `<img src="${locationIconUrl}" style="width:28px !important;height:36px !important;display:block;" alt="" />`,
     iconSize: [28, 36],
     iconAnchor: [14, 36],
     popupAnchor: [0, -32],
