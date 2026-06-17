@@ -100,7 +100,7 @@ export function WhereToTestSection() {
   const filtered = useMemo(() => filterByCity(items, city), [items, city]);
 
   const cityMeta = CITIES.find((c) => c.key === city)!;
-  const heightPx = Math.min(Math.max(ctx?.height_px ?? 480, 360), 640);
+  const heightPx = Math.min(Math.max(ctx?.height_px ?? 560, 400), 720);
   const showMap = !!ctx?.is_enabled;
 
   return (
@@ -171,13 +171,15 @@ export function WhereToTestSection() {
             );
           })}
         </div>
+      </div>
 
-        {/* Map block */}
-        {showMap && (
-          <div
-            className="animate-fade-in"
-            style={{ animationDelay: "0.3s" }}
-          >
+      {/* Map block */}
+      {showMap && (
+        <div
+          className="animate-fade-in relative w-screen left-1/2 -translate-x-1/2"
+          style={{ animationDelay: "0.3s" }}
+        >
+          <div className="container mx-auto px-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <ToggleGroup
                 type="single"
@@ -198,29 +200,29 @@ export function WhereToTestSection() {
                   : `${filtered.length} ${pluralPoints(filtered.length)} в выбранном регионе`}
               </div>
             </div>
-
-            <div className="rounded-3xl border border-border/50 overflow-hidden shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
-              <LabLocationsMap
-                key={city}
-                items={filtered}
-                center={cityMeta.center}
-                zoom={cityMeta.zoom}
-                fitToItems={filtered.length > 0}
-                height={`${heightPx}px`}
-                styleKey={ctx?.tile_style ?? "osm"}
-                filters={ctx?.tile_filters ?? DEFAULT_FILTERS}
-                showPartnerButton={ctx?.show_partner_button ?? true}
-                showSelectButton={false}
-                partnerButtonLabel={
-                  ctx?.partner_button_label ?? "Открыть на сайте провайдера ↗"
-                }
-                hideControls
-                hideAttribution
-              />
-            </div>
           </div>
-        )}
-      </div>
+
+          <div className="border-y border-border/50 overflow-hidden shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
+            <LabLocationsMap
+              key={city}
+              items={filtered}
+              center={cityMeta.center}
+              zoom={cityMeta.zoom}
+              fitToItems={filtered.length > 0}
+              height={`${heightPx}px`}
+              styleKey={ctx?.tile_style ?? "osm"}
+              filters={ctx?.tile_filters ?? DEFAULT_FILTERS}
+              showPartnerButton={ctx?.show_partner_button ?? true}
+              showSelectButton={false}
+              partnerButtonLabel={
+                ctx?.partner_button_label ?? "Открыть на сайте провайдера ↗"
+              }
+              hideControls
+              hideAttribution
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
