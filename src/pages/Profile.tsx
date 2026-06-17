@@ -9,13 +9,14 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { 
   User, Mail, Calendar, Ruler, Heart, Edit2, LogOut, 
-  Shield, Activity, AlertCircle, Sparkles
+  Shield, Activity, AlertCircle, Sparkles, Phone, FileText, CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
+import { EditPassportDialog } from "@/components/profile/EditPassportDialog";
 import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -30,6 +31,8 @@ interface Profile {
   telegram_id?: string;
   phone?: string | null;
   phone_verified_at?: string | null;
+  passport_series?: string | null;
+  passport_number?: string | null;
 }
 
 interface MedicalCondition {
@@ -47,6 +50,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editMedicalOpen, setEditMedicalOpen] = useState(false);
+  const [editPassportOpen, setEditPassportOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [nextAnalysisDate, setNextAnalysisDate] = useState<string | null>(null);
   const [hasAnalyses, setHasAnalyses] = useState(false);
@@ -274,15 +278,68 @@ export default function Profile() {
                 </p>
               </div>
             </div>
+
+            {/* Phone (inline with verification flow) */}
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <PhoneChangeField
+                currentPhone={profile?.phone || null}
+                isVerified={!!profile?.phone_verified_at}
+                onUpdated={() => loadProfile()}
+              />
+            </div>
           </Card>
 
-          {/* Phone Card */}
+          {/* Passport Card */}
           <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <PhoneChangeField
-              currentPhone={profile?.phone || null}
-              isVerified={!!profile?.phone_verified_at}
-              onUpdated={() => loadProfile()}
-            />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Паспортные данные</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Нужны для оформления забора анализов
+                  </p>
+                </div>
+              </div>
+              {profile?.passport_series && profile?.passport_number && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditPassportOpen(true)}
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Редактировать
+                </Button>
+              )}
+            </div>
+
+            {profile?.passport_series && profile?.passport_number ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                  <label className="text-sm text-muted-foreground block mb-2">Серия</label>
+                  <p className="text-lg font-medium tracking-wider">{profile.passport_series}</p>
+                </div>
+                <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                  <label className="text-sm text-muted-foreground block mb-2">Номер</label>
+                  <p className="text-lg font-medium tracking-wider">{profile.passport_number}</p>
+                </div>
+                <div className="md:col-span-2 flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  Данные сохранены и используются при записи на анализ
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-lg border border-dashed border-border/70 bg-background/30 text-center space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Паспортные данные не заполнены. Без них невозможно оформить выезд медсестры или визит в клинику.
+                </p>
+                <Button onClick={() => setEditPassportOpen(true)}>
+                  Заполнить
+                </Button>
+              </div>
+            )}
           </Card>
 
 
@@ -453,6 +510,15 @@ export default function Profile() {
             loadMedicalHistory();
             setEditMedicalOpen(false);
           }}
+        />
+
+        <EditPassportDialog
+          open={editPassportOpen}
+          onOpenChange={setEditPassportOpen}
+          userId={userId}
+          initialSeries={profile?.passport_series}
+          initialNumber={profile?.passport_number}
+          onSuccess={() => loadProfile()}
         />
       </div>
   );
