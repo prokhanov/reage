@@ -195,24 +195,10 @@ function ClusterLayer({
       },
     });
 
-    const norm = (s: string) =>
-      s.toLowerCase().replace(/[ёе]/g, "е").replace(/\s+/g, " ").trim();
-
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = (it.hours ?? []).filter(Boolean);
-      const metroRaw = (it.metro ?? "").trim();
-      const metroLabel = metroRaw
-        ? metroRaw.charAt(0).toLocaleUpperCase("ru-RU") + metroRaw.slice(1)
-        : "";
-      const titleNorm = norm(it.title ?? "");
-      const metroInTitle = metroRaw ? titleNorm.includes(norm(metroRaw)) : false;
-      const addr = (it.full_address ?? "").trim();
-      const addrInTitle = addr ? titleNorm.includes(norm(addr)) : false;
-      const showMetroRow = !!metroLabel && !metroInTitle;
-      const showAddrRow = !!addr && !addrInTitle;
-
       const partnerBtn =
         showPartnerButton && it.page_url
           ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta lab-popup-cta-primary">Открыть на сайте провайдера ↗</a>`
@@ -228,8 +214,6 @@ function ClusterLayer({
       const html = `
         <div class="lab-popup">
           <div class="lab-popup-title">${escapeHtml(it.title)}</div>
-          ${showMetroRow ? `<div class="lab-popup-row"><span class="lab-popup-icon">🚇</span>${escapeHtml(metroLabel)}</div>` : ""}
-          ${showAddrRow ? `<div class="lab-popup-row"><span class="lab-popup-icon">📍</span>${escapeHtml(addr)}</div>` : ""}
           ${phones.length ? `<div class="lab-popup-section"><div class="lab-popup-label">Телефоны</div>${phones.map((p) => `<a href="tel:${escapeAttr(p)}" class="lab-popup-link">${escapeHtml(p)}</a>`).join("<br/>")}</div>` : ""}
           ${hours.length ? `<div class="lab-popup-section"><div class="lab-popup-label">Часы работы</div>${hours.map(escapeHtml).join("<br/>")}</div>` : ""}
           ${actions}
