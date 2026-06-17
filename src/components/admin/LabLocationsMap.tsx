@@ -519,7 +519,12 @@ export default function LabLocationsMap({
           <CustomZoomControl />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
-          <ClusterLayer items={items} />
+          <ClusterLayer
+            items={items}
+            showPartnerButton={showPartnerButton}
+            showSelectButton={showSelectButton}
+            onSelect={onSelect}
+          />
         </MapContainer>
         <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
           <span>{style.attribution}</span>
