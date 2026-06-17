@@ -279,6 +279,7 @@ All colors MUST be HSL.
   font-size: 14px;
   color: hsl(var(--foreground));
   margin-bottom: 8px;
+  padding-right: 28px;
 }
 .lab-popup-row {
   display: flex;
