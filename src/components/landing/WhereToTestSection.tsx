@@ -176,8 +176,13 @@ export function WhereToTestSection() {
       {/* Map block */}
       {showMap && (
         <div
-          className="animate-fade-in relative w-screen left-1/2 -translate-x-1/2"
-          style={{ animationDelay: "0.3s" }}
+          className="animate-fade-in"
+          style={{
+            animationDelay: "0.3s",
+            position: "relative",
+            width: "100vw",
+            marginLeft: "calc(-50vw + 50%)",
+          }}
         >
           <div className="container mx-auto px-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
