@@ -87,8 +87,6 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           gender: formData.gender,
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
-          passport_series: formData.passport_series || null,
-          passport_number: formData.passport_number || null,
         } as any)
         .eq("id", userId)
         .select()
@@ -195,14 +193,6 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
             />
           </div>
 
-          {/* Passport */}
-          <PassportFields
-            series={formData.passport_series}
-            number={formData.passport_number}
-            onSeriesChange={(v) => setFormData({ ...formData, passport_series: v })}
-            onNumberChange={(v) => setFormData({ ...formData, passport_number: v })}
-            showIcon={false}
-          />
         </div>
 
         <div className="flex gap-3">
