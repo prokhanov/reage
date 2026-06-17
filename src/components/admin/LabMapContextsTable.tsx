@@ -49,6 +49,8 @@ type LabMapContext = {
   tile_filters: TileFilters;
   show_partner_button: boolean;
   show_select_button: boolean;
+  partner_button_label: string;
+  select_button_label: string;
 };
 
 const CITY_LABEL: Record<City, string> = {
@@ -292,30 +294,52 @@ function SettingsDialog({
 
           <div className="space-y-2">
             <Label>Кнопки во всплывающих окнах меток</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="flex items-center justify-between rounded-md border border-border p-3">
-                <div>
-                  <div className="text-sm font-medium">«Перейти на сайт партнёра»</div>
-                  <div className="text-xs text-muted-foreground">
-                    Кнопка с ссылкой на страницу лаборатории у провайдера.
+            <div className="space-y-3">
+              <div className="rounded-md border border-border p-3 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium">«Перейти на сайт партнёра»</div>
+                    <div className="text-xs text-muted-foreground">
+                      Кнопка с ссылкой на страницу лаборатории у провайдера.
+                    </div>
                   </div>
+                  <Switch
+                    checked={draft.show_partner_button}
+                    onCheckedChange={(c) => setField("show_partner_button", c)}
+                  />
                 </div>
-                <Switch
-                  checked={draft.show_partner_button}
-                  onCheckedChange={(c) => setField("show_partner_button", c)}
-                />
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Текст кнопки</Label>
+                  <Input
+                    value={draft.partner_button_label}
+                    onChange={(e) => setField("partner_button_label", e.target.value)}
+                    placeholder="Открыть на сайте провайдера ↗"
+                    disabled={!draft.show_partner_button}
+                  />
+                </div>
               </div>
-              <div className="flex items-center justify-between rounded-md border border-border p-3">
-                <div>
-                  <div className="text-sm font-medium">«Выбрать эту лабораторию»</div>
-                  <div className="text-xs text-muted-foreground">
-                    Для личного кабинета пациента — выбор точки сдачи анализов.
+              <div className="rounded-md border border-border p-3 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium">«Выбрать эту лабораторию»</div>
+                    <div className="text-xs text-muted-foreground">
+                      Для личного кабинета пациента — выбор точки сдачи анализов.
+                    </div>
                   </div>
+                  <Switch
+                    checked={draft.show_select_button}
+                    onCheckedChange={(c) => setField("show_select_button", c)}
+                  />
                 </div>
-                <Switch
-                  checked={draft.show_select_button}
-                  onCheckedChange={(c) => setField("show_select_button", c)}
-                />
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Текст кнопки</Label>
+                  <Input
+                    value={draft.select_button_label}
+                    onChange={(e) => setField("select_button_label", e.target.value)}
+                    placeholder="Выбрать эту лабораторию"
+                    disabled={!draft.show_select_button}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -336,6 +360,8 @@ function SettingsDialog({
                 onFiltersChange={(f) => setField("tile_filters", f)}
                 showPartnerButton={draft.show_partner_button}
                 showSelectButton={draft.show_select_button}
+                partnerButtonLabel={draft.partner_button_label}
+                selectButtonLabel={draft.select_button_label}
               />
             </div>
           </div>
@@ -359,6 +385,8 @@ function SettingsDialog({
                 tile_filters: draft.tile_filters,
                 show_partner_button: draft.show_partner_button,
                 show_select_button: draft.show_select_button,
+                partner_button_label: draft.partner_button_label,
+                select_button_label: draft.select_button_label,
               });
               setSaving(false);
             }}
