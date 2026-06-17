@@ -28,7 +28,11 @@ function formatDisplay(digits: string | null | undefined): string {
 export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneChangeFieldProps) {
   const { toast } = useToast();
   const [stage, setStage] = useState<Stage>("view");
-  const [phone, setPhone] = useState<string>(currentPhone ? `+${currentPhone}` : "");
+  const initialPhone = (() => {
+    const d = (currentPhone || "").replace(/\D/g, "");
+    return d ? formatPhone(d) : "";
+  })();
+  const [phone, setPhone] = useState<string>(initialPhone);
   const [otp, setOtp] = useState("");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -41,7 +45,8 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
   }, [resendIn]);
 
   useEffect(() => {
-    setPhone(currentPhone ? `+${currentPhone}` : "");
+    const d = (currentPhone || "").replace(/\D/g, "");
+    setPhone(d ? formatPhone(d) : "");
   }, [currentPhone]);
 
   const normalized = useMemo(() => getNormalizedPhone(phone), [phone]);
