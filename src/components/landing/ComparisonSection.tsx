@@ -81,7 +81,7 @@ export function ComparisonSection() {
 
         {/* Comparison Table */}
         <div className="max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
+          <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
             <div className="relative min-w-[600px]">
               {/* Unified ReAge column highlight */}
               <div className="absolute bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25%)', width: 'calc(25%)', top: '-1rem', bottom: '-1rem' }} />
