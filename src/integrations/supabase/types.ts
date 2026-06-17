@@ -1140,6 +1140,48 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_map_contexts: {
+        Row: {
+          created_at: string
+          default_city: string
+          default_zoom: number
+          height_px: number
+          id: string
+          is_enabled: boolean
+          key: string
+          location: string
+          name: string
+          only_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_city?: string
+          default_zoom?: number
+          height_px?: number
+          id?: string
+          is_enabled?: boolean
+          key: string
+          location?: string
+          name: string
+          only_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_city?: string
+          default_zoom?: number
+          height_px?: number
+          id?: string
+          is_enabled?: boolean
+          key?: string
+          location?: string
+          name?: string
+          only_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medical_condition_categories: {
         Row: {
           created_at: string
