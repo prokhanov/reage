@@ -9,13 +9,14 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { 
   User, Mail, Calendar, Ruler, Heart, Edit2, LogOut, 
-  Shield, Activity, AlertCircle, Sparkles
+  Shield, Activity, AlertCircle, Sparkles, Phone, FileText, CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
+import { EditPassportDialog } from "@/components/profile/EditPassportDialog";
 import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -30,6 +31,8 @@ interface Profile {
   telegram_id?: string;
   phone?: string | null;
   phone_verified_at?: string | null;
+  passport_series?: string | null;
+  passport_number?: string | null;
 }
 
 interface MedicalCondition {
@@ -47,6 +50,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editMedicalOpen, setEditMedicalOpen] = useState(false);
+  const [editPassportOpen, setEditPassportOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [nextAnalysisDate, setNextAnalysisDate] = useState<string | null>(null);
   const [hasAnalyses, setHasAnalyses] = useState(false);
