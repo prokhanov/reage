@@ -169,11 +169,15 @@ function ClusterLayer({
   items,
   showPartnerButton,
   showSelectButton,
+  partnerButtonLabel,
+  selectButtonLabel,
   onSelect,
 }: {
   items: LabMapItem[];
   showPartnerButton: boolean;
   showSelectButton: boolean;
+  partnerButtonLabel: string;
+  selectButtonLabel: string;
   onSelect?: (item: LabMapItem) => void;
 }) {
   const map = useMap();
@@ -201,10 +205,10 @@ function ClusterLayer({
       const hours = (it.hours ?? []).filter(Boolean);
       const partnerBtn =
         showPartnerButton && it.page_url
-          ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta lab-popup-cta-primary">Открыть на сайте провайдера ↗</a>`
+          ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta lab-popup-cta-primary">${escapeHtml(partnerButtonLabel)}</a>`
           : "";
       const selectBtn = showSelectButton
-        ? `<button type="button" data-lab-select="${escapeAttr(it.id)}" class="lab-popup-cta lab-popup-cta-secondary">Выбрать эту лабораторию</button>`
+        ? `<button type="button" data-lab-select="${escapeAttr(it.id)}" class="lab-popup-cta lab-popup-cta-secondary">${escapeHtml(selectButtonLabel)}</button>`
         : "";
       const actions =
         partnerBtn || selectBtn
