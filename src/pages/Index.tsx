@@ -27,6 +27,8 @@ const Index = () => {
       <PricingSection />
       <PreventiveMedicineSection />
 
+      <WhereToTestSection />
+
       <FAQSection />
       <CTASection />
       <Footer />
