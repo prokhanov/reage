@@ -174,6 +174,15 @@ function ClusterLayer({ items }: { items: LabMapItem[] }) {
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
       maxClusterRadius: 50,
+      iconCreateFunction: (c: { getChildCount: () => number }) => {
+        const count = c.getChildCount();
+        const size = count < 10 ? 34 : count < 100 ? 40 : 48;
+        return L.divIcon({
+          html: `<div class="lab-cluster-inner"><span>${count}</span></div>`,
+          className: "lab-cluster",
+          iconSize: [size, size],
+        });
+      },
     });
 
     items.forEach((it) => {
