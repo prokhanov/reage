@@ -175,31 +175,33 @@ export function WhereToTestSection() {
         {/* Map block */}
         {showMap && (
           <div
-            className="animate-fade-in"
+            className="animate-fade-in relative w-screen left-1/2 -translate-x-1/2"
             style={{ animationDelay: "0.3s" }}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <ToggleGroup
-                type="single"
-                size="sm"
-                value={city}
-                onValueChange={(v) => v && setCity(v as CityKey)}
-                className="flex-wrap"
-              >
-                {CITIES.map((c) => (
-                  <ToggleGroupItem key={c.key} value={c.key} aria-label={c.label}>
-                    {c.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-              <div className="text-sm text-muted-foreground tabular-nums">
-                {loading
-                  ? "Загружаем точки…"
-                  : `${filtered.length} ${pluralPoints(filtered.length)} в выбранном регионе`}
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <ToggleGroup
+                  type="single"
+                  size="sm"
+                  value={city}
+                  onValueChange={(v) => v && setCity(v as CityKey)}
+                  className="flex-wrap"
+                >
+                  {CITIES.map((c) => (
+                    <ToggleGroupItem key={c.key} value={c.key} aria-label={c.label}>
+                      {c.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+                <div className="text-sm text-muted-foreground tabular-nums">
+                  {loading
+                    ? "Загружаем точки…"
+                    : `${filtered.length} ${pluralPoints(filtered.length)} в выбранном регионе`}
+                </div>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-border/50 overflow-hidden shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
+            <div className="border-y border-border/50 overflow-hidden shadow-xl shadow-primary/5 bg-card/50 backdrop-blur-sm">
               <LabLocationsMap
                 key={city}
                 items={filtered}
