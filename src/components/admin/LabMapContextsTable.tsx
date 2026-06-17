@@ -211,76 +211,80 @@ function SettingsDialog({
 
   return (
     <Dialog open={!!ctx} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle>Настройки карты — {draft.name}</DialogTitle>
           <DialogDescription>{draft.location || "Место использования карты"}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-5">
           <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Город по умолчанию</Label>
-              <Select value={draft.default_city} onValueChange={(v) => handleCityChange(v as City)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="moscow">Москва</SelectItem>
-                  <SelectItem value="spb">Санкт-Петербург</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Зум по умолчанию</Label>
-              <Input
-                type="number"
-                min={3}
-                max={19}
-                value={draft.default_zoom}
-                onChange={(e) => setField("default_zoom", Number(e.target.value) || 10)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Рекомендуется: Москва ~10, Санкт-Петербург ~11.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Высота карты (px)</Label>
-              <Input
-                type="number"
-                min={200}
-                max={1200}
-                value={draft.height_px}
-                onChange={(e) => setField("height_px", Number(e.target.value) || 420)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
-              <div>
-                <div className="text-sm font-medium">Только активные лаборатории</div>
-                <div className="text-xs text-muted-foreground">
-                  Показывать на карте только лаборатории со статусом «Активна».
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label>Город по умолчанию</Label>
+                <Select value={draft.default_city} onValueChange={(v) => handleCityChange(v as City)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="moscow">Москва</SelectItem>
+                    <SelectItem value="spb">Санкт-Петербург</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Switch
-                checked={draft.only_active}
-                onCheckedChange={(c) => setField("only_active", c)}
-              />
+
+              <div className="space-y-1.5">
+                <Label>Зум по умолчанию</Label>
+                <Input
+                  type="number"
+                  min={3}
+                  max={19}
+                  value={draft.default_zoom}
+                  onChange={(e) => setField("default_zoom", Number(e.target.value) || 10)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Рекомендуется: Москва ~10, Санкт-Петербург ~11.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Высота карты (px)</Label>
+                <Input
+                  type="number"
+                  min={200}
+                  max={1200}
+                  value={draft.height_px}
+                  onChange={(e) => setField("height_px", Number(e.target.value) || 420)}
+                />
+              </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-md border border-border p-3">
-              <div>
-                <div className="text-sm font-medium">Включить отображение</div>
-                <div className="text-xs text-muted-foreground">
-                  Когда настройки будут подключены к интерфейсу, карта будет показываться в этом месте.
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div>
+                  <div className="text-sm font-medium">Только активные лаборатории</div>
+                  <div className="text-xs text-muted-foreground">
+                    Показывать на карте только лаборатории со статусом «Активна».
+                  </div>
                 </div>
+                <Switch
+                  checked={draft.only_active}
+                  onCheckedChange={(c) => setField("only_active", c)}
+                />
               </div>
-              <Switch
-                checked={draft.is_enabled}
-                onCheckedChange={(c) => setField("is_enabled", c)}
-              />
+
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div>
+                  <div className="text-sm font-medium">Включить отображение</div>
+                  <div className="text-xs text-muted-foreground">
+                    Когда настройки будут подключены к интерфейсу, карта будет показываться в этом месте.
+                  </div>
+                </div>
+                <Switch
+                  checked={draft.is_enabled}
+                  onCheckedChange={(c) => setField("is_enabled", c)}
+                />
+              </div>
             </div>
           </div>
 
