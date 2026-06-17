@@ -511,6 +511,15 @@ export default function Profile() {
             setEditMedicalOpen(false);
           }}
         />
+
+        <EditPassportDialog
+          open={editPassportOpen}
+          onOpenChange={setEditPassportOpen}
+          userId={userId}
+          initialSeries={profile?.passport_series}
+          initialNumber={profile?.passport_number}
+          onSuccess={() => loadProfile()}
+        />
       </div>
   );
 }
