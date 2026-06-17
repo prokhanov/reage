@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { PhoneInput, getNormalizedPhone, isPhoneValid } from "@/components/ui/phone-input";
+import { PhoneInput, getNormalizedPhone, isPhoneValid, formatPhone } from "@/components/ui/phone-input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { CheckCircle2, ShieldCheck, Loader2, Pencil } from "lucide-react";
 
