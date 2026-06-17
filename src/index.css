@@ -333,6 +333,17 @@ All colors MUST be HSL.
   background: hsl(var(--primary));
   color: #ffffff;
 }
+.lab-popup-cta-primary,
+.lab-popup-cta-primary:visited,
+.lab-popup-cta-primary:hover,
+.lab-popup-cta-primary:focus,
+.leaflet-popup-content a.lab-popup-cta-primary {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+.lab-popup-cta-primary {
+  background: hsl(var(--primary));
+}
 .lab-popup-cta-primary:hover {
   filter: brightness(1.1);
 }
