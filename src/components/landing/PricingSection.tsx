@@ -305,8 +305,8 @@ export function PricingSection() {
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in whitespace-pre-line" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">У каждого есть  история болезни. </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">Мы создаём историю здоровья.</span>
+            <span className="text-foreground">У каждого есть история болезни </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">Мы создаём историю здоровья</span>
           </h2>
 
           <button
