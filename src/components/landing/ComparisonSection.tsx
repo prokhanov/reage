@@ -81,34 +81,36 @@ export function ComparisonSection() {
 
         {/* Comparison Table */}
         <div className="max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="relative">
-            {/* Unified ReAge column highlight */}
-            <div className="absolute bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25%)', width: 'calc(25%)', top: '-1rem', bottom: '-1rem' }} />
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible">
+            <div className="relative min-w-[600px]">
+              {/* Unified ReAge column highlight */}
+              <div className="absolute bg-primary/5 rounded-3xl border border-primary/10" style={{ left: 'calc(25%)', width: 'calc(25%)', top: '-1rem', bottom: '-1rem' }} />
 
-            {/* Table Header */}
-            <div className="relative grid grid-cols-4 gap-4 mb-2">
-              <div />
-              
-              {/* ReAge Column Header */}
-              <div className="text-center py-6">
-                <div className="text-lg font-bold text-foreground">ReAge</div>
+              {/* Table Header */}
+              <div className="relative grid grid-cols-4 gap-4 mb-2">
+                <div />
+                
+                {/* ReAge Column Header */}
+                <div className="text-center py-6">
+                  <div className="text-lg font-bold text-foreground">ReAge</div>
+                </div>
+                
+                {/* Labs Column Header */}
+                <div className="text-center py-6">
+                  <div className="text-lg font-bold text-foreground">Лаборатории</div>
+                </div>
+                
+                {/* Genetics Column Header */}
+                <div className="text-center py-6">
+                  <div className="text-lg font-bold text-foreground -translate-x-2 mx-0 px-0">Генетика</div>
+                </div>
               </div>
-              
-              {/* Labs Column Header */}
-              <div className="text-center py-6">
-                <div className="text-lg font-bold text-foreground">Лаборатории</div>
-              </div>
-              
-              {/* Genetics Column Header */}
-              <div className="text-center py-6">
-                <div className="text-lg font-bold text-foreground -translate-x-2 mx-0 px-0">Генетика</div>
-              </div>
-            </div>
 
-            {/* Table Body */}
-            <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
-              {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />
-              )}
+              {/* Table Body */}
+              <div className="relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6">
+                {comparisons.map((row, index) => <ComparisonRow key={index} {...row} />
+                )}
+              </div>
             </div>
           </div>
 
