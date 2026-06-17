@@ -286,6 +286,7 @@ function SettingsDialog({
             <Label>Превью</Label>
             <div className="rounded-md border border-border overflow-hidden">
               <LabLocationsMap
+                key={`${draft.default_city}-${draft.default_zoom}-${draft.height_px}`}
                 items={previewItems}
                 center={CITY_CENTER[draft.default_city]}
                 zoom={draft.default_zoom}
