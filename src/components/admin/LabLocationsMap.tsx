@@ -280,6 +280,8 @@ export default function LabLocationsMap({
   onFiltersChange,
   showPartnerButton = true,
   showSelectButton = false,
+  partnerButtonLabel = "Открыть на сайте провайдера ↗",
+  selectButtonLabel = "Выбрать эту лабораторию",
   onSelect,
 }: {
   items: LabMapItem[];
@@ -293,6 +295,8 @@ export default function LabLocationsMap({
   onFiltersChange?: (f: TileFilters) => void;
   showPartnerButton?: boolean;
   showSelectButton?: boolean;
+  partnerButtonLabel?: string;
+  selectButtonLabel?: string;
   onSelect?: (item: LabMapItem) => void;
 }) {
   useTheme();
