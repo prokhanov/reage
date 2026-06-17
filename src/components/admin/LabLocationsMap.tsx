@@ -97,6 +97,10 @@ type TileFilters = {
   hueRotate: number;
 };
 
+type MarkerClusterFactory = typeof L & {
+  markerClusterGroup: (options: Record<string, unknown>) => L.LayerGroup;
+};
+
 const DEFAULT_FILTERS: TileFilters = {
   brightness: 100,
   contrast: 100,
@@ -166,11 +170,11 @@ function ClusterLayer({ items }: { items: LabMapItem[] }) {
   useEffect(() => {
     if (!items.length) return;
     const icon = buildIcon();
-    const cluster = (L as any).markerClusterGroup({
+    const cluster = (L as unknown as MarkerClusterFactory).markerClusterGroup({
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
       maxClusterRadius: 50,
-    }) as L.LayerGroup;
+    });
 
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon });
@@ -447,7 +451,7 @@ export default function LabLocationsMap({
           <TileLayer
             key={styleKey}
             url={style.url}
-            subdomains={(style.subdomains ?? "abc") as any}
+            subdomains={style.subdomains ?? "abc"}
             maxZoom={style.maxZoom}
             detectRetina
             updateWhenIdle={false}
