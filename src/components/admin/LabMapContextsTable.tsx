@@ -357,6 +357,8 @@ function SettingsDialog({
                 is_enabled: draft.is_enabled,
                 tile_style: draft.tile_style,
                 tile_filters: draft.tile_filters,
+                show_partner_button: draft.show_partner_button,
+                show_select_button: draft.show_select_button,
               });
               setSaving(false);
             }}
