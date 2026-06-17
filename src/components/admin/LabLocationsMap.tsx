@@ -195,9 +195,6 @@ function ClusterLayer({
       },
     });
 
-    const norm = (s: string) =>
-      s.toLowerCase().replace(/[ёе]/g, "е").replace(/\s+/g, " ").trim();
-
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon });
       const phones = (it.phones ?? []).filter(Boolean);
