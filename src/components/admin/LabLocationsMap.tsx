@@ -238,7 +238,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(cluster);
     };
-  }, [items, map, showPartnerButton, showSelectButton, onSelect]);
+  }, [items, map, showPartnerButton, showSelectButton, partnerButtonLabel, selectButtonLabel, onSelect]);
   return null;
 }
 
