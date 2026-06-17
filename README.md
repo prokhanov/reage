@@ -132,4 +132,48 @@ VITE_APP_URL=https://reage.life
 - `src/integrations/supabase/client.ts` и `src/integrations/supabase/types.ts`.
 - `supabase/config.toml` (project-level настройки).
 
+## Загрузка ассетов (изображений, иконок)
+
+В проекте есть два способа работы с бинарными файлами:
+
+1. **Lovable Assets (CDN)** — файлы загружаются через `lovable-assets create` и
+   заменяются на `.asset.json` указатели. URL вида `/__l5e/assets-v1/...`.
+   ⚠️ **Эти URL работают только на Lovable-хостинге** (test.reage.life, preview).
+   На кастомном домене (reage.life) маршрут `/__l5e/*` не проксируется,
+   и картинки отдадут 404.
+
+2. **Vite-bundled ассеты** — файл кладётся в `src/assets/` и импортируется напрямую:
+   ```ts
+   import iconUrl from "@/assets/location_icon.png";
+   ```
+   Vite на этапе сборки скопирует файл в `dist/assets/` с хешем в имени.
+   Это работает **везде** — и на Lovable, и на кастомном домене.
+
+### Правило выбора
+
+- Для иконок, маркеров карт, логотипов и любых изображений, которые должны
+  отображаться на **reage.life** — используйте `src/assets/` + прямой импорт.
+- Для больших медиа-файлов, которые нужны только внутри Lovable-превью
+  (например, демо-видео, тяжёлые картинки лендинга) — можно использовать
+  Lovable Assets CDN.
+
+### Как мигрировать существующий ассет
+
+Если иконка сейчас загружается через `.asset.json` и не показывается на
+бойвом домене:
+
+1. Скачайте оригинальный файл по URL из `.asset.json`.
+2. Положите его в `src/assets/` (например, `src/assets/my_icon.png`).
+3. Замените импорт:
+   ```ts
+   // было
+   import iconAsset from "@/assets/my_icon.png.asset.json";
+   const url = iconAsset.url;
+   // стало
+   import iconUrl from "@/assets/my_icon.png";
+   const url = iconUrl; // строка с хешированным путём
+   ```
+4. Удалите `.asset.json` файл — он больше не нужен.
+
+
 
