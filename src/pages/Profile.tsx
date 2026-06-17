@@ -102,7 +102,7 @@ export default function Profile() {
 
       if (error) throw error;
       if (data) {
-        setProfile(data);
+        setProfile(data as unknown as Profile);
       }
     } catch (error: any) {
       console.error("Error loading profile:", error);
