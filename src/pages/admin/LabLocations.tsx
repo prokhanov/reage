@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import LabLocationsMap from "@/components/admin/LabLocationsMap";
+import LabMapContextsTable from "@/components/admin/LabMapContextsTable";
 
 type LabLocation = {
   id: string;
