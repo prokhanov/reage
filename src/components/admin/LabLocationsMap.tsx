@@ -290,6 +290,9 @@ export default function LabLocationsMap({
   onStyleKeyChange,
   filters: filtersProp,
   onFiltersChange,
+  showPartnerButton = true,
+  showSelectButton = false,
+  onSelect,
 }: {
   items: LabMapItem[];
   center?: [number, number];
@@ -300,6 +303,9 @@ export default function LabLocationsMap({
   onStyleKeyChange?: (k: TileStyleKey) => void;
   filters?: TileFilters;
   onFiltersChange?: (f: TileFilters) => void;
+  showPartnerButton?: boolean;
+  showSelectButton?: boolean;
+  onSelect?: (item: LabMapItem) => void;
 }) {
   useTheme();
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
