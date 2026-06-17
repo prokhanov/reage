@@ -454,6 +454,7 @@ export default function LabLocationsMap({
             detectRetina
           />
           <CustomZoomControl />
+          <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
           <ClusterLayer items={items} />
         </MapContainer>
