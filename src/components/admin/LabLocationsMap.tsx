@@ -130,6 +130,29 @@ function CustomZoomControl() {
   return null;
 }
 
+function InvalidateSize() {
+  const map = useMap();
+  useEffect(() => {
+    const invalidate = () => map.invalidateSize();
+    // Multiple delayed invalidations to catch dialog/popover open transitions
+    const t1 = setTimeout(invalidate, 50);
+    const t2 = setTimeout(invalidate, 200);
+    const t3 = setTimeout(invalidate, 500);
+    const container = map.getContainer();
+    const ro = new ResizeObserver(() => invalidate());
+    ro.observe(container);
+    window.addEventListener("resize", invalidate);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      ro.disconnect();
+      window.removeEventListener("resize", invalidate);
+    };
+  }, [map]);
+  return null;
+}
+
 function FitBounds({ items }: { items: LabMapItem[] }) {
   const map = useMap();
   useEffect(() => {
