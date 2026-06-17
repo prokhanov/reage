@@ -31,7 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Settings2 } from "lucide-react";
-import LabLocationsMap, { LabMapItem } from "./LabLocationsMap";
+import LabLocationsMap, { LabMapItem, TileStyleKey, TileFilters, DEFAULT_FILTERS } from "./LabLocationsMap";
 
 type City = "moscow" | "spb";
 
