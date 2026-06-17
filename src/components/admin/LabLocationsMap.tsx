@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Settings2, RotateCcw } from "lucide-react";
-import locationIconAsset from "@/assets/location_icon.png.asset.json";
+import locationIconUrl from "@/assets/location_icon.png";
 
 export type LabMapItem = {
   id: string;
