@@ -1152,6 +1152,8 @@ export type Database = {
           location: string
           name: string
           only_active: boolean
+          tile_filters: Json
+          tile_style: string
           updated_at: string
         }
         Insert: {
@@ -1165,6 +1167,8 @@ export type Database = {
           location?: string
           name: string
           only_active?: boolean
+          tile_filters?: Json
+          tile_style?: string
           updated_at?: string
         }
         Update: {
@@ -1178,6 +1182,8 @@ export type Database = {
           location?: string
           name?: string
           only_active?: boolean
+          tile_filters?: Json
+          tile_style?: string
           updated_at?: string
         }
         Relationships: []

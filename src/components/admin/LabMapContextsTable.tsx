@@ -31,7 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Settings2 } from "lucide-react";
-import LabLocationsMap, { LabMapItem } from "./LabLocationsMap";
+import LabLocationsMap, { LabMapItem, TileStyleKey, TileFilters, DEFAULT_FILTERS } from "./LabLocationsMap";
 
 type City = "moscow" | "spb";
 
@@ -45,6 +45,8 @@ type LabMapContext = {
   only_active: boolean;
   height_px: number;
   is_enabled: boolean;
+  tile_style: TileStyleKey;
+  tile_filters: TileFilters;
 };
 
 const CITY_LABEL: Record<City, string> = {
@@ -283,7 +285,7 @@ function SettingsDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>Превью</Label>
+            <Label>Превью (изменения стиля и вида сохраняются вместе с настройками)</Label>
             <div className="rounded-md border border-border overflow-hidden">
               <LabLocationsMap
                 key={`${draft.default_city}-${draft.default_zoom}-${draft.height_px}`}
@@ -292,6 +294,10 @@ function SettingsDialog({
                 zoom={draft.default_zoom}
                 fitToItems={false}
                 height={`${draft.height_px}px`}
+                styleKey={draft.tile_style}
+                onStyleKeyChange={(k) => setField("tile_style", k)}
+                filters={draft.tile_filters ?? DEFAULT_FILTERS}
+                onFiltersChange={(f) => setField("tile_filters", f)}
               />
             </div>
           </div>
@@ -311,6 +317,8 @@ function SettingsDialog({
                 only_active: draft.only_active,
                 height_px: draft.height_px,
                 is_enabled: draft.is_enabled,
+                tile_style: draft.tile_style,
+                tile_filters: draft.tile_filters,
               });
               setSaving(false);
             }}

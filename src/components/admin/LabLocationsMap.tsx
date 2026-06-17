@@ -205,23 +205,44 @@ function filterCss(f: TileFilters) {
     .join(" ");
 }
 
+export type { TileStyleKey, TileFilters };
+export { TILE_STYLES, DEFAULT_FILTERS };
+
 export default function LabLocationsMap({
   items,
   center: centerProp,
   zoom: zoomProp,
   fitToItems = true,
   height = "70vh",
+  styleKey: styleKeyProp,
+  onStyleKeyChange,
+  filters: filtersProp,
+  onFiltersChange,
 }: {
   items: LabMapItem[];
   center?: [number, number];
   zoom?: number;
   fitToItems?: boolean;
   height?: string | number;
+  styleKey?: TileStyleKey;
+  onStyleKeyChange?: (k: TileStyleKey) => void;
+  filters?: TileFilters;
+  onFiltersChange?: (f: TileFilters) => void;
 }) {
-  const { resolvedTheme } = useTheme();
-  const defaultStyle: TileStyleKey = "osm";
-  const [styleKey, setStyleKey] = useState<TileStyleKey>(defaultStyle);
-  const [filters, setFilters] = useState<TileFilters>(DEFAULT_FILTERS);
+  useTheme();
+  const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
+  const [filtersLocal, setFiltersLocal] = useState<TileFilters>(filtersProp ?? DEFAULT_FILTERS);
+  const styleKey = styleKeyProp ?? styleKeyLocal;
+  const filters = filtersProp ?? filtersLocal;
+  const setStyleKey = (k: TileStyleKey) => {
+    if (onStyleKeyChange) onStyleKeyChange(k);
+    else setStyleKeyLocal(k);
+  };
+  const setFilters = (updater: TileFilters | ((f: TileFilters) => TileFilters)) => {
+    const next = typeof updater === "function" ? (updater as (f: TileFilters) => TileFilters)(filters) : updater;
+    if (onFiltersChange) onFiltersChange(next);
+    else setFiltersLocal(next);
+  };
 
   const center = useMemo<[number, number]>(() => {
     if (centerProp) return centerProp;
