@@ -9,24 +9,20 @@ import LabLocationsMap, {
   DEFAULT_FILTERS,
 } from "@/components/admin/LabLocationsMap";
 
-type CityKey = "moscow" | "region" | "spb";
+type CityKey = "moscow" | "spb";
 
 const CITIES: { key: CityKey; label: string; center: [number, number]; zoom: number }[] = [
-  { key: "moscow", label: "Москва", center: [55.7558, 37.6173], zoom: 10 },
-  { key: "region", label: "Московская область", center: [55.7558, 37.6173], zoom: 8 },
+  { key: "moscow", label: "Москва и область", center: [55.7558, 37.6173], zoom: 10 },
   { key: "spb", label: "Санкт-Петербург", center: [59.9343, 30.3351], zoom: 11 },
 ];
 
 const isSpb = (city: string | null) =>
   !!city && /санкт|петербург|спб/i.test(city);
-const isMoscow = (city: string | null) =>
-  !!city && /^\s*москва\s*$/i.test(city);
 
 const filterByCity = (items: LabMapItem[], key: CityKey) => {
-  if (key === "moscow") return items.filter((i) => isMoscow(i.city ?? null));
   if (key === "spb") return items.filter((i) => isSpb(i.city ?? null));
-  // region = всё что не Москва и не СПб
-  return items.filter((i) => !isMoscow(i.city ?? null) && !isSpb(i.city ?? null));
+  // moscow = Москва + область (всё, что не СПб)
+  return items.filter((i) => !isSpb(i.city ?? null));
 };
 
 type LandingContext = {
@@ -183,22 +179,19 @@ export function WhereToTestSection() {
             style={{ animationDelay: "0.3s" }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm text-muted-foreground">Выберите город:</span>
-                <ToggleGroup
-                  type="single"
-                  size="sm"
-                  value={city}
-                  onValueChange={(v) => v && setCity(v as CityKey)}
-                  className="flex-wrap"
-                >
-                  {CITIES.map((c) => (
-                    <ToggleGroupItem key={c.key} value={c.key} aria-label={c.label}>
-                      {c.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </div>
+              <ToggleGroup
+                type="single"
+                size="sm"
+                value={city}
+                onValueChange={(v) => v && setCity(v as CityKey)}
+                className="flex-wrap"
+              >
+                {CITIES.map((c) => (
+                  <ToggleGroupItem key={c.key} value={c.key} aria-label={c.label}>
+                    {c.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
               <div className="text-sm text-muted-foreground tabular-nums">
                 {loading
                   ? "Загружаем точки…"
@@ -221,6 +214,8 @@ export function WhereToTestSection() {
                 partnerButtonLabel={
                   ctx?.partner_button_label ?? "Открыть на сайте провайдера ↗"
                 }
+                hideControls
+                hideAttribution
               />
             </div>
           </div>
