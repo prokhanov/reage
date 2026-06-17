@@ -10,6 +10,7 @@ import { PricingSection } from "@/components/landing/PricingSection";
 import { PreventiveMedicineSection } from "@/components/landing/PreventiveMedicineSection";
 import { FAQSection } from "@/components/landing/FAQSection";
 import { CTASection, Footer } from "@/components/landing/CTASection";
+import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
 
 const Index = () => {
   return (
@@ -25,6 +26,8 @@ const Index = () => {
       <ComparisonSection />
       <PricingSection />
       <PreventiveMedicineSection />
+
+      <WhereToTestSection />
 
       <FAQSection />
       <CTASection />
