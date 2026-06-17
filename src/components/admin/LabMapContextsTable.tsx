@@ -45,6 +45,8 @@ type LabMapContext = {
   only_active: boolean;
   height_px: number;
   is_enabled: boolean;
+  tile_style: TileStyleKey;
+  tile_filters: TileFilters;
 };
 
 const CITY_LABEL: Record<City, string> = {
