@@ -309,14 +309,6 @@ export function PricingSection() {
             <span className="bg-gradient-hero bg-clip-text text-transparent">Мы создаём историю здоровья</span>
           </h2>
 
-          <button
-            type="button"
-            onClick={() => setComparisonOpen(true)}
-            className="inline-flex items-center justify-center gap-2 h-14 md:h-16 px-10 md:px-14 rounded-xl text-lg md:text-xl font-semibold text-white bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-110 hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300 animate-fade-in"
-            style={{ animationDelay: '0.2s' }}
-          >
-            Сравнить тарифы
-          </button>
         </div>
 
         <BiomarkerComparisonDialog open={comparisonOpen} onOpenChange={setComparisonOpen} />
