@@ -444,12 +444,12 @@ export default function LabLocationsMap({
         <style>{`.lab-map-tiles .leaflet-tile-pane { filter: ${filterCss(filters)}; }`}</style>
         <MapContainer
           center={center}
-          zoom={10}
+          zoom={zoomProp ?? 10}
           scrollWheelZoom
           attributionControl={false}
           zoomControl={false}
           className="lab-map-tiles"
-          style={{ height: "70vh", width: "100%" }}
+          style={{ height, width: "100%" }}
         >
           <TileLayer
             key={styleKey}
@@ -459,7 +459,7 @@ export default function LabLocationsMap({
             detectRetina
           />
           <CustomZoomControl />
-          <FitBounds items={items} />
+          {fitToItems && <FitBounds items={items} />}
           <ClusterLayer items={items} />
         </MapContainer>
         <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
