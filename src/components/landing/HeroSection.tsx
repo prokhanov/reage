@@ -84,9 +84,9 @@ export function HeroSection() {
 
           {/* Subheading */}
           <p
-            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in whitespace-pre-line"
+            className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in"
             style={{ animationDelay: '0.2s' }}>
-            {"Регулярно берём анализы и предоставляем комплексный отчёт\nпо системам организма"}
+            {"Регулярно берём анализы и предоставляем отчёт по системам организма:\u00a0с изменениями показателей, оценкой возможных рисков и понятными следующими шагами"}
           </p>
 
           {/* Value bullets */}
