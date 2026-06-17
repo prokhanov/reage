@@ -146,7 +146,8 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
           onClick={() => {
             setStage("view");
             setOtp("");
-            setPhone(currentPhone ? `+${currentPhone}` : "");
+            const d = (currentPhone || "").replace(/\D/g, "");
+            setPhone(d ? formatPhone(d) : "");
           }}
           className="text-xs text-muted-foreground hover:text-foreground"
         >
