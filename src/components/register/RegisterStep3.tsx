@@ -5,6 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { RegisterFormData } from "@/pages/Register";
+import {
+  CHRONIC_CATEGORY as CHRONIC_KEY,
+  CHRONIC_CHIPS,
+  MEDICATIONS_CHIPS,
+  OPERATIONS,
+} from "@/lib/medicalAnketa";
 
 interface RegisterStep3Props {
   formData: RegisterFormData;
@@ -12,41 +18,6 @@ interface RegisterStep3Props {
   onNext: () => void;
   onBack: () => void;
 }
-
-const CHRONIC_KEY = "Хронические заболевания";
-
-const CHRONIC_CHIPS = [
-  "Сахарный диабет",
-  "Гипертония",
-  "Анемия",
-  "ХБП (почки)",
-  "Заболевания щитовидной железы",
-  "Заболевания печени",
-  "Сердечная недостаточность",
-  "Аутоиммунные заболевания",
-  "Нет хронических заболеваний",
-];
-
-const MEDICATIONS_CHIPS = [
-  "Антибиотики",
-  "Антикоагулянты (варфарин, ксарелто и др.)",
-  "Гормоны / контрацептивы",
-  "Глюкокортикоиды (преднизолон и др.)",
-  "НПВС (аспирин, ибупрофен)",
-  "Мочегонные",
-  "Иммуносупрессоры",
-  "Химиотерапия",
-  "Витамин С > 1г/сут",
-  "Биодобавки / БАД",
-  "Ничего из перечисленного",
-];
-
-const OPERATIONS = [
-  { key: "surgery_year", label: "Операции за последний год" },
-  { key: "transfusion_3m", label: "Переливание крови за последние 3 мес." },
-  { key: "donation_3m", label: "Сдавали кровь как донор < 3 мес." },
-  { key: "vaccination_2w", label: "Вакцинация за последние 2 недели" },
-];
 
 interface ChipsBlockProps {
   title: string;
