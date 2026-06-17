@@ -219,7 +219,7 @@ export default function LabLocationsMap({
   height?: string | number;
 }) {
   const { resolvedTheme } = useTheme();
-  const defaultStyle: TileStyleKey = resolvedTheme === "light" ? "carto-light" : "carto-dark";
+  const defaultStyle: TileStyleKey = "osm";
   const [styleKey, setStyleKey] = useState<TileStyleKey>(defaultStyle);
   const [filters, setFilters] = useState<TileFilters>(DEFAULT_FILTERS);
 
