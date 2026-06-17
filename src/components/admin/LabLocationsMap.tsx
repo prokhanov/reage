@@ -29,86 +29,26 @@ export type LabMapItem = {
 };
 
 type TileStyleKey =
-  | "carto-dark"
-  | "carto-dark-nolabels"
-  | "carto-light"
-  | "carto-light-nolabels"
-  | "carto-voyager"
-  | "esri-gray"
-  | "esri-dark-gray"
   | "osm"
   | "osm-hot"
-  | "opentopo";
+  | "opentopo"
+  | "carto-dark-nolabels"
+  | "carto-light-nolabels";
 
 const TILE_STYLES: Record<
   TileStyleKey,
   {
     label: string;
-    group: "Тёмные" | "Светлые" | "Детализированные";
+    group: "С подписями (RU)" | "Без подписей";
     url: string;
     attribution: string;
     subdomains?: string;
     maxZoom: number;
   }
 > = {
-  "carto-dark": {
-    label: "Carto Dark",
-    group: "Тёмные",
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attribution: "© OSM © CARTO",
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  "carto-dark-nolabels": {
-    label: "Dark · без подписей",
-    group: "Тёмные",
-    url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
-    attribution: "© OSM © CARTO",
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  "esri-dark-gray": {
-    label: "Esri Dark Gray",
-    group: "Тёмные",
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
-    attribution: "© OSM © CARTO",
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  "carto-light": {
-    label: "Carto Light",
-    group: "Светлые",
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: "© OSM © CARTO",
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  "carto-light-nolabels": {
-    label: "Light · без подписей",
-    group: "Светлые",
-    url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
-    attribution: "© OSM © CARTO",
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-  "esri-gray": {
-    label: "Esri Light Gray",
-    group: "Светлые",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-    attribution: "© Esri",
-    maxZoom: 16,
-  },
-  "carto-voyager": {
-    label: "Voyager",
-    group: "Детализированные",
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution: "© OSM © CARTO",
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
   osm: {
     label: "OSM Standard",
-    group: "Детализированные",
+    group: "С подписями (RU)",
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     attribution: "© OpenStreetMap",
     subdomains: "abc",
@@ -116,7 +56,7 @@ const TILE_STYLES: Record<
   },
   "osm-hot": {
     label: "OSM Humanitarian",
-    group: "Детализированные",
+    group: "С подписями (RU)",
     url: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
     attribution: "© OSM HOT",
     subdomains: "abc",
@@ -124,11 +64,27 @@ const TILE_STYLES: Record<
   },
   opentopo: {
     label: "OpenTopoMap",
-    group: "Детализированные",
+    group: "С подписями (RU)",
     url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
     attribution: "© OpenTopoMap (CC-BY-SA)",
     subdomains: "abc",
     maxZoom: 17,
+  },
+  "carto-dark-nolabels": {
+    label: "Тёмная · без подписей",
+    group: "Без подписей",
+    url: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
+    attribution: "© OSM © CARTO",
+    subdomains: "abcd",
+    maxZoom: 20,
+  },
+  "carto-light-nolabels": {
+    label: "Светлая · без подписей",
+    group: "Без подписей",
+    url: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png",
+    attribution: "© OSM © CARTO",
+    subdomains: "abcd",
+    maxZoom: 20,
   },
 };
 
