@@ -515,6 +515,8 @@ export default function LabLocationsMap({
             items={items}
             showPartnerButton={showPartnerButton}
             showSelectButton={showSelectButton}
+            partnerButtonLabel={partnerButtonLabel}
+            selectButtonLabel={selectButtonLabel}
             onSelect={onSelect}
           />
         </MapContainer>
