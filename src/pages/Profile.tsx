@@ -33,6 +33,9 @@ interface Profile {
   phone_verified_at?: string | null;
   passport_series?: string | null;
   passport_number?: string | null;
+  operations?: Record<string, unknown> | null;
+  medications?: string[] | null;
+  health_note?: string | null;
 }
 
 interface MedicalCondition {
