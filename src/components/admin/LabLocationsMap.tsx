@@ -283,6 +283,8 @@ export default function LabLocationsMap({
   partnerButtonLabel = "Открыть на сайте провайдера ↗",
   selectButtonLabel = "Выбрать эту лабораторию",
   onSelect,
+  hideControls = false,
+  hideAttribution = false,
 }: {
   items: LabMapItem[];
   center?: [number, number];
@@ -298,6 +300,8 @@ export default function LabLocationsMap({
   partnerButtonLabel?: string;
   selectButtonLabel?: string;
   onSelect?: (item: LabMapItem) => void;
+  hideControls?: boolean;
+  hideAttribution?: boolean;
 }) {
   useTheme();
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
@@ -333,6 +337,7 @@ export default function LabLocationsMap({
 
   return (
     <div className="space-y-3">
+      {!hideControls && (
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm text-muted-foreground">Стиль карты:</span>
@@ -486,6 +491,7 @@ export default function LabLocationsMap({
           <span className="text-xs text-muted-foreground">{items.length} точек</span>
         </div>
       </div>
+      )}
 
       <div className="rounded-lg border border-border overflow-hidden bg-card">
         <style>{`.lab-map-tiles .leaflet-tile { filter: ${filterCss(filters)}; }`}</style>
@@ -520,9 +526,11 @@ export default function LabLocationsMap({
             onSelect={onSelect}
           />
         </MapContainer>
-        <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
-          <span>{style.attribution}</span>
-        </div>
+        {!hideAttribution && (
+          <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
+            <span>{style.attribution}</span>
+          </div>
+        )}
       </div>
     </div>
   );
