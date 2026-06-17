@@ -199,7 +199,7 @@ export function WhereToTestSection() {
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
-              <div className="text-sm text-muted-foreground tabular-nums">
+              <div className="text-sm text-muted-foreground tabular-nums text-center sm:text-left">
                 {loading
                   ? "Загружаем точки…"
                   : `${filtered.length} ${pluralLabs(filtered.length)} в выбранном регионе`}
