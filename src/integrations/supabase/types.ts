@@ -1152,6 +1152,8 @@ export type Database = {
           location: string
           name: string
           only_active: boolean
+          show_partner_button: boolean
+          show_select_button: boolean
           tile_filters: Json
           tile_style: string
           updated_at: string
@@ -1167,6 +1169,8 @@ export type Database = {
           location?: string
           name: string
           only_active?: boolean
+          show_partner_button?: boolean
+          show_select_button?: boolean
           tile_filters?: Json
           tile_style?: string
           updated_at?: string
@@ -1182,6 +1186,8 @@ export type Database = {
           location?: string
           name?: string
           only_active?: boolean
+          show_partner_button?: boolean
+          show_select_button?: boolean
           tile_filters?: Json
           tile_style?: string
           updated_at?: string
