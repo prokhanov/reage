@@ -1,28 +1,25 @@
-## Цель
-Перестроить страницу «Профиль», чтобы паспортные данные были видны без открытия редактора, а телефон не висел отдельной карточкой.
+## Что делаем
 
-## Изменения в UI (`src/pages/Profile.tsx`)
-
-1. **Карточка «Личная информация»** — добавить плитку «Телефон» в общую сетку (после Email): показывает текущий номер и бейдж «Подтверждён», если `phone_verified_at`. Кнопка «Редактировать» по-прежнему открывает `EditProfileDialog`.
-2. **Удалить отдельную карточку Phone Card** с `PhoneChangeField` из основного списка.
-3. **Новая карточка «Паспортные данные»** (отдельный блок между личной информацией и «Следующим анализом»):
-   - Иконка `ShieldCheck` / `IdCard`.
-   - Плитки «Серия» и «Номер» в той же стилистике, что и поля в Личной информации.
-   - Если данных нет — показать подсказку «Данные не заполнены. Они нужны для записи на анализ» + кнопку «Заполнить».
-   - Если есть — кнопка «Редактировать» в шапке карточки.
-   - Открывает новый диалог (см. ниже).
-
-## Диалоги
-
-1. **`EditProfileDialog`** — убрать секцию `PassportFields` (личная инфа больше не содержит паспорт). Добавить поле «Телефон» через `PhoneChangeField` внутрь диалога (с верификацией как сейчас), либо оставить inline-блок как сейчас — финальный вариант: встроить `PhoneChangeField` в конец формы диалога, чтобы пользователь мог менять/подтверждать номер в одном окне.
-2. **Новый `EditPassportDialog`** (`src/components/profile/EditPassportDialog.tsx`) — компактное окно только с `PassportFields` + «Отмена/Сохранить», апдейтит `profiles.passport_series/number`. Используется как для «Заполнить», так и для «Редактировать» в новой карточке.
-
-## Технические детали
-- Profile state уже грузит всю строку `profiles.*` — `passport_series/number` уже доступны, доп. запросов не нужно.
-- `PhoneChangeField` уже инкапсулирует логику OTP; перенос внутрь диалога — это перемещение JSX, без правки логики.
-- Никаких изменений БД, RLS, edge-функций.
+Один UI-компонент анкеты на оба места: регистрацию и редактирование в профиле. Стиль — как в регистрации (карточки `rounded-2xl border border-border/60 bg-card/50 p-5 md:p-6`).
 
 ## Файлы
-- edit `src/pages/Profile.tsx`
-- edit `src/components/profile/EditProfileDialog.tsx`
-- create `src/components/profile/EditPassportDialog.tsx`
+
+1. **`src/components/medical/MedicalAnketaForm.tsx`** — новый. Полный UI анкеты (4 секции в карточках: хронические, операции, препараты, заметка). Контролируемый:
+   - `value: { chronic: string[]; medications: string[]; operations: Record<string, unknown>; healthNote: string }`
+   - `onChange: (patch) => void`
+   - Внутри: чипы + кастомные input/Добавить, операции Да/Нет + поле деталей по `surgery_year`, textarea для заметки. Логика toggleChronic/toggleMed/setOperation и эксклюзивных опций («Нет хронических…», «Ничего из перечисленного») переезжает сюда.
+
+2. **`src/components/register/RegisterStep3.tsx`** — упрощается до:
+   - заголовок «История болезней» + подсказка,
+   - `<MedicalAnketaForm value={...} onChange={...} />` (chronic мапится в `medicalHistory` формате `Хронические заболевания|<name>` для совместимости с триггером `handle_new_user`),
+   - предупреждение, кнопки Назад/Отправить.
+
+3. **`src/components/profile/EditMedicalHistoryDialog.tsx`** — внутри тот же `<MedicalAnketaForm />`. Удаляем подзаголовок «Те же поля, что и в анкете при регистрации». Логика сохранения (medical_history + profiles.medications/operations/health_note) остаётся.
+
+4. **Фикс обводки инпута** в диалоге: `overflow-y-auto` обрезает focus ring `ring-2`. Исправляем горизонтальные отступы скролл-контейнера на `px-1` (вместо `pr-1`), чтобы 2px рамка инпута влезала с обеих сторон.
+
+## Технические детали
+
+- Константы (`CHRONIC_CHIPS`, `MEDICATIONS_CHIPS`, `OPERATIONS`, `CHRONIC_CATEGORY`) уже в `src/lib/medicalAnketa.ts` — оба места берут оттуда.
+- `MedicalAnketaForm` не знает про БД и формат `category|condition`. Маппинг делает только `RegisterStep3` (для сохранения в metadata) и `EditMedicalHistoryDialog` (для записи в `medical_history`).
+- В диалоге внутри `DialogContent max-w-2xl max-h-[85vh]` скролл-контейнер: `flex-1 overflow-y-auto space-y-6 px-1 py-1` — чтобы рамки и тени не обрезались по краям.
