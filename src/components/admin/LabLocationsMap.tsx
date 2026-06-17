@@ -249,16 +249,29 @@ function filterCss(f: TileFilters) {
     .join(" ");
 }
 
-export default function LabLocationsMap({ items }: { items: LabMapItem[] }) {
+export default function LabLocationsMap({
+  items,
+  center: centerProp,
+  zoom: zoomProp,
+  fitToItems = true,
+  height = "70vh",
+}: {
+  items: LabMapItem[];
+  center?: [number, number];
+  zoom?: number;
+  fitToItems?: boolean;
+  height?: string | number;
+}) {
   const { resolvedTheme } = useTheme();
   const defaultStyle: TileStyleKey = resolvedTheme === "light" ? "carto-light" : "carto-dark";
   const [styleKey, setStyleKey] = useState<TileStyleKey>(defaultStyle);
   const [filters, setFilters] = useState<TileFilters>(DEFAULT_FILTERS);
 
   const center = useMemo<[number, number]>(() => {
+    if (centerProp) return centerProp;
     if (!items.length) return [55.7558, 37.6173];
     return [items[0].lat, items[0].lng];
-  }, [items]);
+  }, [items, centerProp]);
 
   const style = TILE_STYLES[styleKey];
 
