@@ -292,7 +292,7 @@ function SettingsDialog({
             <Label>Превью (изменения стиля и вида сохраняются вместе с настройками)</Label>
             <div className="rounded-md border border-border overflow-hidden">
               <LabLocationsMap
-                key={`${draft.default_city}-${draft.default_zoom}-${draft.height_px}`}
+                key={`${draft.id}-${draft.default_city}-${draft.default_zoom}-${draft.height_px}`}
                 items={previewItems}
                 center={CITY_CENTER[draft.default_city]}
                 zoom={draft.default_zoom}
