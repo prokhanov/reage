@@ -290,6 +290,36 @@ function SettingsDialog({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label>Кнопки во всплывающих окнах меток</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div>
+                  <div className="text-sm font-medium">«Перейти на сайт партнёра»</div>
+                  <div className="text-xs text-muted-foreground">
+                    Кнопка с ссылкой на страницу лаборатории у провайдера.
+                  </div>
+                </div>
+                <Switch
+                  checked={draft.show_partner_button}
+                  onCheckedChange={(c) => setField("show_partner_button", c)}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div>
+                  <div className="text-sm font-medium">«Выбрать эту лабораторию»</div>
+                  <div className="text-xs text-muted-foreground">
+                    Для личного кабинета пациента — выбор точки сдачи анализов.
+                  </div>
+                </div>
+                <Switch
+                  checked={draft.show_select_button}
+                  onCheckedChange={(c) => setField("show_select_button", c)}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <Label>Превью (изменения стиля и вида сохраняются вместе с настройками)</Label>
             <div className="rounded-md border border-border overflow-hidden">
@@ -304,6 +334,8 @@ function SettingsDialog({
                 onStyleKeyChange={(k) => setField("tile_style", k)}
                 filters={draft.tile_filters ?? DEFAULT_FILTERS}
                 onFiltersChange={(f) => setField("tile_filters", f)}
+                showPartnerButton={draft.show_partner_button}
+                showSelectButton={draft.show_select_button}
               />
             </div>
           </div>
