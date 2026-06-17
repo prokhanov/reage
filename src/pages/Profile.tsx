@@ -467,9 +467,13 @@ export default function Profile() {
           open={editMedicalOpen}
           onOpenChange={setEditMedicalOpen}
           medicalHistory={medicalHistory}
+          operations={profile?.operations ?? null}
+          medications={profile?.medications ?? null}
+          healthNote={profile?.health_note ?? null}
           userId={userId}
           onSuccess={() => {
             loadMedicalHistory();
+            loadProfile();
             setEditMedicalOpen(false);
           }}
         />
