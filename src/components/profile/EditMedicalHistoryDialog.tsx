@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, KeyboardEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -10,12 +10,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Check, Heart, Brain, Utensils, Activity, Bone, Shield, Flower2, Droplet, Pill } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { Check, Plus, X, Info } from "lucide-react";
+import {
+  CHRONIC_CATEGORY,
+  CHRONIC_CHIPS,
+  MEDICATIONS_CHIPS,
+  OPERATIONS,
+} from "@/lib/medicalAnketa";
 
 interface MedicalCondition {
-  id: string;
+  id?: string;
   category: string;
   condition: string;
 }
@@ -24,263 +30,333 @@ interface EditMedicalHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   medicalHistory: MedicalCondition[];
+  operations: Record<string, unknown> | null | undefined;
+  medications: string[] | null | undefined;
+  healthNote: string | null | undefined;
   userId: string | null;
   onSuccess: () => void;
 }
 
-export function EditMedicalHistoryDialog({ 
-  open, 
-  onOpenChange, 
-  medicalHistory,
-  userId,
-  onSuccess 
-}: EditMedicalHistoryDialogProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedConditions, setSelectedConditions] = useState<Set<string>>(
-    new Set(medicalHistory.map(m => `${m.category}|${m.condition}`))
+interface ChipsBlockProps {
+  chips: string[];
+  selected: string[];
+  onToggle: (v: string) => void;
+  placeholder: string;
+  customValue: string;
+  setCustomValue: (v: string) => void;
+  onAddCustom: () => void;
+}
+
+function ChipsBlock({
+  chips,
+  selected,
+  onToggle,
+  placeholder,
+  customValue,
+  setCustomValue,
+  onAddCustom,
+}: ChipsBlockProps) {
+  const customs = selected.filter((s) => !chips.includes(s));
+
+  const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onAddCustom();
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {chips.map((chip) => {
+          const isSelected = selected.includes(chip);
+          return (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => onToggle(chip)}
+              className={cn(
+                "px-3 py-1.5 rounded-full border text-sm transition-all",
+                isSelected
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/60 bg-background hover:border-primary/40 hover:bg-muted/50"
+              )}
+            >
+              {isSelected && <Check className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />}
+              {chip}
+            </button>
+          );
+        })}
+        {customs.map((c) => (
+          <span
+            key={c}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary bg-primary/10 text-primary text-sm"
+          >
+            {c}
+            <button
+              type="button"
+              onClick={() => onToggle(c)}
+              className="hover:opacity-70"
+              aria-label="Удалить"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={customValue}
+          onChange={(e) => setCustomValue(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder={placeholder}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onAddCustom}
+          disabled={!customValue.trim()}
+          className="shrink-0"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Добавить
+        </Button>
+      </div>
+    </div>
   );
-  const [openCategories, setOpenCategories] = useState<string[]>([]);
+}
+
+export function EditMedicalHistoryDialog({
+  open,
+  onOpenChange,
+  medicalHistory,
+  operations,
+  medications,
+  healthNote,
+  userId,
+  onSuccess,
+}: EditMedicalHistoryDialogProps) {
+  const [chronic, setChronic] = useState<string[]>([]);
+  const [meds, setMeds] = useState<string[]>([]);
+  const [ops, setOps] = useState<Record<string, unknown>>({});
+  const [note, setNote] = useState("");
+  const [customChronic, setCustomChronic] = useState("");
+  const [customMed, setCustomMed] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (open) {
-      loadMedicalConditions();
-      setSelectedConditions(new Set(medicalHistory.map(m => `${m.category}|${m.condition}`)));
-    }
-  }, [open, medicalHistory]);
-
-  const loadMedicalConditions = async () => {
-    try {
-      const { data: conditions } = await supabase
-        .from("medical_conditions_templates")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      if (conditions && conditions.length > 0) {
-        const categoryOrder: string[] = [];
-        const categoryMap: Record<string, string[]> = {};
-        
-        for (const c of conditions) {
-          if (!categoryMap[c.category]) {
-            categoryMap[c.category] = [];
-            categoryOrder.push(c.category);
-          }
-          categoryMap[c.category].push(c.condition);
-        }
-
-        const grouped = categoryOrder.map(cat => ({
-          title: cat,
-          icon: getCategoryIcon(cat),
-          conditions: categoryMap[cat]
-        }));
-        
-        setDynamicCategories(grouped);
-      }
-    } catch (error) {
-      console.error("Error loading medical conditions:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const iconMap: Record<string, any> = {
-      "🫀 Сердечно-сосудистая система": Heart,
-      "🧠 Нервная система": Brain,
-      "🍽 Пищеварительная система": Utensils,
-      "🩸 Метаболические нарушения": Droplet,
-      "🧘‍♀️ Гормональные нарушения": Activity,
-      "💪 Опорно-двигательная система": Bone,
-      "🦠 Иммунная система": Shield,
-      "🩸 Кроветворная система": Droplet,
-      "💊 Инфекционные заболевания": Pill,
-      "🧬 Онкология": Activity
-    };
-    return iconMap[category] || Activity;
-  };
-
-  const toggleCondition = (category: string, condition: string) => {
-    const key = `${category}|${condition}`;
-    const newSelected = new Set(selectedConditions);
-    if (newSelected.has(key)) {
-      newSelected.delete(key);
-    } else {
-      newSelected.add(key);
-    }
-    setSelectedConditions(newSelected);
-  };
-
-  const isSelected = (category: string, condition: string) => {
-    return selectedConditions.has(`${category}|${condition}`);
-  };
-
-  const toggleCategory = (title: string) => {
-    setOpenCategories(prev =>
-      prev.includes(title)
-        ? prev.filter(c => c !== title)
-        : [...prev, title]
+    if (!open) return;
+    setChronic(
+      medicalHistory
+        .filter((m) => m.category === CHRONIC_CATEGORY)
+        .map((m) => m.condition)
     );
+    setMeds(medications ?? []);
+    setOps((operations as Record<string, unknown>) ?? {});
+    setNote(healthNote ?? "");
+    setCustomChronic("");
+    setCustomMed("");
+  }, [open, medicalHistory, medications, operations, healthNote]);
+
+  const toggleChronic = (name: string) => {
+    let next = chronic.includes(name)
+      ? chronic.filter((c) => c !== name)
+      : [...chronic, name];
+
+    if (name === "Нет хронических заболеваний" && !chronic.includes(name)) {
+      next = [name];
+    } else if (name !== "Нет хронических заболеваний") {
+      next = next.filter((c) => c !== "Нет хронических заболеваний");
+    }
+    setChronic(next);
+  };
+
+  const addCustomChronic = () => {
+    const v = customChronic.trim();
+    if (!v) return;
+    if (!chronic.includes(v)) setChronic([...chronic, v]);
+    setCustomChronic("");
+  };
+
+  const toggleMed = (name: string) => {
+    let next = meds.includes(name) ? meds.filter((m) => m !== name) : [...meds, name];
+    if (name === "Ничего из перечисленного" && !meds.includes(name)) {
+      next = [name];
+    } else if (name !== "Ничего из перечисленного") {
+      next = next.filter((m) => m !== "Ничего из перечисленного");
+    }
+    setMeds(next);
+  };
+
+  const addCustomMed = () => {
+    const v = customMed.trim();
+    if (!v) return;
+    if (!meds.includes(v)) setMeds([...meds, v]);
+    setCustomMed("");
+  };
+
+  const setOperation = (key: string, value: boolean) => {
+    const next: Record<string, unknown> = { ...ops, [key]: value };
+    if (key === "surgery_year" && value === false) {
+      delete next.surgery_year_details;
+    }
+    setOps(next);
   };
 
   const handleSave = async () => {
+    if (!userId) return;
     setIsSaving(true);
     try {
-      if (!userId) throw new Error("Не авторизован");
-
-      // Delete all existing
-      await supabase
+      // Replace chronic diseases in medical_history (only this category — keep any
+      // other categories that might exist from legacy data untouched).
+      const { error: delErr } = await supabase
         .from("medical_history")
         .delete()
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("category", CHRONIC_CATEGORY);
+      if (delErr) throw delErr;
 
-      // Insert new selections
-      if (selectedConditions.size > 0) {
-        const medicalData = Array.from(selectedConditions).map(key => {
-          const [category, condition] = key.split('|');
-          return {
-            user_id: userId,
-            category,
-            condition
-          };
-        });
-
-        const { error } = await supabase
-          .from("medical_history")
-          .insert(medicalData);
-
-        if (error) throw error;
+      if (chronic.length > 0) {
+        const rows = chronic.map((condition) => ({
+          user_id: userId,
+          category: CHRONIC_CATEGORY,
+          condition,
+        }));
+        const { error: insErr } = await supabase.from("medical_history").insert(rows);
+        if (insErr) throw insErr;
       }
 
-      toast({
-        title: "Успешно сохранено! ✅",
-        description: `Обновлено ${selectedConditions.size} записей`
-      });
+      const { error: profErr } = await supabase
+        .from("profiles")
+        .update({
+          medications: meds,
+          operations: ops as never,
+          health_note: note.trim() || null,
+        })
+        .eq("id", userId);
+      if (profErr) throw profErr;
 
+      toast({ title: "Сохранено", description: "История болезней обновлена" });
       onSuccess();
-    } catch (error: any) {
-      console.error("Error saving medical history:", error);
-      toast({
-        title: "Ошибка сохранения",
-        description: error.message || "Попробуйте еще раз",
-        variant: "destructive"
-      });
+      onOpenChange(false);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Попробуйте ещё раз";
+      toast({ title: "Ошибка сохранения", description: msg, variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const categoriesToUse = dynamicCategories;
-
-  const filteredCategories = categoriesToUse.map(category => ({
-    ...category,
-    conditions: category.conditions.filter(c =>
-      c.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(category => category.conditions.length > 0);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Редактировать историю болезней</DialogTitle>
           <DialogDescription>
-            Выберите перенесенные заболевания
+            Те же поля, что и в анкете при регистрации
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-muted-foreground">Загрузка...</p>
+        <div className="flex-1 overflow-y-auto space-y-6 pr-1">
+          {/* Хронические заболевания */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold">Хронические заболевания</h3>
+            <ChipsBlock
+              chips={CHRONIC_CHIPS}
+              selected={chronic}
+              onToggle={toggleChronic}
+              placeholder="Другие диагнозы..."
+              customValue={customChronic}
+              setCustomValue={setCustomChronic}
+              onAddCustom={addCustomChronic}
+            />
+          </section>
+
+          {/* Операции */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold">Операции и процедуры</h3>
+            <div className="divide-y divide-border/50">
+              {OPERATIONS.map((op) => {
+                const value = ops[op.key];
+                const showDetails = op.key === "surgery_year" && value === true;
+                return (
+                  <div key={op.key} className="py-3 first:pt-0 last:pb-0 space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-sm">{op.label}</span>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setOperation(op.key, false)}
+                          className={cn(
+                            "px-4 py-1.5 rounded-full text-sm border transition-all",
+                            value === false
+                              ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500"
+                              : "border-border/60 hover:border-primary/40"
+                          )}
+                        >
+                          Нет
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOperation(op.key, true)}
+                          className={cn(
+                            "px-4 py-1.5 rounded-full text-sm border transition-all",
+                            value === true
+                              ? "border-rose-500/50 bg-rose-500/15 text-rose-500"
+                              : "border-border/60 hover:border-primary/40"
+                          )}
+                        >
+                          Да
+                        </button>
+                      </div>
+                    </div>
+                    {showDetails && (
+                      <Input
+                        value={(ops.surgery_year_details as string) || ""}
+                        onChange={(e) =>
+                          setOps({ ...ops, surgery_year_details: e.target.value })
+                        }
+                        placeholder="Какая именно операция и когда?"
+                        maxLength={300}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          ) : (
-            <>
-              {/* Selected Count */}
-              {selectedConditions.size > 0 && (
-                <div className="flex items-center justify-center">
-                  <Badge variant="secondary" className="text-sm">
-                    Выбрано: {selectedConditions.size}
-                  </Badge>
-                </div>
-              )}
+          </section>
 
-              {/* Search */}
-              <Input
-                type="text"
-                placeholder="Поиск по заболеваниям..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          {/* Препараты */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold">Препараты и добавки</h3>
+            <ChipsBlock
+              chips={MEDICATIONS_CHIPS}
+              selected={meds}
+              onToggle={toggleMed}
+              placeholder="Другие препараты (название, доза)..."
+              customValue={customMed}
+              setCustomValue={setCustomMed}
+              onAddCustom={addCustomMed}
+            />
+          </section>
 
-              {/* Categories */}
-              <div className="space-y-3">
-                {filteredCategories.map((category) => {
-                  const Icon = category.icon;
-                  const selectedCount = category.conditions.filter(c => 
-                    isSelected(category.title, c)
-                  ).length;
-
-                  return (
-                    <Collapsible
-                      key={category.title}
-                      open={openCategories.includes(category.title)}
-                      onOpenChange={() => toggleCategory(category.title)}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-primary/30 transition-colors cursor-pointer bg-card">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Icon className="h-5 w-5 text-primary" />
-                            </div>
-                            <div className="text-left">
-                              <p className="font-medium text-sm">{category.title}</p>
-                              {selectedCount > 0 && (
-                                <p className="text-xs text-muted-foreground">
-                                  {selectedCount} выбрано
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <ChevronDown 
-                            className={`h-5 w-5 text-muted-foreground transition-transform ${
-                              openCategories.includes(category.title) ? 'rotate-180' : ''
-                            }`}
-                          />
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-2 space-y-2 pl-4">
-                        {category.conditions.map((condition) => {
-                          const selected = isSelected(category.title, condition);
-                          
-                          return (
-                            <button
-                              key={condition}
-                              onClick={() => toggleCondition(category.title, condition)}
-                              className={`
-                                w-full text-left p-3 rounded-md border transition-all text-sm
-                                ${selected 
-                                  ? 'border-primary bg-primary/10 text-primary' 
-                                  : 'border-border/50 hover:border-primary/30'
-                                }
-                              `}
-                            >
-                              <div className="flex items-center justify-between">
-                                <span>{condition}</span>
-                                {selected && <Check className="h-4 w-4" />}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </CollapsibleContent>
-                    </Collapsible>
-                  );
-                })}
-              </div>
-            </>
-          )}
+          {/* Заметка */}
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold">Что-то ещё, что может быть важно?</h3>
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Особые условия, хронические боли, недавние события..."
+              rows={4}
+              maxLength={2000}
+            />
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Info className="h-3.5 w-3.5" />
+              Передаётся врачу вместе с результатами.
+            </p>
+          </section>
         </div>
 
         <div className="flex gap-3 pt-4 border-t">
@@ -292,11 +368,7 @@ export function EditMedicalHistoryDialog({
           >
             Отмена
           </Button>
-          <Button
-            onClick={handleSave}
-            className="flex-1"
-            disabled={isSaving}
-          >
+          <Button onClick={handleSave} className="flex-1" disabled={isSaving}>
             {isSaving ? "Сохранение..." : "Сохранить"}
           </Button>
         </div>
