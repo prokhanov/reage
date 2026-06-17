@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { BirthDatePicker } from "@/components/BirthDatePicker";
 import genderMale from "@/assets/gender-male.png";
 import genderFemale from "@/assets/gender-female.png";
-import { PassportFields } from "@/components/PassportFields";
+
 
 function parseLocalDate(s: string) {
   const [y, m, d] = s.split('-').map(Number);
@@ -28,8 +28,6 @@ interface Profile {
   birth_date: string;
   gender: string;
   height: number | null;
-  passport_series?: string | null;
-  passport_number?: string | null;
 }
 
 interface EditProfileDialogProps {
@@ -46,8 +44,6 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     gender: profile?.gender || "male",
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
-    passport_series: profile?.passport_series || "",
-    passport_number: profile?.passport_number || "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -60,8 +56,6 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         gender: profile.gender || "male",
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
-        passport_series: profile.passport_series || "",
-        passport_number: profile.passport_number || "",
       });
     }
   }, [profile]);
