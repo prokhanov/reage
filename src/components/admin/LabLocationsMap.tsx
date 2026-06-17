@@ -108,16 +108,12 @@ const DEFAULT_FILTERS: TileFilters = {
 const buildIcon = () =>
   L.divIcon({
     className: "lab-map-marker",
-    html: `<div style="position: relative; width: 28px; height: 36px;">
-      <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg">
-        <path d="M14 0C6.27 0 0 6.27 0 14c0 9.5 12.4 21 13.07 21.6a1.4 1.4 0 0 0 1.86 0C15.6 35 28 23.5 28 14 28 6.27 21.73 0 14 0z"
-          fill="hsl(var(--primary))" stroke="hsl(var(--background))" stroke-width="1.5"/>
-        <circle cx="14" cy="14" r="5" fill="hsl(var(--background))"/>
-      </svg>
+    html: `<div style="position: relative; width: 32px; height: 40px;">
+      <img src="${locationIconAsset.url}" width="32" height="40" style="display:block;" alt="" />
     </div>`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    popupAnchor: [0, -32],
+    iconSize: [32, 40],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -36],
   });
 
 function CustomZoomControl() {
