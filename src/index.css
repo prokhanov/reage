@@ -297,19 +297,40 @@ All colors MUST be HSL.
 .lab-popup-link:hover {
   text-decoration: underline;
 }
-.lab-popup-cta {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 6px 12px;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-radius: 6px;
-  font-size: 12px;
-  text-decoration: none;
-  font-weight: 500;
+.lab-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
 }
-.lab-popup-cta:hover {
-  opacity: 0.9;
+.lab-popup-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter 0.15s ease, background 0.15s ease;
+  width: 100%;
+}
+.lab-popup-cta-primary {
+  background: hsl(var(--primary));
+  color: #ffffff;
+}
+.lab-popup-cta-primary:hover {
+  filter: brightness(1.1);
+}
+.lab-popup-cta-secondary {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+.lab-popup-cta-secondary:hover {
+  background: hsl(var(--muted));
 }
 .leaflet-bar a {
   background: hsl(var(--card)) !important;

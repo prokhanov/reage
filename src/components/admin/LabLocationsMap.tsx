@@ -165,7 +165,17 @@ function FitBounds({ items }: { items: LabMapItem[] }) {
   return null;
 }
 
-function ClusterLayer({ items }: { items: LabMapItem[] }) {
+function ClusterLayer({
+  items,
+  showPartnerButton,
+  showSelectButton,
+  onSelect,
+}: {
+  items: LabMapItem[];
+  showPartnerButton: boolean;
+  showSelectButton: boolean;
+  onSelect?: (item: LabMapItem) => void;
+}) {
   const map = useMap();
   useEffect(() => {
     if (!items.length) return;
@@ -185,21 +195,54 @@ function ClusterLayer({ items }: { items: LabMapItem[] }) {
       },
     });
 
+    const norm = (s: string) =>
+      s.toLowerCase().replace(/[ёе]/g, "е").replace(/\s+/g, " ").trim();
+
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = (it.hours ?? []).filter(Boolean);
+      const metroRaw = (it.metro ?? "").trim();
+      const metroLabel = metroRaw
+        ? metroRaw.charAt(0).toLocaleUpperCase("ru-RU") + metroRaw.slice(1)
+        : "";
+      const titleNorm = norm(it.title ?? "");
+      const metroInTitle = metroRaw ? titleNorm.includes(norm(metroRaw)) : false;
+      const addr = (it.full_address ?? "").trim();
+      const addrInTitle = addr ? titleNorm.includes(norm(addr)) : false;
+      const showMetroRow = !!metroLabel && !metroInTitle;
+      const showAddrRow = !!addr && !addrInTitle;
+
+      const partnerBtn =
+        showPartnerButton && it.page_url
+          ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta lab-popup-cta-primary">Открыть на сайте провайдера ↗</a>`
+          : "";
+      const selectBtn = showSelectButton
+        ? `<button type="button" data-lab-select="${escapeAttr(it.id)}" class="lab-popup-cta lab-popup-cta-secondary">Выбрать эту лабораторию</button>`
+        : "";
+      const actions =
+        partnerBtn || selectBtn
+          ? `<div class="lab-popup-actions">${partnerBtn}${selectBtn}</div>`
+          : "";
+
       const html = `
         <div class="lab-popup">
           <div class="lab-popup-title">${escapeHtml(it.title)}</div>
-          ${it.metro ? `<div class="lab-popup-row"><span class="lab-popup-icon">🚇</span>${escapeHtml(it.metro)}</div>` : ""}
-          ${it.full_address ? `<div class="lab-popup-row"><span class="lab-popup-icon">📍</span>${escapeHtml(it.full_address)}</div>` : ""}
+          ${showMetroRow ? `<div class="lab-popup-row"><span class="lab-popup-icon">🚇</span>${escapeHtml(metroLabel)}</div>` : ""}
+          ${showAddrRow ? `<div class="lab-popup-row"><span class="lab-popup-icon">📍</span>${escapeHtml(addr)}</div>` : ""}
           ${phones.length ? `<div class="lab-popup-section"><div class="lab-popup-label">Телефоны</div>${phones.map((p) => `<a href="tel:${escapeAttr(p)}" class="lab-popup-link">${escapeHtml(p)}</a>`).join("<br/>")}</div>` : ""}
           ${hours.length ? `<div class="lab-popup-section"><div class="lab-popup-label">Часы работы</div>${hours.map(escapeHtml).join("<br/>")}</div>` : ""}
-          ${it.page_url ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta">Открыть на сайте провайдера ↗</a>` : ""}
+          ${actions}
         </div>
       `;
-      m.bindPopup(html, { maxWidth: 320, minWidth: 240 });
+      const popup = m.bindPopup(html, { maxWidth: 320, minWidth: 240 });
+      if (showSelectButton && onSelect) {
+        popup.on("popupopen", (e) => {
+          const node = (e as unknown as { popup: L.Popup }).popup.getElement();
+          const btn = node?.querySelector<HTMLButtonElement>(`[data-lab-select="${it.id}"]`);
+          btn?.addEventListener("click", () => onSelect(it));
+        });
+      }
       cluster.addLayer(m);
     });
 
@@ -207,7 +250,7 @@ function ClusterLayer({ items }: { items: LabMapItem[] }) {
     return () => {
       map.removeLayer(cluster);
     };
-  }, [items, map]);
+  }, [items, map, showPartnerButton, showSelectButton, onSelect]);
   return null;
 }
 
@@ -247,6 +290,9 @@ export default function LabLocationsMap({
   onStyleKeyChange,
   filters: filtersProp,
   onFiltersChange,
+  showPartnerButton = true,
+  showSelectButton = false,
+  onSelect,
 }: {
   items: LabMapItem[];
   center?: [number, number];
@@ -257,6 +303,9 @@ export default function LabLocationsMap({
   onStyleKeyChange?: (k: TileStyleKey) => void;
   filters?: TileFilters;
   onFiltersChange?: (f: TileFilters) => void;
+  showPartnerButton?: boolean;
+  showSelectButton?: boolean;
+  onSelect?: (item: LabMapItem) => void;
 }) {
   useTheme();
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
@@ -470,7 +519,12 @@ export default function LabLocationsMap({
           <CustomZoomControl />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
-          <ClusterLayer items={items} />
+          <ClusterLayer
+            items={items}
+            showPartnerButton={showPartnerButton}
+            showSelectButton={showSelectButton}
+            onSelect={onSelect}
+          />
         </MapContainer>
         <div className="flex items-center justify-end gap-2 px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
           <span>{style.attribution}</span>
