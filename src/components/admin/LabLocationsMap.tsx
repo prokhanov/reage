@@ -112,7 +112,7 @@ const DEFAULT_FILTERS: TileFilters = {
 const buildIcon = () =>
   L.divIcon({
     className: "lab-map-marker",
-    html: `<img src="${locationIconAsset.url}" style="width:28px !important;height:36px !important;display:block;" alt="" />`,
+    html: `<img src="${locationIconUrl}" style="width:28px !important;height:36px !important;display:block;" alt="" />`,
     iconSize: [28, 36],
     iconAnchor: [14, 36],
     popupAnchor: [0, -32],
