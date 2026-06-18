@@ -390,6 +390,7 @@ function SettingsDialog({
               setSaving(false);
             }}
           >
+            {saving && <ButtonSpinner className="mr-2" />}
             {saving ? "Сохранение..." : "Сохранить"}
           </Button>
         </DialogFooter>
