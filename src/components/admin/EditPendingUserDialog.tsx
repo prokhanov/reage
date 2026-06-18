@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { BirthDatePicker } from "@/components/BirthDatePicker";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 interface EditPendingUserDialogProps {
   inviteToken: string | null;
