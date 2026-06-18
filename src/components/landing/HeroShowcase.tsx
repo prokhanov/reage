@@ -56,7 +56,7 @@ function DashboardContent() {
         <div className="text-xs text-muted-foreground">Системы организма</div>
         {[
           { name: "Сердечно-сосудистая", score: 92, color: "bg-status-good" },
-          { name: "Метаболизм", score: 78, color: "bg-status-warning" },
+          { name: "Метаболизм", score: 85, color: "bg-status-warning" },
           { name: "Иммунная", score: 85, color: "bg-status-good" },
         ].map((system) => (
           <div key={system.name} className="flex items-center gap-3">
