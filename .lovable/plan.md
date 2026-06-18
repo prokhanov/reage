@@ -1,31 +1,42 @@
-## Проблема
+## Цель
+В разделе «SMS рассылки → Отправитель» добавить поля для ввода email-аккаунта SMS Aero и API-токена, чтобы при смене аккаунта (новый договор, своя подпись вместо общего номера) можно было переключиться без участия разработчика.
 
-Иконка маркера (`location_icon.png`) загружается через Lovable Assets по относительному пути `/__l5e/assets-v1/...`. Этот путь резолвится только в Lovable-preview/published, а на кастомном домене `reage.life` (отдается через наш Fly-прокси/nginx) такого роута нет — поэтому браузер получает 404/HTML и рисует «?» вместо иконки.
+Сейчас `SMSAERO_EMAIL` и `SMSAERO_API_KEY` зашиты в секретах Lovable Cloud и `_shared/smsaero.ts` читает только их. Через интерфейс их менять нельзя.
 
-То же самое на скриншоте: облака `2/6/14/...` (HTML-divIcon, без картинки) рисуются нормально, а одиночные маркеры (которые тянут `<img src="/__l5e/...">`) — нет.
+## Что меняем
 
-## Решение
+### 1. БД: добавляем поля в `sms_sender_settings`
+- `api_email text` — email-логин SMS Aero
+- `api_key text` — API-ключ (хранится в открытом виде в таблице, доступ только superadmin через RLS)
+- `updated_at` уже есть
 
-Перестать зависеть от runtime-роута `/__l5e/...` и бандлить иконку как обычный ассет Vite.
+Доступ к таблице: чтение/запись только у superadmin (как сейчас), service_role — полный.
 
-### Шаги
+### 2. Edge-функции: `supabase/functions/_shared/smsaero.ts`
+`getCreds()` сначала читает из `sms_sender_settings` (через service-role клиент), при отсутствии — fallback на переменные окружения `SMSAERO_EMAIL` / `SMSAERO_API_KEY`. Это сохранит работу существующих рассылок до того, как админ заполнит поля.
 
-1. Положить PNG-иконку в репозиторий: `src/assets/location_icon.png` (взять текущий бинарь из Lovable Assets, чтобы дизайн не поменялся).
-2. В `src/components/admin/LabLocationsMap.tsx`:
-   - Удалить импорт `locationIconAsset from "@/assets/location_icon.png.asset.json"`.
-   - Импортировать напрямую: `import locationIconUrl from "@/assets/location_icon.png";`
-   - В `buildIcon()` использовать `locationIconUrl` вместо `locationIconAsset.url`.
-3. Удалить файл `src/assets/location_icon.png.asset.json` (больше не нужен).
+Функция становится `async` — обновим вызовы в:
+- `sms-check-connection`
+- `sms-send-test`
+- `send-booking-sms`
+- `phone-otp-send`
+- `phone-change-send`
 
-После этого Vite зашьёт картинку в бандл с хешированным путём `/assets/location_icon-xxxx.png`, который одинаково работает и на lovable.app, и на reage.life через прокси.
+### 3. UI: `src/pages/admin/SmsSettings.tsx`, вкладка «Отправитель»
+Над блоком «Подпись» добавляем карточку «Аккаунт SMS Aero»:
+- Поле **Email аккаунта** (`api_email`)
+- Поле **API-ключ** (`api_key`) — type=password с кнопкой «показать/скрыть»; в поле подгружаются маскированные первые/последние символы, если уже сохранено
+- Кнопка **Сохранить** — обновляет строку в `sms_sender_settings`
+- Кнопка **Проверить подключение** уже есть — после сохранения сразу видно, работает ли новый аккаунт и баланс
 
-### Что НЕ трогаем
+Инструкция «Где взять ключи» остаётся, обновим последний пункт: «Вставьте email и API-ключ в поля выше и нажмите Сохранить».
 
-- Прокси/nginx-конфиги не меняем — проблема не в них, а в том, что мы тянем ассет не из бандла.
-- Логику карты, кластеризации, контексты — без изменений.
+## Технические детали
+- Миграция: `ALTER TABLE public.sms_sender_settings ADD COLUMN api_email text, ADD COLUMN api_key text;` + GRANT остаются прежними.
+- Edge-функции используют `createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)` для чтения настроек (уже импортируется в большинстве sms-функций).
+- В `SmsSettings.tsx` расширяем `fetchSender()` чтобы тянуть `api_email, api_key`; добавляем `handleSaveCreds()`.
+- API-ключ не логируем и не отправляем в чат/Telegram-уведомления.
 
-## Файлы
-
-- `src/assets/location_icon.png` — создать (бинарь иконки)
-- `src/assets/location_icon.png.asset.json` — удалить
-- `src/components/admin/LabLocationsMap.tsx` — заменить импорт и использование URL
+## Что НЕ меняем
+- `SMSAERO_WEBHOOK_SECRET` остаётся в секретах (это внутренний токен callback, не относится к аккаунту).
+- Существующие шаблоны, логи, тестовая отправка — без изменений.

@@ -1,14 +1,52 @@
 // Shared SMS Aero v2 client.
 // Docs: https://smsaero.ru/api/
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
+
 const BASE_URL = "https://gate.smsaero.ru/v2";
 
-function getCreds() {
-  const email = Deno.env.get("SMSAERO_EMAIL") ?? "";
-  const apiKey = Deno.env.get("SMSAERO_API_KEY") ?? "";
+let cachedCreds: { email: string; apiKey: string; at: number } | null = null;
+const CRED_TTL_MS = 30_000;
+
+async function getCreds(): Promise<{ email: string; apiKey: string }> {
+  if (cachedCreds && Date.now() - cachedCreds.at < CRED_TTL_MS) {
+    return { email: cachedCreds.email, apiKey: cachedCreds.apiKey };
+  }
+
+  let email = "";
+  let apiKey = "";
+
+  // Try DB first (admin-configurable account).
+  try {
+    const url = Deno.env.get("SUPABASE_URL") ?? "";
+    const srk = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (url && srk) {
+      const admin = createClient(url, srk, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { data } = await admin
+        .from("sms_sender_settings")
+        .select("api_email, api_key")
+        .limit(1)
+        .maybeSingle();
+      if (data) {
+        email = (data as any).api_email?.trim() || "";
+        apiKey = (data as any).api_key?.trim() || "";
+      }
+    }
+  } catch (_) {
+    // ignore, fallback to env
+  }
+
+  // Fallback to environment secrets.
+  if (!email) email = Deno.env.get("SMSAERO_EMAIL") ?? "";
+  if (!apiKey) apiKey = Deno.env.get("SMSAERO_API_KEY") ?? "";
+
   if (!email || !apiKey) {
     throw new Error("SMSAERO_EMAIL и SMSAERO_API_KEY не настроены");
   }
+
+  cachedCreds = { email, apiKey, at: Date.now() };
   return { email, apiKey };
 }
 
@@ -24,7 +62,9 @@ export function normalizePhone(raw: string): string {
 }
 
 export async function checkAuth(): Promise<{ ok: boolean; balance?: number; error?: string }> {
-  const { email, apiKey } = getCreds();
+  // Bust cache so admins see immediate effect of credential changes.
+  cachedCreds = null;
+  const { email, apiKey } = await getCreds();
   const res = await fetch(`${BASE_URL}/auth`, {
     method: "GET",
     headers: { Authorization: authHeader(email, apiKey) },
@@ -63,7 +103,7 @@ export async function sendSms(params: {
   text: string;
   sign?: string;
 }): Promise<SendResult> {
-  const { email, apiKey } = getCreds();
+  const { email, apiKey } = await getCreds();
   const number = normalizePhone(params.phone);
   if (!number) return { ok: false, error: "Пустой номер телефона" };
 
