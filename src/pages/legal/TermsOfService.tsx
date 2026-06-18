@@ -339,6 +339,59 @@ export default function TermsOfService() {
           </p>
         </Section>
 
+        <Section icon={<MessageSquare className="w-5 h-5" />} title="Сервисные SMS-сообщения и уведомления">
+          <p>
+            <strong className="text-foreground">11.1.</strong> Оператор вправе направлять Пользователю сервисные SMS-сообщения, push-уведомления и иные информационные сообщения, непосредственно связанные с исполнением настоящего Соглашения, на основании п. 5 ч. 1 ст. 6 Федерального закона № 152-ФЗ «О персональных данных» как необходимые для исполнения договора, стороной которого является Пользователь. Отдельного согласия Пользователя на получение таких сообщений не требуется.
+          </p>
+          <p className="mt-3">
+            <strong className="text-foreground">11.2.</strong> К сервисным сообщениям, направляемым Пользователю в рамках исполнения настоящего Соглашения, относятся:
+          </p>
+          <ul className="space-y-1.5 mt-2">
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>подтверждение регистрации в Сервисе и создания Личного кабинета;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления, связанные с оформлением, оплатой, продлением или изменением условий Подписки;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>подтверждение принятия заявки на лабораторное исследование или иные услуги;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления о статусе лабораторных исследований (включая получение результатов от Партнёров);</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления о готовности аналитических Отчётов и их доступности в Личном кабинете;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления о назначенной дате и времени визита для забора биоматериала;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>сообщения, содержащие одноразовые коды подтверждения (OTP) для авторизации, восстановления доступа и подтверждения операций в Сервисе;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления об изменении статуса заказа, заявки или записи;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>информационные сообщения о технических работах, изменениях в функционале Сервиса или иные сообщения, непосредственно связанные с исполнением настоящего Соглашения.</span>
+            </li>
+          </ul>
+          <p className="mt-3">
+            <strong className="text-foreground">11.3.</strong> Сервисные сообщения могут направляться Пользователю посредством SMS, push-уведомлений в мобильном приложении, электронной почты или иных каналов связи, указанных Пользователем при регистрации или в Личном кабинете.
+          </p>
+          <p className="mt-3">
+            <strong className="text-foreground">11.4.</strong> Пользователь вправе в любой момент отказаться от получения сервисных сообщений в Личном кабинете либо путём обращения в службу поддержки Оператора. При этом Пользователь понимает, что отказ от получения сервисных сообщений может ограничить доступность отдельных функций Сервиса.
+          </p>
+        </Section>
+
         <Section icon={<Scale className="w-5 h-5" />} title="Права и обязанности Пользователя">
           <p className="mb-2">
             <strong className="text-foreground">11.1.</strong> Пользователь обязуется:
