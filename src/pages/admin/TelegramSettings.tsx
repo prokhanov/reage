@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Send, CheckCircle2, XCircle, AlertCircle, Loader2, Eye, EyeOff, Copy } from "lucide-react";
+import { Send, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff, Copy } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 
 type EventDef = { key: string; label: string; description: string };
 
@@ -241,11 +242,11 @@ export default function TelegramSettings() {
 
           <div className="flex flex-wrap gap-2 pt-2">
             <Button onClick={handleSave} disabled={saving}>
-              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {saving && <ButtonSpinner className="mr-2" />}
               Сохранить
             </Button>
             <Button variant="outline" onClick={handleTestConnection} disabled={testing}>
-              {testing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {testing && <ButtonSpinner className="mr-2" />}
               Проверить подключение
             </Button>
           </div>
@@ -288,7 +289,7 @@ export default function TelegramSettings() {
                 disabled={testingEvent === ev.key || !status?.configured}
               >
                 {testingEvent === ev.key ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <ButtonSpinner className="mr-2" />
                 ) : (
                   <Send className="w-4 h-4 mr-2" />
                 )}
@@ -332,7 +333,7 @@ export default function TelegramSettings() {
           ))}
           <p className="text-xs text-muted-foreground">{BOOKING_PLACEHOLDERS}</p>
           <Button onClick={handleSave} disabled={saving} size="sm">
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {saving && <ButtonSpinner className="mr-2" />}
             Сохранить шаблоны
           </Button>
         </CardContent>

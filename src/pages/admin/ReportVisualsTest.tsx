@@ -21,7 +21,8 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2, Save, Download, Pencil, Eye } from "lucide-react";
+import { RefreshCw, Save, Download, Pencil, Eye } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import MDEditor from '@uiw/react-md-editor';
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -493,7 +494,7 @@ export default function ReportVisualsTest() {
                   className="gap-2"
                 >
                   {generating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <ButtonSpinner />
                   ) : (
                     <RefreshCw className="h-4 w-4" />
                   )}
@@ -756,7 +757,7 @@ BMI: 22.7 (норма)
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Демо-промпт</h3>
         <Button onClick={handleSave} disabled={saving} size="sm" className="gap-2">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {saving ? <ButtonSpinner /> : <Save className="h-4 w-4" />}
           {saving ? "Сохранение..." : "Сохранить в БД"}
         </Button>
       </div>

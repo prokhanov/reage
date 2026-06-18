@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBanner } from "@/components/admin/StatusBanner";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -352,7 +353,7 @@ export default function SmsSettings() {
               <div className="flex flex-wrap gap-2">
                 <Button onClick={handleSaveCreds} disabled={savingCreds} className="gap-2">
                   {savingCreds ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    <ButtonSpinner />
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
@@ -360,7 +361,7 @@ export default function SmsSettings() {
                 </Button>
                 <Button onClick={handleCheckConnection} disabled={checkingConn} variant="outline" className="gap-2">
                   {checkingConn ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                    <ButtonSpinner />
                   ) : (
                     <Wifi className="h-4 w-4" />
                   )}
@@ -410,7 +411,7 @@ export default function SmsSettings() {
               <div className="flex flex-wrap gap-2">
                 <Button onClick={handleSaveSender} disabled={savingSender} variant="outline" className="gap-2">
                   {savingSender ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                    <ButtonSpinner />
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
@@ -475,7 +476,7 @@ export default function SmsSettings() {
                         </div>
                         <Button onClick={() => handleSaveTemplate(t)} disabled={savingTplId === t.id} className="gap-2">
                           {savingTplId === t.id ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                            <ButtonSpinner />
                           ) : (
                             <Save className="h-4 w-4" />
                           )}
@@ -553,7 +554,7 @@ export default function SmsSettings() {
 
               <Button onClick={handleSendTest} disabled={sending || !testTplId || !testPhone} className="gap-2">
                 {sending ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  <ButtonSpinner />
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
