@@ -79,6 +79,12 @@ export default function SmsSettings() {
   const [checkingConn, setCheckingConn] = useState(false);
   const [connResult, setConnResult] = useState<{ ok: boolean; balance?: number; error?: string } | null>(null);
 
+  // SMS Aero account credentials (DB-backed, overrides env secrets)
+  const [apiEmail, setApiEmail] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [savingCreds, setSavingCreds] = useState(false);
+
   // Templates
   const [templates, setTemplates] = useState<SmsTemplate[]>([]);
   const [loadingTpl, setLoadingTpl] = useState(true);
