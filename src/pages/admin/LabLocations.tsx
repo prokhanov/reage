@@ -348,7 +348,7 @@ export default function LabLocations() {
       </div>
 
       <Tabs defaultValue="list" className="w-full">
-        <TabsList>
+        <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="list" className="gap-2">
             <ListIcon className="h-4 w-4" /> Список
           </TabsTrigger>

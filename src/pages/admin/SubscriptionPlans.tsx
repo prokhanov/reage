@@ -36,7 +36,7 @@ export default function SubscriptionPlans() {
 
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
+        <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="plans">Тарифы</TabsTrigger>
           <TabsTrigger value="pricing">Цены и периоды</TabsTrigger>
         </TabsList>
