@@ -419,14 +419,12 @@ export default function EmailSettings() {
                           </Button>
                         </div>
                         {lastResult && (
-                          <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                            lastResult.success
-                              ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                              : "bg-destructive/10 text-destructive"
-                          }`}>
-                            {lastResult.success ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
+                          <StatusBanner
+                            variant={lastResult.success ? "success" : "error"}
+                            icon={lastResult.success ? CheckCircle : AlertCircle}
+                          >
                             {lastResult.message}
-                          </div>
+                          </StatusBanner>
                         )}
                       </div>
                     </TabsContent>

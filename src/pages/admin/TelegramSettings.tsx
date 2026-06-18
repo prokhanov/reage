@@ -250,10 +250,13 @@ export default function TelegramSettings() {
           </div>
 
           {connStatus && (
-            <div className={`flex items-start gap-2 text-sm p-3 rounded-md ${connStatus.ok ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-destructive/10 text-destructive"}`}>
-              {connStatus.ok ? <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" /> : <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />}
-              <span>{connStatus.msg}</span>
-            </div>
+            <StatusBanner
+              variant={connStatus.ok ? "success" : "error"}
+              icon={connStatus.ok ? CheckCircle2 : AlertCircle}
+              align="start"
+            >
+              {connStatus.msg}
+            </StatusBanner>
           )}
         </CardContent>
       </Card>
