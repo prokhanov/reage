@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AdminPaymentTester } from "@/components/admin/pricing/AdminPaymentTester";
 import { AdminPaymentLogs } from "@/components/admin/pricing/AdminPaymentLogs";
 
