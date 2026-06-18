@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PatientsListSkeleton } from "@/components/skeletons/PatientsListSkeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -373,7 +373,11 @@ export default function Patients() {
   };
 
   if (isLoading) {
-    return <PatientsListSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
   }
 
   return (

@@ -15,7 +15,7 @@ import {
 import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
 import logoUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, Send, CheckCircle, AlertCircle, Save, User, Activity, Megaphone, BellRing } from "lucide-react";
@@ -306,14 +306,7 @@ export default function EmailSettings() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
+              <AdminCenterLoader />
             ) : (
               <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setLastResult(null); }}>
                 <TabsList className="w-full justify-start overflow-x-auto">

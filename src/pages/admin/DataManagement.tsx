@@ -51,7 +51,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { DataManagementSkeleton } from "@/components/skeletons/DataManagementSkeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 // Categories will be loaded from DB
 
@@ -688,7 +688,11 @@ export default function DataManagement() {
   };
 
   if (loadingBiomarkers || loadingConditions) {
-    return <DataManagementSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
   }
 
   return (

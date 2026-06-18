@@ -12,7 +12,7 @@ import { CreatePlanDialog } from "@/components/admin/CreatePlanDialog";
 import { PlansList } from "@/components/admin/PlansList";
 import { PricingTable } from "@/components/admin/PricingTable";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 export default function SubscriptionPlans() {
   const [activeTab, setActiveTab] = useState("plans");
@@ -51,11 +51,7 @@ export default function SubscriptionPlans() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-32 w-full" />
-                  ))}
-                </div>
+                <AdminCenterLoader />
               ) : plans && plans.length > 0 ? (
                 <PlansList plans={plans} />
               ) : (
@@ -77,7 +73,7 @@ export default function SubscriptionPlans() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <Skeleton className="h-12 w-full" />
+                <AdminCenterLoader />
               ) : plans && plans.length > 0 ? (
                 <>
                   <div className="mb-6">

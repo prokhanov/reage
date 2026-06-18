@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AISettingsSkeleton } from "@/components/skeletons/AISettingsSkeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { getCategoryKey } from "@/lib/categoryKeyMap";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -249,7 +249,11 @@ export default function AISettings() {
   };
 
   if (isLoading || categoriesLoading) {
-    return <AISettingsSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
   }
 
   return (

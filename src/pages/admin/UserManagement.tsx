@@ -43,7 +43,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { UserManagementSkeleton } from "@/components/skeletons/UserManagementSkeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -473,7 +473,11 @@ export default function UserManagement() {
   };
 
   if (isLoading) {
-    return <UserManagementSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
   }
 
   return (
