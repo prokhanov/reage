@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Send, CheckCircle2, XCircle, AlertCircle, Loader2, Eye, EyeOff, Copy } from "lucide-react";
+import { Send, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff, Copy } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 
 type EventDef = { key: string; label: string; description: string };
 
