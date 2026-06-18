@@ -28,7 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useToast } from "@/hooks/use-toast";
 import { Settings2 } from "lucide-react";
 import LabLocationsMap, { LabMapItem, TileStyleKey, TileFilters, DEFAULT_FILTERS } from "./LabLocationsMap";
@@ -127,13 +128,11 @@ export default function LabMapContextsTable({ items }: { items: LabMapItem[] }) 
           </TableHeader>
           <TableBody>
             {loading ? (
-              Array.from({ length: 2 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell colSpan={5}>
-                    <Skeleton className="h-8 w-full" />
-                  </TableCell>
-                </TableRow>
-              ))
+              <TableRow>
+                <TableCell colSpan={5}>
+                  <AdminCenterLoader size="sm" />
+                </TableCell>
+              </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-8">

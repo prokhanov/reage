@@ -33,7 +33,7 @@ import {
   Clock,
   MessageCircle,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
@@ -241,13 +241,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
         </DialogHeader>
 
         {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-24 w-full" />
-            <div className="grid md:grid-cols-2 gap-4">
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-          </div>
+          <AdminCenterLoader />
         ) : patientData ? (
           <>
             {/* Основная информация с аватаром - над вкладками */}

@@ -544,7 +544,7 @@ export default function UserManagement() {
               </div>
 
               {isLoading ? (
-                <div className="text-center py-12 text-muted-foreground">Загрузка...</div>
+                <AdminCenterLoader />
               ) : (
                 <div className="rounded-md border overflow-x-auto">
                   <Table>

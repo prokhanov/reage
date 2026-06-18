@@ -639,6 +639,7 @@ export default function LabLocations() {
               Отмена
             </Button>
             <Button onClick={handleSave} disabled={saving}>
+              {saving && <ButtonSpinner className="mr-2" />}
               {saving ? "Сохранение..." : "Сохранить"}
             </Button>
           </DialogFooter>

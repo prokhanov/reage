@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -141,11 +142,7 @@ export default function ReminderStopListDialog({ open, onOpenChange }: Props) {
 
           <ScrollArea className="h-[360px] rounded-md border border-border">
             {loading ? (
-              <div className="p-3 space-y-2">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
+              <AdminCenterLoader size="sm" />
             ) : filtered.length === 0 ? (
               <div className="p-8 text-center text-sm text-muted-foreground">Никого не найдено</div>
             ) : (
@@ -183,6 +180,7 @@ export default function ReminderStopListDialog({ open, onOpenChange }: Props) {
             Отмена
           </Button>
           <Button onClick={handleSave} disabled={saving || loading}>
+            {saving && <ButtonSpinner className="mr-2" />}
             {saving ? "Сохранение..." : "Сохранить"}
           </Button>
         </div>

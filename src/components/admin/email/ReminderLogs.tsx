@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { supabase } from "@/integrations/supabase/client";
 import { RefreshCw, CheckCircle2, AlertCircle, Clock, Mail } from "lucide-react";
 
@@ -82,11 +82,7 @@ export default function ReminderLogs() {
         </Button>
       </div>
       {loading ? (
-        <div className="p-4 space-y-2">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
+        <AdminCenterLoader />
       ) : (
         <div className="overflow-x-auto">
           <Table>

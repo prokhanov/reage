@@ -835,7 +835,7 @@ export function EditReportDialog({
                 <div className="flex items-center justify-between px-5 py-3 border-b">
                   <div className="flex items-center gap-2">
                     {qaRunning ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <ButtonSpinner className="h-5 w-5 text-primary" />
                     ) : (
                       <CheckCircle2 className="h-5 w-5 text-primary" />
                     )}
