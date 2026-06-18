@@ -113,12 +113,46 @@ export default function SmsSettings() {
   const fetchSender = async () => {
     const { data } = await supabase
       .from("sms_sender_settings" as any)
-      .select("id, sender_sign")
+      .select("id, sender_sign, api_email, api_key")
       .limit(1)
       .maybeSingle();
     if (data) {
       setSenderId((data as any).id);
       setSenderSign((data as any).sender_sign || "");
+      setApiEmail((data as any).api_email || "");
+      setApiKey((data as any).api_key || "");
+    }
+  };
+
+  const handleSaveCreds = async () => {
+    setSavingCreds(true);
+    setConnResult(null);
+    try {
+      const payload = {
+        api_email: apiEmail.trim() || null,
+        api_key: apiKey.trim() || null,
+        updated_at: new Date().toISOString(),
+      };
+      if (senderId) {
+        const { error } = await supabase
+          .from("sms_sender_settings" as any)
+          .update(payload)
+          .eq("id", senderId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("sms_sender_settings" as any)
+          .insert({ ...payload, sender_sign: senderSign })
+          .select("id")
+          .single();
+        if (error) throw error;
+        setSenderId((data as any).id);
+      }
+      toast({ title: "Сохранено", description: "Данные аккаунта SMS Aero обновлены" });
+    } catch (e: any) {
+      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+    } finally {
+      setSavingCreds(false);
     }
   };
 
