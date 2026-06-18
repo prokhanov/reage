@@ -287,7 +287,7 @@ export default function EmailSettings() {
             </div>
             <Button onClick={handleSaveSender} disabled={isSavingSender} variant="outline" className="gap-2">
               {isSavingSender ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                <ButtonSpinner />
               ) : (
                 <Save className="h-4 w-4" />
               )}
@@ -380,7 +380,7 @@ export default function EmailSettings() {
                         className="gap-2"
                       >
                         {savingType === tab.type ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                          <ButtonSpinner />
                         ) : (
                           <Save className="h-4 w-4" />
                         )}
@@ -412,7 +412,7 @@ export default function EmailSettings() {
                             className="h-10 gap-2"
                           >
                             {isSending ? (
-                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                              <ButtonSpinner />
                             ) : (
                               <Send className="h-4 w-4" />
                             )}
