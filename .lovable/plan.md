@@ -1,40 +1,109 @@
-## План
+План: пройти все разделы админки по маршрутам и привести loading-индикаторы к одному визуальному стандарту.
 
-Исправлю не отдельные места, а всю админку целиком: страницы, вложенные вкладки, диалоги и таблицы, где есть loading-индикаторы.
+## Список разделов админки для проверки
 
-### 1. Ввести единый набор loading-компонентов для админки
-- Оставить один стиль для кнопочных индикаторов через `ButtonSpinner`.
-- Добавить/использовать единые admin-компоненты для:
-  - кнопочного спиннера;
-  - центрированного inline/page loader;
-  - загрузки таблиц/карточек через skeleton с одинаковыми отступами.
-- Убрать ручные CSS-кружки и разрозненные `Loader2` прямо в JSX.
+1. `Пациенты` — `/admin/patients`
+   - список пациентов
+   - профиль пациента `/admin/patients/:userId`
+   - диалоги подтверждения email/телефона, просмотра пациента, удаления
 
-### 2. Исправить проблемные разделы, которые сейчас явно отличаются
-- `SubscriptionPlans`: заменить разные skeleton-блоки тарифов/цен на единый admin loading layout.
-- `SmsSettings` и вложенный `SmsLogsDashboard`: унифицировать skeleton таблицы и кнопку обновления.
-- `EmailSettings` и вложенные email-компоненты: `EmailLogsDashboard`, `ConfirmationReminders`, `ReminderLogs`, `DripLogsTab`, `SeriesSubscribersTab`, `EnrollPatientsDialog`.
-- `PaymentGatewaySettings`, `AdminPaymentTester`, `AdminPaymentLogs`: убрать оставшийся `Loader2`/разные skeleton-строки, сделать единообразно.
+2. `Записи на анализы` — `/admin/analysis-bookings`
+   - список записей
+   - настройки режима записи
+   - управление слотами
+   - создание/редактирование записи
+   - назначение сотрудника
 
-### 3. Пройти все оставшиеся admin-компоненты со спиннерами
-Заменить оставшиеся нестандартные индикаторы в:
-- `AnalysisStep1`, `CreateAnalysisWizard`, `EditAnalysisWizard`;
-- `AssignStaffDialog`, `ChangeUserEmailDialog`, `EditSubscriptionDialog`, `SubscriptionHistoryDialog`;
-- `EmailConfirmationBadge`, `PhoneConfirmationBadge`;
-- `EditReportDialog`;
-- `Patients`, `LabLocations`, `UserManagement`, `ReportVisualsTest` — только loading/refresh presentation, без изменения бизнес-логики.
+3. `Назначены мне` — `/admin/my-assignments`
 
-### 4. Скелетоны и пустые загрузочные состояния
-- Привести размеры skeleton-строк таблиц к одному виду: одинаковые `p`, `space-y`, высота строк.
-- Не трогать горизонтальный scroll таблиц.
-- Не заменять полноценные скелетоны страниц там, где они уже структурные, но выровнять их отступы/размеры, если они отличаются от общего admin-шаблона.
+4. `Пользователи` — `/admin/user-management`
+   - список пользователей
+   - роли и права
+   - создание приглашения
+   - редактирование pending-пользователя
+   - смена email
 
-### 5. Безопасность режима просмотра кабинета пациента
-- Не менять маршруты, права, запросы, переключение пользователя, patient-view state или данные.
-- В `PatientProfile` оставить логику как есть, заменить только визуальный loading-индикатор на общий вариант.
+5. `Тарифы` — `/admin/subscription-plans`
+   - вкладка тарифов
+   - вкладка цен и периодов
+   - создание/редактирование тарифа
+   - редактирование цены
 
-## Технические детали
+6. `Платёжный шлюз` — `/admin/payment-gateway`
+   - настройки
+   - тестирование платежей
+   - логи платежей
 
-- Все изменения будут presentation-only: классы, imports, JSX loading-блоки.
-- Никаких изменений в запросах, hooks, mutations, handlers, RLS/backend.
-- После правки проверю поиском, что в `src/pages/admin` и `src/components/admin` не осталось ручных `Loader2`, CSS spinner-кружков и разрозненных `animate-spin`, кроме единого компонента и допустимых иконок refresh.
+7. `Тест отчета` — `/admin/report-visuals`
+
+8. `Настройки AI` — `/admin/ai-settings`
+   - список промптов
+   - редактирование промпта
+
+9. `Email` — `/admin/email-settings`
+   - рассылки
+   - технические письма
+   - напоминания
+   - логи и мониторинг
+
+10. `SMS` — `/admin/sms-settings`
+    - отправитель
+    - шаблоны
+    - тестовая отправка
+    - логи
+
+11. `Telegram` — `/admin/telegram-settings`
+
+12. `Лаборатории` — `/admin/labs`
+
+13. `Управление данными` — `/admin/data-management`
+    - биомаркеры
+    - медицинские состояния
+    - симптомы
+    - категории
+
+14. Скрытый/служебный admin route — `/admin/scale-preview`
+
+## Что унифицировать
+
+1. **Единый page/card loading для разделов**
+   - Убрать разнобой вида: большой skeleton в `Пациентах`, отдельные skeleton-блоки в `Тарифах`, локальные skeleton в `Email/SMS`, пустой экран в `Telegram`.
+   - Для загрузки целого раздела или карточки использовать один стандартный `AdminCenterLoader` с одинаковым размером, отступами и текстом.
+
+2. **Единый table/list loading**
+   - Табличные разделы (`Пациенты`, `Пользователи`, `Записи`, `SMS logs`, `Email logs`, платежные логи) привести к одинаковой структуре загрузки: один и тот же паттерн внутри карточки/таблицы.
+   - Не ломать горизонтальный scroll у таблиц.
+
+3. **Единый button loading**
+   - Все кнопки действий перевести на `ButtonSpinner` + нормальный текст действия.
+   - Исправить места, где сейчас только текст `Создание...`, `Сохранение...`, `Удаление...` без иконки.
+
+4. **Единый refresh loading**
+   - Все кнопки обновления оставить с `RefreshCw`, но крутить иконку только во время refetch/loading и с одинаковыми классами.
+
+5. **Единый inline/dialog loading**
+   - В диалогах, badge-проверках, селекторах, настройках слотов и маленьких блоках заменить текстовые `Загрузка...` и raw `Loader2` на один компактный `AdminCenterLoader size="sm"` или `ButtonSpinner`, в зависимости от контекста.
+
+## Конкретные проблемные места, которые нужно пройти
+
+- `SubscriptionPlans` — заменить разные skeleton в тарифах/ценах на общий admin loading.
+- `Patients` — убрать отдельный `PatientsListSkeleton` как визуально другой паттерн и привести к общему стандарту.
+- `SmsSettings` и `SmsLogsDashboard` — унифицировать loading шаблонов и логов.
+- `EmailSettings` и email-вкладки — унифицировать loading шаблонов, логов, рассылок, подписчиков, напоминаний.
+- `TelegramSettings` — убрать `return null` во время загрузки, показать общий loader.
+- `PaymentGatewaySettings` и payment-компоненты — проверить остатки `Loader2`/локальных skeleton.
+- `UserManagement`, `AnalysisBookings`, `DataManagement`, `AISettings`, `LabLocations`, `ReportVisualsTest`, `MyAssignments` — сверить с общим стандартом и поправить отличия.
+- Вложенные admin-компоненты: `CreatePlanDialog`, `EditPlanDialog`, `EditPricingDialog`, `CreateUserDialog`, `RoleManagementCard`, `UserPermissionsDialog`, `CreateBookingDialog`, `EditBookingDialog`, `BookingModeSettings`, `DaySlotsManager`, `BiomarkerSelector`, `CreateAnalysisDialog`, `CreatePrescriptionDialog`, `EditPrescriptionDialog`, `CreateInteractionDialog`, `PhoneConfirmationBadge`.
+
+## Ограничения
+
+- Только визуальная унификация loading-индикаторов.
+- Не менять бизнес-логику, запросы, права, маршруты, статусы, роли, режим просмотра пациента и backend.
+- Не трогать данные и миграции.
+- Сохранить тёмную тему и текущий общий layout админки.
+
+## Проверка после реализации
+
+- Повторно запустить поиск по `Loader2`, `Skeleton`, `animate-spin`, `Загрузка...`, `Создание...`, `Сохранение...`, `Удаление...` в `src/pages/admin` и `src/components/admin`.
+- Убедиться, что остатки допустимы только внутри общих компонентов (`AdminCenterLoader`, `ButtonSpinner`) или в едином refresh-паттерне.
+- Визуально проверить ключевые разделы: `Пациенты`, `Тарифы`, `Email`, `SMS`, `Пользователи`, `Записи на анализы`.
