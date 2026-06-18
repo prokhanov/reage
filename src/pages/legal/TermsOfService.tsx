@@ -18,6 +18,7 @@ import {
   Gavel,
   Clock,
   Landmark,
+  MessageSquare,
 } from "lucide-react";
 
 export default function TermsOfService() {
