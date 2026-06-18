@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import { PatientBookingsCard } from "@/components/admin/PatientBookingsCard";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
