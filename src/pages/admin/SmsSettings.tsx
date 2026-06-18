@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBanner } from "@/components/admin/StatusBanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -296,7 +297,7 @@ export default function SmsSettings() {
       </div>
 
       <Tabs defaultValue="sender" className="w-full">
-        <TabsList className="flex-wrap">
+        <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="sender" className="gap-2"><User className="w-4 h-4" />Отправитель</TabsTrigger>
           <TabsTrigger value="templates" className="gap-2"><MessageSquare className="w-4 h-4" />Шаблоны</TabsTrigger>
           <TabsTrigger value="test" className="gap-2"><Send className="w-4 h-4" />Тестовая отправка</TabsTrigger>
@@ -367,16 +368,14 @@ export default function SmsSettings() {
                 </Button>
               </div>
               {connResult && (
-                <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                  connResult.ok
-                    ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                    : "bg-destructive/10 text-destructive"
-                }`}>
-                  {connResult.ok ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
+                <StatusBanner
+                  variant={connResult.ok ? "success" : "error"}
+                  icon={connResult.ok ? CheckCircle : AlertCircle}
+                >
                   {connResult.ok
                     ? `Подключение к SMS Aero работает${typeof connResult.balance === "number" ? `. Баланс: ${connResult.balance.toFixed(2)} ₽` : ""}.`
                     : `Ошибка подключения: ${connResult.error}`}
-                </div>
+                </StatusBanner>
               )}
               <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground space-y-1">
                 <p className="font-medium text-foreground">Где взять ключи SMS Aero</p>
@@ -562,14 +561,12 @@ export default function SmsSettings() {
               </Button>
 
               {lastResult && (
-                <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                  lastResult.success
-                    ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                    : "bg-destructive/10 text-destructive"
-                }`}>
-                  {lastResult.success ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
+                <StatusBanner
+                  variant={lastResult.success ? "success" : "error"}
+                  icon={lastResult.success ? CheckCircle : AlertCircle}
+                >
                   {lastResult.message}
-                </div>
+                </StatusBanner>
               )}
             </CardContent>
           </Card>

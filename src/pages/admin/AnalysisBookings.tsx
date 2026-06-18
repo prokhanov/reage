@@ -312,7 +312,7 @@ export default function AnalysisBookings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="bookings">
             <Calendar className="h-4 w-4 mr-2" />
             Записи пациентов

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBanner } from "@/components/admin/StatusBanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -250,10 +251,13 @@ export default function TelegramSettings() {
           </div>
 
           {connStatus && (
-            <div className={`flex items-start gap-2 text-sm p-3 rounded-md ${connStatus.ok ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-destructive/10 text-destructive"}`}>
-              {connStatus.ok ? <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" /> : <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />}
-              <span>{connStatus.msg}</span>
-            </div>
+            <StatusBanner
+              variant={connStatus.ok ? "success" : "error"}
+              icon={connStatus.ok ? CheckCircle2 : AlertCircle}
+              align="start"
+            >
+              {connStatus.msg}
+            </StatusBanner>
           )}
         </CardContent>
       </Card>

@@ -279,7 +279,7 @@ export default function AISettings() {
         {/* Раздел: Одиночные промпты (AI Ассистент, Тренды) */}
         {filteredStandalonePrompts.length > 0 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Общие промпты</h2>
+            <h2 className="text-lg font-semibold mb-4">Общие промпты</h2>
             <p className="text-sm text-muted-foreground mb-4">
               AI ассистент, тренды и другие промпты, не привязанные к категориям
             </p>
@@ -334,7 +334,7 @@ export default function AISettings() {
         {/* Раздел: Биологический возраст (парные промпты) */}
         {filteredPairedPrompts.length > 0 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Биологический возраст</h2>
+            <h2 className="text-lg font-semibold mb-4">Биологический возраст</h2>
             <p className="text-sm text-muted-foreground mb-4">
               Промпты для расчёта биологического возраста на основе анализа биомаркеров
             </p>
