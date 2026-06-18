@@ -7,7 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -216,9 +216,7 @@ export function AdminPaymentLogs() {
         </CardHeader>
         <CardContent>
           {ordersQuery.isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
-            </div>
+            <AdminCenterLoader />
           ) : filteredOrders.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">Нет заказов.</p>
           ) : (
@@ -308,9 +306,7 @@ export function AdminPaymentLogs() {
         </CardHeader>
         <CardContent>
           {callbacksQuery.isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
-            </div>
+            <AdminCenterLoader />
           ) : (callbacksQuery.data || []).length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
               Пока ни одного колбэка от Робокассы не зафиксировано.
