@@ -693,9 +693,9 @@ export default function DataManagement() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Управление данными</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Управление данными</h1>
           <p className="text-muted-foreground mt-1">
             Управление биомаркерами и медицинскими состояниями
           </p>

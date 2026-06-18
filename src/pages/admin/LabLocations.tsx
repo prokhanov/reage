@@ -305,14 +305,14 @@ export default function LabLocations() {
   };
 
   return (
-    <div className="container max-w-7xl py-6 space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <MapPin className="h-6 w-6 text-primary" />
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <MapPin className="h-7 w-7 text-primary" />
             Лаборатории
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Справочник адресов пунктов забора (LabQuest и другие провайдеры).
           </p>
         </div>

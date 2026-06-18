@@ -303,10 +303,10 @@ export default function AnalysisBookings() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Записи на анализы</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-1">
           Управление записями пациентов и доступными слотами
         </p>
       </div>

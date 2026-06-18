@@ -287,9 +287,9 @@ export default function SmsSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">SMS рассылки</h1>
+        <h1 className="text-3xl font-bold tracking-tight">SMS рассылки</h1>
         <p className="text-muted-foreground mt-1">
           Отправитель, шаблоны и тестовая отправка через SMS Aero
         </p>

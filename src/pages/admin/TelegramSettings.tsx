@@ -168,11 +168,11 @@ export default function TelegramSettings() {
   })();
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Telegram уведомления</h1>
-          <p className="text-muted-foreground">Бот отправляет уведомления админам о событиях платформы</p>
+          <h1 className="text-3xl font-bold tracking-tight">Telegram уведомления</h1>
+          <p className="text-muted-foreground mt-1">Бот отправляет уведомления админам о событиях платформы</p>
         </div>
         {statusBadge}
       </div>

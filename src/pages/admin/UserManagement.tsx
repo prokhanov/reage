@@ -479,7 +479,7 @@ export default function UserManagement() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Управление пользователями</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Управление пользователями</h1>
         <p className="text-muted-foreground mt-1">
           Управление ролями и доступами пользователей
         </p>
