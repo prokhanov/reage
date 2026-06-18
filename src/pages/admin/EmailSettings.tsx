@@ -213,7 +213,7 @@ export default function EmailSettings() {
       </div>
 
       <Tabs defaultValue="drip" className="w-full">
-        <TabsList className="w-full flex-wrap justify-start">
+        <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="drip" className="gap-2">
             <Megaphone className="w-4 h-4" />
             Рассылки

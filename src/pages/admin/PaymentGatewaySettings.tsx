@@ -105,7 +105,7 @@ export default function PaymentGatewaySettings() {
       )}
 
       <Tabs defaultValue="settings">
-        <TabsList className="flex-wrap h-auto">
+        <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="settings">Настройки</TabsTrigger>
           <TabsTrigger value="test-payment">Тест оплаты</TabsTrigger>
           <TabsTrigger value="logs">Логи оплат</TabsTrigger>

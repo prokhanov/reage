@@ -702,7 +702,7 @@ export default function DataManagement() {
         </div>
 
         <Tabs defaultValue="biomarkers" className="space-y-6">
-          <TabsList className="grid w-full max-w-3xl grid-cols-4">
+          <TabsList className="w-full justify-start flex-wrap h-auto">
             <TabsTrigger value="biomarkers">
               <Activity className="w-4 h-4 mr-2" />
               Биомаркеры

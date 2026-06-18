@@ -297,7 +297,7 @@ export default function SmsSettings() {
       </div>
 
       <Tabs defaultValue="sender" className="w-full">
-        <TabsList className="flex-wrap">
+        <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="sender" className="gap-2"><User className="w-4 h-4" />Отправитель</TabsTrigger>
           <TabsTrigger value="templates" className="gap-2"><MessageSquare className="w-4 h-4" />Шаблоны</TabsTrigger>
           <TabsTrigger value="test" className="gap-2"><Send className="w-4 h-4" />Тестовая отправка</TabsTrigger>
