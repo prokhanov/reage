@@ -18,6 +18,7 @@ import {
   Gavel,
   Clock,
   Landmark,
+  MessageSquare,
 } from "lucide-react";
 
 export default function TermsOfService() {
@@ -339,9 +340,62 @@ export default function TermsOfService() {
           </p>
         </Section>
 
+        <Section icon={<MessageSquare className="w-5 h-5" />} title="Сервисные SMS-сообщения и уведомления">
+          <p>
+            <strong className="text-foreground">11.1.</strong> Оператор вправе направлять Пользователю сервисные SMS-сообщения, push-уведомления и иные информационные сообщения, непосредственно связанные с исполнением настоящего Соглашения, на основании п. 5 ч. 1 ст. 6 Федерального закона № 152-ФЗ «О персональных данных» как необходимые для исполнения договора, стороной которого является Пользователь. Отдельного согласия Пользователя на получение таких сообщений не требуется.
+          </p>
+          <p className="mt-3">
+            <strong className="text-foreground">11.2.</strong> К сервисным сообщениям, направляемым Пользователю в рамках исполнения настоящего Соглашения, относятся:
+          </p>
+          <ul className="space-y-1.5 mt-2">
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>подтверждение регистрации в Сервисе и создания Личного кабинета;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления, связанные с оформлением, оплатой, продлением или изменением условий Подписки;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>подтверждение принятия заявки на лабораторное исследование или иные услуги;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления о статусе лабораторных исследований (включая получение результатов от Партнёров);</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления о готовности аналитических Отчётов и их доступности в Личном кабинете;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления о назначенной дате и времени визита для забора биоматериала;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>сообщения, содержащие одноразовые коды подтверждения (OTP) для авторизации, восстановления доступа и подтверждения операций в Сервисе;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>уведомления об изменении статуса заказа, заявки или записи;</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+              <span>информационные сообщения о технических работах, изменениях в функционале Сервиса или иные сообщения, непосредственно связанные с исполнением настоящего Соглашения.</span>
+            </li>
+          </ul>
+          <p className="mt-3">
+            <strong className="text-foreground">11.3.</strong> Сервисные сообщения могут направляться Пользователю посредством SMS, push-уведомлений в мобильном приложении, электронной почты или иных каналов связи, указанных Пользователем при регистрации или в Личном кабинете.
+          </p>
+          <p className="mt-3">
+            <strong className="text-foreground">11.4.</strong> Пользователь вправе в любой момент отказаться от получения сервисных сообщений в Личном кабинете либо путём обращения в службу поддержки Оператора. При этом Пользователь понимает, что отказ от получения сервисных сообщений может ограничить доступность отдельных функций Сервиса.
+          </p>
+        </Section>
+
         <Section icon={<Scale className="w-5 h-5" />} title="Права и обязанности Пользователя">
           <p className="mb-2">
-            <strong className="text-foreground">11.1.</strong> Пользователь обязуется:
+            <strong className="text-foreground">12.1.</strong> Пользователь обязуется:
           </p>
           <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
@@ -362,7 +416,7 @@ export default function TermsOfService() {
             </li>
           </ul>
           <p className="mt-3 mb-2">
-            <strong className="text-foreground">11.2.</strong> Пользователь вправе:
+            <strong className="text-foreground">12.2.</strong> Пользователь вправе:
           </p>
           <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
@@ -382,7 +436,7 @@ export default function TermsOfService() {
 
         <Section icon={<Lightbulb className="w-5 h-5" />} title="Права и обязанности Оператора">
           <p className="mb-2">
-            <strong className="text-foreground">12.1.</strong> Оператор вправе:
+            <strong className="text-foreground">13.1.</strong> Оператор вправе:
           </p>
           <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
@@ -403,7 +457,7 @@ export default function TermsOfService() {
             </li>
           </ul>
           <p className="mt-3 mb-2">
-            <strong className="text-foreground">12.2.</strong> Оператор обязуется:
+            <strong className="text-foreground">13.2.</strong> Оператор обязуется:
           </p>
           <ul className="space-y-1.5">
             <li className="flex items-start gap-2">
@@ -423,17 +477,17 @@ export default function TermsOfService() {
 
         <Section icon={<Scale className="w-5 h-5" />} title="Интеллектуальная собственность">
           <p>
-            <strong className="text-foreground">13.1.</strong> Все права на Сервис, Сайт, программное обеспечение,
+            <strong className="text-foreground">14.1.</strong> Все права на Сервис, Сайт, программное обеспечение,
             базы данных, интерфейсы, дизайн, тексты, изображения, графические материалы, отчёты, методики представления
             информации, алгоритмы обработки данных и иные объекты интеллектуальной собственности принадлежат Оператору
             либо используются им на законных основаниях.
           </p>
           <p>
-            <strong className="text-foreground">13.2.</strong> Пользователю предоставляется ограниченное неисключительное
+            <strong className="text-foreground">14.2.</strong> Пользователю предоставляется ограниченное неисключительное
             право использования Сервиса исключительно в личных некоммерческих целях в течение срока действия Подписки.
           </p>
           <p className="mt-3">
-            <strong className="text-foreground">13.3.</strong> Пользователь не вправе:
+            <strong className="text-foreground">14.3.</strong> Пользователь не вправе:
           </p>
           <ul className="space-y-1.5 mt-2">
             <li className="flex items-start gap-2">
@@ -453,12 +507,12 @@ export default function TermsOfService() {
 
         <Section icon={<FileWarning className="w-5 h-5" />} title="Особые условия использования аналитических материалов">
           <p>
-            <strong className="text-foreground">14.1.</strong> Отчёты, аналитические материалы, индексы, расчётные
+            <strong className="text-foreground">15.1.</strong> Отчёты, аналитические материалы, индексы, расчётные
             показатели, визуализации и иные результаты работы Сервиса предназначены исключительно для информационных
             целей.
           </p>
           <p className="mt-3">
-            <strong className="text-foreground">14.2.</strong> Материалы Сервиса не являются:
+            <strong className="text-foreground">15.2.</strong> Материалы Сервиса не являются:
           </p>
           <ul className="space-y-1.5 mt-2">
             <li className="flex items-start gap-2">
@@ -483,25 +537,25 @@ export default function TermsOfService() {
             </li>
           </ul>
           <p className="mt-3">
-            <strong className="text-foreground">14.2.1.</strong> Материалы Сервиса не являются медицинской документацией и не подлежат использованию в качестве медицинской карты пациента.
+            <strong className="text-foreground">15.2.1.</strong> Материалы Сервиса не являются медицинской документацией и не подлежат использованию в качестве медицинской карты пациента.
           </p>
           <p className="mt-3">
-            <strong className="text-foreground">14.3.</strong> Пользователь самостоятельно принимает решения
+            <strong className="text-foreground">15.3.</strong> Пользователь самостоятельно принимает решения
             относительно дальнейших действий на основании полученной информации.
           </p>
           <p>
-            <strong className="text-foreground">14.4.</strong> При наличии вопросов, связанных с состоянием здоровья,
+            <strong className="text-foreground">15.4.</strong> При наличии вопросов, связанных с состоянием здоровья,
             Пользователю рекомендуется обращаться к профильным специалистам.
           </p>
           <p>
-            <strong className="text-foreground">14.5.</strong> Оператор не гарантирует достижение какого-либо
+            <strong className="text-foreground">15.5.</strong> Оператор не гарантирует достижение какого-либо
             конкретного результата, улучшения состояния здоровья либо изменения каких-либо показателей Пользователя.
           </p>
         </Section>
 
         <Section icon={<AlertTriangle className="w-5 h-5" />} title="Ограничение ответственности">
           <p>
-            <strong className="text-foreground">15.1.</strong> Оператор не несёт ответственности за:
+            <strong className="text-foreground">16.1.</strong> Оператор не несёт ответственности за:
           </p>
           <ul className="space-y-1.5 mt-2">
             <li className="flex items-start gap-2">
@@ -526,32 +580,32 @@ export default function TermsOfService() {
             </li>
           </ul>
           <p className="mt-3">
-            <strong className="text-foreground">15.2.</strong> Оператор не гарантирует непрерывную и безошибочную
+            <strong className="text-foreground">16.2.</strong> Оператор не гарантирует непрерывную и безошибочную
             работу Сервиса, однако принимает разумные меры для поддержания его работоспособности.
           </p>
           <p>
-            <strong className="text-foreground">15.3.</strong> Максимальный размер ответственности Оператора по любым
+            <strong className="text-foreground">16.3.</strong> Максимальный размер ответственности Оператора по любым
             требованиям Пользователя ограничивается суммой денежных средств, фактически уплаченной Пользователем за
             последние двенадцать месяцев использования Сервиса.
           </p>
           <p>
-            <strong className="text-foreground">15.4.</strong> Оператор не несёт ответственности за невозможность
+            <strong className="text-foreground">16.4.</strong> Оператор не несёт ответственности за невозможность
             использования Сервиса по причинам, не зависящим от Оператора.
           </p>
         </Section>
 
         <Section icon={<CheckCircle2 className="w-5 h-5" />} title="Заверения Пользователя">
           <p>
-            <strong className="text-foreground">16.1.</strong> Пользователь подтверждает, что все сведения,
+            <strong className="text-foreground">17.1.</strong> Пользователь подтверждает, что все сведения,
             предоставляемые им в Сервисе, являются достоверными, актуальными и принадлежат Пользователю либо
             используются им на законных основаниях.
           </p>
           <p>
-            <strong className="text-foreground">16.2.</strong> Пользователь подтверждает, что понимает информационный
+            <strong className="text-foreground">17.2.</strong> Пользователь подтверждает, что понимает информационный
             характер предоставляемых материалов и принимает условия настоящего Соглашения.
           </p>
           <p>
-            <strong className="text-foreground">16.3.</strong> Пользователь подтверждает своё согласие на
+            <strong className="text-foreground">17.3.</strong> Пользователь подтверждает своё согласие на
             электронное взаимодействие с Оператором посредством сайта, мобильных устройств, электронной почты,
             SMS-сообщений и иных каналов связи.
           </p>
@@ -559,27 +613,27 @@ export default function TermsOfService() {
 
         <Section icon={<AlertTriangle className="w-5 h-5" />} title="Форс-мажор">
           <p>
-            <strong className="text-foreground">17.1.</strong> Стороны освобождаются от ответственности за частичное
+            <strong className="text-foreground">18.1.</strong> Стороны освобождаются от ответственности за частичное
             либо полное неисполнение обязательств, вызванное обстоятельствами непреодолимой силы.
           </p>
           <p>
-            <strong className="text-foreground">17.2.</strong> К обстоятельствам непреодолимой силы относятся события,
+            <strong className="text-foreground">18.2.</strong> К обстоятельствам непреодолимой силы относятся события,
             которые стороны не могли предвидеть либо предотвратить разумными мерами, включая стихийные бедствия,
             военные действия, решения органов государственной власти, сбои инфраструктуры связи и иные аналогичные
             обстоятельства.
           </p>
           <p>
-            <strong className="text-foreground">17.3.</strong> Сторона, для которой создалась невозможность
+            <strong className="text-foreground">18.3.</strong> Сторона, для которой создалась невозможность
             исполнения обязательств вследствие форс-мажора, обязана уведомить об этом другую Сторону в течение
             30 (тридцати) рабочих дней с момента наступления соответствующих обстоятельств.
           </p>
           <p>
-            <strong className="text-foreground">17.4.</strong> Достаточным подтверждением наличия и продолжительности
+            <strong className="text-foreground">18.4.</strong> Достаточным подтверждением наличия и продолжительности
             действия обстоятельств непреодолимой силы является документ, выданный уполномоченным государственным
             органом.
           </p>
           <p>
-            <strong className="text-foreground">17.5.</strong> Если обстоятельства непреодолимой силы продолжают
+            <strong className="text-foreground">18.5.</strong> Если обстоятельства непреодолимой силы продолжают
             действовать более 60 (шестидесяти) рабочих дней, каждая из Сторон вправе отказаться от исполнения
             настоящего Соглашения в одностороннем порядке без возмещения убытков, причинённых таким отказом.
           </p>
@@ -587,53 +641,53 @@ export default function TermsOfService() {
 
         <Section icon={<ClipboardCheck className="w-5 h-5" />} title="Порядок рассмотрения претензий">
           <p>
-            <strong className="text-foreground">18.1.</strong> До обращения в суд Пользователь обязуется направить
+            <strong className="text-foreground">19.1.</strong> До обращения в суд Пользователь обязуется направить
             письменную претензию Оператору.
           </p>
           <p>
-            <strong className="text-foreground">18.2.</strong> Претензия направляется по адресу электронной почты{" "}
+            <strong className="text-foreground">19.2.</strong> Претензия направляется по адресу электронной почты{" "}
             <a href="mailto:team@reage.life" className="text-primary hover:underline">team@reage.life</a>{" "}
             либо по адресу местонахождения Оператора.
           </p>
           <p>
-            <strong className="text-foreground">18.3.</strong> Срок рассмотрения претензии составляет 30 календарных
+            <strong className="text-foreground">19.3.</strong> Срок рассмотрения претензии составляет 30 календарных
             дней с момента её получения.
           </p>
         </Section>
 
         <Section icon={<Gavel className="w-5 h-5" />} title="Разрешение споров">
           <p>
-            <strong className="text-foreground">19.1.</strong> Все споры и разногласия, возникающие в связи с
+            <strong className="text-foreground">20.1.</strong> Все споры и разногласия, возникающие в связи с
             исполнением настоящего Соглашения, подлежат урегулированию путём переговоров.
           </p>
           <p>
-            <strong className="text-foreground">19.2.</strong> При невозможности достижения соглашения спор подлежит
+            <strong className="text-foreground">20.2.</strong> При невозможности достижения соглашения спор подлежит
             рассмотрению в соответствии с законодательством Российской Федерации.
           </p>
         </Section>
 
         <Section icon={<Clock className="w-5 h-5" />} title="Изменение соглашения">
           <p>
-            <strong className="text-foreground">20.1.</strong> Оператор вправе в любое время вносить изменения в
+            <strong className="text-foreground">21.1.</strong> Оператор вправе в любое время вносить изменения в
             настоящее Соглашение.
           </p>
           <p>
-            <strong className="text-foreground">20.2.</strong> Новая редакция Соглашения вступает в силу с момента её
+            <strong className="text-foreground">21.2.</strong> Новая редакция Соглашения вступает в силу с момента её
             размещения на Сайте, если иной срок не указан Оператором.
           </p>
           <p>
-            <strong className="text-foreground">20.3.</strong> Продолжение использования Сервиса после внесения
+            <strong className="text-foreground">21.3.</strong> Продолжение использования Сервиса после внесения
             изменений означает согласие Пользователя с новой редакцией Соглашения.
           </p>
         </Section>
 
         <Section icon={<Clock className="w-5 h-5" />} title="Срок действия соглашения">
           <p>
-            <strong className="text-foreground">21.1.</strong> Настоящее Соглашение вступает в силу с момента акцепта
+            <strong className="text-foreground">22.1.</strong> Настоящее Соглашение вступает в силу с момента акцепта
             Пользователем и действует до момента прекращения использования Сервиса либо прекращения действия Подписки.
           </p>
           <p>
-            <strong className="text-foreground">21.2.</strong> Положения настоящего Соглашения, связанные с обработкой
+            <strong className="text-foreground">22.2.</strong> Положения настоящего Соглашения, связанные с обработкой
             данных, интеллектуальной собственностью, ограничением ответственности и разрешением споров, сохраняют
             своё действие после прекращения использования Сервиса.
           </p>
@@ -641,26 +695,26 @@ export default function TermsOfService() {
 
         <Section icon={<Gavel className="w-5 h-5" />} title="Дополнительные условия">
           <p>
-            <strong className="text-foreground">22.1.</strong> Заключение и исполнение настоящего Соглашения, а
+            <strong className="text-foreground">23.1.</strong> Заключение и исполнение настоящего Соглашения, а
             также все отношения Сторон, не урегулированные им либо урегулированные не полностью, регулируются
             действующим законодательством Российской Федерации. Досудебный порядок урегулирования споров является
             обязательным.
           </p>
           <p>
-            <strong className="text-foreground">22.2.</strong> Языком настоящего Соглашения, а также языком, на
+            <strong className="text-foreground">23.2.</strong> Языком настоящего Соглашения, а также языком, на
             котором осуществляется любое взаимодействие Сторон (включая ведение переписки, направление требований,
             уведомлений, разъяснений и предоставление документов), Стороны определили русский язык. Документы,
             составленные на ином языке, предоставляются с переводом на русский язык, удостоверенным в
             установленном порядке.
           </p>
           <p>
-            <strong className="text-foreground">22.3.</strong> Бездействие одной из Сторон в случае нарушения
+            <strong className="text-foreground">23.3.</strong> Бездействие одной из Сторон в случае нарушения
             условий настоящего Соглашения другой Стороной не лишает заинтересованную Сторону права осуществлять
             защиту своих интересов позднее и не означает отказа от своих прав в случае совершения подобных либо
             сходных нарушений в будущем.
           </p>
           <p>
-            <strong className="text-foreground">22.4.</strong> Если на Сайте размещены ссылки на сторонние
+            <strong className="text-foreground">23.4.</strong> Если на Сайте размещены ссылки на сторонние
             веб-сайты или материалы третьих лиц, такие ссылки приведены исключительно в информационных целях.
             Оператор не контролирует содержание таких сайтов и материалов и не несёт ответственности за любые
             убытки или ущерб, которые могут возникнуть в результате их использования Пользователем.
