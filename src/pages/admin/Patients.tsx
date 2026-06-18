@@ -649,6 +649,7 @@ export default function Patients() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deletePatientMutation.isPending}
             >
+              {deletePatientMutation.isPending && <ButtonSpinner className="mr-2" />}
               {deletePatientMutation.isPending ? "Удаление..." : "Удалить"}
             </AlertDialogAction>
           </AlertDialogFooter>
