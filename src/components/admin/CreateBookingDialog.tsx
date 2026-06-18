@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -357,7 +358,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
             Отмена
           </Button>
           <Button onClick={() => createMutation.mutate()} disabled={!canSubmit}>
-            {createMutation.isPending ? "Создание..." : "Создать"}
+            {createMutation.isPending && <ButtonSpinner className="mr-2" />}{createMutation.isPending ? "Создание..." : "Создать"}
           </Button>
         </DialogFooter>
       </DialogContent>

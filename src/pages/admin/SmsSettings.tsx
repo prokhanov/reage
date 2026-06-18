@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -434,7 +434,7 @@ export default function SmsSettings() {
             </CardHeader>
             <CardContent>
               {loadingTpl ? (
-                <div className="space-y-3"><Skeleton className="h-10 w-full" /><Skeleton className="h-32 w-full" /></div>
+                <AdminCenterLoader />
               ) : (
                 <Tabs value={activeTpl} onValueChange={setActiveTpl}>
                   <TabsList className="w-full justify-start overflow-x-auto">

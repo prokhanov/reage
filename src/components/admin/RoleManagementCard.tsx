@@ -1,3 +1,4 @@
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -261,7 +262,7 @@ export function RoleManagementCard() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+            <AdminCenterLoader size="sm" />
           ) : (
             <Table>
               <TableHeader>

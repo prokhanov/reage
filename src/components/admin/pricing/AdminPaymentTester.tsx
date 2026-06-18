@@ -9,7 +9,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 const periodLabels: Record<string, string> = {
   monthly: "Месяц",
@@ -54,11 +54,7 @@ export function AdminPaymentTester() {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
-      </div>
-    );
+    return <AdminCenterLoader />;
   }
 
   const rows = (plans || []).flatMap((plan) =>

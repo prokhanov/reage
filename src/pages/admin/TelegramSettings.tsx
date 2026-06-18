@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Send, CheckCircle2, XCircle, AlertCircle, Eye, EyeOff, Copy } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 type EventDef = { key: string; label: string; description: string };
 
@@ -168,6 +169,14 @@ export default function TelegramSettings() {
     if (!status.is_active) return <Badge variant="outline">Выключен</Badge>;
     return <Badge className="bg-green-600 hover:bg-green-600">Активен</Badge>;
   })();
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">

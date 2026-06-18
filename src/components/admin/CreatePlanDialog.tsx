@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -200,7 +201,7 @@ export function CreatePlanDialog() {
               Отмена
             </Button>
             <Button type="submit" disabled={createPlan.isPending}>
-              {createPlan.isPending ? "Создание..." : "Создать"}
+              {createPlan.isPending && <ButtonSpinner className="mr-2" />}{createPlan.isPending ? "Создание..." : "Создать"}
             </Button>
           </div>
         </form>

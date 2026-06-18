@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -119,7 +120,7 @@ export function EditNextAnalysisDialog({
             onClick={handleSubmit}
             disabled={!date || updateDateMutation.isPending}
           >
-            {updateDateMutation.isPending ? "Сохранение..." : "Сохранить"}
+            {updateDateMutation.isPending && <ButtonSpinner className="mr-2" />}{updateDateMutation.isPending ? "Сохранение..." : "Сохранить"}
           </Button>
         </DialogFooter>
       </DialogContent>

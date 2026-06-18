@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -339,7 +340,7 @@ export function CreateInteractionDialog({
               Отмена
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Создание..." : "Создать"}
+              {createMutation.isPending && <ButtonSpinner className="mr-2" />}{createMutation.isPending ? "Создание..." : "Создать"}
             </Button>
           </div>
         </form>

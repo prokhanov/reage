@@ -1,3 +1,4 @@
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -183,7 +184,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
       {/* Interactions Timeline */}
       <ScrollArea className="h-[500px] pr-4">
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+          <AdminCenterLoader size="sm" />
         ) : isError ? (
           <Alert variant="destructive" className="m-4">
             <AlertDescription>

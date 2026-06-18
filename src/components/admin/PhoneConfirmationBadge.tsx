@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState, cloneElement, isValidElement } from "react";
-import { CheckCircle2, AlertCircle, Loader2, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
+import { CheckCircle2, AlertCircle, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -237,7 +237,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
               </div>
               {verifying && (
                 <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Проверка кода...
+                  <ButtonSpinner className="h-3 w-3" /> Проверка кода...
                 </p>
               )}
               <div className="text-center">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { PatientsListSkeleton } from "@/components/skeletons/PatientsListSkeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -373,7 +374,11 @@ export default function Patients() {
   };
 
   if (isLoading) {
-    return <PatientsListSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -645,6 +650,7 @@ export default function Patients() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deletePatientMutation.isPending}
             >
+              {deletePatientMutation.isPending && <ButtonSpinner className="mr-2" />}
               {deletePatientMutation.isPending ? "Удаление..." : "Удалить"}
             </AlertDialogAction>
           </AlertDialogFooter>

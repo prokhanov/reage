@@ -15,7 +15,7 @@ import {
 import coverBgUrl from "@/assets/pdf-cover-bg.jpg";
 import logoUrl from "@/assets/reage-logo-light.png";
 import { renderInterleavedWeb, buildInterleavedPdf } from "@/lib/anchorRenderer";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -168,12 +168,8 @@ export default function ReportVisualsTest() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32" />)}
-        </div>
-        <Skeleton className="h-80" />
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <AdminCenterLoader size="lg" />
       </div>
     );
   }

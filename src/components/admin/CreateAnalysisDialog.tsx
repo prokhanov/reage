@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState, useContext, useEffect } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,7 +114,7 @@ export function CreateAnalysisDialog({ open, onOpenChange, onSuccess }: CreateAn
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Создание..." : "Создать и добавить показатели"}
+            {loading && <ButtonSpinner className="mr-2" />}{loading ? "Создание..." : "Создать и добавить показатели"}
           </Button>
         </form>
       </DialogContent>

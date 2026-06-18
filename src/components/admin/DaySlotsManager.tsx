@@ -1,3 +1,4 @@
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useMemo, useState } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, compareAsc, addMonths, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -166,7 +167,7 @@ export function DaySlotsManager() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-muted-foreground">Загрузка...</div>
+            <AdminCenterLoader size="sm" />
           ) : (
             <div className="space-y-4">
               {daySlots.length === 0 ? (

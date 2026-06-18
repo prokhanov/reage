@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -212,7 +213,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
               Отмена
             </Button>
             <Button type="submit" disabled={updatePlan.isPending}>
-              {updatePlan.isPending ? "Сохранение..." : "Сохранить"}
+              {updatePlan.isPending && <ButtonSpinner className="mr-2" />}{updatePlan.isPending ? "Сохранение..." : "Сохранить"}
             </Button>
           </div>
         </form>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,6 +139,7 @@ export function EditPricingDialog({ pricing, planId, open, onOpenChange }: EditP
               type="submit" 
               disabled={createPricing.isPending || updatePricing.isPending}
             >
+              {(createPricing.isPending || updatePricing.isPending) && <ButtonSpinner className="mr-2" />}
               {createPricing.isPending || updatePricing.isPending
                 ? "Сохранение..."
                 : isEditing

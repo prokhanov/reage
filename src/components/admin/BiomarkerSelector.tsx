@@ -1,3 +1,4 @@
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,7 +114,7 @@ export function BiomarkerSelector({ selectedBiomarkers, onChange }: BiomarkerSel
   const totalBiomarkers = biomarkers?.length || 0;
 
   if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">Загрузка...</div>;
+    return <AdminCenterLoader size="sm" />;
   }
 
   return (

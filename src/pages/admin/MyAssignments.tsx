@@ -32,7 +32,7 @@ import { Calendar, Search, Eye, MoreVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import AnalysisBookingsSkeleton from "@/components/skeletons/AnalysisBookingsSkeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 
@@ -201,7 +201,11 @@ export default function MyAssignments() {
   };
 
   if (isLoading) {
-    return <AnalysisBookingsSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
   }
 
   return (

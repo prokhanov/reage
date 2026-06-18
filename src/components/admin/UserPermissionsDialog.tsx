@@ -1,3 +1,4 @@
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -266,7 +267,7 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate, isPending = f
         </DialogHeader>
 
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+          <AdminCenterLoader size="sm" />
         ) : user ? (
           <div className="space-y-6">
             {isPending && (

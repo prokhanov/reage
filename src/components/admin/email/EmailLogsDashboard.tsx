@@ -8,7 +8,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, CheckCircle2, AlertCircle, Clock, RefreshCw } from "lucide-react";
 
@@ -206,11 +206,7 @@ export function EmailLogsDashboard() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-6 space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
+            <AdminCenterLoader />
           ) : (
             <div className="overflow-x-auto">
               <Table>

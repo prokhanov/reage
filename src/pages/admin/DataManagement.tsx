@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState, useMemo } from "react";
 import {
   DndContext,
@@ -51,7 +52,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { DataManagementSkeleton } from "@/components/skeletons/DataManagementSkeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 // Categories will be loaded from DB
 
@@ -688,7 +689,11 @@ export default function DataManagement() {
   };
 
   if (loadingBiomarkers || loadingConditions) {
-    return <DataManagementSkeleton />;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
+      </div>
+    );
   }
 
   return (
@@ -1664,7 +1669,7 @@ export default function DataManagement() {
                 Отмена
               </Button>
               <Button type="submit" disabled={saveBiomarker.isPending || rangeErrors.length > 0}>
-                {saveBiomarker.isPending ? "Сохранение..." : "Сохранить"}
+                {saveBiomarker.isPending && <ButtonSpinner className="mr-2" />}{saveBiomarker.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
           </form>
@@ -1719,7 +1724,7 @@ export default function DataManagement() {
                 Отмена
               </Button>
               <Button type="submit" disabled={saveCondition.isPending}>
-                {saveCondition.isPending ? "Сохранение..." : "Сохранить"}
+                {saveCondition.isPending && <ButtonSpinner className="mr-2" />}{saveCondition.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
           </form>
@@ -1788,7 +1793,7 @@ export default function DataManagement() {
                 Отмена
               </Button>
               <Button type="submit" disabled={saveSymptom.isPending}>
-                {saveSymptom.isPending ? "Сохранение..." : "Сохранить"}
+                {saveSymptom.isPending && <ButtonSpinner className="mr-2" />}{saveSymptom.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
           </form>

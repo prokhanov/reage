@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import {
   MapPin,
   Upload,
@@ -421,17 +422,14 @@ export default function LabLocations() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading
-                    ? [...Array(6)].map((_, i) => (
-                        <TableRow key={i}>
-                          {[...Array(8)].map((__, j) => (
-                            <TableCell key={j}>
-                              <Skeleton className="h-4 w-full" />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    : filtered.map((row) => (
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="py-10">
+                        <AdminCenterLoader />
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filtered.map((row) => (
                         <TableRow key={row.id}>
                           <TableCell>
                             <Badge variant="secondary">{row.provider}</Badge>
@@ -481,7 +479,8 @@ export default function LabLocations() {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      ))
+                  )}
                   {!loading && filtered.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center text-muted-foreground py-10">
@@ -641,6 +640,7 @@ export default function LabLocations() {
               Отмена
             </Button>
             <Button onClick={handleSave} disabled={saving}>
+              {saving && <ButtonSpinner className="mr-2" />}
               {saving ? "Сохранение..." : "Сохранить"}
             </Button>
           </DialogFooter>

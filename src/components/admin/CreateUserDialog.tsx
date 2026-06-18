@@ -1,3 +1,4 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -271,7 +272,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
             Отмена
           </Button>
           <Button type="submit" disabled={isSubmitting} className="flex-1">
-            {isSubmitting ? "Создание..." : "Создать приглашение"}
+            {isSubmitting && <ButtonSpinner className="mr-2" />}{isSubmitting ? "Создание..." : "Создать приглашение"}
           </Button>
         </div>
       </form>

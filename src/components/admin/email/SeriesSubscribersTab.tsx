@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -228,8 +229,8 @@ export default function SeriesSubscribersTab({ seriesId }: Props) {
               </thead>
               <tbody>
                 {loading && (
-                  <tr><td colSpan={8} className="p-12 text-center text-muted-foreground">
-                    <span className="inline-flex items-center gap-2"><ButtonSpinner />Загрузка...</span>
+                  <tr><td colSpan={8} className="p-6">
+                    <AdminCenterLoader size="sm" />
                   </td></tr>
                 )}
                 {!loading && items.length === 0 && (

@@ -1,3 +1,5 @@
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -80,7 +82,7 @@ export function BookingModeSettings() {
   };
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Загрузка...</div>;
+    return <AdminCenterLoader size="sm" />;
   }
 
   const statuses = mode === "phone" ? PHONE_STATUSES : ONLINE_STATUSES;
@@ -186,7 +188,7 @@ export function BookingModeSettings() {
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={update.isPending}>
           <Save className="h-4 w-4 mr-2" />
-          {update.isPending ? "Сохранение..." : "Сохранить настройки"}
+          {update.isPending && <ButtonSpinner className="mr-2" />}{update.isPending ? "Сохранение..." : "Сохранить настройки"}
         </Button>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, Plus, ShieldCheck, Stethoscope, Trash2, Utensils, X } from "lucide-react";
+import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Moon, Pill, Plus, ShieldCheck, Stethoscope, Trash2, Utensils, X } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -835,7 +835,7 @@ export function EditReportDialog({
                 <div className="flex items-center justify-between px-5 py-3 border-b">
                   <div className="flex items-center gap-2">
                     {qaRunning ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <ButtonSpinner className="h-5 w-5 text-primary" />
                     ) : (
                       <CheckCircle2 className="h-5 w-5 text-primary" />
                     )}

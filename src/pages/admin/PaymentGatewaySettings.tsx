@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { AdminPaymentTester } from "@/components/admin/pricing/AdminPaymentTester";
 import { AdminPaymentLogs } from "@/components/admin/pricing/AdminPaymentLogs";
 
@@ -67,13 +67,8 @@ export default function PaymentGatewaySettings() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
-        <div>
-          <Skeleton className="h-9 w-64" />
-          <Skeleton className="h-4 w-80 mt-2" />
-        </div>
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-64 w-full" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <AdminCenterLoader size="lg" />
       </div>
     );
   }

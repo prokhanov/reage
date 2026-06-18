@@ -1,3 +1,4 @@
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +101,7 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
 
   if (isLoading) {
     return (
-      <div className="px-4 py-3 text-sm text-muted-foreground">Загрузка истории…</div>
+      <div className="px-4 py-3"><AdminCenterLoader size="sm" /></div>
     );
   }
 
