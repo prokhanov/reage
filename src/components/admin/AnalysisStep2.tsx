@@ -1,3 +1,4 @@
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { useState, useEffect, useContext, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
