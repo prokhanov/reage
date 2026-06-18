@@ -103,7 +103,7 @@ export async function sendSms(params: {
   text: string;
   sign?: string;
 }): Promise<SendResult> {
-  const { email, apiKey } = getCreds();
+  const { email, apiKey } = await getCreds();
   const number = normalizePhone(params.phone);
   if (!number) return { ok: false, error: "Пустой номер телефона" };
 
