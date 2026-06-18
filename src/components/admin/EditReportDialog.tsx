@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, AlertTriangle, Check, CheckCircle2, ClipboardList, FileText, Info, Loader2, Moon, Pill, Plus, ShieldCheck, Stethoscope, Trash2, Utensils, X } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -503,11 +505,7 @@ export function EditReportDialog({
                   onClick={runQaCheck}
                   disabled={qaRunning || loading}
                 >
-                  {qaRunning ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <ShieldCheck className="mr-2 h-4 w-4" />
-                  )}
+                  {qaRunning ? <ButtonSpinner className="mr-2" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
                   Проверить на валидность
                 </Button>
                 <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "on_review" | "processed")}>
@@ -528,9 +526,7 @@ export function EditReportDialog({
 
           <div className="flex-1 overflow-hidden flex flex-col min-h-0">
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
+              <AdminCenterLoader />
             ) : (
               <div className="flex-1 overflow-hidden flex flex-col">
                 <div className="shrink-0 mb-4">
@@ -824,7 +820,7 @@ export function EditReportDialog({
             >
               {saving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <ButtonSpinner className="mr-2" />
                   Сохранение...
                 </>
               ) : (

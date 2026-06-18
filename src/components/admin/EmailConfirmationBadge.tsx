@@ -1,5 +1,6 @@
 import { ReactNode, useState, cloneElement, isValidElement } from "react";
-import { CheckCircle2, AlertCircle, Send, Loader2, Pencil } from "lucide-react";
+import { CheckCircle2, AlertCircle, Send, Pencil } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -200,11 +201,7 @@ export function EmailConfirmationBadge({
 
           <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
             <Button onClick={handleResend} disabled={isSending || !resendEmail} className="w-full">
-              {isSending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
+              {isSending ? <ButtonSpinner className="mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               {isEditing && resendEmail !== email ? "Сохранить и отправить" : "Отправить повторно"}
             </Button>
             {adminMode && userId && (
@@ -214,7 +211,7 @@ export function EmailConfirmationBadge({
                 disabled={isForcing}
                 className="w-full"
               >
-                {isForcing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                {isForcing ? <ButtonSpinner className="mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                 Подтвердить без проверки
               </Button>
             )}

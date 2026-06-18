@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import { PatientBookingsCard } from "@/components/admin/PatientBookingsCard";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -230,11 +231,7 @@ export default function PatientProfile() {
   }, {});
 
   if (loadingProfile) {
-    return (
-        <div className="flex items-center justify-center py-24">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-    );
+    return <AdminCenterLoader size="lg" />;
   }
 
   if (!profile) {

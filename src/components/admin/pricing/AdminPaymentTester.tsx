@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Loader2, CreditCard } from "lucide-react";
+import { CreditCard } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
@@ -115,7 +116,7 @@ export function AdminPaymentTester() {
                         onClick={() => handlePay(plan.id, pricing.id)}
                       >
                         {loadingKey === key ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <ButtonSpinner />
                         ) : (
                           <>
                             <CreditCard className="h-4 w-4 mr-2" />

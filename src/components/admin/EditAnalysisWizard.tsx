@@ -10,7 +10,9 @@ import { AnalysisStep1 } from "./AnalysisStep1";
 import { AnalysisStep2 } from "./AnalysisStep2";
 import { AnalysisStep3 } from "./AnalysisStep3";
 import { EditReportDialog } from "./EditReportDialog";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
 import { invokeAnalyzeBiomarkers } from "@/lib/analyzeBiomarkers";
 
@@ -365,9 +367,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
           </DialogHeader>
 
           {loadingData ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
+            <AdminCenterLoader />
           ) : (
             <>
               {currentStep === 1 && (
@@ -410,7 +410,7 @@ export function EditAnalysisWizard({ analysisId, open, onOpenChange, onSuccess }
                   <Button onClick={handleSave} disabled={loading || analyzing}>
                     {loading || analyzing ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <ButtonSpinner className="mr-2" />
                         {analyzing ? "Генерация отчета..." : "Сохранение..."}
                       </>
                     ) : (

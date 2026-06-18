@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { BirthDatePicker } from "@/components/BirthDatePicker";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 interface EditPendingUserDialogProps {
   inviteToken: string | null;
@@ -163,7 +164,7 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
         </DialogHeader>
 
         {isLoadingInvite ? (
-          <div className="py-8 text-center text-muted-foreground">Загрузка...</div>
+          <AdminCenterLoader size="sm" />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">

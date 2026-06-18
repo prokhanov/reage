@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Search, UserPlus, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { invokeDripAdmin } from "@/lib/dripAdmin";
 
 interface Patient {
@@ -161,7 +163,7 @@ export default function EnrollPatientsDialog({ open, onOpenChange, seriesId, ser
 
         <ScrollArea className="flex-1 min-h-[300px] border rounded-md">
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-muted-foreground"><Loader2 className="w-5 h-5 mr-2 animate-spin" />Загрузка пациентов...</div>
+            <AdminCenterLoader size="sm" label="Загрузка пациентов..." />
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">Пациенты не найдены</div>
           ) : (
@@ -213,7 +215,7 @@ export default function EnrollPatientsDialog({ open, onOpenChange, seriesId, ser
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={enrolling}>Отмена</Button>
             <Button onClick={enroll} disabled={selected.size === 0 || enrolling}>
-              {enrolling ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <UserPlus className="w-4 h-4 mr-2" />}
+              {enrolling ? <ButtonSpinner className="mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
               Добавить в серию
             </Button>
           </div>
