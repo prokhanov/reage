@@ -418,26 +418,6 @@ export default function SmsSettings() {
                   Сохранить подпись
                 </Button>
               </div>
-
-              {connResult && (
-                <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                  connResult.ok
-                    ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                    : "bg-destructive/10 text-destructive"
-                }`}>
-                  {connResult.ok ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
-                  {connResult.ok
-                    ? `Подключение к SMS Aero работает${typeof connResult.balance === "number" ? `. Баланс: ${connResult.balance.toFixed(2)} ₽` : ""}.`
-                    : `Ошибка подключения: ${connResult.error}`}
-                </div>
-              )}
-              <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground space-y-1">
-                <p className="font-medium text-foreground">Где взять ключи SMS Aero</p>
-                <p>1. Зарегистрируйтесь на smsaero.ru → подтвердите email.</p>
-                <p>2. Пополните баланс через «Финансы» (для тестов хватит 300 ₽).</p>
-                <p>3. В левом меню → «API» → скопируйте поле «Текущий ключ» и email-логин.</p>
-                <p>4. Ключи уже сохранены в защищённом хранилище Lovable Cloud.</p>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
