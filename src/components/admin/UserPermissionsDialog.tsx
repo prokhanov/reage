@@ -267,7 +267,7 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate, isPending = f
         </DialogHeader>
 
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+          <AdminCenterLoader size="sm" />
         ) : user ? (
           <div className="space-y-6">
             {isPending && (

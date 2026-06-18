@@ -184,7 +184,7 @@ export function PatientInteractionsTab({ patientId, patientName }: PatientIntera
       {/* Interactions Timeline */}
       <ScrollArea className="h-[500px] pr-4">
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+          <AdminCenterLoader size="sm" />
         ) : isError ? (
           <Alert variant="destructive" className="m-4">
             <AlertDescription>
