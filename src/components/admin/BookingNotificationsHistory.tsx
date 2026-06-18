@@ -100,7 +100,7 @@ export function BookingNotificationsHistory({ bookingId }: { bookingId: string }
 
   if (isLoading) {
     return (
-      <div className="px-4 py-3 text-sm text-muted-foreground">Загрузка истории…</div>
+      <div className="px-4 py-3"><AdminCenterLoader size="sm" /></div>
     );
   }
 

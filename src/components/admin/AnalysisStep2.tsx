@@ -268,7 +268,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+        <AdminCenterLoader size="sm" />
       ) : (
         <Accordion type="multiple" className="w-full">
           {Object.entries(groupedBiomarkers).map(([category, markers]) => (

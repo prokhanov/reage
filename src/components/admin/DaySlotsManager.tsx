@@ -166,7 +166,7 @@ export function DaySlotsManager() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-muted-foreground">Загрузка...</div>
+            <AdminCenterLoader size="sm" />
           ) : (
             <div className="space-y-4">
               {daySlots.length === 0 ? (

@@ -113,7 +113,7 @@ export function BiomarkerSelector({ selectedBiomarkers, onChange }: BiomarkerSel
   const totalBiomarkers = biomarkers?.length || 0;
 
   if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">Загрузка...</div>;
+    return <AdminCenterLoader size="sm" />;
   }
 
   return (

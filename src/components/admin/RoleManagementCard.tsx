@@ -261,7 +261,7 @@ export function RoleManagementCard() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+            <AdminCenterLoader size="sm" />
           ) : (
             <Table>
               <TableHeader>

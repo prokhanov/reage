@@ -212,7 +212,7 @@ export default function DripCampaigns() {
               <Button size="sm" onClick={() => setShowNewSeries(true)}><Plus className="w-4 h-4 mr-2" />Новая серия</Button>
             </div>
 
-            {loading ? <p className="text-sm text-muted-foreground">Загрузка...</p> : series.map(sr => {
+            {loading ? <AdminCenterLoader size="sm" /> : series.map(sr => {
               const ss = steps.filter(x => x.series_id === sr.id).sort((a, b) => a.order_index - b.order_index);
               return (
                 <Card key={sr.id}>

@@ -80,7 +80,7 @@ export function BookingModeSettings() {
   };
 
   if (isLoading) {
-    return <div className="text-muted-foreground">Загрузка...</div>;
+    return <AdminCenterLoader size="sm" />;
   }
 
   const statuses = mode === "phone" ? PHONE_STATUSES : ONLINE_STATUSES;
