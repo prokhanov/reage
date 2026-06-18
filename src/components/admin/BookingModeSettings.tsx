@@ -188,7 +188,7 @@ export function BookingModeSettings() {
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={update.isPending}>
           <Save className="h-4 w-4 mr-2" />
-          {update.isPending ? "Сохранение..." : "Сохранить настройки"}
+          {update.isPending && <ButtonSpinner className="mr-2" />}{update.isPending ? "Сохранение..." : "Сохранить настройки"}
         </Button>
       </div>
     </div>

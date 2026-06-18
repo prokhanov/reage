@@ -256,7 +256,7 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
                 Отмена
               </Button>
               <Button type="submit" disabled={updateMutation.isPending} className="flex-1">
-                {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
+                {updateMutation.isPending && <ButtonSpinner className="mr-2" />}{updateMutation.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </div>
           </form>

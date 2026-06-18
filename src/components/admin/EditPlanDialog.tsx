@@ -213,7 +213,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
               Отмена
             </Button>
             <Button type="submit" disabled={updatePlan.isPending}>
-              {updatePlan.isPending ? "Сохранение..." : "Сохранить"}
+              {updatePlan.isPending && <ButtonSpinner className="mr-2" />}{updatePlan.isPending ? "Сохранение..." : "Сохранить"}
             </Button>
           </div>
         </form>

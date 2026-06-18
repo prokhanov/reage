@@ -272,7 +272,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
             Отмена
           </Button>
           <Button type="submit" disabled={isSubmitting} className="flex-1">
-            {isSubmitting ? "Создание..." : "Создать приглашение"}
+            {isSubmitting && <ButtonSpinner className="mr-2" />}{isSubmitting ? "Создание..." : "Создать приглашение"}
           </Button>
         </div>
       </form>

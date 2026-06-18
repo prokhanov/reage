@@ -358,7 +358,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
             Отмена
           </Button>
           <Button onClick={() => createMutation.mutate()} disabled={!canSubmit}>
-            {createMutation.isPending ? "Создание..." : "Создать"}
+            {createMutation.isPending && <ButtonSpinner className="mr-2" />}{createMutation.isPending ? "Создание..." : "Создать"}
           </Button>
         </DialogFooter>
       </DialogContent>

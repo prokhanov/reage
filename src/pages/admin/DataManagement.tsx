@@ -1669,7 +1669,7 @@ export default function DataManagement() {
                 Отмена
               </Button>
               <Button type="submit" disabled={saveBiomarker.isPending || rangeErrors.length > 0}>
-                {saveBiomarker.isPending ? "Сохранение..." : "Сохранить"}
+                {saveBiomarker.isPending && <ButtonSpinner className="mr-2" />}{saveBiomarker.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
           </form>
@@ -1724,7 +1724,7 @@ export default function DataManagement() {
                 Отмена
               </Button>
               <Button type="submit" disabled={saveCondition.isPending}>
-                {saveCondition.isPending ? "Сохранение..." : "Сохранить"}
+                {saveCondition.isPending && <ButtonSpinner className="mr-2" />}{saveCondition.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
           </form>
@@ -1793,7 +1793,7 @@ export default function DataManagement() {
                 Отмена
               </Button>
               <Button type="submit" disabled={saveSymptom.isPending}>
-                {saveSymptom.isPending ? "Сохранение..." : "Сохранить"}
+                {saveSymptom.isPending && <ButtonSpinner className="mr-2" />}{saveSymptom.isPending ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>
           </form>

@@ -201,7 +201,7 @@ export function CreatePlanDialog() {
               Отмена
             </Button>
             <Button type="submit" disabled={createPlan.isPending}>
-              {createPlan.isPending ? "Создание..." : "Создать"}
+              {createPlan.isPending && <ButtonSpinner className="mr-2" />}{createPlan.isPending ? "Создание..." : "Создать"}
             </Button>
           </div>
         </form>

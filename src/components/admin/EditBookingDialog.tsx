@@ -140,7 +140,7 @@ export function EditBookingDialog({
             onClick={() => updateMutation.mutate()}
             disabled={updateMutation.isPending}
           >
-            {updateMutation.isPending ? "Сохранение..." : "Сохранить"}
+            {updateMutation.isPending && <ButtonSpinner className="mr-2" />}{updateMutation.isPending ? "Сохранение..." : "Сохранить"}
           </Button>
         </DialogFooter>
       </DialogContent>

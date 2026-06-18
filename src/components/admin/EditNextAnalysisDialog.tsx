@@ -120,7 +120,7 @@ export function EditNextAnalysisDialog({
             onClick={handleSubmit}
             disabled={!date || updateDateMutation.isPending}
           >
-            {updateDateMutation.isPending ? "Сохранение..." : "Сохранить"}
+            {updateDateMutation.isPending && <ButtonSpinner className="mr-2" />}{updateDateMutation.isPending ? "Сохранение..." : "Сохранить"}
           </Button>
         </DialogFooter>
       </DialogContent>

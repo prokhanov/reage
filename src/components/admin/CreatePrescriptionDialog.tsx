@@ -201,7 +201,7 @@ export function CreatePrescriptionDialog({
               Отмена
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Создание..." : "Создать"}
+              {createMutation.isPending && <ButtonSpinner className="mr-2" />}{createMutation.isPending ? "Создание..." : "Создать"}
             </Button>
           </DialogFooter>
         </form>
