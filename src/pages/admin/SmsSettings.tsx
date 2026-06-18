@@ -304,7 +304,91 @@ export default function SmsSettings() {
         </TabsList>
 
         {/* SENDER */}
-        <TabsContent value="sender" className="mt-6">
+        <TabsContent value="sender" className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5 text-primary" />Аккаунт SMS Aero</CardTitle>
+              <CardDescription>
+                Email-логин и API-ключ из личного кабинета SMS Aero. Эти данные используются для всех
+                рассылок (OTP, бронирования, тесты). При смене аккаунта (например, при подписании
+                договора на собственную подпись) обновите оба поля и нажмите «Сохранить».
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Email аккаунта</Label>
+                  <Input
+                    value={apiEmail}
+                    onChange={(e) => setApiEmail(e.target.value)}
+                    placeholder="account@example.com"
+                    type="email"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>API-ключ</Label>
+                  <div className="relative">
+                    <Input
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                      type={showApiKey ? "text" : "password"}
+                      autoComplete="off"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={showApiKey ? "Скрыть ключ" : "Показать ключ"}
+                    >
+                      {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={handleSaveCreds} disabled={savingCreds} className="gap-2">
+                  {savingCreds ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Сохранить аккаунт
+                </Button>
+                <Button onClick={handleCheckConnection} disabled={checkingConn} variant="outline" className="gap-2">
+                  {checkingConn ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                  ) : (
+                    <Wifi className="h-4 w-4" />
+                  )}
+                  Проверить подключение
+                </Button>
+              </div>
+              {connResult && (
+                <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+                  connResult.ok
+                    ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                    : "bg-destructive/10 text-destructive"
+                }`}>
+                  {connResult.ok ? <CheckCircle className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
+                  {connResult.ok
+                    ? `Подключение к SMS Aero работает${typeof connResult.balance === "number" ? `. Баланс: ${connResult.balance.toFixed(2)} ₽` : ""}.`
+                    : `Ошибка подключения: ${connResult.error}`}
+                </div>
+              )}
+              <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground">Где взять ключи SMS Aero</p>
+                <p>1. Войдите в личный кабинет smsaero.ru.</p>
+                <p>2. Пополните баланс через «Финансы» при необходимости.</p>
+                <p>3. В левом меню → «API» → скопируйте поле «Текущий ключ» и email-логин.</p>
+                <p>4. Вставьте email и ключ в поля выше и нажмите «Сохранить аккаунт».</p>
+              </div>
+            </CardContent>
+          </Card>
+
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><User className="h-5 w-5 text-primary" />Подпись отправителя</CardTitle>
