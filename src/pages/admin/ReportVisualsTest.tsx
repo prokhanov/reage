@@ -493,7 +493,7 @@ export default function ReportVisualsTest() {
                   className="gap-2"
                 >
                   {generating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <ButtonSpinner />
                   ) : (
                     <RefreshCw className="h-4 w-4" />
                   )}
@@ -756,7 +756,7 @@ BMI: 22.7 (норма)
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Демо-промпт</h3>
         <Button onClick={handleSave} disabled={saving} size="sm" className="gap-2">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {saving ? <ButtonSpinner /> : <Save className="h-4 w-4" />}
           {saving ? "Сохранение..." : "Сохранить в БД"}
         </Button>
       </div>

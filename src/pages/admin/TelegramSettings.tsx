@@ -241,11 +241,11 @@ export default function TelegramSettings() {
 
           <div className="flex flex-wrap gap-2 pt-2">
             <Button onClick={handleSave} disabled={saving}>
-              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {saving && <ButtonSpinner className="mr-2" />}
               Сохранить
             </Button>
             <Button variant="outline" onClick={handleTestConnection} disabled={testing}>
-              {testing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {testing && <ButtonSpinner className="mr-2" />}
               Проверить подключение
             </Button>
           </div>
@@ -288,7 +288,7 @@ export default function TelegramSettings() {
                 disabled={testingEvent === ev.key || !status?.configured}
               >
                 {testingEvent === ev.key ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <ButtonSpinner className="mr-2" />
                 ) : (
                   <Send className="w-4 h-4 mr-2" />
                 )}
@@ -332,7 +332,7 @@ export default function TelegramSettings() {
           ))}
           <p className="text-xs text-muted-foreground">{BOOKING_PLACEHOLDERS}</p>
           <Button onClick={handleSave} disabled={saving} size="sm">
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {saving && <ButtonSpinner className="mr-2" />}
             Сохранить шаблоны
           </Button>
         </CardContent>
