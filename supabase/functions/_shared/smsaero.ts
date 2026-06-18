@@ -62,7 +62,9 @@ export function normalizePhone(raw: string): string {
 }
 
 export async function checkAuth(): Promise<{ ok: boolean; balance?: number; error?: string }> {
-  const { email, apiKey } = getCreds();
+  // Bust cache so admins see immediate effect of credential changes.
+  cachedCreds = null;
+  const { email, apiKey } = await getCreds();
   const res = await fetch(`${BASE_URL}/auth`, {
     method: "GET",
     headers: { Authorization: authHeader(email, apiKey) },
