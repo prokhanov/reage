@@ -253,13 +253,15 @@ export default function AISettings() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Настройки AI промптов</h1>
-        <p className="text-muted-foreground">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Настройки AI промптов</h1>
+        <p className="text-muted-foreground mt-1">
           Управление промптами для AI анализа биомаркеров по категориям
         </p>
       </div>
+
+
 
       <div className="mb-6">
         <div className="relative">

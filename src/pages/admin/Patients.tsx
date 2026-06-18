@@ -377,9 +377,9 @@ export default function Patients() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Пациенты</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Пациенты</h1>
         <p className="text-muted-foreground mt-1">
           Список всех зарегистрированных пользователей
           </p>

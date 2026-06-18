@@ -1,42 +1,67 @@
-## Цель
-В разделе «SMS рассылки → Отправитель» добавить поля для ввода email-аккаунта SMS Aero и API-токена, чтобы при смене аккаунта (новый договор, своя подпись вместо общего номера) можно было переключиться без участия разработчика.
+# Унификация админских страниц
 
-Сейчас `SMSAERO_EMAIL` и `SMSAERO_API_KEY` зашиты в секретах Lovable Cloud и `_shared/smsaero.ts` читает только их. Через интерфейс их менять нельзя.
+## Проблема
 
-## Что меняем
+Сейчас каждая страница в `/admin/*` собрана по-своему:
 
-### 1. БД: добавляем поля в `sms_sender_settings`
-- `api_email text` — email-логин SMS Aero
-- `api_key text` — API-ключ (хранится в открытом виде в таблице, доступ только superadmin через RLS)
-- `updated_at` уже есть
+| Страница | Обёртка | Заголовок |
+|---|---|---|
+| AISettings | `container mx-auto p-6 max-w-6xl` | `text-3xl` |
+| AnalysisBookings | `container mx-auto p-6 space-y-6` (без max-w) | `text-3xl` |
+| DataManagement | `container mx-auto px-4 py-8 max-w-6xl` | `text-3xl` |
+| EmailSettings | `container mx-auto px-4 py-8 max-w-7xl` | `text-2xl` |
+| LabLocations | `container max-w-7xl py-6` (без px) | `text-2xl` |
+| MyAssignments | `container mx-auto p-6 space-y-6` | `text-3xl` |
+| Patients | `container mx-auto px-4 py-8 max-w-6xl` | `text-3xl` |
+| PaymentGatewaySettings | `container max-w-7xl mx-auto px-4 py-8` | `text-2xl md:text-3xl` |
+| **SmsSettings** | **`space-y-6` — без контейнера и отступов вовсе** | `text-2xl` |
+| SubscriptionPlans | `container max-w-7xl mx-auto py-8` (без px) | `text-3xl` |
+| TelegramSettings | `container mx-auto p-6 space-y-6 max-w-4xl` | `text-3xl` |
+| UserManagement | разный | разный |
 
-Доступ к таблице: чтение/запись только у superadmin (как сейчас), service_role — полный.
+Плюс зоопарк лоадеров: где-то `*Skeleton`-компонент, где-то inline `<Skeleton/>`, где-то `<Loader2 className="animate-spin" />` без обёртки.
 
-### 2. Edge-функции: `supabase/functions/_shared/smsaero.ts`
-`getCreds()` сначала читает из `sms_sender_settings` (через service-role клиент), при отсутствии — fallback на переменные окружения `SMSAERO_EMAIL` / `SMSAERO_API_KEY`. Это сохранит работу существующих рассылок до того, как админ заполнит поля.
+## Решение
 
-Функция становится `async` — обновим вызовы в:
-- `sms-check-connection`
-- `sms-send-test`
-- `send-booking-sms`
-- `phone-otp-send`
-- `phone-change-send`
+1. **Новый компонент `src/components/admin/AdminPageShell.tsx`** — единый каркас:
+   - корневой `div`: `container mx-auto px-4 py-8 max-w-7xl space-y-6`
+   - заголовок: `h1.text-3xl.font-bold.tracking-tight` + опциональное `description` (`text-muted-foreground`)
+   - слот `actions` справа от заголовка (для кнопок типа «Добавить», «Сохранить»)
+   - проп `loading` → отрисовывает стандартный набор `<Skeleton/>` (header + 3 карточки) вместо детей
+   - проп `bare` (default `false`) — отключает контейнер/паддинги: нужен только для `PatientProfile`, который встраивается в режим «Просмотр кабинета пациента». В этом случае `PatientProfile` остаётся как есть и не оборачивается в Shell.
 
-### 3. UI: `src/pages/admin/SmsSettings.tsx`, вкладка «Отправитель»
-Над блоком «Подпись» добавляем карточку «Аккаунт SMS Aero»:
-- Поле **Email аккаунта** (`api_email`)
-- Поле **API-ключ** (`api_key`) — type=password с кнопкой «показать/скрыть»; в поле подгружаются маскированные первые/последние символы, если уже сохранено
-- Кнопка **Сохранить** — обновляет строку в `sms_sender_settings`
-- Кнопка **Проверить подключение** уже есть — после сохранения сразу видно, работает ли новый аккаунт и баланс
+2. **Единый лоадер `src/components/admin/AdminPageLoader.tsx`** (используется внутри Shell, но также экспортируется для случаев частичной загрузки внутри табов). Заменяет inline `Loader2` спиннеры на странице.
 
-Инструкция «Где взять ключи» остаётся, обновим последний пункт: «Вставьте email и API-ключ в поля выше и нажмите Сохранить».
+3. **Применить ко всем страницам `/admin/*` кроме `PatientProfile`, `ScaleLabelsPreview`, `ReportVisualsTest`** (последние два — служебные превью, не трогаем):
+   - AISettings, AnalysisBookings, DataManagement, EmailSettings, LabLocations, MyAssignments, Patients, PaymentGatewaySettings, SmsSettings, SubscriptionPlans, TelegramSettings, UserManagement.
+   - В каждой: заменить корневой `<div>` на `<AdminPageShell title="…" description="…" actions={…} loading={…}>` и убрать дублирующиеся `h1`/обёртки.
+   - Существующие специализированные скелетоны (`AISettingsSkeleton`, `DataManagementSkeleton`, `UserManagementSkeleton`, `PatientsListSkeleton`, `AnalysisBookingsSkeleton`) **оставляем** — передаём их в Shell через `loadingSkeleton` слот, чтобы не терять их верстку.
+
+4. **PatientProfile не трогаем по корню** — там `p-6 space-y-6` нужен для встраивания в `ViewAsPatientContext`. Меняем только размер заголовка на тот же `text-3xl font-bold tracking-tight` (он и так такой).
+
+## Что не меняется
+
+- Никакой бизнес-логики, запросов, состояний, табов внутри страниц.
+- Никаких правок в `DashboardLayout`, `AppSidebar`, `ViewAsPatientContext`, `PatientRoute`, `StaffRoute`.
+- Режим «Просмотр как пациент» работает как раньше: его контейнер выше по дереву (`DashboardLayout`), а админские страницы в этом режиме не открываются.
 
 ## Технические детали
-- Миграция: `ALTER TABLE public.sms_sender_settings ADD COLUMN api_email text, ADD COLUMN api_key text;` + GRANT остаются прежними.
-- Edge-функции используют `createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)` для чтения настроек (уже импортируется в большинстве sms-функций).
-- В `SmsSettings.tsx` расширяем `fetchSender()` чтобы тянуть `api_email, api_key`; добавляем `handleSaveCreds()`.
-- API-ключ не логируем и не отправляем в чат/Telegram-уведомления.
 
-## Что НЕ меняем
-- `SMSAERO_WEBHOOK_SECRET` остаётся в секретах (это внутренний токен callback, не относится к аккаунту).
-- Существующие шаблоны, логи, тестовая отправка — без изменений.
+`AdminPageShell` (упрощённо):
+
+```tsx
+type Props = {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  loading?: boolean;
+  loadingSkeleton?: ReactNode; // если задан — рендерим его вместо дефолтного
+  children: ReactNode;
+};
+```
+
+Дефолтный скелетон: `Skeleton h-9 w-64` (заголовок) + 3× `Skeleton h-32 w-full` в `space-y-4`.
+
+## Объём
+
+~13 файлов: 2 новых компонента + правки шапок на 11 страницах. Логика, обработчики, табы, формы — без изменений.

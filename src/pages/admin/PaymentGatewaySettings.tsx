@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AdminPaymentTester } from "@/components/admin/pricing/AdminPaymentTester";
 import { AdminPaymentLogs } from "@/components/admin/pricing/AdminPaymentLogs";
 
@@ -66,16 +67,21 @@ export default function PaymentGatewaySettings() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
+        <div>
+          <Skeleton className="h-9 w-64" />
+          <Skeleton className="h-4 w-80 mt-2" />
+        </div>
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Платёжный шлюз</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Платёжный шлюз</h1>
         <p className="text-muted-foreground mt-1">Настройки интеграции с Robokassa</p>
       </div>
 
