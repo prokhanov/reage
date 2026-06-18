@@ -415,17 +415,10 @@ export default function SmsSettings() {
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
-                  Сохранить
-                </Button>
-                <Button onClick={handleCheckConnection} disabled={checkingConn} className="gap-2">
-                  {checkingConn ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                  ) : (
-                    <Wifi className="h-4 w-4" />
-                  )}
-                  Проверить подключение
+                  Сохранить подпись
                 </Button>
               </div>
+
               {connResult && (
                 <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
                   connResult.ok
