@@ -1,62 +1,47 @@
-# Унификация внутренних элементов админки
+# Единый спиннер в админке
 
-После прохода по содержимому страниц вижу 4 конкретные несогласованности. Логику и состав вкладок не трогаю — только классы и общие компоненты.
+## Что нашёл
 
-## 1. TabsList — единый паттерн
+В админке используются **два разных стиля кнопочного спиннера** одновременно:
 
-Сейчас:
-| Страница | className TabsList |
-|---|---|
-| DataManagement | `grid w-full max-w-3xl grid-cols-4` |
-| UserManagement | `grid w-full grid-cols-2` |
-| EmailSettings | `w-full flex-wrap justify-start` |
-| SmsSettings | `flex-wrap` |
-| PaymentGatewaySettings | `flex-wrap h-auto` |
-| SubscriptionPlans | `mb-6` |
-| AnalysisBookings, LabLocations, TelegramSettings | без className |
+1. **Lucide Loader2:** `<Loader2 className="w-4 h-4 mr-2 animate-spin" />`
+   — `TelegramSettings` (4 места), `ReportVisualsTest` (2 места), `PaymentGatewaySettings` (1).
 
-Делаю **один паттерн для основных табов страницы**:
-```
-className="w-full justify-start flex-wrap h-auto"
-```
-Заголовки табов (`TabsTrigger`) уже одинаковые — оставляю.
-Внутренние/вложенные `TabsList` (внутри карточек — EmailSettings, SmsSettings) остаются `w-full justify-start overflow-x-auto` (как сейчас).
+2. **Самопальный CSS-кружок:**
+   `<div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />`
+   — `EmailSettings` (3), `SmsSettings` (5), `PatientProfile` (1, центральный).
 
-## 2. Заголовки секций/групп внутри карточек
+Это и есть «спиннеры везде разные». В тарифах (`SubscriptionPlans`) спиннера нет вовсе — просто `<Skeleton>`-блоки внутри карточки; это нормально, оставлю.
 
-Сейчас в одной странице соседствуют `text-xl font-semibold`, `text-lg font-semibold`, `font-semibold text-lg`. Делаю единый стиль для подзаголовков внутри страницы:
-```
-className="text-lg font-semibold"
-```
-Применяю в AISettings (h2: `text-xl` → `text-lg`) и причёсываю порядок классов в DataManagement.
-`CardTitle` шадсиэновский трогать не буду — он уже консистентен; уберу только лишние `text-base` оверрайды у AISettings карточек промптов (там это делает их меньше остальных).
+## Решение
 
-## 3. Единый компонент для status-баннеров
+Один компонент-обёртка над `Loader2` (lucide):
 
-Сейчас в `SmsSettings`, `TelegramSettings`, `EmailSettings` тремя разными способами нарисован один и тот же «результат проверки/подключения»:
-```
-<div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${ok ? "bg-green-500/10 ..." : "bg-destructive/10 ..."}`}>
-```
-
-Сделаю общий `src/components/admin/StatusBanner.tsx`:
 ```tsx
-type Variant = "success" | "error" | "info" | "warning";
-<StatusBanner variant="success" icon={CheckCircle2}>...</StatusBanner>
+// src/components/admin/ButtonSpinner.tsx
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export function ButtonSpinner({ className }: { className?: string }) {
+  return <Loader2 className={cn("h-4 w-4 animate-spin", className)} />;
+}
 ```
-Семантические токены: success → `bg-emerald-500/10 text-emerald-700 dark:text-emerald-400`, error → `bg-destructive/10 text-destructive`, info → `bg-muted text-muted-foreground`, warning → `bg-amber-500/10 text-amber-700 dark:text-amber-400`. Заменю 5 ручных мест.
 
-## 4. Иконки в заголовках H1
-
-Сейчас только LabLocations кладёт иконку рядом с H1 (`MapPin h-7 w-7`). Остальные страницы — без иконки. Чтобы не выбиваться, **уберу иконку из LabLocations H1** и оставлю просто текст. Иконки на TabsTrigger и в CardHeader остаются.
+Заменю **все 13+ мест** инлайн-спиннеров на `<ButtonSpinner />`:
+- `EmailSettings`: 3 div-кружка → `ButtonSpinner`.
+- `SmsSettings`: 5 div-кружков → `ButtonSpinner` (включая один `mr-2` для кнопки).
+- `TelegramSettings`: 4 `Loader2 w-4 h-4 mr-2 animate-spin` → `ButtonSpinner className="mr-2"`.
+- `ReportVisualsTest`: 2 `Loader2 h-4 w-4 animate-spin` → `ButtonSpinner`.
+- `PaymentGatewaySettings`: 1 уже использовал Loader2 в импорте, но он не вызывается — оставлю как есть (если используется только в импорте без рендера, уберу неиспользуемый импорт).
 
 ## Что НЕ меняю
 
-- Логику, запросы, состояния, табличные данные, формы.
-- `PatientProfile`, `ScaleLabelsPreview`, `ReportVisualsTest`.
-- Режим «Просмотр кабинета пациента» — он не пересекается с этими правками.
-- Шрифт/цвета (используются текущие токены).
-- Существующие специализированные скелетоны и `Skeleton`-загрузки.
+- `PatientProfile` центральный спиннер `h-8 w-8` — это не кнопка, отдельный full-page лоадер; оставляю как есть (нельзя ломать режим «Просмотр кабинета пациента»).
+- `RefreshCw`/`animate-spin` для кнопок Refresh (`LabLocations`, `Patients`) — это не спиннер «загрузки», а стандартный паттерн «иконка крутится при синхронизации». Оставляю.
+- Дедик-скелетоны страниц (`AISettingsSkeleton` и т.п.) — без изменений.
+- Внутренние `<Skeleton>`-блоки в `EmailSettings`, `SmsSettings`, `SubscriptionPlans` — без изменений.
+- Логику и обработчики не трогаю.
 
 ## Объём
 
-~1 новый компонент (`StatusBanner`) + точечные правки className в 8 файлах. Без рефакторинга разметки.
+1 новый файл (~10 строк) + точечные замены в 5 файлах.
