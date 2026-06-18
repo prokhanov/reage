@@ -1972,18 +1972,24 @@ export type Database = {
       }
       sms_sender_settings: {
         Row: {
+          api_email: string | null
+          api_key: string | null
           id: string
           sender_sign: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          api_email?: string | null
+          api_key?: string | null
           id?: string
           sender_sign?: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          api_email?: string | null
+          api_key?: string | null
           id?: string
           sender_sign?: string
           updated_at?: string
