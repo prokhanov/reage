@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
-import { Loader2, FlaskConical } from "lucide-react";
+import { FlaskConical } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import {
   calculateAge,
   getNormalRangeForAge,
@@ -264,7 +265,7 @@ export function AnalysisStep1({ data, onChange, onMockGenerate }: AnalysisStep1P
           >
             {generating ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ButtonSpinner className="mr-2" />
                 Генерация...
               </>
             ) : (

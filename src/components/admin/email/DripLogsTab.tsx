@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Search, RefreshCw } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { invokeDripAdmin } from "@/lib/dripAdmin";
 
 interface LogItem {
@@ -132,7 +133,7 @@ export default function DripLogsTab() {
           </SelectContent>
         </Select>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
       </div>
 
@@ -152,7 +153,7 @@ export default function DripLogsTab() {
               <tbody>
                 {loading && (
                   <tr><td colSpan={5} className="p-12 text-center text-muted-foreground">
-                    <Loader2 className="w-5 h-5 animate-spin inline mr-2" />Загрузка...
+                    <span className="inline-flex items-center gap-2"><ButtonSpinner />Загрузка...</span>
                   </td></tr>
                 )}
                 {!loading && items.length === 0 && (

@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 
 interface AssignStaffDialogProps {
   bookingId: string;
@@ -109,9 +110,7 @@ export default function AssignStaffDialog({
 
         <div className="py-4">
           {isLoadingStaff ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
+            <AdminCenterLoader size="sm" />
           ) : (
             <Select
               value={selectedStaffId}
@@ -140,9 +139,7 @@ export default function AssignStaffDialog({
             onClick={handleAssign}
             disabled={assignStaffMutation.isPending || isLoadingStaff}
           >
-            {assignStaffMutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {assignStaffMutation.isPending && <ButtonSpinner className="mr-2" />}
             Назначить
           </Button>
         </DialogFooter>

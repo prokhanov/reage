@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, Send, BellRing, Mail, Phone, Users, UserX } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import ReminderStopListDialog from "./ReminderStopListDialog";
 import ReminderLogs from "./ReminderLogs";
 
@@ -197,11 +198,7 @@ export default function ConfirmationReminders() {
               Стоп-лист
             </Button>
             <Button variant="outline" size="sm" onClick={handleRunNow} disabled={runNow} className="gap-2">
-              {runNow ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+              {runNow ? <ButtonSpinner /> : <Send className="h-4 w-4" />}
               Запустить сейчас
             </Button>
           </div>
@@ -314,11 +311,7 @@ export default function ConfirmationReminders() {
                 </div>
 
                 <Button onClick={() => handleSave(tab.type)} disabled={savingType === tab.type} className="gap-2">
-                  {savingType === tab.type ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
+                  {savingType === tab.type ? <ButtonSpinner /> : <Save className="h-4 w-4" />}
                   Сохранить
                 </Button>
 
@@ -342,11 +335,7 @@ export default function ConfirmationReminders() {
                       disabled={sendingTest === tab.type || !testEmail}
                       className="h-10 gap-2"
                     >
-                      {sendingTest === tab.type ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
+                      {sendingTest === tab.type ? <ButtonSpinner /> : <Send className="h-4 w-4" />}
                       Отправить
                     </Button>
                   </div>

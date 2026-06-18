@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState, cloneElement, isValidElement } from "react";
 import { CheckCircle2, AlertCircle, Loader2, Phone, ShieldCheck, ArrowLeft } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -256,11 +257,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
             {stage === "edit" ? (
               <>
                 <Button onClick={handleSend} disabled={!valid || sending} className="w-full">
-                  {sending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Phone className="w-4 h-4 mr-2" />
-                  )}
+                  {sending ? <ButtonSpinner className="mr-2" /> : <Phone className="w-4 h-4 mr-2" />}
                   Отправить код
                 </Button>
                 {adminMode && userId && (
@@ -270,7 +267,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                     disabled={forcing}
                     className="w-full"
                   >
-                    {forcing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                    {forcing ? <ButtonSpinner className="mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                     Подтвердить без проверки
                   </Button>
                 )}

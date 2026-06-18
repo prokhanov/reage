@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { addMonths, format } from "date-fns";
 
@@ -298,7 +298,7 @@ export function EditSubscriptionDialog({
             Отмена
           </Button>
           <Button onClick={handleSave} disabled={saving || loadingPlans}>
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {saving && <ButtonSpinner className="mr-2" />}
             Сохранить
           </Button>
         </DialogFooter>

@@ -10,7 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Mail, AlertTriangle } from "lucide-react";
+import { Mail, AlertTriangle } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -135,7 +136,7 @@ export function ChangeUserEmailDialog({
             Отмена
           </Button>
           <Button onClick={handleSave} disabled={saving || !newEmail || !confirmEmail}>
-            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+            {saving ? <ButtonSpinner className="mr-2" /> : <Mail className="w-4 h-4 mr-2" />}
             Изменить email
           </Button>
         </DialogFooter>

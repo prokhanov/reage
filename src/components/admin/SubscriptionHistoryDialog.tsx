@@ -9,7 +9,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Edit, XCircle, Clock, RefreshCw } from "lucide-react";
+import { Plus, Edit, XCircle, Clock, RefreshCw } from "lucide-react";
+import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -145,9 +146,7 @@ export function SubscriptionHistoryDialog({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
+          <AdminCenterLoader size="sm" />
         ) : !history || history.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             История подписок пуста

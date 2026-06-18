@@ -163,7 +163,7 @@ export function EditPendingUserDialog({ inviteToken, open, onOpenChange }: EditP
         </DialogHeader>
 
         {isLoadingInvite ? (
-          <div className="py-8 text-center text-muted-foreground">Загрузка...</div>
+          <AdminCenterLoader size="sm" />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">

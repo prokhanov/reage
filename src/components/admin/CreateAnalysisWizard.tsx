@@ -11,7 +11,8 @@ import { AnalysisStep1 } from "./AnalysisStep1";
 import { AnalysisStep2 } from "./AnalysisStep2";
 import { AnalysisStep3 } from "./AnalysisStep3";
 import { EditReportDialog } from "./EditReportDialog";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { isAnalysisReportComplete, waitForAnalysisCompletion } from "@/lib/analysisCompletionCheck";
 import { invokeAnalyzeBiomarkers } from "@/lib/analyzeBiomarkers";
 
@@ -437,7 +438,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
               <Button onClick={handleSave} disabled={loading || analyzing}>
                 {loading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <ButtonSpinner className="mr-2" />
                     Сохранение...
                   </>
                 ) : (
