@@ -1,47 +1,40 @@
-# Единый спиннер в админке
+## План
 
-## Что нашёл
+Исправлю не отдельные места, а всю админку целиком: страницы, вложенные вкладки, диалоги и таблицы, где есть loading-индикаторы.
 
-В админке используются **два разных стиля кнопочного спиннера** одновременно:
+### 1. Ввести единый набор loading-компонентов для админки
+- Оставить один стиль для кнопочных индикаторов через `ButtonSpinner`.
+- Добавить/использовать единые admin-компоненты для:
+  - кнопочного спиннера;
+  - центрированного inline/page loader;
+  - загрузки таблиц/карточек через skeleton с одинаковыми отступами.
+- Убрать ручные CSS-кружки и разрозненные `Loader2` прямо в JSX.
 
-1. **Lucide Loader2:** `<Loader2 className="w-4 h-4 mr-2 animate-spin" />`
-   — `TelegramSettings` (4 места), `ReportVisualsTest` (2 места), `PaymentGatewaySettings` (1).
+### 2. Исправить проблемные разделы, которые сейчас явно отличаются
+- `SubscriptionPlans`: заменить разные skeleton-блоки тарифов/цен на единый admin loading layout.
+- `SmsSettings` и вложенный `SmsLogsDashboard`: унифицировать skeleton таблицы и кнопку обновления.
+- `EmailSettings` и вложенные email-компоненты: `EmailLogsDashboard`, `ConfirmationReminders`, `ReminderLogs`, `DripLogsTab`, `SeriesSubscribersTab`, `EnrollPatientsDialog`.
+- `PaymentGatewaySettings`, `AdminPaymentTester`, `AdminPaymentLogs`: убрать оставшийся `Loader2`/разные skeleton-строки, сделать единообразно.
 
-2. **Самопальный CSS-кружок:**
-   `<div className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />`
-   — `EmailSettings` (3), `SmsSettings` (5), `PatientProfile` (1, центральный).
+### 3. Пройти все оставшиеся admin-компоненты со спиннерами
+Заменить оставшиеся нестандартные индикаторы в:
+- `AnalysisStep1`, `CreateAnalysisWizard`, `EditAnalysisWizard`;
+- `AssignStaffDialog`, `ChangeUserEmailDialog`, `EditSubscriptionDialog`, `SubscriptionHistoryDialog`;
+- `EmailConfirmationBadge`, `PhoneConfirmationBadge`;
+- `EditReportDialog`;
+- `Patients`, `LabLocations`, `UserManagement`, `ReportVisualsTest` — только loading/refresh presentation, без изменения бизнес-логики.
 
-Это и есть «спиннеры везде разные». В тарифах (`SubscriptionPlans`) спиннера нет вовсе — просто `<Skeleton>`-блоки внутри карточки; это нормально, оставлю.
+### 4. Скелетоны и пустые загрузочные состояния
+- Привести размеры skeleton-строк таблиц к одному виду: одинаковые `p`, `space-y`, высота строк.
+- Не трогать горизонтальный scroll таблиц.
+- Не заменять полноценные скелетоны страниц там, где они уже структурные, но выровнять их отступы/размеры, если они отличаются от общего admin-шаблона.
 
-## Решение
+### 5. Безопасность режима просмотра кабинета пациента
+- Не менять маршруты, права, запросы, переключение пользователя, patient-view state или данные.
+- В `PatientProfile` оставить логику как есть, заменить только визуальный loading-индикатор на общий вариант.
 
-Один компонент-обёртка над `Loader2` (lucide):
+## Технические детали
 
-```tsx
-// src/components/admin/ButtonSpinner.tsx
-import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-export function ButtonSpinner({ className }: { className?: string }) {
-  return <Loader2 className={cn("h-4 w-4 animate-spin", className)} />;
-}
-```
-
-Заменю **все 13+ мест** инлайн-спиннеров на `<ButtonSpinner />`:
-- `EmailSettings`: 3 div-кружка → `ButtonSpinner`.
-- `SmsSettings`: 5 div-кружков → `ButtonSpinner` (включая один `mr-2` для кнопки).
-- `TelegramSettings`: 4 `Loader2 w-4 h-4 mr-2 animate-spin` → `ButtonSpinner className="mr-2"`.
-- `ReportVisualsTest`: 2 `Loader2 h-4 w-4 animate-spin` → `ButtonSpinner`.
-- `PaymentGatewaySettings`: 1 уже использовал Loader2 в импорте, но он не вызывается — оставлю как есть (если используется только в импорте без рендера, уберу неиспользуемый импорт).
-
-## Что НЕ меняю
-
-- `PatientProfile` центральный спиннер `h-8 w-8` — это не кнопка, отдельный full-page лоадер; оставляю как есть (нельзя ломать режим «Просмотр кабинета пациента»).
-- `RefreshCw`/`animate-spin` для кнопок Refresh (`LabLocations`, `Patients`) — это не спиннер «загрузки», а стандартный паттерн «иконка крутится при синхронизации». Оставляю.
-- Дедик-скелетоны страниц (`AISettingsSkeleton` и т.п.) — без изменений.
-- Внутренние `<Skeleton>`-блоки в `EmailSettings`, `SmsSettings`, `SubscriptionPlans` — без изменений.
-- Логику и обработчики не трогаю.
-
-## Объём
-
-1 новый файл (~10 строк) + точечные замены в 5 файлах.
+- Все изменения будут presentation-only: классы, imports, JSX loading-блоки.
+- Никаких изменений в запросах, hooks, mutations, handlers, RLS/backend.
+- После правки проверю поиском, что в `src/pages/admin` и `src/components/admin` не осталось ручных `Loader2`, CSS spinner-кружков и разрозненных `animate-spin`, кроме единого компонента и допустимых иконок refresh.
