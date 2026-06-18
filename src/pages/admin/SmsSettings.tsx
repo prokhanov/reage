@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  MessageSquare, Send, CheckCircle, AlertCircle, Save, User, Activity, Wifi,
+  MessageSquare, Send, CheckCircle, AlertCircle, Save, User, Activity, Wifi, Eye, EyeOff, KeyRound,
 } from "lucide-react";
 import { SmsLogsDashboard } from "@/components/admin/sms/SmsLogsDashboard";
 
