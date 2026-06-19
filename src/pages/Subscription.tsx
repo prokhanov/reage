@@ -51,17 +51,10 @@ export default function Subscription() {
   const handleSelectPlan = async (planId: string, pricingId: string) => {
     setSelectedPlanId(planId);
 
-    const plan = plans?.find(p => p.id === planId);
-    const pricing = plan?.pricing.find(p => p.id === pricingId);
-    let currentPromo = appliedPromo;
-    if (currentPromo && pricing && currentPromo.original_amount > 0 && currentPromo.original_amount !== pricing.amount) {
-      setAppliedPromo(null);
-      currentPromo = null;
-      toast({
-        title: "Промокод сброшен",
-        description: "Применённый промокод снят после смены тарифа. Примените заново.",
-      });
-    }
+    // Промокод не сбрасываем при смене тарифа — сервер re-валидирует и вернёт ошибку,
+    // если код не применим к выбранному тарифу.
+    const currentPromo = appliedPromo;
+
 
     setCreating(true);
     try {
