@@ -112,6 +112,15 @@ function clearDraft() {
   }
 }
 
+function clearReturnToStep() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem("reage:register:returnToStep");
+  } catch {
+    // ignore
+  }
+}
+
 export default function Register() {
   const { step: stepParam } = useParams<{ step?: string }>();
   const navigate = useNavigate();
@@ -148,8 +157,8 @@ export default function Register() {
         setFormData(draft.formData);
         setSelectedPlan(draft.selectedPlan);
       } else {
-        // Новая регистрация — стираем черновик прошлого пользователя
-        clearDraft();
+        // Без сессии нельзя восстанавливать возврат на внутренние шаги регистрации.
+        clearReturnToStep();
       }
       setDraftHydrated(true);
     });
@@ -161,6 +170,12 @@ export default function Register() {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!draftHydrated || hasSession || currentStep === 1) return;
+    clearReturnToStep();
+    navigate("/register/account", { replace: true });
+  }, [currentStep, draftHydrated, hasSession, navigate]);
 
 
   // Сохраняем черновик только после гидратации, чтобы не перезаписать пустой формой
@@ -250,7 +265,13 @@ export default function Register() {
         });
         if (signInError) {
           console.error("Auto sign-in after signup failed:", signInError);
+          throw new Error("Аккаунт создан, но сессия не открылась. Войдите в аккаунт и продолжите регистрацию.");
         }
+      }
+
+      const { data: verifiedUserData, error: verifiedUserError } = await supabase.auth.getUser();
+      if (verifiedUserError || !verifiedUserData.user) {
+        throw new Error("Аккаунт создан, но сессия не открылась. Войдите в аккаунт и продолжите регистрацию.");
       }
 
       // Отправляем письмо подтверждения email (fire-and-forget).
