@@ -259,20 +259,31 @@ export default function Register() {
         return;
       }
 
-      // Обновляем профиль
+      // Обновляем профиль — только те поля, что пользователь действительно заполнил.
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       const profileUpdate: Record<string, any> = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        name: `${formData.firstName} ${formData.lastName}`.trim() || user.email,
+        last_name: formData.lastName?.trim() || null,
         gender: formData.gender || null,
         birth_date: formData.birth_date ? format(formData.birth_date, "yyyy-MM-dd") : null,
         weight: formData.weight ? Number(formData.weight) : null,
         height: formData.height ? Number(formData.height) : null,
         phone: formData.phone ? normalizePhone(formData.phone) : null,
-        operations: formData.operations || {},
-        medications: formData.medications || [],
         health_note: formData.healthNote?.trim() || null,
       };
+
+      // first_name — NOT NULL: меняем, только если пользователь ввёл значение
+      if (formData.firstName?.trim()) {
+        profileUpdate.first_name = formData.firstName.trim();
+        profileUpdate.name = fullName || formData.firstName.trim();
+      }
+
+      // operations / medications перезаписываем, только если что-то выбрано
+      if (formData.operations && Object.keys(formData.operations).length > 0) {
+        profileUpdate.operations = formData.operations;
+      }
+      if (formData.medications && formData.medications.length > 0) {
+        profileUpdate.medications = formData.medications;
+      }
 
       const { error: profileErr } = await supabase
         .from("profiles")
