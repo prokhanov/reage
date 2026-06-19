@@ -391,7 +391,7 @@ export default function Register() {
                 const Icon = step.icon;
                 const isActive = currentStep === step.id;
                 const isCompleted = currentStep > step.id;
-                const isClickable = step.id === 1 || hasSession;
+                const isClickable = step.id === 1 ? !hasSession : hasSession;
 
                 return (
                   <div key={step.id} className="flex items-center">
