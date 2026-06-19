@@ -49,6 +49,8 @@ import {
   usePromoMutations,
   usePromoRedemptions,
 } from "@/hooks/usePromoCodes";
+import { usePromoSettings, useUpdatePromoSettings } from "@/hooks/usePromoSettings";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useToast } from "@/hooks/use-toast";
 import {
   Copy,
@@ -97,6 +99,12 @@ export default function PromoCodes() {
   const { data: batches, isLoading: batchesLoading } = usePromoBatches();
   const { data: redemptions, isLoading: redemptionsLoading } = usePromoRedemptions();
   const { deletePromoCodes, togglePromoCodes, deleteBatch } = usePromoMutations();
+  const { data: promoSettings } = usePromoSettings();
+  const updateSettings = useUpdatePromoSettings();
+  const [prefixDraft, setPrefixDraft] = useState("");
+  useMemo(() => {
+    if (promoSettings?.default_prefix !== undefined) setPrefixDraft(promoSettings.default_prefix);
+  }, [promoSettings?.default_prefix]);
 
   const allSelected = useMemo(
     () => (codes?.length ?? 0) > 0 && selected.length === codes!.length,
