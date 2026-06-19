@@ -26,7 +26,7 @@ interface EmailChangeEmailProps {
   customFooterText?: string
 }
 
-const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
+const logoUrl = 'https://api.reage.life/storage/v1/object/public/email-assets/reage-logo-v2.png'
 
 export const EmailChangeEmail = ({
   siteName,
