@@ -1741,6 +1741,225 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_code_batches: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      promo_code_plans: {
+        Row: {
+          created_at: string
+          id: string
+          plan_id: string
+          pricing_id: string | null
+          promo_code_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_id: string
+          pricing_id?: string | null
+          promo_code_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_id?: string
+          pricing_id?: string | null
+          promo_code_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_plans_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_plans_pricing_id_fkey"
+            columns: ["pricing_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_pricing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_plans_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_code_redemptions: {
+        Row: {
+          discount_applied: number
+          final_amount: number
+          id: string
+          order_id: string | null
+          original_amount: number
+          plan_id: string | null
+          pricing_id: string | null
+          promo_code_id: string
+          redeemed_at: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          discount_applied?: number
+          final_amount?: number
+          id?: string
+          order_id?: string | null
+          original_amount?: number
+          plan_id?: string | null
+          pricing_id?: string | null
+          promo_code_id: string
+          redeemed_at?: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          discount_applied?: number
+          final_amount?: number
+          id?: string
+          order_id?: string | null
+          original_amount?: number
+          plan_id?: string | null
+          pricing_id?: string | null
+          promo_code_id?: string
+          redeemed_at?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "payment_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_redemptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_redemptions_pricing_id_fkey"
+            columns: ["pricing_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_pricing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_code_redemptions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_codes: {
+        Row: {
+          applies_to: Database["public"]["Enums"]["promo_applies_to"]
+          batch_id: string | null
+          bound_user_id: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          discount_type: Database["public"]["Enums"]["promo_discount_type"]
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          notes: string | null
+          one_per_user: boolean
+          starts_at: string | null
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          applies_to?: Database["public"]["Enums"]["promo_applies_to"]
+          batch_id?: string | null
+          bound_user_id?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          discount_type: Database["public"]["Enums"]["promo_discount_type"]
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          notes?: string | null
+          one_per_user?: boolean
+          starts_at?: string | null
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          applies_to?: Database["public"]["Enums"]["promo_applies_to"]
+          batch_id?: string | null
+          bound_user_id?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          discount_type?: Database["public"]["Enums"]["promo_discount_type"]
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          notes?: string | null
+          one_per_user?: boolean
+          starts_at?: string | null
+          updated_at?: string
+          used_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_codes_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "promo_code_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recommendations: {
         Row: {
           analysis_id: string | null
@@ -2512,6 +2731,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_promo_code: {
+        Args: {
+          p_amount: number
+          p_code: string
+          p_plan_id: string
+          p_pricing_id: string
+        }
+        Returns: Json
+      }
       book_analysis_slot:
         | { Args: { p_slot_id: string }; Returns: Json }
         | {
@@ -2611,6 +2839,20 @@ export type Database = {
           read_ct: number
         }[]
       }
+      redeem_promo_code: {
+        Args: {
+          p_discount_applied: number
+          p_final_amount: number
+          p_order_id: string
+          p_original_amount: number
+          p_plan_id: string
+          p_pricing_id: string
+          p_promo_code_id: string
+          p_subscription_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       reset_slot_to_default: {
         Args: { p_date: string; p_time_slot: string }
         Returns: Json
@@ -2633,6 +2875,7 @@ export type Database = {
         | "user_management"
         | "analysis_bookings"
         | "my_assignments"
+        | "promo_codes"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
       drip_delay_unit: "minutes" | "hours" | "days"
@@ -2659,6 +2902,8 @@ export type Database = {
         | "task"
         | "appointment"
       prescription_status: "on_review" | "confirmed"
+      promo_applies_to: "all_plans" | "specific"
+      promo_discount_type: "percent" | "fixed" | "free_period"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2793,6 +3038,7 @@ export const Constants = {
         "user_management",
         "analysis_bookings",
         "my_assignments",
+        "promo_codes",
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],
@@ -2823,6 +3069,8 @@ export const Constants = {
         "appointment",
       ],
       prescription_status: ["on_review", "confirmed"],
+      promo_applies_to: ["all_plans", "specific"],
+      promo_discount_type: ["percent", "fixed", "free_period"],
     },
   },
 } as const
