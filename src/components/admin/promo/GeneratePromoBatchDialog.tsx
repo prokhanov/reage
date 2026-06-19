@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +49,10 @@ export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
   const [startsAt, setStartsAt] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    if (open) setPrefix(defaultPrefix);
+  }, [open, defaultPrefix]);
 
   const [generated, setGenerated] = useState<{ code: string }[] | null>(null);
 
