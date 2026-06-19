@@ -141,7 +141,17 @@ export default function Register() {
     let mounted = true;
     supabase.auth.getUser().then(({ data, error }) => {
       if (!mounted) return;
-      setHasSession(!error && !!data.user);
+      const signedIn = !error && !!data.user;
+      setHasSession(signedIn);
+      if (signedIn) {
+        const draft = loadDraft();
+        setFormData(draft.formData);
+        setSelectedPlan(draft.selectedPlan);
+      } else {
+        // Новая регистрация — стираем черновик прошлого пользователя
+        clearDraft();
+      }
+      setDraftHydrated(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setHasSession(!!session?.user);
@@ -153,10 +163,11 @@ export default function Register() {
   }, []);
 
 
-  // Сохраняем черновик
+  // Сохраняем черновик только после гидратации, чтобы не перезаписать пустой формой
   useEffect(() => {
+    if (!draftHydrated) return;
     saveDraft(formData, selectedPlan);
-  }, [formData, selectedPlan]);
+  }, [formData, selectedPlan, draftHydrated]);
 
   const progress = (currentStep / steps.length) * 100;
 
