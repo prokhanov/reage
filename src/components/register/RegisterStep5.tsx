@@ -454,6 +454,22 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         </button>
       </div>
 
+      {/* Промокод */}
+      {selectedCard && (
+        <div className="max-w-md mx-auto pt-2">
+          <PromoCodeField
+            applied={appliedPromo}
+            onApplied={setAppliedPromo}
+            context={{
+              planId: selectedCard.id,
+              pricingId: selectedCard.pricingId,
+              amount: selectedCard.amount,
+            }}
+          />
+        </div>
+      )}
+
+
       <div className="flex flex-wrap gap-3 pt-2">
         <Button
           type="button"
