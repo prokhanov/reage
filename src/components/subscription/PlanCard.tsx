@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { PlanWithPricing, SubscriptionPricing, calculateSavings, calculateMonthlyEquivalent } from "@/hooks/useSubscriptionPlans";
+import { AppliedPromo } from "./PromoCodeField";
 
 interface PlanCardProps {
   plan: PlanWithPricing;
@@ -11,6 +12,7 @@ interface PlanCardProps {
   isRecommended?: boolean;
   onSelect: (planId: string, pricingId: string) => void;
   isLoading?: boolean;
+  appliedPromo?: AppliedPromo | null;
 }
 
 export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoading }: PlanCardProps) {
