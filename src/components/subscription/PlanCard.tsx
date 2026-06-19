@@ -15,7 +15,7 @@ interface PlanCardProps {
   appliedPromo?: AppliedPromo | null;
 }
 
-export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoading }: PlanCardProps) {
+export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoading, appliedPromo }: PlanCardProps) {
   const pricing = plan.pricing.find(p => p.period === selectedPeriod);
   
   if (!pricing) return null;
@@ -26,6 +26,12 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
     : 0;
   
   const monthlyEquivalent = calculateMonthlyEquivalent(pricing.amount, pricing.duration_months);
+
+  const isPromoApplied = appliedPromo && appliedPromo.original_amount > 0 && appliedPromo.original_amount === pricing.amount;
+  const finalAmount = isPromoApplied && appliedPromo.discount_type !== "free_period"
+    ? appliedPromo.final_amount
+    : pricing.amount;
+  const showStrike = isPromoApplied && appliedPromo.discount_type !== "free_period" && finalAmount !== pricing.amount;
 
   return (
     <Card 
