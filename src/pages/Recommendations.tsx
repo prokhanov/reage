@@ -147,58 +147,114 @@ export default function Recommendations() {
         setLoading(false);
         return;
       }
-      
+
+      const DEMO_TYPE_MAP: Record<string, string> = {
+        patient_data: "Данные пациента",
+        summary: "Общее резюме",
+        prescriptions: "Назначения",
+      };
+
       // Group recommendations by analysis_index
-      const groupedByAnalysis = demoData.recommendations.reduce((acc: any, r: any) => {
+      const groupedByAnalysis = demoData.recommendations.reduce((acc: Record<number, any[]>, r: any) => {
         const analysisIndex = r.analysis_index ?? 0;
-        if (!acc[analysisIndex]) {
-          acc[analysisIndex] = [];
-        }
+        if (!acc[analysisIndex]) acc[analysisIndex] = [];
         acc[analysisIndex].push(r);
         return acc;
       }, {});
-      
-      // Create separate reports for each analysis
-      const demoReports = Object.entries(groupedByAnalysis)
-        .map(([analysisIndexStr, recs]: [string, any]) => {
-          const analysisIndex = parseInt(analysisIndexStr);
-          const analysis = demoData.analyses[analysisIndex];
-          
-          if (!analysis) {
-            console.warn(`Analysis not found for index ${analysisIndex}`);
-            return null;
-          }
-          
-          const DEMO_TYPE_MAP: Record<string, string> = {
-            patient_data: "Данные пациента",
-            summary: "Общее резюме",
-            prescriptions: "Назначения",
-          };
-          const recommendations = recs.map((r: any, idx: number) => ({
-            id: `demo-rec-${analysisIndex}-${idx}`,
-            type: DEMO_TYPE_MAP[r.type] ?? r.type,
-            text: r.text,
-            created_at: analysis.date,
-            analysis_date: analysis.date,
-            analysis_status: "processed" as const,
-            analysis_id: `demo-analysis-${analysisIndex}`
-          }));
-          
+
+      // Use the latest available recommendation set as a fallback when an
+      // older analysis has none (we only store full Elena content on the latest).
+      const fallbackIndex = Math.max(
+        ...Object.keys(groupedByAnalysis).map((k) => parseInt(k)),
+        -1,
+      );
+      const fallbackRecs: any[] = fallbackIndex >= 0 ? groupedByAnalysis[fallbackIndex] : [];
+
+      // Build a dynamic "Данные пациента" block from the logged-in user's profile.
+      const profile = demoData.profile || {};
+      const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim()
+        || profile.name
+        || 'Пациент';
+      const age = profile.chronological_age;
+      const genderLabel = profile.gender === 'female' ? 'Женский' : 'Мужской';
+      const heightCm = profile.height;
+      const weightKg = profile.weight;
+      const bmi = heightCm && weightKg
+        ? Math.round((weightKg / Math.pow(heightCm / 100, 2)) * 10) / 10
+        : null;
+      const bmiCategory = bmi == null
+        ? ''
+        : bmi < 18.5 ? ' (недостаточный вес)'
+        : bmi < 25 ? ' (норма)'
+        : bmi < 30 ? ' (избыточный вес)'
+        : ' (ожирение)';
+
+      const buildPatientDataMarkdown = (analysisDateIso: string) => {
+        const d = analysisDateIso ? new Date(analysisDateIso) : new Date();
+        const dateFormatted = !isNaN(d.getTime())
+          ? format(d, 'd MMMM yyyy', { locale: ru }) + ' г.'
+          : 'Не указана';
+        return [
+          '# ДАННЫЕ ПАЦИЕНТА',
+          '',
+          '## Персональная информация',
+          '',
+          `**ФИО:** ${fullName}`,
+          '',
+          `**Возраст:** ${age ? age + ' лет' : 'Не указан'}`,
+          '',
+          `**Пол:** ${genderLabel}`,
+          '',
+          `**Рост:** ${heightCm ? heightCm + ' см' : 'Не указан'}`,
+          '',
+          `**Вес:** ${weightKg ? weightKg + ' кг' : 'Не указан'}`,
+          '',
+          `**Индекс массы тела (BMI):** ${bmi != null ? bmi + bmiCategory : 'Не рассчитан'}`,
+          '',
+          '## Дата анализа',
+          '',
+          dateFormatted,
+        ].join('\n');
+      };
+
+      // Create separate reports for each demo analysis
+      const demoReports = demoData.analyses
+        .map((analysis: any, analysisIndex: number) => {
+          if (!analysis) return null;
+          const sourceRecs: any[] = groupedByAnalysis[analysisIndex]?.length
+            ? groupedByAnalysis[analysisIndex]
+            : fallbackRecs;
+
+          const recommendations = sourceRecs.map((r: any, idx: number) => {
+            const mappedType = DEMO_TYPE_MAP[r.type] ?? r.type;
+            const text = mappedType === 'Данные пациента'
+              ? buildPatientDataMarkdown(analysis.date)
+              : r.text;
+            return {
+              id: `demo-rec-${analysisIndex}-${idx}`,
+              type: mappedType,
+              text,
+              created_at: analysis.date,
+              analysis_date: analysis.date,
+              analysis_status: 'processed' as const,
+              analysis_id: `demo-analysis-${analysisIndex}`,
+            };
+          });
+
           return {
             date: analysis.date,
             recommendations,
             count: recommendations.length,
-            analysisId: `demo-analysis-${analysisIndex}`
+            analysisId: `demo-analysis-${analysisIndex}`,
           };
         })
         .filter(Boolean) as RecommendationReport[];
-      
+
       // Sort by date descending (newest first)
       demoReports.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      // Flatten all recommendations for the recommendations state
-      const allDemoRecommendations = demoReports.flatMap(report => report.recommendations);
-      
+
+      const allDemoRecommendations = demoReports.flatMap((report) => report.recommendations);
+
       setRecommendations(allDemoRecommendations);
       setReports(demoReports);
       setLoading(false);
