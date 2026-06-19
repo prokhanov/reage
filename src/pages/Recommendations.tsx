@@ -152,6 +152,7 @@ export default function Recommendations() {
         patient_data: "Данные пациента",
         summary: "Общее резюме",
         prescriptions: "Назначения",
+        "Рекомендации": "Назначения",
       };
 
       // Group recommendations by analysis_index
