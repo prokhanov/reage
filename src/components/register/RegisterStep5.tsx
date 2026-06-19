@@ -502,7 +502,28 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
             </>
           ) : (
             <>
-              Оплатить {selectedCard ? `${(appliedPromo?.final_amount && appliedPromo.discount_type !== "free_period" ? appliedPromo.final_amount : selectedCard.amount).toLocaleString('ru-RU')} ₽` : ""}
+              {selectedCard ? (
+                <span className="inline-flex items-center gap-1.5">
+                  Оплатить
+                  {appliedPromo && appliedPromo.discount_type !== "free_period" && appliedPromo.final_amount !== selectedCard.amount ? (
+                    <>
+                      <span className="line-through opacity-60">
+                        {selectedCard.amount.toLocaleString("ru-RU")} ₽
+                      </span>
+                      <span>{appliedPromo.final_amount.toLocaleString("ru-RU")} ₽</span>
+                    </>
+                  ) : (
+                    <span>{selectedCard.amount.toLocaleString("ru-RU")} ₽</span>
+                  )}
+                  {appliedPromo?.discount_type === "free_period" && (
+                    <span className="text-[11px] opacity-80 ml-1">
+                      (+{appliedPromo.discount_value} мес. бесплатно)
+                    </span>
+                  )}
+                </span>
+              ) : (
+                "Оплатить"
+              )}
               <Check className="ml-2 h-5 w-5" />
             </>
           )}
