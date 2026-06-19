@@ -21,6 +21,14 @@ export default function SubscriptionSuccess() {
   const registerReturnStepRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const step = typeof window !== "undefined" ? window.localStorage.getItem("reage:register:returnToStep") : null;
+    if (step) {
+      setRegisterReturnStep(step);
+      registerReturnStepRef.current = step;
+    }
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     const delays = [1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 15000]; // ~55 сек
     let attempt = 0;
@@ -57,11 +65,10 @@ export default function SubscriptionSuccess() {
           if (sub) {
             setStatus("active");
             // Если оплата была инициирована из регистрации — возвращаемся в неё
-            const returnTo = typeof window !== "undefined"
-              ? window.localStorage.getItem("reage:register:returnToStep")
-              : null;
+            const returnTo = registerReturnStepRef.current;
             if (returnTo) {
               window.localStorage.removeItem("reage:register:returnToStep");
+              registerReturnStepRef.current = null;
               setTimeout(() => navigate(`/register/${returnTo}`, { replace: true }), 800);
             }
             return;
@@ -102,7 +109,11 @@ export default function SubscriptionSuccess() {
             Спасибо! Добро пожаловать в ReAge.
           </p>
           <Button asChild>
-            <Link to="/dashboard">Перейти в Контрольную панель</Link>
+            {registerReturnStep ? (
+              <Link to={`/register/${registerReturnStep}`}>Закончить регистрацию</Link>
+            ) : (
+              <Link to="/dashboard">Перейти в Контрольную панель</Link>
+            )}
           </Button>
         </>
       )}
@@ -129,7 +140,11 @@ export default function SubscriptionSuccess() {
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={() => window.location.reload()}>Обновить</Button>
             <Button asChild>
-              <Link to="/dashboard">В Контрольную панель</Link>
+              {registerReturnStep ? (
+                <Link to={`/register/${registerReturnStep}`}>Закончить регистрацию</Link>
+              ) : (
+                <Link to="/dashboard">В Контрольную панель</Link>
+              )}
             </Button>
           </div>
         </>
