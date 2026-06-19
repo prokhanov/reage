@@ -1,12 +1,13 @@
-import { Rabbit, Sparkles, Loader2, SkipForward, Check, CreditCard, FlaskConical, CalendarCheck, UserCheck } from "lucide-react";
+import { Rabbit, Sparkles, Loader2, SkipForward, Check, FlaskConical, CalendarCheck, UserCheck, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect, useMemo } from "react";
-import { useSubscriptionPlans, calculateMonthlyEquivalent, calculateSavings } from "@/hooks/useSubscriptionPlans";
+import { useState, useEffect } from "react";
+import { useSubscriptionPlans, calculateMonthlyEquivalent } from "@/hooks/useSubscriptionPlans";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 export interface SelectedPlanData {
   planId: string;
@@ -26,10 +27,27 @@ interface RegisterStep5Props {
 export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5Props) {
   const { data: plans, isLoading } = useSubscriptionPlans();
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
+  const [paying, setPaying] = useState(false);
+  const { toast } = useToast();
+
+  // Проверяем наличие активной подписки
+  const { data: activeSubscription, isLoading: loadingSub } = useQuery({
+    queryKey: ['register-active-subscription'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('id, status, end_date, plan_id, subscription_plans(display_name)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 0,
+  });
 
   // Auto-select recommended (second) plan
   useEffect(() => {
@@ -40,7 +58,6 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
     }
   }, [plans, selectedPlanId]);
 
-  // Since pricing is yearly only, get the annual pricing for each plan
   const getAnnualPricing = (planId: string) => {
     const plan = plans?.find(p => p.id === planId);
     if (!plan) return null;
@@ -49,36 +66,50 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
 
   const selectedPricing = selectedPlanId ? getAnnualPricing(selectedPlanId) : null;
 
-  const formatCardNumber = (value: string) => {
-    const cleaned = value.replace(/\s/g, "");
-    const formatted = cleaned.match(/.{1,4}/g)?.join(" ") || cleaned;
-    return formatted.substring(0, 19);
-  };
-
-  const formatExpiryDate = (value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length >= 2) {
-      return cleaned.substring(0, 2) + "/" + cleaned.substring(2, 4);
-    }
-    return cleaned;
-  };
-
-  const isCardValid =
-    cardNumber.replace(/\s/g, "").length === 16 &&
-    cardName.trim().length > 0 &&
-    expiryDate.length === 5 &&
-    cvv.length === 3;
-
-  const handlePay = () => {
+  const handlePay = async () => {
     if (!selectedPlanId || !selectedPricing) return;
-    onSubmit({
-      planId: selectedPlanId,
-      pricingId: selectedPricing.id,
-      amount: selectedPricing.amount,
-      period: selectedPricing.period,
-      durationMonths: selectedPricing.duration_months,
-      skipPayment: false
-    });
+    setPaying(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Требуется вход",
+          description: "Сначала завершите шаг «Аккаунт».",
+          variant: "destructive",
+        });
+        setPaying(false);
+        return;
+      }
+
+      // Сохраняем выбор и помечаем, что после оплаты надо вернуться в регистрацию
+      onSubmit({
+        planId: selectedPlanId,
+        pricingId: selectedPricing.id,
+        amount: selectedPricing.amount,
+        period: selectedPricing.period,
+        durationMonths: selectedPricing.duration_months,
+        skipPayment: false,
+      });
+      window.localStorage.setItem("reage:register:returnToStep", "profile");
+
+      const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
+        body: { planId: selectedPlanId, pricingId: selectedPricing.id },
+      });
+
+      if (error) throw error;
+      if (!data?.url) throw new Error("Не получен платёжный URL");
+
+      window.location.href = data.url as string;
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast({
+        title: "Ошибка оплаты",
+        description: err?.message || "Не удалось создать платёж. Попробуйте позже.",
+        variant: "destructive",
+      });
+      window.localStorage.removeItem("reage:register:returnToStep");
+      setPaying(false);
+    }
   };
 
   const handleSkip = () => {
@@ -88,9 +119,58 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
       amount: 0,
       period: '',
       durationMonths: 0,
-      skipPayment: true
+      skipPayment: true,
     });
   };
+
+  // Если подписка уже активна — read-only
+  if (activeSubscription) {
+    const planName = (activeSubscription as any).subscription_plans?.display_name || "выбранный тариф";
+    const endDate = activeSubscription.end_date
+      ? new Date(activeSubscription.end_date).toLocaleDateString('ru-RU')
+      : null;
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-500/15 mb-2">
+            <ShieldCheck className="h-7 w-7 text-green-500" />
+          </div>
+          <h2 className="text-2xl font-bold">Вы уже оплатили подписку</h2>
+          <p className="text-muted-foreground text-sm">
+            Активен тариф «{planName}».{endDate && ` Действует до ${endDate}.`}
+          </p>
+        </div>
+
+        <Card className="p-6 border-green-500/30 bg-green-500/5">
+          <div className="flex items-center gap-3">
+            <Check className="h-5 w-5 text-green-500" />
+            <p className="text-sm">
+              Шаг оплаты пройден. Продолжите регистрацию — расскажите о себе на следующем шаге.
+            </p>
+          </div>
+        </Card>
+
+        <div className="flex gap-3 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            className="flex-1 h-12"
+          >
+            Назад
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSkip}
+            className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
+          >
+            Далее
+            <Check className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -102,18 +182,16 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
           Выберите подписку
         </h2>
         <p className="text-muted-foreground text-sm">
-          Выберите подходящий тариф для доступа ко всем возможностям ReAge
+          Оплата проходит через Робокассу. Карта вводится на защищённой странице банка.
         </p>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
+      {(isLoading || loadingSub) && (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
 
-      {/* Plans Selection */}
       {!isLoading && plans && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {plans.map((plan, index) => {
@@ -135,7 +213,6 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
                   isRecommended && !isSelected && "border-primary/30"
                 )}
               >
-                {/* Selected indicator */}
                 <div className={cn(
                   "absolute top-3 right-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
                   isSelected
@@ -145,7 +222,6 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
                   {isSelected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
                 </div>
 
-                {/* Badge */}
                 {plan.badge_text && (
                   <div className="mb-2">
                     <Badge
@@ -163,7 +239,6 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
 
                 <h3 className="text-lg font-bold mb-3">{plan.display_name}</h3>
 
-                {/* Plan metrics */}
                 <div className="space-y-1.5 mb-3">
                   {(() => {
                     const name = plan.name?.toLowerCase() || '';
@@ -203,77 +278,20 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
                     {pricing.amount.toLocaleString('ru-RU')} ₽ <span className="text-sm font-normal text-muted-foreground">/ год</span>
                   </div>
                 </div>
-
               </Card>
             );
           })}
         </div>
       )}
 
-      {/* Payment Form */}
-      {selectedPlanId && selectedPricing && (
-        <div className="space-y-4 border-t border-border/50 pt-5">
-          <h3 className="font-semibold text-base flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-primary" />
-            Данные карты
-            <span className="ml-auto text-sm font-normal text-muted-foreground">
-              К оплате: {selectedPricing.amount.toLocaleString('ru-RU')} ₽
-            </span>
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-xs">Номер карты</Label>
-              <Input
-                placeholder="0000 0000 0000 0000"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                maxLength={19}
-                className="h-11 font-mono"
-              />
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-xs">Имя на карте</Label>
-              <Input
-                placeholder="IVAN IVANOV"
-                value={cardName}
-                onChange={(e) => setCardName(e.target.value.toUpperCase())}
-                className="h-11"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Срок действия</Label>
-              <Input
-                placeholder="MM/YY"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                maxLength={5}
-                className="h-11 font-mono"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">CVV</Label>
-              <Input
-                type="password"
-                placeholder="000"
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").substring(0, 3))}
-                maxLength={3}
-                className="h-11 font-mono"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Buttons */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
-          className="flex-1 h-12"
-          disabled={isSubmitting}
+          className="flex-1 min-w-[120px] h-12"
+          disabled={isSubmitting || paying}
         >
           Назад
         </Button>
@@ -281,19 +299,28 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
           type="button"
           variant="ghost"
           onClick={handleSkip}
-          className="flex-1 h-12 text-muted-foreground hover:text-foreground"
-          disabled={isSubmitting}
+          className="flex-1 min-w-[140px] h-12 text-muted-foreground hover:text-foreground"
+          disabled={isSubmitting || paying}
         >
           <SkipForward className="h-4 w-4 mr-2" />
           Оплатить позже
         </Button>
         <Button
           onClick={handlePay}
-          disabled={!isCardValid || !selectedPlanId || isSubmitting}
-          className="flex-1 h-12 bg-gradient-primary shadow-neon-primary"
+          disabled={!selectedPlanId || isSubmitting || paying}
+          className="flex-1 min-w-[180px] h-12 bg-gradient-primary shadow-neon-primary"
         >
-          {isSubmitting ? "Обработка..." : "Оплатить"}
-          <Check className="ml-2 h-5 w-5" />
+          {paying ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Переход к оплате…
+            </>
+          ) : (
+            <>
+              Оплатить {selectedPricing ? `${selectedPricing.amount.toLocaleString('ru-RU')} ₽` : ""}
+              <Check className="ml-2 h-5 w-5" />
+            </>
+          )}
         </Button>
       </div>
     </div>
