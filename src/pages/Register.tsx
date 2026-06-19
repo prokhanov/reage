@@ -38,8 +38,8 @@ export interface RegisterFormData {
 
 const steps = [
   { id: 1, slug: "account", title: "Аккаунт", description: "Создайте ваш аккаунт", icon: Mail },
-  { id: 2, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
-  { id: 3, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
+  { id: 2, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
+  { id: 3, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
   { id: 4, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
 ] as const;
 
