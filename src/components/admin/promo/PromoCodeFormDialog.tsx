@@ -26,6 +26,7 @@ import {
   usePromoMutations,
 } from "@/hooks/usePromoCodes";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { usePromoSettings } from "@/hooks/usePromoSettings";
 
 interface Props {
   open: boolean;
@@ -46,6 +47,8 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
   const isEdit = !!promoCode;
   const { createPromoCode, updatePromoCode } = usePromoMutations();
   const { data: plans } = useSubscriptionPlans({ includeInactivePlans: true, includeDisabledPricing: true });
+  const { data: settings } = usePromoSettings();
+  const defaultPrefix = settings?.default_prefix ?? "PROMO";
 
   const [code, setCode] = useState("");
   const [discountType, setDiscountType] = useState<PromoDiscountType>("percent");
@@ -72,7 +75,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
       setIsActive(promoCode.is_active);
       setNotes(promoCode.notes ?? "");
     } else if (open) {
-      setCode(genCode("PROMO"));
+      setCode(genCode(defaultPrefix));
       setDiscountType("percent");
       setDiscountValue("10");
       setAppliesTo("all_plans");
@@ -84,7 +87,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
       setIsActive(true);
       setNotes("");
     }
-  }, [open, promoCode]);
+  }, [open, promoCode, defaultPrefix]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,7 +136,7 @@ export function PromoCodeFormDialog({ open, onOpenChange, promoCode }: Props) {
                 className="font-mono"
               />
               {!isEdit && (
-                <Button type="button" variant="outline" onClick={() => setCode(genCode("PROMO"))}>
+                <Button type="button" variant="outline" onClick={() => setCode(genCode(defaultPrefix))}>
                   Сгенерировать
                 </Button>
               )}
