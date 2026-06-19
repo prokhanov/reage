@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Sparkles, Loader2, AlertTriangle, PiggyBank, ShieldCheck, Target } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle, ShieldCheck, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -133,12 +133,6 @@ export default function Subscription() {
     }
   }, [plans, selectedPlanId]);
 
-  const getMaxDiscount = () => {
-    if (!plans) return 0;
-    const allPricing = plans.flatMap(p => p.pricing);
-    const maxDiscount = Math.max(...allPricing.map(p => p.discount_percentage));
-    return maxDiscount;
-  };
 
   // Show loading state
   if (loadingSubscription || isLoading) {
@@ -198,13 +192,6 @@ export default function Subscription() {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        
-        {getMaxDiscount() > 0 && (
-          <p className="text-sm text-muted-foreground animate-in fade-in-50 duration-300 inline-flex items-center gap-2">
-            <PiggyBank className="h-4 w-4 text-primary" />
-            Сэкономьте до {getMaxDiscount()}% при годовой оплате
-          </p>
-        )}
       </div>
 
       {/* Loading State */}
