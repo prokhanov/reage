@@ -502,7 +502,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
             </>
           ) : (
             <>
-              Оплатить {selectedCard ? `${selectedCard.amount.toLocaleString('ru-RU')} ₽` : ""}
+              Оплатить {selectedCard ? `${(appliedPromo?.final_amount && appliedPromo.discount_type !== "free_period" ? appliedPromo.final_amount : selectedCard.amount).toLocaleString('ru-RU')} ₽` : ""}
               <Check className="ml-2 h-5 w-5" />
             </>
           )}
