@@ -38,6 +38,30 @@ const SITE_NAME = 'reage'
 const SENDER_DOMAIN = 'notify.reage.life'
 const ROOT_DOMAIN = 'reage.life'
 const FROM_DOMAIN = 'notify.reage.life'
+// Прокси Supabase API, доступный из РФ. Все ссылки в письмах
+// (verify/recover/magic-link) должны идти через него, иначе Supabase-домен
+// заблокирован у части пользователей.
+const SUPABASE_PROXY_URL = 'https://api.reage.life'
+
+function rewriteSupabaseUrl(url: string | undefined | null): string {
+  if (!url) return ''
+  try {
+    const parsed = new URL(url)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseHost = supabaseUrl ? new URL(supabaseUrl).host : 'ilxgodhosirhhkffqryw.supabase.co'
+    if (parsed.host === supabaseHost) {
+      const proxy = new URL(SUPABASE_PROXY_URL)
+      parsed.protocol = proxy.protocol
+      parsed.host = proxy.host
+      parsed.port = proxy.port
+      return parsed.toString()
+    }
+    return url
+  } catch {
+    return url
+  }
+}
+
 
 const SAMPLE_PROJECT_URL = 'https://reage.lovable.app'
 const SAMPLE_EMAIL = 'user@example.test'
@@ -231,7 +255,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
     recipient: payload.data.email,
-    confirmationUrl: payload.data.url,
+    confirmationUrl: rewriteSupabaseUrl(payload.data.url),
     token: payload.data.token,
     email: payload.data.email,
     oldEmail: payload.data.old_email,
