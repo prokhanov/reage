@@ -607,37 +607,56 @@ export default function MyState() {
           <TabsContent value="survey" className="space-y-6">
             <div className="max-w-4xl mx-auto">
               {!canTakeSurveyActual && daysUntilNextSurvey > 0 && (
-                <Card className="p-8 text-center bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
-                  <div className="flex flex-col items-center gap-4">
+                <Card className="p-8 bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+                  <div className="flex flex-col items-center gap-6 text-center">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                       <CheckCircle className="w-8 h-8 text-primary" />
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-bold">Спасибо за заполнение!</h3>
+                      <h3 className="text-2xl font-bold">Опрос завершён</h3>
                       <p className="text-muted-foreground">
-                        Вы уже заполнили опрос. Следующий опрос будет доступен через
+                        {lastTrackedDate && `Последнее заполнение: ${format(new Date(lastTrackedDate), "d MMMM yyyy, HH:mm", { locale: ru })}`}
                       </p>
+                    </div>
+
+                    {/* Сводка по последнему опросу */}
+                    {latestSymptoms.length > 0 && (
+                      <div className="w-full max-w-md grid grid-cols-3 gap-3">
+                        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                          <p className="text-2xl font-bold text-yellow-500">{stats.mild}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Лёгкие</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                          <p className="text-2xl font-bold text-orange-500">{stats.moderate}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Средние</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                          <p className="text-2xl font-bold text-red-500">{stats.severe}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Сильные</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="w-full max-w-md p-4 bg-background/50 rounded-lg border">
+                      <p className="text-sm text-muted-foreground mb-1">Следующий опрос будет доступен через</p>
                       <p className="text-3xl font-bold text-primary">
                         {daysUntilNextSurvey} {daysUntilNextSurvey === 1 ? 'день' : daysUntilNextSurvey < 5 ? 'дня' : 'дней'}
                       </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Оптимальный интервал — раз в 2 недели, чтобы видеть динамику
+                      </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                       <Button
                         onClick={handleEditLastSurvey}
                         variant="outline"
-                        className="gap-2"
+                        className="flex-1 gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        Редактировать последний опрос
+                        Дополнить опрос
                       </Button>
-                    </div>
-
-                    <div className="mt-6 p-4 bg-background/50 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">
-                        Последнее заполнение: {lastTrackedDate && format(new Date(lastTrackedDate), "d MMMM yyyy, HH:mm", { locale: ru })}
-                      </p>
                     </div>
                   </div>
                 </Card>
