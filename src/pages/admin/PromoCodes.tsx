@@ -164,6 +164,40 @@ export default function PromoCodes() {
         </div>
       </div>
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Настройки по умолчанию</CardTitle>
+          <CardDescription>
+            Префикс подставляется в форму создания и в массовую генерацию
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+            <div className="flex-1 space-y-1">
+              <label className="text-sm font-medium">Стандартный префикс</label>
+              <Input
+                value={prefixDraft}
+                onChange={(e) => setPrefixDraft(e.target.value.toUpperCase())}
+                placeholder="PROMO"
+                className="font-mono max-w-xs"
+              />
+            </div>
+            <Button
+              onClick={() => updateSettings.mutate(prefixDraft)}
+              disabled={
+                updateSettings.isPending ||
+                !prefixDraft.trim() ||
+                prefixDraft === (promoSettings?.default_prefix ?? "")
+              }
+            >
+              {updateSettings.isPending && <ButtonSpinner className="mr-2" />}
+              Сохранить
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full justify-start flex-wrap h-auto">
           <TabsTrigger value="codes">Промокоды</TabsTrigger>
