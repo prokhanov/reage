@@ -488,17 +488,19 @@ export default function Register() {
             </div>
           </Card>
 
-          <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
-            <p className="text-sm text-muted-foreground">
-              Уже есть аккаунт?{" "}
-              <button
-                onClick={() => navigate("/auth")}
-                className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
-              >
-                Войти
-              </button>
-            </p>
-          </div>
+          {currentStep === 1 && (
+            <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
+              <p className="text-sm text-muted-foreground">
+                Уже есть аккаунт?{" "}
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
+                >
+                  Войти
+                </button>
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
