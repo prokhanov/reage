@@ -199,7 +199,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
             if (!pricing) return null;
             const isSelected = selectedPlanId === plan.id;
             const isRecommended = index === 1;
-            const monthlyEquivalent = calculateMonthlyEquivalent(pricing.amount, pricing.duration_months);
+            
 
             return (
               <Card
