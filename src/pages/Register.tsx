@@ -356,7 +356,7 @@ export default function Register() {
         <span className="hidden sm:inline">На главную</span>
       </Link>
 
-      <div className={cn("w-full relative z-10", currentStep === 2 ? "max-w-5xl" : "max-w-2xl")}>
+      <div className={cn("w-full relative z-10", currentStep === 3 ? "max-w-5xl" : "max-w-2xl")}>
         <div className="w-full">
           <div className="text-center mb-8 animate-fade-in pt-6">
             <Link to="/" className="inline-flex items-center gap-2 mb-2">
