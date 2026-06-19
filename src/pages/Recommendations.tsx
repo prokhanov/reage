@@ -538,9 +538,15 @@ export default function Recommendations() {
 
       const filteredPrescriptions = sourcePrescriptions.map((p: any, idx: number) => ({
         id: `demo-presc-${analysisIndex}-${idx}`,
+        name: p.name,
         prescription: p.prescription,
+        form: p.form,
+        dosage: p.dosage,
+        how_to_take: p.how_to_take,
+        duration: p.duration,
         reason: p.reason || null,
         effect: p.effect,
+        category: p.category,
         control_date: p.control_date,
         status: "confirmed" as const,
       }));
