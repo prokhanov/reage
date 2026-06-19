@@ -294,6 +294,7 @@ const App = () => (
             <Route path="/subscription/fail" element={<SubscriptionFail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </RegisterGuardProvider>
         </BrowserRouter>
     </TooltipProvider>
     </ThemeProvider>
