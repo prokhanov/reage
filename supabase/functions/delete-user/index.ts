@@ -6,13 +6,11 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify JWT token and check if user is superadmin
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -28,7 +26,7 @@ Deno.serve(async (req) => {
     );
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    
+
     if (userError || !user) {
       console.error('Auth error:', userError);
       return new Response(
@@ -37,19 +35,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create admin client for permission check
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+      { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Check if user is superadmin
+    // Только супер-админ может удалять пользователей
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
@@ -68,74 +60,68 @@ Deno.serve(async (req) => {
     const { userId, email } = await req.json();
 
     if (!userId && !email) {
-      console.error('Missing userId or email parameter');
       return new Response(
         JSON.stringify({ error: 'userId or email is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Deleting user by:', userId ? `userId: ${userId}` : `email: ${email}`);
+    let userIdToDelete: string | undefined = userId;
 
-    let userIdToDelete = userId;
-    let emailToClean = email;
-
-    // If email provided, find the user ID
+    // Поиск по email (включая «осиротевших» — без profile)
     if (!userIdToDelete && email) {
       console.log('Looking up user by email:', email);
-      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-      
-      if (listError) {
-        console.error('Failed to list users:', listError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to lookup user by email' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      let page = 1;
+      let found: { id: string; email?: string } | undefined;
+      // Просматриваем все страницы пользователей
+      while (!found) {
+        const { data, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+          page,
+          perPage: 1000,
+        });
+        if (listError) {
+          console.error('Failed to list users:', listError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to lookup user by email' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        found = data.users.find((u) => (u.email ?? '').toLowerCase() === email.toLowerCase());
+        if (found || data.users.length < 1000) break;
+        page += 1;
       }
-
-      const user = users.find(u => u.email === email);
-      if (!user) {
-        console.log('User not found by email:', email);
+      if (!found) {
         return new Response(
           JSON.stringify({ error: 'User not found' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      userIdToDelete = user.id;
-      emailToClean = user.email;
-      console.log('Found user:', userIdToDelete);
+      userIdToDelete = found.id;
     }
 
-    // Step 1: Delete invite tokens associated with this user (by used_by and invited_email)
-    console.log('Cleaning invite tokens...');
-    
-    const deletePromises = [];
-    
-    if (userIdToDelete) {
-      deletePromises.push(
-        supabaseAdmin.from('invite_tokens').delete().eq('used_by', userIdToDelete)
-      );
-    }
-    
-    if (emailToClean) {
-      deletePromises.push(
-        supabaseAdmin.from('invite_tokens').delete().eq('invited_email', emailToClean)
-      );
-    }
-
-    const results = await Promise.allSettled(deletePromises);
-    results.forEach((result, idx) => {
-      if (result.status === 'rejected' || (result.status === 'fulfilled' && result.value.error)) {
-        console.warn(`Failed to delete invite tokens (${idx}):`, result.status === 'fulfilled' ? result.value.error : result.reason);
-      } else {
-        console.log(`Successfully deleted invite tokens (${idx})`);
+    // invite_tokens привязан к email (а не только к used_by) — чистим вручную,
+    // чтобы освободить приглашения для повторной регистрации.
+    if (email) {
+      const { error: inviteError } = await supabaseAdmin
+        .from('invite_tokens')
+        .delete()
+        .eq('invited_email', email);
+      if (inviteError) {
+        console.warn('Failed to clean invite_tokens by email:', inviteError);
       }
-    });
+    }
 
-    // Step 2: Delete the user from auth.users using Admin API
+    // Удаляем пользователя из auth.users.
+    // Все связанные данные (profiles, analyses, prescriptions, recommendations,
+    // chat_conversations, risk_zone_analyses, prescription_adherence,
+    // medical_history, complaints, user_symptoms, subscriptions,
+    // subscription_history, analysis_bookings, task_completions, weight_history,
+    // user_roles, health_strategy_snapshots, patient_interactions, report_jobs,
+    // email_drip_schedule, email_unsubscribes, payment_orders,
+    // promo_code_redemptions, admin_permissions, confirmation_reminder_log,
+    // reminder_stop_list) удалятся каскадом через FK ON DELETE CASCADE.
     console.log('Deleting user from auth.users:', userIdToDelete);
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userIdToDelete);
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userIdToDelete!);
 
     if (authError) {
       console.error('Failed to delete auth user:', authError);
@@ -145,16 +131,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Successfully deleted user from auth.users');
-
-    // Note: profiles and related data will be deleted automatically via CASCADE
-    // if foreign keys are set up correctly, or via RLS triggers
-
     return new Response(
       JSON.stringify({ success: true, message: 'User deleted successfully' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Error in delete-user function:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
