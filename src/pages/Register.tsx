@@ -132,11 +132,12 @@ export default function Register() {
     }
   }, [stepParam, navigate]);
 
-  // Сессия — для определения, создан ли уже аккаунт
+  // Сессия — определяем, есть ли РЕАЛЬНЫЙ аккаунт (валидируется на сервере).
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setHasSession(!!data.session?.user);
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (!mounted) return;
+      setHasSession(!error && !!data.user);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setHasSession(!!session?.user);
@@ -146,6 +147,7 @@ export default function Register() {
       sub.subscription.unsubscribe();
     };
   }, []);
+
 
   // Сохраняем черновик
   useEffect(() => {
@@ -178,11 +180,18 @@ export default function Register() {
 
     setIsSubmitting(true);
     try {
-      // Если сессия уже есть — просто переходим дальше
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData.session?.user) {
+      // Проверяем РЕАЛЬНУЮ сессию через сервер (getSession читает localStorage и может врать,
+      // если токен протух или юзер удалён в БД).
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (!userErr && userData.user) {
+        // Уже залогинен — идём дальше
         goToStep(2);
         return;
+      }
+
+      // Если токен есть, но невалиден — чистим мусор из localStorage
+      if (userErr) {
+        try { await supabase.auth.signOut({ scope: "local" }); } catch {}
       }
 
       // Проверка телефона
@@ -234,15 +243,25 @@ export default function Register() {
       goToStep(2);
     } catch (error: any) {
       console.error("SignUp error:", error);
+      const raw = String(error?.message || "");
+      let description = raw || "Попробуйте ещё раз";
+      if (/already registered|already exists|user_already_exists/i.test(raw)) {
+        description = "Этот email уже зарегистрирован. Войдите в аккаунт.";
+      } else if (/password.*6/i.test(raw)) {
+        description = "Пароль должен содержать минимум 6 символов.";
+      } else if (/invalid.*email/i.test(raw)) {
+        description = "Некорректный email.";
+      }
       toast({
         title: "Ошибка регистрации",
-        description: error?.message || "Попробуйте ещё раз",
+        description,
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
@@ -343,21 +362,8 @@ export default function Register() {
     }
   };
 
-  const handleStepIndicatorClick = (stepId: number) => {
-    // Шаг 1 доступен только до создания аккаунта. Остальные — только при наличии сессии.
-    if (stepId === 1 && !hasSession) {
-      goToStep(1);
-    } else if (stepId !== 1 && hasSession) {
-      goToStep(stepId);
-    } else {
-      toast({
-        title: "Навигация недоступна",
-        description: stepId === 1
-          ? "Аккаунт уже создан. Вернуться к созданию аккаунта нельзя."
-          : "Сначала создайте аккаунт.",
-      });
-    }
-  };
+  // Индикаторы шагов больше не кликабельны — навигация только через кнопки внутри шагов.
+
 
   return (
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
@@ -391,30 +397,25 @@ export default function Register() {
                 const Icon = step.icon;
                 const isActive = currentStep === step.id;
                 const isCompleted = currentStep > step.id;
-                const isClickable = step.id === 1 ? !hasSession : hasSession;
 
                 return (
                   <div key={step.id} className="flex items-center">
                     <div className="flex flex-col items-center">
-                      <button
-                        type="button"
-                        onClick={() => handleStepIndicatorClick(step.id)}
-                        disabled={!isClickable}
+                      <div
                         className={cn(
-                          "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500",
+                          "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500 select-none",
                           isActive && "bg-gradient-primary text-white scale-110 shadow-neon-primary",
                           isCompleted && "bg-primary/20 text-primary scale-105",
                           !isActive && !isCompleted && "bg-muted text-muted-foreground",
-                          isClickable ? "cursor-pointer hover:opacity-90" : "cursor-not-allowed opacity-70",
                         )}
-                        aria-label={`Перейти к шагу ${step.title}`}
+                        aria-label={step.title}
                       >
                         {isCompleted ? (
                           <Check className="h-5 w-5 sm:h-7 sm:w-7" />
                         ) : (
                           <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
                         )}
-                      </button>
+                      </div>
                       <div className="text-center mt-2 sm:mt-3 hidden sm:block">
                         <p className={cn(
                           "text-xs sm:text-sm font-medium transition-colors duration-300",
@@ -424,6 +425,7 @@ export default function Register() {
                         </p>
                       </div>
                     </div>
+
                     {index < steps.length - 1 && (
                       <div className="h-1 w-8 sm:w-16 md:w-24 mx-2 sm:mx-4 rounded-full bg-muted overflow-hidden">
                         <div className={cn(
@@ -458,9 +460,11 @@ export default function Register() {
                     formData={formData}
                     updateFormData={updateFormData}
                     onNext={handleStep1Next}
+                    loading={isSubmitting}
                   />
                 </div>
               )}
+
 
               {currentStep === 2 && (
                 <div className="animate-fade-in">
