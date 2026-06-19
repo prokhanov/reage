@@ -21,6 +21,7 @@ import {
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { PromoAppliesTo, PromoDiscountType, usePromoMutations } from "@/hooks/usePromoCodes";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { usePromoSettings } from "@/hooks/usePromoSettings";
 import { Download } from "lucide-react";
 
 interface Props {
@@ -31,10 +32,12 @@ interface Props {
 export function GeneratePromoBatchDialog({ open, onOpenChange }: Props) {
   const { generateBatch } = usePromoMutations();
   const { data: plans } = useSubscriptionPlans({ includeInactivePlans: true, includeDisabledPricing: true });
+  const { data: settings } = usePromoSettings();
+  const defaultPrefix = settings?.default_prefix ?? "PROMO";
 
   const [batchName, setBatchName] = useState("");
   const [batchDescription, setBatchDescription] = useState("");
-  const [prefix, setPrefix] = useState("PROMO");
+  const [prefix, setPrefix] = useState(defaultPrefix);
   const [count, setCount] = useState("100");
   const [suffixLength, setSuffixLength] = useState("6");
   const [discountType, setDiscountType] = useState<PromoDiscountType>("percent");
