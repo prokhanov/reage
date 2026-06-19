@@ -49,6 +49,20 @@ export default function Subscription() {
   });
 
   const handleSelectPlan = async (planId: string, pricingId: string) => {
+    setSelectedPlanId(planId);
+
+    const plan = plans?.find(p => p.id === planId);
+    const pricing = plan?.pricing.find(p => p.id === pricingId);
+    let currentPromo = appliedPromo;
+    if (currentPromo && pricing && currentPromo.original_amount > 0 && currentPromo.original_amount !== pricing.amount) {
+      setAppliedPromo(null);
+      currentPromo = null;
+      toast({
+        title: "Промокод сброшен",
+        description: "Применённый промокод снят после смены тарифа. Примените заново.",
+      });
+    }
+
     setCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -63,7 +77,7 @@ export default function Subscription() {
       }
 
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
-        body: { planId, pricingId, promoCode: appliedPromo?.code },
+        body: { planId, pricingId, promoCode: currentPromo?.code },
       });
 
       // Сообщение об ошибке (например, невалидный промокод) приходит в data.error
