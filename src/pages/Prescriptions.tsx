@@ -88,12 +88,20 @@ export default function Prescriptions() {
           const analysis = demoData.analyses[p.analysis_index];
           return {
             id: `demo-${idx}`,
+            name: p.name,
             prescription: p.prescription,
+            form: p.form,
+            dosage: p.dosage,
+            how_to_take: p.how_to_take,
+            duration: p.duration,
+            reason: p.reason,
             effect: p.effect,
+            category: p.category,
             control_date: p.control_date,
             status: p.status || "confirmed",
             is_archived: p.is_archived || false,
-            created_at: analysis?.date || demoData.analyses[0].date
+            created_at: analysis?.date || demoData.analyses[0].date,
+            analysis_id: `demo-analysis-${p.analysis_index ?? 0}`,
           } as Prescription;
         });
       }
