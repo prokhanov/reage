@@ -14,7 +14,7 @@ export interface AppliedPromo {
   discount_amount: number; // 0 для free_period (или для предварительного применения без контекста)
   final_amount: number;
   original_amount: number;
-  applies_to?: "all" | "specific";
+  applies_to?: "all" | "all_plans" | "specific" | "specific_plans";
   allowed_plans?: Array<{ plan_id: string; pricing_id: string | null }>;
 }
 
@@ -40,7 +40,8 @@ export function promoAppliesToPricing(
   pricingId: string,
 ): boolean {
   if (!promo) return false;
-  if (!promo.applies_to || promo.applies_to === "all") return true;
+  const appliesTo = String(promo.applies_to ?? "all");
+  if (appliesTo === "all" || appliesTo === "all_plans" || appliesTo.startsWith("all_")) return true;
   if (!promo.allowed_plans?.length) return false;
   return promo.allowed_plans.some(
     (a) => a.plan_id === planId && (a.pricing_id == null || a.pricing_id === pricingId),
@@ -134,7 +135,7 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
                 </span>
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
-                {applied.applies_to === "specific"
+                {String(applied.applies_to).startsWith("specific")
                   ? "Действует на выбранные тарифы"
                   : "Действует на все тарифы"}
               </div>
