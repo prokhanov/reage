@@ -6,7 +6,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -74,7 +73,7 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
               Чтобы зарегистрировать новый аккаунт, нужно сначала выйти из текущего.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-4">
             <Button
               type="button"
               variant="outline"
@@ -99,7 +98,7 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
               Выйти и зарегистрироваться
               <UserPlus className="h-4 w-4 ml-2" />
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </RegisterGuardContext.Provider>
