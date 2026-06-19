@@ -241,8 +241,19 @@ export default function Register() {
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error("Не удалось создать аккаунт");
 
+      // Автологин сразу после signUp, чтобы пользователь имел сессию для оплаты.
+      // Email-подтверждение опционально и не блокирует пользование.
+      if (!authData.session) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (signInError) {
+          console.error("Auto sign-in after signup failed:", signInError);
+        }
+      }
+
       // Отправляем письмо подтверждения email (fire-and-forget).
-      // Не делаем автологин — пользователь должен подтвердить email сам.
       supabase.functions
         .invoke("resend-confirmation", { body: { email: formData.email } })
         .catch((e) => console.error("send confirmation failed:", e));
