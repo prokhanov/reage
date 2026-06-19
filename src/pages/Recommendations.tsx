@@ -1025,7 +1025,7 @@ export default function Recommendations() {
                       ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
                       ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
                     ]),
-                ...(hasPrescriptionsBlock ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
+                ...(hasPrescriptionsBlock ? [{ id: 'prescriptions', label: 'Рекомендации' }] : [])
               ];
 
               return (
