@@ -250,6 +250,12 @@ export default function Register() {
         });
       }
 
+      // Отправляем письмо подтверждения email (fire-and-forget)
+      supabase.functions
+        .invoke("resend-confirmation", { body: { email: formData.email } })
+        .catch((e) => console.error("send confirmation failed:", e));
+
+
       toast({
         title: "Аккаунт создан",
         description: "Теперь расскажите немного о себе.",
