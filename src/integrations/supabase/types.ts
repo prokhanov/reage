@@ -1428,14 +1428,17 @@ export type Database = {
         Row: {
           admin_test: boolean
           created_at: string
+          discount_amount: number
           id: string
           inv_id: number
           is_test: boolean
+          original_amount: number | null
           out_sum: number
           paid_amount: number | null
           paid_at: string | null
           plan_id: string | null
           pricing_id: string | null
+          promo_code_id: string | null
           raw_callback: Json | null
           robokassa_signature: string | null
           status: string
@@ -1445,14 +1448,17 @@ export type Database = {
         Insert: {
           admin_test?: boolean
           created_at?: string
+          discount_amount?: number
           id?: string
           inv_id?: number
           is_test?: boolean
+          original_amount?: number | null
           out_sum: number
           paid_amount?: number | null
           paid_at?: string | null
           plan_id?: string | null
           pricing_id?: string | null
+          promo_code_id?: string | null
           raw_callback?: Json | null
           robokassa_signature?: string | null
           status?: string
@@ -1462,21 +1468,32 @@ export type Database = {
         Update: {
           admin_test?: boolean
           created_at?: string
+          discount_amount?: number
           id?: string
           inv_id?: number
           is_test?: boolean
+          original_amount?: number | null
           out_sum?: number
           paid_amount?: number | null
           paid_at?: string | null
           plan_id?: string | null
           pricing_id?: string | null
+          promo_code_id?: string | null
           raw_callback?: Json | null
           robokassa_signature?: string | null
           status?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       phone_otp_codes: {
         Row: {
