@@ -225,6 +225,7 @@ export default function Subscription() {
               isRecommended={index === 1}
               onSelect={handleSelectPlan}
               isLoading={creating}
+              appliedPromo={appliedPromo}
             />
           ))}
         </div>
@@ -232,7 +233,21 @@ export default function Subscription() {
 
       {/* Промокод */}
       <div className="max-w-md mx-auto mb-10">
-        <PromoCodeField applied={appliedPromo} onApplied={setAppliedPromo} />
+        <PromoCodeField
+          applied={appliedPromo}
+          onApplied={setAppliedPromo}
+          context={
+            selectedPlanId && plans
+              ? (() => {
+                  const plan = plans.find(p => p.id === selectedPlanId);
+                  const pricing = plan?.pricing.find(p => p.period === selectedPeriod);
+                  return plan && pricing
+                    ? { planId: plan.id, pricingId: pricing.id, amount: pricing.amount }
+                    : null;
+                })()
+              : null
+          }
+        />
       </div>
 
       {/* Trust Indicators */}
