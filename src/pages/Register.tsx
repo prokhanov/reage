@@ -449,28 +449,28 @@ export default function Register() {
 
               {currentStep === 2 && (
                 <div className="animate-fade-in">
-                  <RegisterStep5
-                    onSubmit={(data: SelectedPlanData) => {
-                      setSelectedPlan(data);
-                      // Если skipPayment — сразу идём дальше
-                      if (data.skipPayment) {
-                        goToStep(3);
-                      }
-                      // Если оплата — RegisterStep5 сам редиректит на Робокассу
-                    }}
+                  <RegisterStep2
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    onNext={() => goToStep(3)}
                     onBack={() => goToStep(1)}
-                    isSubmitting={false}
                   />
                 </div>
               )}
 
               {currentStep === 3 && (
                 <div className="animate-fade-in">
-                  <RegisterStep2
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    onNext={() => goToStep(4)}
+                  <RegisterStep5
+                    onSubmit={(data: SelectedPlanData) => {
+                      setSelectedPlan(data);
+                      // Если skipPayment — сразу идём дальше
+                      if (data.skipPayment) {
+                        goToStep(4);
+                      }
+                      // Если оплата — RegisterStep5 сам редиректит на Робокассу
+                    }}
                     onBack={() => goToStep(2)}
+                    isSubmitting={false}
                   />
                 </div>
               )}
