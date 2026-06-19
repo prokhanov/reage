@@ -52,7 +52,7 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
 
       <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
         <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-        <span>Ваши ответы будут приняты во внимание при интерпретации результатов и не влияют на стоимость услуги.</span>
+        <span>Чем точнее и подробнее вы ответите, тем точнее будет ваш персональный отчет.</span>
       </div>
 
       <div className="flex gap-3 pt-2">
