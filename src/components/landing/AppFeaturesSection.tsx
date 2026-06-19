@@ -189,9 +189,7 @@ export function AppFeaturesSection() {
 
           {/* Demo CTA — outside widget */}
           <div className="mt-6 text-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <Button asChild size="lg" className="rounded-full px-8">
-              <Link to="/register">Попробовать демо бесплатно</Link>
-            </Button>
+            <Button size="lg" className="rounded-full px-8" onClick={requestRegister}>Попробовать демо бесплатно</Button>
           </div>
         </div>
       </div>
