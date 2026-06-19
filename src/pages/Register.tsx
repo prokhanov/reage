@@ -264,7 +264,7 @@ export default function Register() {
         first_name: formData.firstName,
         last_name: formData.lastName,
         name: `${formData.firstName} ${formData.lastName}`.trim() || user.email,
-        gender: formData.gender || "other",
+        gender: formData.gender || null,
         birth_date: formData.birth_date ? format(formData.birth_date, "yyyy-MM-dd") : null,
         weight: formData.weight ? Number(formData.weight) : null,
         height: formData.height ? Number(formData.height) : null,
