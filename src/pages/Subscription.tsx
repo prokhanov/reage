@@ -9,10 +9,12 @@ import { useQuery } from "@tanstack/react-query";
 import { ActiveSubscription } from "@/components/subscription/ActiveSubscription";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { usePaymentGatewayTestMode } from "@/hooks/usePaymentGatewayTestMode";
+import { PromoCodeField, AppliedPromo } from "@/components/subscription/PromoCodeField";
 
 export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const [creating, setCreating] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const { toast } = useToast();
   const { data: plans, isLoading } = useSubscriptionPlans();
   const { data: isTestMode } = usePaymentGatewayTestMode();
@@ -60,7 +62,7 @@ export default function Subscription() {
       }
 
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
-        body: { planId, pricingId },
+        body: { planId, pricingId, promoCode: appliedPromo?.code },
       });
 
       if (error) throw error;
