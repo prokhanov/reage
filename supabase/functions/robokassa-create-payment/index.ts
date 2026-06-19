@@ -64,10 +64,11 @@ Deno.serve(async (req) => {
     const userEmail = userData.user.email ?? "";
 
     const body = await req.json().catch(() => ({}));
-    const { planId, pricingId, admin_test: adminTestRaw } = body as {
+    const { planId, pricingId, admin_test: adminTestRaw, promoCode } = body as {
       planId?: string;
       pricingId?: string;
       admin_test?: boolean;
+      promoCode?: string;
     };
     if (!planId || !pricingId) {
       return json({ error: "Не указан plan/pricing" }, 400);
@@ -123,7 +124,37 @@ Deno.serve(async (req) => {
     if (!Number.isFinite(amount) || amount <= 0) {
       return json({ error: "Некорректная сумма" }, 400);
     }
-    const outSum = amount.toFixed(2);
+
+    // Применение промокода (если указан) — авторитетная серверная валидация
+    let finalAmount = amount;
+    let discountAmount = 0;
+    let promoCodeId: string | null = null;
+    if (promoCode && promoCode.trim()) {
+      const { data: promoRes, error: promoErr } = await userClient.rpc("apply_promo_code", {
+        p_code: promoCode.trim(),
+        p_plan_id: planId,
+        p_pricing_id: pricingId,
+        p_amount: amount,
+      });
+      if (promoErr) {
+        console.error("apply_promo_code error", promoErr);
+        return json({ error: "Не удалось проверить промокод" }, 400);
+      }
+      const r = promoRes as any;
+      if (!r?.success) {
+        return json({ error: r?.error ?? "Промокод не применён" }, 400);
+      }
+      finalAmount = Number(r.final_amount);
+      discountAmount = Number(r.discount_amount ?? 0);
+      promoCodeId = r.promo_code_id as string;
+    }
+
+    if (finalAmount <= 0) {
+      // Робокасса не принимает 0. Если 100% скидка — оформляем подписку без оплаты.
+      // (на текущем этапе считаем такой кейс ошибкой — нужна явная логика активации)
+      return json({ error: "Сумма к оплате не может быть нулевой" }, 400);
+    }
+    const outSum = finalAmount.toFixed(2);
 
     // Create pending order
     const { data: order, error: orderErr } = await admin
@@ -132,7 +163,10 @@ Deno.serve(async (req) => {
         user_id: userId,
         plan_id: planId,
         pricing_id: pricingId,
-        out_sum: amount,
+        out_sum: finalAmount,
+        original_amount: amount,
+        discount_amount: discountAmount,
+        promo_code_id: promoCodeId,
         status: "pending",
         is_test: isTest,
         admin_test: adminTest,

@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
   // Сначала находим заказ — он несёт is_test/admin_test, по нему выбираем пароль
   const { data: order, error: orderErr } = await admin
     .from("payment_orders")
-    .select("id, user_id, plan_id, pricing_id, out_sum, status, is_test, admin_test")
+    .select("id, user_id, plan_id, pricing_id, out_sum, status, is_test, admin_test, promo_code_id, original_amount, discount_amount")
     .eq("inv_id", invId)
     .maybeSingle();
 
@@ -203,8 +203,9 @@ Deno.serve(async (req) => {
   }
 
   // Обычная оплата (включая test-режим шлюза) — активируем подписку
-  let endDate: string | null = null;
+  let endDate: Date | null = null;
   let planType = "annual";
+  let baseMonths = 12;
   if (order.pricing_id) {
     const { data: pr } = await admin
       .from("subscription_pricing")
@@ -213,15 +214,31 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (pr) {
       planType = pr.period ?? "annual";
-      const months = Number(pr.duration_months) || 12;
-      const d = new Date();
-      d.setMonth(d.getMonth() + months);
-      endDate = d.toISOString();
+      baseMonths = Number(pr.duration_months) || 12;
     }
   }
+
+  // Если у заказа есть промокод free_period — добавляем месяцы
+  let bonusMonths = 0;
+  let promoInfo: { discount_type: string; discount_value: number } | null = null;
+  if (order.promo_code_id) {
+    const { data: promo } = await admin
+      .from("promo_codes")
+      .select("discount_type, discount_value")
+      .eq("id", order.promo_code_id)
+      .maybeSingle();
+    if (promo) {
+      promoInfo = { discount_type: promo.discount_type, discount_value: Number(promo.discount_value) };
+      if (promo.discount_type === "free_period") {
+        bonusMonths = Math.floor(Number(promo.discount_value) || 0);
+      }
+    }
+  }
+
+  const d = new Date();
+  d.setMonth(d.getMonth() + baseMonths + bonusMonths);
+  endDate = d;
   const startDate = new Date().toISOString();
-
-
 
   await admin
     .from("subscriptions")
@@ -229,17 +246,21 @@ Deno.serve(async (req) => {
     .eq("user_id", order.user_id)
     .eq("status", "active");
 
-  const { error: subErr } = await admin.from("subscriptions").insert({
-    user_id: order.user_id,
-    plan_id: order.plan_id,
-    pricing_id: order.pricing_id,
-    plan_type: planType,
-    amount: order.out_sum,
-    status: "active",
-    start_date: startDate,
-    end_date: endDate,
-    payment_method: "robokassa",
-  });
+  const { data: newSub, error: subErr } = await admin
+    .from("subscriptions")
+    .insert({
+      user_id: order.user_id,
+      plan_id: order.plan_id,
+      pricing_id: order.pricing_id,
+      plan_type: planType,
+      amount: order.out_sum,
+      status: "active",
+      start_date: startDate,
+      end_date: endDate?.toISOString() ?? null,
+      payment_method: "robokassa",
+    })
+    .select("id")
+    .single();
 
   if (subErr) {
     await admin.from("payment_callback_log").insert({
@@ -248,6 +269,24 @@ Deno.serve(async (req) => {
       error: `subscription insert failed: ${subErr.message}`,
     });
     return textPlain("db error", 500);
+  }
+
+  // Погашаем промокод только ПОСЛЕ успешной оплаты и активации подписки
+  if (order.promo_code_id) {
+    const { error: redeemErr } = await admin.rpc("redeem_promo_code", {
+      p_promo_code_id: order.promo_code_id,
+      p_user_id: order.user_id,
+      p_subscription_id: newSub?.id ?? null,
+      p_order_id: order.id,
+      p_plan_id: order.plan_id,
+      p_pricing_id: order.pricing_id,
+      p_original_amount: Number(order.original_amount ?? order.out_sum),
+      p_discount_applied: Number(order.discount_amount ?? 0),
+      p_final_amount: Number(order.out_sum),
+    });
+    if (redeemErr) {
+      console.error("redeem_promo_code failed", redeemErr);
+    }
   }
 
   await admin.from("payment_callback_log").insert({

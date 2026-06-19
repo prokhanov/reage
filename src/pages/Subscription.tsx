@@ -9,10 +9,12 @@ import { useQuery } from "@tanstack/react-query";
 import { ActiveSubscription } from "@/components/subscription/ActiveSubscription";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { usePaymentGatewayTestMode } from "@/hooks/usePaymentGatewayTestMode";
+import { PromoCodeField, AppliedPromo } from "@/components/subscription/PromoCodeField";
 
 export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
   const [creating, setCreating] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const { toast } = useToast();
   const { data: plans, isLoading } = useSubscriptionPlans();
   const { data: isTestMode } = usePaymentGatewayTestMode();
@@ -60,19 +62,26 @@ export default function Subscription() {
       }
 
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
-        body: { planId, pricingId },
+        body: { planId, pricingId, promoCode: appliedPromo?.code },
       });
 
+      // Сообщение об ошибке (например, невалидный промокод) приходит в data.error
+      const errMsg = (data as any)?.error;
+      if (errMsg) {
+        toast({ title: "Не удалось оформить оплату", description: errMsg, variant: "destructive" });
+        setCreating(false);
+        return;
+      }
       if (error) throw error;
       if (!data?.url) throw new Error("Не получен платёжный URL");
 
       // Робокасса позовёт ResultURL → бэкенд активирует подписку.
       window.location.href = data.url as string;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating payment:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось создать платёж. Попробуйте позже.",
+        description: error?.message ?? "Не удалось создать платёж. Попробуйте позже.",
         variant: "destructive",
       });
       setCreating(false);
@@ -197,6 +206,11 @@ export default function Subscription() {
           ))}
         </div>
       )}
+
+      {/* Промокод */}
+      <div className="max-w-md mx-auto mb-10">
+        <PromoCodeField applied={appliedPromo} onApplied={setAppliedPromo} />
+      </div>
 
       {/* Trust Indicators */}
       <div className="text-center space-y-4 pt-8 border-t border-border/50">
