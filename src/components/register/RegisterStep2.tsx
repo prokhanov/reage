@@ -68,39 +68,41 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
           />
         </div>
 
-        {/* Weight */}
-        <div className="space-y-2">
-          <Label htmlFor="weight">Вес (кг)</Label>
-          <div className="relative">
-            <Weight className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="weight"
-              type="number"
-              placeholder=""
-              value={formData.weight}
-              onChange={(e) => updateFormData({ weight: e.target.value })}
-              className="pl-10"
-              step="0.1"
-            />
+        {/* Weight & Height */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="weight">Вес (кг)</Label>
+            <div className="relative">
+              <Weight className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="weight"
+                type="number"
+                placeholder=""
+                value={formData.weight}
+                onChange={(e) => updateFormData({ weight: e.target.value })}
+                className="pl-10"
+                step="0.1"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="height">Рост (см)</Label>
+            <div className="relative">
+              <Ruler className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="height"
+                type="number"
+                placeholder=""
+                value={formData.height}
+                onChange={(e) => updateFormData({ height: e.target.value })}
+                className="pl-10"
+                step="0.1"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Height */}
-        <div className="space-y-2">
-          <Label htmlFor="height">Рост (см)</Label>
-          <div className="relative">
-            <Ruler className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="height"
-              type="number"
-              placeholder=""
-              value={formData.height}
-              onChange={(e) => updateFormData({ height: e.target.value })}
-              className="pl-10"
-              step="0.1"
-            />
-          </div>
-        </div>
       </div>
 
       <div className="flex gap-3">
