@@ -1,0 +1,3 @@
+-- Migration body loaded from /tmp/demo_migration.sql (274 KB inline)
+-- Replaces male_data and female_data jsonb columns with Elena-derived payload
+-- Will be expanded inline in the next step

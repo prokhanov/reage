@@ -42,8 +42,16 @@ export const useDemoMode = () => {
     const templateAge = genderData.profile.birth_date ? calculateAge(genderData.profile.birth_date) : 45;
     
     // Adapt profile data
+    const realName = [userProfile.first_name, userProfile.last_name]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
     const adaptedProfile = {
       ...genderData.profile,
+      first_name: userProfile.first_name || genderData.profile.first_name || genderData.profile.name,
+      last_name: userProfile.last_name || genderData.profile.last_name || '',
+      name: realName || genderData.profile.name,
+      birth_date: userProfile.birth_date || genderData.profile.birth_date,
       chronological_age: userAge || templateAge,
       weight: userProfile.weight || genderData.profile.weight,
       height: userProfile.height || genderData.profile.height,
@@ -128,7 +136,7 @@ export const useDemoMode = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('demo_mode_enabled, gender, birth_date, weight, height')
+        .select('demo_mode_enabled, gender, birth_date, weight, height, first_name, last_name')
         .eq('id', userId)
         .maybeSingle();
 
@@ -147,12 +155,8 @@ export const useDemoMode = () => {
 
   const loadDemoData = async (userProfile: any) => {
     try {
-      const { data: template } = await supabase
-        .from('demo_data_templates')
-        .select('*')
-        .eq('id', 'default')
-        .maybeSingle();
-
+      // Use bundled Elena-based demo template (kept in sync with the landing example report).
+      const template = (await import('@/data/demoTemplate.json')).default as any;
       if (template) {
         const adaptedData = adaptDemoDataToUser(template, userProfile);
         setDemoData(adaptedData);
@@ -194,7 +198,7 @@ export const useDemoMode = () => {
       if (enabled) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('gender, birth_date, weight, height')
+          .select('gender, birth_date, weight, height, first_name, last_name')
           .eq('id', userId)
           .maybeSingle();
         
