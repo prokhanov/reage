@@ -143,7 +143,27 @@ export default function Prescriptions() {
     enabled: !demoLoading && !isLoading,
     staleTime: 0,
     queryFn: async () => {
-      if (demoMode) return null;
+      if (demoMode) {
+        const recs: any[] = demoData?.recommendations || [];
+        const advisoryRecs = recs.filter(
+          (r) => r?.type === "Рекомендации" || r?.type === "Назначения" || r?.type === "prescriptions"
+        );
+        advisoryRecs.sort((a, b) => (b.analysis_index ?? 0) - (a.analysis_index ?? 0));
+        for (const row of advisoryRecs) {
+          const cj = row.content_json;
+          const lifestyle: LifestyleBlock = (cj?.lifestyle ?? {}) as LifestyleBlock;
+          const followUps: FollowUp[] = Array.isArray(cj?.follow_ups) ? cj.follow_ups : [];
+          const lifestyleCount =
+            (lifestyle.nutrition?.length || 0) +
+            (lifestyle.activity?.length || 0) +
+            (lifestyle.sleep?.length || 0);
+          if (lifestyleCount > 0 || followUps.length > 0) {
+            const analysis = demoData?.analyses?.[row.analysis_index ?? 0];
+            return { lifestyle, followUps, createdAt: analysis?.date || new Date().toISOString() };
+          }
+        }
+        return null;
+      }
 
       let targetUserId = userId;
       if (!targetUserId) {
