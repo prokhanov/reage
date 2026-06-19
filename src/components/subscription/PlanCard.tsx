@@ -64,8 +64,18 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
 
       <CardContent className="space-y-4">
         <div className="text-center space-y-1">
-          <div className="text-4xl font-bold text-foreground animate-in fade-in-50 duration-300">
-            {pricing.amount.toLocaleString('ru-RU')} ₽
+          <div className={cn(
+            "text-4xl font-bold animate-in fade-in-50 duration-300",
+            showStrike ? "text-primary" : "text-foreground"
+          )}>
+            {showStrike && (
+              <span className="line-through opacity-50 text-2xl mr-2 text-muted-foreground">
+                {pricing.amount.toLocaleString('ru-RU')} ₽
+              </span>
+            )}
+            <span>
+              {finalAmount.toLocaleString('ru-RU')} ₽
+            </span>
           </div>
           <div className="text-sm text-muted-foreground">
             / {pricing.period_display.toLowerCase()}
@@ -77,7 +87,13 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
             </div>
           )}
 
-          {savings > 0 && (
+          {isPromoApplied && appliedPromo.discount_type === "free_period" && (
+            <div className="text-sm font-medium text-green-600 dark:text-green-400 pt-2 animate-in fade-in-50 duration-300">
+              +{appliedPromo.discount_value} мес. бесплатно
+            </div>
+          )}
+
+          {!isPromoApplied && savings > 0 && (
             <div className="text-sm font-medium text-green-600 dark:text-green-400 pt-2 animate-in fade-in-50 duration-300">
               Экономия {savings.toLocaleString('ru-RU')} ₽
             </div>
