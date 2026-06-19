@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface BirthDatePickerProps {
@@ -16,23 +15,13 @@ interface BirthDatePickerProps {
   className?: string;
 }
 
-const MONTHS = [
-  "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-  "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь",
-];
-
-const MIN_YEAR = 1920;
-const MIN_AGE = 18;
-
 export function BirthDatePicker({ value, onChange, className }: BirthDatePickerProps) {
   const [day, setDay] = useState(value ? value.getDate().toString() : "");
   const [month, setMonth] = useState(value ? (value.getMonth() + 1).toString() : "");
   const [year, setYear] = useState(value ? value.getFullYear().toString() : "");
-  const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
-  const monthRef = useRef<HTMLButtonElement>(null);
-  const yearRef = useRef<HTMLInputElement>(null);
-
+  // Update internal state when value changes
   useEffect(() => {
     if (value) {
       setDay(value.getDate().toString());
@@ -41,97 +30,83 @@ export function BirthDatePicker({ value, onChange, className }: BirthDatePickerP
     }
   }, [value]);
 
-  const today = new Date();
-  const maxYear = today.getFullYear() - MIN_AGE;
+  // Generate year options (from current year to 120 years ago)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 121 }, (_, i) => currentYear - i);
 
-  const validate = (d: string, m: string, y: string) => {
-    if (!d && !m && !y) {
-      setError(null);
-      onChange(undefined);
-      return;
-    }
-    if (!d || !m || !y || y.length < 4) {
-      setError(null);
-      onChange(undefined);
-      return;
-    }
-    const dayNum = parseInt(d, 10);
-    const monthNum = parseInt(m, 10);
-    const yearNum = parseInt(y, 10);
+  const months = [
+    { value: "1", label: "Январь" },
+    { value: "2", label: "Февраль" },
+    { value: "3", label: "Март" },
+    { value: "4", label: "Апрель" },
+    { value: "5", label: "Май" },
+    { value: "6", label: "Июнь" },
+    { value: "7", label: "Июль" },
+    { value: "8", label: "Август" },
+    { value: "9", label: "Сентябрь" },
+    { value: "10", label: "Октябрь" },
+    { value: "11", label: "Ноябрь" },
+    { value: "12", label: "Декабрь" },
+  ];
 
-    if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) {
-      setError("Некорректный день");
-      onChange(undefined);
-      return;
-    }
-    if (yearNum < MIN_YEAR) {
-      setError(`Год не раньше ${MIN_YEAR}`);
-      onChange(undefined);
-      return;
-    }
-    if (yearNum > maxYear) {
-      setError("Сервис доступен только с 18 лет. Детям мы услуги не оказываем.");
-      onChange(undefined);
-      return;
-    }
-    const date = new Date(yearNum, monthNum - 1, dayNum);
-    if (
-      date.getDate() !== dayNum ||
-      date.getMonth() !== monthNum - 1 ||
-      date.getFullYear() !== yearNum
-    ) {
-      setError("Такой даты не существует");
-      onChange(undefined);
-      return;
-    }
-    // exact age check (handles month/day)
-    const age =
-      today.getFullYear() - yearNum -
-      (today.getMonth() < monthNum - 1 ||
-      (today.getMonth() === monthNum - 1 && today.getDate() < dayNum)
-        ? 1
-        : 0);
-    if (age < MIN_AGE) {
-      setError("Сервис доступен только с 18 лет. Детям мы услуги не оказываем.");
-      onChange(undefined);
-      return;
-    }
-    setError(null);
-    onChange(date);
-  };
+  const handleDateChange = (newDay?: string, newMonth?: string, newYear?: string) => {
+    const d = newDay || day;
+    const m = newMonth || month;
+    const y = newYear || year;
 
-  const handleDayChange = (raw: string) => {
-    const v = raw.replace(/\D/g, "").slice(0, 2);
-    setDay(v);
-    validate(v, month, year);
-    // auto-advance: 2 digits OR first digit > 3 (unambiguous)
-    if (v.length === 2 || (v.length === 1 && parseInt(v, 10) > 3)) {
-      monthRef.current?.focus();
+    if (d && m && y) {
+      const dayNum = parseInt(d);
+      const monthNum = parseInt(m);
+      const yearNum = parseInt(y);
+
+      if (
+        dayNum >= 1 && dayNum <= 31 &&
+        monthNum >= 1 && monthNum <= 12 &&
+        yearNum >= 1900 && yearNum <= currentYear
+      ) {
+        const date = new Date(yearNum, monthNum - 1, dayNum);
+        // Validate that the date is valid (e.g., not Feb 30)
+        if (
+          date.getDate() === dayNum &&
+          date.getMonth() === monthNum - 1 &&
+          date.getFullYear() === yearNum
+        ) {
+          onChange(date);
+        }
+      }
     }
   };
 
-  const handleMonthChange = (v: string) => {
-    setMonth(v);
-    validate(day, v, year);
-    setTimeout(() => yearRef.current?.focus(), 0);
+  const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "" || (parseInt(value) >= 1 && parseInt(value) <= 31)) {
+      setDay(value);
+      handleDateChange(value, month, year);
+    }
   };
 
-  const handleYearChange = (raw: string) => {
-    const v = raw.replace(/\D/g, "").slice(0, 4);
-    setYear(v);
-    validate(day, month, v);
+  const handleMonthChange = (value: string) => {
+    setMonth(value);
+    handleDateChange(day, value, year);
+  };
+
+  const handleYearChange = (value: string) => {
+    setYear(value);
+    handleDateChange(day, month, value);
   };
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="grid grid-cols-[80px_1fr_100px] gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">День</Label>
           <Input
-            inputMode="numeric"
+            type="number"
             placeholder="ДД"
             value={day}
-            onChange={(e) => handleDayChange(e.target.value)}
+            onChange={handleDayChange}
+            min="1"
+            max="31"
             className="text-center"
           />
         </div>
@@ -139,13 +114,13 @@ export function BirthDatePicker({ value, onChange, className }: BirthDatePickerP
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Месяц</Label>
           <Select value={month} onValueChange={handleMonthChange}>
-            <SelectTrigger ref={monthRef}>
-              <SelectValue placeholder="Выберите месяц" />
+            <SelectTrigger>
+              <SelectValue placeholder="ММ" />
             </SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {MONTHS.map((name, i) => (
-                <SelectItem key={i + 1} value={(i + 1).toString()}>
-                  {name}
+            <SelectContent>
+              {months.map((m) => (
+                <SelectItem key={m.value} value={m.value}>
+                  {m.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -154,18 +129,144 @@ export function BirthDatePicker({ value, onChange, className }: BirthDatePickerP
 
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Год</Label>
-          <Input
-            ref={yearRef}
-            inputMode="numeric"
-            placeholder="ГГГГ"
-            value={year}
-            onChange={(e) => handleYearChange(e.target.value)}
-            className="text-center"
-          />
+          <Select value={year} onValueChange={handleYearChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="ГГГГ" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {years.map((y) => (
+                <SelectItem key={y} value={y.toString()}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="h-px flex-1 bg-border" />
+        <span>или</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !value && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? (
+              format(value, "d MMMM yyyy", { locale: ru })
+            ) : (
+              <span>Выбрать в календаре</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <div className="p-3 space-y-3 border-b">
+            <div className="grid grid-cols-2 gap-2">
+              <Select 
+                value={value ? (value.getMonth() + 1).toString() : month} 
+                onValueChange={(val) => {
+                  const m = parseInt(val);
+                  const currentDate = value || new Date();
+                  const newDate = new Date(currentDate.getFullYear(), m - 1, currentDate.getDate());
+                  onChange(newDate);
+                }}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Месяц" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select 
+                value={value ? value.getFullYear().toString() : year}
+                onValueChange={(val) => {
+                  const y = parseInt(val);
+                  const currentDate = value || new Date();
+                  const newDate = new Date(y, currentDate.getMonth(), currentDate.getDate());
+                  onChange(newDate);
+                }}
+              >
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Год" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {years.map((y) => (
+                    <SelectItem key={y} value={y.toString()}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="p-3">
+            <div className="grid grid-cols-7 gap-1">
+              {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+                <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
+                  {day}
+                </div>
+              ))}
+              {(() => {
+                const displayYear = value ? value.getFullYear() : parseInt(year || currentYear.toString());
+                const displayMonth = value ? value.getMonth() : parseInt(month || "1") - 1;
+                const firstDay = new Date(displayYear, displayMonth, 1);
+                const lastDay = new Date(displayYear, displayMonth + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Monday = 0
+
+                const days = [];
+                // Empty cells before first day
+                for (let i = 0; i < startDay; i++) {
+                  days.push(<div key={`empty-${i}`} />);
+                }
+                // Days of month
+                for (let i = 1; i <= daysInMonth; i++) {
+                  const isSelected = value && value.getDate() === i && 
+                    value.getMonth() === displayMonth && 
+                    value.getFullYear() === displayYear;
+                  const date = new Date(displayYear, displayMonth, i);
+                  const isDisabled = date > new Date();
+                  
+                  days.push(
+                    <Button
+                      key={i}
+                      variant="ghost"
+                      size="sm"
+                      disabled={isDisabled}
+                      className={cn(
+                        "h-8 w-8 p-0 text-sm",
+                        isSelected && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                        isDisabled && "text-muted-foreground opacity-50"
+                      )}
+                      onClick={() => {
+                        onChange(date);
+                        setOpen(false);
+                      }}
+                    >
+                      {i}
+                    </Button>
+                  );
+                }
+                return days;
+              })()}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
