@@ -78,7 +78,7 @@ export default function SubscriptionSuccess() {
     return () => {
       cancelled = true;
     };
-  }, [invId]);
+  }, [invId, navigate]);
 
   return (
     <div className="container max-w-2xl mx-auto px-4 py-16 text-center">
