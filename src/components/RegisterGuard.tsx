@@ -53,11 +53,10 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
   const handleLogoutAndRegister = async () => {
     setLoggingOut(true);
     try {
-      await performSafeLogout(queryClient);
+      await performSafeLogout(queryClient, { redirectTo: "/register" });
     } finally {
       setLoggingOut(false);
       setOpen(false);
-      navigate("/register");
     }
   };
 
