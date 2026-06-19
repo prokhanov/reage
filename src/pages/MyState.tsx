@@ -386,18 +386,7 @@ export default function MyState() {
         return;
       }
 
-      // Если редактируем существующую запись, удаляем старые данные за эту дату
-      if (editingDate) {
-        const recordSymptoms = groupedByDate[editingDate];
-        const symptomIds = recordSymptoms.map(s => s.id);
-        
-        const { error: deleteError } = await supabase
-          .from('user_symptoms')
-          .delete()
-          .in('id', symptomIds);
-        
-        if (deleteError) throw deleteError;
-      }
+      // Редактирование = создание новой записи (старые не удаляем — сохраняем хронологию)
 
       // Сначала сохраняем соблюдение назначений
       if (Object.keys(adherenceAnswers).length > 0) {
@@ -429,12 +418,10 @@ export default function MyState() {
 
       if (symptomsData.length === 0 && Object.keys(adherenceAnswers).length === 0) {
         toast({
-          title: "Все отлично!",
-          description: "Данные сохранены"
+          title: "Нет данных для сохранения",
+          description: "Отметьте хотя бы один симптом или соблюдение назначения",
+          variant: "destructive"
         });
-        setEditingDate(null);
-        setIsEditDialogOpen(false);
-        await fetchSymptoms();
         return;
       }
 
@@ -457,13 +444,21 @@ export default function MyState() {
         description: parts.join(", ")
       });
 
-      // Сбрасываем форму
+      // Сразу блокируем форму, чтобы не было «возврата на начало»
+      const nowIso = new Date().toISOString();
+      setLastTrackedDate(nowIso);
+      setCanTakeSurvey(false);
+      setDaysUntilNextSurvey(14);
+      setEditingDate(null);
+      setIsEditDialogOpen(false);
+      
+      // Перезагружаем историю в фоне
+      await fetchSymptoms();
+      
+      // Сбрасываем форму после блокировки (в фоне)
       setAnswers({});
       setAdherenceAnswers({});
       setCurrentStep(0);
-      setEditingDate(null);
-      
-      await fetchSymptoms();
     } catch (error) {
       console.error('Error saving data:', error);
       toast({
