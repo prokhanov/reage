@@ -783,7 +783,7 @@ export default function Recommendations() {
             {
               id: "prescriptions",
               type: "prescriptions" as SectionType,
-              label: "Назначения",
+              label: "Рекомендации",
               content: "",
               prescriptionsData: {
                 prescriptions,
