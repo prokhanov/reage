@@ -274,10 +274,23 @@ export default function Register() {
         throw new Error("Аккаунт создан, но сессия не открылась. Войдите в аккаунт и продолжите регистрацию.");
       }
 
-      // Отправляем собственное письмо подтверждения email (fire-and-forget).
-      supabase.functions
-        .invoke("send-verification-email", { body: { email: formData.email } })
-        .catch((e) => console.error("send verification email failed:", e));
+      // Отправляем собственное письмо подтверждения email (await, чтобы запрос гарантированно ушёл).
+      try {
+        const sendPromise = supabase.functions.invoke("send-verification-email", {
+          body: { email: formData.email },
+        });
+        const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve({ timeout: true }), 5000));
+        const result: any = await Promise.race([sendPromise, timeoutPromise]);
+        if (result?.error) {
+          console.error("send verification email failed:", result.error);
+        } else if (result?.timeout) {
+          console.warn("send verification email timed out (continuing)");
+        } else {
+          console.log("verification email enqueued", result?.data);
+        }
+      } catch (e) {
+        console.error("send verification email exception:", e);
+      }
 
       // Debug: вывести все статусы отправок писем для этого email
       (async () => {
