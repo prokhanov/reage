@@ -38,8 +38,8 @@ export interface RegisterFormData {
 
 const steps = [
   { id: 1, slug: "account", title: "Аккаунт", description: "Создайте ваш аккаунт", icon: Mail },
-  { id: 2, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
-  { id: 3, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
+  { id: 2, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
+  { id: 3, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
   { id: 4, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
 ] as const;
 
@@ -228,7 +228,7 @@ export default function Register() {
 
       toast({
         title: "Аккаунт создан",
-        description: "Теперь выберите тариф подписки.",
+        description: "Теперь расскажите немного о себе.",
       });
 
       goToStep(2);
@@ -264,7 +264,7 @@ export default function Register() {
         first_name: formData.firstName,
         last_name: formData.lastName,
         name: `${formData.firstName} ${formData.lastName}`.trim() || user.email,
-        gender: formData.gender || "other",
+        gender: formData.gender || null,
         birth_date: formData.birth_date ? format(formData.birth_date, "yyyy-MM-dd") : null,
         weight: formData.weight ? Number(formData.weight) : null,
         height: formData.height ? Number(formData.height) : null,
@@ -356,7 +356,7 @@ export default function Register() {
         <span className="hidden sm:inline">На главную</span>
       </Link>
 
-      <div className={cn("w-full relative z-10", currentStep === 2 ? "max-w-5xl" : "max-w-2xl")}>
+      <div className={cn("w-full relative z-10", currentStep === 3 ? "max-w-5xl" : "max-w-2xl")}>
         <div className="w-full">
           <div className="text-center mb-8 animate-fade-in pt-6">
             <Link to="/" className="inline-flex items-center gap-2 mb-2">
@@ -449,28 +449,28 @@ export default function Register() {
 
               {currentStep === 2 && (
                 <div className="animate-fade-in">
-                  <RegisterStep5
-                    onSubmit={(data: SelectedPlanData) => {
-                      setSelectedPlan(data);
-                      // Если skipPayment — сразу идём дальше
-                      if (data.skipPayment) {
-                        goToStep(3);
-                      }
-                      // Если оплата — RegisterStep5 сам редиректит на Робокассу
-                    }}
+                  <RegisterStep2
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    onNext={() => goToStep(3)}
                     onBack={() => goToStep(1)}
-                    isSubmitting={false}
                   />
                 </div>
               )}
 
               {currentStep === 3 && (
                 <div className="animate-fade-in">
-                  <RegisterStep2
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    onNext={() => goToStep(4)}
+                  <RegisterStep5
+                    onSubmit={(data: SelectedPlanData) => {
+                      setSelectedPlan(data);
+                      // Если skipPayment — сразу идём дальше
+                      if (data.skipPayment) {
+                        goToStep(4);
+                      }
+                      // Если оплата — RegisterStep5 сам редиректит на Робокассу
+                    }}
                     onBack={() => goToStep(2)}
+                    isSubmitting={false}
                   />
                 </div>
               )}

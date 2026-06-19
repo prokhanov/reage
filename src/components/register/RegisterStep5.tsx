@@ -90,7 +90,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
         durationMonths: selectedPricing.duration_months,
         skipPayment: false,
       });
-      window.localStorage.setItem("reage:register:returnToStep", "profile");
+      window.localStorage.setItem("reage:register:returnToStep", "health");
 
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
         body: { planId: selectedPlanId, pricingId: selectedPricing.id },
