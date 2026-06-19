@@ -1909,6 +1909,24 @@ export type Database = {
           },
         ]
       }
+      promo_code_settings: {
+        Row: {
+          default_prefix: string
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          default_prefix?: string
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          default_prefix?: string
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       promo_codes: {
         Row: {
           applies_to: Database["public"]["Enums"]["promo_applies_to"]
