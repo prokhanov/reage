@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Loader2, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,16 @@ export default function SubscriptionSuccess() {
   const invId = searchParams.get("InvId");
   const navigate = useNavigate();
   const [status, setStatus] = useState<"waiting" | "active" | "admin_test" | "timeout">("waiting");
+  const [registerReturnStep, setRegisterReturnStep] = useState<string | null>(null);
+  const registerReturnStepRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const step = typeof window !== "undefined" ? window.localStorage.getItem("reage:register:returnToStep") : null;
+    if (step) {
+      setRegisterReturnStep(step);
+      registerReturnStepRef.current = step;
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,11 +65,10 @@ export default function SubscriptionSuccess() {
           if (sub) {
             setStatus("active");
             // Если оплата была инициирована из регистрации — возвращаемся в неё
-            const returnTo = typeof window !== "undefined"
-              ? window.localStorage.getItem("reage:register:returnToStep")
-              : null;
+            const returnTo = registerReturnStepRef.current;
             if (returnTo) {
               window.localStorage.removeItem("reage:register:returnToStep");
+              registerReturnStepRef.current = null;
               setTimeout(() => navigate(`/register/${returnTo}`, { replace: true }), 800);
             }
             return;
@@ -100,7 +109,11 @@ export default function SubscriptionSuccess() {
             Спасибо! Добро пожаловать в ReAge.
           </p>
           <Button asChild>
-            <Link to="/dashboard">Перейти в Контрольную панель</Link>
+            {registerReturnStep ? (
+              <Link to={`/register/${registerReturnStep}`}>Закончить регистрацию</Link>
+            ) : (
+              <Link to="/dashboard">Перейти в Контрольную панель</Link>
+            )}
           </Button>
         </>
       )}
@@ -127,7 +140,11 @@ export default function SubscriptionSuccess() {
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={() => window.location.reload()}>Обновить</Button>
             <Button asChild>
-              <Link to="/dashboard">В Контрольную панель</Link>
+              {registerReturnStep ? (
+                <Link to={`/register/${registerReturnStep}`}>Закончить регистрацию</Link>
+              ) : (
+                <Link to="/dashboard">В Контрольную панель</Link>
+              )}
             </Button>
           </div>
         </>
