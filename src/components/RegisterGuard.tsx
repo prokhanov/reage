@@ -5,7 +5,6 @@ import { performSafeLogout } from "@/lib/authLogout";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -13,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogIn, LogOut, UserPlus } from "lucide-react";
+import { Loader2, LogIn, LogOut, UserPlus, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface RegisterGuardContextValue {
