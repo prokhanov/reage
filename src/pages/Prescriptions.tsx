@@ -101,6 +101,7 @@ export default function Prescriptions() {
             status: p.status || "confirmed",
             is_archived: p.is_archived || false,
             created_at: analysis?.date || demoData.analyses[0].date,
+            analysis_id: `demo-analysis-${p.analysis_index ?? 0}`,
           } as Prescription;
         });
       }
