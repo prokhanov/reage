@@ -23,7 +23,7 @@ interface RecoveryEmailProps {
   customFooterText?: string
 }
 
-const logoUrl = 'https://ilxgodhosirhhkffqryw.supabase.co/storage/v1/object/public/email-assets/reage-logo.png'
+const logoUrl = 'https://api.reage.life/storage/v1/object/public/email-assets/reage-logo-v2.png'
 
 export const RecoveryEmail = ({
   siteName,
@@ -77,6 +77,7 @@ const button = {
   fontSize: '15px',
   fontWeight: '600' as const,
   borderRadius: '8px',
+  fontFamily: 'Arial, Helvetica, sans-serif',
   padding: '14px 28px',
   textDecoration: 'none',
 }
