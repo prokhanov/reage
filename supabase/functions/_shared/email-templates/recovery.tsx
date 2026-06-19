@@ -77,6 +77,7 @@ const button = {
   fontSize: '15px',
   fontWeight: '600' as const,
   borderRadius: '8px',
+  fontFamily: 'Arial, Helvetica, sans-serif',
   padding: '14px 28px',
   textDecoration: 'none',
 }
