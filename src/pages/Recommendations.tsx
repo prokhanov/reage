@@ -525,18 +525,24 @@ export default function Recommendations() {
       // Extract analysis index from analysisId (format: "demo-analysis-{index}")
       const analysisIndex = freshReport.analysisId ? parseInt(freshReport.analysisId.split('-')[2]) : 0;
       
-      // Filter prescriptions for this specific analysis
-      const filteredPrescriptions = demoData.prescriptions
-        .filter((p: any) => (p.analysis_index ?? 0) === analysisIndex)
-        .map((p: any, idx: number) => ({
-          id: `demo-presc-${analysisIndex}-${idx}`,
-          prescription: p.prescription,
-          reason: p.reason || null,
-          effect: p.effect,
-          control_date: p.control_date,
-          status: "confirmed" as const
-        }));
-      
+      // Filter prescriptions for this analysis; fall back to the latest set when older analyses have none.
+      const directMatches = demoData.prescriptions.filter((p: any) => (p.analysis_index ?? 0) === analysisIndex);
+      let sourcePrescriptions = directMatches;
+      if (sourcePrescriptions.length === 0) {
+        const allIndices = demoData.prescriptions.map((p: any) => p.analysis_index ?? 0);
+        const fallbackIdx = allIndices.length ? Math.max(...allIndices) : 0;
+        sourcePrescriptions = demoData.prescriptions.filter((p: any) => (p.analysis_index ?? 0) === fallbackIdx);
+      }
+
+      const filteredPrescriptions = sourcePrescriptions.map((p: any, idx: number) => ({
+        id: `demo-presc-${analysisIndex}-${idx}`,
+        prescription: p.prescription,
+        reason: p.reason || null,
+        effect: p.effect,
+        control_date: p.control_date,
+        status: "confirmed" as const,
+      }));
+
       setSelectedPrescriptions(filteredPrescriptions);
     } else if (freshReport.analysisId) {
       try {
