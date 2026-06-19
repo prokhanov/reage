@@ -11,10 +11,12 @@ import { PreventiveMedicineSection } from "@/components/landing/PreventiveMedici
 import { FAQSection } from "@/components/landing/FAQSection";
 import { CTASection, Footer } from "@/components/landing/CTASection";
 import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
+import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <VerifyEmailTokenHandler />
       <HeroSection />
       <HowItWorksSection />
       <WhyCheckupsFail />
