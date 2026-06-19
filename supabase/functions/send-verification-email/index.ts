@@ -117,6 +117,41 @@ Deno.serve(async (req) => {
     const messageId = crypto.randomUUID()
     const idempotencyKey = `signup-verification:${targetUserId}:${tokenRow.token}`
 
+    // Get or create unsubscribe token (required by transactional email sender)
+    const normalizedEmail = targetEmail
+    let unsubscribeToken: string
+    const { data: existingUnsub } = await supabaseAdmin
+      .from('email_unsubscribe_tokens')
+      .select('token')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+    if (existingUnsub?.token) {
+      unsubscribeToken = existingUnsub.token
+    } else {
+      const newToken = crypto.randomUUID()
+      const { data: inserted, error: insErr } = await supabaseAdmin
+        .from('email_unsubscribe_tokens')
+        .insert({ email: normalizedEmail, token: newToken })
+        .select('token')
+        .single()
+      if (insErr) {
+        const { data: fallback } = await supabaseAdmin
+          .from('email_unsubscribe_tokens')
+          .select('token')
+          .eq('email', normalizedEmail)
+          .maybeSingle()
+        if (!fallback?.token) {
+          console.error('unsubscribe token creation failed', insErr)
+          return new Response(JSON.stringify({ error: 'Could not create unsubscribe token' }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        unsubscribeToken = fallback.token
+      } else {
+        unsubscribeToken = inserted.token
+      }
+    }
+
     await supabaseAdmin.from('email_send_log').insert({
       message_id: messageId,
       template_name: 'signup',
@@ -140,9 +175,11 @@ Deno.serve(async (req) => {
         text,
         purpose: 'transactional',
         label: 'signup',
+        unsubscribe_token: unsubscribeToken,
         queued_at: new Date().toISOString(),
       },
     })
+
 
     if (enqueueError) {
       console.error('enqueue failed', enqueueError)
