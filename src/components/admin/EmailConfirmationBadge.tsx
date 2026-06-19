@@ -82,15 +82,23 @@ export function EmailConfirmationBadge({
     setIsSending(true);
     try {
       const emailChanged = resendEmail !== email;
-      const { data, error } = await supabase.functions.invoke('resend-confirmation', {
-        body: { 
-          email: email, 
-          ...(emailChanged ? { newEmail: resendEmail } : {})
-        },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      
+
+      if (emailChanged) {
+        // Смена email до подтверждения — оставляем старый поток (updateUserById + signup link)
+        const { data, error } = await supabase.functions.invoke('resend-confirmation', {
+          body: { email: email, newEmail: resendEmail },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+      } else {
+        // Простой повторный send нашего письма
+        const { data, error } = await supabase.functions.invoke('send-verification-email', {
+          body: { email: resendEmail, ...(userId ? { userId } : {}) },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+      }
+
       toast({
         title: emailChanged ? "Email изменён и письмо отправлено" : "Письмо отправлено",
         description: `Письмо с подтверждением отправлено на ${resendEmail}`,

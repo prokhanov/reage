@@ -52,6 +52,7 @@ import PromoCodes from "./pages/admin/PromoCodes";
 import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
+import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 import { RegisterGuardProvider } from "@/components/RegisterGuard";
@@ -112,6 +113,7 @@ const App = () => (
             <Route path="/register-staff" element={<RegisterStaff />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route
               path="/onboarding"
               element={
