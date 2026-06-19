@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock, User, ArrowRight, Phone } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
@@ -12,12 +12,14 @@ interface RegisterStep1Props {
   formData: RegisterFormData;
   updateFormData: (data: Partial<RegisterFormData>) => void;
   onNext: () => void;
+  loading?: boolean;
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const isEmailValid = (email: string) => EMAIL_REGEX.test(email.trim());
 
-export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep1Props) {
+export function RegisterStep1({ formData, updateFormData, onNext, loading = false }: RegisterStep1Props) {
+
   const [agreed, setAgreed] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
 
@@ -194,10 +196,21 @@ export function RegisterStep1({ formData, updateFormData, onNext }: RegisterStep
         onClick={handleNext}
         className="w-full"
         size="lg"
+        disabled={loading}
       >
-        Далее
-        <ArrowRight className="ml-2 h-4 w-4" />
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Создаём аккаунт...
+          </>
+        ) : (
+          <>
+            Далее
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </>
+        )}
       </Button>
+
     </div>
   );
 }
