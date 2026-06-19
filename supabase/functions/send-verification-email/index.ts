@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    const verifyUrl = `${FUNCTIONS_BASE}/confirm-email-token?token=${tokenRow.token}`
+    const verifyUrl = `${APP_URL}/verify-email?token=${tokenRow.token}`
 
     // Fetch custom template copy (admin "Подтвердите ваш email")
     const { data: tpl } = await supabaseAdmin
