@@ -228,7 +228,7 @@ export default function Register() {
 
       toast({
         title: "Аккаунт создан",
-        description: "Теперь выберите тариф подписки.",
+        description: "Теперь расскажите немного о себе.",
       });
 
       goToStep(2);
