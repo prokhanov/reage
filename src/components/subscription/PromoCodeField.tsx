@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Tag, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export interface AppliedPromo {
   code: string;
@@ -131,7 +132,7 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
 
   if (!open) {
     return (
-      <div className={className}>
+      <div className={cn("w-full text-center", className)}>
         <button
           type="button"
           onClick={() => setOpen(true)}

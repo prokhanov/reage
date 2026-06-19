@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { PlanWithPricing, SubscriptionPricing, calculateSavings, calculateMonthlyEquivalent } from "@/hooks/useSubscriptionPlans";
+import { AppliedPromo } from "./PromoCodeField";
 
 interface PlanCardProps {
   plan: PlanWithPricing;
@@ -11,9 +12,10 @@ interface PlanCardProps {
   isRecommended?: boolean;
   onSelect: (planId: string, pricingId: string) => void;
   isLoading?: boolean;
+  appliedPromo?: AppliedPromo | null;
 }
 
-export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoading }: PlanCardProps) {
+export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoading, appliedPromo }: PlanCardProps) {
   const pricing = plan.pricing.find(p => p.period === selectedPeriod);
   
   if (!pricing) return null;
@@ -24,6 +26,12 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
     : 0;
   
   const monthlyEquivalent = calculateMonthlyEquivalent(pricing.amount, pricing.duration_months);
+
+  const isPromoApplied = appliedPromo && appliedPromo.original_amount > 0 && appliedPromo.original_amount === pricing.amount;
+  const finalAmount = isPromoApplied && appliedPromo.discount_type !== "free_period"
+    ? appliedPromo.final_amount
+    : pricing.amount;
+  const showStrike = isPromoApplied && appliedPromo.discount_type !== "free_period" && finalAmount !== pricing.amount;
 
   return (
     <Card 
@@ -56,8 +64,18 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
 
       <CardContent className="space-y-4">
         <div className="text-center space-y-1">
-          <div className="text-4xl font-bold text-foreground animate-in fade-in-50 duration-300">
-            {pricing.amount.toLocaleString('ru-RU')} ₽
+          <div className={cn(
+            "text-4xl font-bold animate-in fade-in-50 duration-300",
+            showStrike ? "text-primary" : "text-foreground"
+          )}>
+            {showStrike && (
+              <span className="line-through opacity-50 text-2xl mr-2 text-muted-foreground">
+                {pricing.amount.toLocaleString('ru-RU')} ₽
+              </span>
+            )}
+            <span>
+              {finalAmount.toLocaleString('ru-RU')} ₽
+            </span>
           </div>
           <div className="text-sm text-muted-foreground">
             / {pricing.period_display.toLowerCase()}
@@ -69,7 +87,13 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
             </div>
           )}
 
-          {savings > 0 && (
+          {isPromoApplied && appliedPromo.discount_type === "free_period" && (
+            <div className="text-sm font-medium text-green-600 dark:text-green-400 pt-2 animate-in fade-in-50 duration-300">
+              +{appliedPromo.discount_value} мес. бесплатно
+            </div>
+          )}
+
+          {!isPromoApplied && savings > 0 && (
             <div className="text-sm font-medium text-green-600 dark:text-green-400 pt-2 animate-in fade-in-50 duration-300">
               Экономия {savings.toLocaleString('ru-RU')} ₽
             </div>

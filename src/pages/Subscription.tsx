@@ -13,6 +13,7 @@ import { PromoCodeField, AppliedPromo } from "@/components/subscription/PromoCod
 
 export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const { toast } = useToast();
@@ -48,6 +49,20 @@ export default function Subscription() {
   });
 
   const handleSelectPlan = async (planId: string, pricingId: string) => {
+    setSelectedPlanId(planId);
+
+    const plan = plans?.find(p => p.id === planId);
+    const pricing = plan?.pricing.find(p => p.id === pricingId);
+    let currentPromo = appliedPromo;
+    if (currentPromo && pricing && currentPromo.original_amount > 0 && currentPromo.original_amount !== pricing.amount) {
+      setAppliedPromo(null);
+      currentPromo = null;
+      toast({
+        title: "Промокод сброшен",
+        description: "Применённый промокод снят после смены тарифа. Примените заново.",
+      });
+    }
+
     setCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -62,7 +77,7 @@ export default function Subscription() {
       }
 
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
-        body: { planId, pricingId, promoCode: appliedPromo?.code },
+        body: { planId, pricingId, promoCode: currentPromo?.code },
       });
 
       // Сообщение об ошибке (например, невалидный промокод) приходит в data.error
@@ -109,6 +124,14 @@ export default function Subscription() {
       setSelectedPeriod(availablePeriods[0].value);
     }
   }, [availablePeriods, selectedPeriod]);
+
+  // Инициализируем selectedPlanId
+  useEffect(() => {
+    if (plans && plans.length > 0 && !selectedPlanId) {
+      const rec = plans.find((_, i) => i === 1) ?? plans[0];
+      setSelectedPlanId(rec.id);
+    }
+  }, [plans, selectedPlanId]);
 
   const getMaxDiscount = () => {
     if (!plans) return 0;
@@ -202,6 +225,7 @@ export default function Subscription() {
               isRecommended={index === 1}
               onSelect={handleSelectPlan}
               isLoading={creating}
+              appliedPromo={appliedPromo}
             />
           ))}
         </div>
@@ -209,7 +233,21 @@ export default function Subscription() {
 
       {/* Промокод */}
       <div className="max-w-md mx-auto mb-10">
-        <PromoCodeField applied={appliedPromo} onApplied={setAppliedPromo} />
+        <PromoCodeField
+          applied={appliedPromo}
+          onApplied={setAppliedPromo}
+          context={
+            selectedPlanId && plans
+              ? (() => {
+                  const plan = plans.find(p => p.id === selectedPlanId);
+                  const pricing = plan?.pricing.find(p => p.period === selectedPeriod);
+                  return plan && pricing
+                    ? { planId: plan.id, pricingId: pricing.id, amount: pricing.amount }
+                    : null;
+                })()
+              : null
+          }
+        />
       </div>
 
       {/* Trust Indicators */}
