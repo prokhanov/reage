@@ -133,12 +133,6 @@ export default function Subscription() {
     }
   }, [plans, selectedPlanId]);
 
-  const getMaxDiscount = () => {
-    if (!plans) return 0;
-    const allPricing = plans.flatMap(p => p.pricing);
-    const maxDiscount = Math.max(...allPricing.map(p => p.discount_percentage));
-    return maxDiscount;
-  };
 
   // Show loading state
   if (loadingSubscription || isLoading) {
