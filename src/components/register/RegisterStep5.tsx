@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
-import { useSubscriptionPlans, calculateMonthlyEquivalent } from "@/hooks/useSubscriptionPlans";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
