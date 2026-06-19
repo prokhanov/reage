@@ -19,6 +19,7 @@ import { RegisterStep5, SelectedPlanData } from "@/components/register/RegisterS
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
 export interface RegisterFormData {
   email: string;
