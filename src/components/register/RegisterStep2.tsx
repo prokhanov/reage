@@ -12,7 +12,7 @@ interface RegisterStep2Props {
   formData: RegisterFormData;
   updateFormData: (data: Partial<RegisterFormData>) => void;
   onNext: () => void;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export function RegisterStep2({ formData, updateFormData, onNext, onBack }: RegisterStep2Props) {
