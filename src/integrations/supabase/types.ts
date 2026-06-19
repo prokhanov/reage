@@ -1668,13 +1668,13 @@ export type Database = {
       }
       profiles: {
         Row: {
-          birth_date: string
+          birth_date: string | null
           created_at: string
           demo_mode_enabled: boolean | null
           email: string | null
           email_verified: boolean | null
           first_name: string
-          gender: string
+          gender: string | null
           health_note: string | null
           height: number | null
           id: string
@@ -1692,13 +1692,13 @@ export type Database = {
           weight: number | null
         }
         Insert: {
-          birth_date: string
+          birth_date?: string | null
           created_at?: string
           demo_mode_enabled?: boolean | null
           email?: string | null
           email_verified?: boolean | null
           first_name: string
-          gender: string
+          gender?: string | null
           health_note?: string | null
           height?: number | null
           id: string
@@ -1716,13 +1716,13 @@ export type Database = {
           weight?: number | null
         }
         Update: {
-          birth_date?: string
+          birth_date?: string | null
           created_at?: string
           demo_mode_enabled?: boolean | null
           email?: string | null
           email_verified?: boolean | null
           first_name?: string
-          gender?: string
+          gender?: string | null
           health_note?: string | null
           height?: number | null
           id?: string
