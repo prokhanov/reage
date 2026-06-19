@@ -51,9 +51,9 @@ ${bodyHtml}
 ${ctaBlock}
 <p style="margin-top:28px;color:#6b7280;font-size:12px;line-height:1.6;">
 ${SITE_NAME}, ${ROOT_DOMAIN}<br>
-${COMPANY_LEGAL}<br>
-<a href="${unsubscribeSeriesUrl}" style="color:#6b7280;">Отписаться</a>
+${COMPANY_LEGAL}
 </p>
+
 </div>
 </body></html>`
 }
