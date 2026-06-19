@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,8 @@ import {
   usePromoMutations,
   usePromoRedemptions,
 } from "@/hooks/usePromoCodes";
+import { usePromoSettings, useUpdatePromoSettings } from "@/hooks/usePromoSettings";
+import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useToast } from "@/hooks/use-toast";
 import {
   Copy,
@@ -97,6 +99,12 @@ export default function PromoCodes() {
   const { data: batches, isLoading: batchesLoading } = usePromoBatches();
   const { data: redemptions, isLoading: redemptionsLoading } = usePromoRedemptions();
   const { deletePromoCodes, togglePromoCodes, deleteBatch } = usePromoMutations();
+  const { data: promoSettings } = usePromoSettings();
+  const updateSettings = useUpdatePromoSettings();
+  const [prefixDraft, setPrefixDraft] = useState("");
+  useEffect(() => {
+    if (promoSettings?.default_prefix !== undefined) setPrefixDraft(promoSettings.default_prefix);
+  }, [promoSettings?.default_prefix]);
 
   const allSelected = useMemo(
     () => (codes?.length ?? 0) > 0 && selected.length === codes!.length,
@@ -155,6 +163,40 @@ export default function PromoCodes() {
           </Button>
         </div>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Настройки по умолчанию</CardTitle>
+          <CardDescription>
+            Префикс подставляется в форму создания и в массовую генерацию
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+            <div className="flex-1 space-y-1">
+              <label className="text-sm font-medium">Стандартный префикс</label>
+              <Input
+                value={prefixDraft}
+                onChange={(e) => setPrefixDraft(e.target.value.toUpperCase())}
+                placeholder="PROMO"
+                className="font-mono max-w-xs"
+              />
+            </div>
+            <Button
+              onClick={() => updateSettings.mutate(prefixDraft)}
+              disabled={
+                updateSettings.isPending ||
+                !prefixDraft.trim() ||
+                prefixDraft === (promoSettings?.default_prefix ?? "")
+              }
+            >
+              {updateSettings.isPending && <ButtonSpinner className="mr-2" />}
+              Сохранить
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full justify-start flex-wrap h-auto">
