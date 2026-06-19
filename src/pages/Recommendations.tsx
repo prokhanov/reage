@@ -678,7 +678,7 @@ export default function Recommendations() {
         specialist?: string; goal?: string; trigger?: string;
       }>;
       const categories = Object.entries(grouped).filter(([type]) =>
-        type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
+        type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения" && type !== "Рекомендации"
       );
 
       // Load prescriptions
