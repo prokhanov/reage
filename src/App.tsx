@@ -53,6 +53,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
+import { RegisterGuardProvider } from "@/components/RegisterGuard";
 import { YandexMetrika } from "@/components/YandexMetrika";
 import Requisites from "./pages/legal/Requisites";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
