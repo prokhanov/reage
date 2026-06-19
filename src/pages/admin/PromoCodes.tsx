@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -102,7 +102,7 @@ export default function PromoCodes() {
   const { data: promoSettings } = usePromoSettings();
   const updateSettings = useUpdatePromoSettings();
   const [prefixDraft, setPrefixDraft] = useState("");
-  useMemo(() => {
+  useEffect(() => {
     if (promoSettings?.default_prefix !== undefined) setPrefixDraft(promoSettings.default_prefix);
   }, [promoSettings?.default_prefix]);
 
