@@ -14,7 +14,7 @@ const SENDER_DOMAIN = 'notify.reage.life'
 const FROM_ADDRESS = `Команда ReAge <hello@${SENDER_DOMAIN}>`
 const REPLY_TO = `hello@${SENDER_DOMAIN}`
 const APP_URL = 'https://reage.life'
-const COMPANY_LEGAL = 'ООО «РиЭйдж», Москва'
+const COMPANY_LEGAL = 'ООО «РеЭйдж», Москва'
 
 type ReminderType = 'confirm_reminder_email' | 'confirm_reminder_phone' | 'confirm_reminder_both'
 

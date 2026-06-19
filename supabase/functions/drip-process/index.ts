@@ -16,7 +16,7 @@ const ROOT_DOMAIN = 'reage.life'
 const SENDER_DOMAIN = 'notify.reage.life'
 const FROM_ADDRESS = `Команда ReAge <hello@${SENDER_DOMAIN}>`
 const REPLY_TO = `hello@${SENDER_DOMAIN}`
-const COMPANY_LEGAL = 'ООО «РиЭйдж», Москва'
+const COMPANY_LEGAL = 'ООО «РеЭйдж», Москва'
 const APP_URL = 'https://reage.life'
 const FUNCTIONS_URL = `${Deno.env.get('SUPABASE_URL')}/functions/v1`
 
