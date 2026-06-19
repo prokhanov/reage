@@ -5,12 +5,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useRef } from "react";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { useRegisterGuard } from "@/components/RegisterGuard";
 import { HeroBullets } from "@/components/landing/HeroMetricsMarquee";
 
 
 
 export function HeroSection() {
   const navigate = useNavigate();
+  const { requestRegister } = useRegisterGuard();
   const isMobile = useIsMobile();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
