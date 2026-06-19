@@ -207,6 +207,11 @@ export default function Subscription() {
         </div>
       )}
 
+      {/* Промокод */}
+      <div className="max-w-md mx-auto mb-10">
+        <PromoCodeField applied={appliedPromo} onApplied={setAppliedPromo} />
+      </div>
+
       {/* Trust Indicators */}
       <div className="text-center space-y-4 pt-8 border-t border-border/50">
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
