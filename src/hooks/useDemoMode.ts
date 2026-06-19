@@ -147,12 +147,8 @@ export const useDemoMode = () => {
 
   const loadDemoData = async (userProfile: any) => {
     try {
-      const { data: template } = await supabase
-        .from('demo_data_templates')
-        .select('*')
-        .eq('id', 'default')
-        .maybeSingle();
-
+      // Use bundled Elena-based demo template (kept in sync with the landing example report).
+      const template = (await import('@/data/demoTemplate.json')).default as any;
       if (template) {
         const adaptedData = adaptDemoDataToUser(template, userProfile);
         setDemoData(adaptedData);
