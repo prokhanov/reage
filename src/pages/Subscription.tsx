@@ -111,6 +111,14 @@ export default function Subscription() {
     }
   }, [availablePeriods, selectedPeriod]);
 
+  // Инициализируем selectedPlanId
+  useEffect(() => {
+    if (plans && plans.length > 0 && !selectedPlanId) {
+      const rec = plans.find((_, i) => i === 1) ?? plans[0];
+      setSelectedPlanId(rec.id);
+    }
+  }, [plans, selectedPlanId]);
+
   const getMaxDiscount = () => {
     if (!plans) return 0;
     const allPricing = plans.flatMap(p => p.pricing);
