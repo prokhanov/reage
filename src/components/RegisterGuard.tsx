@@ -3,16 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { performSafeLogout } from "@/lib/authLogout";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogIn, LogOut, UserPlus, X } from "lucide-react";
+import { Loader2, LogIn, LogOut, UserPlus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface RegisterGuardContextValue {
