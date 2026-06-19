@@ -1,72 +1,35 @@
-## Идея (правильная, без test.reage.life и без DNS)
+# Починить ссылку подтверждения email
 
-Делаем ссылку в письме сразу на edge function через ваш прокси:
+## Причина проблемы
 
-```
-https://api.reage.life/functions/v1/confirm-email-token?token=<UUID>
-```
+Сейчас письмо ведёт на `https://api.reage.life/functions/v1/confirm-email-token?token=...`. Это прокси РКН-обхода Supabase, и он, судя по скриншоту, отдаёт HTML-ответ функции с неверным `Content-Type` (без `text/html; charset=utf-8`):
 
-`api.reage.life` уже работает в РФ (прокси к Supabase). Edge function сама:
-1. Валидирует токен.
-2. Помечает `profiles.email_verified = true` и `email_verification_tokens.used_at`.
-3. Возвращает **готовую самодостаточную HTML-страницу** с брендингом — успех / истекло / уже использовано / не найдено. На странице кнопка «Войти в личный кабинет» ведёт на `https://reage.life/login` (или другой нужный URL).
+- браузер показывает **исходный HTML как текст** (значит content-type не `text/html`);
+- кириллица превратилась в `РїРѕРґС‚РІРµСЂР¶РґС‘РЅ` (UTF-8, прочитанный как windows-1251) — `charset` не дошёл.
 
-SPA вообще не участвует. Никаких `test.reage.life`. Никаких DNS-правок. Никаких nginx-локейшенов.
+Сама edge-функция возвращает корректные заголовки, но nginx-прокси `api.reage.life` настроен под JSON-API Supabase и перебивает/нормализует заголовки. Чинить чужой nginx мы не можем, и трогать прокси, через который ходит всё приложение, рискованно.
 
-## Что меняем
+## Решение
 
-### 1. `supabase/functions/confirm-email-token/index.ts` — переписать
-- Принимает **GET** с `?token=...` (сейчас только POST с JSON-body).
-- Сохраняем обратную совместимость: POST с body тоже работает (если где-то ещё дёргается из кода — не сломаем).
-- На GET в ответ отдаёт `text/html` с инлайн-стилями (тёмная тема, логотип/название, статус, кнопка «Войти»).
-- Состояния:
-  - `success` → зелёная галка, «Email подтверждён», кнопка «Войти в личный кабинет» → `https://reage.life/login`.
-  - `expired` → «Ссылка истекла», кнопка «Запросить новое письмо» → `https://reage.life/login` (там у вас уже есть resend).
-  - `already_used` → «Email уже подтверждён ранее», кнопка «Войти».
-  - `not_found` / `invalid` → «Ссылка недействительна», кнопка «На главную» → `https://reage.life`.
-- Все ответы — `200` + HTML (а не 4xx/5xx), чтобы браузер показал страницу, а не дефолтный экран ошибки.
+Использовать уже существующую SPA-страницу `/verify-email` на `reage.life` (роут есть в `App.tsx`, компонент `src/pages/VerifyEmail.tsx` уже умеет читать `?token=` и вызывать `confirm-email-token` через `supabase.functions.invoke` — это обычный JSON-вызов, прокси такие отдаёт правильно).
 
-### 2. `supabase/functions/send-verification-email/index.ts` — поменять формирование ссылки
-Сейчас:
-```ts
-const APP_URL = 'https://reage.life'
-const verifyUrl = `${APP_URL}/verify-email?token=${tokenRow.token}`
-```
-Станет:
-```ts
-const FUNCTIONS_BASE =
-  Deno.env.get('PUBLIC_FUNCTIONS_URL') || 'https://api.reage.life/functions/v1'
-const verifyUrl = `${FUNCTIONS_BASE}/confirm-email-token?token=${tokenRow.token}`
-```
-Env-переменная — на будущее, если прокси переедет; по умолчанию ваш `api.reage.life`.
+## Изменения
 
-### 3. Деплой обеих функций
-Лав-клауд сделает автоматически.
+1. **`supabase/functions/send-verification-email/index.ts`**
+   - Заменить формирование ссылки:
+     ```ts
+     const verifyUrl = `${APP_URL}/verify-email?token=${tokenRow.token}`
+     ```
+   - Убрать `FUNCTIONS_BASE` и `PUBLIC_FUNCTIONS_URL` — не нужны.
 
-### 4. `verify_jwt = false` для `confirm-email-token`
-Обязательно: ссылка из письма открывается без авторизации, JWT в URL нет. Проверю `supabase/config.toml` и при необходимости добавлю блок:
-```toml
-[functions.confirm-email-token]
-verify_jwt = false
-```
+2. **`supabase/functions/confirm-email-token/index.ts`** — оставить как есть (POST-ветка для SPA уже работает; GET-ветка с HTML остаётся как fallback, но из писем дёргаться не будет).
 
-### 5. Что НЕ трогаю
-- SPA-страницу `src/pages/VerifyEmail.tsx` оставляю как есть — она больше не используется ссылкой из письма, но никому не мешает. Удалить можно отдельной задачей, если захотите.
-- `auth-email-hook`, drip, transactional templates — без изменений.
-- Никакого test.reage.life нигде.
+3. **Деплой** `send-verification-email`.
 
-## Финальный вид ссылки в письме
+## Итоговая ссылка в письме
 
-```
-https://api.reage.life/functions/v1/confirm-email-token?token=0860b714-e5e2-403c-9287-ac5496c30e48
-```
+`https://reage.life/verify-email?token=<uuid>` → SPA → POST к `api.reage.life/functions/v1/confirm-email-token` (JSON) → брендированный экран успеха/ошибки на самом сайте.
 
-Открывается мгновенно из РФ (через ваш прокси), показывает брендированную страницу-результат, ведёт пользователя в `https://reage.life/login`.
+## Проверка
 
-## Проверка после релиза
-1. Зарегистрировать тестового пользователя → пришло письмо.
-2. Кликнуть ссылку → открылась HTML-страница с зелёной галкой.
-3. В БД `profiles.email_verified = true`, `email_verification_tokens.used_at` заполнен.
-4. Повторный клик по той же ссылке → «уже использовано».
-
-Подтвердите — переключайте в build mode, реализую.
+Запросить новое письмо → кликнуть → должна открыться страница `/verify-email` с зелёной галкой; в БД `profiles.email_verified = true`, `email_verification_tokens.used_at` заполнен.
