@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useRegisterGuard } from "@/components/RegisterGuard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HeroShowcase, type ShowcaseSection } from "@/components/landing/HeroShowcase";
@@ -108,6 +109,7 @@ const appFeatures: Record<ShowcaseSection, {
 };
 
 export function AppFeaturesSection() {
+  const { requestRegister } = useRegisterGuard();
   const [activeSection, setActiveSection] = useState<ShowcaseSection>("dashboard");
   const handleSectionChange = useCallback((section: ShowcaseSection) => {
     setActiveSection(section);
