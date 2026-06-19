@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     const text = await renderAsync(React.createElement(SignupEmail, props), { plainText: true })
 
     const messageId = crypto.randomUUID()
-    const runId = crypto.randomUUID()
+    const idempotencyKey = `signup-verification:${targetUserId}:${tokenRow.token}`
 
     await supabaseAdmin.from('email_send_log').insert({
       message_id: messageId,
@@ -128,10 +128,10 @@ Deno.serve(async (req) => {
     const fromAddress = `${senderName} <${senderEmail}@${senderDomain}>`
 
     const { error: enqueueError } = await supabaseAdmin.rpc('enqueue_email', {
-      queue_name: 'auth_emails',
+      queue_name: 'transactional_emails',
       payload: {
-        run_id: runId,
         message_id: messageId,
+        idempotency_key: idempotencyKey,
         to: targetEmail,
         from: fromAddress,
         sender_domain: SENDER_DOMAIN,
