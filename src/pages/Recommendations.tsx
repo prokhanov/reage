@@ -169,9 +169,14 @@ export default function Recommendations() {
             return null;
           }
           
+          const DEMO_TYPE_MAP: Record<string, string> = {
+            patient_data: "Данные пациента",
+            summary: "Общее резюме",
+            prescriptions: "Назначения",
+          };
           const recommendations = recs.map((r: any, idx: number) => ({
             id: `demo-rec-${analysisIndex}-${idx}`,
-            type: r.type,
+            type: DEMO_TYPE_MAP[r.type] ?? r.type,
             text: r.text,
             created_at: analysis.date,
             analysis_date: analysis.date,
