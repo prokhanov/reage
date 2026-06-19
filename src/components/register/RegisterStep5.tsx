@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { BiomarkerComparisonDialog } from "@/components/landing/BiomarkerComparisonDialog";
+import { PromoCodeField, AppliedPromo } from "@/components/subscription/PromoCodeField";
 
 export interface SelectedPlanData {
   planId: string;
@@ -285,6 +286,7 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const { toast } = useToast();
 
   const { data: activeSubscription, isLoading: loadingSub } = useQuery({
@@ -338,9 +340,16 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
       window.localStorage.setItem("reage:register:returnToStep", "health");
 
       const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
-        body: { planId: selectedCard.id, pricingId: selectedCard.pricingId },
+        body: { planId: selectedCard.id, pricingId: selectedCard.pricingId, promoCode: appliedPromo?.code },
       });
 
+      const errMsg = (data as any)?.error;
+      if (errMsg) {
+        toast({ title: "Не удалось оформить оплату", description: errMsg, variant: "destructive" });
+        window.localStorage.removeItem("reage:register:returnToStep");
+        setPaying(false);
+        return;
+      }
       if (error) throw error;
       if (!data?.url) throw new Error("Не получен платёжный URL");
       window.location.href = data.url as string;
