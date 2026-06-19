@@ -678,7 +678,7 @@ export default function Recommendations() {
         specialist?: string; goal?: string; trigger?: string;
       }>;
       const categories = Object.entries(grouped).filter(([type]) =>
-        type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
+        type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения" && type !== "Рекомендации"
       );
 
       // Load prescriptions
@@ -783,7 +783,7 @@ export default function Recommendations() {
             {
               id: "prescriptions",
               type: "prescriptions" as SectionType,
-              label: "Назначения",
+              label: "Рекомендации",
               content: "",
               prescriptionsData: {
                 prescriptions,
@@ -1003,7 +1003,7 @@ export default function Recommendations() {
                 nutraceuticals: selectedPrescriptions.length,
               });
               const categories = Object.entries(grouped).filter(([type]) =>
-                type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
+                type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения" && type !== "Рекомендации"
               );
 
               // Try to extract a structured ReportSnapshot from the summary recommendation.
@@ -1025,7 +1025,7 @@ export default function Recommendations() {
                       ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
                       ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
                     ]),
-                ...(hasPrescriptionsBlock ? [{ id: 'prescriptions', label: 'Назначения' }] : [])
+                ...(hasPrescriptionsBlock ? [{ id: 'prescriptions', label: 'Рекомендации' }] : [])
               ];
 
               return (
@@ -1137,7 +1137,7 @@ export default function Recommendations() {
                           <div id="section-prescriptions" className="scroll-mt-6">
                             <div className="mb-6">
                               <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                                Назначения
+                                Рекомендации
                               </h2>
                               <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                             </div>
