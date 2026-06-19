@@ -99,7 +99,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
             </div>
           )}
 
-          {isPromoApplied && appliedPromo.discount_type === "free_period" && (
+          {isPromoApplied && appliedPromo?.discount_type === "free_period" && (
             <div className="text-sm font-medium text-green-600 dark:text-green-400 pt-2 animate-in fade-in-50 duration-300">
               +{appliedPromo.discount_value} мес. бесплатно
             </div>
