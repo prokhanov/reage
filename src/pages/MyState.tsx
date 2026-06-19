@@ -318,11 +318,12 @@ export default function MyState() {
         const lastDate = data[0].tracked_at;
         setLastTrackedDate(lastDate);
         
-        // Проверяем, сколько дней прошло с последнего опроса
+        // Проверяем, сколько дней прошло с последнего опроса (период — 14 дней)
+        const SURVEY_INTERVAL_DAYS = 14;
         const daysSinceLastSurvey = differenceInDays(new Date(), new Date(lastDate));
-        const daysLeft = 10 - daysSinceLastSurvey;
+        const daysLeft = SURVEY_INTERVAL_DAYS - daysSinceLastSurvey;
         
-        if (daysSinceLastSurvey < 10) {
+        if (daysSinceLastSurvey < SURVEY_INTERVAL_DAYS) {
           setCanTakeSurvey(false);
           setDaysUntilNextSurvey(daysLeft);
         } else {
