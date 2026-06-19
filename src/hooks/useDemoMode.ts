@@ -198,7 +198,7 @@ export const useDemoMode = () => {
       if (enabled) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('gender, birth_date, weight, height')
+          .select('gender, birth_date, weight, height, first_name, last_name')
           .eq('id', userId)
           .maybeSingle();
         
