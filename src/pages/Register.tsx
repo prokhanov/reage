@@ -292,26 +292,6 @@ export default function Register() {
         console.error("send verification email exception:", e);
       }
 
-      // Debug: вывести все статусы отправок писем для этого email
-      (async () => {
-        const fetchLogs = async (label: string) => {
-          const { data, error } = await supabase
-            .from("email_send_log")
-            .select("created_at, template_name, status, error_message, message_id")
-            .eq("recipient_email", formData.email)
-            .order("created_at", { ascending: false });
-          if (error) {
-            console.error(`[email_send_log ${label}] error:`, error);
-            return;
-          }
-          console.log(`[email_send_log ${label}] ${formData.email}`, data);
-          console.table(data);
-        };
-        await fetchLogs("t+0s");
-        setTimeout(() => fetchLogs("t+5s"), 5000);
-        setTimeout(() => fetchLogs("t+15s"), 15000);
-      })();
-
       toast({
         title: "Аккаунт создан",
         description: "Теперь расскажите немного о себе.",
