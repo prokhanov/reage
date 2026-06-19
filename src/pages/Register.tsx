@@ -344,13 +344,17 @@ export default function Register() {
   };
 
   const handleStepIndicatorClick = (stepId: number) => {
-    // Шаг 1 всегда доступен. Остальные — только при наличии сессии (аккаунт создан)
-    if (stepId === 1 || hasSession) {
+    // Шаг 1 доступен только до создания аккаунта. Остальные — только при наличии сессии.
+    if (stepId === 1 && !hasSession) {
+      goToStep(1);
+    } else if (stepId !== 1 && hasSession) {
       goToStep(stepId);
     } else {
       toast({
-        title: "Сначала создайте аккаунт",
-        description: "Заполните первый шаг.",
+        title: "Навигация недоступна",
+        description: stepId === 1
+          ? "Аккаунт уже создан. Вернуться к созданию аккаунта нельзя."
+          : "Сначала создайте аккаунт.",
       });
     }
   };
