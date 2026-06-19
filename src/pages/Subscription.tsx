@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Sparkles, Loader2, AlertTriangle, PiggyBank, ShieldCheck, Target } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle, ShieldCheck, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
