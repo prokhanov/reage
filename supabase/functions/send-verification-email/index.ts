@@ -13,7 +13,7 @@ const ROOT_DOMAIN = 'reage.life'
 const SENDER_DOMAIN = 'notify.reage.life'
 const FROM_DOMAIN = 'notify.reage.life'
 const APP_URL = 'https://reage.life'
-const FUNCTIONS_BASE = Deno.env.get('PUBLIC_FUNCTIONS_URL') || 'https://api.reage.life/functions/v1'
+
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
