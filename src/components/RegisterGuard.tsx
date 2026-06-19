@@ -5,7 +5,6 @@ import { performSafeLogout } from "@/lib/authLogout";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -13,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogIn, LogOut, UserPlus } from "lucide-react";
+import { Loader2, LogIn, LogOut, UserPlus, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface RegisterGuardContextValue {
@@ -68,7 +67,17 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
     <RegisterGuardContext.Provider value={{ requestRegister }}>
       {children}
       <AlertDialog open={open} onOpenChange={(v) => !loggingOut && setOpen(v)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 h-8 w-8 rounded-full"
+            onClick={() => setOpen(false)}
+            disabled={loggingOut}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Закрыть</span>
+          </Button>
           <AlertDialogHeader>
             <AlertDialogTitle>У вас уже есть активная сессия</AlertDialogTitle>
             <AlertDialogDescription>
@@ -77,9 +86,6 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel disabled={loggingOut} className="sm:mr-auto">
-              Отмена
-            </AlertDialogCancel>
             <Button
               type="button"
               variant="outline"
