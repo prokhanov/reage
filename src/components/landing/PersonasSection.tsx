@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useRegisterGuard } from "@/components/RegisterGuard";
 
 interface Persona {
   id: string;
@@ -27,6 +28,7 @@ interface Persona {
 
 export function PersonasSection() {
   const navigate = useNavigate();
+  const { requestRegister } = useRegisterGuard();
   const [activePersona, setActivePersona] = useState(0);
   
   const personas: Persona[] = [
@@ -229,7 +231,7 @@ export function PersonasSection() {
                     
                     <Button 
                       size="lg"
-                      onClick={() => navigate("/register")}
+                      onClick={requestRegister}
                       className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/25 group"
                     >
                       Это про меня
