@@ -89,6 +89,7 @@ const App = () => (
         <BrowserRouter>
           <YandexMetrika />
           <RouteMeta />
+          <RegisterGuardProvider>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
