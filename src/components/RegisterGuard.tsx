@@ -65,26 +65,16 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
   return (
     <RegisterGuardContext.Provider value={{ requestRegister }}>
       {children}
-      <AlertDialog open={open} onOpenChange={(v) => !loggingOut && setOpen(v)}>
-        <AlertDialogContent className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2 h-8 w-8 rounded-full"
-            onClick={() => setOpen(false)}
-            disabled={loggingOut}
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Закрыть</span>
-          </Button>
-          <AlertDialogHeader>
-            <AlertDialogTitle>У вас уже есть активная сессия</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={open} onOpenChange={(v) => !loggingOut && setOpen(v)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>У вас уже есть активная сессия</DialogTitle>
+            <DialogDescription>
               Вы вошли как <span className="font-medium text-foreground">{email}</span>.
               Чтобы зарегистрировать новый аккаунт, нужно сначала выйти из текущего.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
@@ -94,25 +84,23 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
               <LogIn className="h-4 w-4 mr-2" />
               Войти в кабинет
             </Button>
-            <AlertDialogAction asChild>
-              <Button
-                type="button"
-                onClick={handleLogoutAndRegister}
-                disabled={loggingOut}
-                className="bg-gradient-primary shadow-neon-primary"
-              >
-                {loggingOut ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <LogOut className="h-4 w-4 mr-2" />
-                )}
-                Выйти и зарегистрироваться
-                <UserPlus className="h-4 w-4 ml-2" />
-              </Button>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <Button
+              type="button"
+              onClick={handleLogoutAndRegister}
+              disabled={loggingOut}
+              className="bg-gradient-primary shadow-neon-primary"
+            >
+              {loggingOut ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <LogOut className="h-4 w-4 mr-2" />
+              )}
+              Выйти и зарегистрироваться
+              <UserPlus className="h-4 w-4 ml-2" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </RegisterGuardContext.Provider>
   );
 }
