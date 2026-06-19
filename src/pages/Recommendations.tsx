@@ -1003,7 +1003,7 @@ export default function Recommendations() {
                 nutraceuticals: selectedPrescriptions.length,
               });
               const categories = Object.entries(grouped).filter(([type]) =>
-                type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения"
+                type !== "Общее резюме" && type !== "Данные пациента" && type !== "Назначения" && type !== "Рекомендации"
               );
 
               // Try to extract a structured ReportSnapshot from the summary recommendation.
