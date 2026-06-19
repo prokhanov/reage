@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,9 +11,11 @@ export interface AppliedPromo {
   promo_code_id: string;
   discount_type: "percent" | "fixed" | "free_period";
   discount_value: number;
-  discount_amount: number; // 0 для free_period
+  discount_amount: number; // 0 для free_period (или для предварительного применения без контекста)
   final_amount: number;
   original_amount: number;
+  applies_to?: "all" | "specific";
+  allowed_plans?: Array<{ plan_id: string; pricing_id: string | null }>;
 }
 
 interface Props {
@@ -24,23 +26,32 @@ interface Props {
   className?: string;
 }
 
+export function formatPromoBenefit(p: Pick<AppliedPromo, "discount_type" | "discount_value">): string {
+  if (p.discount_type === "percent") return `−${p.discount_value}%`;
+  if (p.discount_type === "fixed") return `−${Number(p.discount_value).toLocaleString("ru-RU")} ₽`;
+  if (p.discount_type === "free_period") return `+${p.discount_value} мес. бесплатно`;
+  return "—";
+}
+
+/** Применим ли промокод к данному тарифу/цене */
+export function promoAppliesToPricing(
+  promo: AppliedPromo | null | undefined,
+  planId: string,
+  pricingId: string,
+): boolean {
+  if (!promo) return false;
+  if (!promo.applies_to || promo.applies_to === "all") return true;
+  if (!promo.allowed_plans?.length) return false;
+  return promo.allowed_plans.some(
+    (a) => a.plan_id === planId && (a.pricing_id == null || a.pricing_id === pricingId),
+  );
+}
+
 export function PromoCodeField({ context, applied, onApplied, className }: Props) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  // Если контекст поменялся (выбран другой тариф) — сбросить применённый промокод
-  useEffect(() => {
-    if (applied && context && applied.original_amount !== context.amount) {
-      onApplied(null);
-      toast({
-        title: "Промокод сброшен",
-        description: "Применённый промокод снят после смены тарифа. Примените заново.",
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [context?.planId, context?.pricingId, context?.amount]);
 
   const handleApply = async () => {
     const trimmed = code.trim();
@@ -74,8 +85,10 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
           discount_amount: Number(result.discount_amount ?? 0),
           final_amount: Number(result.final_amount),
           original_amount: Number(result.original_amount),
+          applies_to: result.applies_to ?? "all",
+          allowed_plans: Array.isArray(result.allowed_plans) ? result.allowed_plans : [],
         });
-        toast({ title: "Промокод применён", description: `Скидка: ${formatDiscount(result)}` });
+        toast({ title: "Промокод применён", description: `Скидка: ${formatPromoBenefit(result)}` });
       } else {
         // Контекста нет — только сохраняем код. Финальная валидация на бэкенде при оплате.
         onApplied({
@@ -93,6 +106,7 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
         });
       }
       setCode("");
+      setOpen(false);
     } catch (e: any) {
       toast({ title: "Ошибка", description: e.message, variant: "destructive" });
     } finally {
@@ -106,20 +120,24 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
   };
 
   if (applied) {
+    const benefit = formatPromoBenefit(applied);
     return (
       <div className={className}>
         <div className="flex items-center justify-between gap-3 rounded-lg border border-green-500/40 bg-green-500/5 px-4 py-3">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Check className="h-4 w-4 text-green-500 shrink-0" />
             <div className="min-w-0">
-              <div className="font-mono text-sm font-medium truncate">{applied.code}</div>
-              {applied.original_amount > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  {applied.discount_type === "free_period"
-                    ? `+${applied.discount_value} мес. бесплатно`
-                    : `Скидка ${applied.discount_amount.toLocaleString("ru-RU")} ₽ → к оплате ${applied.final_amount.toLocaleString("ru-RU")} ₽`}
-                </div>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-sm font-medium truncate">{applied.code}</span>
+                <span className="inline-flex items-center rounded-md bg-green-500/15 px-2 py-0.5 text-xs font-semibold text-green-600 dark:text-green-400">
+                  {benefit}
+                </span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {applied.applies_to === "specific"
+                  ? "Действует на выбранные тарифы"
+                  : "Действует на все тарифы"}
+              </div>
             </div>
           </div>
           <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleRemove}>
@@ -179,11 +197,4 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
       </div>
     </div>
   );
-}
-
-function formatDiscount(r: any): string {
-  if (r.discount_type === "percent") return `${r.discount_value}%`;
-  if (r.discount_type === "fixed") return `${Number(r.discount_amount).toLocaleString("ru-RU")} ₽`;
-  if (r.discount_type === "free_period") return `+${r.discount_value} мес.`;
-  return "—";
 }
