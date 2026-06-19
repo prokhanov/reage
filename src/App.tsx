@@ -113,6 +113,7 @@ const App = () => (
             <Route path="/register-staff" element={<RegisterStaff />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route
               path="/onboarding"
               element={
