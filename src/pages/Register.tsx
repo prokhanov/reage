@@ -19,6 +19,7 @@ import { RegisterStep5, SelectedPlanData } from "@/components/register/RegisterS
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
 export interface RegisterFormData {
   email: string;
@@ -121,6 +122,9 @@ export default function Register() {
   const [selectedPlan, setSelectedPlan] = useState<SelectedPlanData | null>(initialDraft.current.selectedPlan);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSession, setHasSession] = useState(false);
+
+  // Прелоад тарифов в фоне с первого шага — к моменту шага оплаты данные уже в кеше.
+  useSubscriptionPlans();
 
   // Определяем текущий шаг из URL
   const currentStep = stepParam ? (SLUG_TO_STEP[stepParam] ?? 1) : 1;

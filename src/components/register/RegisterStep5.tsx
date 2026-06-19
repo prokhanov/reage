@@ -408,25 +408,31 @@ export function RegisterStep5({ onSubmit, onBack, isSubmitting }: RegisterStep5P
       <BiomarkerComparisonDialog open={comparisonOpen} onOpenChange={setComparisonOpen} />
 
       {(isLoading || loadingSub) ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-[420px] rounded-3xl" />)}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 min-h-[480px]">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="min-w-0 h-full">
+              <Skeleton className="h-[460px] w-full rounded-3xl" />
+            </div>
+          ))}
         </div>
       ) : cards.length === 0 ? (
         <div className="text-center text-muted-foreground py-12">
           Тарифы временно недоступны. Загляните позже.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 min-h-[480px]">
           {cards.map((card) => (
-            <PricingPlanCard
-              key={card.id}
-              card={card}
-              isSelected={selectedPlanId === card.id}
-              onSelect={() => setSelectedPlanId(card.id)}
-            />
+            <div key={card.id} className="min-w-0 h-full">
+              <PricingPlanCard
+                card={card}
+                isSelected={selectedPlanId === card.id}
+                onSelect={() => setSelectedPlanId(card.id)}
+              />
+            </div>
           ))}
         </div>
       )}
+
 
       <div className="text-center pt-2">
         <button
