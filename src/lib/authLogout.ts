@@ -58,7 +58,10 @@ const clearAuthStorage = (storage: Storage, label: string) => {
   console.info("[auth-debug] cleared auth storage", { label, removedCount: removedKeys.length });
 };
 
-export const performSafeLogout = async (queryClient?: QueryClient) => {
+export const performSafeLogout = async (
+  queryClient?: QueryClient,
+  options?: { redirectTo?: string },
+) => {
   console.info("[auth-debug] logout started");
   markLogoutInStorage();
 
@@ -84,6 +87,7 @@ export const performSafeLogout = async (queryClient?: QueryClient) => {
   }
 
   queryClient?.clear();
-  console.info("[auth-debug] logout redirecting to /auth?logout=1");
-  window.location.replace("/auth?logout=1");
+  const redirectTo = options?.redirectTo ?? "/auth?logout=1";
+  console.info("[auth-debug] logout redirecting", { redirectTo });
+  window.location.replace(redirectTo);
 };
