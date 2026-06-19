@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { PlanWithPricing, SubscriptionPricing, calculateSavings, calculateMonthlyEquivalent } from "@/hooks/useSubscriptionPlans";
-import { AppliedPromo } from "./PromoCodeField";
+import { AppliedPromo, promoAppliesToPricing } from "./PromoCodeField";
 
 interface PlanCardProps {
   plan: PlanWithPricing;
@@ -27,11 +27,23 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
   
   const monthlyEquivalent = calculateMonthlyEquivalent(pricing.amount, pricing.duration_months);
 
-  const isPromoApplied = appliedPromo && appliedPromo.original_amount > 0 && appliedPromo.original_amount === pricing.amount;
-  const finalAmount = isPromoApplied && appliedPromo.discount_type !== "free_period"
-    ? appliedPromo.final_amount
-    : pricing.amount;
-  const showStrike = isPromoApplied && appliedPromo.discount_type !== "free_period" && finalAmount !== pricing.amount;
+  // Динамический расчёт скидки для КАЖДОГО тарифа (если промокод применим)
+  const promoApplies = promoAppliesToPricing(appliedPromo ?? null, plan.id, pricing.id);
+  let finalAmount = pricing.amount;
+  let showStrike = false;
+  if (promoApplies && appliedPromo) {
+    if (appliedPromo.discount_type === "percent") {
+      const d = Math.round((pricing.amount * Math.min(appliedPromo.discount_value, 100)) / 100);
+      finalAmount = Math.max(pricing.amount - d, 0);
+      showStrike = finalAmount !== pricing.amount;
+    } else if (appliedPromo.discount_type === "fixed") {
+      const d = Math.min(appliedPromo.discount_value, pricing.amount);
+      finalAmount = Math.max(pricing.amount - d, 0);
+      showStrike = finalAmount !== pricing.amount;
+    }
+    // free_period — цена та же, бонус месяцами
+  }
+  const isPromoApplied = promoApplies;
 
   return (
     <Card 
