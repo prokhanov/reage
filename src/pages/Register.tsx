@@ -344,13 +344,17 @@ export default function Register() {
   };
 
   const handleStepIndicatorClick = (stepId: number) => {
-    // Шаг 1 всегда доступен. Остальные — только при наличии сессии (аккаунт создан)
-    if (stepId === 1 || hasSession) {
+    // Шаг 1 доступен только до создания аккаунта. Остальные — только при наличии сессии.
+    if (stepId === 1 && !hasSession) {
+      goToStep(1);
+    } else if (stepId !== 1 && hasSession) {
       goToStep(stepId);
     } else {
       toast({
-        title: "Сначала создайте аккаунт",
-        description: "Заполните первый шаг.",
+        title: "Навигация недоступна",
+        description: stepId === 1
+          ? "Аккаунт уже создан. Вернуться к созданию аккаунта нельзя."
+          : "Сначала создайте аккаунт.",
       });
     }
   };
@@ -387,7 +391,7 @@ export default function Register() {
                 const Icon = step.icon;
                 const isActive = currentStep === step.id;
                 const isCompleted = currentStep > step.id;
-                const isClickable = step.id === 1 || hasSession;
+                const isClickable = step.id === 1 ? !hasSession : hasSession;
 
                 return (
                   <div key={step.id} className="flex items-center">
@@ -464,7 +468,7 @@ export default function Register() {
                     formData={formData}
                     updateFormData={updateFormData}
                     onNext={() => goToStep(3)}
-                    onBack={() => goToStep(1)}
+                    onBack={hasSession ? undefined : () => goToStep(1)}
                   />
                 </div>
               )}

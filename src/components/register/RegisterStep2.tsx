@@ -12,7 +12,7 @@ interface RegisterStep2Props {
   formData: RegisterFormData;
   updateFormData: (data: Partial<RegisterFormData>) => void;
   onNext: () => void;
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export function RegisterStep2({ formData, updateFormData, onNext, onBack }: RegisterStep2Props) {
@@ -104,19 +104,21 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
       </div>
 
       <div className="flex gap-3">
-        <Button 
-          variant="outline" 
-          onClick={onBack}
-          className="flex-1"
-          size="lg"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
+        {onBack && (
+          <Button 
+            variant="outline" 
+            onClick={onBack}
+            className="flex-1"
+            size="lg"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Назад
+          </Button>
+        )}
         <Button 
           onClick={onNext}
           disabled={!isValid}
-          className="flex-1"
+          className={onBack ? "flex-1" : "w-full"}
           size="lg"
         >
           Далее
