@@ -143,13 +143,9 @@ async function checkCancelConditions(supabase: any, userId: string, conditions: 
     } else if (t === 'has_any_analysis') {
       const { data } = await supabase.from('analyses').select('id').eq('user_id', userId).limit(1)
       if (data && data.length > 0) return 'has_any_analysis'
-    } else if (t === 'email_confirmed') {
-      const { data } = await supabase.rpc('get_users_email_confirmed', { user_ids: [userId] })
-      if (data && data[0]?.email_confirmed_at) return 'email_confirmed'
-    } else if (t === 'email_not_confirmed') {
-      const { data } = await supabase.rpc('get_users_email_confirmed', { user_ids: [userId] })
-      if (!data || !data[0]?.email_confirmed_at) return 'email_not_confirmed'
     }
+    // email_confirmed / email_not_confirmed cancel-conditions намеренно убраны:
+    // drip-письма не должны зависеть от факта подтверждения email.
   }
   return null
 }

@@ -241,16 +241,8 @@ export default function Register() {
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error("Не удалось создать аккаунт");
 
-      // На случай, если signUp не вернул сессию (email confirmation) — логинимся явно
-      const { data: sessAfter } = await supabase.auth.getSession();
-      if (!sessAfter.session) {
-        await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-      }
-
-      // Отправляем письмо подтверждения email (fire-and-forget)
+      // Отправляем письмо подтверждения email (fire-and-forget).
+      // Не делаем автологин — пользователь должен подтвердить email сам.
       supabase.functions
         .invoke("resend-confirmation", { body: { email: formData.email } })
         .catch((e) => console.error("send confirmation failed:", e));
