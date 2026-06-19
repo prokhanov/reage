@@ -65,16 +65,23 @@ export default function Subscription() {
         body: { planId, pricingId, promoCode: appliedPromo?.code },
       });
 
+      // Сообщение об ошибке (например, невалидный промокод) приходит в data.error
+      const errMsg = (data as any)?.error;
+      if (errMsg) {
+        toast({ title: "Не удалось оформить оплату", description: errMsg, variant: "destructive" });
+        setCreating(false);
+        return;
+      }
       if (error) throw error;
       if (!data?.url) throw new Error("Не получен платёжный URL");
 
       // Робокасса позовёт ResultURL → бэкенд активирует подписку.
       window.location.href = data.url as string;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating payment:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось создать платёж. Попробуйте позже.",
+        description: error?.message ?? "Не удалось создать платёж. Попробуйте позже.",
         variant: "destructive",
       });
       setCreating(false);
