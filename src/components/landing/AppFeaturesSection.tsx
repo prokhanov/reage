@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useRegisterGuard } from "@/components/RegisterGuard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HeroShowcase, type ShowcaseSection } from "@/components/landing/HeroShowcase";
@@ -108,6 +109,7 @@ const appFeatures: Record<ShowcaseSection, {
 };
 
 export function AppFeaturesSection() {
+  const { requestRegister } = useRegisterGuard();
   const [activeSection, setActiveSection] = useState<ShowcaseSection>("dashboard");
   const handleSectionChange = useCallback((section: ShowcaseSection) => {
     setActiveSection(section);
@@ -187,9 +189,7 @@ export function AppFeaturesSection() {
 
           {/* Demo CTA — outside widget */}
           <div className="mt-6 text-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <Button asChild size="lg" className="rounded-full px-8">
-              <Link to="/register">Попробовать демо бесплатно</Link>
-            </Button>
+            <Button size="lg" className="rounded-full px-8" onClick={requestRegister}>Попробовать демо бесплатно</Button>
           </div>
         </div>
       </div>

@@ -53,6 +53,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
+import { RegisterGuardProvider } from "@/components/RegisterGuard";
 import { YandexMetrika } from "@/components/YandexMetrika";
 import Requisites from "./pages/legal/Requisites";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
@@ -89,6 +90,7 @@ const App = () => (
         <BrowserRouter>
           <YandexMetrika />
           <RouteMeta />
+          <RegisterGuardProvider>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -293,6 +295,7 @@ const App = () => (
             <Route path="/subscription/fail" element={<SubscriptionFail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </RegisterGuardProvider>
         </BrowserRouter>
     </TooltipProvider>
     </ThemeProvider>

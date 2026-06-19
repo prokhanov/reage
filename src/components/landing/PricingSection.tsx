@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { BiomarkerComparisonDialog } from "./BiomarkerComparisonDialog";
 import { useSubscriptionPlans, type PlanWithPricing } from "@/hooks/useSubscriptionPlans";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRegisterGuard } from "@/components/RegisterGuard";
 
 // Helper to wrap raw SVG paths into a Lucide-compatible icon
 const makeIcon = (paths: React.ReactNode): LucideIcon =>
@@ -282,9 +283,11 @@ function planToCard(plan: PlanWithPricing, index: number) {
 export function PricingSection() {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const navigate = useNavigate();
+  const { requestRegister } = useRegisterGuard();
   const { data: plans, isLoading } = useSubscriptionPlans();
 
   const cards = (plans ?? []).map((p, i) => planToCard(p, i));
+
 
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
@@ -327,7 +330,7 @@ export function PricingSection() {
               <PricingCard
                 key={card.id}
                 {...card}
-                onSelect={() => navigate("/register")}
+                onSelect={requestRegister}
               />
             ))
           )}
