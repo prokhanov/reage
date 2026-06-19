@@ -318,11 +318,12 @@ export default function MyState() {
         const lastDate = data[0].tracked_at;
         setLastTrackedDate(lastDate);
         
-        // Проверяем, сколько дней прошло с последнего опроса
+        // Проверяем, сколько дней прошло с последнего опроса (период — 14 дней)
+        const SURVEY_INTERVAL_DAYS = 14;
         const daysSinceLastSurvey = differenceInDays(new Date(), new Date(lastDate));
-        const daysLeft = 10 - daysSinceLastSurvey;
+        const daysLeft = SURVEY_INTERVAL_DAYS - daysSinceLastSurvey;
         
-        if (daysSinceLastSurvey < 10) {
+        if (daysSinceLastSurvey < SURVEY_INTERVAL_DAYS) {
           setCanTakeSurvey(false);
           setDaysUntilNextSurvey(daysLeft);
         } else {
@@ -385,18 +386,7 @@ export default function MyState() {
         return;
       }
 
-      // Если редактируем существующую запись, удаляем старые данные за эту дату
-      if (editingDate) {
-        const recordSymptoms = groupedByDate[editingDate];
-        const symptomIds = recordSymptoms.map(s => s.id);
-        
-        const { error: deleteError } = await supabase
-          .from('user_symptoms')
-          .delete()
-          .in('id', symptomIds);
-        
-        if (deleteError) throw deleteError;
-      }
+      // Редактирование = создание новой записи (старые не удаляем — сохраняем хронологию)
 
       // Сначала сохраняем соблюдение назначений
       if (Object.keys(adherenceAnswers).length > 0) {
@@ -428,12 +418,10 @@ export default function MyState() {
 
       if (symptomsData.length === 0 && Object.keys(adherenceAnswers).length === 0) {
         toast({
-          title: "Все отлично!",
-          description: "Данные сохранены"
+          title: "Нет данных для сохранения",
+          description: "Отметьте хотя бы один симптом или соблюдение назначения",
+          variant: "destructive"
         });
-        setEditingDate(null);
-        setIsEditDialogOpen(false);
-        await fetchSymptoms();
         return;
       }
 
@@ -456,13 +444,21 @@ export default function MyState() {
         description: parts.join(", ")
       });
 
-      // Сбрасываем форму
+      // Сразу блокируем форму, чтобы не было «возврата на начало»
+      const nowIso = new Date().toISOString();
+      setLastTrackedDate(nowIso);
+      setCanTakeSurvey(false);
+      setDaysUntilNextSurvey(14);
+      setEditingDate(null);
+      setIsEditDialogOpen(false);
+      
+      // Перезагружаем историю в фоне
+      await fetchSymptoms();
+      
+      // Сбрасываем форму после блокировки (в фоне)
       setAnswers({});
       setAdherenceAnswers({});
       setCurrentStep(0);
-      setEditingDate(null);
-      
-      await fetchSymptoms();
     } catch (error) {
       console.error('Error saving data:', error);
       toast({
@@ -611,43 +607,62 @@ export default function MyState() {
           <TabsContent value="survey" className="space-y-6">
             <div className="max-w-4xl mx-auto">
               {!canTakeSurveyActual && daysUntilNextSurvey > 0 && (
-                <Card className="p-8 text-center bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
-                  <div className="flex flex-col items-center gap-4">
+                <Card className="p-8 bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+                  <div className="flex flex-col items-center gap-6 text-center">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                       <CheckCircle className="w-8 h-8 text-primary" />
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="text-2xl font-bold">Спасибо за заполнение!</h3>
+                      <h3 className="text-2xl font-bold">Опрос завершён</h3>
                       <p className="text-muted-foreground">
-                        Вы уже заполнили опрос. Следующий опрос будет доступен через
+                        {lastTrackedDate && `Последнее заполнение: ${format(new Date(lastTrackedDate), "d MMMM yyyy, HH:mm", { locale: ru })}`}
                       </p>
+                    </div>
+
+                    {/* Сводка по последнему опросу */}
+                    {latestSymptoms.length > 0 && (
+                      <div className="w-full max-w-md grid grid-cols-3 gap-3">
+                        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                          <p className="text-2xl font-bold text-yellow-500">{stats.mild}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Лёгкие</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                          <p className="text-2xl font-bold text-orange-500">{stats.moderate}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Средние</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                          <p className="text-2xl font-bold text-red-500">{stats.severe}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Сильные</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="w-full max-w-md p-4 bg-background/50 rounded-lg border">
+                      <p className="text-sm text-muted-foreground mb-1">Следующий опрос будет доступен через</p>
                       <p className="text-3xl font-bold text-primary">
                         {daysUntilNextSurvey} {daysUntilNextSurvey === 1 ? 'день' : daysUntilNextSurvey < 5 ? 'дня' : 'дней'}
                       </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Оптимальный интервал — раз в 2 недели, чтобы видеть динамику
+                      </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                       <Button
                         onClick={handleEditLastSurvey}
                         variant="outline"
-                        className="gap-2"
+                        className="flex-1 gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        Редактировать последний опрос
+                        Дополнить опрос
                       </Button>
-                    </div>
-
-                    <div className="mt-6 p-4 bg-background/50 rounded-lg border">
-                      <p className="text-sm text-muted-foreground">
-                        Последнее заполнение: {lastTrackedDate && format(new Date(lastTrackedDate), "d MMMM yyyy, HH:mm", { locale: ru })}
-                      </p>
                     </div>
                   </div>
                 </Card>
               )}
 
-              {canTakeSurvey && (
+              {canTakeSurveyActual && (
               <>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
