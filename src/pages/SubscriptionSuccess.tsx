@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 export default function SubscriptionSuccess() {
   const [searchParams] = useSearchParams();
   const invId = searchParams.get("InvId");
+  const navigate = useNavigate();
   const [status, setStatus] = useState<"waiting" | "active" | "admin_test" | "timeout">("waiting");
 
   useEffect(() => {
