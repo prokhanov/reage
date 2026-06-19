@@ -98,7 +98,7 @@ export function HeroSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <Button
               size="lg"
-              onClick={() => navigate("/register")}
+              onClick={requestRegister}
               className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group">
               
               Начать мониторинг
