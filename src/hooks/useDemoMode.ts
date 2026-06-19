@@ -42,8 +42,16 @@ export const useDemoMode = () => {
     const templateAge = genderData.profile.birth_date ? calculateAge(genderData.profile.birth_date) : 45;
     
     // Adapt profile data
+    const realName = [userProfile.first_name, userProfile.last_name]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
     const adaptedProfile = {
       ...genderData.profile,
+      first_name: userProfile.first_name || genderData.profile.first_name || genderData.profile.name,
+      last_name: userProfile.last_name || genderData.profile.last_name || '',
+      name: realName || genderData.profile.name,
+      birth_date: userProfile.birth_date || genderData.profile.birth_date,
       chronological_age: userAge || templateAge,
       weight: userProfile.weight || genderData.profile.weight,
       height: userProfile.height || genderData.profile.height,
