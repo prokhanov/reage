@@ -152,6 +152,7 @@ export default function Recommendations() {
         patient_data: "Данные пациента",
         summary: "Общее резюме",
         prescriptions: "Назначения",
+        "Рекомендации": "Назначения",
       };
 
       // Group recommendations by analysis_index
@@ -234,6 +235,7 @@ export default function Recommendations() {
               id: `demo-rec-${analysisIndex}-${idx}`,
               type: mappedType,
               text,
+              content_json: r.content_json ?? null,
               created_at: analysis.date,
               analysis_date: analysis.date,
               analysis_status: 'processed' as const,
