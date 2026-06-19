@@ -37,6 +37,10 @@ export function useSubscriptionPlans(options: { includeInactivePlans?: boolean; 
   const { includeInactivePlans = false, includeDisabledPricing = false } = options;
   return useQuery({
     queryKey: ['subscription-plans', includeInactivePlans, includeDisabledPricing],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     queryFn: async () => {
       let plansQuery = supabase
         .from('subscription_plans')
