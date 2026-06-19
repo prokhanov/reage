@@ -468,7 +468,7 @@ export default function Register() {
                     formData={formData}
                     updateFormData={updateFormData}
                     onNext={() => goToStep(3)}
-                    onBack={() => goToStep(1)}
+                    onBack={hasSession ? undefined : () => goToStep(1)}
                   />
                 </div>
               )}
