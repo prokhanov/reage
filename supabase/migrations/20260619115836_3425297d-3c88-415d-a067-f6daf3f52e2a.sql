@@ -1,0 +1,2 @@
+UPDATE public.email_drip_series SET is_active = true WHERE id = 'f68e21a2-7a7b-482a-a1bc-67ddd8d8acbe';
+SELECT public.enroll_user_in_series('78fd6466-fbd0-4eab-806b-cca682ba7e93'::uuid, 'f68e21a2-7a7b-482a-a1bc-67ddd8d8acbe'::uuid, now());
