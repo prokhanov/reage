@@ -1,17 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneValid } from "@/components/ui/phone-input";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Heart, User, Calendar, Weight, Ruler, 
-  ChevronLeft, ChevronRight, Check, Mail, Lock,
+import {
+  Heart, User, Check, Mail, Lock,
   ArrowLeft,
 } from "lucide-react";
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
@@ -21,9 +19,6 @@ import { RegisterStep5, SelectedPlanData } from "@/components/register/RegisterS
 import { AuthBackground } from "@/components/AuthBackground";
 import confetti from "canvas-confetti";
 import { ThemedLogo } from "@/components/ThemedLogo";
-import registerHero from "@/assets/register-hero.png";
-import registerProfile from "@/assets/register-profile.png";
-import registerHealth from "@/assets/register-health.png";
 
 export interface RegisterFormData {
   email: string;
@@ -42,54 +37,120 @@ export interface RegisterFormData {
 }
 
 const steps = [
-  { 
-    id: 1, 
-    title: "Аккаунт", 
-    description: "Создайте ваш аккаунт",
-    icon: Mail 
-  },
-  { 
-    id: 2, 
-    title: "Подписка", 
-    description: "Оформление",
-    icon: Lock 
-  },
-  { 
-    id: 3, 
-    title: "О вас", 
-    description: "Расскажите о себе",
-    icon: User 
-  },
-  { 
-    id: 4, 
-    title: "Здоровье", 
-    description: "История болезней",
-    icon: Heart 
+  { id: 1, slug: "account", title: "Аккаунт", description: "Создайте ваш аккаунт", icon: Mail },
+  { id: 2, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
+  { id: 3, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
+  { id: 4, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
+] as const;
+
+const SLUG_TO_STEP: Record<string, number> = Object.fromEntries(steps.map(s => [s.slug, s.id]));
+
+const DRAFT_KEY = "reage:register:draft";
+
+const EMPTY_FORM: RegisterFormData = {
+  email: "",
+  password: "",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  gender: "",
+  birth_date: undefined,
+  weight: "",
+  height: "",
+  medicalHistory: [],
+  operations: {},
+  medications: [],
+  healthNote: "",
+};
+
+function loadDraft(): { formData: RegisterFormData; selectedPlan: SelectedPlanData | null } {
+  if (typeof window === "undefined") return { formData: EMPTY_FORM, selectedPlan: null };
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    if (!raw) return { formData: EMPTY_FORM, selectedPlan: null };
+    const parsed = JSON.parse(raw);
+    const fd: RegisterFormData = {
+      ...EMPTY_FORM,
+      ...(parsed.formData || {}),
+      birth_date: parsed.formData?.birth_date ? new Date(parsed.formData.birth_date) : undefined,
+      // Не восстанавливаем пароль из localStorage
+      password: "",
+    };
+    return { formData: fd, selectedPlan: parsed.selectedPlan ?? null };
+  } catch {
+    return { formData: EMPTY_FORM, selectedPlan: null };
   }
-];
+}
+
+function saveDraft(formData: RegisterFormData, selectedPlan: SelectedPlanData | null) {
+  if (typeof window === "undefined") return;
+  try {
+    const { password, ...safeFormData } = formData;
+    window.localStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({
+        formData: {
+          ...safeFormData,
+          birth_date: formData.birth_date ? formData.birth_date.toISOString() : undefined,
+        },
+        selectedPlan,
+      }),
+    );
+  } catch {
+    // ignore
+  }
+}
+
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+    window.localStorage.removeItem("reage:register:returnToStep");
+  } catch {
+    // ignore
+  }
+}
 
 export default function Register() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<RegisterFormData>({
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-    phone: "",
-    gender: "",
-    birth_date: undefined,
-    weight: "",
-    height: "",
-    medicalHistory: [],
-    operations: {},
-    medications: [],
-    healthNote: ""
-  });
-  const [selectedPlan, setSelectedPlan] = useState<SelectedPlanData | null>(null);
-  
+  const { step: stepParam } = useParams<{ step?: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const initialDraft = useRef(loadDraft());
+  const [formData, setFormData] = useState<RegisterFormData>(initialDraft.current.formData);
+  const [selectedPlan, setSelectedPlan] = useState<SelectedPlanData | null>(initialDraft.current.selectedPlan);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+
+  // Определяем текущий шаг из URL
+  const currentStep = stepParam ? (SLUG_TO_STEP[stepParam] ?? 1) : 1;
+
+  // Если slug кривой — нормализуем на /register/account
+  useEffect(() => {
+    if (stepParam && !SLUG_TO_STEP[stepParam]) {
+      navigate("/register/account", { replace: true });
+    }
+  }, [stepParam, navigate]);
+
+  // Сессия — для определения, создан ли уже аккаунт
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setHasSession(!!data.session?.user);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(!!session?.user);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Сохраняем черновик
+  useEffect(() => {
+    saveDraft(formData, selectedPlan);
+  }, [formData, selectedPlan]);
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -97,50 +158,89 @@ export default function Register() {
     setFormData(prev => ({ ...prev, ...data }));
   };
 
-  const handleNext = async () => {
-    if (currentStep >= steps.length) return;
-
-    // Check phone uniqueness when leaving step 1
-    if (currentStep === 1) {
-      if (!isPhoneValid(formData.phone)) {
-        toast({
-          title: "Некорректный номер",
-          description: "Введите номер в формате +7 (999) 123-45-67",
-          variant: "destructive",
-        });
-        return;
-      }
-      try {
-        const { data, error } = await supabase.functions.invoke("check-phone-exists", {
-          body: { phone: formData.phone },
-        });
-        if (error) throw error;
-        if (data?.exists) {
-          toast({
-            title: "Номер уже зарегистрирован",
-            description: "Войдите по SMS или используйте другой номер.",
-            variant: "destructive",
-          });
-          return;
-        }
-      } catch (e: any) {
-        toast({
-          title: "Не удалось проверить номер",
-          description: e?.message || "Попробуйте ещё раз",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    setCurrentStep(prev => prev + 1);
+  const goToStep = (stepId: number) => {
+    const target = steps.find(s => s.id === stepId);
+    if (!target) return;
+    navigate(`/register/${target.slug}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  // Шаг 1 → создаём аккаунт и идём на шаг 2
+  const handleStep1Next = async () => {
+    if (!isPhoneValid(formData.phone)) {
+      toast({
+        title: "Некорректный номер",
+        description: "Введите номер в формате +7 (999) 123-45-67",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Если сессия уже есть — просто переходим дальше
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
+        goToStep(2);
+        return;
+      }
+
+      // Проверка телефона
+      const { data: phoneCheck, error: phoneErr } = await supabase.functions.invoke("check-phone-exists", {
+        body: { phone: formData.phone },
+      });
+      if (phoneErr) throw phoneErr;
+      if (phoneCheck?.exists) {
+        toast({
+          title: "Номер уже зарегистрирован",
+          description: "Войдите по SMS или используйте другой номер.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Создаём пользователя с минимумом данных
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/register/profile`,
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone ? normalizePhone(formData.phone) : null,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+      if (!authData.user) throw new Error("Не удалось создать аккаунт");
+
+      // На случай, если signUp не вернул сессию (email confirmation) — логинимся явно
+      const { data: sessAfter } = await supabase.auth.getSession();
+      if (!sessAfter.session) {
+        await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+      }
+
+      toast({
+        title: "Аккаунт создан",
+        description: "Теперь выберите тариф подписки.",
+      });
+
+      goToStep(2);
+    } catch (error: any) {
+      console.error("SignUp error:", error);
+      toast({
+        title: "Ошибка регистрации",
+        description: error?.message || "Попробуйте ещё раз",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -148,55 +248,99 @@ export default function Register() {
     setIsSubmitting(true);
 
     try {
-      // 1. Sign up user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            phone: formData.phone ? normalizePhone(formData.phone) : null,
-            gender: formData.gender,
-            birth_date: formData.birth_date ? format(formData.birth_date, 'yyyy-MM-dd') : null,
-            weight: formData.weight || null,
-            height: formData.height || null,
-            operations: formData.operations,
-            medications: formData.medications,
-            health_note: formData.healthNote?.trim() || null,
-            medical_history: formData.medicalHistory,
-            selected_plan: selectedPlan,
-          }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Сессия истекла",
+          description: "Войдите снова, чтобы завершить регистрацию.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
+      // Обновляем профиль
+      const profileUpdate: Record<string, any> = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        name: `${formData.firstName} ${formData.lastName}`.trim() || user.email,
+        gender: formData.gender || "other",
+        birth_date: formData.birth_date ? format(formData.birth_date, "yyyy-MM-dd") : null,
+        weight: formData.weight ? Number(formData.weight) : null,
+        height: formData.height ? Number(formData.height) : null,
+        phone: formData.phone ? normalizePhone(formData.phone) : null,
+        operations: formData.operations || {},
+        medications: formData.medications || [],
+        health_note: formData.healthNote?.trim() || null,
+      };
+
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", user.id);
+      if (profileErr) throw profileErr;
+
+      // История веса
+      if (formData.weight) {
+        await supabase.from("weight_history").insert({
+          user_id: user.id,
+          weight: Number(formData.weight),
+        });
+      }
+
+      // Медицинская история
+      if (formData.medicalHistory && formData.medicalHistory.length > 0) {
+        const rows = formData.medicalHistory
+          .map(item => {
+            const parts = item.split("|");
+            if (parts.length < 2) return null;
+            return {
+              user_id: user.id,
+              category: parts[0],
+              condition: parts.slice(1).join("|"),
+            };
+          })
+          .filter(Boolean) as { user_id: string; category: string; condition: string }[];
+        if (rows.length > 0) {
+          await supabase.from("medical_history").insert(rows);
         }
-      });
+      }
 
-      if (signUpError) throw signUpError;
-      if (!authData.user) throw new Error("Не удалось создать пользователя");
-
-      // Celebrate with confetti!
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#a855f7', '#ec4899', '#93c5fd', '#c4b5fd']
+        colors: ["#a855f7", "#ec4899", "#93c5fd", "#c4b5fd"],
       });
 
       toast({
-        title: "Регистрация успешна",
-        description: "Добро пожаловать в ReAge"
+        title: "Регистрация завершена",
+        description: "Добро пожаловать в ReAge!",
       });
 
-      setTimeout(() => navigate('/dashboard'), 1000);
+      clearDraft();
+      setTimeout(() => navigate("/dashboard"), 800);
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error("Final submit error:", error);
       toast({
-        title: "Ошибка регистрации",
-        description: error.message || "Попробуйте еще раз",
-        variant: "destructive"
+        title: "Ошибка сохранения",
+        description: error?.message || "Попробуйте ещё раз",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleStepIndicatorClick = (stepId: number) => {
+    // Шаг 1 всегда доступен. Остальные — только при наличии сессии (аккаунт создан)
+    if (stepId === 1 || hasSession) {
+      goToStep(stepId);
+    } else {
+      toast({
+        title: "Сначала создайте аккаунт",
+        description: "Заполните первый шаг.",
+      });
     }
   };
 
@@ -214,7 +358,6 @@ export default function Register() {
 
       <div className={cn("w-full relative z-10", currentStep === 2 ? "max-w-5xl" : "max-w-2xl")}>
         <div className="w-full">
-          {/* Header */}
           <div className="text-center mb-8 animate-fade-in pt-6">
             <Link to="/" className="inline-flex items-center gap-2 mb-2">
               <ThemedLogo eager className="h-24 w-auto" />
@@ -233,38 +376,45 @@ export default function Register() {
                 const Icon = step.icon;
                 const isActive = currentStep === step.id;
                 const isCompleted = currentStep > step.id;
+                const isClickable = step.id === 1 || hasSession;
 
                 return (
                   <div key={step.id} className="flex items-center">
                     <div className="flex flex-col items-center">
-                      <div 
-                        className={`
-                          w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500
-                          ${isActive ? 'bg-gradient-primary text-white scale-110 shadow-neon-primary' : ''}
-                          ${isCompleted ? 'bg-primary/20 text-primary scale-105' : ''}
-                          ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
-                        `}
+                      <button
+                        type="button"
+                        onClick={() => handleStepIndicatorClick(step.id)}
+                        disabled={!isClickable}
+                        className={cn(
+                          "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-500",
+                          isActive && "bg-gradient-primary text-white scale-110 shadow-neon-primary",
+                          isCompleted && "bg-primary/20 text-primary scale-105",
+                          !isActive && !isCompleted && "bg-muted text-muted-foreground",
+                          isClickable ? "cursor-pointer hover:opacity-90" : "cursor-not-allowed opacity-70",
+                        )}
+                        aria-label={`Перейти к шагу ${step.title}`}
                       >
                         {isCompleted ? (
                           <Check className="h-5 w-5 sm:h-7 sm:w-7" />
                         ) : (
                           <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
                         )}
-                      </div>
+                      </button>
                       <div className="text-center mt-2 sm:mt-3 hidden sm:block">
-                        <p className={`text-xs sm:text-sm font-medium transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <p className={cn(
+                          "text-xs sm:text-sm font-medium transition-colors duration-300",
+                          isActive ? "text-primary" : "text-muted-foreground",
+                        )}>
                           {step.title}
                         </p>
                       </div>
                     </div>
                     {index < steps.length - 1 && (
                       <div className="h-1 w-8 sm:w-16 md:w-24 mx-2 sm:mx-4 rounded-full bg-muted overflow-hidden">
-                        <div 
-                          className={`
-                            h-full bg-gradient-primary transition-all duration-700 ease-out
-                            ${isCompleted ? 'w-full' : 'w-0'}
-                          `}
-                        />
+                        <div className={cn(
+                          "h-full bg-gradient-primary transition-all duration-700 ease-out",
+                          isCompleted ? "w-full" : "w-0",
+                        )} />
                       </div>
                     )}
                   </div>
@@ -273,7 +423,7 @@ export default function Register() {
             </div>
             <div className="relative">
               <Progress value={progress} className="h-3 shadow-lg" />
-              <div 
+              <div
                 className="absolute top-0 left-0 h-3 bg-gradient-primary rounded-full transition-all duration-700 shadow-neon-primary"
                 style={{ width: `${progress}%` }}
               />
@@ -282,65 +432,67 @@ export default function Register() {
 
           {/* Steps Content */}
           <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s", isolation: "isolate", contain: "paint" as any }}>
-            {/* Card Glow Effect */}
             <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
             <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
             <div className="hidden md:block absolute -bottom-24 -left-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
-            
+
             <div className="relative z-10">
-              <div className={`transition-all duration-500 ${currentStep === 1 ? 'animate-fade-in' : 'hidden'}`}>
-                {currentStep === 1 && (
-                  <RegisterStep1 
-                    formData={formData} 
+              {currentStep === 1 && (
+                <div className="animate-fade-in">
+                  <RegisterStep1
+                    formData={formData}
                     updateFormData={updateFormData}
-                    onNext={handleNext}
+                    onNext={handleStep1Next}
                   />
-                )}
-              </div>
-              
-              <div className={`transition-all duration-500 ${currentStep === 2 ? 'animate-fade-in' : 'hidden'}`}>
-                {currentStep === 2 && (
-                  <RegisterStep5 
+                </div>
+              )}
+
+              {currentStep === 2 && (
+                <div className="animate-fade-in">
+                  <RegisterStep5
                     onSubmit={(data: SelectedPlanData) => {
                       setSelectedPlan(data);
-                      handleNext();
+                      // Если skipPayment — сразу идём дальше
+                      if (data.skipPayment) {
+                        goToStep(3);
+                      }
+                      // Если оплата — RegisterStep5 сам редиректит на Робокассу
                     }}
-                    onBack={handlePrevious}
+                    onBack={() => goToStep(1)}
                     isSubmitting={false}
                   />
-                )}
-              </div>
-              
-              <div className={`transition-all duration-500 ${currentStep === 3 ? 'animate-fade-in' : 'hidden'}`}>
-                {currentStep === 3 && (
-                  <RegisterStep2 
-                    formData={formData} 
+                </div>
+              )}
+
+              {currentStep === 3 && (
+                <div className="animate-fade-in">
+                  <RegisterStep2
+                    formData={formData}
                     updateFormData={updateFormData}
-                    onNext={handleNext}
-                    onBack={handlePrevious}
+                    onNext={() => goToStep(4)}
+                    onBack={() => goToStep(2)}
                   />
-                )}
-              </div>
-              
-              <div className={`transition-all duration-500 ${currentStep === 4 ? 'animate-fade-in' : 'hidden'}`}>
-                {currentStep === 4 && (
-                  <RegisterStep3 
-                    formData={formData} 
+                </div>
+              )}
+
+              {currentStep === 4 && (
+                <div className="animate-fade-in">
+                  <RegisterStep3
+                    formData={formData}
                     updateFormData={updateFormData}
-                    onNext={() => handleFinalSubmit()}
-                    onBack={handlePrevious}
+                    onNext={handleFinalSubmit}
+                    onBack={() => goToStep(3)}
                   />
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </Card>
 
-          {/* Login Link */}
           <div className="text-center mt-6 animate-fade-in" style={{ animationDelay: "0.6s" }}>
             <p className="text-sm text-muted-foreground">
               Уже есть аккаунт?{" "}
-              <button 
-                onClick={() => navigate('/auth')}
+              <button
+                onClick={() => navigate("/auth")}
                 className="text-primary hover:text-primary-hover font-medium transition-all hover:underline"
               >
                 Войти

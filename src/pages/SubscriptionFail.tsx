@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
  * Никакой логики активации, только информация и ссылка вернуться к тарифам.
  */
 export default function SubscriptionFail() {
+  const returnTo = typeof window !== "undefined"
+    ? window.localStorage.getItem("reage:register:returnToStep")
+    : null;
+
   return (
     <div className="container max-w-2xl mx-auto px-4 py-16 text-center">
       <XCircle className="h-14 w-14 text-destructive mx-auto mb-6" />
@@ -15,13 +19,26 @@ export default function SubscriptionFail() {
         Оплата была отменена или отклонена банком. Подписка не активирована,
         деньги не списаны. Вы можете попробовать ещё раз — выбрать другой тариф или способ оплаты.
       </p>
-      <div className="flex gap-3 justify-center">
-        <Button asChild>
-          <Link to="/subscription">Вернуться к выбору тарифа</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link to="/dashboard">В Контрольную панель</Link>
-        </Button>
+      <div className="flex flex-wrap gap-3 justify-center">
+        {returnTo ? (
+          <>
+            <Button asChild>
+              <Link to="/register/payment">Вернуться к выбору тарифа</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/register/profile">Продолжить регистрацию без оплаты</Link>
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button asChild>
+              <Link to="/subscription">Вернуться к выбору тарифа</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/dashboard">В Контрольную панель</Link>
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

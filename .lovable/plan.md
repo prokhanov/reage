@@ -1,109 +1,65 @@
-План: пройти все разделы админки по маршрутам и привести loading-индикаторы к одному визуальному стандарту.
+## Цели
 
-## Список разделов админки для проверки
+1. На шаге «Подписка» в регистрации убрать форму ввода карты и подключить реальный поток Робокассы (тот же, что на `/subscription`).
+2. Сделать каждый шаг регистрации доступным по прямой ссылке (`/register/account`, `/register/payment`, `/register/profile`, `/register/health`).
+3. После возврата с Робокассы пользователь попадает на следующий шаг регистрации (профиль), а не на дашборд.
+4. Шаг оплаты доступен для просмотра всегда; если подписка уже активна, он становится неактивным и показывает «Вы уже оплатили тариф X».
 
-1. `Пациенты` — `/admin/patients`
-   - список пациентов
-   - профиль пациента `/admin/patients/:userId`
-   - диалоги подтверждения email/телефона, просмотра пациента, удаления
+## Что меняем
 
-2. `Записи на анализы` — `/admin/analysis-bookings`
-   - список записей
-   - настройки режима записи
-   - управление слотами
-   - создание/редактирование записи
-   - назначение сотрудника
+### 1. Маршрутизация регистрации
+- В `src/App.tsx` маршрут `/register` остаётся, плюс добавляем `/register/:step` где `step ∈ {account, payment, profile, health}`.
+- В `src/pages/Register.tsx` `currentStep` синхронизируется с URL через `useParams`/`navigate`. Кнопки «Назад/Далее» вызывают `navigate(`/register/${nextSlug}`)`.
+- Состояние формы (`formData`, `selectedPlan`) персистится в `localStorage` (`reage:register:draft`) — переживает перезагрузку и возврат с Робокассы.
+- Прямой переход на шаг, для которого нет нужных данных в форме, мягко редиректит на предыдущий незаполненный шаг (без агрессивной блокировки — пользователь сам решает).
 
-3. `Назначены мне` — `/admin/my-assignments`
+### 2. Аккаунт создаётся в конце шага 1 (а не в финале)
+Робокасса требует авторизованного пользователя (`robokassa-create-payment` валидирует Bearer JWT). Поэтому:
+- При нажатии «Далее» на шаге `account` после валидации телефона/email вызываем `supabase.auth.signUp` с тем минимумом метаданных, что уже есть (имя, фамилия, телефон, email). Остальное (`birth_date`, `weight`, `medical_history`, …) допишется в профиль позже — отдельным `update` после шага `profile`/`health`.
+- В `handle_new_user` (БД) уже есть дефолты для отсутствующих полей и сценарий `INSERT … ON CONFLICT (id) DO UPDATE`, так что повторные апдейты после регистрации сработают корректно через обычный `profiles.update` из клиента.
+- Если signUp вернул «email exists» — показываем тост и предлагаем войти, шаг не продвигаем.
+- Если сессия уже есть при заходе на `/register/account`, шаг показывается в read-only режиме «Аккаунт создан» с кнопкой «Далее».
 
-4. `Пользователи` — `/admin/user-management`
-   - список пользователей
-   - роли и права
-   - создание приглашения
-   - редактирование pending-пользователя
-   - смена email
+### 3. Шаг «Подписка» (`/register/payment`) — новая логика
+Файл `src/components/register/RegisterStep5.tsx`:
+- Удаляем поля номера карты / имени / срока / CVV и связанный state `cardNumber/cardName/expiryDate/cvv`, утилиты `formatCardNumber/formatExpiryDate`, проверку `isCardValid`, иконку `CreditCard` и весь блок «Данные карты».
+- Кнопка «Оплатить N ₽» вызывает `supabase.functions.invoke("robokassa-create-payment", { body: { planId, pricingId } })` — точно та же логика, что в `src/pages/Subscription.tsx::handleSelectPlan`. Перед редиректом сохраняем в `localStorage` `reage:register:returnToStep = "profile"`, чтобы после возврата страница успеха увела на нужный шаг.
+- При успехе делаем `window.location.href = data.url` (уход на Робокассу).
+- Кнопка «Пропустить» сохраняется (для случая, когда пользователь хочет дозаполнить профиль без оплаты прямо сейчас) и просто переводит на `/register/profile` с `selectedPlan.skipPayment=true`.
+- Проверка активной подписки: при монтировании страницы делаем запрос `subscriptions where user_id = me and status='active'`. Если нашли — рендерим read-only состояние:
+  - Заголовок «Вы уже оплатили тариф <display_name>».
+  - Дата окончания.
+  - Кнопки «Назад» и «Далее» (на `/register/profile`).
+  - Карточки тарифов / кнопка оплаты не показываются.
 
-5. `Тарифы` — `/admin/subscription-plans`
-   - вкладка тарифов
-   - вкладка цен и периодов
-   - создание/редактирование тарифа
-   - редактирование цены
+### 4. Возврат с Робокассы → следующий шаг
+`src/pages/SubscriptionSuccess.tsx`:
+- После того как `status === "active"` (подписка активирована), читаем `localStorage.getItem("reage:register:returnToStep")`. Если оно равно `"profile"` — удаляем ключ и `navigate("/register/profile", { replace: true })` вместо текущего «В Контрольную панель».
+- Для `admin_test` и таймаута поведение не меняем (текущие сообщения).
 
-6. `Платёжный шлюз` — `/admin/payment-gateway`
-   - настройки
-   - тестирование платежей
-   - логи платежей
+`src/pages/SubscriptionFail.tsx`:
+- Если есть `reage:register:returnToStep`, добавляем дополнительную кнопку «Вернуться к выбору тарифа в регистрации» → `/register/payment` (ключ не удаляем, чтобы повторная оплата тоже вела обратно в регистрацию).
 
-7. `Тест отчета` — `/admin/report-visuals`
+### 5. Финальный шаг (`/register/health`)
+- Сейчас `handleFinalSubmit` делает `supabase.auth.signUp`. Меняем: пользователь уже создан на шаге 1, поэтому здесь делаем `profiles.update` + дополняем `medical_history`, `weight_history`, и (если есть `selectedPlan.skipPayment===false` и подписки всё ещё нет — на случай странного состояния) можно повторно предложить оплату; иначе просто навигация на `/dashboard` + confetti.
 
-8. `Настройки AI` — `/admin/ai-settings`
-   - список промптов
-   - редактирование промпта
+## Технические заметки (для разработчика)
 
-9. `Email` — `/admin/email-settings`
-   - рассылки
-   - технические письма
-   - напоминания
-   - логи и мониторинг
+- Никаких изменений в `robokassa-create-payment` / `robokassa-result` / `payment_orders` / `subscriptions` — повторно используем существующий поток.
+- `handle_new_user` уже создаёт `subscriptions` со статусом `pending` при отсутствии плана — это нормально, при успешной оплате `robokassa-result` создаст новую `active` подписку, и проверка в шаге оплаты найдёт её.
+- localStorage-ключи: `reage:register:draft` (formData + selectedPlan + completedSteps), `reage:register:returnToStep`.
+- Все клиентские изменения; миграции БД, edge-функции и `supabase/config.toml` не трогаем.
 
-10. `SMS` — `/admin/sms-settings`
-    - отправитель
-    - шаблоны
-    - тестовая отправка
-    - логи
+## Файлы, которые правим
 
-11. `Telegram` — `/admin/telegram-settings`
+- `src/App.tsx` — добавить параметризованный маршрут.
+- `src/pages/Register.tsx` — URL-синхронизация шагов, персист в localStorage, signUp в конце шага 1, финальный submit без signUp.
+- `src/components/register/RegisterStep5.tsx` — удалить форму карты, подключить Робокассу, read-only при активной подписке.
+- `src/pages/SubscriptionSuccess.tsx` — редирект на `/register/profile` при наличии `returnToStep`.
+- `src/pages/SubscriptionFail.tsx` — доп. кнопка возврата в регистрацию.
 
-12. `Лаборатории` — `/admin/labs`
+## Что НЕ делаем
 
-13. `Управление данными` — `/admin/data-management`
-    - биомаркеры
-    - медицинские состояния
-    - симптомы
-    - категории
-
-14. Скрытый/служебный admin route — `/admin/scale-preview`
-
-## Что унифицировать
-
-1. **Единый page/card loading для разделов**
-   - Убрать разнобой вида: большой skeleton в `Пациентах`, отдельные skeleton-блоки в `Тарифах`, локальные skeleton в `Email/SMS`, пустой экран в `Telegram`.
-   - Для загрузки целого раздела или карточки использовать один стандартный `AdminCenterLoader` с одинаковым размером, отступами и текстом.
-
-2. **Единый table/list loading**
-   - Табличные разделы (`Пациенты`, `Пользователи`, `Записи`, `SMS logs`, `Email logs`, платежные логи) привести к одинаковой структуре загрузки: один и тот же паттерн внутри карточки/таблицы.
-   - Не ломать горизонтальный scroll у таблиц.
-
-3. **Единый button loading**
-   - Все кнопки действий перевести на `ButtonSpinner` + нормальный текст действия.
-   - Исправить места, где сейчас только текст `Создание...`, `Сохранение...`, `Удаление...` без иконки.
-
-4. **Единый refresh loading**
-   - Все кнопки обновления оставить с `RefreshCw`, но крутить иконку только во время refetch/loading и с одинаковыми классами.
-
-5. **Единый inline/dialog loading**
-   - В диалогах, badge-проверках, селекторах, настройках слотов и маленьких блоках заменить текстовые `Загрузка...` и raw `Loader2` на один компактный `AdminCenterLoader size="sm"` или `ButtonSpinner`, в зависимости от контекста.
-
-## Конкретные проблемные места, которые нужно пройти
-
-- `SubscriptionPlans` — заменить разные skeleton в тарифах/ценах на общий admin loading.
-- `Patients` — убрать отдельный `PatientsListSkeleton` как визуально другой паттерн и привести к общему стандарту.
-- `SmsSettings` и `SmsLogsDashboard` — унифицировать loading шаблонов и логов.
-- `EmailSettings` и email-вкладки — унифицировать loading шаблонов, логов, рассылок, подписчиков, напоминаний.
-- `TelegramSettings` — убрать `return null` во время загрузки, показать общий loader.
-- `PaymentGatewaySettings` и payment-компоненты — проверить остатки `Loader2`/локальных skeleton.
-- `UserManagement`, `AnalysisBookings`, `DataManagement`, `AISettings`, `LabLocations`, `ReportVisualsTest`, `MyAssignments` — сверить с общим стандартом и поправить отличия.
-- Вложенные admin-компоненты: `CreatePlanDialog`, `EditPlanDialog`, `EditPricingDialog`, `CreateUserDialog`, `RoleManagementCard`, `UserPermissionsDialog`, `CreateBookingDialog`, `EditBookingDialog`, `BookingModeSettings`, `DaySlotsManager`, `BiomarkerSelector`, `CreateAnalysisDialog`, `CreatePrescriptionDialog`, `EditPrescriptionDialog`, `CreateInteractionDialog`, `PhoneConfirmationBadge`.
-
-## Ограничения
-
-- Только визуальная унификация loading-индикаторов.
-- Не менять бизнес-логику, запросы, права, маршруты, статусы, роли, режим просмотра пациента и backend.
-- Не трогать данные и миграции.
-- Сохранить тёмную тему и текущий общий layout админки.
-
-## Проверка после реализации
-
-- Повторно запустить поиск по `Loader2`, `Skeleton`, `animate-spin`, `Загрузка...`, `Создание...`, `Сохранение...`, `Удаление...` в `src/pages/admin` и `src/components/admin`.
-- Убедиться, что остатки допустимы только внутри общих компонентов (`AdminCenterLoader`, `ButtonSpinner`) или в едином refresh-паттерне.
-- Визуально проверить ключевые разделы: `Пациенты`, `Тарифы`, `Email`, `SMS`, `Пользователи`, `Записи на анализы`.
+- Не меняем порядок шагов и тексты других шагов.
+- Не трогаем `Subscription.tsx` (страница оплаты для уже зарегистрированных пользователей).
+- Не трогаем серверную часть Робокассы.

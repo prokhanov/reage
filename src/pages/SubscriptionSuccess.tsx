@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Loader2, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 export default function SubscriptionSuccess() {
   const [searchParams] = useSearchParams();
   const invId = searchParams.get("InvId");
+  const navigate = useNavigate();
   const [status, setStatus] = useState<"waiting" | "active" | "admin_test" | "timeout">("waiting");
 
   useEffect(() => {
@@ -53,6 +54,14 @@ export default function SubscriptionSuccess() {
           if (cancelled) return;
           if (sub) {
             setStatus("active");
+            // Если оплата была инициирована из регистрации — возвращаемся в неё
+            const returnTo = typeof window !== "undefined"
+              ? window.localStorage.getItem("reage:register:returnToStep")
+              : null;
+            if (returnTo) {
+              window.localStorage.removeItem("reage:register:returnToStep");
+              setTimeout(() => navigate(`/register/${returnTo}`, { replace: true }), 800);
+            }
             return;
           }
         }
@@ -69,7 +78,7 @@ export default function SubscriptionSuccess() {
     return () => {
       cancelled = true;
     };
-  }, [invId]);
+  }, [invId, navigate]);
 
   return (
     <div className="container max-w-2xl mx-auto px-4 py-16 text-center">
