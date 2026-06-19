@@ -1137,7 +1137,7 @@ export default function Recommendations() {
                           <div id="section-prescriptions" className="scroll-mt-6">
                             <div className="mb-6">
                               <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                                Назначения
+                                Рекомендации
                               </h2>
                               <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                             </div>
