@@ -67,18 +67,24 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
     <RegisterGuardContext.Provider value={{ requestRegister }}>
       {children}
       <AlertDialog open={open} onOpenChange={(v) => !loggingOut && setOpen(v)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
+        <AlertDialogContent className="relative">
+          <button
+            type="button"
+            onClick={() => !loggingOut && setOpen(false)}
+            disabled={loggingOut}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Закрыть</span>
+          </button>
+          <AlertDialogHeader className="pr-8">
             <AlertDialogTitle>У вас уже есть активная сессия</AlertDialogTitle>
             <AlertDialogDescription>
               Вы вошли как <span className="font-medium text-foreground">{email}</span>.
               Чтобы зарегистрировать новый аккаунт, нужно сначала выйти из текущего.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel disabled={loggingOut} className="sm:mr-auto">
-              Отмена
-            </AlertDialogCancel>
+          <AlertDialogFooter>
             <Button
               type="button"
               variant="outline"
