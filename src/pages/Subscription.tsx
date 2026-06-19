@@ -13,6 +13,7 @@ import { PromoCodeField, AppliedPromo } from "@/components/subscription/PromoCod
 
 export default function Subscription() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const { toast } = useToast();
