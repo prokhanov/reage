@@ -117,11 +117,11 @@ export default function Register() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const initialDraft = useRef(loadDraft());
-  const [formData, setFormData] = useState<RegisterFormData>(initialDraft.current.formData);
-  const [selectedPlan, setSelectedPlan] = useState<SelectedPlanData | null>(initialDraft.current.selectedPlan);
+  const [formData, setFormData] = useState<RegisterFormData>(EMPTY_FORM);
+  const [selectedPlan, setSelectedPlan] = useState<SelectedPlanData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSession, setHasSession] = useState(false);
+  const [draftHydrated, setDraftHydrated] = useState(false);
 
   // Прелоад тарифов в фоне с первого шага — к моменту шага оплаты данные уже в кеше.
   useSubscriptionPlans();
