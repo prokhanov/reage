@@ -123,6 +123,9 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSession, setHasSession] = useState(false);
 
+  // Прелоад тарифов в фоне с первого шага — к моменту шага оплаты данные уже в кеше.
+  useSubscriptionPlans();
+
   // Определяем текущий шаг из URL
   const currentStep = stepParam ? (SLUG_TO_STEP[stepParam] ?? 1) : 1;
 
