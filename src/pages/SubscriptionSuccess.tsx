@@ -54,6 +54,14 @@ export default function SubscriptionSuccess() {
           if (cancelled) return;
           if (sub) {
             setStatus("active");
+            // Если оплата была инициирована из регистрации — возвращаемся в неё
+            const returnTo = typeof window !== "undefined"
+              ? window.localStorage.getItem("reage:register:returnToStep")
+              : null;
+            if (returnTo) {
+              window.localStorage.removeItem("reage:register:returnToStep");
+              setTimeout(() => navigate(`/register/${returnTo}`, { replace: true }), 800);
+            }
             return;
           }
         }
