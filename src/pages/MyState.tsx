@@ -662,7 +662,7 @@ export default function MyState() {
                 </Card>
               )}
 
-              {canTakeSurvey && (
+              {canTakeSurveyActual && (
               <>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
