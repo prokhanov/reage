@@ -74,12 +74,13 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
               Чтобы зарегистрировать новый аккаунт, нужно сначала выйти из текущего.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
+          <DialogFooter className="flex-col gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleGoToDashboard}
               disabled={loggingOut}
+              className="w-full"
             >
               <LogIn className="h-4 w-4 mr-2" />
               Войти в кабинет
@@ -88,7 +89,7 @@ export function RegisterGuardProvider({ children }: { children: ReactNode }) {
               type="button"
               onClick={handleLogoutAndRegister}
               disabled={loggingOut}
-              className="bg-gradient-primary shadow-neon-primary"
+              className="bg-gradient-primary shadow-neon-primary w-full"
             >
               {loggingOut ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
