@@ -82,7 +82,8 @@ Deno.serve(async (req) => {
       })
     }
 
-    const verifyUrl = `${APP_URL}/verify-email?token=${tokenRow.token}`
+    // Используем root-link как страховку от 404 на deep-link маршрутах (nginx whitelist).
+    const verifyUrl = `${APP_URL}/?verify_email_token=${tokenRow.token}`
 
     // Fetch custom template copy (admin "Подтвердите ваш email")
     const { data: tpl } = await supabaseAdmin
