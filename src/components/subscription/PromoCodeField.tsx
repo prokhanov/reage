@@ -131,7 +131,7 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
 
   if (!open) {
     return (
-      <div className={className}>
+      <div className={cn("w-full text-center", className)}>
         <button
           type="button"
           onClick={() => setOpen(true)}
