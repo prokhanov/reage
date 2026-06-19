@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Loader2, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,8 @@ export default function SubscriptionSuccess() {
   const invId = searchParams.get("InvId");
   const navigate = useNavigate();
   const [status, setStatus] = useState<"waiting" | "active" | "admin_test" | "timeout">("waiting");
+  const [registerReturnStep, setRegisterReturnStep] = useState<string | null>(null);
+  const registerReturnStepRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
