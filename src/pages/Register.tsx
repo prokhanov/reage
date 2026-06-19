@@ -274,10 +274,10 @@ export default function Register() {
         throw new Error("Аккаунт создан, но сессия не открылась. Войдите в аккаунт и продолжите регистрацию.");
       }
 
-      // Отправляем письмо подтверждения email (fire-and-forget).
+      // Отправляем собственное письмо подтверждения email (fire-and-forget).
       supabase.functions
-        .invoke("resend-confirmation", { body: { email: formData.email } })
-        .catch((e) => console.error("send confirmation failed:", e));
+        .invoke("send-verification-email", { body: { email: formData.email } })
+        .catch((e) => console.error("send verification email failed:", e));
 
       // Debug: вывести все статусы отправок писем для этого email
       (async () => {
