@@ -81,6 +81,15 @@ export default function HealthStrategy() {
         .order("date", { ascending: false })
         .limit(2);
 
+      const { data: allAnalysesData } = await supabase
+        .from("analyses")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "processed")
+        .order("date", { ascending: false });
+
+      setAllAnalyses(allAnalysesData || []);
+
       const latest = analyses?.[0];
       const prev = analyses?.[1];
       setAnalysis(latest);
