@@ -99,7 +99,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
         <div className="space-y-3 mb-6">
           <BiomarkersMetricRow biomarkers={biomarkers} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
           <MetricRow icon={<CalendarCheck className="w-4 h-4" />} label="Анализов" value={analyses} isPopular={isPopular} />
-          <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={`${consultations} в год`} isPopular={isPopular} />
+          <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={consultations} isPopular={isPopular} />
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1 whitespace-pre-line">{description}</p>
@@ -258,8 +258,21 @@ function planToCard(plan: PlanWithPricing, index: number) {
     ? plan.included_biomarkers.length
     : totalCount(biomarkersBySystem);
 
-  const analyses = extractCount(plan.features, ["анализ"]) ?? "3";
-  const consultations = extractCount(plan.features, ["консульт"]) ?? "3";
+  // Сначала пытаемся взять значения из comparison_highlights (управляется в админке),
+  // затем — из текстовых features, затем — fallback.
+  const findHighlight = (keywords: string[]) =>
+    (plan.comparison_highlights ?? []).find((h) =>
+      keywords.some((k) => h.label.toLowerCase().includes(k))
+    )?.value;
+
+  const analyses =
+    findHighlight(["анализ", "сдач", "чекап"]) ??
+    extractCount(plan.features, ["анализ"]) ??
+    "—";
+  const consultations =
+    findHighlight(["консульт"]) ??
+    extractCount(plan.features, ["консульт"]) ??
+    "—";
 
   const isPopular = plan.badge_color === "primary" || plan.display_order === 2;
 
@@ -272,8 +285,9 @@ function planToCard(plan: PlanWithPricing, index: number) {
     badge: plan.badge_text ?? undefined,
     isPopular,
     biomarkers: String(biomarkersCount),
-    analyses: `${analyses} раза в год`,
+    analyses,
     consultations,
+
     biomarkersBySystem,
     glowColor: glowByPlanSlug[slug] ?? glowByPlanSlug.basic,
     delay: 0.1 + index * 0.1,
