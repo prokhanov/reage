@@ -878,7 +878,13 @@ export default function DataManagement() {
                       
                       return (
                         <div key={category} className="space-y-2">
-                          <h3 className="font-semibold text-lg">{category}</h3>
+                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                            {(() => {
+                              const CatIcon = getConditionCategoryIcon(category);
+                              return <CatIcon className="w-5 h-5 text-primary" />;
+                            })()}
+                            {stripEmoji(category)}
+                          </h3>
                           <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
