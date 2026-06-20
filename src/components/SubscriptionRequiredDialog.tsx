@@ -94,7 +94,24 @@ export function SubscriptionRequiredDialog({
     }
   }, [availablePeriods, selectedPeriod]);
 
+  // Инициализируем selectedPlanId (рекомендованный — второй тариф)
+  useEffect(() => {
+    if (plans && plans.length > 0 && !selectedPlanId) {
+      const rec = plans.find((_, i) => i === 1) ?? plans[0];
+      setSelectedPlanId(rec.id);
+    }
+  }, [plans, selectedPlanId]);
+
   const showPeriodSelector = availablePeriods.length > 1;
+
+  const promoContext = useMemo(() => {
+    if (!selectedPlanId || !plans) return null;
+    const plan = plans.find(p => p.id === selectedPlanId);
+    const pricing = plan?.pricing.find(p => p.period === selectedPeriod);
+    return plan && pricing
+      ? { planId: plan.id, pricingId: pricing.id, amount: pricing.amount }
+      : null;
+  }, [selectedPlanId, selectedPeriod, plans]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -155,10 +172,20 @@ export function SubscriptionRequiredDialog({
                   isRecommended={index === 1}
                   onSelect={handleSelectPlan}
                   isLoading={creating}
+                  appliedPromo={appliedPromo}
                 />
               ))}
             </div>
           )}
+
+          {/* Промокод */}
+          <div className="max-w-md mx-auto w-full">
+            <PromoCodeField
+              applied={appliedPromo}
+              onApplied={setAppliedPromo}
+              context={promoContext}
+            />
+          </div>
 
           {/* Сравнение тарифов — кнопка как на главной */}
           <div className="text-center pt-2">
