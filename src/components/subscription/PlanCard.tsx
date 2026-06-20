@@ -48,8 +48,8 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
   return (
     <Card 
       className={cn(
-        "relative transition-all duration-300 hover:scale-[1.02] hover:shadow-lg",
-        isRecommended && "border-primary shadow-neon-primary scale-105 md:scale-110"
+        "relative transition-all duration-300 hover:shadow-lg",
+        isRecommended && "border-primary shadow-neon-primary"
       )}
     >
       {plan.badge_text && (
