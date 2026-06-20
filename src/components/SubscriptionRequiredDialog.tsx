@@ -8,12 +8,11 @@ import {
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { addMonths } from "date-fns";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { PlanCard } from "@/components/subscription/PlanCard";
-import { useQueryClient } from "@tanstack/react-query";
 import { BiomarkerComparisonDialog } from "@/components/landing/BiomarkerComparisonDialog";
+import { PromoCodeField, AppliedPromo } from "@/components/subscription/PromoCodeField";
 
 interface SubscriptionRequiredDialogProps {
   open: boolean;
@@ -28,66 +27,52 @@ export function SubscriptionRequiredDialog({
 }: SubscriptionRequiredDialogProps) {
   const [creating, setCreating] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('annual');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { data: plans, isLoading } = useSubscriptionPlans();
 
   const handleSelectPlan = async (planId: string, pricingId: string) => {
+    setSelectedPlanId(planId);
     setCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const pricing = plans
-        ?.flatMap(p => p.pricing)
-        .find(p => p.id === pricingId);
-
-      if (!pricing) throw new Error('Pricing not found');
-
-      const startDate = new Date();
-      const endDate = addMonths(startDate, pricing.duration_months);
-
-      const { error } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: user.id,
-          plan_id: planId,
-          pricing_id: pricingId,
-          plan_type: pricing.period,
-          amount: pricing.amount,
-          status: 'active',
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-          payment_method: 'card'
+      if (!user) {
+        toast({
+          title: "Требуется вход",
+          description: "Войдите в аккаунт, чтобы оформить подписку.",
+          variant: "destructive",
         });
-
-      if (error) throw error;
-
-      toast({
-        title: "Подписка активирована!",
-        description: "Теперь вы можете записаться на анализы и использовать все возможности платформы.",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
-      if (user.id) {
-        queryClient.invalidateQueries({ queryKey: ['patient-info', user.id] });
+        setCreating(false);
+        return;
       }
 
-      onOpenChange(false);
-      onSuccess();
-    } catch (error) {
-      console.error('Error creating subscription:', error);
+      const { data, error } = await supabase.functions.invoke("robokassa-create-payment", {
+        body: { planId, pricingId, promoCode: appliedPromo?.code },
+      });
+
+      const errMsg = (data as any)?.error;
+      if (errMsg) {
+        toast({ title: "Не удалось оформить оплату", description: errMsg, variant: "destructive" });
+        setCreating(false);
+        return;
+      }
+      if (error) throw error;
+      if (!data?.url) throw new Error("Не получен платёжный URL");
+
+      window.location.href = data.url as string;
+    } catch (error: any) {
+      console.error("Error creating payment:", error);
       toast({
         title: "Ошибка",
-        description: "Не удалось оформить подписку. Попробуйте позже.",
+        description: error?.message ?? "Не удалось создать платёж. Попробуйте позже.",
         variant: "destructive",
       });
-    } finally {
       setCreating(false);
     }
   };
+
 
   const allPeriods = [
     { value: 'monthly', label: 'Месяц' },
@@ -109,7 +94,24 @@ export function SubscriptionRequiredDialog({
     }
   }, [availablePeriods, selectedPeriod]);
 
+  // Инициализируем selectedPlanId (рекомендованный — второй тариф)
+  useEffect(() => {
+    if (plans && plans.length > 0 && !selectedPlanId) {
+      const rec = plans.find((_, i) => i === 1) ?? plans[0];
+      setSelectedPlanId(rec.id);
+    }
+  }, [plans, selectedPlanId]);
+
   const showPeriodSelector = availablePeriods.length > 1;
+
+  const promoContext = useMemo(() => {
+    if (!selectedPlanId || !plans) return null;
+    const plan = plans.find(p => p.id === selectedPlanId);
+    const pricing = plan?.pricing.find(p => p.period === selectedPeriod);
+    return plan && pricing
+      ? { planId: plan.id, pricingId: pricing.id, amount: pricing.amount }
+      : null;
+  }, [selectedPlanId, selectedPeriod, plans]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -170,10 +172,20 @@ export function SubscriptionRequiredDialog({
                   isRecommended={index === 1}
                   onSelect={handleSelectPlan}
                   isLoading={creating}
+                  appliedPromo={appliedPromo}
                 />
               ))}
             </div>
           )}
+
+          {/* Промокод */}
+          <div className="max-w-md mx-auto w-full">
+            <PromoCodeField
+              applied={appliedPromo}
+              onApplied={setAppliedPromo}
+              context={promoContext}
+            />
+          </div>
 
           {/* Сравнение тарифов — кнопка как на главной */}
           <div className="text-center pt-2">
