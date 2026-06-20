@@ -586,7 +586,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
         if (!completed) {
           console.error("analyze-biomarkers returned error:", data);
-          throw new Error(data.error || "Не удалось выполнить AI-анализ");
+          throw new Error(data.error || "Не удалось выполнить анализ");
         }
       }
 
@@ -675,7 +675,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
       } else {
         toast({
           title: "Ошибка анализа",
-          description: error.message || "Не удалось выполнить AI-анализ",
+          description: error.message || "Не удалось выполнить анализ",
           variant: "destructive",
         });
       }
@@ -822,7 +822,7 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                         <span className="text-xs text-muted-foreground font-normal">~8–15 мин</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Усиленная модель + расширенное «обдумывание». Выше точность и связность, требует больше времени и AI-кредитов.
+                        Усиленная модель + расширенное «обдумывание». Выше точность и связность, требует больше времени и вычислительных кредитов.
                       </p>
                     </DropdownMenuItem>
                   </DropdownMenuContent>

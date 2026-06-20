@@ -100,7 +100,7 @@ export function HealthRisksSection() {
             <span className="text-foreground"> на ранней стадии</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            AI анализирует биомаркеры и находит скрытые угрозы до появления симптомов
+            Анализируем биомаркеры и находим скрытые угрозы до появления симптомов
           </p>
         </div>
       </div>

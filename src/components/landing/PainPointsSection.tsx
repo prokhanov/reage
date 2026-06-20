@@ -114,7 +114,7 @@ export function PainPointsSection() {
     painNumber: "03",
     painTitle: "Непонятно, что делать с результатами",
     painDescription: "Получили PDF с цифрами — и что дальше? Гуглить? Идти к терапевту, который назначит ещё анализы?",
-    solutionTitle: "AI-план действий",
+    solutionTitle: "Персональный план действий",
     solutionDescription: "Персональные рекомендации по питанию, добавкам и образу жизни. Конкретные шаги, а не абстрактные советы.",
     accentColor: "from-purple-500 to-pink-500",
     delay: 0.3
