@@ -13,6 +13,14 @@
 export type InputValues = Record<string, number>; // ключ — code биомаркера, значение — число
 
 /**
+ * Контекст пациента для формул, которым нужны возраст/пол (например, CKD-EPI eGFR).
+ */
+export interface CalcContext {
+  age?: number | null;
+  sex?: "male" | "female" | null;
+}
+
+/**
  * Описание одной расчётной формулы.
  */
 interface CalculatedFormula {
@@ -21,7 +29,9 @@ interface CalculatedFormula {
   /** Список кодов входных биомаркеров, обязательных для расчёта */
   requiredInputs: string[];
   /** Функция расчёта. Возвращает null, если расчёт невозможен */
-  compute: (inputs: InputValues) => number | null;
+  compute: (inputs: InputValues, ctx: CalcContext) => number | null;
+  /** Требует ли формула возраст/пол из контекста */
+  requiresContext?: boolean;
   /** Количество знаков после запятой для округления */
   precision: number;
 }
@@ -121,6 +131,31 @@ export const CALCULATED_FORMULAS: CalculatedFormula[] = [
     },
     precision: 0,
   },
+  // eGFR по формуле CKD-EPI 2021 (race-free).
+  // Креатинин в проекте хранится в мкмоль/л → переводим в мг/дл делением на 88.4.
+  // Scr_mgdl = CREA / 88.4
+  // κ = 0.7 (жен.), 0.9 (муж.); α = -0.241 (жен.), -0.302 (муж.)
+  // eGFR = 142 × min(Scr/κ,1)^α × max(Scr/κ,1)^-1.200 × 0.9938^age × (1.012 если жен.)
+  {
+    outputCode: "GFR",
+    requiredInputs: ["CREA"],
+    requiresContext: true,
+    compute: ({ CREA }, { age, sex }) => {
+      if (!CREA || CREA <= 0) return null;
+      if (age == null || age <= 0) return null;
+      if (sex !== "male" && sex !== "female") return null;
+      const scr = CREA / 88.4; // мкмоль/л → мг/дл
+      const kappa = sex === "female" ? 0.7 : 0.9;
+      const alpha = sex === "female" ? -0.241 : -0.302;
+      const ratio = scr / kappa;
+      const minTerm = Math.pow(Math.min(ratio, 1), alpha);
+      const maxTerm = Math.pow(Math.max(ratio, 1), -1.2);
+      const ageTerm = Math.pow(0.9938, age);
+      const sexTerm = sex === "female" ? 1.012 : 1;
+      return 142 * minTerm * maxTerm * ageTerm * sexTerm;
+    },
+    precision: 0,
+  },
 ];
 
 /**
@@ -148,7 +183,10 @@ export function getFormulaForCode(code: string): CalculatedFormula | undefined {
  * Рассчитать все производные показатели на основе входных значений.
  * Возвращает Map<code, value> только для тех показателей, которые удалось вычислить.
  */
-export function computeAllDerivedValues(inputs: InputValues): Map<string, number> {
+export function computeAllDerivedValues(
+  inputs: InputValues,
+  ctx: CalcContext = {}
+): Map<string, number> {
   const results = new Map<string, number>();
 
   for (const formula of CALCULATED_FORMULAS) {
@@ -158,7 +196,10 @@ export function computeAllDerivedValues(inputs: InputValues): Map<string, number
     );
     if (!hasAllInputs) continue;
 
-    const value = formula.compute(inputs);
+    // Если формуле нужен контекст (возраст/пол), а его нет — пропускаем
+    if (formula.requiresContext && (ctx.age == null || ctx.sex == null)) continue;
+
+    const value = formula.compute(inputs, ctx);
     if (value === null || !isFinite(value)) continue;
 
     results.set(formula.outputCode, round(value, formula.precision));
@@ -188,6 +229,8 @@ export function getFormulaDescription(code: string): string | null {
       return "Гемоглобин / Эритроциты";
     case "MCHC":
       return "(Гемоглобин / Гематокрит) × 10";
+    case "GFR":
+      return "CKD-EPI 2021: f(Креатинин, возраст, пол)";
     default:
       return null;
   }

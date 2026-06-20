@@ -201,7 +201,10 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
       if (isFinite(num)) inputs[bm.code] = num;
     }
 
-    const derived = computeAllDerivedValues(inputs);
+    const derived = computeAllDerivedValues(inputs, {
+      age: patientAge,
+      sex: patientGender === "male" || patientGender === "female" ? patientGender : null,
+    });
 
     // Готовим обновлённый список значений
     let changed = false;
@@ -245,7 +248,7 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
 
     if (changed) onChange({ values: nextValues });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputsSignature, biomarkers]);
+  }, [inputsSignature, biomarkers, patientAge, patientGender]);
   const addedCount = data.values.length;
 
 

@@ -204,7 +204,7 @@ export function AnalysisStep1({ data, onChange, onMockGenerate }: AnalysisStep1P
         if (bm) inputsByCode[bm.code] = parseFloat(v.value);
       }
 
-      const derived = computeAllDerivedValues(inputsByCode);
+      const derived = computeAllDerivedValues(inputsByCode, { age, sex: gender });
       derived.forEach((value, code) => {
         const bm = codeToBiomarker.get(code);
         if (!bm) return;
