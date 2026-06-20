@@ -62,6 +62,8 @@ interface BookingData {
   status: BookingStatus;
   assigned_staff_id: string | null;
   created_at: string;
+  location_type?: "home" | "clinic" | null;
+  lab_location_id?: string | null;
   patient: {
     name: string;
     email: string;
