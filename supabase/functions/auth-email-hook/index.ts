@@ -88,7 +88,7 @@ async function fetchCustomTemplate(templateType: string): Promise<Record<string,
     if (!supabase) return null
     const { data, error } = await supabase
       .from('email_templates')
-      .select('subject, heading, body_text, button_label, footer_text')
+      .select('subject, heading, body_text, button_label, footer_text, signature_text')
       .eq('template_type', templateType)
       .maybeSingle()
     if (error || !data) return null
