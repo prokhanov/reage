@@ -174,6 +174,8 @@ function ClusterLayer({
   clusterMarkers,
   partnerButtonLabel,
   selectButtonLabel,
+  selectedSelectButtonLabel,
+  selectedId,
   onSelect,
 }: {
   items: LabMapItem[];
@@ -182,6 +184,8 @@ function ClusterLayer({
   clusterMarkers: boolean;
   partnerButtonLabel: string;
   selectButtonLabel: string;
+  selectedSelectButtonLabel: string;
+  selectedId?: string | null;
   onSelect?: (item: LabMapItem) => void;
 }) {
   const map = useMap();
@@ -223,12 +227,15 @@ function ClusterLayer({
       const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = (it.hours ?? []).filter(Boolean);
+      const isSelected = selectedId === it.id;
       const partnerBtn =
         showPartnerButton && it.page_url
           ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta lab-popup-cta-primary">${escapeHtml(partnerButtonLabel)}</a>`
           : "";
       const selectBtn = showSelectButton
-        ? `<button type="button" data-lab-select="${escapeAttr(it.id)}" class="lab-popup-cta lab-popup-cta-secondary">${escapeHtml(selectButtonLabel)}</button>`
+        ? isSelected
+          ? `<button type="button" disabled class="lab-popup-cta lab-popup-cta-selected">✓ ${escapeHtml(selectedSelectButtonLabel)}</button>`
+          : `<button type="button" data-lab-select="${escapeAttr(it.id)}" class="lab-popup-cta lab-popup-cta-secondary">${escapeHtml(selectButtonLabel)}</button>`
         : "";
       const actions =
         partnerBtn || selectBtn
@@ -244,7 +251,7 @@ function ClusterLayer({
         </div>
       `;
       const popup = m.bindPopup(html, { maxWidth: 320, minWidth: 240 });
-      if (showSelectButton && onSelect) {
+      if (showSelectButton && onSelect && !isSelected) {
         popup.on("popupopen", (e) => {
           const node = (e as unknown as { popup: L.Popup }).popup.getElement();
           const btn = node?.querySelector<HTMLButtonElement>(`[data-lab-select="${it.id}"]`);
@@ -258,7 +265,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel, selectedSelectButtonLabel, selectedId]);
   return null;
 }
 
