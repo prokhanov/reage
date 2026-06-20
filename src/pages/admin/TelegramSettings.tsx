@@ -19,9 +19,11 @@ type EventDef = { key: string; label: string; description: string };
 const EVENTS: EventDef[] = [
   { key: "user_registered", label: "Новая регистрация", description: "Когда пациент создаёт аккаунт" },
   { key: "subscription_paid", label: "Новая оплата", description: "Когда подписка переходит в статус «активна»" },
+  { key: "booking_status_changed", label: "Заявки и запись на анализы", description: "Заявка «Перезвоните мне», изменение статуса записи на анализы" },
 ];
 
 const BOOKING_TEMPLATE_KEYS: { key: string; label: string; description: string }[] = [
+  { key: "booking_waiting_call", label: "Заявка «Перезвоните мне»", description: "Когда пациент оставляет заявку на анализы через форму обратного звонка" },
   { key: "booking_scheduled", label: "Запись назначена", description: "Когда админ вручную отправляет уведомление при статусе «Назначен»" },
   { key: "booking_received", label: "Биоматериал получен", description: "Когда курьер передал пробу в лабораторию" },
   { key: "booking_collected", label: "Анализ в работе", description: "Когда лаборатория обрабатывает анализы" },
