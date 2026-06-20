@@ -146,6 +146,8 @@ interface Booking {
   assigned_staff_id: string | null;
   next_analysis_date: string | null;
   created_at: string;
+  location_type?: "home" | "clinic" | null;
+  lab_location_id?: string | null;
 }
 
 interface Props {
