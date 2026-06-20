@@ -81,6 +81,9 @@ export function useSubscriptionPlans(options: { includeInactivePlans?: boolean; 
       const plansWithPricing: PlanWithPricing[] = (plans || []).map(plan => ({
         ...plan,
         features: (plan.features as string[]) || [],
+        comparison_highlights: Array.isArray(plan.comparison_highlights)
+          ? (plan.comparison_highlights as unknown as PlanHighlight[])
+          : [],
         pricing: (pricing || [])
           .filter(p => p.plan_id === plan.id)
           .map(p => ({
