@@ -219,6 +219,7 @@ export default function Patients() {
             subscriptionEndDate: subscription?.end_date || null,
             subscriptionPlan: subscription?.subscription_plans?.display_name || null,
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
+            bookingLocationType: latestMeaningful?.location_type || latestAny?.location_type || null,
 
             role: primaryRole,
             allRoles: userRoleData.allRoles,
