@@ -263,7 +263,7 @@ export function AnalysisBookingBanner() {
             <Button
               onClick={handleSchedule}
               size="sm"
-              className="bg-gradient-primary shadow-neon-primary text-white mr-4"
+              className="bg-gradient-primary shadow-neon-primary text-white"
             >
               {buttonLabel}
             </Button>
