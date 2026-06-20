@@ -62,6 +62,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const [patientEmail, setPatientEmail] = useState<string>("");
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false);
+  const [phoneLoaded, setPhoneLoaded] = useState<boolean>(false);
 
   // Извлекаем данные из React Query
   const isSuperAdmin = roleData?.isSuperAdmin ?? false;
@@ -82,19 +83,29 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     }
   }, [viewAsUserId, userEmail]);
 
+  const normalizePhoneDigits = (raw: string | null | undefined): string => {
+    if (!raw) return "";
+    return String(raw).replace(/\D/g, "");
+  };
+
   const loadOwnPhone = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setPhoneLoaded(true);
+        return;
+      }
       const { data } = await supabase
         .from("profiles")
         .select("phone, phone_verified_at")
         .eq("id", user.id)
         .maybeSingle();
-      setUserPhone(data?.phone || null);
+      setUserPhone(normalizePhoneDigits(data?.phone) || null);
       setPhoneVerified(!!data?.phone_verified_at);
     } catch (e) {
       console.error("Error loading phone:", e);
+    } finally {
+      setPhoneLoaded(true);
     }
   };
 
@@ -178,26 +189,30 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 ) : (
                   <div className="space-y-1 mt-1">
                     {/* Email row */}
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {emailStatus?.isConfirmed ? (
+                    <div className="flex items-center gap-1.5 min-w-0 min-h-[18px]">
+                      {!emailStatus ? (
+                        <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                      ) : emailStatus.isConfirmed ? (
                         <>
                           <p className="text-xs text-muted-foreground truncate min-w-0">{userEmail}</p>
                           <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
                         </>
-                      ) : emailStatus ? (
+                      ) : (
                         <EmailConfirmationBadge
                           email={emailStatus.email || userEmail}
                           isConfirmed={false}
                           allowEmailChange={true}
                           onEmailChanged={() => queryClient.invalidateQueries({ queryKey: ["email-confirmation-status"] })}
                         />
-                      ) : (
-                        <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
                       )}
                     </div>
                     {/* Phone row */}
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {userPhone && phoneVerified ? (
+                    <div className="flex items-center gap-1.5 min-w-0 min-h-[18px]">
+                      {!phoneLoaded ? (
+                        userPhone ? (
+                          <p className="text-xs text-muted-foreground truncate">+{userPhone}</p>
+                        ) : null
+                      ) : userPhone && phoneVerified ? (
                         <>
                           <p className="text-xs text-muted-foreground truncate min-w-0">
                             +{userPhone}
