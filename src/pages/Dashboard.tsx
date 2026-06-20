@@ -13,7 +13,6 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
-import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
 import { PassportReminderCard } from "@/components/PassportReminderCard";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
