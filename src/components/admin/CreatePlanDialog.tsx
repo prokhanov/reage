@@ -22,6 +22,10 @@ export function CreatePlanDialog() {
   const [badgeColor, setBadgeColor] = useState("");
   const [displayOrder, setDisplayOrder] = useState(0);
   const [selectedBiomarkers, setSelectedBiomarkers] = useState<string[]>([]);
+  const [highlights, setHighlights] = useState<PlanHighlight[]>([
+    { label: "Сдач анализов в год", value: "" },
+    { label: "Консультации врача", value: "" },
+  ]);
 
   const { createPlan } = usePlans();
   const { updateBiomarkers } = usePlanBiomarkers();
