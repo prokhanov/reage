@@ -239,7 +239,16 @@ export function AnalysisBookingBanner() {
         existingBookingId={bookingInfo?.id ?? null}
         onSuccess={checkBookingStatus}
       />
-      <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 animate-fade-in">
+      <div className="relative rounded-lg border border-primary/30 bg-primary/5 p-4 animate-fade-in">
+        <Button
+          onClick={handleDismiss}
+          size="icon"
+          variant="ghost"
+          className="absolute top-2 right-2 text-muted-foreground hover:bg-primary/10 h-8 w-8"
+          aria-label="Закрыть напоминание"
+        >
+          <X className="h-4 w-4" />
+        </Button>
         <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3 flex-1">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
@@ -250,26 +259,15 @@ export function AnalysisBookingBanner() {
               <p className="text-xs sm:text-sm text-muted-foreground">{subtitle}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {showButton && (
-              <Button
-                onClick={handleSchedule}
-                size="sm"
-                className="bg-gradient-primary shadow-neon-primary text-white"
-              >
-                {buttonLabel}
-              </Button>
-            )}
+          {showButton && (
             <Button
-              onClick={handleDismiss}
-              size="icon"
-              variant="ghost"
-              className="text-muted-foreground hover:bg-primary/10 h-8 w-8"
-              aria-label="Закрыть напоминание"
+              onClick={handleSchedule}
+              size="sm"
+              className="bg-gradient-primary shadow-neon-primary text-white"
             >
-              <X className="h-4 w-4" />
+              {buttonLabel}
             </Button>
-          </div>
+          )}
         </div>
       </div>
     </>
