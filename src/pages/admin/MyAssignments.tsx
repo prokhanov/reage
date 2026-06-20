@@ -46,6 +46,7 @@ interface BookingData {
   address: string;
   status: BookingStatus;
   created_at: string;
+  location_type?: "home" | "clinic" | null;
   patient: {
     name: string;
     email: string;
