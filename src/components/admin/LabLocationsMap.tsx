@@ -171,6 +171,7 @@ function ClusterLayer({
   items,
   showPartnerButton,
   showSelectButton,
+  clusterMarkers,
   partnerButtonLabel,
   selectButtonLabel,
   onSelect,
@@ -178,6 +179,7 @@ function ClusterLayer({
   items: LabMapItem[];
   showPartnerButton: boolean;
   showSelectButton: boolean;
+  clusterMarkers: boolean;
   partnerButtonLabel: string;
   selectButtonLabel: string;
   onSelect?: (item: LabMapItem) => void;
@@ -196,24 +198,26 @@ function ClusterLayer({
     pane.style.pointerEvents = "auto";
 
     const icon = buildIcon();
-    const cluster = (L as unknown as MarkerClusterFactory).markerClusterGroup({
-      showCoverageOnHover: false,
-      spiderfyOnMaxZoom: true,
-      removeOutsideVisibleBounds: false,
-      animate: false,
-      animateAddingMarkers: false,
-      maxClusterRadius: 50,
-      clusterPane: LAB_MARKER_PANE,
-      iconCreateFunction: (c: { getChildCount: () => number }) => {
-        const count = c.getChildCount();
-        const size = count < 10 ? 34 : count < 100 ? 40 : 48;
-        return L.divIcon({
-          html: `<div class="lab-cluster-inner"><span>${count}</span></div>`,
-          className: "lab-cluster",
-          iconSize: [size, size],
-        });
-      },
-    });
+    const markerLayer = clusterMarkers
+      ? (L as unknown as MarkerClusterFactory).markerClusterGroup({
+          showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true,
+          removeOutsideVisibleBounds: false,
+          animate: false,
+          animateAddingMarkers: false,
+          maxClusterRadius: 50,
+          clusterPane: LAB_MARKER_PANE,
+          iconCreateFunction: (c: { getChildCount: () => number }) => {
+            const count = c.getChildCount();
+            const size = count < 10 ? 34 : count < 100 ? 40 : 48;
+            return L.divIcon({
+              html: `<div class="lab-cluster-inner"><span>${count}</span></div>`,
+              className: "lab-cluster",
+              iconSize: [size, size],
+            });
+          },
+        })
+      : L.layerGroup();
 
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
@@ -247,14 +251,14 @@ function ClusterLayer({
           btn?.addEventListener("click", () => onSelectRef.current?.(it));
         });
       }
-      cluster.addLayer(m);
+      markerLayer.addLayer(m);
     });
 
-    map.addLayer(cluster);
+    map.addLayer(markerLayer);
     return () => {
-      map.removeLayer(cluster);
+      map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, partnerButtonLabel, selectButtonLabel]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel]);
   return null;
 }
 
