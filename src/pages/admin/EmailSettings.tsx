@@ -23,6 +23,7 @@ interface EmailTemplate {
   body_text: string;
   button_label: string | null;
   footer_text: string;
+  signature_text: string;
 }
 
 const TEMPLATE_TABS = [
