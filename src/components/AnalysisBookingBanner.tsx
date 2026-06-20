@@ -249,7 +249,7 @@ export function AnalysisBookingBanner() {
         >
           <X className="h-4 w-4" />
         </Button>
-        <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between pr-6">
+        <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3 flex-1">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
               <Icon className="h-5 w-5 text-primary" />
@@ -263,7 +263,7 @@ export function AnalysisBookingBanner() {
             <Button
               onClick={handleSchedule}
               size="sm"
-              className="bg-gradient-primary shadow-neon-primary text-white"
+              className="bg-gradient-primary shadow-neon-primary text-white mr-4"
             >
               {buttonLabel}
             </Button>
