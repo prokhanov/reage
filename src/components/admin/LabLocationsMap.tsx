@@ -557,6 +557,8 @@ export default function LabLocationsMap({
             clusterMarkers={clusterMarkers}
             partnerButtonLabel={partnerButtonLabel}
             selectButtonLabel={selectButtonLabel}
+            selectedSelectButtonLabel={selectedSelectButtonLabel}
+            selectedId={selectedId}
             onSelect={onSelect}
           />
         </MapContainer>
