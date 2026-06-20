@@ -119,12 +119,14 @@ async function fetchSenderSettings(): Promise<{ name: string; email: string; dom
 }
 
 function buildCustomProps(dbTemplate: Record<string, string> | null): Record<string, string> {
-  if (!dbTemplate) return {}
+  const signature = dbTemplate?.signature_text || DEFAULT_SIGNATURE
+  if (!dbTemplate) return { customSignatureText: signature }
   return {
     customHeading: dbTemplate.heading,
     customBodyText: dbTemplate.body_text,
     ...(dbTemplate.button_label ? { customButtonLabel: dbTemplate.button_label } : {}),
     customFooterText: dbTemplate.footer_text,
+    customSignatureText: signature,
   }
 }
 
