@@ -69,7 +69,7 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
             <span className="text-xs sm:text-sm font-medium text-primary text-center leading-relaxed">
-              85+ биомаркеров • Комплексный анализ • Тренды здоровья • Биологический возраст
+              100+ биомаркеров • Комплексный анализ • Тренды здоровья • Биологический возраст
             </span>
           </div>
 

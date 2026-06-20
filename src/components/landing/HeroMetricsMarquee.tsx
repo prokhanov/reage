@@ -9,7 +9,7 @@ const bullets = [
   {
     icon: <Activity className="w-5 h-5 text-primary" />,
     title: "Глубокий\nанализ",
-    subtitle: "Анализ крови на 85+ показателей для комплексной проверки здоровья",
+    subtitle: "Анализ крови на 100+ показателей для комплексной проверки здоровья",
   },
   {
     icon: <FileText className="w-5 h-5 text-primary" />,
