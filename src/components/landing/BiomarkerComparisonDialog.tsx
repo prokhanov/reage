@@ -152,6 +152,36 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                 </tr>
               </thead>
               <tbody>
+                {(() => {
+                  const labels = Array.from(
+                    new Set(
+                      orderedPlans.flatMap((p) =>
+                        (p.comparison_highlights ?? [])
+                          .map((h) => h.label)
+                          .filter((l) => l && l.trim() !== "")
+                      )
+                    )
+                  );
+                  return labels.map((label) => (
+                    <tr key={`hl-${label}`} className="border-b border-border/50 bg-muted/20">
+                      <td className="py-2.5 px-2 text-sm font-semibold text-foreground">{label}</td>
+                      {orderedPlans.map((p) => {
+                        const value = (p.comparison_highlights ?? []).find((h) => h.label === label)?.value || "—";
+                        return (
+                          <td
+                            key={p.id}
+                            className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
+                              p.id === recommendedPlanId ? "bg-primary/5" : ""
+                            }`}
+                          >
+                            {value}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ));
+                })()}
+
                 <tr className="border-b border-border/50 bg-muted/20">
                   <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
                   {orderedPlans.map((p) => (
