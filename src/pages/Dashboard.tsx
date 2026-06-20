@@ -566,12 +566,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* System Health */}
-        <SystemRatingsCard 
-          categoryScores={displayCategoryScores}
-          analyses={displayAllAnalyses}
-        />
-
         {/* Weight Tracker */}
         <WeightTracker />
 
