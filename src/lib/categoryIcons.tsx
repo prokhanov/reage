@@ -118,8 +118,41 @@ export function getSymptomCategoryIcon(name: string): LucideIcon {
   return SYMPTOM_CATEGORY_ICONS[name] || Activity;
 }
 
+/**
+ * Mapper: имя категории мед. состояний → Lucide-иконка.
+ * Названия в БД могут содержать ведущий эмодзи — используем `stripEmoji` перед поиском.
+ */
+const CONDITION_CATEGORY_ICONS: Record<string, LucideIcon> = {
+  "Сердечно-сосудистая система": Heart,
+  "Нервная система": Brain,
+  "Пищеварительная система": Utensils,
+  "Опорно-двигательная система": Bone,
+  "Иммунная система": Shield,
+  "Гормональные нарушения": HormoneMoleculeIcon,
+  "Метаболические нарушения": RefreshCw,
+  "Кроветворная система": Droplet,
+  "Инфекционные заболевания": Bug,
+  "Онкология": Dna,
+  "Дыхательная система": Activity,
+  "Мочеполовая система": FlaskConical,
+};
+
+/** Удаляет ведущий эмодзи и пробелы из строки (для названий категорий из БД). */
+export function stripEmoji(name: string | undefined | null): string {
+  if (!name) return "";
+  return name
+    .replace(/[\p{Extended_Pictographic}\u200D\uFE0F]+/gu, "")
+    .trim();
+}
+
+export function getConditionCategoryIcon(name: string): LucideIcon {
+  const clean = stripEmoji(name);
+  return CONDITION_CATEGORY_ICONS[clean] || Activity;
+}
+
 /** Иконка для общего рейтинга систем организма (заменяет 🏥). */
 export const SystemRatingsIcon = HeartPulse;
 
 /** Иконка для процентиля «Ваш результат». */
 export { Stethoscope, Pill };
+
