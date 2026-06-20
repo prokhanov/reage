@@ -127,6 +127,8 @@ export function CallbackRequestDialog({
     setLocationType("home");
     setSelectedLab(null);
     setCity("moscow");
+    setHomeCity("moscow");
+    setHomeAddress("");
   };
 
   const handleSubmit = async () => {
@@ -155,6 +157,14 @@ export function CallbackRequestDialog({
       });
       return;
     }
+    if (locationType === "home" && !homeAddress.trim()) {
+      toast({
+        title: "Укажите адрес",
+        description: "Введите адрес, куда приехать медсестре",
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading(true);
     try {
       const userId = await getUserId();
@@ -169,12 +179,13 @@ export function CallbackRequestDialog({
         } as any)
         .eq("id", userId);
 
+      const homeCityLabel = HOME_CITIES.find((c) => c.key === homeCity)?.label ?? "";
       const addressValue =
         locationType === "clinic" && selectedLab
           ? [selectedLab.title, selectedLab.full_address ?? selectedLab.address_short ?? ""]
               .filter(Boolean)
               .join(" — ")
-          : "";
+          : [homeCityLabel, homeAddress.trim()].filter(Boolean).join(", ");
 
       const patch: Record<string, any> = {
         status: "waiting_call",
