@@ -132,6 +132,7 @@ export default function EmailSettings() {
         body_text: template.body_text,
         button_label: template.button_label,
         footer_text: template.footer_text,
+        signature_text: template.signature_text,
         updated_at: new Date().toISOString(),
       })
       .eq("template_type", type);
