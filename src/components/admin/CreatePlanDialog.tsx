@@ -10,6 +10,7 @@ import { Plus, X } from "lucide-react";
 import { usePlans } from "@/hooks/usePlans";
 import { usePlanBiomarkers } from "@/hooks/usePlanBiomarkers";
 import { BiomarkerSelector } from "./BiomarkerSelector";
+import { PlanHighlightsEditor, PlanHighlight } from "./PlanHighlightsEditor";
 
 export function CreatePlanDialog() {
   const [open, setOpen] = useState(false);
