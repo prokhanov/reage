@@ -28,6 +28,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, Edit2, Search, FileText, Activity } from "lucide-react";
+import { getSymptomCategoryIcon } from "@/lib/categoryIcons";
 import {
   Dialog,
   DialogContent,
@@ -983,7 +984,10 @@ export default function DataManagement() {
                       return (
                         <div key={category} className="space-y-2">
                           <h3 className="font-semibold text-lg flex items-center gap-2">
-                            {categoryData?.emoji && <span className="text-xl">{categoryData.emoji}</span>}
+                            {(() => {
+                              const CatIcon = getSymptomCategoryIcon(category);
+                              return <CatIcon className="h-5 w-5 text-primary" />;
+                            })()}
                             {category}
                           </h3>
                           <DndContext
@@ -1186,7 +1190,10 @@ export default function DataManagement() {
                         {(symptomCategories || []).map((cat) => (
                           <SortableCategoryItem key={cat.id} id={cat.id}>
                             <div className="flex items-center gap-2">
-                              <span className="text-2xl">{cat.emoji}</span>
+                              {(() => {
+                                const CatIcon = getSymptomCategoryIcon(cat.name);
+                                return <CatIcon className="h-5 w-5 text-primary" />;
+                              })()}
                               <p className="font-medium">{cat.name}</p>
                             </div>
                             <div className="flex gap-2">
@@ -1757,7 +1764,10 @@ export default function DataManagement() {
                   {(symptomCategories || []).map((cat) => (
                     <SelectItem key={cat.id} value={cat.name}>
                       <span className="flex items-center gap-2">
-                        <span>{cat.emoji}</span>
+                        {(() => {
+                          const CatIcon = getSymptomCategoryIcon(cat.name);
+                          return <CatIcon className="h-4 w-4 text-primary" />;
+                        })()}
                         <span>{cat.name}</span>
                       </span>
                     </SelectItem>
@@ -1871,8 +1881,8 @@ export default function DataManagement() {
                 required
                 defaultValue={categoryDialog.editing?.name}
                 placeholder={
-                  categoryDialog.type === 'medical' 
-                    ? "🫀 Сердечно-сосудистая система" 
+                  categoryDialog.type === 'medical'
+                    ? "Сердечно-сосудистая система"
                     : categoryDialog.type === 'symptom'
                     ? "Энергия и фокус"
                     : "Липиды"
@@ -1888,7 +1898,7 @@ export default function DataManagement() {
                   name="emoji"
                   required
                   defaultValue={categoryDialog.editing?.emoji}
-                  placeholder="🧠"
+                  placeholder="символ"
                   maxLength={2}
                 />
               </div>
