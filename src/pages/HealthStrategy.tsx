@@ -13,6 +13,7 @@ import { RejuvenationTrajectory } from "@/components/health-strategy/Rejuvenatio
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
 import { SystemStatusBars } from "@/components/health-strategy/SystemStatusBars";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
+import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
