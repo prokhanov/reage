@@ -235,7 +235,6 @@ export default function Subscription() {
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" />Безопасная оплата</span>
           <span className="inline-flex items-center gap-2"><Target className="h-4 w-4 text-primary" />Без скрытых платежей</span>
-          <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" />Отмена в любое время</span>
         </div>
       </div>
     </div>

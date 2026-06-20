@@ -176,7 +176,7 @@ export function SubscriptionRequiredDialog({
           )}
 
           <p className="text-center text-xs text-muted-foreground">
-            🔒 Безопасная оплата • Отмена в любое время
+            🔒 Безопасная оплата
           </p>
         </div>
       </DialogContent>
