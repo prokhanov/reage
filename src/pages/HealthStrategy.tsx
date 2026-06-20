@@ -13,6 +13,7 @@ import { RejuvenationTrajectory } from "@/components/health-strategy/Rejuvenatio
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
 import { SystemStatusBars } from "@/components/health-strategy/SystemStatusBars";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
+import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
@@ -47,6 +48,7 @@ export default function HealthStrategy() {
   const [hasAnalyses, setHasAnalyses] = useState(false);
   const [riskZone, setRiskZone] = useState<any>(null);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
 
   const canForceRefresh = isSuperAdmin || isViewMode;
 
@@ -78,6 +80,15 @@ export default function HealthStrategy() {
         .eq("status", "processed")
         .order("date", { ascending: false })
         .limit(2);
+
+      const { data: allAnalysesData } = await supabase
+        .from("analyses")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "processed")
+        .order("date", { ascending: false });
+
+      setAllAnalyses(allAnalysesData || []);
 
       const latest = analyses?.[0];
       const prev = analyses?.[1];
@@ -238,7 +249,13 @@ export default function HealthStrategy() {
               <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
             </div>
 
-            {/* 3. Активная карта действий — на всю ширину */}
+            {/* 3. Рейтинг систем организма */}
+            <SystemRatingsCard
+              categoryScores={currentScores}
+              analyses={allAnalyses}
+            />
+
+            {/* 4. Активная карта действий — на всю ширину */}
             <ActionMap
               actions={(snapshot.action_map as any[]) || []}
               systems={categories}
