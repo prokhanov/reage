@@ -187,14 +187,14 @@ export function SubscriptionRequiredDialog({
             />
           </div>
 
-          {/* Сравнение тарифов — кнопка как на главной */}
-          <div className="text-center pt-2">
+          {/* Сравнение тарифов */}
+          <div className="text-center">
             <button
               type="button"
               onClick={() => setComparisonOpen(true)}
-              className="inline-flex items-center justify-center gap-2 h-12 md:h-14 px-8 md:px-12 rounded-xl text-base md:text-lg font-semibold text-white bg-gradient-hero shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/60 hover:scale-105 hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300"
+              className="text-sm text-muted-foreground hover:text-primary underline underline-offset-4 transition-colors"
             >
-              Сравнить тарифы
+              Сравнить тарифы по биомаркерам
             </button>
           </div>
 
