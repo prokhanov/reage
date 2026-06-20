@@ -217,14 +217,17 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
         })
       );
 
-      const grouped = biomarkersWithData.reduce((acc, biomarker) => {
-        const category = biomarker.category;
-        if (!acc[category]) {
-          acc[category] = [];
-        }
-        acc[category].push(biomarker);
-        return acc;
-      }, {} as GroupedBiomarkers);
+      const grouped = biomarkersWithData
+        .filter((b) => b.latest_value !== null)
+        .reduce((acc, biomarker) => {
+          const category = biomarker.category;
+          if (!acc[category]) {
+            acc[category] = [];
+          }
+          acc[category].push(biomarker);
+          return acc;
+        }, {} as GroupedBiomarkers);
+
 
       const sortedGrouped: GroupedBiomarkers = {};
       Object.keys(grouped)
