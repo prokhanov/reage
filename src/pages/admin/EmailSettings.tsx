@@ -55,7 +55,7 @@ export default function EmailSettings() {
   const [activeTab, setActiveTab] = useState("signup");
 
   // Sender alias
-  const [senderName, setSenderName] = useState("reage");
+  const [senderName, setSenderName] = useState("ReAge");
   const [senderEmail, setSenderEmail] = useState("noreply");
   const [senderDomain, setSenderDomain] = useState("notify.reage.life");
   const [isSavingSender, setIsSavingSender] = useState(false);
