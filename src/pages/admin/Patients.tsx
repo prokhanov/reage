@@ -596,7 +596,7 @@ export default function Patients() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                           Пациенты не найдены
                         </TableCell>
                       </TableRow>
