@@ -201,7 +201,10 @@ export function AnalysisStep2({ data, onChange }: AnalysisStep2Props) {
       if (isFinite(num)) inputs[bm.code] = num;
     }
 
-    const derived = computeAllDerivedValues(inputs);
+    const derived = computeAllDerivedValues(inputs, {
+      age: patientAge,
+      sex: patientGender === "male" || patientGender === "female" ? patientGender : null,
+    });
 
     // Готовим обновлённый список значений
     let changed = false;
