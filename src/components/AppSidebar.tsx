@@ -62,6 +62,7 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
   const [patientEmail, setPatientEmail] = useState<string>("");
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [phoneVerified, setPhoneVerified] = useState<boolean>(false);
+  const [phoneLoaded, setPhoneLoaded] = useState<boolean>(false);
 
   // Извлекаем данные из React Query
   const isSuperAdmin = roleData?.isSuperAdmin ?? false;
@@ -82,19 +83,29 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
     }
   }, [viewAsUserId, userEmail]);
 
+  const normalizePhoneDigits = (raw: string | null | undefined): string => {
+    if (!raw) return "";
+    return String(raw).replace(/\D/g, "");
+  };
+
   const loadOwnPhone = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setPhoneLoaded(true);
+        return;
+      }
       const { data } = await supabase
         .from("profiles")
         .select("phone, phone_verified_at")
         .eq("id", user.id)
         .maybeSingle();
-      setUserPhone(data?.phone || null);
+      setUserPhone(normalizePhoneDigits(data?.phone) || null);
       setPhoneVerified(!!data?.phone_verified_at);
     } catch (e) {
       console.error("Error loading phone:", e);
+    } finally {
+      setPhoneLoaded(true);
     }
   };
 
