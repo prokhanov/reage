@@ -167,6 +167,17 @@ export const CALCULATED_FORMULAS: CalculatedFormula[] = [
     },
     precision: 1,
   },
+  // OSI-proxy = (MDA / GSH-Px) × 1000 — прокси-индекс оксидативного стресса.
+  // Низкие значения = баланс в сторону антиоксидантной защиты; высокие = окислительный перевес.
+  {
+    outputCode: "OSI-proxy",
+    requiredInputs: ["MDA", "GSH-Px"],
+    compute: ({ MDA, "GSH-Px": GSHPx }) => {
+      if (!GSHPx || GSHPx <= 0) return null;
+      return (MDA / GSHPx) * 1000;
+    },
+    precision: 3,
+  },
 ];
 
 
@@ -245,6 +256,8 @@ export function getFormulaDescription(code: string): string | null {
       return "CKD-EPI 2021: f(Креатинин, возраст, пол)";
     case "TSAT":
       return "Fe / (Трансферрин × 25.1) × 100";
+    case "OSI-proxy":
+      return "(MDA / GSH-Px) × 1000";
     default:
       return null;
   }
