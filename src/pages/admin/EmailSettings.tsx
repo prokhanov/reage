@@ -23,6 +23,7 @@ interface EmailTemplate {
   body_text: string;
   button_label: string | null;
   footer_text: string;
+  signature_text: string;
 }
 
 const TEMPLATE_TABS = [
@@ -54,7 +55,7 @@ export default function EmailSettings() {
   const [activeTab, setActiveTab] = useState("signup");
 
   // Sender alias
-  const [senderName, setSenderName] = useState("reage");
+  const [senderName, setSenderName] = useState("ReAge");
   const [senderEmail, setSenderEmail] = useState("noreply");
   const [senderDomain, setSenderDomain] = useState("notify.reage.life");
   const [isSavingSender, setIsSavingSender] = useState(false);
@@ -131,6 +132,7 @@ export default function EmailSettings() {
         body_text: template.body_text,
         button_label: template.button_label,
         footer_text: template.footer_text,
+        signature_text: template.signature_text,
         updated_at: new Date().toISOString(),
       })
       .eq("template_type", type);
@@ -366,6 +368,16 @@ export default function EmailSettings() {
                           placeholder="Текст внизу письма"
                           rows={2}
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Подпись организации</Label>
+                        <Textarea
+                          value={t.signature_text || ""}
+                          onChange={(e) => updateTemplateField(tab.type, "signature_text", e.target.value)}
+                          placeholder={"ReAge, reage.life\nООО «РеЭйдж», Москва"}
+                          rows={3}
+                        />
+                        <p className="text-xs text-muted-foreground">Отображается под футером, отделена тонкой линией. Каждая строка — с новой строки.</p>
                       </div>
 
                       <Button

@@ -11,6 +11,7 @@ import {
   Img,
   Preview,
   Text,
+  Hr,
 } from 'npm:@react-email/components@0.0.22'
 
 interface ReauthenticationEmailProps {
@@ -18,6 +19,7 @@ interface ReauthenticationEmailProps {
   customHeading?: string
   customBodyText?: string
   customFooterText?: string
+  customSignatureText?: string
 }
 
 const logoUrl = 'https://api.reage.life/storage/v1/object/public/email-assets/reage-logo-v2.png'
@@ -27,6 +29,7 @@ export const ReauthenticationEmail = ({
   customHeading,
   customBodyText,
   customFooterText,
+  customSignatureText,
 }: ReauthenticationEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head><meta charSet="utf-8" /></Head>
@@ -40,6 +43,12 @@ export const ReauthenticationEmail = ({
         <Text style={footer}>
           {customFooterText || 'Код действителен ограниченное время. Если вы не запрашивали его, проигнорируйте это письмо.'}
         </Text>
+        {customSignatureText && (
+          <>
+            <Hr style={hr} />
+            <Text style={signature}>{customSignatureText}</Text>
+          </>
+        )}
       </Container>
     </Body>
   </Html>
@@ -71,3 +80,6 @@ const codeStyle = {
   letterSpacing: '4px',
 }
 const footer = { fontSize: '12px', color: '#9ca3af', margin: '30px 0 0' }
+
+const hr = { borderColor: '#e5e7eb', margin: '24px 0 16px' }
+const signature = { fontSize: '12px', color: '#9ca3af', lineHeight: '1.6', whiteSpace: 'pre-line' as const, margin: '0' }
