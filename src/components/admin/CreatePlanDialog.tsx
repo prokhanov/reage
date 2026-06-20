@@ -41,6 +41,7 @@ export function CreatePlanDialog() {
       badge_text: badgeText || undefined,
       badge_color: badgeColor || undefined,
       display_order: displayOrder,
+      comparison_highlights: highlights.filter(h => h.label.trim() !== ""),
     });
 
     // Сохранить биомаркеры
