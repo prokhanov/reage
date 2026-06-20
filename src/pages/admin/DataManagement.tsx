@@ -28,7 +28,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, Edit2, Search, FileText, Activity } from "lucide-react";
-import { getSymptomCategoryIcon } from "@/lib/categoryIcons";
+import { getSymptomCategoryIcon, getConditionCategoryIcon, stripEmoji } from "@/lib/categoryIcons";
 import {
   Dialog,
   DialogContent,
@@ -878,7 +878,13 @@ export default function DataManagement() {
                       
                       return (
                         <div key={category} className="space-y-2">
-                          <h3 className="font-semibold text-lg">{category}</h3>
+                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                            {(() => {
+                              const CatIcon = getConditionCategoryIcon(category);
+                              return <CatIcon className="w-5 h-5 text-primary" />;
+                            })()}
+                            {stripEmoji(category)}
+                          </h3>
                           <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
@@ -1137,7 +1143,13 @@ export default function DataManagement() {
                       <SortableContext items={(medicalCategories || []).map(c => c.id)} strategy={verticalListSortingStrategy}>
                         {(medicalCategories || []).map((cat) => (
                           <SortableCategoryItem key={cat.id} id={cat.id}>
-                            <p className="font-medium">{cat.name}</p>
+                            <div className="flex items-center gap-2">
+                              {(() => {
+                                const CatIcon = getConditionCategoryIcon(cat.name);
+                                return <CatIcon className="h-5 w-5 text-primary" />;
+                              })()}
+                              <p className="font-medium">{stripEmoji(cat.name)}</p>
+                            </div>
                             <div className="flex gap-2">
                               <Button
                                 variant="ghost"
