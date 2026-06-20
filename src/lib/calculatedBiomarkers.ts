@@ -13,6 +13,14 @@
 export type InputValues = Record<string, number>; // ключ — code биомаркера, значение — число
 
 /**
+ * Контекст пациента для формул, которым нужны возраст/пол (например, CKD-EPI eGFR).
+ */
+export interface CalcContext {
+  age?: number | null;
+  sex?: "male" | "female" | null;
+}
+
+/**
  * Описание одной расчётной формулы.
  */
 interface CalculatedFormula {
@@ -21,7 +29,9 @@ interface CalculatedFormula {
   /** Список кодов входных биомаркеров, обязательных для расчёта */
   requiredInputs: string[];
   /** Функция расчёта. Возвращает null, если расчёт невозможен */
-  compute: (inputs: InputValues) => number | null;
+  compute: (inputs: InputValues, ctx: CalcContext) => number | null;
+  /** Требует ли формула возраст/пол из контекста */
+  requiresContext?: boolean;
   /** Количество знаков после запятой для округления */
   precision: number;
 }
