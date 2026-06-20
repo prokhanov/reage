@@ -369,6 +369,16 @@ export default function EmailSettings() {
                           rows={2}
                         />
                       </div>
+                      <div className="space-y-2">
+                        <Label>Подпись организации</Label>
+                        <Textarea
+                          value={t.signature_text || ""}
+                          onChange={(e) => updateTemplateField(tab.type, "signature_text", e.target.value)}
+                          placeholder={"ReAge, reage.life\nООО «РеЭйдж», Москва"}
+                          rows={3}
+                        />
+                        <p className="text-xs text-muted-foreground">Отображается под футером, отделена тонкой линией. Каждая строка — с новой строки.</p>
+                      </div>
 
                       <Button
                         onClick={() => handleSaveTemplate(tab.type)}
