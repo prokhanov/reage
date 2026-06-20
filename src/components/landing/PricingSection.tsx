@@ -99,7 +99,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
         <div className="space-y-3 mb-6">
           <BiomarkersMetricRow biomarkers={biomarkers} biomarkersBySystem={biomarkersBySystem} isPopular={isPopular} />
           <MetricRow icon={<CalendarCheck className="w-4 h-4" />} label="Анализов" value={analyses} isPopular={isPopular} />
-          <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={`${consultations} в год`} isPopular={isPopular} />
+          <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={consultations} isPopular={isPopular} />
         </div>
 
         <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1 whitespace-pre-line">{description}</p>
