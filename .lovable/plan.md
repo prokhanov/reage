@@ -1,48 +1,39 @@
-## Причина 404
+## Что меняем
 
-В `deploy/nginx/default.conf` есть жёсткий whitelist SPA-маршрутов (требование Яндекса — несуществующие пути отдают 404, а не index.html). Маршрут `/verify-email` в коде React есть, но в nginx его забыли добавить — поэтому ссылка из письма попадает в `location /` → `return 404` → кастомная `404.html`. Это та же история, что была с `/subscription/success`.
+В диалоге `CallbackRequestDialog` добавляем переключатель **«На дому» / «В клинике»**. При выборе «В клинике» показываем встроенную карту лабораторий (тот же `LabLocationsMap`, что используется на лендинге и в админке) и пользователь выбирает клинику кликом на маркер → кнопка «Выбрать эту лабораторию» в попапе.
 
-## Что делаю
+## Куда падает заявка
 
-1. **Чиню корень проблемы — nginx**
-   В `deploy/nginx/default.conf` в блок «Whitelist SPA-маршрутов» добавляю строку:
-   ```nginx
-   location = /verify-email      { try_files /index.html =404; }
-   ```
-   Ставлю её рядом с `/reset-password`, чтобы группировка осталась логичной (auth-flow страницы).
+Запись пишется в таблицу `analysis_bookings` со статусом `waiting_call`. Её видят:
+- **Админка → «Заявки на анализы»** (`/admin/analysis-bookings`, страница `AnalysisBookings.tsx`)
+- **Админка → карточка пациента** (вкладка «Заявки», `PatientBookingsCard`)
+- **Telegram-уведомление** менеджеру (если включено в настройках уведомлений)
 
-2. **Страховка через root-link в письме**
-   В `supabase/functions/send-verification-email/index.ts` меняю формирование ссылки:
-   - сейчас: `${APP_URL}/verify-email?token=${tokenRow.token}`
-   - станет: `${APP_URL}/?verify_email_token=${tokenRow.token}`
-   Корень `/` уже в whitelist — 404 невозможен даже если nginx не передеплоят.
-
-3. **Обработчик токена на главной**
-   На странице `src/pages/Index.tsx` (или в общем listener-компоненте уровня App) при монтировании:
-   - читаю `verify_email_token` из `useSearchParams`;
-   - если есть — вызываю `supabase.functions.invoke("confirm-email-token", { body: { token } })`;
-   - показываю результат через тот же UI, что в `VerifyEmail.tsx` (Dialog/Toast с success/expired/already_used/not_found);
-   - чищу токен из адресной строки через `window.history.replaceState(null, "", "/")`, чтобы пользователь не таскал его дальше и не зашёрил случайно.
-
-4. **Совместимость со старыми письмами**
-   Маршрут `/verify-email` и страница `VerifyEmail.tsx` остаются на месте — старые письма с `?token=...` продолжат работать после деплоя nginx.
-
-5. **Деплой**
-   - Передеплоить `send-verification-email` (новый формат ссылки).
-   - nginx-конфиг применяется при пересборке/перезапуске прод-контейнера (Coolify) — это вне sandbox, я просто правлю файл в репозитории, владелец передеплоит инфру отдельно.
-
-## Проверка
-
-- Запросить новое письмо подтверждения.
-- Перейти по новой ссылке `https://reage.life/?verify_email_token=...` — должен открыться лендинг, токен исчезает из URL, появляется экран успеха.
-- Перейти по старой ссылке `https://reage.life/verify-email?token=...` (после передеплоя nginx) — открывается страница `VerifyEmail` с тем же результатом.
-- В БД: `profiles.email_verified = true`, `email_verification_tokens.used_at` заполнен.
+Сейчас в `analysis_bookings` нет полей для клиники, поэтому добавим их, чтобы менеджер сразу видел, куда едет пациент.
 
 ## Технические детали
 
-Файлы под изменение:
-- `deploy/nginx/default.conf` — +1 строка whitelist.
-- `supabase/functions/send-verification-email/index.ts` — заменить `verifyUrl`.
-- `src/pages/Index.tsx` (или новый `useEmailTokenFromQuery` hook, подключённый в `App.tsx` рядом с `EmailVerificationListener`) — обработка `verify_email_token`.
+1. **Миграция** — расширяем `analysis_bookings`:
+   - `location_type text not null default 'home'` — `'home' | 'clinic'`
+   - `lab_location_id uuid references lab_locations(id) on delete set null`
+   - индекс по `lab_location_id`
 
-Никаких изменений в DNS, домене, `test.reage.life` или схеме БД не требуется.
+2. **`CallbackRequestDialog.tsx`**:
+   - `ToggleGroup` с двумя вариантами: «На дому» / «В клинике» (state `locationType`)
+   - При `clinic`: рендерим `LabLocationsMap` (высота ~360px, контекст с `showSelectButton=true`), грузим `lab_locations` напрямую (как в `WhereToTestSection`), переключатель городов Москва/СПб
+   - Колбэк `onSelect(item)` сохраняет выбранную клинику в локальный state, показывает её карточкой над кнопками (название, метро, адрес) с возможностью «Сменить»
+   - Текст description меняется по выбранному варианту
+   - Кнопка «Подтвердить» неактивна при `clinic` без выбранной клиники
+   - При сохранении пишем `location_type`, `lab_location_id`, а в `address` — `full_address` клиники (для совместимости со старым UI админки)
+
+3. **Админка — `AnalysisBookings.tsx` и `PatientBookingsCard`**:
+   - В колонке/строке адреса показываем бейдж «🏠 На дому» или «🏥 Клиника: <название>» в зависимости от `location_type`
+   - В `EditBookingDialog` — readonly-отображение выбранной клиники (редактирование клиники из админки в этой итерации не делаем)
+
+4. **Типы Supabase** обновятся после миграции автоматически.
+
+## Что НЕ меняем
+
+- Логику слотов и существующий поток `AnalysisBookingDialog` — он остаётся как есть
+- RLS-политики `analysis_bookings` (новые колонки наследуют существующие правила)
+- Сам `LabLocationsMap` — используем как есть

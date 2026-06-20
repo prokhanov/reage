@@ -62,6 +62,8 @@ interface BookingData {
   status: BookingStatus;
   assigned_staff_id: string | null;
   created_at: string;
+  location_type?: "home" | "clinic" | null;
+  lab_location_id?: string | null;
   patient: {
     name: string;
     email: string;
@@ -448,7 +450,7 @@ export default function AnalysisBookings() {
                         </div>
                       </button>
                     </TableCell>
-                    <TableCell className="max-w-[200px]">
+                    <TableCell className="max-w-[220px]">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -459,9 +461,21 @@ export default function AnalysisBookings() {
                             address: booking.address
                           });
                         }}
-                        className="truncate border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer block max-w-full"
+                        className="text-left hover:text-primary transition-colors cursor-pointer block max-w-full"
                       >
-                        {booking.address}
+                        <Badge
+                          variant="outline"
+                          className={
+                            booking.location_type === "clinic"
+                              ? "bg-blue-50 text-blue-700 border-blue-200 mb-1"
+                              : "bg-emerald-50 text-emerald-700 border-emerald-200 mb-1"
+                          }
+                        >
+                          {booking.location_type === "clinic" ? "🏥 Клиника" : "🏠 На дому"}
+                        </Badge>
+                        <div className="truncate border-b border-dotted border-current">
+                          {booking.address || "—"}
+                        </div>
                       </button>
                     </TableCell>
                     <TableCell>
