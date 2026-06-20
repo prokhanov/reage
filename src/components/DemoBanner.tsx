@@ -40,7 +40,7 @@ export const DemoBanner = ({ onDismiss, onToggleDemoMode }: DemoBannerProps) => 
         <Sparkles className="h-4 w-4 text-primary" />
         <AlertDescription className="flex items-center justify-between gap-4">
           <span className="text-sm">
-            <strong>🎭 Демо-режим:</strong> вы видите примерные данные. Ваш врач добавит реальные анализы после их обработки.
+            <strong>Демо-режим:</strong> вы видите примерные данные. Ваш врач добавит реальные анализы после их обработки.
           </span>
           <div className="flex items-center gap-2 flex-shrink-0">
             {onToggleDemoMode && (
