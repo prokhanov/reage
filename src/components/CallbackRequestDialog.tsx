@@ -411,7 +411,8 @@ export function CallbackRequestDialog({
             disabled={
               loading ||
               !isPassportValid(passportSeries, passportNumber) ||
-              (locationType === "clinic" && !selectedLab)
+              (locationType === "clinic" && !selectedLab) ||
+              (locationType === "home" && !homeAddress.trim())
             }
           >
             {loading ? "Отправка..." : "Подтвердить"}
