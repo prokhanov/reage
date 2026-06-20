@@ -272,13 +272,15 @@ export function CallbackRequestDialog({
               placeholder="+7 (___) ___-__-__"
             />
           </div>
-          <PassportFields
-            series={passportSeries}
-            number={passportNumber}
-            onSeriesChange={setPassportSeries}
-            onNumberChange={setPassportNumber}
-            showIcon={false}
-          />
+          {!passportPrefilled && (
+            <PassportFields
+              series={passportSeries}
+              number={passportNumber}
+              onSeriesChange={setPassportSeries}
+              onNumberChange={setPassportNumber}
+              showIcon={false}
+            />
+          )}
 
           <div className="space-y-2">
             <Label>Где сдать анализы</Label>
