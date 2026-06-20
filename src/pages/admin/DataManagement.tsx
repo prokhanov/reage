@@ -1143,7 +1143,13 @@ export default function DataManagement() {
                       <SortableContext items={(medicalCategories || []).map(c => c.id)} strategy={verticalListSortingStrategy}>
                         {(medicalCategories || []).map((cat) => (
                           <SortableCategoryItem key={cat.id} id={cat.id}>
-                            <p className="font-medium">{cat.name}</p>
+                            <div className="flex items-center gap-2">
+                              {(() => {
+                                const CatIcon = getConditionCategoryIcon(cat.name);
+                                return <CatIcon className="h-5 w-5 text-primary" />;
+                              })()}
+                              <p className="font-medium">{stripEmoji(cat.name)}</p>
+                            </div>
                             <div className="flex gap-2">
                               <Button
                                 variant="ghost"
