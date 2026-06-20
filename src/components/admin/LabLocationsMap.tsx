@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -183,6 +183,12 @@ function ClusterLayer({
   onSelect?: (item: LabMapItem) => void;
 }) {
   const map = useMap();
+  const onSelectRef = useRef(onSelect);
+
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
+
   useEffect(() => {
     if (!items.length) return;
     const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
@@ -238,7 +244,7 @@ function ClusterLayer({
         popup.on("popupopen", (e) => {
           const node = (e as unknown as { popup: L.Popup }).popup.getElement();
           const btn = node?.querySelector<HTMLButtonElement>(`[data-lab-select="${it.id}"]`);
-          btn?.addEventListener("click", () => onSelect(it));
+          btn?.addEventListener("click", () => onSelectRef.current?.(it));
         });
       }
       cluster.addLayer(m);
@@ -248,7 +254,7 @@ function ClusterLayer({
     return () => {
       map.removeLayer(cluster);
     };
-  }, [items, map, showPartnerButton, showSelectButton, partnerButtonLabel, selectButtonLabel, onSelect]);
+  }, [items, map, showPartnerButton, showSelectButton, partnerButtonLabel, selectButtonLabel]);
   return null;
 }
 
