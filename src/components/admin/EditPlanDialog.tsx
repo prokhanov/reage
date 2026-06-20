@@ -29,6 +29,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
   const [badgeColor, setBadgeColor] = useState("");
   const [displayOrder, setDisplayOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
+  const [highlights, setHighlights] = useState<PlanHighlight[]>([]);
 
   const { updatePlan } = usePlans();
   const { includedBiomarkers, updateBiomarkers } = usePlanBiomarkers(plan?.id);
