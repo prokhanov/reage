@@ -65,6 +65,10 @@ export function CreatePlanDialog() {
     setBadgeColor("");
     setDisplayOrder(0);
     setSelectedBiomarkers([]);
+    setHighlights([
+      { label: "Сдач анализов в год", value: "" },
+      { label: "Консультации врача", value: "" },
+    ]);
   };
 
   const addFeature = () => {
