@@ -1,12 +1,14 @@
 import { Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BiomarkerComparisonDialog } from "./BiomarkerComparisonDialog";
 import { useSubscriptionPlans, type PlanWithPricing } from "@/hooks/useSubscriptionPlans";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRegisterGuard } from "@/components/RegisterGuard";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Helper to wrap raw SVG paths into a Lucide-compatible icon
 const makeIcon = (paths: React.ReactNode): LucideIcon =>
@@ -46,6 +48,17 @@ interface BiomarkerCategory {
   icon: LucideIcon;
   name: string;
   markers: string[];
+}
+
+// Иконка по названию категории (по ключевому слову). Если ничего не подошло — Droplet.
+function iconForCategory(name: string): LucideIcon {
+  const l = name.toLowerCase();
+  if (l.includes("энерг")) return Zap;
+  if (l.includes("сердеч") || l.includes("сосуд")) return Heart;
+  if (l.includes("воспал") || l.includes("иммун")) return Shield;
+  if (l.includes("эндокрин") || l.includes("гормон") || l.includes("стресс")) return HormoneMoleculeIcon;
+  if (l.includes("метаб") || l.includes("детокс")) return RefreshCw;
+  return Droplet;
 }
 
 interface PricingCardProps {
@@ -117,39 +130,42 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
 }
 
 function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: {biomarkers: string;biomarkersBySystem: BiomarkerCategory[];isPopular?: boolean;}) {
+  const hasData = biomarkersBySystem.length > 0;
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30 hover:border-primary/40 hover:bg-muted/80 transition-colors cursor-pointer text-left">
+        <button className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30 hover:border-primary/40 hover:bg-muted/80 transition-colors cursor-pointer text-left" disabled={!hasData}>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FlaskConical className="w-4 h-4" />
             <span>Биомаркеров</span>
           </div>
           <div className="flex items-center gap-1">
             <span className={`text-sm font-bold ${isPopular ? "text-primary" : "text-foreground"}`}>{biomarkers}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            {hasData && <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
           </div>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="center">
-        <h4 className="text-sm font-semibold text-foreground mb-3">Биомаркеры по системам</h4>
-        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-          {biomarkersBySystem.map((cat, i) =>
-          <div key={i}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <cat.icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
-                <span className="text-xs font-semibold text-foreground">{cat.name}</span>
-                <span className="text-xs text-muted-foreground">({cat.markers.length})</span>
+      {hasData && (
+        <PopoverContent className="w-80 p-4" align="center">
+          <h4 className="text-sm font-semibold text-foreground mb-3">Биомаркеры по системам</h4>
+          <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+            {biomarkersBySystem.map((cat, i) =>
+            <div key={i}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <cat.icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
+                  <span className="text-xs font-semibold text-foreground">{cat.name}</span>
+                  <span className="text-xs text-muted-foreground">({cat.markers.length})</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {cat.markers.map((m, j) =>
+                <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
+                )}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1">
-                {cat.markers.map((m, j) =>
-              <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
-              )}
-              </div>
-            </div>
-          )}
-        </div>
-      </PopoverContent>
+            )}
+          </div>
+        </PopoverContent>
+      )}
     </Popover>);
 
 }
@@ -166,67 +182,12 @@ function MetricRow({ icon, label, value, isPopular }: {icon: React.ReactNode;lab
 
 }
 
-// Источник синхронизирован с BiomarkerComparisonDialog (тарифная таблица ReAge).
-const ENERGY_BASIC = ["Глюкоза", "HbA1c", "Инсулин", "HOMA-IR", "ЛДГ", "Альбумин", "Магний", "КФК"];
-const ENERGY_PLUS_ADD = ["Витамин B12", "Фолиевая кислота (B9)", "Цинк", "Селен"];
-const ENERGY_EXPERT_ADD = ["Лактат", "Коэнзим Q10", "MDA", "Общий антиоксидантный статус", "Индекс MDA/OAS"];
-
-const CV_BASIC = ["Общий холестерин", "ЛПВП", "ЛПНП", "Триглицериды", "ЛПОНП", "не-HDL холестерин", "Индекс атерогенности", "Ферритин", "Фибриноген"];
-const CV_PLUS_ADD = ["ApoA1", "ApoB", "ApoB/ApoA1", "Гомоцистеин", "Lp(a)", "Железо", "Медь", "ПТИ", "МНО", "АЧТВ"];
-const CV_EXPERT_ADD = ["hs-Troponin I", "NT-proBNP"];
-
-const INFL_BASIC = ["Эритроциты", "Гемоглобин", "Гематокрит", "MCV", "MCH", "MCHC", "RDW", "Тромбоциты", "Лейкоциты", "Нейтрофилы", "Лимфоциты", "Моноциты", "Эозинофилы", "Базофилы", "СОЭ", "hs-CRP"];
-const INFL_PLUS_ADD = ["IgM", "IgG"];
-const INFL_EXPERT_ADD = ["IL-6", "TNF-α"];
-
-const ENDO_BASIC = ["ТТГ", "Т4 свободный", "25-ОН витамин D"];
-const ENDO_PLUS_ADD = ["Т3 свободный", "Тестостерон общий", "SHBG", "Кортизол", "DHEA-S"];
-const ENDO_EXPERT_ADD = ["IGF-1"];
-
-const DETOX_BASIC = ["АЛТ", "АСТ", "ГГТ", "Билирубин", "Щелочная фосфатаза", "Общий белок", "Креатинин", "eGFR", "Мочевина", "Натрий", "Калий", "Хлор", "Кальций", "Общий анализ мочи", "Мочевая кислота", "Альбумин/креатинин мочи"];
-const DETOX_PLUS_ADD = ["Трансферрин", "Насыщение трансферрина"];
-
-const standardBiomarkers: BiomarkerCategory[] = [
-  { icon: Zap, name: "Энергия и восстановление", markers: ENERGY_BASIC },
-  { icon: Heart, name: "Сердечно-сосудистая система", markers: CV_BASIC },
-  { icon: Shield, name: "Воспалительная и иммунная система", markers: INFL_BASIC },
-  { icon: HormoneMoleculeIcon, name: "Эндокринная и стрессовая система", markers: ENDO_BASIC },
-  { icon: RefreshCw, name: "Метаболизм и детоксикация", markers: DETOX_BASIC },
-];
-
-const plusBiomarkers: BiomarkerCategory[] = [
-  { icon: Zap, name: "Энергия и восстановление", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD] },
-  { icon: Heart, name: "Сердечно-сосудистая система", markers: [...CV_BASIC, ...CV_PLUS_ADD] },
-  { icon: Shield, name: "Воспалительная и иммунная система", markers: [...INFL_BASIC, ...INFL_PLUS_ADD] },
-  { icon: HormoneMoleculeIcon, name: "Эндокринная и стрессовая система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD] },
-  { icon: RefreshCw, name: "Метаболизм и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
-];
-
-const premiumBiomarkers: BiomarkerCategory[] = [
-  { icon: Zap, name: "Энергия и восстановление", markers: [...ENERGY_BASIC, ...ENERGY_PLUS_ADD, ...ENERGY_EXPERT_ADD] },
-  { icon: Heart, name: "Сердечно-сосудистая система", markers: [...CV_BASIC, ...CV_PLUS_ADD, ...CV_EXPERT_ADD] },
-  { icon: Shield, name: "Воспалительная и иммунная система", markers: [...INFL_BASIC, ...INFL_PLUS_ADD, ...INFL_EXPERT_ADD] },
-  { icon: HormoneMoleculeIcon, name: "Эндокринная и стрессовая система", markers: [...ENDO_BASIC, ...ENDO_PLUS_ADD, ...ENDO_EXPERT_ADD] },
-  { icon: RefreshCw, name: "Метаболизм и детоксикация", markers: [...DETOX_BASIC, ...DETOX_PLUS_ADD] },
-];
-
-const totalCount = (cats: BiomarkerCategory[]) => cats.reduce((s, c) => s + c.markers.length, 0);
-
-// Маппинг slug плана (subscription_plans.name) -> локальный список биомаркеров по системам.
-// Это «визуальный» разрез для popover. Сам факт включения биомаркеров и их количество
-// идут из БД (plan_biomarkers / features), но детализацию по системам мы храним здесь,
-// потому что в БД нет группировки «по системам» в человекочитаемом виде.
-const biomarkersByPlanSlug: Record<string, BiomarkerCategory[]> = {
-  basic: standardBiomarkers,
-  plus: plusBiomarkers,
-  expert: premiumBiomarkers,
-};
-
 const glowByPlanSlug: Record<string, string> = {
   basic: "linear-gradient(135deg, hsl(175, 70%, 55%), hsl(165, 65%, 50%))",
   plus: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))",
   expert: "linear-gradient(135deg, hsl(210, 75%, 60%), hsl(220, 70%, 55%))",
 };
+const defaultGlow = "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))";
 
 // Парсим количество из строк features вида «3 анализа в год», «4 консультации в год».
 function extractCount(features: string[], keywords: string[]): string | null {
@@ -240,7 +201,19 @@ function extractCount(features: string[], keywords: string[]): string | null {
   return null;
 }
 
-function planToCard(plan: PlanWithPricing, index: number) {
+interface BiomarkerRow {
+  id: string;
+  name: string;
+  category: string;
+  display_order: number;
+}
+
+function planToCard(
+  plan: PlanWithPricing,
+  index: number,
+  allBiomarkers: BiomarkerRow[],
+  categoryOrder: Map<string, number>
+) {
   // Берём годовую цену — это базовая публичная цена.
   const annual = plan.pricing.find((p) => p.period === "annual" && p.is_enabled !== false);
   const pricing = annual ?? plan.pricing.find((p) => p.is_enabled !== false) ?? plan.pricing[0];
@@ -253,10 +226,31 @@ function planToCard(plan: PlanWithPricing, index: number) {
     : "год";
 
   const slug = (plan.name || "").toLowerCase();
-  const biomarkersBySystem = biomarkersByPlanSlug[slug] ?? standardBiomarkers;
-  const biomarkersCount = plan.included_biomarkers && plan.included_biomarkers.length > 0
-    ? plan.included_biomarkers.length
-    : totalCount(biomarkersBySystem);
+
+  // Только реальные данные из БД — никакого хардкода.
+  const includedIds = new Set(plan.included_biomarkers ?? []);
+  const planBiomarkers = allBiomarkers.filter((b) => includedIds.has(b.id));
+  const biomarkersCount = planBiomarkers.length;
+
+  // Группируем по категориям.
+  const byCategory = new Map<string, BiomarkerRow[]>();
+  planBiomarkers.forEach((b) => {
+    const arr = byCategory.get(b.category) ?? [];
+    arr.push(b);
+    byCategory.set(b.category, arr);
+  });
+  const biomarkersBySystem: BiomarkerCategory[] = Array.from(byCategory.entries())
+    .map(([name, rows]) => ({
+      icon: iconForCategory(name),
+      name,
+      markers: rows
+        .sort((a, b) => a.display_order - b.display_order)
+        .map((r) => r.name),
+    }))
+    .sort(
+      (a, b) =>
+        (categoryOrder.get(a.name) ?? 999) - (categoryOrder.get(b.name) ?? 999)
+    );
 
   // Сначала пытаемся взять значения из comparison_highlights (управляется в админке),
   // затем — из текстовых features, затем — fallback.
@@ -287,9 +281,8 @@ function planToCard(plan: PlanWithPricing, index: number) {
     biomarkers: String(biomarkersCount),
     analyses,
     consultations,
-
     biomarkersBySystem,
-    glowColor: glowByPlanSlug[slug] ?? glowByPlanSlug.basic,
+    glowColor: glowByPlanSlug[slug] ?? defaultGlow,
     delay: 0.1 + index * 0.1,
   };
 }
@@ -300,7 +293,31 @@ export function PricingSection() {
   const { requestRegister } = useRegisterGuard();
   const { data: plans, isLoading } = useSubscriptionPlans();
 
-  const cards = (plans ?? []).map((p, i) => planToCard(p, i));
+  // Тянем все биомаркеры и категории из БД, чтобы строить popover «Биомаркеры по системам».
+  const { data: biomarkersData } = useQuery({
+    queryKey: ["pricing-biomarkers"],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const [bRes, cRes] = await Promise.all([
+        supabase.from("biomarkers").select("id, name, category, display_order").order("display_order"),
+        supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
+      ]);
+      if (bRes.error) throw bRes.error;
+      if (cRes.error) throw cRes.error;
+      const categoryOrder = new Map<string, number>();
+      (cRes.data ?? []).forEach((c) => categoryOrder.set(c.name, c.display_order));
+      return {
+        biomarkers: (bRes.data ?? []) as BiomarkerRow[],
+        categoryOrder,
+      };
+    },
+  });
+
+  const cards = useMemo(() => {
+    const all = biomarkersData?.biomarkers ?? [];
+    const order = biomarkersData?.categoryOrder ?? new Map<string, number>();
+    return (plans ?? []).map((p, i) => planToCard(p, i, all, order));
+  }, [plans, biomarkersData]);
 
 
   return (
