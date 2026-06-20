@@ -11,7 +11,8 @@ import {
   Img,
   Preview,
   Text,
-, Hr } from 'npm:@react-email/components@0.0.22'
+  Hr,
+} from 'npm:@react-email/components@0.0.22'
 
 interface ReauthenticationEmailProps {
   token: string
