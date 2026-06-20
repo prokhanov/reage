@@ -34,7 +34,8 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
   reauthentication: ReauthenticationEmail,
 }
 
-const SITE_NAME = 'reage'
+const SITE_NAME = 'ReAge'
+const DEFAULT_SIGNATURE = 'ReAge, reage.life\nООО «РеЭйдж», Москва'
 const SENDER_DOMAIN = 'notify.reage.life'
 const ROOT_DOMAIN = 'reage.life'
 const FROM_DOMAIN = 'notify.reage.life'
