@@ -249,7 +249,13 @@ export default function HealthStrategy() {
               <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
             </div>
 
-            {/* 3. Активная карта действий — на всю ширину */}
+            {/* 3. Рейтинг систем организма */}
+            <SystemRatingsCard
+              categoryScores={currentScores}
+              analyses={allAnalyses}
+            />
+
+            {/* 4. Активная карта действий — на всю ширину */}
             <ActionMap
               actions={(snapshot.action_map as any[]) || []}
               systems={categories}
