@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { getCategoryKey } from "@/lib/categoryKeyMap";
+import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface PromptFormData {
@@ -548,7 +549,7 @@ export default function AISettings() {
                   <AccordionItem value="global_biomarkers" className="border rounded-lg">
                     <AccordionTrigger className="px-6 hover:no-underline">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">🔬</span>
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><FlaskConical className="h-5 w-5 text-primary" /></div>
                         <div className="text-left">
                           <div className="font-semibold">Контекст биомаркеров</div>
                           <div className="text-sm text-muted-foreground">Инструкции для AI при работе с полным списком маркеров (кросс-ссылки, запрет противоречий)</div>
@@ -598,7 +599,14 @@ export default function AISettings() {
                 >
                   <AccordionTrigger className="px-6 hover:no-underline">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{(cp.category as any).emoji || '📊'}</span>
+                      {(() => {
+                        const CatIcon = getBiomarkerCategoryIcon(cp.category.name);
+                        return (
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <CatIcon className="h-5 w-5 text-primary" />
+                          </div>
+                        );
+                      })()}
                       <div className="text-left">
                         <div className="font-semibold">{cp.category.name}</div>
                         <div className="text-sm text-muted-foreground">
