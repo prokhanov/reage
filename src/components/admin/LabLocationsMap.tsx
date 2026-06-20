@@ -300,6 +300,7 @@ export default function LabLocationsMap({
   onFiltersChange,
   showPartnerButton = true,
   showSelectButton = false,
+  clusterMarkers = !showSelectButton,
   partnerButtonLabel = "Открыть на сайте провайдера ↗",
   selectButtonLabel = "Выбрать эту лабораторию",
   onSelect,
@@ -317,6 +318,7 @@ export default function LabLocationsMap({
   onFiltersChange?: (f: TileFilters) => void;
   showPartnerButton?: boolean;
   showSelectButton?: boolean;
+  clusterMarkers?: boolean;
   partnerButtonLabel?: string;
   selectButtonLabel?: string;
   onSelect?: (item: LabMapItem) => void;
@@ -541,6 +543,7 @@ export default function LabLocationsMap({
             items={items}
             showPartnerButton={showPartnerButton}
             showSelectButton={showSelectButton}
+            clusterMarkers={clusterMarkers}
             partnerButtonLabel={partnerButtonLabel}
             selectButtonLabel={selectButtonLabel}
             onSelect={onSelect}
