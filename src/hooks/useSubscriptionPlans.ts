@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface PlanHighlight {
+  label: string;
+  value: string;
+}
+
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -11,6 +16,7 @@ export interface SubscriptionPlan {
   display_order: number;
   badge_text: string | null;
   badge_color: string | null;
+  comparison_highlights: PlanHighlight[];
   created_at: string;
   updated_at: string;
   included_biomarkers?: string[];
