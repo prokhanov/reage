@@ -112,6 +112,8 @@ export type Database = {
           booking_time: string
           created_at: string
           id: string
+          lab_location_id: string | null
+          location_type: string
           next_analysis_date: string | null
           slot_id: string | null
           status: string
@@ -125,6 +127,8 @@ export type Database = {
           booking_time: string
           created_at?: string
           id?: string
+          lab_location_id?: string | null
+          location_type?: string
           next_analysis_date?: string | null
           slot_id?: string | null
           status?: string
@@ -138,6 +142,8 @@ export type Database = {
           booking_time?: string
           created_at?: string
           id?: string
+          lab_location_id?: string | null
+          location_type?: string
           next_analysis_date?: string | null
           slot_id?: string | null
           status?: string
@@ -150,6 +156,13 @@ export type Database = {
             columns: ["assigned_staff_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analysis_bookings_lab_location_id_fkey"
+            columns: ["lab_location_id"]
+            isOneToOne: false
+            referencedRelation: "lab_locations"
             referencedColumns: ["id"]
           },
           {
