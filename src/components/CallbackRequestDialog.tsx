@@ -34,10 +34,17 @@ interface CallbackRequestDialogProps {
 
 type LocationType = "home" | "clinic";
 type CityKey = "moscow" | "spb";
+type HomeCityKey = "moscow" | "mo" | "spb";
 
 const CITIES: { key: CityKey; label: string; center: [number, number]; zoom: number }[] = [
   { key: "moscow", label: "Москва и область", center: [55.7558, 37.6173], zoom: 10 },
   { key: "spb", label: "Санкт-Петербург", center: [59.9343, 30.3351], zoom: 11 },
+];
+
+const HOME_CITIES: { key: HomeCityKey; label: string }[] = [
+  { key: "moscow", label: "Москва" },
+  { key: "mo", label: "Московская область" },
+  { key: "spb", label: "Санкт-Петербург" },
 ];
 
 const isSpb = (city: string | null) =>
