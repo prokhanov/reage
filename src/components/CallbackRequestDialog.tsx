@@ -75,6 +75,8 @@ export function CallbackRequestDialog({
   const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
+  const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
+  const [homeAddress, setHomeAddress] = useState("");
   const [city, setCity] = useState<CityKey>("moscow");
   const [labs, setLabs] = useState<LabMapItem[]>([]);
   const [labsLoading, setLabsLoading] = useState(false);
