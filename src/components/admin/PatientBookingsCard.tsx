@@ -353,12 +353,24 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                             </div>
                           </button>
                         </TableCell>
-                        <TableCell className="max-w-[220px]">
+                        <TableCell className="max-w-[240px]">
                           <button
                             onClick={() => setEditing(b)}
-                            className="truncate border-b border-dotted border-current hover:text-primary block max-w-full text-left"
+                            className="block max-w-full text-left hover:text-primary"
                           >
-                            {b.address || "—"}
+                            <Badge
+                              variant="outline"
+                              className={
+                                b.location_type === "clinic"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200 mb-1"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200 mb-1"
+                              }
+                            >
+                              {b.location_type === "clinic" ? "🏥 Клиника" : "🏠 На дому"}
+                            </Badge>
+                            <div className="truncate border-b border-dotted border-current">
+                              {b.address || "—"}
+                            </div>
                           </button>
                         </TableCell>
                         <TableCell>
