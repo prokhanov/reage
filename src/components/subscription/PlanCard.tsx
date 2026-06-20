@@ -95,7 +95,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
           
           {pricing.duration_months > 1 && (
             <div className="text-xs text-muted-foreground pt-1">
-              {monthlyEquivalent.toLocaleString('ru-RU')} ₽/месяц
+              или {monthlyEquivalent.toLocaleString('ru-RU')} ₽/месяц
             </div>
           )}
 
