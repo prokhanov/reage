@@ -239,12 +239,18 @@ All colors MUST be HSL.
   border: none !important;
   width: 28px !important;
   height: 36px !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+  transform-style: flat !important;
+  backface-visibility: visible !important;
 }
 .lab-map-marker img {
   width: 28px !important;
   height: 36px !important;
   display: block !important;
   max-width: none !important;
+  opacity: 1 !important;
+  pointer-events: none;
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
@@ -366,6 +372,8 @@ All colors MUST be HSL.
 .lab-cluster {
   background: transparent !important;
   border: none !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
 }
 .lab-cluster .lab-cluster-inner {
   width: 100%;
