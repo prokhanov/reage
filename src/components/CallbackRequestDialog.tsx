@@ -235,14 +235,17 @@ export function CallbackRequestDialog({
         updated_at: new Date().toISOString(),
       };
 
+      console.log("[CallbackRequest] submit", { existingBookingId, patch });
       if (existingBookingId) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("analysis_bookings")
           .update(patch)
-          .eq("id", existingBookingId);
+          .eq("id", existingBookingId)
+          .select("id,status,address,location_type,lab_location_id,updated_at");
+        console.log("[CallbackRequest] update result", { data, error });
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("analysis_bookings").insert({
+        const { data, error } = await supabase.from("analysis_bookings").insert({
           user_id: userId,
           status: "waiting_call",
           booking_date: new Date().toISOString().slice(0, 10),
@@ -250,7 +253,8 @@ export function CallbackRequestDialog({
           address: addressValue,
           location_type: locationType,
           lab_location_id: locationType === "clinic" ? selectedLab?.id ?? null : null,
-        } as any);
+        } as any).select("id,status,address,location_type,lab_location_id,created_at");
+        console.log("[CallbackRequest] insert result", { data, error });
         if (error) throw error;
       }
 
