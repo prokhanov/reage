@@ -330,6 +330,8 @@ export default function LabLocationsMap({
   clusterMarkers?: boolean;
   partnerButtonLabel?: string;
   selectButtonLabel?: string;
+  selectedSelectButtonLabel?: string;
+  selectedId?: string | null;
   onSelect?: (item: LabMapItem) => void;
   hideControls?: boolean;
   hideAttribution?: boolean;
