@@ -12,6 +12,7 @@ import { usePlans } from "@/hooks/usePlans";
 import { usePlanBiomarkers } from "@/hooks/usePlanBiomarkers";
 import { SubscriptionPlan } from "@/hooks/useSubscriptionPlans";
 import { BiomarkerSelector } from "./BiomarkerSelector";
+import { PlanHighlightsEditor, PlanHighlight } from "./PlanHighlightsEditor";
 
 interface EditPlanDialogProps {
   plan: SubscriptionPlan | null;
