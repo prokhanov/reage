@@ -433,6 +433,7 @@ export default function Patients() {
                       <TableHead>Подписка</TableHead>
                       <TableHead>Тариф</TableHead>
                       <TableHead>Статус анализа</TableHead>
+                      <TableHead>Тип</TableHead>
                       <TableHead className="text-center">Анализов</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
