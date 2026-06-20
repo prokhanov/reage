@@ -156,7 +156,19 @@ export const CALCULATED_FORMULAS: CalculatedFormula[] = [
     },
     precision: 0,
   },
+  // Насыщение трансферрина (TSAT, %) = Fe (мкмоль/л) / (TRANSF (г/л) × 25.1) × 100
+  // 25.1 — коэффициент связывания: 1 г/л трансферрина связывает ~25.1 мкмоль Fe.
+  {
+    outputCode: "TSAT",
+    requiredInputs: ["Fe", "TRANSF"],
+    compute: ({ Fe, TRANSF }) => {
+      if (TRANSF <= 0) return null;
+      return (Fe / (TRANSF * 25.1)) * 100;
+    },
+    precision: 1,
+  },
 ];
+
 
 /**
  * Список кодов всех расчётных биомаркеров — удобно для UI (read-only поля).
