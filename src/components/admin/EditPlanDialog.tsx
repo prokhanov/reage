@@ -67,6 +67,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
       badge_color: badgeColor || undefined,
       display_order: displayOrder,
       is_active: isActive,
+      comparison_highlights: highlights.filter(h => h.label.trim() !== ""),
     });
 
     // Обновить биомаркеры
