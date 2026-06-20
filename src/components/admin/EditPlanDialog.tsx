@@ -12,6 +12,7 @@ import { usePlans } from "@/hooks/usePlans";
 import { usePlanBiomarkers } from "@/hooks/usePlanBiomarkers";
 import { SubscriptionPlan } from "@/hooks/useSubscriptionPlans";
 import { BiomarkerSelector } from "./BiomarkerSelector";
+import { PlanHighlightsEditor, PlanHighlight } from "./PlanHighlightsEditor";
 
 interface EditPlanDialogProps {
   plan: SubscriptionPlan | null;
@@ -28,6 +29,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
   const [badgeColor, setBadgeColor] = useState("");
   const [displayOrder, setDisplayOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
+  const [highlights, setHighlights] = useState<PlanHighlight[]>([]);
 
   const { updatePlan } = usePlans();
   const { includedBiomarkers, updateBiomarkers } = usePlanBiomarkers(plan?.id);
@@ -43,6 +45,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
       setBadgeColor(plan.badge_color || "");
       setDisplayOrder(plan.display_order);
       setIsActive(plan.is_active);
+      setHighlights(plan.comparison_highlights ?? []);
     }
   }, [plan]);
 
@@ -64,6 +67,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
       badge_color: badgeColor || undefined,
       display_order: displayOrder,
       is_active: isActive,
+      comparison_highlights: highlights.filter(h => h.label.trim() !== ""),
     });
 
     // Обновить биомаркеры
@@ -170,6 +174,10 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
               </div>
             ))}
           </div>
+
+          <PlanHighlightsEditor highlights={highlights} onChange={setHighlights} />
+
+
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">

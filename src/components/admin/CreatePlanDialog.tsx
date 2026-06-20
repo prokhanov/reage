@@ -10,6 +10,7 @@ import { Plus, X } from "lucide-react";
 import { usePlans } from "@/hooks/usePlans";
 import { usePlanBiomarkers } from "@/hooks/usePlanBiomarkers";
 import { BiomarkerSelector } from "./BiomarkerSelector";
+import { PlanHighlightsEditor, PlanHighlight } from "./PlanHighlightsEditor";
 
 export function CreatePlanDialog() {
   const [open, setOpen] = useState(false);
@@ -21,6 +22,10 @@ export function CreatePlanDialog() {
   const [badgeColor, setBadgeColor] = useState("");
   const [displayOrder, setDisplayOrder] = useState(0);
   const [selectedBiomarkers, setSelectedBiomarkers] = useState<string[]>([]);
+  const [highlights, setHighlights] = useState<PlanHighlight[]>([
+    { label: "Сдач анализов в год", value: "" },
+    { label: "Консультации врача", value: "" },
+  ]);
 
   const { createPlan } = usePlans();
   const { updateBiomarkers } = usePlanBiomarkers();
@@ -36,6 +41,7 @@ export function CreatePlanDialog() {
       badge_text: badgeText || undefined,
       badge_color: badgeColor || undefined,
       display_order: displayOrder,
+      comparison_highlights: highlights.filter(h => h.label.trim() !== ""),
     });
 
     // Сохранить биомаркеры
@@ -59,6 +65,10 @@ export function CreatePlanDialog() {
     setBadgeColor("");
     setDisplayOrder(0);
     setSelectedBiomarkers([]);
+    setHighlights([
+      { label: "Сдач анализов в год", value: "" },
+      { label: "Консультации врача", value: "" },
+    ]);
   };
 
   const addFeature = () => {
@@ -156,6 +166,10 @@ export function CreatePlanDialog() {
               </div>
             ))}
           </div>
+
+          <PlanHighlightsEditor highlights={highlights} onChange={setHighlights} />
+
+
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">

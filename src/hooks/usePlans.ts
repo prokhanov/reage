@@ -10,6 +10,7 @@ interface CreatePlanInput {
   badge_text?: string;
   badge_color?: string;
   display_order: number;
+  comparison_highlights?: { label: string; value: string }[];
 }
 
 interface UpdatePlanInput extends CreatePlanInput {
