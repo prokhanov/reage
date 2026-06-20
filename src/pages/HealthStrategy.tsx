@@ -48,6 +48,7 @@ export default function HealthStrategy() {
   const [hasAnalyses, setHasAnalyses] = useState(false);
   const [riskZone, setRiskZone] = useState<any>(null);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
 
   const canForceRefresh = isSuperAdmin || isViewMode;
 
