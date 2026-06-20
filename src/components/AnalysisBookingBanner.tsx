@@ -239,23 +239,23 @@ export function AnalysisBookingBanner() {
         existingBookingId={bookingInfo?.id ?? null}
         onSuccess={checkBookingStatus}
       />
-      <div className="bg-gradient-primary text-white shadow-neon-primary animate-fade-in">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 shrink-0">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <p className="font-medium text-sm sm:text-base">{text.title}</p>
-                <p className="text-xs sm:text-sm text-white/90">{subtitle}</p>
-              </div>
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 animate-fade-in">
+        <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3 flex-1">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
+              <Icon className="h-5 w-5 text-primary" />
             </div>
+            <div className="space-y-1">
+              <p className="font-medium text-sm sm:text-base text-foreground">{text.title}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{subtitle}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             {showButton && (
               <Button
                 onClick={handleSchedule}
                 size="sm"
-                className="bg-white text-primary hover:bg-white/90 shadow-lg"
+                className="bg-gradient-primary shadow-neon-primary text-white"
               >
                 {buttonLabel}
               </Button>
@@ -264,7 +264,7 @@ export function AnalysisBookingBanner() {
               onClick={handleDismiss}
               size="icon"
               variant="ghost"
-              className="text-white hover:bg-white/20 h-8 w-8 shrink-0"
+              className="text-muted-foreground hover:bg-primary/10 h-8 w-8"
               aria-label="Закрыть напоминание"
             >
               <X className="h-4 w-4" />
