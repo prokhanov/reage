@@ -12,6 +12,13 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Phone, Home, Building2, MapPin, Check, X } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -27,10 +34,17 @@ interface CallbackRequestDialogProps {
 
 type LocationType = "home" | "clinic";
 type CityKey = "moscow" | "spb";
+type HomeCityKey = "moscow" | "mo" | "spb";
 
 const CITIES: { key: CityKey; label: string; center: [number, number]; zoom: number }[] = [
   { key: "moscow", label: "Москва и область", center: [55.7558, 37.6173], zoom: 10 },
   { key: "spb", label: "Санкт-Петербург", center: [59.9343, 30.3351], zoom: 11 },
+];
+
+const HOME_CITIES: { key: HomeCityKey; label: string }[] = [
+  { key: "moscow", label: "Москва" },
+  { key: "mo", label: "Московская область" },
+  { key: "spb", label: "Санкт-Петербург" },
 ];
 
 const isSpb = (city: string | null) =>
@@ -61,6 +75,8 @@ export function CallbackRequestDialog({
   const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
+  const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
+  const [homeAddress, setHomeAddress] = useState("");
   const [city, setCity] = useState<CityKey>("moscow");
   const [labs, setLabs] = useState<LabMapItem[]>([]);
   const [labsLoading, setLabsLoading] = useState(false);
@@ -111,6 +127,8 @@ export function CallbackRequestDialog({
     setLocationType("home");
     setSelectedLab(null);
     setCity("moscow");
+    setHomeCity("moscow");
+    setHomeAddress("");
   };
 
   const handleSubmit = async () => {
@@ -139,6 +157,14 @@ export function CallbackRequestDialog({
       });
       return;
     }
+    if (locationType === "home" && !homeAddress.trim()) {
+      toast({
+        title: "Укажите адрес",
+        description: "Введите адрес, куда приехать медсестре",
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading(true);
     try {
       const userId = await getUserId();
@@ -153,12 +179,13 @@ export function CallbackRequestDialog({
         } as any)
         .eq("id", userId);
 
+      const homeCityLabel = HOME_CITIES.find((c) => c.key === homeCity)?.label ?? "";
       const addressValue =
         locationType === "clinic" && selectedLab
           ? [selectedLab.title, selectedLab.full_address ?? selectedLab.address_short ?? ""]
               .filter(Boolean)
               .join(" — ")
-          : "";
+          : [homeCityLabel, homeAddress.trim()].filter(Boolean).join(", ");
 
       const patch: Record<string, any> = {
         status: "waiting_call",
@@ -231,6 +258,25 @@ export function CallbackRequestDialog({
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
+            <Label htmlFor="callback-phone-input">Ваш телефон</Label>
+            <Input
+              id="callback-phone-input"
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              placeholder="+7 (___) ___-__-__"
+            />
+          </div>
+          <PassportFields
+            series={passportSeries}
+            number={passportNumber}
+            onSeriesChange={setPassportSeries}
+            onNumberChange={setPassportNumber}
+            showIcon={false}
+          />
+
+          <div className="space-y-2">
             <Label>Где сдать анализы</Label>
             <ToggleGroup
               type="single"
@@ -249,24 +295,35 @@ export function CallbackRequestDialog({
             </ToggleGroup>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="callback-phone-input">Ваш телефон</Label>
-            <Input
-              id="callback-phone-input"
-              type="tel"
-              inputMode="tel"
-              value={phone}
-              onChange={(e) => setPhone(formatPhone(e.target.value))}
-              placeholder="+7 (___) ___-__-__"
-            />
-          </div>
-          <PassportFields
-            series={passportSeries}
-            number={passportNumber}
-            onSeriesChange={setPassportSeries}
-            onNumberChange={setPassportNumber}
-            showIcon={false}
-          />
+          {locationType === "home" && (
+            <div className="grid grid-cols-1 sm:grid-cols-[180px,1fr] gap-3">
+              <div className="space-y-2">
+                <Label>Город</Label>
+                <Select value={homeCity} onValueChange={(v) => setHomeCity(v as HomeCityKey)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HOME_CITIES.map((c) => (
+                      <SelectItem key={c.key} value={c.key}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="callback-home-address">Адрес</Label>
+                <Input
+                  id="callback-home-address"
+                  value={homeAddress}
+                  onChange={(e) => setHomeAddress(e.target.value)}
+                  placeholder="Улица, дом, квартира"
+                />
+              </div>
+            </div>
+          )}
+
 
           {locationType === "clinic" && (
             <div className="space-y-2">
@@ -354,7 +411,8 @@ export function CallbackRequestDialog({
             disabled={
               loading ||
               !isPassportValid(passportSeries, passportNumber) ||
-              (locationType === "clinic" && !selectedLab)
+              (locationType === "clinic" && !selectedLab) ||
+              (locationType === "home" && !homeAddress.trim())
             }
           >
             {loading ? "Отправка..." : "Подтвердить"}
