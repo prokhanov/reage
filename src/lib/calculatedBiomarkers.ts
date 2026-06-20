@@ -128,6 +128,28 @@ export const CALCULATED_FORMULAS: CalculatedFormula[] = [
     compute: ({ HGB, HCT }) => {
       if (HCT <= 0) return null;
       return (HGB / HCT) * 10;
+  // eGFR по формуле CKD-EPI 2021 (race-free).
+  // Креатинин в проекте хранится в мкмоль/л → переводим в мг/дл делением на 88.4.
+  // Scr_mgdl = CREA / 88.4
+  // κ = 0.7 (жен.), 0.9 (муж.); α = -0.241 (жен.), -0.302 (муж.)
+  // eGFR = 142 × min(Scr/κ,1)^α × max(Scr/κ,1)^-1.200 × 0.9938^age × (1.012 если жен.)
+  {
+    outputCode: "GFR",
+    requiredInputs: ["CREA"],
+    requiresContext: true,
+    compute: ({ CREA }, { age, sex }) => {
+      if (!CREA || CREA <= 0) return null;
+      if (age == null || age <= 0) return null;
+      if (sex !== "male" && sex !== "female") return null;
+      const scr = CREA / 88.4; // мкмоль/л → мг/дл
+      const kappa = sex === "female" ? 0.7 : 0.9;
+      const alpha = sex === "female" ? -0.241 : -0.302;
+      const ratio = scr / kappa;
+      const minTerm = Math.pow(Math.min(ratio, 1), alpha);
+      const maxTerm = Math.pow(Math.max(ratio, 1), -1.2);
+      const ageTerm = Math.pow(0.9938, age);
+      const sexTerm = sex === "female" ? 1.012 : 1;
+      return 142 * minTerm * maxTerm * ageTerm * sexTerm;
     },
     precision: 0,
   },
