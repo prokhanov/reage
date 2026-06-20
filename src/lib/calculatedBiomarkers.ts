@@ -158,7 +158,10 @@ export function getFormulaForCode(code: string): CalculatedFormula | undefined {
  * Рассчитать все производные показатели на основе входных значений.
  * Возвращает Map<code, value> только для тех показателей, которые удалось вычислить.
  */
-export function computeAllDerivedValues(inputs: InputValues): Map<string, number> {
+export function computeAllDerivedValues(
+  inputs: InputValues,
+  ctx: CalcContext = {}
+): Map<string, number> {
   const results = new Map<string, number>();
 
   for (const formula of CALCULATED_FORMULAS) {
@@ -168,7 +171,10 @@ export function computeAllDerivedValues(inputs: InputValues): Map<string, number
     );
     if (!hasAllInputs) continue;
 
-    const value = formula.compute(inputs);
+    // Если формуле нужен контекст (возраст/пол), а его нет — пропускаем
+    if (formula.requiresContext && (ctx.age == null || ctx.sex == null)) continue;
+
+    const value = formula.compute(inputs, ctx);
     if (value === null || !isFinite(value)) continue;
 
     results.set(formula.outputCode, round(value, formula.precision));
