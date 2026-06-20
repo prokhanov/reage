@@ -244,7 +244,7 @@ export function AnalysisBookingBanner() {
           onClick={handleDismiss}
           size="icon"
           variant="ghost"
-          className="absolute top-1 right-1 text-muted-foreground hover:bg-primary/10 h-7 w-7"
+          className="absolute top-0 right-0 text-muted-foreground hover:bg-primary/10 h-6 w-6"
           aria-label="Закрыть напоминание"
         >
           <X className="h-4 w-4" />
