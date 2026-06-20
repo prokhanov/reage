@@ -73,6 +73,7 @@ export function CallbackRequestDialog({
   const [phone, setPhone] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
+  const [passportPrefilled, setPassportPrefilled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [locationType, setLocationType] = useState<LocationType>("home");
   const [homeCity, setHomeCity] = useState<HomeCityKey>("moscow");
@@ -95,8 +96,11 @@ export function CallbackRequestDialog({
         .eq("id", userId)
         .maybeSingle();
       if (data?.phone) setPhone(formatPhone(data.phone));
-      setPassportSeries((data as any)?.passport_series || "");
-      setPassportNumber((data as any)?.passport_number || "");
+      const series = (data as any)?.passport_series || "";
+      const number = (data as any)?.passport_number || "";
+      setPassportSeries(series);
+      setPassportNumber(number);
+      setPassportPrefilled(isPassportValid(series, number));
     })();
   }, [open, getUserId]);
 
