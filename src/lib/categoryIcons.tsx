@@ -17,8 +17,12 @@ import {
   Flame,
   Stethoscope,
   HeartPulse,
+  Dna,
+  Bug,
+  FlaskConical,
   type LucideIcon,
 } from "lucide-react";
+
 
 // Helper to wrap raw SVG paths into a Lucide-compatible icon
 const makeIcon = (paths: React.ReactNode): LucideIcon =>
