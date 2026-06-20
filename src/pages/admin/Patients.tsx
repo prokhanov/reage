@@ -177,7 +177,7 @@ export default function Patients() {
           // Get analysis booking status: prefer last meaningful (not 'not_scheduled')
           const { data: latestMeaningful } = await supabase
             .from("analysis_bookings")
-            .select("status, created_at, updated_at")
+            .select("status, location_type, created_at, updated_at")
             .eq("user_id", profile.id)
             .neq("status", "not_scheduled")
             .order("updated_at", { ascending: false })
@@ -186,7 +186,7 @@ export default function Patients() {
 
           const { data: latestAny } = await supabase
             .from("analysis_bookings")
-            .select("status, created_at, updated_at")
+            .select("status, location_type, created_at, updated_at")
             .eq("user_id", profile.id)
             .order("updated_at", { ascending: false })
             .limit(1)
