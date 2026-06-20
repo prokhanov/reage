@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Search, Eye, MoreVertical } from "lucide-react";
+import { Calendar, Search, Eye, MoreVertical, Building2, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -46,6 +46,7 @@ interface BookingData {
   address: string;
   status: BookingStatus;
   created_at: string;
+  location_type?: "home" | "clinic" | null;
   patient: {
     name: string;
     email: string;
@@ -310,9 +311,29 @@ export default function MyAssignments() {
                           time: booking.booking_time,
                           address: booking.address
                         })}
-                        className="truncate border-b border-dotted border-current hover:text-primary transition-colors cursor-pointer block max-w-full"
+                        className="text-left hover:text-primary transition-colors cursor-pointer block max-w-full"
                       >
-                        {booking.address}
+                        <Badge
+                          variant="outline"
+                          className={
+                            booking.location_type === "clinic"
+                              ? "bg-blue-50 text-blue-700 border-blue-200 mb-1"
+                              : "bg-emerald-50 text-emerald-700 border-emerald-200 mb-1"
+                          }
+                        >
+                          {booking.location_type === "clinic" ? (
+                            <span className="flex items-center gap-1">
+                              <Building2 className="w-3 h-3" /> Клиника
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <Home className="w-3 h-3" /> На дому
+                            </span>
+                          )}
+                        </Badge>
+                        <div className="truncate border-b border-dotted border-current">
+                          {booking.address}
+                        </div>
                       </button>
                     </TableCell>
                     <TableCell>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { isRealtimeDisabled } from "@/lib/realtime";
-import { Search, Mail, Phone, RefreshCw, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
+import { Search, Mail, Phone, RefreshCw, CheckCircle2, AlertCircle, Trash2, Building2, Home } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import {
@@ -177,7 +177,7 @@ export default function Patients() {
           // Get analysis booking status: prefer last meaningful (not 'not_scheduled')
           const { data: latestMeaningful } = await supabase
             .from("analysis_bookings")
-            .select("status, created_at, updated_at")
+            .select("status, location_type, created_at, updated_at")
             .eq("user_id", profile.id)
             .neq("status", "not_scheduled")
             .order("updated_at", { ascending: false })
@@ -186,7 +186,7 @@ export default function Patients() {
 
           const { data: latestAny } = await supabase
             .from("analysis_bookings")
-            .select("status, created_at, updated_at")
+            .select("status, location_type, created_at, updated_at")
             .eq("user_id", profile.id)
             .order("updated_at", { ascending: false })
             .limit(1)
@@ -219,6 +219,7 @@ export default function Patients() {
             subscriptionEndDate: subscription?.end_date || null,
             subscriptionPlan: subscription?.subscription_plans?.display_name || null,
             bookingStatus: effectiveBookingStatus || 'not_scheduled',
+            bookingLocationType: latestMeaningful?.location_type || latestAny?.location_type || null,
 
             role: primaryRole,
             allRoles: userRoleData.allRoles,
@@ -432,6 +433,7 @@ export default function Patients() {
                       <TableHead>Подписка</TableHead>
                       <TableHead>Тариф</TableHead>
                       <TableHead>Статус анализа</TableHead>
+                      <TableHead>Тип</TableHead>
                       <TableHead className="text-center">Анализов</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
@@ -553,6 +555,30 @@ export default function Patients() {
                             )}
                           </TableCell>
                           <TableCell>{getBookingBadge(patient.bookingStatus)}</TableCell>
+                          <TableCell>
+                            {patient.bookingLocationType ? (
+                              <Badge
+                                variant="outline"
+                                className={
+                                  patient.bookingLocationType === "clinic"
+                                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                }
+                              >
+                                {patient.bookingLocationType === "clinic" ? (
+                                  <span className="flex items-center gap-1">
+                                    <Building2 className="w-3 h-3" /> Клиника
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1">
+                                    <Home className="w-3 h-3" /> На дому
+                                  </span>
+                                )}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-center">
                             {patient.analysisCount}
                           </TableCell>
@@ -570,7 +596,7 @@ export default function Patients() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                           Пациенты не найдены
                         </TableCell>
                       </TableRow>
