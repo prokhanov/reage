@@ -217,7 +217,7 @@ export default function HealthStrategy() {
             <CardContent className="py-16 text-center">
               <Sparkles className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
               <h3 className="text-lg font-semibold mb-2">Готовим вашу стратегию</h3>
-              <p className="text-muted-foreground">AI анализирует биомаркеры и назначения…</p>
+              <p className="text-muted-foreground">Анализируем биомаркеры и назначения…</p>
             </CardContent>
           </Card>
         ) : (

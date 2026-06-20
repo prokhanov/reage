@@ -242,7 +242,7 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <p className="text-sm">
-                    AI анализирует состояние каждой системы организма и показывает изменения за выбранный период
+                    Оцениваем состояние каждой системы организма и показываем изменения за выбранный период
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -275,7 +275,7 @@ export function SystemRatingsCard({ categoryScores, analyses }: SystemRatingsCar
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <p className="text-sm">
-                    AI анализирует состояние каждой системы организма и показывает изменения за выбранный период
+                    Оцениваем состояние каждой системы организма и показываем изменения за выбранный период
                   </p>
                 </TooltipContent>
               </Tooltip>

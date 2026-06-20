@@ -4,10 +4,10 @@ const statsWidgets = [
   { icon: <Heart className="w-6 h-6" />, value: "32", label: "Биовозраст", sublabel: "−3 года", color: "text-primary", bg: "from-primary/20 to-primary/5" },
   { icon: <Activity className="w-6 h-6" />, value: "87%", label: "Индекс здоровья", sublabel: "Отлично", color: "text-status-good", bg: "from-status-good/20 to-status-good/5" },
   { icon: <Brain className="w-6 h-6" />, value: "50+", label: "Биомаркеров", sublabel: "анализируется", color: "text-foreground", bg: "from-muted/50 to-muted/20" },
-  { icon: <Zap className="w-6 h-6" />, value: "12", label: "AI-рекомендаций", sublabel: "персональных", color: "text-accent", bg: "from-accent/20 to-accent/5" },
+  { icon: <Zap className="w-6 h-6" />, value: "12", label: "Рекомендаций", sublabel: "персональных", color: "text-accent", bg: "from-accent/20 to-accent/5" },
   { icon: <Shield className="w-6 h-6" />, value: "5", label: "Систем", sublabel: "под контролем", color: "text-primary", bg: "from-primary/20 to-primary/5" },
   { icon: <Clock className="w-6 h-6" />, value: "4×", label: "В год", sublabel: "мониторинг", color: "text-status-good", bg: "from-status-good/20 to-status-good/5" },
-  { icon: <Target className="w-6 h-6" />, value: "98%", label: "Точность", sublabel: "AI-анализа", color: "text-accent", bg: "from-accent/20 to-accent/5" },
+  { icon: <Target className="w-6 h-6" />, value: "98%", label: "Точность", sublabel: "анализа", color: "text-accent", bg: "from-accent/20 to-accent/5" },
   { icon: <TrendingUp className="w-6 h-6" />, value: "+22%", label: "Улучшение", sublabel: "за 6 мес", color: "text-status-good", bg: "from-status-good/20 to-status-good/5" },
 ];
 
