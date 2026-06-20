@@ -101,8 +101,44 @@ export function CallbackRequestDialog({
       setPassportSeries(series);
       setPassportNumber(number);
       setPassportPrefilled(isPassportValid(series, number));
+
+      // Prefill existing booking values when editing
+      if (existingBookingId) {
+        const { data: booking } = await supabase
+          .from("analysis_bookings")
+          .select("address, location_type, lab_location_id")
+          .eq("id", existingBookingId)
+          .maybeSingle();
+        if (booking) {
+          const loc = (booking.location_type as LocationType) || "home";
+          setLocationType(loc);
+          if (loc === "clinic" && booking.lab_location_id) {
+            const { data: lab } = await supabase
+              .from("lab_locations")
+              .select("id,title,metro,city,address_short,full_address,phones,hours,page_url,lat,lng")
+              .eq("id", booking.lab_location_id)
+              .maybeSingle();
+            if (lab) {
+              setSelectedLab(lab as LabMapItem);
+              setCity(isSpb(lab.city ?? null) ? "spb" : "moscow");
+            }
+          } else if (loc === "home" && booking.address) {
+            // Parse "City, rest" — match known city label prefix
+            const addr = booking.address;
+            const matched = HOME_CITIES.find((c) =>
+              addr.toLowerCase().startsWith(c.label.toLowerCase() + ","),
+            );
+            if (matched) {
+              setHomeCity(matched.key);
+              setHomeAddress(addr.slice(matched.label.length + 1).trim());
+            } else {
+              setHomeAddress(addr);
+            }
+          }
+        }
+      }
     })();
-  }, [open, getUserId]);
+  }, [open, existingBookingId, getUserId]);
 
   // Load labs lazily when клиника выбрана
   useEffect(() => {
