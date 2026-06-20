@@ -42,7 +42,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <main className={`pt-16 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
-        <AnalysisBookingBanner />
+        <div className="px-4 md:px-8 pt-4 md:pt-8">
+          <AnalysisBookingBanner />
+        </div>
         {children}
       </main>
     </div>
