@@ -557,7 +557,7 @@ export default function Dashboard() {
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <TrendingUp className="h-16 w-16 text-muted-foreground/20 mb-4" />
                     <p className="text-muted-foreground mb-4">
-                      Добавьте минимум 2 анализа для отслеживания динамики
+                      Динамика будет доступна после проведения минимум 2 анализов
                     </p>
                   </div>
                 )}
