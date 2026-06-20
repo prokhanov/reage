@@ -61,7 +61,6 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
               plan.badge_color === 'accent' && "bg-accent text-accent-foreground"
             )}
           >
-            {isRecommended && <Sparkles className="h-3 w-3 mr-1 inline" />}
             {plan.badge_text}
           </Badge>
         </div>
