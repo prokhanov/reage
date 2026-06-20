@@ -243,7 +243,10 @@ export function getFormulaDescription(code: string): string | null {
       return "(Гемоглобин / Гематокрит) × 10";
     case "GFR":
       return "CKD-EPI 2021: f(Креатинин, возраст, пол)";
+    case "TSAT":
+      return "Fe / (Трансферрин × 25.1) × 100";
     default:
       return null;
   }
 }
+
