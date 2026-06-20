@@ -128,6 +128,9 @@ export const CALCULATED_FORMULAS: CalculatedFormula[] = [
     compute: ({ HGB, HCT }) => {
       if (HCT <= 0) return null;
       return (HGB / HCT) * 10;
+    },
+    precision: 0,
+  },
   // eGFR по формуле CKD-EPI 2021 (race-free).
   // Креатинин в проекте хранится в мкмоль/л → переводим в мг/дл делением на 88.4.
   // Scr_mgdl = CREA / 88.4
