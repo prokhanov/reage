@@ -907,6 +907,7 @@ export type Database = {
           footer_text: string
           heading: string
           id: string
+          signature_text: string
           subject: string
           template_type: string
           updated_at: string | null
@@ -918,6 +919,7 @@ export type Database = {
           footer_text: string
           heading: string
           id?: string
+          signature_text?: string
           subject: string
           template_type: string
           updated_at?: string | null
@@ -929,6 +931,7 @@ export type Database = {
           footer_text?: string
           heading?: string
           id?: string
+          signature_text?: string
           subject?: string
           template_type?: string
           updated_at?: string | null
