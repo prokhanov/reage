@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Lock, User, ArrowRight, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { PhoneInput, isPhoneValid } from "@/components/ui/phone-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -138,10 +139,9 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
         <div className="space-y-2">
           <Label htmlFor="password">Пароль *</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
+            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Минимум 6 символов"
               value={formData.password}
               onChange={(e) => updateFormData({ password: e.target.value })}

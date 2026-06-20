@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -107,9 +108,8 @@ export default function ResetPassword() {
                     <Lock className="h-4 w-4 text-primary" />
                     Новый пароль
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="new-password"
-                    type="password"
                     placeholder="Минимум 6 символов"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -123,9 +123,8 @@ export default function ResetPassword() {
                     <Lock className="h-4 w-4 text-primary" />
                     Подтвердите пароль
                   </Label>
-                  <Input
+                  <PasswordInput
                     id="confirm-password"
-                    type="password"
                     placeholder="Повторите пароль"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
