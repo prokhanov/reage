@@ -179,7 +179,7 @@ export function BiomarkersDeepDiveSection() {
         {/* Header */}
         <div className="text-center mb-10 md:mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fade-in">
-            5 систем · 78+ биомаркеров
+            5 систем · 100+ биомаркеров
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in">
             <span className="text-foreground">Что мы </span>
