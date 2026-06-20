@@ -244,12 +244,12 @@ export function AnalysisBookingBanner() {
           onClick={handleDismiss}
           size="icon"
           variant="ghost"
-          className="absolute top-2 right-2 text-muted-foreground hover:bg-primary/10 h-8 w-8"
+          className="absolute top-1 right-1 text-muted-foreground hover:bg-primary/10 h-7 w-7"
           aria-label="Закрыть напоминание"
         >
           <X className="h-4 w-4" />
         </Button>
-        <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between pr-6">
           <div className="flex items-start gap-3 flex-1">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
               <Icon className="h-5 w-5 text-primary" />
