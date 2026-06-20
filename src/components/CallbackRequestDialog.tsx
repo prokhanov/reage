@@ -393,7 +393,10 @@ export function CallbackRequestDialog({
                     hideAttribution
                     showPartnerButton={false}
                     showSelectButton
+                    clusterMarkers
                     selectButtonLabel="Выбрать эту лабораторию"
+                    selectedSelectButtonLabel="Лаборатория выбрана"
+                    selectedId={selectedLab?.id ?? null}
                     onSelect={(item) => setSelectedLab(item)}
                   />
                 )}
