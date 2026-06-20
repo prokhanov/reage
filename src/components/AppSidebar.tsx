@@ -189,26 +189,30 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
                 ) : (
                   <div className="space-y-1 mt-1">
                     {/* Email row */}
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {emailStatus?.isConfirmed ? (
+                    <div className="flex items-center gap-1.5 min-w-0 min-h-[18px]">
+                      {!emailStatus ? (
+                        <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                      ) : emailStatus.isConfirmed ? (
                         <>
                           <p className="text-xs text-muted-foreground truncate min-w-0">{userEmail}</p>
                           <EmailConfirmationBadge email={userEmail} isConfirmed={true} />
                         </>
-                      ) : emailStatus ? (
+                      ) : (
                         <EmailConfirmationBadge
                           email={emailStatus.email || userEmail}
                           isConfirmed={false}
                           allowEmailChange={true}
                           onEmailChanged={() => queryClient.invalidateQueries({ queryKey: ["email-confirmation-status"] })}
                         />
-                      ) : (
-                        <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
                       )}
                     </div>
                     {/* Phone row */}
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {userPhone && phoneVerified ? (
+                    <div className="flex items-center gap-1.5 min-w-0 min-h-[18px]">
+                      {!phoneLoaded ? (
+                        userPhone ? (
+                          <p className="text-xs text-muted-foreground truncate">+{userPhone}</p>
+                        ) : null
+                      ) : userPhone && phoneVerified ? (
                         <>
                           <p className="text-xs text-muted-foreground truncate min-w-0">
                             +{userPhone}
