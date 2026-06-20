@@ -242,11 +242,11 @@ export function AnalysisBookingBanner() {
       <div className="bg-gradient-primary text-white shadow-neon-primary animate-fade-in">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20">
+          <div className="flex items-start gap-3 flex-1">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 shrink-0">
                 <Icon className="h-5 w-5" />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 space-y-1">
                 <p className="font-medium text-sm sm:text-base">{text.title}</p>
                 <p className="text-xs sm:text-sm text-white/90">{subtitle}</p>
               </div>
