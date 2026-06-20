@@ -229,6 +229,8 @@ export function getFormulaDescription(code: string): string | null {
       return "Гемоглобин / Эритроциты";
     case "MCHC":
       return "(Гемоглобин / Гематокрит) × 10";
+    case "GFR":
+      return "CKD-EPI 2021: f(Креатинин, возраст, пол)";
     default:
       return null;
   }
