@@ -240,7 +240,7 @@ All colors MUST be HSL.
   width: 28px !important;
   height: 36px !important;
   opacity: 1 !important;
-  z-index: 1000 !important;
+  pointer-events: auto !important;
   transform-style: flat !important;
   backface-visibility: visible !important;
 }
@@ -373,7 +373,6 @@ All colors MUST be HSL.
   background: transparent !important;
   border: none !important;
   opacity: 1 !important;
-  z-index: 1000 !important;
 }
 .lab-cluster .lab-cluster-inner {
   width: 100%;
