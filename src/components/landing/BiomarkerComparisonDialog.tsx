@@ -1,166 +1,117 @@
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
-type Tier = "basic" | "plus" | "expert";
-
-interface BiomarkerRow {
-  name: string;
-  tiers: Tier[]; // tiers in which it is included
-}
-
-interface CategoryGroup {
-  name: string;
-  rows: BiomarkerRow[];
-}
-
-// Источник: тарифная таблица ReAge (xlsx).
-// Исключены гормоны, зависящие от цикла/менопаузы: E2, E3 (см. mem://biomarkers/female-cycle-hormones-excluded).
-const ALL: Tier[] = ["basic", "plus", "expert"];
-const PLUS_EXPERT: Tier[] = ["plus", "expert"];
-const EXPERT_ONLY: Tier[] = ["expert"];
-
-const CATEGORIES: CategoryGroup[] = [
-  {
-    name: "Энергия и восстановление",
-    rows: [
-      { name: "Глюкоза", tiers: ALL },
-      { name: "HbA1c", tiers: ALL },
-      { name: "Инсулин", tiers: ALL },
-      { name: "HOMA-IR", tiers: ALL },
-      { name: "Лактатдегидрогеназа (ЛДГ)", tiers: ALL },
-      { name: "Альбумин", tiers: ALL },
-      { name: "Магний, сыворотка", tiers: ALL },
-      { name: "Креатинкиназа (КФК)", tiers: ALL },
-      { name: "Витамин B12", tiers: PLUS_EXPERT },
-      { name: "Фолиевая кислота (B9)", tiers: PLUS_EXPERT },
-      { name: "Цинк", tiers: PLUS_EXPERT },
-      { name: "Селен", tiers: PLUS_EXPERT },
-      { name: "Лактат", tiers: EXPERT_ONLY },
-      { name: "Коэнзим Q10", tiers: EXPERT_ONLY },
-      { name: "Малоновый диальдегид (MDA)", tiers: EXPERT_ONLY },
-      { name: "Общий антиоксидантный статус (OAS)", tiers: EXPERT_ONLY },
-      { name: "Индекс окислит. стресса MDA/OAS", tiers: EXPERT_ONLY },
-    ],
-  },
-  {
-    name: "Сердечно-сосудистая система",
-    rows: [
-      { name: "Общий холестерин", tiers: ALL },
-      { name: "ЛПВП (HDL)", tiers: ALL },
-      { name: "ЛПНП (LDL)", tiers: ALL },
-      { name: "Триглицериды", tiers: ALL },
-      { name: "ЛПОНП (VLDL)", tiers: ALL },
-      { name: "не-HDL холестерин", tiers: ALL },
-      { name: "Индекс атерогенности", tiers: ALL },
-      { name: "Ферритин", tiers: ALL },
-      { name: "ApoA1", tiers: PLUS_EXPERT },
-      { name: "ApoB", tiers: PLUS_EXPERT },
-      { name: "ApoB/ApoA1", tiers: PLUS_EXPERT },
-      { name: "Гомоцистеин", tiers: PLUS_EXPERT },
-      { name: "Lp(a)", tiers: PLUS_EXPERT },
-      { name: "Железо", tiers: PLUS_EXPERT },
-      { name: "Медь", tiers: PLUS_EXPERT },
-      { name: "hs-Troponin I", tiers: EXPERT_ONLY },
-      { name: "NT-proBNP", tiers: EXPERT_ONLY },
-      { name: "Фибриноген", tiers: ALL },
-      { name: "ПТИ (протромбиновый индекс)", tiers: PLUS_EXPERT },
-      { name: "МНО", tiers: PLUS_EXPERT },
-      { name: "АЧТВ", tiers: PLUS_EXPERT },
-    ],
-  },
-  {
-    name: "Воспалительная и иммунная система",
-    rows: [
-      { name: "Эритроциты", tiers: ALL },
-      { name: "Гемоглобин", tiers: ALL },
-      { name: "Гематокрит", tiers: ALL },
-      { name: "MCV (средний объём эритроцита)", tiers: ALL },
-      { name: "MCH (среднее содержание Hb в эритроците)", tiers: ALL },
-      { name: "MCHC (средняя концентрация Hb в эритроците)", tiers: ALL },
-      { name: "RDW (распределение эритроцитов по объёму)", tiers: ALL },
-      { name: "Тромбоциты", tiers: ALL },
-      { name: "Лейкоциты", tiers: ALL },
-      { name: "Нейтрофилы", tiers: ALL },
-      { name: "Лимфоциты", tiers: ALL },
-      { name: "Моноциты", tiers: ALL },
-      { name: "Эозинофилы", tiers: ALL },
-      { name: "Базофилы", tiers: ALL },
-      { name: "СОЭ", tiers: ALL },
-      { name: "CRP (hs-CRP)", tiers: ALL },
-      { name: "IgM", tiers: PLUS_EXPERT },
-      { name: "IgG", tiers: PLUS_EXPERT },
-      { name: "IL-6", tiers: EXPERT_ONLY },
-      { name: "TNF-α", tiers: EXPERT_ONLY },
-    ],
-  },
-  {
-    name: "Эндокринная и стрессовая система",
-    rows: [
-      { name: "ТТГ", tiers: ALL },
-      { name: "Т4 свободный", tiers: ALL },
-      { name: "25-ОН витамин D", tiers: ALL },
-      { name: "Т3 свободный", tiers: PLUS_EXPERT },
-      { name: "Тестостерон общий", tiers: PLUS_EXPERT },
-      { name: "SHBG", tiers: PLUS_EXPERT },
-      { name: "Кортизол", tiers: PLUS_EXPERT },
-      { name: "DHEA-S", tiers: PLUS_EXPERT },
-      { name: "IGF-1", tiers: EXPERT_ONLY },
-    ],
-  },
-  {
-    name: "Метаболизм и детоксикация",
-    rows: [
-      { name: "ALT", tiers: ALL },
-      { name: "AST", tiers: ALL },
-      { name: "GGT", tiers: ALL },
-      { name: "Билирубин", tiers: ALL },
-      { name: "ALP", tiers: ALL },
-      { name: "Общий белок", tiers: ALL },
-      { name: "Креатинин", tiers: ALL },
-      { name: "eGFR", tiers: ALL },
-      { name: "Мочевина", tiers: ALL },
-      { name: "Натрий, Na", tiers: ALL },
-      { name: "Калий, K", tiers: ALL },
-      { name: "Хлор, Cl", tiers: ALL },
-      { name: "Кальций, Ca", tiers: ALL },
-      { name: "Общий анализ мочи", tiers: ALL },
-      { name: "Мочевая кислота", tiers: ALL },
-      { name: "Альбумин/креатинин мочи (ACR)", tiers: ALL },
-      { name: "Трансферрин", tiers: PLUS_EXPERT },
-      { name: "Насыщение трансферрина (%)", tiers: PLUS_EXPERT },
-    ],
-  },
-];
-
-interface Props {
+interface BiomarkerComparisonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
-  const renderCell = (included: boolean) =>
-    included ? (
-      <div className="inline-flex w-6 h-6 rounded-full bg-status-good/15 items-center justify-center">
-        <Check className="w-4 h-4 text-status-good" />
-      </div>
-    ) : (
-      <div className="inline-flex w-6 h-6 rounded-full bg-muted items-center justify-center">
-        <Minus className="w-4 h-4 text-muted-foreground/60" />
-      </div>
-    );
+interface BiomarkerRow {
+  id: string;
+  name: string;
+  category: string;
+  display_order: number;
+  planIds: Set<string>;
+}
 
-  const totals = CATEGORIES.reduce(
-    (acc, cat) => {
-      cat.rows.forEach((r) => {
-        if (r.tiers.includes("basic")) acc.basic++;
-        if (r.tiers.includes("plus")) acc.plus++;
-        if (r.tiers.includes("expert")) acc.expert++;
-      });
-      return acc;
-    },
-    { basic: 0, plus: 0, expert: 0 }
+interface CategoryGroup {
+  name: string;
+  display_order: number;
+  rows: BiomarkerRow[];
+}
+
+function renderCell(included: boolean) {
+  return included ? (
+    <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
+      <Check className="h-4 w-4 text-primary" />
+    </div>
+  ) : (
+    <Minus className="h-4 w-4 text-muted-foreground/50 mx-auto" />
   );
+}
+
+export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerComparisonDialogProps) {
+  const { data: plans, isLoading: plansLoading } = useSubscriptionPlans();
+
+  const { data: comparisonData, isLoading: dataLoading } = useQuery({
+    queryKey: ["biomarker-comparison"],
+    enabled: open,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const [biomarkersRes, categoriesRes, planBiomarkersRes] = await Promise.all([
+        supabase.from("biomarkers").select("id, name, category, display_order").order("display_order"),
+        supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
+        supabase.from("plan_biomarkers").select("plan_id, biomarker_id"),
+      ]);
+
+      if (biomarkersRes.error) throw biomarkersRes.error;
+      if (categoriesRes.error) throw categoriesRes.error;
+      if (planBiomarkersRes.error) throw planBiomarkersRes.error;
+
+      const biomarkerToPlans = new Map<string, Set<string>>();
+      (planBiomarkersRes.data ?? []).forEach((pb) => {
+        const set = biomarkerToPlans.get(pb.biomarker_id) ?? new Set<string>();
+        set.add(pb.plan_id);
+        biomarkerToPlans.set(pb.biomarker_id, set);
+      });
+
+      const categoryOrder = new Map<string, number>();
+      (categoriesRes.data ?? []).forEach((c) => categoryOrder.set(c.name, c.display_order));
+
+      const byCategory = new Map<string, BiomarkerRow[]>();
+      (biomarkersRes.data ?? []).forEach((b) => {
+        const planIds = biomarkerToPlans.get(b.id) ?? new Set<string>();
+        if (planIds.size === 0) return; // показываем только те, что входят хотя бы в один тариф
+        const row: BiomarkerRow = {
+          id: b.id,
+          name: b.name,
+          category: b.category,
+          display_order: b.display_order,
+          planIds,
+        };
+        const arr = byCategory.get(b.category) ?? [];
+        arr.push(row);
+        byCategory.set(b.category, arr);
+      });
+
+      const groups: CategoryGroup[] = Array.from(byCategory.entries())
+        .map(([name, rows]) => ({
+          name,
+          display_order: categoryOrder.get(name) ?? 999,
+          rows: rows.sort((a, b) => a.display_order - b.display_order),
+        }))
+        .sort((a, b) => a.display_order - b.display_order);
+
+      return { groups };
+    },
+  });
+
+  const isLoading = plansLoading || dataLoading;
+
+  const orderedPlans = useMemo(() => {
+    return (plans ?? [])
+      .slice()
+      .sort((a, b) => a.display_order - b.display_order);
+  }, [plans]);
+
+  const totals = useMemo(() => {
+    const t = new Map<string, number>();
+    orderedPlans.forEach((p) => t.set(p.id, 0));
+    comparisonData?.groups.forEach((g) =>
+      g.rows.forEach((r) => {
+        r.planIds.forEach((pid) => {
+          if (t.has(pid)) t.set(pid, (t.get(pid) ?? 0) + 1);
+        });
+      })
+    );
+    return t;
+  }, [comparisonData, orderedPlans]);
+
+  const recommendedPlanId = orderedPlans[1]?.id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -172,77 +123,91 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-auto flex-1 -mx-6 px-6">
-          <table className="w-full border-collapse">
-            <thead className="sticky top-0 bg-background z-10">
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-2 text-sm font-semibold text-foreground">
-                  Тариф
-                </th>
-                <th className="text-center py-3 px-2 text-base font-bold text-primary min-w-[100px]">
-                  Базовый
-                </th>
-                <th className="text-center py-3 px-2 text-base font-bold text-primary min-w-[100px] bg-primary/5">
-                  Плюс
-                </th>
-                <th className="text-center py-3 px-2 text-base font-bold text-primary min-w-[100px]">
-                  Экспертный
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-border/50 bg-muted/20">
-                <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
-                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">{totals.basic}</td>
-                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground bg-primary/5">{totals.plus}</td>
-                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">{totals.expert}</td>
-              </tr>
-              <tr className="border-b border-border/50 bg-muted/20">
-                <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Количество чекапов</td>
-                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">3 раза в год</td>
-                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground bg-primary/5">3 раза в год</td>
-                <td className="py-2.5 px-2 text-center text-sm font-semibold text-foreground">4 раза в год</td>
-              </tr>
-              <tr className="border-b border-border/50 bg-muted/20">
-                <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Цена</td>
-                <td className="py-2.5 px-2 text-center text-sm font-bold text-primary">75 000₽</td>
-                <td className="py-2.5 px-2 text-center text-sm font-bold text-primary bg-primary/5">135 000₽</td>
-                <td className="py-2.5 px-2 text-center text-sm font-bold text-primary">220 000₽</td>
-              </tr>
-
-
-              {CATEGORIES.map((cat) => (
-                <Fragment key={cat.name}>
-                  <tr className="bg-muted/40">
-                    <td
-                      colSpan={4}
-                      className="py-2 px-2 text-xs font-bold uppercase tracking-wider text-primary"
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : !orderedPlans.length ? (
+          <div className="py-12 text-center text-muted-foreground">
+            Тарифы пока не настроены
+          </div>
+        ) : (
+          <div className="overflow-auto flex-1 -mx-6 px-6">
+            <table className="w-full border-collapse">
+              <thead className="sticky top-0 bg-background z-10">
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-2 text-sm font-semibold text-foreground">
+                    Тариф
+                  </th>
+                  {orderedPlans.map((p) => (
+                    <th
+                      key={p.id}
+                      className={`text-center py-3 px-2 text-base font-bold text-primary min-w-[100px] ${
+                        p.id === recommendedPlanId ? "bg-primary/5" : ""
+                      }`}
                     >
-                      {cat.name}
+                      {p.display_name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-border/50 bg-muted/20">
+                  <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
+                  {orderedPlans.map((p) => (
+                    <td
+                      key={p.id}
+                      className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
+                        p.id === recommendedPlanId ? "bg-primary/5" : ""
+                      }`}
+                    >
+                      {totals.get(p.id) ?? 0}
+                    </td>
+                  ))}
+                </tr>
+
+                {(comparisonData?.groups ?? []).length === 0 && (
+                  <tr>
+                    <td colSpan={orderedPlans.length + 1} className="py-8 text-center text-sm text-muted-foreground">
+                      Биомаркеры пока не привязаны к тарифам. Настройте привязку в админке (раздел «Управление данными → Тарифы»).
                     </td>
                   </tr>
-                  {cat.rows.map((row, idx) => (
-                    <tr
-                      key={`${cat.name}-${idx}`}
-                      className="border-b border-border/50 hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="py-2.5 px-2 text-sm text-foreground">{row.name}</td>
-                      <td className="py-2.5 px-2 text-center">
-                        {renderCell(row.tiers.includes("basic"))}
-                      </td>
-                      <td className="py-2.5 px-2 text-center bg-primary/5">
-                        {renderCell(row.tiers.includes("plus"))}
-                      </td>
-                      <td className="py-2.5 px-2 text-center">
-                        {renderCell(row.tiers.includes("expert"))}
+                )}
+
+                {(comparisonData?.groups ?? []).map((cat) => (
+                  <Fragment key={cat.name}>
+                    <tr className="bg-muted/40">
+                      <td
+                        colSpan={orderedPlans.length + 1}
+                        className="py-2 px-2 text-xs font-bold uppercase tracking-wider text-primary"
+                      >
+                        {cat.name}
                       </td>
                     </tr>
-                  ))}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {cat.rows.map((row) => (
+                      <tr
+                        key={row.id}
+                        className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                      >
+                        <td className="py-2.5 px-2 text-sm text-foreground">{row.name}</td>
+                        {orderedPlans.map((p) => (
+                          <td
+                            key={p.id}
+                            className={`py-2.5 px-2 text-center ${
+                              p.id === recommendedPlanId ? "bg-primary/5" : ""
+                            }`}
+                          >
+                            {renderCell(row.planIds.has(p.id))}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
