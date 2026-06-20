@@ -258,6 +258,25 @@ export function CallbackRequestDialog({
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
+            <Label htmlFor="callback-phone-input">Ваш телефон</Label>
+            <Input
+              id="callback-phone-input"
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              placeholder="+7 (___) ___-__-__"
+            />
+          </div>
+          <PassportFields
+            series={passportSeries}
+            number={passportNumber}
+            onSeriesChange={setPassportSeries}
+            onNumberChange={setPassportNumber}
+            showIcon={false}
+          />
+
+          <div className="space-y-2">
             <Label>Где сдать анализы</Label>
             <ToggleGroup
               type="single"
@@ -276,24 +295,35 @@ export function CallbackRequestDialog({
             </ToggleGroup>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="callback-phone-input">Ваш телефон</Label>
-            <Input
-              id="callback-phone-input"
-              type="tel"
-              inputMode="tel"
-              value={phone}
-              onChange={(e) => setPhone(formatPhone(e.target.value))}
-              placeholder="+7 (___) ___-__-__"
-            />
-          </div>
-          <PassportFields
-            series={passportSeries}
-            number={passportNumber}
-            onSeriesChange={setPassportSeries}
-            onNumberChange={setPassportNumber}
-            showIcon={false}
-          />
+          {locationType === "home" && (
+            <div className="grid grid-cols-1 sm:grid-cols-[180px,1fr] gap-3">
+              <div className="space-y-2">
+                <Label>Город</Label>
+                <Select value={homeCity} onValueChange={(v) => setHomeCity(v as HomeCityKey)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HOME_CITIES.map((c) => (
+                      <SelectItem key={c.key} value={c.key}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="callback-home-address">Адрес</Label>
+                <Input
+                  id="callback-home-address"
+                  value={homeAddress}
+                  onChange={(e) => setHomeAddress(e.target.value)}
+                  placeholder="Улица, дом, квартира"
+                />
+              </div>
+            </div>
+          )}
+
 
           {locationType === "clinic" && (
             <div className="space-y-2">
