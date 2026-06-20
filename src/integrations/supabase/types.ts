@@ -2365,6 +2365,7 @@ export type Database = {
         Row: {
           badge_color: string | null
           badge_text: string | null
+          comparison_highlights: Json
           created_at: string
           description: string | null
           display_name: string
@@ -2378,6 +2379,7 @@ export type Database = {
         Insert: {
           badge_color?: string | null
           badge_text?: string | null
+          comparison_highlights?: Json
           created_at?: string
           description?: string | null
           display_name: string
@@ -2391,6 +2393,7 @@ export type Database = {
         Update: {
           badge_color?: string | null
           badge_text?: string | null
+          comparison_highlights?: Json
           created_at?: string
           description?: string | null
           display_name?: string
