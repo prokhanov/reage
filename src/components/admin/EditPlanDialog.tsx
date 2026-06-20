@@ -50,7 +50,15 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
   }, [plan]);
 
   useEffect(() => {
-    setSelectedBiomarkers(includedBiomarkers);
+    setSelectedBiomarkers((prev) => {
+      if (
+        prev.length === includedBiomarkers.length &&
+        prev.every((id, i) => id === includedBiomarkers[i])
+      ) {
+        return prev;
+      }
+      return includedBiomarkers;
+    });
   }, [includedBiomarkers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
