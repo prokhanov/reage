@@ -12,7 +12,7 @@ import {
   Img,
   Preview,
   Text,
-} from 'npm:@react-email/components@0.0.22'
+, Hr } from 'npm:@react-email/components@0.0.22'
 
 interface RecoveryEmailProps {
   siteName: string
@@ -21,6 +21,7 @@ interface RecoveryEmailProps {
   customBodyText?: string
   customButtonLabel?: string
   customFooterText?: string
+  customSignatureText?: string
 }
 
 const logoUrl = 'https://api.reage.life/storage/v1/object/public/email-assets/reage-logo-v2.png'
@@ -32,6 +33,7 @@ export const RecoveryEmail = ({
   customBodyText,
   customButtonLabel,
   customFooterText,
+  customSignatureText,
 }: RecoveryEmailProps) => (
   <Html lang="ru" dir="ltr">
     <Head><meta charSet="utf-8" /></Head>
@@ -49,6 +51,12 @@ export const RecoveryEmail = ({
         <Text style={footer}>
           {customFooterText || 'Если вы не запрашивали сброс пароля, проигнорируйте это письмо. Ваш пароль не будет изменён.'}
         </Text>
+        {customSignatureText && (
+          <>
+            <Hr style={hr} />
+            <Text style={signature}>{customSignatureText}</Text>
+          </>
+        )}
       </Container>
     </Body>
   </Html>
@@ -82,3 +90,6 @@ const button = {
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#9ca3af', margin: '30px 0 0' }
+
+const hr = { borderColor: '#e5e7eb', margin: '24px 0 16px' }
+const signature = { fontSize: '12px', color: '#9ca3af', lineHeight: '1.6', whiteSpace: 'pre-line' as const, margin: '0' }
