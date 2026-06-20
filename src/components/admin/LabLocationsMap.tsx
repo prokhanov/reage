@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -101,6 +101,8 @@ type MarkerClusterFactory = typeof L & {
   markerClusterGroup: (options: Record<string, unknown>) => L.LayerGroup;
 };
 
+const LAB_MARKER_PANE = "lab-marker-pane";
+
 const DEFAULT_FILTERS: TileFilters = {
   brightness: 100,
   contrast: 100,
@@ -169,6 +171,7 @@ function ClusterLayer({
   items,
   showPartnerButton,
   showSelectButton,
+  clusterMarkers,
   partnerButtonLabel,
   selectButtonLabel,
   onSelect,
@@ -176,31 +179,48 @@ function ClusterLayer({
   items: LabMapItem[];
   showPartnerButton: boolean;
   showSelectButton: boolean;
+  clusterMarkers: boolean;
   partnerButtonLabel: string;
   selectButtonLabel: string;
   onSelect?: (item: LabMapItem) => void;
 }) {
   const map = useMap();
+  const onSelectRef = useRef(onSelect);
+
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
+
   useEffect(() => {
     if (!items.length) return;
+    const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
+    pane.style.zIndex = "680";
+    pane.style.pointerEvents = "auto";
+
     const icon = buildIcon();
-    const cluster = (L as unknown as MarkerClusterFactory).markerClusterGroup({
-      showCoverageOnHover: false,
-      spiderfyOnMaxZoom: true,
-      maxClusterRadius: 50,
-      iconCreateFunction: (c: { getChildCount: () => number }) => {
-        const count = c.getChildCount();
-        const size = count < 10 ? 34 : count < 100 ? 40 : 48;
-        return L.divIcon({
-          html: `<div class="lab-cluster-inner"><span>${count}</span></div>`,
-          className: "lab-cluster",
-          iconSize: [size, size],
-        });
-      },
-    });
+    const markerLayer = clusterMarkers
+      ? (L as unknown as MarkerClusterFactory).markerClusterGroup({
+          showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true,
+          removeOutsideVisibleBounds: false,
+          animate: false,
+          animateAddingMarkers: false,
+          maxClusterRadius: 50,
+          clusterPane: LAB_MARKER_PANE,
+          iconCreateFunction: (c: { getChildCount: () => number }) => {
+            const count = c.getChildCount();
+            const size = count < 10 ? 34 : count < 100 ? 40 : 48;
+            return L.divIcon({
+              html: `<div class="lab-cluster-inner"><span>${count}</span></div>`,
+              className: "lab-cluster",
+              iconSize: [size, size],
+            });
+          },
+        })
+      : L.layerGroup();
 
     items.forEach((it) => {
-      const m = L.marker([it.lat, it.lng], { icon });
+      const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = (it.hours ?? []).filter(Boolean);
       const partnerBtn =
@@ -228,17 +248,17 @@ function ClusterLayer({
         popup.on("popupopen", (e) => {
           const node = (e as unknown as { popup: L.Popup }).popup.getElement();
           const btn = node?.querySelector<HTMLButtonElement>(`[data-lab-select="${it.id}"]`);
-          btn?.addEventListener("click", () => onSelect(it));
+          btn?.addEventListener("click", () => onSelectRef.current?.(it));
         });
       }
-      cluster.addLayer(m);
+      markerLayer.addLayer(m);
     });
 
-    map.addLayer(cluster);
+    map.addLayer(markerLayer);
     return () => {
-      map.removeLayer(cluster);
+      map.removeLayer(markerLayer);
     };
-  }, [items, map, showPartnerButton, showSelectButton, partnerButtonLabel, selectButtonLabel, onSelect]);
+  }, [items, map, showPartnerButton, showSelectButton, clusterMarkers, partnerButtonLabel, selectButtonLabel]);
   return null;
 }
 
@@ -280,6 +300,7 @@ export default function LabLocationsMap({
   onFiltersChange,
   showPartnerButton = true,
   showSelectButton = false,
+  clusterMarkers = !showSelectButton,
   partnerButtonLabel = "Открыть на сайте провайдера ↗",
   selectButtonLabel = "Выбрать эту лабораторию",
   onSelect,
@@ -297,6 +318,7 @@ export default function LabLocationsMap({
   onFiltersChange?: (f: TileFilters) => void;
   showPartnerButton?: boolean;
   showSelectButton?: boolean;
+  clusterMarkers?: boolean;
   partnerButtonLabel?: string;
   selectButtonLabel?: string;
   onSelect?: (item: LabMapItem) => void;
@@ -521,6 +543,7 @@ export default function LabLocationsMap({
             items={items}
             showPartnerButton={showPartnerButton}
             showSelectButton={showSelectButton}
+            clusterMarkers={clusterMarkers}
             partnerButtonLabel={partnerButtonLabel}
             selectButtonLabel={selectButtonLabel}
             onSelect={onSelect}
