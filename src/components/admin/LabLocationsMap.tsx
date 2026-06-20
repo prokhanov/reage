@@ -101,6 +101,8 @@ type MarkerClusterFactory = typeof L & {
   markerClusterGroup: (options: Record<string, unknown>) => L.LayerGroup;
 };
 
+const LAB_MARKER_PANE = "lab-marker-pane";
+
 const DEFAULT_FILTERS: TileFilters = {
   brightness: 100,
   contrast: 100,
@@ -183,11 +185,19 @@ function ClusterLayer({
   const map = useMap();
   useEffect(() => {
     if (!items.length) return;
+    const pane = map.getPane(LAB_MARKER_PANE) ?? map.createPane(LAB_MARKER_PANE);
+    pane.style.zIndex = "680";
+    pane.style.pointerEvents = "auto";
+
     const icon = buildIcon();
     const cluster = (L as unknown as MarkerClusterFactory).markerClusterGroup({
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
+      removeOutsideVisibleBounds: false,
+      animate: false,
+      animateAddingMarkers: false,
       maxClusterRadius: 50,
+      clusterPane: LAB_MARKER_PANE,
       iconCreateFunction: (c: { getChildCount: () => number }) => {
         const count = c.getChildCount();
         const size = count < 10 ? 34 : count < 100 ? 40 : 48;
@@ -200,7 +210,7 @@ function ClusterLayer({
     });
 
     items.forEach((it) => {
-      const m = L.marker([it.lat, it.lng], { icon });
+      const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
       const hours = (it.hours ?? []).filter(Boolean);
       const partnerBtn =
