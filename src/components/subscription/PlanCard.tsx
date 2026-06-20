@@ -1,4 +1,4 @@
-import { Check, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,7 +61,6 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
               plan.badge_color === 'accent' && "bg-accent text-accent-foreground"
             )}
           >
-            {isRecommended && <Sparkles className="h-3 w-3 mr-1 inline" />}
             {plan.badge_text}
           </Badge>
         </div>
@@ -95,7 +94,7 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
           
           {pricing.duration_months > 1 && (
             <div className="text-xs text-muted-foreground pt-1">
-              {monthlyEquivalent.toLocaleString('ru-RU')} ₽/месяц
+              или {monthlyEquivalent.toLocaleString('ru-RU')} ₽/месяц
             </div>
           )}
 
