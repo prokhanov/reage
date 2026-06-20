@@ -45,6 +45,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
       setBadgeColor(plan.badge_color || "");
       setDisplayOrder(plan.display_order);
       setIsActive(plan.is_active);
+      setHighlights(plan.comparison_highlights ?? []);
     }
   }, [plan]);
 
