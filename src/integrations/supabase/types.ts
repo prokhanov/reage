@@ -2674,6 +2674,9 @@ export type Database = {
           id: string
           internal_secret: string
           is_active: boolean
+          low_balance_alerts_enabled: boolean
+          low_balance_template: string
+          low_balance_threshold: number
           singleton: boolean
           updated_at: string
           updated_by: string | null
@@ -2687,6 +2690,9 @@ export type Database = {
           id?: string
           internal_secret?: string
           is_active?: boolean
+          low_balance_alerts_enabled?: boolean
+          low_balance_template?: string
+          low_balance_threshold?: number
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
@@ -2700,6 +2706,9 @@ export type Database = {
           id?: string
           internal_secret?: string
           is_active?: boolean
+          low_balance_alerts_enabled?: boolean
+          low_balance_template?: string
+          low_balance_threshold?: number
           singleton?: boolean
           updated_at?: string
           updated_by?: string | null
