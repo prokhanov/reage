@@ -107,6 +107,7 @@ export type Database = {
       analysis_bookings: {
         Row: {
           address: string
+          address_comment: string | null
           assigned_staff_id: string | null
           booking_date: string
           booking_time: string
@@ -122,6 +123,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          address_comment?: string | null
           assigned_staff_id?: string | null
           booking_date: string
           booking_time: string
@@ -137,6 +139,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          address_comment?: string | null
           assigned_staff_id?: string | null
           booking_date?: string
           booking_time?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.analysis_bookings ADD COLUMN IF NOT EXISTS address_comment text;
