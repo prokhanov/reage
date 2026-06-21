@@ -25,6 +25,7 @@ interface EditBookingDialogProps {
   currentDate: string;
   currentTime: string;
   currentAddress: string;
+  currentAddressComment?: string | null;
   onClose: () => void;
   onSuccess?: () => void;
 }
@@ -34,12 +35,14 @@ export function EditBookingDialog({
   currentDate,
   currentTime,
   currentAddress,
+  currentAddressComment,
   onClose,
   onSuccess,
 }: EditBookingDialogProps) {
   const [date, setDate] = useState<Date>(new Date(currentDate));
   const [time, setTime] = useState(currentTime);
   const [address, setAddress] = useState(currentAddress);
+  const [addressComment, setAddressComment] = useState(currentAddressComment || "");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -53,8 +56,9 @@ export function EditBookingDialog({
           booking_date: format(date, "yyyy-MM-dd"),
           booking_time: time,
           address: address,
+          address_comment: addressComment || null,
           updated_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("id", bookingId);
 
       if (error) throw error;
@@ -62,6 +66,7 @@ export function EditBookingDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["analysis-bookings"] });
       queryClient.invalidateQueries({ queryKey: ["my-assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-bookings"] });
       toast({
         title: "Запись обновлена",
         description: "Данные записи успешно изменены",
@@ -129,6 +134,16 @@ export function EditBookingDialog({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Введите адрес"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address_comment">Комментарий к адресу</Label>
+            <Input
+              id="address_comment"
+              value={addressComment}
+              onChange={(e) => setAddressComment(e.target.value)}
+              placeholder="Подъезд, этаж, домофон и т.д."
             />
           </div>
         </div>
