@@ -193,10 +193,20 @@ Deno.serve(async (req) => {
     }
 
     const enabled = (settings.enabled_events ?? {})[eventType];
-    if (!isTest && !enabled) {
+    const isLowBalance = eventType === "sms_low_balance";
+    if (isLowBalance && !(settings as any).low_balance_alerts_enabled && !isTest) {
+      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "low balance alerts disabled" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!isTest && !isLowBalance && !enabled) {
       return new Response(JSON.stringify({ ok: true, skipped: true, reason: "event disabled" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (isLowBalance && !payload.template) {
+      payload.template = (settings as any).low_balance_template || null;
     }
 
     const text = buildMessage(eventType, payload, isTest, (settings as any).booking_templates ?? null);
