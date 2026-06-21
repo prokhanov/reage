@@ -208,6 +208,8 @@ export function PatientBookingsCard({ userId, patient }: Props) {
     qc.invalidateQueries({ queryKey: ["patient-latest-booking", userId] });
     qc.invalidateQueries({ queryKey: ["analysis-bookings"] });
     qc.invalidateQueries({ queryKey: ["my-assignments"] });
+    qc.invalidateQueries({ queryKey: ["patient-info", userId] });
+    qc.invalidateQueries({ queryKey: ["patients"] });
   };
 
   const statusMutation = useMutation({
@@ -218,12 +220,24 @@ export function PatientBookingsCard({ userId, patient }: Props) {
         .eq("id", id);
       if (error) throw error;
     },
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: ["patient-bookings", userId] });
+      const previous = qc.getQueryData<Booking[]>(["patient-bookings", userId]);
+      qc.setQueryData<Booking[]>(["patient-bookings", userId], (old) =>
+        (old || []).map((b) => (b.id === id ? { ...b, status } : b))
+      );
+      return { previous };
+    },
     onSuccess: () => {
       invalidateAll();
       toast({ title: "Статус обновлен" });
     },
-    onError: (e: any) =>
-      toast({ title: "Ошибка", description: e?.message, variant: "destructive" }),
+    onError: (e: any, _vars, ctx) => {
+      if (ctx?.previous) {
+        qc.setQueryData(["patient-bookings", userId], ctx.previous);
+      }
+      toast({ title: "Ошибка", description: e?.message, variant: "destructive" });
+    },
   });
 
   const deleteMutation = useMutation({
