@@ -274,7 +274,7 @@ export default function Dashboard() {
             Добро пожаловать, {profile?.name}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Паспортный возраст: <span className="text-primary font-medium">{chronologicalAge || "—"} лет</span>
+            Паспортный возраст: <span className="text-primary font-medium">{birthDateStr ? calculateAge(birthDateStr) : (chronologicalAge ? Math.floor(chronologicalAge) : "—")} лет</span>
           </p>
         </div>
 
