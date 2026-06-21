@@ -56,6 +56,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 import { RegisterGuardProvider } from "@/components/RegisterGuard";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { YandexMetrika } from "@/components/YandexMetrika";
 import Requisites from "./pages/legal/Requisites";
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
