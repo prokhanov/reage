@@ -128,9 +128,11 @@ const App = () => (
             <Route
               element={
                 <ProtectedRoute>
-                  <DashboardLayout>
-                    <Outlet />
-                  </DashboardLayout>
+                  <DemoModeProvider>
+                    <DashboardLayout>
+                      <Outlet />
+                    </DashboardLayout>
+                  </DemoModeProvider>
                 </ProtectedRoute>
               }
             >
