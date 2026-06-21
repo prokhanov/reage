@@ -73,6 +73,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
   const [date, setDate] = useState<Date>(new Date());
   const [time, setTime] = useState("10:00");
   const [address, setAddress] = useState("");
+  const [addressComment, setAddressComment] = useState("");
   const [status, setStatus] = useState<BookingStatus>("scheduled");
 
   const { toast } = useToast();
@@ -85,6 +86,7 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
       setDate(new Date());
       setTime("10:00");
       setAddress("");
+      setAddressComment("");
       setStatus("scheduled");
     }
   }, [open]);
@@ -159,8 +161,9 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
         booking_date: format(date, "yyyy-MM-dd"),
         booking_time: time,
         address: address.trim(),
+        address_comment: addressComment.trim() || null,
         status,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
