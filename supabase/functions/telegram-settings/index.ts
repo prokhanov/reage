@@ -1,6 +1,7 @@
 // Admin-only endpoint for managing & testing Telegram bot.
-// Actions: get_status, save, test_connection, test_event
+// Actions: get_status, save, test_connection, test_event, test_low_balance
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { checkAuth } from "../_shared/smsaero.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -97,6 +98,9 @@ Deno.serve(async (req) => {
         bot_token: settings.bot_token || "",
         enabled_events: settings.enabled_events,
         booking_templates: (settings as any).booking_templates ?? {},
+        low_balance_alerts_enabled: (settings as any).low_balance_alerts_enabled ?? true,
+        low_balance_threshold: Number((settings as any).low_balance_threshold ?? 100),
+        low_balance_template: (settings as any).low_balance_template ?? "",
       });
     }
 
@@ -114,6 +118,15 @@ Deno.serve(async (req) => {
       }
       if (body.booking_templates && typeof body.booking_templates === "object") {
         update.booking_templates = body.booking_templates;
+      }
+      if (typeof body.low_balance_alerts_enabled === "boolean") {
+        update.low_balance_alerts_enabled = body.low_balance_alerts_enabled;
+      }
+      if (body.low_balance_threshold !== undefined && body.low_balance_threshold !== null && !isNaN(Number(body.low_balance_threshold))) {
+        update.low_balance_threshold = Number(body.low_balance_threshold);
+      }
+      if (typeof body.low_balance_template === "string") {
+        update.low_balance_template = body.low_balance_template;
       }
       const { error } = await admin
         .from("telegram_notification_settings")
