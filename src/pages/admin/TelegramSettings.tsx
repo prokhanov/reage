@@ -89,6 +89,9 @@ export default function TelegramSettings() {
       setIsActive(data.is_active);
       setEnabledEvents(data.enabled_events || {});
       setBookingTemplates(data.booking_templates || {});
+      setLowBalanceEnabled(data.low_balance_alerts_enabled ?? true);
+      setLowBalanceThreshold(String(data.low_balance_threshold ?? 100));
+      setLowBalanceTemplate(data.low_balance_template ?? "");
     }
     setLoading(false);
   }
@@ -116,6 +119,9 @@ export default function TelegramSettings() {
       is_active: isActive,
       enabled_events: enabledEvents,
       booking_templates: bookingTemplates,
+      low_balance_alerts_enabled: lowBalanceEnabled,
+      low_balance_threshold: Number(lowBalanceThreshold) || 0,
+      low_balance_template: lowBalanceTemplate,
     };
     if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
 
