@@ -113,13 +113,12 @@ Deno.serve(async (req) => {
     const dateStr = new Date(booking.booking_date).toLocaleDateString("ru-RU", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
     });
 
     const text = renderTemplate(tpl.body_text, {
       date: dateStr,
       time: (booking.booking_time || "").slice(0, 5),
-      address: booking.address || "",
+      address: shortenAddressForSms(booking.address || ""),
       name: profile?.name || "",
       url: `${APP_URL}/profile`,
     });
