@@ -291,8 +291,12 @@ export default function PatientProfile() {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Возраст</p>
-                      <p className="font-medium">{age ? `${age} лет` : "—"}</p>
+                      <p className="text-xs text-muted-foreground">Дата рождения</p>
+                      <p className="font-medium">
+                        {profile.birth_date
+                          ? `${format(new Date(profile.birth_date), "dd.MM.yyyy", { locale: ru })}${age ? ` (${age} лет)` : ""}`
+                          : "Не указана"}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
