@@ -174,6 +174,24 @@ export default function TelegramSettings() {
     await loadLogs();
   }
 
+  async function handleTestLowBalance() {
+    setTestingLowBalance(true);
+    const { data, error } = await supabase.functions.invoke("telegram-settings", {
+      body: { action: "test_low_balance" },
+    });
+    setTestingLowBalance(false);
+    if (error || !data?.ok) {
+      toast({
+        title: "Ошибка отправки",
+        description: error?.message || data?.error || "Не удалось отправить",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Тест отправлен", description: `Текущий баланс: ${data.balance?.toFixed?.(2) ?? data.balance} ₽` });
+    }
+    await loadLogs();
+  }
+
   function toggleEvent(key: string, value: boolean) {
     setEnabledEvents((prev) => ({ ...prev, [key]: value }));
   }
