@@ -39,6 +39,9 @@ interface Status {
   bot_token: string;
   enabled_events: Record<string, boolean>;
   booking_templates?: Record<string, string>;
+  low_balance_alerts_enabled?: boolean;
+  low_balance_threshold?: number;
+  low_balance_template?: string;
 }
 
 interface LogRow {
@@ -66,6 +69,10 @@ export default function TelegramSettings() {
   const [connStatus, setConnStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [showToken, setShowToken] = useState(false);
+  const [lowBalanceEnabled, setLowBalanceEnabled] = useState(true);
+  const [lowBalanceThreshold, setLowBalanceThreshold] = useState<string>("100");
+  const [lowBalanceTemplate, setLowBalanceTemplate] = useState<string>("");
+  const [testingLowBalance, setTestingLowBalance] = useState(false);
 
 
   async function loadStatus() {
