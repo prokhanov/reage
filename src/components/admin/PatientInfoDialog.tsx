@@ -42,6 +42,8 @@ import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTa
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import { PatientBookingsCard } from "@/components/admin/PatientBookingsCard";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 
 interface PatientInfoDialogProps {
   patientId: string | null;
@@ -353,11 +355,11 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Возраст:</span>
+                        <span className="text-muted-foreground">Дата рождения:</span>
                         <span className="font-medium">
                           {patientData.profile.birth_date
-                            ? `${calculateAge(patientData.profile.birth_date)} лет`
-                            : "Не указан"}
+                            ? `${format(new Date(patientData.profile.birth_date), "dd.MM.yyyy", { locale: ru })} (${calculateAge(patientData.profile.birth_date)} лет)`
+                            : "Не указана"}
                         </span>
                       </div>
                       <Separator />
