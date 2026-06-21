@@ -494,7 +494,7 @@ export default function Patients() {
                                 <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
                                 {patient.phone ? (
                                   patient.phone_verified_at ? (
-                                    <span className="text-sm text-green-600 dark:text-green-400 truncate">+{patient.phone}</span>
+                                    <span className="text-sm text-green-600 dark:text-green-400 truncate">{patient.phone.startsWith('+') ? patient.phone : `+${patient.phone}`}</span>
                                   ) : (
                                     <PhoneConfirmationBadge
                                       phone={patient.phone}
