@@ -90,6 +90,8 @@ Deno.serve(async (req) => {
       sign: sender?.sender_sign || undefined,
     });
 
+    try { (globalThis as any).EdgeRuntime?.waitUntil(checkBalanceAndNotify()); } catch (_) { checkBalanceAndNotify(); }
+
     await admin.from("sms_send_log").insert({
       message_id: messageId,
       template_name: tpl.name,

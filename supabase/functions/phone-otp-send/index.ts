@@ -120,6 +120,8 @@ Deno.serve(async (req) => {
 
     const sendRes = await sendSms({ phone, text });
 
+    try { (globalThis as any).EdgeRuntime?.waitUntil(checkBalanceAndNotify()); } catch (_) { checkBalanceAndNotify(); }
+
     await admin.from("sms_send_log").insert({
       message_id: messageId,
       template_name: "phone_login_otp",
