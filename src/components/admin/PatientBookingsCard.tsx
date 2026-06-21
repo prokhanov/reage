@@ -142,6 +142,7 @@ interface Booking {
   booking_date: string;
   booking_time: string;
   address: string;
+  address_comment?: string | null;
   status: BookingStatus;
   assigned_staff_id: string | null;
   next_analysis_date: string | null;
@@ -385,6 +386,11 @@ export function PatientBookingsCard({ userId, patient }: Props) {
                             <div className="truncate border-b border-dotted border-current">
                               {b.address || "—"}
                             </div>
+                            {b.address_comment && (
+                              <div className="text-xs text-muted-foreground truncate mt-0.5" title={b.address_comment}>
+                                💬 {b.address_comment}
+                              </div>
+                            )}
                           </button>
                         </TableCell>
                         <TableCell>
@@ -490,6 +496,7 @@ export function PatientBookingsCard({ userId, patient }: Props) {
           currentDate={editing.booking_date}
           currentTime={editing.booking_time}
           currentAddress={editing.address}
+          currentAddressComment={editing.address_comment || ""}
           onClose={() => setEditing(null)}
           onSuccess={invalidateAll}
         />
@@ -583,6 +590,7 @@ function CreateBookingForPatientDialog({
   const [date, setDate] = useState<Date>(new Date());
   const [time, setTime] = useState("10:00");
   const [address, setAddress] = useState("");
+  const [addressComment, setAddressComment] = useState("");
   const [status, setStatus] = useState<BookingStatus>("scheduled");
 
   const createM = useMutation({
@@ -592,8 +600,9 @@ function CreateBookingForPatientDialog({
         booking_date: format(date, "yyyy-MM-dd"),
         booking_time: time,
         address: address.trim(),
+        address_comment: addressComment.trim() || null,
         status,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -659,6 +668,15 @@ function CreateBookingForPatientDialog({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Адрес забора биоматериала"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="address_comment">Комментарий к адресу</Label>
+            <Input
+              id="address_comment"
+              value={addressComment}
+              onChange={(e) => setAddressComment(e.target.value)}
+              placeholder="Подъезд, этаж, домофон и т.д."
             />
           </div>
           <div className="space-y-2">
