@@ -340,6 +340,16 @@ export function CreateBookingDialog({ open, onClose }: CreateBookingDialogProps)
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="address_comment">Комментарий к адресу</Label>
+            <Input
+              id="address_comment"
+              value={addressComment}
+              onChange={(e) => setAddressComment(e.target.value)}
+              placeholder="Подъезд, этаж, домофон и т.д."
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label>Статус</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as BookingStatus)}>
               <SelectTrigger>
