@@ -114,6 +114,24 @@ export function buildMessage(
         `🏷 Статус: <b>${e(statusLabel)}</b>`
       );
     }
+    case "sms_low_balance": {
+      const balance = Number(payload.balance);
+      const threshold = Number(payload.threshold);
+      const tpl: string | null = payload.template || null;
+      const vars: Record<string, string> = {
+        balance: isFinite(balance) ? balance.toFixed(2) : String(payload.balance ?? "—"),
+        threshold: isFinite(threshold) ? String(threshold) : String(payload.threshold ?? "—"),
+      };
+      if (tpl && tpl.trim()) {
+        return prefix + tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
+      }
+      return (
+        prefix +
+        "⚠️ <b>Низкий баланс SMS Aero</b>\n" +
+        `Остаток: <b>${e(vars.balance)} ₽</b>\n` +
+        `Порог: ${e(vars.threshold)} ₽`
+      );
+    }
     default:
       return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
   }
