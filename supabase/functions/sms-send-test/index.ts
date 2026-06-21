@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
 import { normalizePhone, renderTemplate, sendSms } from "../_shared/smsaero.ts";
+import { checkBalanceAndNotify } from "../_shared/sms-balance-check.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
