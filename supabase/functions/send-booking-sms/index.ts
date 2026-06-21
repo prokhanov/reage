@@ -25,6 +25,19 @@ const ALLOWED_TEMPLATES = new Set([
 
 const APP_URL = "https://reage.life";
 
+function shortenAddressForSms(address: string): string {
+  if (!address) return "";
+  let result = address;
+  // Московская область → МО (учитываем падежи и сокращения)
+  result = result.replace(/Московск(?:ая|ой|ую|ою|ом)\s+обл(?:асть|асти|астью|астей)?/giu, "МО");
+  result = result.replace(/Моск\.\s*обл\.?/giu, "МО");
+  // Санкт-Петербург → СПб (любые падежи, варианты написания)
+  result = result.replace(/(?:г\.?\s*)?Санкт[-\s]?Петербург[ауеомяи]*/giu, "СПб");
+  result = result.replace(/С[-.]?\s*Петербург[ауеомяи]*/giu, "СПб");
+  result = result.replace(/\bСПБ\b/g, "СПб");
+  return result;
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
