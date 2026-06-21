@@ -504,7 +504,7 @@ export default function Patients() {
                                       onUpdated={() => refetch()}
                                       trigger={
                                         <span className="text-sm text-red-600 dark:text-red-400 hover:underline cursor-pointer truncate">
-                                          +{patient.phone}
+                                          {patient.phone.startsWith('+') ? patient.phone : `+${patient.phone}`}
                                         </span>
                                       }
                                     />
