@@ -188,6 +188,34 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    case "test_low_balance": {
+      if (!settings.bot_token || !settings.chat_id) {
+        return json({ ok: false, error: "Бот не настроен — сначала сохрани токен и chat_id" });
+      }
+      const auth = await checkAuth();
+      const balance = typeof auth.balance === "number" ? auth.balance : 0;
+      const threshold = Number((settings as any).low_balance_threshold ?? 100);
+      const tpl = (settings as any).low_balance_template || "";
+      const vars: Record<string, string> = {
+        balance: balance.toFixed(2),
+        threshold: String(threshold),
+      };
+      const body = tpl && tpl.trim()
+        ? tpl.replace(/\{(\w+)\}/g, (_: string, k: string) => vars[k] ?? `{${k}}`)
+        : `⚠️ <b>Низкий баланс SMS Aero</b>\nОстаток: <b>${vars.balance} ₽</b>\nПорог: ${vars.threshold} ₽`;
+      const text = "🧪 <b>[ТЕСТ]</b>\n" + body;
+      const sent = await sendTelegram(settings.bot_token, settings.chat_id, text);
+      await admin.from("telegram_notification_log").insert({
+        event_type: "sms_low_balance",
+        payload: { test: true, balance, threshold },
+        status: sent.ok ? "sent" : "failed",
+        error: sent.ok ? null : (sent.data?.description || `HTTP ${sent.status}`),
+        is_test: true,
+      });
+      if (!sent.ok) return json({ ok: false, error: sent.data?.description || `HTTP ${sent.status}`, balance });
+      return json({ ok: true, balance });
+    }
+
     default:
       return json({ error: "unknown action" }, 400);
   }
