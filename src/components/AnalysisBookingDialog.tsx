@@ -33,6 +33,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
   const [bookingTime, setBookingTime] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState<string>("");
   const [bookingAddress, setBookingAddress] = useState("");
+  const [addressComment, setAddressComment] = useState("");
   const [passportSeries, setPassportSeries] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,6 +78,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         setBookingDate(new Date(booking.booking_date));
         setBookingTime(booking.booking_time);
         setBookingAddress(booking.address);
+        setAddressComment((booking as any).address_comment || "");
       } else {
         setExistingBookingId(null);
         setExistingSlotId(null);
@@ -84,6 +86,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
         setBookingTime("");
         setSelectedSlotId("");
         setBookingAddress("");
+        setAddressComment("");
       }
     } catch (error) {
       console.error('Error loading existing booking:', error);
@@ -149,6 +152,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
               booking_date: format(bookingDate, 'yyyy-MM-dd'),
               booking_time: bookingTime,
               address: bookingAddress,
+              address_comment: addressComment || null,
               slot_id: realSlotId,
               status: 'scheduled'
             } as any)
@@ -169,6 +173,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
               booking_date: format(bookingDate, 'yyyy-MM-dd'),
               booking_time: bookingTime,
               address: bookingAddress,
+              address_comment: addressComment || null,
               slot_id: realSlotId,
               status: 'scheduled'
             } as any);
@@ -211,6 +216,7 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
           booking_date: format(bookingDate, 'yyyy-MM-dd'),
           booking_time: bookingTime,
           address: bookingAddress,
+          address_comment: addressComment || null,
           status: 'scheduled'
         } as any)
         .eq('id', existingBookingId);
@@ -435,6 +441,12 @@ export function AnalysisBookingDialog({ open, onOpenChange, onSuccess }: Analysi
               placeholder="Введите ваш адрес"
               value={bookingAddress}
               onChange={(e) => setBookingAddress(e.target.value)}
+              className="h-12"
+            />
+            <Input
+              placeholder="Комментарий к адресу (подъезд, этаж, домофон и т.д.)"
+              value={addressComment}
+              onChange={(e) => setAddressComment(e.target.value)}
               className="h-12"
             />
           </div>
