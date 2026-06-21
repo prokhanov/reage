@@ -383,6 +383,68 @@ export default function TelegramSettings() {
 
 
 
+      {/* Block 2c: SMS Aero low balance alerts */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Уведомления о балансе SMS Aero</CardTitle>
+          <CardDescription>
+            После каждой отправки SMS (авто, ручной, тестовой) проверяется баланс. Если он ниже порога — в Telegram приходит предупреждение.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Switch
+              id="low-balance-enabled"
+              checked={lowBalanceEnabled}
+              onCheckedChange={setLowBalanceEnabled}
+            />
+            <Label htmlFor="low-balance-enabled" className="cursor-pointer">
+              Включить уведомления о низком балансе
+            </Label>
+          </div>
+          <div className="space-y-2 max-w-xs">
+            <Label htmlFor="low-balance-threshold">Порог уведомления, ₽</Label>
+            <Input
+              id="low-balance-threshold"
+              type="number"
+              min={0}
+              step="1"
+              value={lowBalanceThreshold}
+              onChange={(e) => setLowBalanceThreshold(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="low-balance-template">Шаблон сообщения</Label>
+            <Textarea
+              id="low-balance-template"
+              rows={4}
+              value={lowBalanceTemplate}
+              onChange={(e) => setLowBalanceTemplate(e.target.value)}
+              placeholder="⚠️ Низкий баланс SMS Aero&#10;Остаток: {balance} ₽&#10;Порог: {threshold} ₽"
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Переменные: <code>{"{balance}"}</code>, <code>{"{threshold}"}</code>. Поддерживается HTML: &lt;b&gt;, &lt;i&gt;, &lt;a&gt;.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleSave} disabled={saving} size="sm">
+              {saving && <ButtonSpinner className="mr-2" />}
+              Сохранить
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTestLowBalance}
+              disabled={testingLowBalance || !status?.configured}
+            >
+              {testingLowBalance ? <ButtonSpinner className="mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Отправить тестовое
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Block 3: Logs */}
       <Card>
         <CardHeader>
