@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
 import { normalizePhone, renderTemplate, sendSms } from "../_shared/smsaero.ts";
+import { checkBalanceAndNotify } from "../_shared/sms-balance-check.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,6 +89,8 @@ Deno.serve(async (req) => {
       text,
       sign: sender?.sender_sign || undefined,
     });
+
+    try { (globalThis as any).EdgeRuntime?.waitUntil(checkBalanceAndNotify()); } catch (_) { checkBalanceAndNotify(); }
 
     await admin.from("sms_send_log").insert({
       message_id: messageId,

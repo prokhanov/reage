@@ -39,6 +39,9 @@ interface Status {
   bot_token: string;
   enabled_events: Record<string, boolean>;
   booking_templates?: Record<string, string>;
+  low_balance_alerts_enabled?: boolean;
+  low_balance_threshold?: number;
+  low_balance_template?: string;
 }
 
 interface LogRow {
@@ -66,6 +69,10 @@ export default function TelegramSettings() {
   const [connStatus, setConnStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [showToken, setShowToken] = useState(false);
+  const [lowBalanceEnabled, setLowBalanceEnabled] = useState(true);
+  const [lowBalanceThreshold, setLowBalanceThreshold] = useState<string>("100");
+  const [lowBalanceTemplate, setLowBalanceTemplate] = useState<string>("");
+  const [testingLowBalance, setTestingLowBalance] = useState(false);
 
 
   async function loadStatus() {
@@ -82,6 +89,9 @@ export default function TelegramSettings() {
       setIsActive(data.is_active);
       setEnabledEvents(data.enabled_events || {});
       setBookingTemplates(data.booking_templates || {});
+      setLowBalanceEnabled(data.low_balance_alerts_enabled ?? true);
+      setLowBalanceThreshold(String(data.low_balance_threshold ?? 100));
+      setLowBalanceTemplate(data.low_balance_template ?? "");
     }
     setLoading(false);
   }
@@ -109,6 +119,9 @@ export default function TelegramSettings() {
       is_active: isActive,
       enabled_events: enabledEvents,
       booking_templates: bookingTemplates,
+      low_balance_alerts_enabled: lowBalanceEnabled,
+      low_balance_threshold: Number(lowBalanceThreshold) || 0,
+      low_balance_template: lowBalanceTemplate,
     };
     if (botToken && botToken.trim()) payload.bot_token = botToken.trim();
 
@@ -157,6 +170,24 @@ export default function TelegramSettings() {
       });
     } else {
       toast({ title: "Тестовое сообщение отправлено" });
+    }
+    await loadLogs();
+  }
+
+  async function handleTestLowBalance() {
+    setTestingLowBalance(true);
+    const { data, error } = await supabase.functions.invoke("telegram-settings", {
+      body: { action: "test_low_balance" },
+    });
+    setTestingLowBalance(false);
+    if (error || !data?.ok) {
+      toast({
+        title: "Ошибка отправки",
+        description: error?.message || data?.error || "Не удалось отправить",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Тест отправлен", description: `Текущий баланс: ${data.balance?.toFixed?.(2) ?? data.balance} ₽` });
     }
     await loadLogs();
   }
@@ -351,6 +382,68 @@ export default function TelegramSettings() {
       </Card>
 
 
+
+      {/* Block 2c: SMS Aero low balance alerts */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Уведомления о балансе SMS Aero</CardTitle>
+          <CardDescription>
+            После каждой отправки SMS (авто, ручной, тестовой) проверяется баланс. Если он ниже порога — в Telegram приходит предупреждение.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Switch
+              id="low-balance-enabled"
+              checked={lowBalanceEnabled}
+              onCheckedChange={setLowBalanceEnabled}
+            />
+            <Label htmlFor="low-balance-enabled" className="cursor-pointer">
+              Включить уведомления о низком балансе
+            </Label>
+          </div>
+          <div className="space-y-2 max-w-xs">
+            <Label htmlFor="low-balance-threshold">Порог уведомления, ₽</Label>
+            <Input
+              id="low-balance-threshold"
+              type="number"
+              min={0}
+              step="1"
+              value={lowBalanceThreshold}
+              onChange={(e) => setLowBalanceThreshold(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="low-balance-template">Шаблон сообщения</Label>
+            <Textarea
+              id="low-balance-template"
+              rows={4}
+              value={lowBalanceTemplate}
+              onChange={(e) => setLowBalanceTemplate(e.target.value)}
+              placeholder="⚠️ Низкий баланс SMS Aero&#10;Остаток: {balance} ₽&#10;Порог: {threshold} ₽"
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Переменные: <code>{"{balance}"}</code>, <code>{"{threshold}"}</code>. Поддерживается HTML: &lt;b&gt;, &lt;i&gt;, &lt;a&gt;.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleSave} disabled={saving} size="sm">
+              {saving && <ButtonSpinner className="mr-2" />}
+              Сохранить
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTestLowBalance}
+              disabled={testingLowBalance || !status?.configured}
+            >
+              {testingLowBalance ? <ButtonSpinner className="mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Отправить тестовое
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Block 3: Logs */}
       <Card>

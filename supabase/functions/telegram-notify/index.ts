@@ -114,6 +114,24 @@ export function buildMessage(
         `🏷 Статус: <b>${e(statusLabel)}</b>`
       );
     }
+    case "sms_low_balance": {
+      const balance = Number(payload.balance);
+      const threshold = Number(payload.threshold);
+      const tpl: string | null = payload.template || null;
+      const vars: Record<string, string> = {
+        balance: isFinite(balance) ? balance.toFixed(2) : String(payload.balance ?? "—"),
+        threshold: isFinite(threshold) ? String(threshold) : String(payload.threshold ?? "—"),
+      };
+      if (tpl && tpl.trim()) {
+        return prefix + tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
+      }
+      return (
+        prefix +
+        "⚠️ <b>Низкий баланс SMS Aero</b>\n" +
+        `Остаток: <b>${e(vars.balance)} ₽</b>\n` +
+        `Порог: ${e(vars.threshold)} ₽`
+      );
+    }
     default:
       return prefix + `📣 <b>${e(eventType)}</b>\n<pre>${e(JSON.stringify(payload, null, 2))}</pre>`;
   }
@@ -175,10 +193,20 @@ Deno.serve(async (req) => {
     }
 
     const enabled = (settings.enabled_events ?? {})[eventType];
-    if (!isTest && !enabled) {
+    const isLowBalance = eventType === "sms_low_balance";
+    if (isLowBalance && !(settings as any).low_balance_alerts_enabled && !isTest) {
+      return new Response(JSON.stringify({ ok: true, skipped: true, reason: "low balance alerts disabled" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!isTest && !isLowBalance && !enabled) {
       return new Response(JSON.stringify({ ok: true, skipped: true, reason: "event disabled" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (isLowBalance && !payload.template) {
+      payload.template = (settings as any).low_balance_template || null;
     }
 
     const text = buildMessage(eventType, payload, isTest, (settings as any).booking_templates ?? null);

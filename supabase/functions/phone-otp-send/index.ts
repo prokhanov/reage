@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { sendSms, normalizePhone } from "../_shared/smsaero.ts";
+import { checkBalanceAndNotify } from "../_shared/sms-balance-check.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -118,6 +119,8 @@ Deno.serve(async (req) => {
     });
 
     const sendRes = await sendSms({ phone, text });
+
+    try { (globalThis as any).EdgeRuntime?.waitUntil(checkBalanceAndNotify()); } catch (_) { checkBalanceAndNotify(); }
 
     await admin.from("sms_send_log").insert({
       message_id: messageId,
