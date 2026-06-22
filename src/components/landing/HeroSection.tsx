@@ -66,10 +66,11 @@ export function HeroSection() {
           {/* Logo - centered top */}
           <ThemedLogo className="h-20 md:h-28 lg:h-36 w-auto animate-hue-shift mx-auto" />
 
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-            <span className="text-xs sm:text-sm font-medium text-primary text-center leading-relaxed">
-              100+ биомаркеров • Комплексный анализ • Тренды здоровья • Биологический возраст
+          {/* City badge */}
+          <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
+            <MapPin className="w-3.5 h-3.5 text-primary" />
+            <span className="text-sm font-medium text-primary">
+              Москва и Санкт-Петербург
             </span>
           </div>
 
@@ -116,13 +117,6 @@ export function HeroSection() {
             </Button>
           </div>
 
-          {/* City badge */}
-          <div className="flex flex-wrap gap-2 justify-center animate-fade-in" style={{ animationDelay: '0.5s' }}>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm text-sm font-medium text-primary">
-              <MapPin className="w-3.5 h-3.5" />
-              Москва и Санкт-Петербург
-            </span>
-          </div>
 
         </div>
       </div>
