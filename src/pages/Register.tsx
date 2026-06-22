@@ -444,7 +444,7 @@ export default function Register() {
             <h1 className="text-3xl font-bold mb-2">Добро пожаловать в ReAge</h1>
             <p className="text-muted-foreground text-lg mb-3">{"\n"}</p>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <span className="text-sm font-medium text-primary">Создание аккаунта — бесплатно</span>
+              <span className="text-sm font-medium text-primary">На данный момент сервис доступен в Москве, МО и СПБ</span>
             </div>
           </div>
 
