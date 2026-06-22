@@ -37,10 +37,12 @@ function FAQItem({ question, answer, isOpen, onToggle, delay }: FAQItemProps) {
       
       <div className={cn(
         "overflow-hidden transition-all duration-300",
-        isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        isOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
       )}>
-        <div className="p-6 pt-4 text-muted-foreground leading-relaxed">
-          {answer}
+        <div className="p-6 pt-4 text-muted-foreground leading-relaxed space-y-3">
+          {answer.split('\n\n').map((paragraph, i) => (
+            <p key={i}>{paragraph}</p>
+          ))}
         </div>
       </div>
     </div>
