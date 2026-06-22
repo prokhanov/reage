@@ -306,7 +306,12 @@ export default function Faq() {
       s.items.map((it) => ({
         "@type": "Question",
         name: it.q,
-        acceptedAnswer: { "@type": "Answer", text: it.a },
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: typeof it.a === "string"
+            ? it.a
+            : "Большинство исследований сдаются утром натощак. Перед каждым забором вы получаете подробную инструкцию — полные правила подготовки можно посмотреть на странице /prep.",
+        },
       })),
     ),
   };
