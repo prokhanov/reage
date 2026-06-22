@@ -17,7 +17,7 @@ import logoDark from "@/assets/reage-logo-dark.png";
 
 interface QA {
   q: string;
-  a: string;
+  a: string | React.ReactNode;
 }
 
 interface Section {
