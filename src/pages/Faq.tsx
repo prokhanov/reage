@@ -17,7 +17,7 @@ import logoDark from "@/assets/reage-logo-dark.png";
 
 interface QA {
   q: string;
-  a: string;
+  a: string | React.ReactNode;
 }
 
 interface Section {
@@ -105,7 +105,10 @@ const SECTIONS: Section[] = [
       },
       {
         q: "Нужна ли подготовка к анализам?",
-        a: "Большинство исследований сдаются утром натощак. Перед каждым забором вы получаете подробную инструкцию — полные правила подготовки можно посмотреть на странице /prep.",
+        a: <>
+          Большинство исследований сдаются утром натощак. Перед каждым забором вы получаете подробную инструкцию — полные правила подготовки можно посмотреть на{" "}
+          <Link to="/prep" className="text-primary hover:underline">странице памятки перед анализами</Link>.
+        </>,
       },
       {
         q: "Можно ли сдавать анализы, если принимаю лекарства или БАДы?",
@@ -303,7 +306,12 @@ export default function Faq() {
       s.items.map((it) => ({
         "@type": "Question",
         name: it.q,
-        acceptedAnswer: { "@type": "Answer", text: it.a },
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: typeof it.a === "string"
+            ? it.a
+            : "Большинство исследований сдаются утром натощак. Перед каждым забором вы получаете подробную инструкцию — полные правила подготовки можно посмотреть на странице /prep.",
+        },
       })),
     ),
   };

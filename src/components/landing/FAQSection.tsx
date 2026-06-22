@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { cn } from "@/lib/utils";
@@ -152,7 +153,7 @@ export function FAQSection() {
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Не нашли ответ? Напишите нам — ответим в течение часа
+            Не нашли ответ? <Link to="/faq" className="text-primary hover:underline font-medium">Смотрите полный FAQ</Link> — или напишите нам, ответим в течение часа
           </p>
         </div>
 
