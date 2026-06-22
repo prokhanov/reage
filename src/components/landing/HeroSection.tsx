@@ -116,6 +116,14 @@ export function HeroSection() {
             </Button>
           </div>
 
+          {/* City badge */}
+          <div className="flex flex-wrap gap-2 justify-center animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm text-sm font-medium text-primary">
+              <MapPin className="w-3.5 h-3.5" />
+              Москва и Санкт-Петербург
+            </span>
+          </div>
+
         </div>
       </div>
     </section>);
