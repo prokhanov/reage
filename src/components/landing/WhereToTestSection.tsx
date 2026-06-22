@@ -42,11 +42,13 @@ const cards = [
     icon: Home,
     title: "На дому",
     subtitle: "Удобно, быстро, без поездок",
+    badge: "Пока только Москва и МО",
     bullets: [
       "Выезд медсестры в удобное время",
       "Забор крови за 10–15 минут",
-      "Доступно по Москве, области и Санкт-Петербургу",
+      "Сейчас доступно в Москве и Московской области",
     ],
+    extra: "СПб — скоро",
   },
   {
     icon: Building2,
@@ -127,8 +129,7 @@ export function WhereToTestSection() {
             className="text-base md:text-lg text-muted-foreground animate-fade-in"
             style={{ animationDelay: "0.2s" }}
           >
-            Сдайте анализы дома с выездом медсестры или в одной из десятков партнёрских
-            клиник — Москва, Московская область и Санкт-Петербург.
+            Выезд медсестры на дом — в Москве и Московской области. Партнёрские клиники — в Москве, области и Санкт-Петербурге.
           </p>
         </div>
 
@@ -148,10 +149,18 @@ export function WhereToTestSection() {
                     <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25">
                       <Icon className="w-7 h-7 text-white" />
                     </div>
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
-                        {c.title}
-                      </h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
+                          {c.title}
+                        </h3>
+                        {(c as any).badge && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                            <MapPin className="w-3 h-3" />
+                            {(c as any).badge}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-muted-foreground">{c.subtitle}</div>
                     </div>
                   </div>
@@ -166,6 +175,11 @@ export function WhereToTestSection() {
                       </li>
                     ))}
                   </ul>
+                  {(c as any).extra && (
+                    <p className="mt-3 text-sm text-muted-foreground/60 italic">
+                      {(c as any).extra}
+                    </p>
+                  )}
                 </div>
               </div>
             );
