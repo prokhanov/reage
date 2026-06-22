@@ -70,7 +70,7 @@ export function HeroSection() {
           <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
             <MapPin className="w-3.5 h-3.5 text-primary" />
             <span className="text-sm font-medium text-primary">
-              Москва и Санкт-Петербург
+              Сервис доступен в Москве и Санкт-Петербурге
             </span>
           </div>
 
