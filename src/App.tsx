@@ -32,6 +32,7 @@ import SubscriptionFail from "./pages/SubscriptionFail";
 import HealthStrategy from "./pages/HealthStrategy";
 import ExampleReport from "./pages/ExampleReport";
 import AnalysisPrep from "./pages/AnalysisPrep";
+import Faq from "./pages/Faq";
 
 import AISettings from "./pages/admin/AISettings";
 import DataManagement from "./pages/admin/DataManagement";
