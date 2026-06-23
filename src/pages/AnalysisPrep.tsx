@@ -9,7 +9,7 @@ import {
   Cigarette,
   Clock,
   Utensils,
-  Activity,
+  
   HeartPulse,
   CheckCircle2,
   AlertTriangle,
@@ -65,28 +65,6 @@ const MAIN_RULES: Rule[] = [
   },
 ];
 
-const SPECIAL: Rule[] = [
-  {
-    icon: HeartPulse,
-    title: "Гормоны щитовидной железы",
-    text: "ТТГ, Т3, Т4 — утром натощак, до 10:00. За 1 месяц отменяют препараты йода и тироксин только по согласованию с эндокринологом.",
-  },
-  {
-    icon: Activity,
-    title: "Глюкоза и инсулин",
-    text: "Строго натощак, 8–12 часов голода. Без воды с сахаром, жвачки и зубной пасты со сладким вкусом. HbA1c можно сдавать в любое время — он не зависит от еды.",
-  },
-  {
-    icon: Droplet,
-    title: "Липидный профиль",
-    text: "Холестерин, ЛПНП, ЛПВП, триглицериды — натощак 12 часов. За 2 недели не меняйте обычный рацион, иначе результат не отразит реальную картину.",
-  },
-  {
-    icon: Pill,
-    title: "Витамины и минералы",
-    text: "Витамин D, B12, ферритин, железо — натощак. Минимум 3 дня до сдачи не принимайте добавки с тем витамином/минералом, который сдаёте.",
-  },
-];
 
 const URINE = [
   "Соберите утреннюю порцию мочи сразу после пробуждения.",
@@ -184,33 +162,6 @@ export default function AnalysisPrep() {
           </div>
         </section>
 
-        {/* Special analyses */}
-        <section className="border-y border-border/40 bg-card/30">
-          <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl">
-            <div className="flex items-center gap-3 mb-10">
-              <Activity className="w-7 h-7 text-accent" />
-              <h2 className="text-2xl md:text-3xl font-bold">Особенности по типам анализов</h2>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-5">
-              {SPECIAL.map((rule) => {
-                const Icon = rule.icon;
-                return (
-                  <article
-                    key={rule.title}
-                    className="rounded-2xl border border-border/60 bg-background p-6"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <Icon className="w-5 h-5 text-accent" />
-                      <h3 className="text-lg font-semibold text-foreground">{rule.title}</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{rule.text}</p>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
 
         {/* Urine */}
         <section className="container mx-auto px-4 py-16 md:py-20 max-w-5xl">
