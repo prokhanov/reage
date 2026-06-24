@@ -436,8 +436,9 @@ export default function MyState() {
 
       toast({
         title: "Успешно сохранено! ✅",
-        description: parts.join(", ")
+        description: parts.length > 0 ? parts.join(", ") : "Состояние зафиксировано: симптомов нет",
       });
+
 
       // Сразу блокируем форму, чтобы не было «возврата на начало»
       const nowIso = new Date().toISOString();
