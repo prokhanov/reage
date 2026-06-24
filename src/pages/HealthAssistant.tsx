@@ -303,7 +303,7 @@ export default function HealthAssistant() {
               isAutoScrollEnabled.current = isNearBottom;
             }}
           >
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {messages.map((message, index) => {
                 const normalizedContent = message.role === "assistant" 
                   ? normalizeMarkdown(message.content) 
@@ -312,18 +312,18 @@ export default function HealthAssistant() {
                 return (
                 <div
                   key={index}
-                  className={`flex gap-3 ${
+                  className={`flex gap-2 sm:gap-3 ${
                     message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0 shadow-neon-primary">
+                    <div className="w-8 h-8 rounded-full bg-gradient-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-neon-primary">
                       <Bot className="w-4 h-4 text-primary-foreground" />
                     </div>
                   )}
                   
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[92%] sm:max-w-[80%] rounded-2xl px-4 py-3 ${
                       message.role === "user"
                         ? "bg-gradient-primary text-primary-foreground shadow-neon-primary"
                         : "bg-secondary/80 text-foreground border border-border/30"
@@ -342,7 +342,7 @@ export default function HealthAssistant() {
                   </div>
 
                   {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 border border-border/30">
+                    <div className="w-8 h-8 rounded-full bg-secondary hidden sm:flex items-center justify-center flex-shrink-0 border border-border/30">
                       <User className="w-4 h-4 text-foreground" />
                     </div>
                   )}
@@ -351,8 +351,8 @@ export default function HealthAssistant() {
               })}
 
               {isLoading && (
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0 shadow-neon-primary">
+                <div className="flex gap-2 sm:gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-primary hidden sm:flex items-center justify-center flex-shrink-0 shadow-neon-primary">
                     <Bot className="w-4 h-4 text-primary-foreground animate-pulse" />
                   </div>
                   <div className="bg-secondary/80 rounded-2xl px-4 py-3 border border-border/30">
@@ -370,6 +370,7 @@ export default function HealthAssistant() {
                   </div>
                 </div>
               )}
+
             </div>
           </div>
 
