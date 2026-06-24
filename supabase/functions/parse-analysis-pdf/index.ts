@@ -198,7 +198,7 @@ ${catalogText}
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Lovable-API-Key": lovableKey,
+        "Authorization": `Bearer ${lovableKey}`,
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
