@@ -293,16 +293,16 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="px-4 py-6 md:py-8 md:px-6 max-w-6xl mx-auto">
       {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {loading && <BiomarkerTableSkeleton />}
       {!loading && (
       <>
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-1 text-foreground tracking-tight">
             Биомаркеры
           </h2>
-          <p className="text-muted-foreground">Актуальные данные по всем маркерам из анализов</p>
+          <p className="text-sm text-muted-foreground">Актуальные данные по всем маркерам из анализов</p>
         </div>
 
         {Object.keys(biomarkers).length === 0 ? (
