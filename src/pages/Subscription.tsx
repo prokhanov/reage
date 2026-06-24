@@ -34,7 +34,10 @@ export default function Subscription() {
           subscription_plans (
             display_name,
             description,
-            features
+            features,
+            badge_text,
+            badge_color,
+            comparison_highlights
           )
         `)
         .eq('user_id', user.id)
@@ -44,7 +47,23 @@ export default function Subscription() {
         .maybeSingle();
 
       if (error) throw error;
-      return data;
+      if (!data) return null;
+
+      // Подтянуть period_display из админских цен по plan_id + period
+      let period_display: string | null = null;
+      if (data.plan_id) {
+        const { data: pricing } = await supabase
+          .from('subscription_pricing')
+          .select('period, period_display, amount')
+          .eq('plan_id', data.plan_id);
+        if (pricing && pricing.length) {
+          const match =
+            pricing.find((p: any) => p.period === data.plan_type) ||
+            pricing.find((p: any) => Number(p.amount) === Number(data.amount));
+          period_display = match?.period_display ?? null;
+        }
+      }
+      return { ...data, period_display };
     }
   });
 
