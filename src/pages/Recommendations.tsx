@@ -1123,7 +1123,7 @@ export default function Recommendations() {
 
                   {/* Content Area */}
                   <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="px-4 sm:px-8 py-3 sm:py-6 pr-12 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+                    <div className="px-4 sm:px-8 py-3 sm:py-6 pr-14 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {/* Mobile TOC trigger */}
                         <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
@@ -1197,7 +1197,7 @@ export default function Recommendations() {
 
 
                     <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6" ref={contentRef}>
-                      <div id="report-content" className="space-y-8 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto">
+                      <div id="report-content" className="space-y-5 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto">
 
                         {patientData && (
                           <div id="section-patient-data" className="scroll-mt-6">
