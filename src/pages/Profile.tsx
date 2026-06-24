@@ -240,7 +240,39 @@ export default function Profile() {
             </div>
 
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Mobile: compact list */}
+            <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Имя</span>
+                <span className="font-medium text-right truncate">{profile?.name}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Email</span>
+                <span className="font-medium text-right truncate">{email}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Пол и возраст</span>
+                <span className="font-medium text-right truncate">
+                  {profile?.gender === "female" ? "Женщина" : "Мужчина"}
+                  {age && <span className="text-muted-foreground"> · {age} лет</span>}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Дата рождения</span>
+                <span className="font-medium text-right truncate">
+                  {profile?.birth_date && format(new Date(profile.birth_date), "d MMMM yyyy", { locale: ru })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Рост</span>
+                <span className="font-medium text-right truncate">
+                  {profile?.height ? `${profile.height} см` : "Не указан"}
+                </span>
+              </div>
+            </div>
+
+            {/* Desktop: card grid */}
+            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Name */}
               <div className="p-4 rounded-lg bg-background/50 border border-border/50">
                 <div className="flex items-center gap-2 mb-2">
@@ -293,6 +325,7 @@ export default function Profile() {
                 </p>
               </div>
             </div>
+
 
             {/* Phone (inline with verification flow) */}
             <div className="mt-4 pt-4 border-t border-border/50">
