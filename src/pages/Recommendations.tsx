@@ -920,7 +920,56 @@ export default function Recommendations() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <>
+            {/* Mobile: card list */}
+            <div className="md:hidden space-y-3">
+              {reports.map((report) => {
+                const dateLabel = report.date && !isNaN(new Date(report.date).getTime())
+                  ? format(new Date(report.date), "d MMMM yyyy", { locale: ru })
+                  : "Дата не указана";
+                const status = report.recommendations[0]?.analysis_status;
+                return (
+                  <div
+                    key={report.date}
+                    onClick={() => handleView(report)}
+                    className="rounded-2xl border border-primary/20 bg-card/50 p-4 cursor-pointer active:scale-[0.99] transition-transform"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <span className="text-base font-semibold text-foreground">{dateLabel}</span>
+                        {status && <AnalysisStatusBadge status={status} />}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Разделов: {report.count}
+                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <Button
+                        size="sm"
+                        className="h-9 rounded-xl bg-gradient-primary shadow-neon-primary"
+                        onClick={(e) => { e.stopPropagation(); handleView(report); }}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Открыть отчёт
+                      </Button>
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {hasPatientAccess && isViewMode && report.analysisId && (
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(report)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(report)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop: table */}
+            <Card className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -974,6 +1023,7 @@ export default function Recommendations() {
               </TableBody>
             </Table>
           </Card>
+          </>
         )}
 
         {/* View Dialog */}
