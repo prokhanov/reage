@@ -39,6 +39,12 @@ export default function HealthAssistant() {
   const isAutoScrollEnabled = useRef(true);
   const { toast } = useToast();
 
+  // Hide Jivo widget while user is in our own AI chat (overlaps Send button).
+  useEffect(() => {
+    document.body.classList.add("hide-jivo");
+    return () => document.body.classList.remove("hide-jivo");
+  }, []);
+
   // Load user ID
   useEffect(() => {
     getUserId().then((id) => {
@@ -46,6 +52,7 @@ export default function HealthAssistant() {
       setInitialLoading(false);
     });
   }, [getUserId]);
+
 
   // Load last conversation or create new one (check 24h rule) - only on initial load
   const hasLoadedInitialConversation = useRef(false);
@@ -266,7 +273,7 @@ export default function HealthAssistant() {
   }
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-20 sm:pb-0 h-[100dvh] lg:h-full flex flex-col overflow-hidden">
+    <div className="container max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-4 sm:pb-0 sm:h-[100dvh] lg:h-full sm:flex sm:flex-col sm:overflow-hidden">
       <div className="mb-3 sm:mb-4 flex-shrink-0">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -292,10 +299,11 @@ export default function HealthAssistant() {
         </div>
       </div>
 
-      <Card className="flex flex-col flex-1 min-h-0 bg-card/50 backdrop-blur border-border/50">
+      <Card className="flex flex-col sm:flex-1 sm:min-h-0 bg-card/50 backdrop-blur border-border/50">
         <div
           ref={scrollRef}
-          className="flex-1 p-4 sm:p-6 overflow-y-auto"
+          className="p-4 sm:p-6 sm:flex-1 sm:overflow-y-auto"
+
 
             onScroll={(e) => {
               const element = e.currentTarget;
@@ -399,7 +407,7 @@ export default function HealthAssistant() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/30">
+          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/30 max-sm:sticky max-sm:bottom-0 max-sm:z-20 max-sm:bg-background/95 max-sm:backdrop-blur max-sm:-mx-px max-sm:rounded-b-xl">
             <div className="flex gap-2">
               <Textarea
                 value={input}

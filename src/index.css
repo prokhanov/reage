@@ -410,3 +410,12 @@ All colors MUST be HSL.
   color: inherit !important;
   font: inherit !important;
 }
+
+/* Hide Jivo chat widget on pages that opt in (e.g. /health-assistant —
+   собственный AI-чат, кнопка Jivo перекрывает Send). */
+body.hide-jivo jdiv,
+body.hide-jivo jivoiframe,
+body.hide-jivo [class*="jivo"] {
+  display: none !important;
+}
+
