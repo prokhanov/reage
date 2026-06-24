@@ -270,7 +270,7 @@ export default function Dashboard() {
 
       {/* Header */}
         <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
             Добро пожаловать, {profile?.name}
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -309,12 +309,12 @@ export default function Dashboard() {
 
         {/* Hero Section - Biological Age with Metrics and Trends */}
         <Card className="border-border bg-card backdrop-blur-sm overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-2xl">Ваш биологический возраст</CardTitle>
+          <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
+            <CardTitle className="text-xl md:text-2xl">Ваш биологический возраст</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 lg:p-8">
+          <CardContent className="p-4 md:p-6 lg:p-8">
             <Tabs defaultValue="current" className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6 bg-muted">
                 <TabsTrigger value="current">Текущее состояние</TabsTrigger>
                 <TabsTrigger value="dynamics">Динамика</TabsTrigger>
               </TabsList>
@@ -353,15 +353,15 @@ export default function Dashboard() {
                   </div>
 
                   {/* Right: Unified Metrics Grid */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
                     {/* Health Index - Highlighted Large Card */}
-                    <div className="col-span-2 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                    <div className="col-span-2 p-4 md:p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <div className="text-sm text-muted-foreground mb-2">Индекс здоровья</div>
-                          <div className="text-5xl font-bold text-foreground mb-3">
+                          <div className="text-4xl md:text-5xl font-bold text-foreground mb-3 tabular-nums">
                             {displayHealthIndex || "—"}
-                            <span className="text-2xl text-muted-foreground ml-1">/100</span>
+                            <span className="text-xl md:text-2xl text-muted-foreground ml-1">/100</span>
                           </div>
                           {displayHealthIndex !== null && (
                             <div className="inline-flex">
@@ -388,21 +388,21 @@ export default function Dashboard() {
                             </div>
                           )}
                         </div>
-                        <Heart className="h-8 w-8 text-primary/60" />
+                        <Heart className="h-7 w-7 md:h-8 md:w-8 text-primary/60 flex-shrink-0" />
                       </div>
                     </div>
 
-                    {/* Compact Metric Cards */}
-                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                    {/* Compact Metric Cards - equal height */}
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
                       <Activity className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Анализов</div>
-                      <div className="text-3xl font-bold text-foreground">{displayAnalysesCount}</div>
+                      <div className="text-3xl font-bold text-foreground tabular-nums mt-auto">{displayAnalysesCount}</div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
                       <TrendingUp className="h-5 w-5 text-muted-foreground mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Последнее изменение</div>
-                      <div className={`text-3xl font-bold ${
+                      <div className={`text-2xl font-bold tabular-nums mt-auto ${
                         displayRecentChange && displayRecentChange < 0 
                           ? "text-status-good" 
                           : displayRecentChange && displayRecentChange > 0
@@ -414,15 +414,15 @@ export default function Dashboard() {
                           : "—"
                         }
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-1 truncate">
                         {displayRecentPeriod || "за период"}
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
                       <Trophy className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Общий прогресс</div>
-                      <div className={`text-3xl font-bold ${
+                      <div className={`text-2xl font-bold tabular-nums mt-auto ${
                         displayTotalProgress && displayTotalProgress < 0 
                           ? "text-status-good" 
                           : displayTotalProgress && displayTotalProgress > 0
@@ -434,39 +434,39 @@ export default function Dashboard() {
                           : "—"
                         }
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
+                      <div className="text-xs text-muted-foreground mt-1 truncate">
                         {displayFirstAnalysisDate || "всего"}
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                    <div className="flex flex-col h-full min-h-[120px] p-4 rounded-2xl bg-background/50 border border-border/50">
                       <Calendar className="h-5 w-5 text-primary/60 mb-2" />
                       <div className="text-xs text-muted-foreground mb-1">Следующий анализ</div>
                       {nextBooking ? (
                         <>
-                          <div className="text-2xl font-bold text-foreground mb-1">
+                          <div className="text-xl font-bold text-foreground mb-1 tabular-nums">
                             {format(new Date(nextBooking.booking_date), 'd MMM', { locale: ru })}
                           </div>
-                          <div className="text-xs text-muted-foreground mb-3">
-                            через {differenceInDays(new Date(nextBooking.booking_date), new Date())} дней
+                          <div className="text-xs text-muted-foreground mb-2">
+                            через {differenceInDays(new Date(nextBooking.booking_date), new Date())} дн.
                           </div>
                         </>
                       ) : (
-                        <div className="text-sm text-muted-foreground mb-3">Не запланирован</div>
+                        <div className="text-sm text-muted-foreground mb-2 mt-auto">Не запланирован</div>
                       )}
                       <Button
                         size="sm"
                         variant="outline"
-                        className="w-full h-8 text-xs"
+                        className="w-full h-9 text-xs px-2 mt-auto"
                         onClick={() => setBookingDialogOpen(true)}
                       >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Назначить внеурочный
+                        <Plus className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">Назначить</span>
                       </Button>
                     </div>
 
                     {/* Health Percentile */}
-                    <div className="col-span-2 p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                    <div className="col-span-2 p-4 rounded-2xl bg-background/50 border border-border/50">
                       {(() => {
                         if (!displayBiologicalAge || !chronologicalAge) {
                           return (
@@ -514,20 +514,20 @@ export default function Dashboard() {
                         }
 
                         return (
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Icon className={`h-5 w-5 ${color}`} />
-                              <div>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                              <Icon className={`h-5 w-5 ${color} flex-shrink-0 mt-0.5`} />
+                              <div className="min-w-0">
                                 <div className="text-xs text-muted-foreground">Место среди ровесников</div>
-                                <div className={`text-2xl font-bold ${color}`}>Топ {topPercent}%</div>
+                                <div className={`text-xl md:text-2xl font-bold ${color} tabular-nums`}>Топ {topPercent}%</div>
                                 <div className="text-xs text-muted-foreground mt-0.5">
                                   Лучше {betterThanPercent}% людей вашего возраста
                                 </div>
                               </div>
                             </div>
                             {diff !== 0 && (
-                              <div className="text-right">
-                                <div className={`text-2xl font-bold ${color}`}>
+                              <div className="text-right flex-shrink-0">
+                                <div className={`text-xl md:text-2xl font-bold ${color} tabular-nums whitespace-nowrap`}>
                                   {diff > 0 ? '−' : '+'}{Math.abs(diff).toFixed(1)}
                                 </div>
                                 <div className="text-xs text-muted-foreground">лет</div>
@@ -573,8 +573,8 @@ export default function Dashboard() {
         <Card className="border-border bg-card overflow-visible">
           <CardContent className="p-0 overflow-visible">
             <Tabs defaultValue="biomarkers" className="w-full">
-              <div className="px-6 pt-6">
-                <TabsList className="grid w-full max-w-md grid-cols-2">
+              <div className="px-4 pt-4 md:px-6 md:pt-6">
+                <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted">
                   <TabsTrigger value="biomarkers">Маркеры</TabsTrigger>
                   <TabsTrigger value="trends">Тренды</TabsTrigger>
                 </TabsList>

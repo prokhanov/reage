@@ -26,22 +26,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
       {/* Mobile header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 border-b border-border/30 bg-secondary/90 backdrop-blur-xl">
-        <div className="flex items-center justify-between p-4">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 h-14 border-b border-border/60 bg-background">
+        <div className="flex h-full items-center justify-between px-3">
           <Button
             variant="ghost"
             size="icon"
+            className="h-10 w-10"
             onClick={() => setSidebarOpen(true)}
+            aria-label="Открыть меню"
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <ThemedLogo className="h-8 w-auto" />
+          <ThemedLogo className="h-7 w-auto" />
           <div className="w-10" />
         </div>
       </header>
 
       {/* Main content */}
-      <main className={`pt-16 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+      <main className={`pt-14 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
         <div className="px-4 md:px-8 pt-4 md:pt-8">
           <AnalysisBookingBanner />
         </div>
