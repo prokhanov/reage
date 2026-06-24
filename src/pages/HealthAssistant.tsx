@@ -423,9 +423,10 @@ export default function HealthAssistant() {
               </Button>
             </div>
 
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground mt-2 hidden sm:block">
               Нажмите Enter для отправки, Shift+Enter для новой строки
             </p>
+
           </form>
         </Card>
       </div>
