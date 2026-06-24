@@ -376,7 +376,7 @@ export default function Prescriptions() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-8 mt-6">
+          <TabsContent value="active" className="space-y-6 sm:space-y-8 mt-6">
             {totalActiveCount === 0 ? (
               <div className="rounded-lg border border-dashed border-border/50 bg-card/30 p-12">
                 <div className="flex flex-col items-center justify-center">
@@ -391,8 +391,9 @@ export default function Prescriptions() {
                 {activePrescriptions.length > 0 && (
                   <section className="space-y-4">
                     <div>
-                      <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
                         Нутрицевтики ({activePrescriptions.length})
+
                       </h2>
                       <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                     </div>
