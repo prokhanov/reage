@@ -514,20 +514,20 @@ export default function Dashboard() {
                         }
 
                         return (
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Icon className={`h-5 w-5 ${color}`} />
-                              <div>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                              <Icon className={`h-5 w-5 ${color} flex-shrink-0 mt-0.5`} />
+                              <div className="min-w-0">
                                 <div className="text-xs text-muted-foreground">Место среди ровесников</div>
-                                <div className={`text-2xl font-bold ${color}`}>Топ {topPercent}%</div>
+                                <div className={`text-xl md:text-2xl font-bold ${color} tabular-nums`}>Топ {topPercent}%</div>
                                 <div className="text-xs text-muted-foreground mt-0.5">
                                   Лучше {betterThanPercent}% людей вашего возраста
                                 </div>
                               </div>
                             </div>
                             {diff !== 0 && (
-                              <div className="text-right">
-                                <div className={`text-2xl font-bold ${color}`}>
+                              <div className="text-right flex-shrink-0">
+                                <div className={`text-xl md:text-2xl font-bold ${color} tabular-nums whitespace-nowrap`}>
                                   {diff > 0 ? '−' : '+'}{Math.abs(diff).toFixed(1)}
                                 </div>
                                 <div className="text-xs text-muted-foreground">лет</div>
