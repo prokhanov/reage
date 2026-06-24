@@ -841,7 +841,17 @@ function SendRemindersDialog({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
               disabled={!emailOn}
+              autoComplete="off"
+              name="reminder-recipient-email"
+              data-lpignore="true"
+              data-1p-ignore="true"
             />
+            {emailOn && emailChanged && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-500">
+                Адрес отличается от email пациента — письмо уйдёт разово на указанный адрес,
+                профиль пациента не изменится.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2 rounded-md border p-3">
@@ -861,7 +871,17 @@ function SendRemindersDialog({
               onChange={(e) => setPhone(e.target.value)}
               placeholder="79991234567"
               disabled={!smsOn}
+              autoComplete="off"
+              name="reminder-recipient-phone"
+              data-lpignore="true"
+              data-1p-ignore="true"
             />
+            {smsOn && phoneChanged && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-500">
+                Номер отличается от телефона пациента — SMS уйдёт разово на указанный номер,
+                профиль пациента не изменится.
+              </p>
+            )}
           </div>
 
           <div className="rounded-md border p-3">
@@ -878,7 +898,8 @@ function SendRemindersDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Изменённые email/телефон будут сохранены в профиль пациента.
+            Контактные данные пациента из этого диалога не меняются. Чтобы изменить email или
+            телефон пациента, используйте «Изменить email» и карточку пациента.
           </p>
         </div>
         <DialogFooter>
