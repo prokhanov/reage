@@ -138,8 +138,8 @@ Deno.serve(async (req) => {
 
     const arrayBuffer = await fileBlob.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
-    if (bytes.byteLength > 18 * 1024 * 1024) {
-      return new Response(JSON.stringify({ error: "PDF too large (>18MB)" }), {
+    if (bytes.byteLength > 50 * 1024 * 1024) {
+      return new Response(JSON.stringify({ error: "PDF too large (>50MB)" }), {
         status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

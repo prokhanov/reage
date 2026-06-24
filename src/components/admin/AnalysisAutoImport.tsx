@@ -85,7 +85,7 @@ interface Props {
 }
 
 const MAX_FILES = 10;
-const MAX_SIZE = 20 * 1024 * 1024;
+const MAX_SIZE = 50 * 1024 * 1024;
 const CONCURRENCY = 2;
 
 function statusBadge(s: ItemStatus) {
@@ -118,7 +118,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     const next: FileEntry[] = [];
     for (const f of arr) {
       if (f.size > MAX_SIZE) {
-        toast({ title: "Файл слишком большой", description: `${f.name}: больше 20 МБ`, variant: "destructive" });
+        toast({ title: "Файл слишком большой", description: `${f.name}: больше 50 МБ`, variant: "destructive" });
         continue;
       }
       next.push({
@@ -320,7 +320,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
       >
         <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
         <div className="text-sm">Перетащите PDF сюда или нажмите, чтобы выбрать</div>
-        <div className="text-xs text-muted-foreground mt-1">До {MAX_FILES} файлов, по 20 МБ</div>
+        <div className="text-xs text-muted-foreground mt-1">До {MAX_FILES} файлов, по 50 МБ</div>
         <input
           ref={inputRef}
           type="file"
