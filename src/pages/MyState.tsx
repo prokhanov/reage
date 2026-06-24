@@ -416,14 +416,9 @@ export default function MyState() {
           };
         });
 
-      if (symptomsData.length === 0 && Object.keys(adherenceAnswers).length === 0) {
-        toast({
-          title: "Нет данных для сохранения",
-          description: "Отметьте хотя бы один симптом или соблюдение назначения",
-          variant: "destructive"
-        });
-        return;
-      }
+      // Пустое сохранение разрешено — пользователь может зафиксировать,
+      // что симптомов нет и назначений к учёту нет.
+
 
       if (symptomsData.length > 0) {
         const { error } = await supabase
@@ -441,8 +436,9 @@ export default function MyState() {
 
       toast({
         title: "Успешно сохранено! ✅",
-        description: parts.join(", ")
+        description: parts.length > 0 ? parts.join(", ") : "Состояние зафиксировано: симптомов нет",
       });
+
 
       // Сразу блокируем форму, чтобы не было «возврата на начало»
       const nowIso = new Date().toISOString();
