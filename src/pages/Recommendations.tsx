@@ -13,7 +13,7 @@ import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
