@@ -1029,7 +1029,7 @@ export default function Recommendations() {
 
         {/* View Dialog */}
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-0 overflow-hidden">
+          <DialogContent className="h-[100dvh] w-screen max-w-none rounded-none p-0 overflow-hidden sm:h-[90vh] sm:w-[95vw] sm:max-w-7xl sm:rounded-lg">
             <DialogHeader className="sr-only">
               <DialogTitle>Персональный отчет</DialogTitle>
               <DialogDescription>Детальный анализ здоровья</DialogDescription>
