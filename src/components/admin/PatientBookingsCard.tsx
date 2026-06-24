@@ -734,7 +734,6 @@ function SendRemindersDialog({
   }) => Promise<void>;
 }) {
   const { toast } = useToast();
-  const qc = useQueryClient();
   const [emailOn, setEmailOn] = useState(true);
   const [smsOn, setSmsOn] = useState(true);
   const [tgOn, setTgOn] = useState(true);
@@ -751,6 +750,11 @@ function SendRemindersDialog({
     const d = v.replace(/\D/g, "");
     return d.length >= 10 && d.length <= 15;
   };
+
+  const emailChanged =
+    email.trim().toLowerCase() !== initialEmail.trim().toLowerCase();
+  const phoneChanged =
+    phone.replace(/\D/g, "") !== initialPhone.replace(/\D/g, "");
 
   const handleSubmit = async () => {
     if (!emailOn && !smsOn && !tgOn) {
@@ -770,19 +774,11 @@ function SendRemindersDialog({
 
     setSubmitting(true);
     try {
-      const patch: Record<string, string> = {};
-      if (emailOn && emailNorm && emailNorm !== initialEmail.trim().toLowerCase()) {
-        patch.email = emailNorm;
-      }
-      if (smsOn && phoneNorm && phoneNorm !== initialPhone.replace(/\D/g, "")) {
-        patch.phone = phoneNorm;
-      }
-      if (Object.keys(patch).length > 0) {
-        const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
-        if (error) throw error;
-        qc.invalidateQueries({ queryKey: ["patient-profile", userId] });
-        qc.invalidateQueries({ queryKey: ["patient-info", userId] });
-      }
+      // ВАЖНО: контактные данные пациента здесь НЕ перезаписываются.
+      // Введённые email/телефон используются только для разовой отправки
+      // этого уведомления. Профиль пациента меняется только явными путями:
+      // email — через edge-функцию admin-change-user-email,
+      // телефон — через карточку пациента.
       await onSend({
         sendEmailOn: emailOn,
         email: emailNorm,
@@ -844,7 +840,17 @@ function SendRemindersDialog({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
               disabled={!emailOn}
+              autoComplete="off"
+              name="reminder-recipient-email"
+              data-lpignore="true"
+              data-1p-ignore="true"
             />
+            {emailOn && emailChanged && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-500">
+                Адрес отличается от email пациента — письмо уйдёт разово на указанный адрес,
+                профиль пациента не изменится.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2 rounded-md border p-3">
@@ -864,7 +870,17 @@ function SendRemindersDialog({
               onChange={(e) => setPhone(e.target.value)}
               placeholder="79991234567"
               disabled={!smsOn}
+              autoComplete="off"
+              name="reminder-recipient-phone"
+              data-lpignore="true"
+              data-1p-ignore="true"
             />
+            {smsOn && phoneChanged && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-500">
+                Номер отличается от телефона пациента — SMS уйдёт разово на указанный номер,
+                профиль пациента не изменится.
+              </p>
+            )}
           </div>
 
           <div className="rounded-md border p-3">
@@ -881,7 +897,8 @@ function SendRemindersDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Изменённые email/телефон будут сохранены в профиль пациента.
+            Контактные данные пациента из этого диалога не меняются. Чтобы изменить email или
+            телефон пациента, используйте «Изменить email» и карточку пациента.
           </p>
         </div>
         <DialogFooter>
