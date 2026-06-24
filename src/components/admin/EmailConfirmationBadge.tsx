@@ -1,5 +1,5 @@
 import { ReactNode, useState, cloneElement, isValidElement } from "react";
-import { CheckCircle2, AlertCircle, Send, Pencil } from "lucide-react";
+import { CheckCircle2, AlertCircle, Send, Pencil, Mail } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
