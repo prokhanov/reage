@@ -734,7 +734,6 @@ function SendRemindersDialog({
   }) => Promise<void>;
 }) {
   const { toast } = useToast();
-  const qc = useQueryClient();
   const [emailOn, setEmailOn] = useState(true);
   const [smsOn, setSmsOn] = useState(true);
   const [tgOn, setTgOn] = useState(true);
