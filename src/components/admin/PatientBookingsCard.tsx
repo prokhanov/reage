@@ -752,6 +752,11 @@ function SendRemindersDialog({
     return d.length >= 10 && d.length <= 15;
   };
 
+  const emailChanged =
+    email.trim().toLowerCase() !== initialEmail.trim().toLowerCase();
+  const phoneChanged =
+    phone.replace(/\D/g, "") !== initialPhone.replace(/\D/g, "");
+
   const handleSubmit = async () => {
     if (!emailOn && !smsOn && !tgOn) {
       toast({ title: "Выберите хотя бы один канал", variant: "destructive" });
@@ -770,19 +775,11 @@ function SendRemindersDialog({
 
     setSubmitting(true);
     try {
-      const patch: Record<string, string> = {};
-      if (emailOn && emailNorm && emailNorm !== initialEmail.trim().toLowerCase()) {
-        patch.email = emailNorm;
-      }
-      if (smsOn && phoneNorm && phoneNorm !== initialPhone.replace(/\D/g, "")) {
-        patch.phone = phoneNorm;
-      }
-      if (Object.keys(patch).length > 0) {
-        const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
-        if (error) throw error;
-        qc.invalidateQueries({ queryKey: ["patient-profile", userId] });
-        qc.invalidateQueries({ queryKey: ["patient-info", userId] });
-      }
+      // ВАЖНО: контактные данные пациента здесь НЕ перезаписываются.
+      // Введённые email/телефон используются только для разовой отправки
+      // этого уведомления. Профиль пациента меняется только явными путями:
+      // email — через edge-функцию admin-change-user-email,
+      // телефон — через карточку пациента.
       await onSend({
         sendEmailOn: emailOn,
         email: emailNorm,
