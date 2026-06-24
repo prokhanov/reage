@@ -109,9 +109,17 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
     return labels[period] || period;
   };
 
-  const features = Array.isArray(subscription.subscription_plans?.features) 
-    ? subscription.subscription_plans.features 
+  const features = Array.isArray(subscription.subscription_plans?.features)
+    ? subscription.subscription_plans.features
     : [];
+
+  const highlights = Array.isArray(subscription.subscription_plans?.comparison_highlights)
+    ? (subscription.subscription_plans!.comparison_highlights as Array<{ label: string; value: string }>)
+    : [];
+
+  const planBadgeText = subscription.subscription_plans?.badge_text;
+  const planBadgeColor = subscription.subscription_plans?.badge_color;
+  const periodLabel = subscription.period_display || getPeriodLabel(subscription.plan_type);
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6 md:py-12">
@@ -133,9 +141,22 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
         <CardHeader className="p-4 md:p-6">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-lg md:text-2xl mb-1 md:mb-2 break-words">
-                {subscription.subscription_plans?.display_name || 'Подписка'}
-              </CardTitle>
+              <div className="flex items-center gap-2 flex-wrap mb-1 md:mb-2">
+                <CardTitle className="text-lg md:text-2xl break-words">
+                  {subscription.subscription_plans?.display_name || 'Подписка'}
+                </CardTitle>
+                {planBadgeText && (
+                  <Badge
+                    className={
+                      planBadgeColor === 'accent'
+                        ? 'bg-accent text-accent-foreground'
+                        : 'bg-primary text-primary-foreground'
+                    }
+                  >
+                    {planBadgeText}
+                  </Badge>
+                )}
+              </div>
               {subscription.subscription_plans?.description && (
                 <CardDescription className="text-sm">
                   {subscription.subscription_plans.description}
@@ -167,7 +188,7 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
             <div className="flex items-center gap-3 p-3 md:p-4 rounded-lg bg-muted/50">
               <CreditCard className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs md:text-sm text-muted-foreground">Стоимость</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Стоимость · {periodLabel}</p>
                 <p className="font-medium text-sm md:text-base">{formatAmount(subscription.amount)} ₽</p>
               </div>
             </div>
@@ -188,6 +209,23 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Highlights from admin */}
+          {highlights.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-sm md:text-base mb-3 md:mb-4">
+                Что выделяет ваш тариф
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
+                {highlights.map((h, i) => (
+                  <div key={i} className="rounded-lg border border-border/50 bg-muted/30 p-3">
+                    <div className="text-xs md:text-sm text-muted-foreground">{h.label}</div>
+                    <div className="font-medium text-sm md:text-base mt-0.5 break-words">{h.value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
