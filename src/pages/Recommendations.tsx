@@ -1123,7 +1123,7 @@ export default function Recommendations() {
 
                   {/* Content Area */}
                   <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="px-4 sm:px-8 py-3 sm:py-6 pr-12 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+                    <div className="px-4 sm:px-8 py-3 sm:py-6 pr-14 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {/* Mobile TOC trigger */}
                         <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
