@@ -375,7 +375,8 @@ export default function HealthAssistant() {
           </div>
 
           {messages.length === 1 && (
-            <div className="p-4 border-t border-border/30">
+            <div className="p-3 sm:p-4 border-t border-border/30">
+
               <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 Попробуйте задать вопрос:
