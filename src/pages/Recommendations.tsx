@@ -1202,7 +1202,7 @@ export default function Recommendations() {
                         {patientData && (
                           <div id="section-patient-data" className="scroll-mt-6">
                             <div className="prose prose-sm max-w-none">
-                              <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 shadow-sm">
+                              <div className="sm:p-6 sm:bg-gradient-to-br sm:from-primary/5 sm:to-accent/5 sm:rounded-xl sm:border sm:border-primary/10 sm:shadow-sm">
                                 <MarkdownContent content={cleanMarkdownArtifacts(patientData.text)} />
                               </div>
                             </div>
