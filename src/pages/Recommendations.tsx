@@ -1175,10 +1175,6 @@ export default function Recommendations() {
                             Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
                           </DialogDescription>
                         </div>
-                          <DialogDescription className="mt-1 sm:mt-2 hidden sm:block">
-                            Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
-                          </DialogDescription>
-                        </div>
                       </div>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         <button
