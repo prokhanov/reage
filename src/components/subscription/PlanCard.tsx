@@ -53,10 +53,10 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
       )}
     >
       {plan.badge_text && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <Badge 
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 max-w-[90%]">
+          <Badge
             className={cn(
-              "text-xs px-3 py-1 shadow-md",
+              "text-xs px-3 py-1 shadow-md whitespace-nowrap",
               plan.badge_color === 'primary' && "bg-primary text-primary-foreground",
               plan.badge_color === 'accent' && "bg-accent text-accent-foreground"
             )}
@@ -66,21 +66,21 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
         </div>
       )}
 
-      <CardHeader className="text-center pb-4">
-        <h3 className="text-2xl font-bold mb-2">{plan.display_name}</h3>
-        <p className="text-sm text-muted-foreground min-h-[40px]">
+      <CardHeader className="text-center pb-3 md:pb-4 p-4 md:p-6">
+        <h3 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">{plan.display_name}</h3>
+        <p className="text-sm text-muted-foreground md:min-h-[40px]">
           {plan.description}
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6 pt-0 md:pt-0">
         <div className="text-center space-y-1">
           <div className={cn(
-            "text-4xl font-bold animate-in fade-in-50 duration-300",
+            "text-3xl md:text-4xl font-bold animate-in fade-in-50 duration-300",
             showStrike ? "text-primary" : "text-foreground"
           )}>
             {showStrike && (
-              <span className="line-through opacity-50 text-2xl mr-2 text-muted-foreground">
+              <span className="line-through opacity-50 text-xl md:text-2xl mr-1 md:mr-2 text-muted-foreground">
                 {pricing.amount.toLocaleString('ru-RU')} ₽
               </span>
             )}
@@ -88,10 +88,10 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
               {finalAmount.toLocaleString('ru-RU')} ₽
             </span>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs md:text-sm text-muted-foreground">
             / {pricing.period_display.toLowerCase()}
           </div>
-          
+
           {pricing.duration_months > 1 && (
             <div className="text-xs text-muted-foreground pt-1">
               или {monthlyEquivalent.toLocaleString('ru-RU')} ₽/месяц
@@ -99,22 +99,22 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
           )}
 
           {isPromoApplied && appliedPromo?.discount_type === "free_period" && (
-            <div className="text-sm font-medium text-green-600 dark:text-green-400 pt-2 animate-in fade-in-50 duration-300">
+            <div className="text-xs md:text-sm font-medium text-green-600 dark:text-green-400 pt-1 md:pt-2 animate-in fade-in-50 duration-300">
               +{appliedPromo.discount_value} мес. бесплатно
             </div>
           )}
 
           {!isPromoApplied && savings > 0 && (
-            <div className="text-sm font-medium text-green-600 dark:text-green-400 pt-2 animate-in fade-in-50 duration-300">
+            <div className="text-xs md:text-sm font-medium text-green-600 dark:text-green-400 pt-1 md:pt-2 animate-in fade-in-50 duration-300">
               Экономия {savings.toLocaleString('ru-RU')} ₽
             </div>
           )}
         </div>
 
-        <div className="space-y-2 pt-4">
+        <div className="space-y-2 pt-3 md:pt-4">
           {plan.features.map((feature, index) => (
-            <div key={index} className="flex items-start gap-2 text-sm">
-              <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+            <div key={index} className="flex items-start gap-1.5 md:gap-2 text-[13px] md:text-sm">
+              <div className="flex-shrink-0 w-4 h-4 md:w-5 md:h-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                 <Check className="h-3 w-3 text-primary" />
               </div>
               <span className="text-foreground leading-relaxed">{feature}</span>
@@ -123,10 +123,10 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
         </div>
       </CardContent>
 
-      <CardFooter className="pt-6">
+      <CardFooter className="pt-4 md:pt-6 p-4 md:p-6 md:pt-6">
         <Button
           className={cn(
-            "w-full h-12 text-base transition-all duration-300",
+            "w-full h-12 text-sm md:text-base transition-all duration-300",
             isRecommended ? "bg-gradient-primary shadow-neon-primary hover:shadow-neon-primary-lg" : ""
           )}
           variant={isRecommended ? "default" : "outline"}
