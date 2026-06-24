@@ -342,18 +342,16 @@ export default function Prescriptions() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl space-y-4 sm:space-y-6">
         {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
         {(isLoading || accessLoading) && <PrescriptionListSkeleton />}
         {!isLoading && !accessLoading && (
           <>
             <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Рекомендации</h1>
-            <p className="text-muted-foreground">
-              {"\n"}
-            </p>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">Рекомендации</h1>
           </div>
+
           {isViewMode && hasPatientAccess && viewAsUserId && (
             <Button
               onClick={() => setCreateDialogOpen(true)}
