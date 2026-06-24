@@ -309,12 +309,12 @@ export default function Dashboard() {
 
         {/* Hero Section - Biological Age with Metrics and Trends */}
         <Card className="border-border bg-card backdrop-blur-sm overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-2xl">Ваш биологический возраст</CardTitle>
+          <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
+            <CardTitle className="text-xl md:text-2xl">Ваш биологический возраст</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 lg:p-8">
+          <CardContent className="p-4 md:p-6 lg:p-8">
             <Tabs defaultValue="current" className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+              <TabsList className="grid w-full max-w-md grid-cols-2 mb-6 bg-muted">
                 <TabsTrigger value="current">Текущее состояние</TabsTrigger>
                 <TabsTrigger value="dynamics">Динамика</TabsTrigger>
               </TabsList>
