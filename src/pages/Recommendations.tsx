@@ -1123,18 +1123,18 @@ export default function Recommendations() {
 
                   {/* Content Area */}
                   <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="px-4 sm:px-8 py-3 sm:py-6 pr-12 sm:pr-8 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto">
+                    <div className="px-4 sm:px-8 py-3 sm:py-6 pr-12 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         {/* Mobile TOC trigger */}
                         <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
                           <SheetTrigger asChild>
                             <Button
                               variant="outline"
-                              size="sm"
-                              className="md:hidden h-9 rounded-xl flex-shrink-0"
+                              size="icon"
+                              className="md:hidden h-9 w-9 rounded-xl flex-shrink-0"
+                              aria-label="Содержание"
                             >
-                              <List className="h-4 w-4 mr-2" />
-                              Содержание
+                              <List className="h-4 w-4" />
                             </Button>
                           </SheetTrigger>
                           <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
@@ -1167,7 +1167,7 @@ export default function Recommendations() {
                         </Sheet>
 
                         <div className="min-w-0 flex-1">
-                          <DialogTitle className="text-sm sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                          <DialogTitle className="text-base sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
                             <span className="md:hidden">{dateLabel}</span>
                             <span className="hidden md:inline">Персональный отчет</span>
                           </DialogTitle>
@@ -1176,17 +1176,25 @@ export default function Recommendations() {
                           </DialogDescription>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 flex-shrink-0">
-                        <button
-                          onClick={handleExportPDF}
-                          className="text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors flex items-center gap-2"
-                          aria-label="Скачать PDF"
-                        >
-                          <Download className="h-4 w-4" />
-                          <span className="hidden sm:inline">Скачать PDF</span>
-                        </button>
-                      </div>
+                      <Button
+                        onClick={handleExportPDF}
+                        variant="ghost"
+                        size="icon"
+                        className="sm:hidden h-9 w-9 rounded-xl flex-shrink-0 text-primary"
+                        aria-label="Скачать PDF"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <button
+                        onClick={handleExportPDF}
+                        className="hidden sm:flex text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors items-center gap-2 flex-shrink-0"
+                        aria-label="Скачать PDF"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Скачать PDF</span>
+                      </button>
                     </div>
+
 
                     <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6" ref={contentRef}>
                       <div id="report-content" className="space-y-8 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto">
