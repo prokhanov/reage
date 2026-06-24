@@ -184,7 +184,10 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
 
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent onClick={(e) => e.stopPropagation()} className="sm:max-w-md">
+        <DialogContent
+          onClick={(e) => e.stopPropagation()}
+          className="sm:max-w-md max-h-[92vh] overflow-y-auto p-5 sm:p-6 gap-4"
+        >
           <DialogHeader>
             <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               {stage === "edit" ? (
@@ -202,21 +205,21 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                 : (
                   <>
                     Код отправлен на{" "}
-                    <span className="font-medium text-foreground">{formatDisplay(normalized)}</span>
+                    <span className="font-medium text-foreground break-all">{formatDisplay(normalized)}</span>
                   </>
                 )}
             </DialogDescription>
           </DialogHeader>
 
           {stage === "edit" ? (
-            <div className="space-y-4 py-2">
+            <div className="space-y-3 py-1">
               <PhoneInput value={input} onChange={setInput} className="h-12 bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
               <p className="text-xs text-muted-foreground">
                 Начните с «+» и кода страны. Страна определится автоматически.
               </p>
             </div>
           ) : (
-            <div className="space-y-4 py-2">
+            <div className="space-y-4 py-1">
               <div className="flex justify-center">
                 <InputOTP
                   maxLength={4}
@@ -227,11 +230,11 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                   }}
                   autoFocus
                 >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} className="h-14 w-14 text-2xl" />
-                    <InputOTPSlot index={1} className="h-14 w-14 text-2xl" />
-                    <InputOTPSlot index={2} className="h-14 w-14 text-2xl" />
-                    <InputOTPSlot index={3} className="h-14 w-14 text-2xl" />
+                  <InputOTPGroup className="gap-2">
+                    <InputOTPSlot index={0} className="h-12 w-12 text-xl sm:h-14 sm:w-14 sm:text-2xl rounded-md border-l" />
+                    <InputOTPSlot index={1} className="h-12 w-12 text-xl sm:h-14 sm:w-14 sm:text-2xl rounded-md border-l" />
+                    <InputOTPSlot index={2} className="h-12 w-12 text-xl sm:h-14 sm:w-14 sm:text-2xl rounded-md border-l" />
+                    <InputOTPSlot index={3} className="h-12 w-12 text-xl sm:h-14 sm:w-14 sm:text-2xl rounded-md border-l" />
                   </InputOTPGroup>
                 </InputOTP>
               </div>
@@ -256,7 +259,7 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
           <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
             {stage === "edit" ? (
               <>
-                <Button onClick={handleSend} disabled={!valid || sending} className="w-full">
+                <Button onClick={handleSend} disabled={!valid || sending} className="w-full h-12">
                   {sending ? <ButtonSpinner className="mr-2" /> : <Phone className="w-4 h-4 mr-2" />}
                   Отправить код
                 </Button>
@@ -265,13 +268,13 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                     variant="secondary"
                     onClick={handleForceConfirm}
                     disabled={forcing}
-                    className="w-full"
+                    className="w-full h-12"
                   >
                     {forcing ? <ButtonSpinner className="mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                     Подтвердить без проверки
                   </Button>
                 )}
-                <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full">
+                <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-11">
                   Отмена
                 </Button>
               </>
@@ -282,13 +285,14 @@ export function PhoneConfirmationBadge({ phone, isVerified, onUpdated, trigger, 
                   setStage("edit");
                   setOtp("");
                 }}
-                className="w-full"
+                className="w-full h-11"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Изменить номер
               </Button>
             )}
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </>
