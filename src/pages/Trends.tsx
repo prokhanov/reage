@@ -429,16 +429,25 @@ export default function Trends() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={400}>
-                      <LineChart data={trendData}>
+                      <LineChart data={trendData} margin={{ top: 8, right: 8, bottom: 8, left: -16 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis 
                           dataKey="date" 
                           stroke="hsl(var(--muted-foreground))"
                           style={{ fontSize: '12px' }}
+                          tickLine={false}
+                          axisLine={false}
+                          dy={8}
+                          padding={{ left: 0, right: 0 }}
+                          interval={0}
                         />
                         <YAxis 
                           stroke="hsl(var(--muted-foreground))"
                           style={{ fontSize: '12px' }}
+                          width={36}
+                          tickLine={false}
+                          axisLine={false}
+                          dx={-4}
                         />
                         <Tooltip
                           contentStyle={{
@@ -561,20 +570,6 @@ export default function Trends() {
                   </CardContent>
                 </Card>
 
-                {/* Summary placeholder */}
-                <Card className="border-secondary/20 bg-gradient-to-br from-card to-secondary/5">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-secondary" />
-                      Анализ динамики
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Комментарии появятся после подключения функции анализа трендов
-                    </p>
-                  </CardContent>
-                </Card>
               </>
             ) : (
               <Card className="border-dashed border-2 border-accent/30 bg-card/50">
