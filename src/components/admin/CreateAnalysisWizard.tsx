@@ -43,6 +43,7 @@ interface WizardData {
 export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAnalysisWizardProps) {
   const { viewAsUserId } = useContext(ViewAsPatientContext);
   const [currentStep, setCurrentStep] = useState(1);
+  const [step1Mode, setStep1Mode] = useState<"manual" | "auto">("manual");
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 7, currentCategory: "", stage: "" });
