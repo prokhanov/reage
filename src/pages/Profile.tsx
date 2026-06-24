@@ -473,11 +473,20 @@ export default function Profile() {
                   id="demo-mode"
                   checked={demoMode}
                   onCheckedChange={toggleDemoMode}
-                  disabled={hasAnalyses}
+                  disabled={hasAnalyses && !demoMode}
                 />
               </div>
 
-              {hasAnalyses && (
+              {hasAnalyses && demoMode && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs sm:text-sm">
+                    У вас уже есть реальные анализы. Отключите демо-режим, чтобы увидеть их вместо примерных данных.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {hasAnalyses && !demoMode && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="text-xs sm:text-sm">
