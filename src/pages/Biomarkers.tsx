@@ -323,25 +323,29 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                 value={category}
                 className="border border-primary/20 rounded-2xl bg-card/50 backdrop-blur-sm"
               >
-                <AccordionTrigger className="px-4 md:px-6 py-3 md:py-4 hover:no-underline hover:bg-primary/5 rounded-2xl gap-2">
+                <AccordionTrigger className="px-4 md:px-6 py-3 md:py-4 hover:no-underline hover:bg-primary/5 rounded-2xl gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     {(() => {
                       const CatIcon = getBiomarkerCategoryIcon(category);
                       return <CatIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" strokeWidth={1.75} />;
                     })()}
-                    <span className="text-sm md:text-lg font-semibold text-left flex-1 min-w-0 break-words leading-snug">
-                      {category}
-                    </span>
-                    <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
-                        {categoryBiomarkers.length}
-                      </Badge>
-                      {(() => {
-                        const score = getCategoryScore(category);
-                        if (score === null) return null;
-                        return (
-                          <>
-                            <div className="relative hidden md:block h-2 w-20 md:w-24 bg-muted rounded-full overflow-hidden">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-2 flex-wrap">
+                        <span className="text-sm md:text-lg font-semibold text-left break-words leading-snug">
+                          {category}
+                        </span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 flex-shrink-0 mt-0.5">
+                          {categoryBiomarkers.length}
+                        </Badge>
+                      </div>
+                    </div>
+                    {(() => {
+                      const score = getCategoryScore(category);
+                      if (score === null) return null;
+                      return (
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0 min-w-[3rem] mt-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <div className="relative h-2 w-14 sm:w-20 bg-muted rounded-full overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${getProgressColor(score)}`}
                                 style={{ width: `${score}%` }}
@@ -350,10 +354,11 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                             <span className={`text-sm font-bold tabular-nums ${getScoreColor(score)}`}>
                               {score}
                             </span>
-                          </>
-                        );
-                      })()}
-                    </div>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">балл</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-3 md:px-6 pb-4">
