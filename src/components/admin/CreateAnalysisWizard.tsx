@@ -43,6 +43,7 @@ interface WizardData {
 export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAnalysisWizardProps) {
   const { viewAsUserId } = useContext(ViewAsPatientContext);
   const [currentStep, setCurrentStep] = useState(1);
+  const [step1Mode, setStep1Mode] = useState<"manual" | "auto">("manual");
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState({ current: 0, total: 7, currentCategory: "", stage: "" });
@@ -353,6 +354,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
   const resetWizard = () => {
     setCurrentStep(1);
+    setStep1Mode("manual");
     setWizardData({
       step1: {
         date: format(new Date(), "yyyy-MM-dd"),
@@ -382,10 +384,13 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Новый анализ - Шаг {currentStep} из 3
+              {step1Mode === "auto" && currentStep === 1
+                ? "Новый анализ — авто распознавание PDF"
+                : `Новый анализ - Шаг ${currentStep} из 3`}
             </DialogTitle>
             <DialogDescription>
-              {currentStep === 1 && "Укажите дату и лабораторию"}
+              {currentStep === 1 && step1Mode === "manual" && "Укажите дату и лабораторию"}
+              {currentStep === 1 && step1Mode === "auto" && "Загрузите PDF-файлы анализов — ИИ распознает показатели"}
               {currentStep === 2 && "Добавьте биомаркеры и их значения"}
               {currentStep === 3 && "Настройте генерацию отчета"}
             </DialogDescription>
@@ -395,6 +400,10 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
             <AnalysisStep1
               data={wizardData.step1}
               onChange={(data) => setWizardData({ ...wizardData, step1: data })}
+              mode={step1Mode}
+              onModeChange={setStep1Mode}
+              onAutoImported={() => onSuccess?.()}
+              onAutoClose={() => onOpenChange(false)}
               onMockGenerate={(values) => {
                 setWizardData((prev) => ({
                   ...prev,
@@ -419,36 +428,39 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
             />
           )}
 
-          <div className="flex justify-between pt-4">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              disabled={currentStep === 1 || loading || analyzing}
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Назад
-            </Button>
+          {!(currentStep === 1 && step1Mode === "auto") && (
+            <div className="flex justify-between pt-4">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={currentStep === 1 || loading || analyzing}
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Назад
+              </Button>
 
-            {currentStep < 3 ? (
-              <Button onClick={handleNext} disabled={loading}>
-                Далее
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button onClick={handleSave} disabled={loading || analyzing}>
-                {loading ? (
-                  <>
-                    <ButtonSpinner className="mr-2" />
-                    Сохранение...
-                  </>
-                ) : (
-                  "Сохранить"
-                )}
-              </Button>
-            )}
-          </div>
+              {currentStep < 3 ? (
+                <Button onClick={handleNext} disabled={loading}>
+                  Далее
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button onClick={handleSave} disabled={loading || analyzing}>
+                  {loading ? (
+                    <>
+                      <ButtonSpinner className="mr-2" />
+                      Сохранение...
+                    </>
+                  ) : (
+                    "Сохранить"
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
 
       {/* Progress Dialog - same as AnalysisDetail */}
       {analyzing && (
