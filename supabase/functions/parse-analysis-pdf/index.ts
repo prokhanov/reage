@@ -81,15 +81,26 @@ function tryConvert(code: string, fromUnit: string, toUnit: string, value: numbe
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const reqId = crypto.randomUUID().slice(0, 8);
+  const log = (...args: unknown[]) => console.log(`[parse-pdf ${reqId}]`, ...args);
+  log("incoming", req.method, req.url);
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableKey = Deno.env.get("LOVABLE_API_KEY")!;
+    log("env", {
+      hasUrl: !!supabaseUrl,
+      hasService: !!serviceKey,
+      hasAnon: !!anonKey,
+      hasLovable: !!lovableKey,
+    });
 
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace(/^Bearer\s+/i, "");
     if (!token) {
+      log("no token");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -101,10 +112,12 @@ Deno.serve(async (req) => {
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      log("auth failed", userErr?.message);
+      return new Response(JSON.stringify({ error: "Unauthorized", details: userErr?.message }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    log("user", userData.user.id);
 
     const admin = createClient(supabaseUrl, serviceKey);
 
@@ -113,6 +126,7 @@ Deno.serve(async (req) => {
       admin.rpc("has_role", { _user_id: userData.user.id, _role: "superadmin" }),
       admin.rpc("has_admin_permission", { _user_id: userData.user.id, _module: "patients" }),
     ]);
+    log("perms", { isSuper, hasPatients });
     if (!isSuper && !hasPatients) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -120,6 +134,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => null) as { storagePath?: string; patientId?: string } | null;
+    log("body", body);
     if (!body?.storagePath) {
       return new Response(JSON.stringify({ error: "Missing storagePath" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -127,9 +142,11 @@ Deno.serve(async (req) => {
     }
 
     // Download PDF from storage
+    const tDl = Date.now();
     const { data: fileBlob, error: dlErr } = await admin.storage
       .from("analysis-uploads")
       .download(body.storagePath);
+    log("download", { ms: Date.now() - tDl, ok: !!fileBlob, err: dlErr?.message });
     if (dlErr || !fileBlob) {
       return new Response(JSON.stringify({ error: "PDF not found in storage", details: dlErr?.message }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -138,6 +155,7 @@ Deno.serve(async (req) => {
 
     const arrayBuffer = await fileBlob.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
+    log("pdf bytes", bytes.byteLength);
     if (bytes.byteLength > 50 * 1024 * 1024) {
       return new Response(JSON.stringify({ error: "PDF too large (>50MB)" }), {
         status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -151,6 +169,7 @@ Deno.serve(async (req) => {
     }
     const base64 = btoa(binary);
     const dataUrl = `data:application/pdf;base64,${base64}`;
+    log("base64 ready", { base64Len: base64.length });
 
     // Load biomarker catalog
     const { data: biomarkers, error: bmErr } = await admin
@@ -159,6 +178,7 @@ Deno.serve(async (req) => {
       .order("display_order");
     if (bmErr || !biomarkers) throw new Error("Failed to load biomarkers: " + bmErr?.message);
     const catalog: Biomarker[] = biomarkers as any;
+    log("catalog loaded", catalog.length);
 
     const catalogText = catalog
       .map(b => `${b.code} | ${b.name} | ${b.unit} | ${b.category}`)
