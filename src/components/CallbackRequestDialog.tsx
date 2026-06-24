@@ -287,20 +287,20 @@ export function CallbackRequestDialog({
         onOpenChange(v);
       }}
     >
-      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="sm:max-w-[640px] max-h-[92vh] overflow-y-auto p-5 sm:p-6 gap-4">
+        <DialogHeader className="text-left space-y-1.5">
+          <DialogTitle className="flex items-center gap-2 text-lg">
             <Phone className="h-5 w-5 text-primary" />
             Мы вам перезвоним
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             {locationType === "home"
-              ? "Менеджер свяжется с вами для согласования удобной даты, времени и адреса визита медсестры."
-              : "Менеджер свяжется с вами для согласования удобного времени визита в выбранную клинику."}
+              ? "Менеджер свяжется с вами для согласования даты, времени и адреса визита медсестры."
+              : "Менеджер свяжется с вами для согласования времени визита в выбранную клинику."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="callback-phone-input">Ваш телефон</Label>
             <Input
@@ -310,6 +310,7 @@ export function CallbackRequestDialog({
               value={phone}
               onChange={(e) => setPhone(formatPhone(e.target.value))}
               placeholder="+7 (___) ___-__-__"
+              className="h-12 text-base"
             />
           </div>
           {!passportPrefilled && (
@@ -319,8 +320,10 @@ export function CallbackRequestDialog({
               onSeriesChange={setPassportSeries}
               onNumberChange={setPassportNumber}
               showIcon={false}
+              hideHint
             />
           )}
+
 
           <div className="space-y-2">
             <Label>Где сдать анализы</Label>
@@ -365,6 +368,7 @@ export function CallbackRequestDialog({
                   value={homeAddress}
                   onChange={(e) => setHomeAddress(e.target.value)}
                   placeholder="Улица, дом, квартира"
+                  className="h-12 text-base"
                 />
               </div>
             </div>
@@ -451,8 +455,12 @@ export function CallbackRequestDialog({
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="h-11 rounded-xl w-full sm:w-auto"
+          >
             Отмена
           </Button>
           <Button
@@ -463,6 +471,7 @@ export function CallbackRequestDialog({
               (locationType === "clinic" && !selectedLab) ||
               (locationType === "home" && !homeAddress.trim())
             }
+            className="h-11 rounded-xl bg-gradient-primary shadow-neon-primary w-full sm:w-auto"
           >
             {loading ? "Отправка..." : "Подтвердить"}
           </Button>

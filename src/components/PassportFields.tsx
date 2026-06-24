@@ -9,6 +9,8 @@ interface PassportFieldsProps {
   onNumberChange: (value: string) => void;
   showIcon?: boolean;
   disabled?: boolean;
+  hideHeader?: boolean;
+  hideHint?: boolean;
 }
 
 export const PASSPORT_SERIES_LENGTH = 4;
@@ -30,13 +32,17 @@ export function PassportFields({
   onNumberChange,
   showIcon = true,
   disabled,
+  hideHeader = false,
+  hideHint = false,
 }: PassportFieldsProps) {
   return (
     <div className="space-y-3">
-      <Label className="text-base font-medium flex items-center gap-2">
-        {showIcon && <FileText className="h-5 w-5 text-primary" />}
-        Паспортные данные пациента
-      </Label>
+      {!hideHeader && (
+        <Label className="text-base font-medium flex items-center gap-2">
+          {showIcon && <FileText className="h-5 w-5 text-primary" />}
+          Паспортные данные пациента
+        </Label>
+      )}
       <div className="grid grid-cols-[1fr_2fr] gap-3">
         <Input
           inputMode="numeric"
@@ -45,7 +51,7 @@ export function PassportFields({
           maxLength={PASSPORT_SERIES_LENGTH}
           disabled={disabled}
           onChange={(e) => onSeriesChange(e.target.value.replace(/\D/g, "").slice(0, PASSPORT_SERIES_LENGTH))}
-          className="h-12"
+          className="h-12 text-base"
         />
         <Input
           inputMode="numeric"
@@ -54,12 +60,14 @@ export function PassportFields({
           maxLength={PASSPORT_NUMBER_LENGTH}
           disabled={disabled}
           onChange={(e) => onNumberChange(e.target.value.replace(/\D/g, "").slice(0, PASSPORT_NUMBER_LENGTH))}
-          className="h-12"
+          className="h-12 text-base"
         />
       </div>
-      <p className="text-xs text-muted-foreground">
-        Нужны для оформления забора анализов в лаборатории. Сохраняются один раз.
-      </p>
+      {!hideHint && (
+        <p className="text-xs text-muted-foreground">
+          Нужны для оформления забора анализов в лаборатории. Сохраняются один раз.
+        </p>
+      )}
     </div>
   );
 }
