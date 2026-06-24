@@ -153,7 +153,7 @@ function roundToReasonable(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-export function AnalysisStep1({ data, onChange, onMockGenerate }: AnalysisStep1Props) {
+export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual", onModeChange, onAutoImported, onAutoClose }: AnalysisStep1Props) {
   const [showHealthDialog, setShowHealthDialog] = useState(false);
   const [generating, setGenerating] = useState(false);
   const { viewAsUserId } = useContext(ViewAsPatientContext);
