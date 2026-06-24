@@ -429,16 +429,23 @@ export default function Trends() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={400}>
-                      <LineChart data={trendData}>
+                      <LineChart data={trendData} margin={{ top: 8, right: 8, bottom: 8, left: -16 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis 
                           dataKey="date" 
                           stroke="hsl(var(--muted-foreground))"
                           style={{ fontSize: '12px' }}
+                          tickLine={false}
+                          axisLine={false}
+                          dy={8}
                         />
                         <YAxis 
                           stroke="hsl(var(--muted-foreground))"
                           style={{ fontSize: '12px' }}
+                          width={36}
+                          tickLine={false}
+                          axisLine={false}
+                          dx={-4}
                         />
                         <Tooltip
                           contentStyle={{
