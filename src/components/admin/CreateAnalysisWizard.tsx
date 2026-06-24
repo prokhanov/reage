@@ -354,6 +354,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
 
   const resetWizard = () => {
     setCurrentStep(1);
+    setStep1Mode("manual");
     setWizardData({
       step1: {
         date: format(new Date(), "yyyy-MM-dd"),
