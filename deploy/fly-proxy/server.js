@@ -43,7 +43,8 @@ const dispatcher = new Agent({
 const app = Fastify({
   logger: { level: process.env.LOG_LEVEL || 'info' },
   trustProxy: true,
-  bodyLimit: 50 * 1024 * 1024,
+  // 80 МБ — UI лимит 50 МБ; запас на multipart overhead и base64-обвязку.
+  bodyLimit: 80 * 1024 * 1024,
 });
 
 await app.register(cors, {
