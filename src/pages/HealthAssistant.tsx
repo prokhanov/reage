@@ -409,7 +409,7 @@ export default function HealthAssistant() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/30 flex-shrink-0 max-sm:bg-background">
+          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/30 flex-shrink-0 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:z-30 max-sm:bg-background max-sm:border-border/50">
             <div className="flex gap-2">
               <Textarea
                 value={input}
