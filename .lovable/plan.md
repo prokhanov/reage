@@ -1,61 +1,79 @@
-## 1. Экран выбора тарифа — улучшения для мобильной версии
+## Что произошло (диагноз)
 
-Файлы: `src/pages/Subscription.tsx`, `src/components/subscription/PlanCard.tsx`, `src/components/subscription/PromoCodeField.tsx`.
+У пациента «Алина Дарбинян» (id `d8d632d4-…`) в БД сейчас:
 
-**Subscription.tsx (hero + переключатель периодов):**
-- Уменьшить вертикальные отступы: `py-8 md:py-12` → `py-4 md:py-12`, `mb-12` → `mb-6 md:mb-12` для hero и переключателя.
-- Иконка-кружок: `w-12 h-12 md:w-20 md:h-20`, иконка внутри `h-6 w-6 md:h-10 md:w-10`, `mb-2 md:mb-4`.
-- Заголовок: `text-2xl md:text-5xl leading-tight`, подзаголовок `text-sm md:text-lg px-2`.
-- ToggleGroup периодов: сделать full-width grid на мобиле (`grid grid-cols-2 sm:inline-flex` если периодов 4, иначе `grid-cols-N`), кнопки `px-2 md:px-6 text-sm` чтобы не переносились.
-- Trust indicators: `gap-x-4 gap-y-2 text-xs md:text-sm`.
+- `auth.users.email` = `alina@mail.ru` — реальный логин, не менялся.
+- `profiles.email`   = `prokhanov@gmail.com` — это email суперадмина (`Антон Проханов`).
 
-**PlanCard.tsx (главная боль на мобиле):**
-- Padding: `CardHeader` `pb-3 md:pb-4`, `CardContent` `space-y-3 md:space-y-4`, `CardFooter pt-4 md:pt-6`.
-- Имя тарифа: `text-xl md:text-2xl mb-1 md:mb-2`.
-- Описание: убрать `min-h-[40px]` на мобиле (`md:min-h-[40px]`) — съедает место в стопке.
-- Цена: `text-3xl md:text-4xl`, перечёркнутая `text-xl md:text-2xl mr-1 md:mr-2`.
-- «Экономия / +N мес»: `text-xs md:text-sm pt-1 md:pt-2`.
-- Список фич: `text-[13px] md:text-sm`, иконка `w-4 h-4 md:w-5 md:h-5`, gap `gap-1.5 md:gap-2`.
-- Кнопка `Оформить`: оставить `h-12`, но `text-sm md:text-base`.
-- Бейдж `-top-3` уже ок; добавить `whitespace-nowrap max-w-[90%] truncate`.
-- На грид: `gap-4 md:gap-6 lg:gap-8` (сейчас `gap-6` слишком много на мобиле для одной колонки — отступы между большими карточками увеличивают скролл).
+То есть «двойного аккаунта» нет, утечки сессии нет, логин по-прежнему работает по `alina@mail.ru`. Сломан только один столбец `profiles.email`, а админка показывает именно его — отсюда «каша».
 
-**PromoCodeField.tsx:**
-- В режиме ввода `flex gap-2` ломается на узком экране (3 кнопки). Сделать `flex-col sm:flex-row`, кнопки `flex-1 sm:flex-none`, input на отдельной строке (`w-full`).
-- Applied-карточка: `px-3 py-2.5 md:px-4 md:py-3`, текст метаданных `text-[11px] md:text-xs`.
+## Откуда туда попал email суперадмина
 
-## 2. ActiveSubscription — привязка к админке тарифов
+Виновник — `src/components/admin/PatientBookingsCard.tsx`, компонент `SendRemindersDialog` (строки ~714–803). Логика отправки напоминаний делает так:
 
-Сейчас запрос в `Subscription.tsx` тянет только `display_name, description, features`. Админка (`SubscriptionPlans.tsx` + `useSubscriptionPlans`) редактирует ещё `badge_text`, `badge_color`, `comparison_highlights`, период/цены через `subscription_pricing`.
+1. Поля «email» и «телефон» в диалоге это обычные `<Input>` без `autoComplete="off"`, предзаполненные `patient.email`.
+2. Перед отправкой код сравнивает значение поля с исходным и, если отличается, тихо пишет его в профиль пациента:
 
-**Что меняется:**
-
-`src/pages/Subscription.tsx` — расширить select активной подписки:
 ```ts
-subscription_plans (
-  display_name, description, features,
-  badge_text, badge_color, comparison_highlights
-)
+if (emailOn && emailNorm && emailNorm !== initialEmail.trim().toLowerCase()) {
+  patch.email = emailNorm;
+}
+…
+await supabase.from("profiles").update(patch).eq("id", userId);
 ```
-Дополнительно отдельным запросом или join подтянуть `subscription_pricing` записи для `plan_id` подписки, чтобы взять `period_display` соответствующий `subscription.plan_type` (сейчас период маппится локальным словарём в `getPeriodLabel`, что игнорирует админскую редактуру `period_display`).
 
-`src/components/subscription/ActiveSubscription.tsx`:
-- Типы пропов расширить новыми полями плюс опциональный `period_display`.
-- В шапке карточки рядом с `Badge "Активна"` показывать `badge_text` плана с учётом `badge_color` (как в `PlanCard`), если задан.
-- Поле «Период/тариф»: вместо локального словаря показывать `period_display` из админки (fallback на текущий словарь).
-- Под фичами добавить блок **Что выделяет ваш тариф** из `comparison_highlights` (label/value, grid 1/2 колонки), если массив непустой.
-- Источник `features` уже из плана — оставить.
+Достаточно браузерного autofill (Chrome подставляет сохранённый email суперадмина в любое поле `type=email`) или ручной правки «отправлю себе на тест» — и `profiles.email` пациента перезаписывается на админский. `auth.users.email` при этом не трогается, поэтому логин остаётся прежним, а в таблице пациентов появляется чужой email.
 
-Никаких изменений в БД и админке не требуется, читаем уже существующие поля.
+В CRM (`patient_interactions`) запись об этом не пишется — изменение проходит молча.
 
-## Технические детали
+Дополнительно: edge-функция `resend-confirmation` (стр. 70–83) обновляет `profiles.email` только если `isOwnEmail`, поэтому она к этому случаю отношения не имеет; легальный путь смены email админом (`admin-change-user-email`) корректно меняет и auth, и профиль и логирует событие в CRM.
 
-- Запрос активной подписки расширяется в `Subscription.tsx` (внутри `useQuery`), дополнительно делается lookup `subscription_pricing` по `(plan_id = subscription.plan_id, ...)` — выбираем запись с `duration_months`, совпадающим по периоду оплаты (используем поле `plan_type` или, если его не хватает, добавляем выборку всех pricing для плана и подбираем по сумме `amount === subscription.amount`).
-- `PlanCard` и `ActiveSubscription` без изменений бизнес-логики — только tailwind-классы и рендер дополнительных полей плана.
-- `PromoCodeField` сохраняет API (`applied`, `onApplied`, `context`), меняется только разметка inline-формы.
+## Что чиню
 
-## Что НЕ трогаем
+### 1. Закрыть вектор перезаписи email/phone из диалога напоминаний
 
-- Логика оплаты, robokassa, промокоды, RLS, миграции.
-- Дизайн десктопа — все правки через `md:`-варианты.
-- Компонент `ActiveSubscription` остаётся ответственным только за отображение; никакой бизнес-логики не добавляем.
+Файл: `src/components/admin/PatientBookingsCard.tsx`
+
+- Убрать из `SendRemindersDialog` сайд-эффект `supabase.from("profiles").update(patch)`. Диалог — это «отправить уведомление», менять контактные данные пациента он не должен.
+- Поля email/phone оставить редактируемыми (для разовой отправки на другой адрес), но:
+  - Добавить `autoComplete="off"`, `name="reminder-email"` / `"reminder-phone"`, `inputMode`, чтобы Chrome не подставлял профиль админа.
+  - Если значение в поле отличается от `initialEmail` / `initialPhone` — показывать предупреждение «Отправить разово, контакты пациента не будут изменены».
+- Менять контакты пациента — только через явный путь: «Изменить email» (уже есть `admin-change-user-email`) и редактирование телефона в `PatientInfoDialog` / профиле пациента.
+
+### 2. Защита на стороне БД от рассинхронизации profiles.email и auth.users.email
+
+Миграция:
+
+- Триггер `BEFORE UPDATE OF email ON public.profiles`: если `NEW.email` отличается от `auth.users.email` того же `id` — `RAISE EXCEPTION`. Исключение для service_role (триггер игнорируется, когда `current_setting('request.jwt.claims', true)::jsonb->>'role' = 'service_role'`), чтобы edge-функция `admin-change-user-email` могла работать — она и так синхронно меняет оба значения.
+- Этим закрываем любой будущий клиентский путь, который попытается записать в `profiles.email` что-то отличное от auth.
+
+### 3. Разовый откат данных Алины
+
+Через миграцию `UPDATE`:
+
+```sql
+UPDATE public.profiles p
+SET email = au.email
+FROM auth.users au
+WHERE p.id = au.id
+  AND p.email IS DISTINCT FROM au.email;
+```
+
+Это исправит не только Алину, но и любые другие профили, где `profiles.email` разъехался с `auth.users.email`. Перед этим — `SELECT` тех же строк, покажу список, чтобы вы подтвердили перезапись.
+
+### 4. Аудит в CRM
+
+В `admin-change-user-email` уже пишется запись в `patient_interactions` (`kind: 'admin_email_change'`). Ничего добавлять не нужно — после фикса (1) это единственный путь смены email админом, и он логируется.
+
+## Что НЕ трогаю
+
+- Не меняю auth-логин Алины (он и так корректный — `alina@mail.ru`).
+- Не трогаю UI таблицы пациентов, экранов подписки, диалогов подтверждения email/phone — только источник записи.
+- Не меняю edge-функции `resend-confirmation` и `admin-change-user-email`.
+
+## Порядок действий после approve
+
+1. Показать `SELECT` всех профилей, где `profiles.email <> auth.users.email`, чтобы вы видели объём перезаписи.
+2. Применить миграцию: триггер защиты + bulk-`UPDATE` починки.
+3. Поправить `PatientBookingsCard.tsx` (убрать сайд-эффект, autocomplete off, предупреждение о разовой отправке).
+4. Прогнать build / typecheck.
