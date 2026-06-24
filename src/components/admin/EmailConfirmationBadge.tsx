@@ -158,26 +158,31 @@ export function EmailConfirmationBadge({
 
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent onClick={(e) => e.stopPropagation()}>
+        <DialogContent
+          onClick={(e) => e.stopPropagation()}
+          className="sm:max-w-md max-h-[92vh] overflow-y-auto p-5 sm:p-6 gap-4"
+        >
           <DialogHeader>
-            <DialogTitle>Email не подтверждён</DialogTitle>
-            <DialogDescription>
-              {allowEmailChange 
-                ? "Вы можете изменить email или отправить повторное письмо с подтверждением."
-                : "Вы можете отправить повторное письмо с подтверждением."
-              }
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center">Email не подтверждён</DialogTitle>
+            <DialogDescription className="text-center">
+              {allowEmailChange
+                ? "Отправьте письмо повторно или измените адрес."
+                : "Мы пришлём ссылку для подтверждения ещё раз."}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-3 py-1">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">Email для отправки</label>
                 {allowEmailChange && !isEditing && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 text-xs"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs -mr-2"
                     onClick={() => setIsEditing(true)}
                   >
                     <Pencil className="w-3 h-3 mr-1" />
@@ -191,10 +196,11 @@ export function EmailConfirmationBadge({
                   onChange={(e) => setResendEmail(e.target.value)}
                   placeholder="user@example.com"
                   type="email"
+                  className="h-12 text-base"
                   readOnly={!allowEmailChange && !isEditing}
                 />
               ) : (
-                <p className="text-sm bg-muted px-3 py-2 rounded-md">{email}</p>
+                <p className="text-sm bg-muted px-3 py-3 rounded-md break-all">{email}</p>
               )}
             </div>
             {allowEmailChange && isEditing && resendEmail !== email && (
@@ -208,7 +214,11 @@ export function EmailConfirmationBadge({
           </div>
 
           <DialogFooter className="flex flex-col gap-2 sm:flex-col sm:space-x-0">
-            <Button onClick={handleResend} disabled={isSending || !resendEmail} className="w-full">
+            <Button
+              onClick={handleResend}
+              disabled={isSending || !resendEmail}
+              className="w-full h-12"
+            >
               {isSending ? <ButtonSpinner className="mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               {isEditing && resendEmail !== email ? "Сохранить и отправить" : "Отправить повторно"}
             </Button>
@@ -217,16 +227,17 @@ export function EmailConfirmationBadge({
                 variant="secondary"
                 onClick={handleForceConfirm}
                 disabled={isForcing}
-                className="w-full"
+                className="w-full h-12"
               >
                 {isForcing ? <ButtonSpinner className="mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
                 Подтвердить без проверки
               </Button>
             )}
-            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="w-full h-11">
               Отмена
             </Button>
           </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </>
