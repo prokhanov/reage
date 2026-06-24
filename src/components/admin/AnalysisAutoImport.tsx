@@ -157,21 +157,48 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
 
   async function processOne(entry: FileEntry): Promise<void> {
     if (!viewAsUserId) throw new Error("Нет ID пациента");
+    const tag = `[auto-import ${entry.file.name}]`;
     try {
+      console.log(`${tag} start`, { size: entry.file.size, type: entry.file.type, viewAsUserId });
       updateEntry(entry.id, { status: "uploading" });
       const path = `${viewAsUserId}/${uuidv4()}.pdf`;
+      console.log(`${tag} uploading to`, path);
+      const t0 = performance.now();
       const { error: upErr } = await supabase.storage
         .from("analysis-uploads")
         .upload(path, entry.file, { contentType: "application/pdf", upsert: false });
-      if (upErr) throw upErr;
+      console.log(`${tag} upload finished in ${Math.round(performance.now() - t0)}ms`, { upErr });
+      if (upErr) throw new Error(`upload: ${upErr.message}`);
 
       updateEntry(entry.id, { status: "parsing", storagePath: path });
 
+      const t1 = performance.now();
+      console.log(`${tag} invoking parse-analysis-pdf`);
       const { data, error } = await supabase.functions.invoke("parse-analysis-pdf", {
         body: { storagePath: path, patientId: viewAsUserId },
       });
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Распознавание не удалось");
+      const ms = Math.round(performance.now() - t1);
+      console.log(`${tag} invoke finished in ${ms}ms`, { hasData: !!data, error });
+
+      if (error) {
+        // FunctionsHttpError has .context (Response), FunctionsFetchError — нет
+        let bodyText = "";
+        try {
+          const resp: Response | undefined = (error as any).context;
+          if (resp && typeof resp.text === "function") {
+            bodyText = await resp.text();
+            console.log(`${tag} error response body:`, bodyText.slice(0, 1000));
+          }
+        } catch (readErr) {
+          console.log(`${tag} could not read error body`, readErr);
+        }
+        const name = (error as any).name || "FunctionsError";
+        throw new Error(`invoke ${name}: ${error.message}${bodyText ? ` — ${bodyText.slice(0, 300)}` : ""}`);
+      }
+      if (!data?.success) {
+        console.log(`${tag} non-success data`, data);
+        throw new Error(data?.error || "Распознавание не удалось");
+      }
 
       const recognized: RecognizedItem[] = (data.recognized || []).map((r: any) => ({
         ...r,
@@ -180,6 +207,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         use_expected_unit: r.unit_matches || r.value_converted !== null,
       }));
 
+      console.log(`${tag} done`, { recognized: recognized.length, unknown: data.unknown?.length || 0 });
       updateEntry(entry.id, {
         status: "done",
         result: {
@@ -193,7 +221,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         editDate: data.collection_date || new Date().toISOString().slice(0, 10),
       });
     } catch (e: any) {
-      console.error("parse error", e);
+      console.error(`${tag} FAILED`, e);
       updateEntry(entry.id, { status: "error", error: e?.message || "Ошибка" });
     }
   }
