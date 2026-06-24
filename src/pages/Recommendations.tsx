@@ -1166,11 +1166,15 @@ export default function Recommendations() {
                           </SheetContent>
                         </Sheet>
 
-                        <div className="min-w-0">
-                          <DialogTitle className="text-base sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
-                            <span className="md:hidden">Отчёт от {dateLabel}</span>
+                        <div className="min-w-0 flex-1">
+                          <DialogTitle className="text-sm sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                            <span className="md:hidden">{dateLabel}</span>
                             <span className="hidden md:inline">Персональный отчет</span>
                           </DialogTitle>
+                          <DialogDescription className="mt-1 sm:mt-2 hidden sm:block">
+                            Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
+                          </DialogDescription>
+                        </div>
                           <DialogDescription className="mt-1 sm:mt-2 hidden sm:block">
                             Детальный анализ здоровья • {selectedReport.count} {selectedReport.count === 1 ? 'раздел' : 'разделов'}
                           </DialogDescription>
