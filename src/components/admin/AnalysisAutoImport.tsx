@@ -1,5 +1,8 @@
 import { useContext, useRef, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+
+const uuidv4 = () => (typeof crypto !== "undefined" && "randomUUID" in crypto)
+  ? (crypto as any).randomUUID() as string
+  : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
