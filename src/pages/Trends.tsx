@@ -438,6 +438,8 @@ export default function Trends() {
                           tickLine={false}
                           axisLine={false}
                           dy={8}
+                          padding={{ left: 0, right: 0 }}
+                          interval={0}
                         />
                         <YAxis 
                           stroke="hsl(var(--muted-foreground))"
