@@ -284,7 +284,7 @@ export default function Prescriptions() {
             prescription={prescription}
             showStatus={false /* статус ниже как часть метаданных */}
           />
-          <div className="flex items-center justify-between pt-4 px-6 pb-4 border-t border-border/30 -mt-4 rounded-b-lg border border-border/50 bg-card/50 backdrop-blur border-t-0">
+          <div className="flex items-center justify-between pt-4 px-6 pb-4 border-t border-border/30 -mt-4 rounded-b-lg border border-border/50 bg-card/50 backdrop-blur border-t-0 max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!px-0 max-sm:!pt-2 max-sm:!pb-0 max-sm:!mt-0 max-sm:!rounded-none">
             <div className="flex items-center gap-6 flex-wrap">
               {hasPatientAccess && (
                 <div className="flex items-center gap-2">
@@ -342,18 +342,16 @@ export default function Prescriptions() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl space-y-4 sm:space-y-6">
         {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
         {(isLoading || accessLoading) && <PrescriptionListSkeleton />}
         {!isLoading && !accessLoading && (
           <>
             <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Рекомендации</h1>
-            <p className="text-muted-foreground">
-              {"\n"}
-            </p>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">Рекомендации</h1>
           </div>
+
           {isViewMode && hasPatientAccess && viewAsUserId && (
             <Button
               onClick={() => setCreateDialogOpen(true)}
@@ -378,7 +376,7 @@ export default function Prescriptions() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-8 mt-6">
+          <TabsContent value="active" className="space-y-6 sm:space-y-8 mt-6">
             {totalActiveCount === 0 ? (
               <div className="rounded-lg border border-dashed border-border/50 bg-card/30 p-12">
                 <div className="flex flex-col items-center justify-center">
@@ -393,8 +391,9 @@ export default function Prescriptions() {
                 {activePrescriptions.length > 0 && (
                   <section className="space-y-4">
                     <div>
-                      <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
                         Нутрицевтики ({activePrescriptions.length})
+
                       </h2>
                       <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                     </div>

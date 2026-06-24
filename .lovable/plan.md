@@ -1,40 +1,38 @@
-## Проблемы (мобилка 390px, `/recommendations`)
+## Проблемы на мобилке (/prescriptions)
 
-**Экран списка**
-- Заголовок `text-3xl` градиентом — перенос с уродливым межсловным растяжением.
-- Таблица 3-колоночная: «Действия» обрезается («Действ»), корзина уезжает за край, дата ломается на 3 строки, бейдж «Подтверждён» налезает на колонку «Разделов», нет видимой CTA «Открыть».
+По скриншоту 390px:
+1. Карточки нутрицевтиков и блоков «Питание / Активность / Сон / Доп. консультации» имеют рамку + `p-6`, что вместе с боковыми отступами страницы (`px-4`) даёт двойную рамку и двойной отступ — та же проблема, что мы уже решили для биомаркеров и для отчёта.
+2. Заголовки `h1` «Рекомендации» (`text-3xl`) и `h2` «Питание и коррекция образа жизни» (`text-2xl`) на 390px переносятся и съедают экран.
+3. Между блоками слишком большие промежутки: `container py-8` + `space-y-6` + `TabsContent space-y-8`.
+4. Метаданные «Создано / Статус» под нутрицевтиком прицеплены к карточке через `border ... border-t-0 -mt-4`. Когда у самой карточки на мобиле убрать рамку, этот футер «болтается» — его тоже надо обезрамить на мобиле.
 
-**Диалог просмотра отчёта**
-- `DialogContent` `h-[90vh] w-[95vw]` + жёсткий `w-64` sidebar «Содержание» съедает большую часть экрана 390px → контент сжат в ~110px → «не читается из-за меню».
-- Шапка модала `px-8 py-6` и заголовок `text-2xl` градиент — добивают мобильную ширину.
+Подход — тот же набор инструментов, что и для биомаркеров и для модалки отчёта: tailwind-модификатор `max-sm:` + `!`-важность, ничего не менять для десктопа.
 
-## Что меняю (только `src/pages/Recommendations.tsx`)
+## Что меняю
 
-### Список
-- Заголовок `text-2xl md:text-3xl leading-tight`, подзаголовок `text-sm`.
-- На мобиле (`md:hidden`) — карточки вместо таблицы:
-  - `rounded-2xl border-primary/20 bg-card/50 p-4`, клик по карточке = `handleView`.
-  - Дата `text-base font-semibold` в одну строку + `AnalysisStatusBadge` рядом.
-  - Подстрока «Разделов: N» `text-xs text-muted-foreground`.
-  - Нижний ряд `flex items-center justify-between`: кнопка «Открыть отчёт» (`bg-gradient-primary h-9 rounded-xl` + `Eye`), справа `Edit`/`Trash2` `variant="ghost" size="icon"` со `stopPropagation`.
-- На десктопе (`hidden md:block`) оставляю текущую `<Card><Table>` без изменений.
+### `src/components/prescriptions/PrescriptionCard.tsx`
+- На карточке (`rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6`) добавить на мобиле:
+  `max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!p-0 max-sm:!rounded-none`.
+- Блоку «Причина» (`p-3 rounded-md bg-primary/5 border border-primary/10`) оставить как есть — это внутренний акцент, не дублирует внешнюю рамку.
 
-### Диалог
-- `DialogContent`: `h-[100dvh] w-screen max-w-none rounded-none p-0 sm:h-[90vh] sm:w-[95vw] sm:max-w-7xl sm:rounded-lg`.
-- Корневой flex: `flex h-full min-h-0 flex-col md:flex-row`.
-- Сайдбар «Содержание» прячу на мобиле (`hidden md:flex`).
-- В шапке контента добавляю кнопку-триггер «Содержание» (`List` icon), открывающую `<Sheet side="left">` с тем же списком секций; клик по пункту → `scrollToSection` + закрытие sheet.
-- Шапка контента: `px-4 sm:px-8 py-3 sm:py-6`, `flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`.
-  - Слева на мобиле: кнопка «Содержание» + `text-base` заголовок «Отчёт от {дата}»; на десктопе — текущий `DialogTitle text-2xl` градиент + `DialogDescription`.
-  - Справа: «Скачать PDF» на мобиле иконкой (`Download` + `sr-only` подпись), на десктопе как сейчас.
-- Контент: `px-4 sm:px-8 py-4 sm:py-6`; заголовки секций `text-xl sm:text-2xl`; обёртки `p-4 sm:p-6`.
+### `src/components/prescriptions/AdvisorySections.tsx`
+- Трём lifestyle-карточкам (Питание / Физ. активность / Сон) и follow-up карточкам — тот же набор `max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!p-0 max-sm:!rounded-none`.
+- H2 «Питание и коррекция образа жизни» и «Дополнительные консультации и обследования»: `text-2xl` → `text-xl sm:text-2xl`.
+- Внешний `space-y-8` → `space-y-6 sm:space-y-8`.
 
-### Не трогаю
-- `handleView`, `handleEdit`, `handleDeleteClick`, `handleExportPDF`, snapshot-рендеринг, нутрицевтики, advisory — без изменений.
+### `src/pages/Prescriptions.tsx`
+- Контейнер: `container mx-auto px-4 py-8 max-w-6xl space-y-6` → `... py-4 sm:py-8 ... space-y-4 sm:space-y-6`.
+- H1 «Рекомендации» `text-3xl` → `text-2xl sm:text-3xl`, убрать пустой `<p>{"\n"}</p>` (даёт лишний воздух).
+- H2 «Нутрицевтики (N)» `text-2xl` → `text-xl sm:text-2xl`.
+- `TabsContent value="active" space-y-8` → `space-y-6 sm:space-y-8`.
+- Футер карточки нутрицевтика (`flex items-center justify-between pt-4 px-6 pb-4 border-t border-border/30 -mt-4 rounded-b-lg border border-border/50 bg-card/50 backdrop-blur border-t-0`):
+  - на мобиле убрать рамку и фоновые модификаторы: добавить `max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!px-0 max-sm:!pt-2 max-sm:!pb-0 max-sm:!mt-0 max-sm:!rounded-none`.
 
-### Импорты
-- `Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger` из `@/components/ui/sheet`.
-- Иконки `Eye`, `List` из `lucide-react`.
+## Чего НЕ трогаю
+- Десктоп-стили (всё под `sm:` или `max-sm:` важностью).
+- Логику фильтрации/загрузки/мутаций.
+- Баннер «Ожидайте звонка менеджера» — он на другой странице/уровне.
+- Структуру вкладок Активные/Архив.
 
-### Проверка
-- Playwright @ 390×844: карточки читаются, иконки не обрезаны; диалог во весь экран, меню скрыто за кнопкой, текст отчёта на полную ширину.
+## Проверка
+После правок — сделать playwright-скрин на 390×844 страницы `/prescriptions` и сравнить: рамок у карточек не должно быть, отступы между блоками заметно меньше, заголовки в одну строку или короче по высоте.
