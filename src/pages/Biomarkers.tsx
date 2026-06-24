@@ -330,7 +330,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                       return <CatIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" strokeWidth={1.75} />;
                     })()}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-2 flex-wrap">
+                      <div className="flex items-start gap-2">
                         <span className="text-sm md:text-lg font-semibold text-left break-words leading-snug">
                           {category}
                         </span>
