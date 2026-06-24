@@ -284,7 +284,7 @@ export default function Prescriptions() {
             prescription={prescription}
             showStatus={false /* статус ниже как часть метаданных */}
           />
-          <div className="flex items-center justify-between pt-4 px-6 pb-4 border-t border-border/30 -mt-4 rounded-b-lg border border-border/50 bg-card/50 backdrop-blur border-t-0">
+          <div className="flex items-center justify-between pt-4 px-6 pb-4 border-t border-border/30 -mt-4 rounded-b-lg border border-border/50 bg-card/50 backdrop-blur border-t-0 max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!px-0 max-sm:!pt-2 max-sm:!pb-0 max-sm:!mt-0 max-sm:!rounded-none">
             <div className="flex items-center gap-6 flex-wrap">
               {hasPatientAccess && (
                 <div className="flex items-center gap-2">
