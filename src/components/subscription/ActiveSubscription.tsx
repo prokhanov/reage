@@ -28,10 +28,14 @@ interface ActiveSubscriptionProps {
     end_date: string;
     amount: number;
     plan_type: string;
+    period_display?: string | null;
     subscription_plans?: {
       display_name: string;
       description: string | null;
       features: any;
+      badge_text?: string | null;
+      badge_color?: string | null;
+      comparison_highlights?: any;
     } | null;
   };
 }
