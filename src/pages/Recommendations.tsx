@@ -1123,7 +1123,7 @@ export default function Recommendations() {
 
                   {/* Content Area */}
                   <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="px-4 sm:px-8 py-3 sm:py-6 pr-14 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+                    <div className="relative px-4 sm:px-8 py-3 sm:py-6 pr-24 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {/* Mobile TOC trigger */}
                         <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
@@ -1180,11 +1180,12 @@ export default function Recommendations() {
                         onClick={handleExportPDF}
                         variant="ghost"
                         size="icon"
-                        className="sm:hidden h-9 w-9 rounded-xl flex-shrink-0 text-primary"
+                        className="sm:hidden absolute top-4 right-12 h-6 w-6 rounded-md flex-shrink-0 text-primary z-10"
                         aria-label="Скачать PDF"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
+
                       <button
                         onClick={handleExportPDF}
                         className="hidden sm:flex text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors items-center gap-2 flex-shrink-0"

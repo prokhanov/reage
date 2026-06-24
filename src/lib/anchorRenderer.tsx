@@ -87,12 +87,13 @@ export function renderInterleavedWeb(
   const blocks = parseAnchors(reportText, codes, nameToCode);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-12">
       {blocks.map((block, idx) => {
         switch (block.type) {
           case 'summary':
             return (
-              <div key={idx} className="rounded-xl border border-primary/15 bg-primary/5 p-5">
+              <div key={idx} className="rounded-xl border border-primary/15 bg-primary/5 p-5 max-sm:border-0 max-sm:bg-transparent max-sm:p-0 max-sm:rounded-none">
+
                 <MarkdownContent content={block.content} />
               </div>
             );
@@ -103,7 +104,7 @@ export function renderInterleavedWeb(
             // Skip empty fallback blocks: no metadata + no description = nothing useful to show
             if (!bm && !trimmedContent) return null;
             return (
-              <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
+              <div key={idx} className={`rounded-xl border shadow-sm p-4 space-y-3 max-sm:!border-0 max-sm:!bg-transparent max-sm:!shadow-none max-sm:!p-0 max-sm:!rounded-none ${bm ? statusBgMap[bm.status] : 'border-border/40 bg-card/50'}`}>
                 {bm && (
                   <div className="space-y-2">
                     {/* Row 1: name (code) + status */}
