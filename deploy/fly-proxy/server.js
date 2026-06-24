@@ -14,7 +14,9 @@ dns.setDefaultResultOrder('ipv4first');
 const UPSTREAM_HOST = 'ilxgodhosirhhkffqryw.supabase.co';
 const UPSTREAM_ORIGIN = `https://${UPSTREAM_HOST}`;
 const PORT = Number(process.env.PORT) || 8080;
-const REQUEST_TIMEOUT_MS = 30_000;
+// 3 минуты: edge-функции с Gemini 2.5 Pro (parse-analysis-pdf, генерация
+// отчёта и т.п.) могут отвечать дольше 30 секунд. Прокси не должен резать.
+const REQUEST_TIMEOUT_MS = 180_000;
 
 const HOP_BY_HOP = new Set([
   'host',
