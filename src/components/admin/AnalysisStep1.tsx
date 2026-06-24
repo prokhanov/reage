@@ -240,9 +240,9 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
 
   return (
     <Tabs value={mode} onValueChange={(v) => onModeChange?.(v as "manual" | "auto")} className="py-2">
-      <TabsList className="grid grid-cols-2 w-full">
-        <TabsTrigger value="manual">Вручную</TabsTrigger>
-        <TabsTrigger value="auto">Авто распознавание PDF</TabsTrigger>
+      <TabsList className="flex w-full h-auto p-1 gap-1">
+        <TabsTrigger value="manual" className="flex-1 px-3 py-2">Вручную</TabsTrigger>
+        <TabsTrigger value="auto" className="flex-1 px-3 py-2">Авто-импорт PDF</TabsTrigger>
       </TabsList>
 
       <TabsContent value="manual" className="space-y-4 pt-4">
