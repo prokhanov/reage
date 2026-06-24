@@ -397,7 +397,7 @@ export default function HealthAssistant() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="p-4 border-t border-border/30">
+          <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t border-border/30">
             <div className="flex gap-2">
               <Textarea
                 value={input}
@@ -408,18 +408,19 @@ export default function HealthAssistant() {
                     handleSubmit(e);
                   }
                 }}
-                placeholder="Задайте вопрос о вашем здоровье..."
-                className="min-h-[60px] max-h-[120px] resize-none bg-background/50"
+                placeholder="Задайте вопрос..."
+                className="min-h-[48px] sm:min-h-[60px] max-h-[120px] resize-none bg-background/50"
                 disabled={isLoading}
               />
               <Button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="h-[60px] px-6 bg-gradient-primary hover:opacity-90 shadow-neon-primary"
+                className="h-[48px] sm:h-[60px] px-4 sm:px-6 bg-gradient-primary hover:opacity-90 shadow-neon-primary"
               >
                 <Send className="w-5 h-5" />
               </Button>
             </div>
+
             <p className="text-xs text-muted-foreground mt-2">
               Нажмите Enter для отправки, Shift+Enter для новой строки
             </p>
