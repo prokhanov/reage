@@ -214,6 +214,8 @@ ${catalogText}
 - Десятичный разделитель в value_raw сохраняй как в PDF.
 - Верни ТОЛЬКО JSON, без markdown-обёртки.`;
 
+    const tAi = Date.now();
+    log("calling AI gateway");
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -235,10 +237,11 @@ ${catalogText}
         response_format: { type: "json_object" },
       }),
     });
+    log("AI gateway responded", { ms: Date.now() - tAi, status: aiResp.status });
 
     if (!aiResp.ok) {
       const txt = await aiResp.text();
-      console.error("AI gateway error", aiResp.status, txt);
+      log("AI gateway error body", txt.slice(0, 1000));
       return new Response(JSON.stringify({
         error: aiResp.status === 429
           ? "Превышен лимит запросов AI. Попробуйте позже."
@@ -252,6 +255,7 @@ ${catalogText}
     }
 
     const aiJson = await aiResp.json();
+    log("AI json keys", Object.keys(aiJson || {}));
     const rawContent: string = aiJson?.choices?.[0]?.message?.content ?? "";
     let parsed: AIResponse;
     try {
