@@ -195,41 +195,84 @@ export default function Profile() {
 
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 pt-4 pb-8 sm:py-8 max-w-4xl">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-5 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Управляйте своими персональными данными
         </p>
       </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Personal Info Card */}
-          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-6 w-6 text-primary" />
+          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+            <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold">Личная информация</h2>
-                  <p className="text-sm text-muted-foreground">
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold leading-tight">Личная информация</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                     Основные данные о вас
                   </p>
                 </div>
               </div>
               <Button
                 variant="outline"
+                size="icon"
+                aria-label="Редактировать"
+                onClick={() => setEditProfileOpen(true)}
+                className="sm:hidden flex-shrink-0"
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setEditProfileOpen(true)}
+                className="hidden sm:inline-flex"
               >
                 <Edit2 className="h-4 w-4 mr-2" />
                 Редактировать
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Mobile: compact list */}
+            <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Имя</span>
+                <span className="font-medium text-right truncate">{profile?.name}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Email</span>
+                <span className="font-medium text-right truncate">{email}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Пол и возраст</span>
+                <span className="font-medium text-right truncate">
+                  {profile?.gender === "female" ? "Женщина" : "Мужчина"}
+                  {age && <span className="text-muted-foreground"> · {age} лет</span>}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Дата рождения</span>
+                <span className="font-medium text-right truncate">
+                  {profile?.birth_date && format(new Date(profile.birth_date), "d MMMM yyyy", { locale: ru })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Рост</span>
+                <span className="font-medium text-right truncate">
+                  {profile?.height ? `${profile.height} см` : "Не указан"}
+                </span>
+              </div>
+            </div>
+
+            {/* Desktop: card grid */}
+            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Name */}
               <div className="p-4 rounded-lg bg-background/50 border border-border/50">
                 <div className="flex items-center gap-2 mb-2">
@@ -283,6 +326,7 @@ export default function Profile() {
               </div>
             </div>
 
+
             {/* Phone (inline with verification flow) */}
             <div className="mt-4 pt-4 border-t border-border/50">
               <PhoneChangeField
@@ -294,52 +338,82 @@ export default function Profile() {
           </Card>
 
           {/* Passport Card */}
-          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-primary" />
+          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+            <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold">Паспортные данные</h2>
-                  <p className="text-sm text-muted-foreground">
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold leading-tight">Паспортные данные</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                     Нужны для оформления забора анализов
                   </p>
                 </div>
               </div>
               {profile?.passport_series && profile?.passport_number && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditPassportOpen(true)}
-                >
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Редактировать
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Редактировать"
+                    onClick={() => setEditPassportOpen(true)}
+                    className="sm:hidden flex-shrink-0"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditPassportOpen(true)}
+                    className="hidden sm:inline-flex"
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Редактировать
+                  </Button>
+                </>
               )}
             </div>
 
             {profile?.passport_series && profile?.passport_number ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-background/50 border border-border/50">
-                  <label className="text-sm text-muted-foreground block mb-2">Серия</label>
-                  <p className="text-lg font-medium tracking-wider">{profile.passport_series}</p>
+              <>
+                {/* Mobile list */}
+                <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                    <span className="text-muted-foreground">Серия</span>
+                    <span className="font-medium tracking-wider">{profile.passport_series}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                    <span className="text-muted-foreground">Номер</span>
+                    <span className="font-medium tracking-wider">{profile.passport_number}</span>
+                  </div>
                 </div>
-                <div className="p-4 rounded-lg bg-background/50 border border-border/50">
-                  <label className="text-sm text-muted-foreground block mb-2">Номер</label>
-                  <p className="text-lg font-medium tracking-wider">{profile.passport_number}</p>
+                <p className="sm:hidden flex items-center gap-2 text-xs text-muted-foreground mt-3">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                  Используются при записи на анализ
+                </p>
+                {/* Desktop grid */}
+                <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                    <label className="text-sm text-muted-foreground block mb-2">Серия</label>
+                    <p className="text-lg font-medium tracking-wider">{profile.passport_series}</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                    <label className="text-sm text-muted-foreground block mb-2">Номер</label>
+                    <p className="text-lg font-medium tracking-wider">{profile.passport_number}</p>
+                  </div>
+                  <div className="md:col-span-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    Данные сохранены и используются при записи на анализ
+                  </div>
                 </div>
-                <div className="md:col-span-2 flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Данные сохранены и используются при записи на анализ
-                </div>
-              </div>
+              </>
             ) : (
               <div className="p-4 rounded-lg border border-dashed border-border/70 bg-background/30 text-center space-y-3">
                 <p className="text-sm text-muted-foreground">
                   Паспортные данные не заполнены. Без них невозможно оформить выезд медсестры или визит в клинику.
                 </p>
-                <Button onClick={() => setEditPassportOpen(true)}>
+                <Button onClick={() => setEditPassportOpen(true)} className="w-full sm:w-auto">
                   Заполнить
                 </Button>
               </div>
@@ -349,14 +423,14 @@ export default function Profile() {
 
           {/* Next Analysis Date Card */}
           {nextAnalysisDate && (
-            <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
+            <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-primary" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold">Следующий анализ</h2>
-                  <p className="text-lg font-medium text-muted-foreground mt-1">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold leading-tight">Следующий анализ</h2>
+                  <p className="text-sm sm:text-lg font-medium text-muted-foreground mt-0.5 sm:mt-1">
                     {format(new Date(nextAnalysisDate), "PPP", { locale: ru })}
                   </p>
                 </div>
@@ -375,27 +449,24 @@ export default function Profile() {
 
 
           {/* Demo Mode Card */}
-          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-primary" />
+          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold">Демо-режим</h2>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold leading-tight">Демо-режим</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                   Показывать примерные данные вместо реальных
                 </p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-background/50 border border-border/50">
-                <Label htmlFor="demo-mode" className="cursor-pointer">
-                  <div className="space-y-1">
-                    <div className="font-medium">Демо-режим</div>
-                    <div className="text-sm text-muted-foreground">
-                      Автоматически отключается при добавлении первого анализа
-                    </div>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-lg bg-background/50 border border-border/50">
+                <Label htmlFor="demo-mode" className="cursor-pointer min-w-0">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
+                    Показывать примерные данные. Отключится автоматически после первого анализа.
                   </div>
                 </Label>
                 <Switch
@@ -409,7 +480,7 @@ export default function Profile() {
               {hasAnalyses && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
+                  <AlertDescription className="text-xs sm:text-sm">
                     Демо-режим недоступен, так как у вас уже есть реальные анализы.
                   </AlertDescription>
                 </Alert>
@@ -418,7 +489,7 @@ export default function Profile() {
               {!hasAnalyses && !demoMode && (
                 <Alert className="bg-primary/5 border-primary/20">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  <AlertDescription>
+                  <AlertDescription className="text-xs sm:text-sm">
                     Включите демо-режим, чтобы увидеть, как будет выглядеть приложение с вашими данными.
                   </AlertDescription>
                 </Alert>
@@ -427,28 +498,29 @@ export default function Profile() {
           </Card>
 
           {/* Security Card */}
-          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <Shield className="h-6 w-6 text-orange-500" />
+          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+            <div className="flex items-center gap-3 mb-4 sm:mb-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold">Безопасность</h2>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold leading-tight">Безопасность</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                   Управление аккаунтом
                 </p>
               </div>
             </div>
 
-            <Button 
-              variant="destructive" 
-              onClick={handleLogout} 
-              className="w-full"
+            <Button
+              variant="outline"
+              onClick={handleLogout}
+              className="w-full text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Выйти из системы
             </Button>
           </Card>
+
         </div>
 
         {/* Edit Dialogs */}
