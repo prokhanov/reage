@@ -239,31 +239,31 @@ export function AnalysisBookingBanner() {
         existingBookingId={bookingInfo?.id ?? null}
         onSuccess={checkBookingStatus}
       />
-      <div className="relative rounded-lg border border-primary/30 bg-primary/5 p-4 animate-fade-in">
+      <div className="relative rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5 animate-fade-in">
         <Button
           onClick={handleDismiss}
           size="icon"
           variant="ghost"
-          className="absolute top-0 right-0 text-muted-foreground hover:bg-primary/10 h-6 w-6"
+          className="absolute top-2 right-2 text-muted-foreground hover:bg-primary/10 h-8 w-8 rounded-full"
           aria-label="Закрыть напоминание"
         >
           <X className="h-4 w-4" />
         </Button>
-        <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3 flex-1">
+        <div className="flex items-start gap-3 sm:items-center sm:justify-between sm:flex-row flex-col">
+          <div className="flex items-start gap-3 flex-1 min-w-0 pr-8 sm:pr-0">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
               <Icon className="h-5 w-5 text-primary" />
             </div>
-            <div className="space-y-1">
-              <p className="font-medium text-sm sm:text-base text-foreground">{text.title}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">{subtitle}</p>
+            <div className="space-y-0.5 min-w-0 flex-1">
+              <p className="font-semibold text-sm text-foreground leading-snug">{text.title}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-snug">{subtitle}</p>
             </div>
           </div>
           {showButton && (
             <Button
               onClick={handleSchedule}
               size="sm"
-              className="bg-gradient-primary shadow-neon-primary text-white"
+              className="bg-gradient-primary shadow-neon-primary text-white w-full sm:w-auto h-10 rounded-xl"
             >
               {buttonLabel}
             </Button>

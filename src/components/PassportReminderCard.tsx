@@ -53,24 +53,24 @@ export function PassportReminderCard() {
 
   return (
     <>
-      <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
-        <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3 flex-1">
+      <div className="rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+        <div className="flex items-start gap-3 sm:items-center sm:justify-between sm:flex-row flex-col">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <FileText className="h-5 w-5 text-primary" />
             </div>
-            <div className="space-y-1">
-              <h3 className="font-medium text-foreground">
-                Для записи на первый анализ нам понадобятся ваши паспортные данные
+            <div className="space-y-0.5 min-w-0 flex-1">
+              <h3 className="font-semibold text-sm text-foreground leading-snug">
+                Нужны паспортные данные
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-snug">
                 Серия и номер нужны лаборатории для оформления забора. Сохраняются один раз.
               </p>
             </div>
           </div>
           <Button
             onClick={() => setOpen(true)}
-            className="bg-gradient-primary shadow-neon-primary shrink-0"
+            className="bg-gradient-primary shadow-neon-primary shrink-0 w-full sm:w-auto h-10 rounded-xl"
           >
             Заполнить →
           </Button>
