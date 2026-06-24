@@ -1123,7 +1123,7 @@ export default function Recommendations() {
 
                   {/* Content Area */}
                   <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="relative px-4 sm:px-8 py-3 sm:py-6 pr-24 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+                    <div className="relative px-4 sm:px-8 py-3 sm:py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {/* Mobile TOC trigger */}
                         <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
@@ -1176,24 +1176,38 @@ export default function Recommendations() {
                           </DialogDescription>
                         </div>
                       </div>
-                      <Button
-                        onClick={handleExportPDF}
-                        variant="ghost"
-                        size="icon"
-                        className="sm:hidden absolute top-4 right-12 h-6 w-6 rounded-md flex-shrink-0 text-primary z-10"
-                        aria-label="Скачать PDF"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
 
-                      <button
-                        onClick={handleExportPDF}
-                        className="hidden sm:flex text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors items-center gap-2 flex-shrink-0"
-                        aria-label="Скачать PDF"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span>Скачать PDF</span>
-                      </button>
+                      <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+                        <Button
+                          onClick={handleExportPDF}
+                          variant="ghost"
+                          size="icon"
+                          className="sm:hidden h-8 w-8 rounded-md flex-shrink-0 text-primary"
+                          aria-label="Скачать PDF"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+
+                        <button
+                          onClick={handleExportPDF}
+                          className="hidden sm:flex text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors items-center gap-2 flex-shrink-0"
+                          aria-label="Скачать PDF"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>Скачать PDF</span>
+                        </button>
+
+                        <DialogClose asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-md flex-shrink-0 opacity-70 hover:opacity-100"
+                            aria-label="Закрыть"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </DialogClose>
+                      </div>
                     </div>
 
 
