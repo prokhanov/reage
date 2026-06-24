@@ -68,27 +68,36 @@ export function PassportDataDialog({ open, onOpenChange, onSaved }: PassportData
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px]">
-        <DialogHeader>
-          <DialogTitle>Паспортные данные</DialogTitle>
-          <DialogDescription>
-            Нужны для оформления забора анализов в лаборатории. Заполняются один раз.
+      <DialogContent className="sm:max-w-[440px] p-5 sm:p-6 gap-4">
+        <DialogHeader className="text-left space-y-1.5">
+          <DialogTitle className="text-lg">Паспортные данные</DialogTitle>
+          <DialogDescription className="text-sm">
+            Нужны лаборатории для оформления забора анализов. Заполняются один раз.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-2">
-          <PassportFields
-            series={series}
-            number={number}
-            onSeriesChange={setSeries}
-            onNumberChange={setNumber}
-            showIcon={false}
-          />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+        <PassportFields
+          series={series}
+          number={number}
+          onSeriesChange={setSeries}
+          onNumberChange={setNumber}
+          showIcon={false}
+          hideHeader
+          hideHint
+        />
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+            className="h-11 rounded-xl w-full sm:w-auto"
+          >
             Отмена
           </Button>
-          <Button onClick={handleSave} disabled={loading || !isPassportValid(series, number)}>
+          <Button
+            onClick={handleSave}
+            disabled={loading || !isPassportValid(series, number)}
+            className="h-11 rounded-xl bg-gradient-primary shadow-neon-primary w-full sm:w-auto"
+          >
             {loading ? "Сохранение..." : "Сохранить"}
           </Button>
         </DialogFooter>
