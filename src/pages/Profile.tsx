@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
-import { EditPassportDialog } from "@/components/profile/EditPassportDialog";
+import { PassportDataDialog } from "@/components/PassportDataDialog";
 import { MedicalAnketaCard } from "@/components/profile/MedicalAnketaCard";
 import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -550,14 +550,12 @@ export default function Profile() {
           }}
         />
 
-        <EditPassportDialog
+        <PassportDataDialog
           open={editPassportOpen}
           onOpenChange={setEditPassportOpen}
-          userId={userId}
-          initialSeries={profile?.passport_series}
-          initialNumber={profile?.passport_number}
-          onSuccess={() => loadProfile()}
+          onSaved={() => loadProfile()}
         />
+
       </div>
   );
 }
