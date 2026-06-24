@@ -1,0 +1,335 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+interface Biomarker {
+  id: string;
+  code: string;
+  name: string;
+  unit: string;
+  category: string;
+}
+
+interface AIItem {
+  printed_name: string;
+  value_raw: string;
+  unit_raw: string;
+  page: number | null;
+  ref_range_raw?: string | null;
+  biomarker_code?: string | null;
+  confidence?: number;
+}
+
+interface AIResponse {
+  lab_name?: string | null;
+  collection_date?: string | null;
+  items: AIItem[];
+  notes?: string | null;
+}
+
+// Известные пересчёты единиц (мультипликаторы):
+// from -> to -> factor (value_to = value_from * factor)
+const UNIT_CONVERSIONS: Record<string, Record<string, Record<string, number>>> = {
+  // glucose, cholesterol family (mg/dL <-> mmol/L) — нужны разные коэффициенты,
+  // поэтому делаем per-code.
+  GLU: { "мг/дл": { "ммоль/л": 0.0555 }, "mg/dl": { "ммоль/л": 0.0555 } },
+  CHOL: { "мг/дл": { "ммоль/л": 0.0259 }, "mg/dl": { "ммоль/л": 0.0259 } },
+  LDL: { "мг/дл": { "ммоль/л": 0.0259 }, "mg/dl": { "ммоль/л": 0.0259 } },
+  HDL: { "мг/дл": { "ммоль/л": 0.0259 }, "mg/dl": { "ммоль/л": 0.0259 } },
+  TG: { "мг/дл": { "ммоль/л": 0.0113 }, "mg/dl": { "ммоль/л": 0.0113 } },
+  CREA: { "мг/дл": { "мкмоль/л": 88.4 }, "mg/dl": { "мкмоль/л": 88.4 } },
+  UA: { "мг/дл": { "мкмоль/л": 59.48 }, "mg/dl": { "мкмоль/л": 59.48 } },
+  TBIL: { "мг/дл": { "мкмоль/л": 17.1 }, "mg/dl": { "мкмоль/л": 17.1 } },
+};
+
+function normalizeName(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[ёе]/g, "е")
+    .replace(/[^a-zа-я0-9]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeUnit(u: string): string {
+  return (u || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace("µ", "мк")
+    .replace("μ", "мк");
+}
+
+function parseValue(raw: string): { value: number | null; cleaned: string } {
+  if (!raw) return { value: null, cleaned: "" };
+  const cleaned = String(raw).replace(",", ".").replace(/[<>]/g, "").trim();
+  const m = cleaned.match(/-?\d+(\.\d+)?/);
+  if (!m) return { value: null, cleaned };
+  const num = parseFloat(m[0]);
+  return { value: Number.isFinite(num) ? num : null, cleaned };
+}
+
+function tryConvert(code: string, fromUnit: string, toUnit: string, value: number): number | null {
+  const f = UNIT_CONVERSIONS[code]?.[normalizeUnit(fromUnit)]?.[normalizeUnit(toUnit)];
+  if (typeof f === "number") return Math.round(value * f * 10000) / 10000;
+  return null;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const lovableKey = Deno.env.get("LOVABLE_API_KEY")!;
+
+    const authHeader = req.headers.get("authorization") || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify user via anon client
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const admin = createClient(supabaseUrl, serviceKey);
+
+    // Check superadmin / patients permission
+    const [{ data: isSuper }, { data: hasPatients }] = await Promise.all([
+      admin.rpc("has_role", { _user_id: userData.user.id, _role: "superadmin" }),
+      admin.rpc("has_admin_permission", { _user_id: userData.user.id, _module: "patients" }),
+    ]);
+    if (!isSuper && !hasPatients) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json().catch(() => null) as { storagePath?: string; patientId?: string } | null;
+    if (!body?.storagePath) {
+      return new Response(JSON.stringify({ error: "Missing storagePath" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Download PDF from storage
+    const { data: fileBlob, error: dlErr } = await admin.storage
+      .from("analysis-uploads")
+      .download(body.storagePath);
+    if (dlErr || !fileBlob) {
+      return new Response(JSON.stringify({ error: "PDF not found in storage", details: dlErr?.message }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const arrayBuffer = await fileBlob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    if (bytes.byteLength > 18 * 1024 * 1024) {
+      return new Response(JSON.stringify({ error: "PDF too large (>18MB)" }), {
+        status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // base64 encode (chunked to avoid stack overflow on large arrays)
+    let binary = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    const base64 = btoa(binary);
+    const dataUrl = `data:application/pdf;base64,${base64}`;
+
+    // Load biomarker catalog
+    const { data: biomarkers, error: bmErr } = await admin
+      .from("biomarkers")
+      .select("id, code, name, unit, category")
+      .order("display_order");
+    if (bmErr || !biomarkers) throw new Error("Failed to load biomarkers: " + bmErr?.message);
+    const catalog: Biomarker[] = biomarkers as any;
+
+    const catalogText = catalog
+      .map(b => `${b.code} | ${b.name} | ${b.unit} | ${b.category}`)
+      .join("\n");
+
+    const systemPrompt = `Ты — парсер лабораторных PDF-отчётов. На вход подаётся PDF с результатами анализов одного пациента (может быть несколько страниц).
+
+Твоя задача — извлечь СТРОГИЙ JSON по схеме:
+{
+  "lab_name": "название лаборатории как напечатано или null",
+  "collection_date": "дата сдачи образца в формате YYYY-MM-DD или null",
+  "items": [
+    {
+      "printed_name": "название показателя как напечатано в PDF",
+      "value_raw": "значение строкой, как напечатано (например '5,4' или '<0.1')",
+      "unit_raw": "единица измерения как напечатано",
+      "page": номер страницы PDF (целое число, начиная с 1),
+      "ref_range_raw": "референсный диапазон строкой или null",
+      "biomarker_code": "код из справочника ниже, если уверен, иначе null",
+      "confidence": число от 0 до 1
+    }
+  ],
+  "notes": "произвольная заметка о качестве распознавания или null"
+}
+
+Справочник биомаркеров (CODE | NAME | UNIT | CATEGORY):
+${catalogText}
+
+Правила:
+- НЕ выдумывай значения. Если показателя в PDF нет — не включай его.
+- Включай ВСЕ числовые показатели, найденные в PDF, даже если их кода нет в справочнике (тогда biomarker_code = null).
+- Для biomarker_code ориентируйся на NAME из справочника (русские названия). Если уверенности нет — null.
+- Десятичный разделитель в value_raw сохраняй как в PDF.
+- Верни ТОЛЬКО JSON, без markdown-обёртки.`;
+
+    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": lovableKey,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Распознай показатели из этого PDF и верни JSON по схеме." },
+              { type: "file", file: { filename: "analysis.pdf", file_data: dataUrl } },
+            ],
+          },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!aiResp.ok) {
+      const txt = await aiResp.text();
+      console.error("AI gateway error", aiResp.status, txt);
+      return new Response(JSON.stringify({
+        error: aiResp.status === 429
+          ? "Превышен лимит запросов AI. Попробуйте позже."
+          : aiResp.status === 402
+          ? "Закончились кредиты Lovable AI."
+          : `AI gateway error: ${aiResp.status}`,
+        details: txt.slice(0, 500),
+      }), {
+        status: aiResp.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const aiJson = await aiResp.json();
+    const rawContent: string = aiJson?.choices?.[0]?.message?.content ?? "";
+    let parsed: AIResponse;
+    try {
+      // strip code fences if AI ignored response_format
+      const cleaned = rawContent.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      console.error("Failed to parse AI JSON:", rawContent.slice(0, 800));
+      return new Response(JSON.stringify({ error: "AI вернул невалидный JSON", details: rawContent.slice(0, 500) }), {
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Reconcile with catalog
+    const byCode = new Map(catalog.map(b => [b.code.toUpperCase(), b]));
+    const byName = new Map<string, Biomarker>();
+    for (const b of catalog) {
+      byName.set(normalizeName(b.name), b);
+    }
+
+    const recognized: any[] = [];
+    const unknown: any[] = [];
+
+    for (const it of parsed.items || []) {
+      const printedNorm = normalizeName(it.printed_name || "");
+      let bm: Biomarker | undefined;
+      if (it.biomarker_code) bm = byCode.get(String(it.biomarker_code).toUpperCase());
+      if (!bm && printedNorm) bm = byName.get(printedNorm);
+
+      const { value: numericValue } = parseValue(it.value_raw);
+      const conf = typeof it.confidence === "number" ? it.confidence : 0.7;
+
+      if (!bm) {
+        unknown.push({
+          printed_name: it.printed_name,
+          value_raw: it.value_raw,
+          unit_raw: it.unit_raw,
+          page: it.page,
+          ref_range_raw: it.ref_range_raw ?? null,
+          confidence: conf,
+        });
+        continue;
+      }
+
+      const expectedUnit = bm.unit;
+      const unitMatches = normalizeUnit(it.unit_raw || "") === normalizeUnit(expectedUnit);
+      let convertedValue: number | null = null;
+      if (!unitMatches && numericValue !== null) {
+        convertedValue = tryConvert(bm.code, it.unit_raw || "", expectedUnit, numericValue);
+      }
+
+      let status: "ok" | "unit_mismatch" | "low_confidence" | "value_parse_error";
+      if (numericValue === null) status = "value_parse_error";
+      else if (!unitMatches) status = "unit_mismatch";
+      else if (conf < 0.6) status = "low_confidence";
+      else status = "ok";
+
+      recognized.push({
+        biomarker_id: bm.id,
+        biomarker_code: bm.code,
+        biomarker_name: bm.name,
+        expected_unit: expectedUnit,
+        printed_name: it.printed_name,
+        value_raw: it.value_raw,
+        value_numeric: numericValue,
+        value_converted: convertedValue,
+        unit_raw: it.unit_raw,
+        unit_matches: unitMatches,
+        page: it.page,
+        ref_range_raw: it.ref_range_raw ?? null,
+        confidence: conf,
+        status,
+      });
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      lab_name: parsed.lab_name ?? null,
+      collection_date: parsed.collection_date ?? null,
+      notes: parsed.notes ?? null,
+      recognized,
+      unknown,
+      stats: {
+        total_items: (parsed.items || []).length,
+        recognized: recognized.length,
+        unknown: unknown.length,
+        ok: recognized.filter(r => r.status === "ok").length,
+        unit_mismatch: recognized.filter(r => r.status === "unit_mismatch").length,
+        low_confidence: recognized.filter(r => r.status === "low_confidence").length,
+        value_parse_error: recognized.filter(r => r.status === "value_parse_error").length,
+      },
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e: any) {
+    console.error("parse-analysis-pdf error:", e);
+    return new Response(JSON.stringify({ error: e?.message || "Internal error" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
