@@ -124,7 +124,7 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
     const benefit = formatPromoBenefit(applied);
     return (
       <div className={className}>
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-green-500/40 bg-green-500/5 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-green-500/40 bg-green-500/5 px-3 py-2.5 md:px-4 md:py-3">
           <div className="flex items-center gap-3 min-w-0">
             <Check className="h-4 w-4 text-green-500 shrink-0" />
             <div className="min-w-0">
@@ -134,7 +134,7 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
                   {benefit}
                 </span>
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[11px] md:text-xs text-muted-foreground mt-0.5">
                 {String(applied.applies_to).startsWith("specific")
                   ? "Действует на выбранные тарифы"
                   : "Действует на все тарифы"}
@@ -166,7 +166,7 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
 
   return (
     <div className={className}>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Input
           autoFocus
           value={code}
@@ -178,23 +178,26 @@ export function PromoCodeField({ context, applied, onApplied, className }: Props
             }
           }}
           placeholder="Введите промокод"
-          className="font-mono"
+          className="font-mono w-full"
           disabled={loading}
         />
-        <Button type="button" onClick={handleApply} disabled={loading || !code.trim()}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Применить"}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => {
-            setOpen(false);
-            setCode("");
-          }}
-          disabled={loading}
-        >
-          Отмена
-        </Button>
+        <div className="flex gap-2">
+          <Button type="button" className="flex-1 sm:flex-none" onClick={handleApply} disabled={loading || !code.trim()}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Применить"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1 sm:flex-none"
+            onClick={() => {
+              setOpen(false);
+              setCode("");
+            }}
+            disabled={loading}
+          >
+            Отмена
+          </Button>
+        </div>
       </div>
     </div>
   );
