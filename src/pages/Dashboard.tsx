@@ -466,7 +466,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Health Percentile */}
-                    <div className="col-span-2 p-4 rounded-xl bg-background/50 hover:bg-background/70 transition-colors border border-border/50">
+                    <div className="col-span-2 p-4 rounded-2xl bg-background/50 border border-border/50">
                       {(() => {
                         if (!displayBiologicalAge || !chronologicalAge) {
                           return (
