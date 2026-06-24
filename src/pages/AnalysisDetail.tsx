@@ -37,6 +37,7 @@ import { EditReportDialog } from "@/components/admin/EditReportDialog";
 import { getNormalRangeForAge, calculateAge, AgeRanges, getBiomarkerStatus, getStatusHslColor } from "@/lib/biomarkerNorms";
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
+import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 
 interface Biomarker {
   id: string;
@@ -737,22 +738,22 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
       {isDemoAnalysis && demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-2 md:gap-3 min-w-0 w-full md:w-auto">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => (isViewMode ? setSimPath("/analyses") : navigate("/analyses"))}
-              className="hover:bg-primary/10 hover:text-primary transition-colors"
+              className="hover:bg-primary/10 hover:text-primary transition-colors shrink-0 -ml-2"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h2 className="text-xl md:text-3xl font-semibold tracking-tight text-foreground md:bg-gradient-primary md:bg-clip-text md:text-transparent">
                   {analysis && new Date(analysis.date).toLocaleDateString("ru-RU", {
                     day: "numeric",
                     month: "long",
@@ -761,12 +762,13 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
                 </h2>
                 {analysis && <AnalysisStatusBadge status={analysis.status} />}
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
                 Сдано маркеров: {values.length}
                 {analysis?.lab_name && ` · ${analysis.lab_name}`}
               </p>
             </div>
           </div>
+
 
           {hasPatientAccess && isViewMode && (
             <div className="flex gap-2">
@@ -871,10 +873,10 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Поиск по названию, коду или категории..."
+              placeholder="Поиск маркера…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card border-primary/30"
+              className="pl-10 h-11 text-base bg-card border-primary/30"
             />
           </div>
         </div>
