@@ -416,14 +416,9 @@ export default function MyState() {
           };
         });
 
-      if (symptomsData.length === 0 && Object.keys(adherenceAnswers).length === 0) {
-        toast({
-          title: "Нет данных для сохранения",
-          description: "Отметьте хотя бы один симптом или соблюдение назначения",
-          variant: "destructive"
-        });
-        return;
-      }
+      // Пустое сохранение разрешено — пользователь может зафиксировать,
+      // что симптомов нет и назначений к учёту нет.
+
 
       if (symptomsData.length > 0) {
         const { error } = await supabase
