@@ -239,78 +239,89 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
   };
 
   return (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="date">Дата анализа</Label>
-        <Input
-          id="date"
-          type="date"
-          value={data.date}
-          onChange={(e) => onChange({ ...data, date: e.target.value })}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="labName">Лаборатория (опционально)</Label>
-        <Input
-          id="labName"
-          type="text"
-          placeholder="Инвитро, KDL и т.д."
-          value={data.labName}
-          onChange={(e) => onChange({ ...data, labName: e.target.value })}
-        />
-      </div>
+    <Tabs value={mode} onValueChange={(v) => onModeChange?.(v as "manual" | "auto")} className="py-2">
+      <TabsList className="grid grid-cols-2 w-full">
+        <TabsTrigger value="manual">Вручную</TabsTrigger>
+        <TabsTrigger value="auto">Авто распознавание PDF</TabsTrigger>
+      </TabsList>
 
-      {onMockGenerate && (
-        <div className="pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => setShowHealthDialog(true)}
-            disabled={generating}
-          >
-            {generating ? (
-              <>
-                <ButtonSpinner className="mr-2" />
-                Генерация...
-              </>
-            ) : (
-              <>
-                <FlaskConical className="mr-2 h-4 w-4" />
-                🧪 Заполнить мок-данные
-              </>
-            )}
-          </Button>
+      <TabsContent value="manual" className="space-y-4 pt-4">
+        <div className="space-y-2">
+          <Label htmlFor="date">Дата анализа</Label>
+          <Input
+            id="date"
+            type="date"
+            value={data.date}
+            onChange={(e) => onChange({ ...data, date: e.target.value })}
+            required
+          />
         </div>
-      )}
+        <div className="space-y-2">
+          <Label htmlFor="labName">Лаборатория (опционально)</Label>
+          <Input
+            id="labName"
+            type="text"
+            placeholder="Инвитро, KDL и т.д."
+            value={data.labName}
+            onChange={(e) => onChange({ ...data, labName: e.target.value })}
+          />
+        </div>
 
-      <Dialog open={showHealthDialog} onOpenChange={setShowHealthDialog}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Уровень здоровья</DialogTitle>
-            <DialogDescription>
-              Выберите профиль для генерации мок-значений биомаркеров
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2 py-2">
-            {HEALTH_LEVELS.map((hl) => (
-              <Button
-                key={hl.level}
-                variant="outline"
-                className="justify-start h-auto py-3"
-                onClick={() => handleGenerateMock(hl.level)}
-              >
-                <span className="text-lg mr-3">{hl.emoji}</span>
-                <div className="text-left">
-                  <div className="font-medium">{hl.level}. {hl.label}</div>
-                  <div className="text-xs text-muted-foreground">{hl.description}</div>
-                </div>
-              </Button>
-            ))}
+        {onMockGenerate && (
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowHealthDialog(true)}
+              disabled={generating}
+            >
+              {generating ? (
+                <>
+                  <ButtonSpinner className="mr-2" />
+                  Генерация...
+                </>
+              ) : (
+                <>
+                  <FlaskConical className="mr-2 h-4 w-4" />
+                  🧪 Заполнить мок-данные
+                </>
+              )}
+            </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+        )}
+
+        <Dialog open={showHealthDialog} onOpenChange={setShowHealthDialog}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Уровень здоровья</DialogTitle>
+              <DialogDescription>
+                Выберите профиль для генерации мок-значений биомаркеров
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-2 py-2">
+              {HEALTH_LEVELS.map((hl) => (
+                <Button
+                  key={hl.level}
+                  variant="outline"
+                  className="justify-start h-auto py-3"
+                  onClick={() => handleGenerateMock(hl.level)}
+                >
+                  <span className="text-lg mr-3">{hl.emoji}</span>
+                  <div className="text-left">
+                    <div className="font-medium">{hl.level}. {hl.label}</div>
+                    <div className="text-xs text-muted-foreground">{hl.description}</div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </TabsContent>
+
+      <TabsContent value="auto" className="pt-4">
+        <AnalysisAutoImport onImported={onAutoImported} onClose={onAutoClose} />
+      </TabsContent>
+    </Tabs>
   );
 }
