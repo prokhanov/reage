@@ -19,6 +19,9 @@ import {
   computeAllDerivedValues,
 } from "@/lib/calculatedBiomarkers";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnalysisAutoImport } from "./AnalysisAutoImport";
+
 interface AnalysisStep1Props {
   data: {
     date: string;
@@ -26,6 +29,10 @@ interface AnalysisStep1Props {
   };
   onChange: (data: any) => void;
   onMockGenerate?: (values: Array<{ biomarkerId: string; value: string; unitOverride?: string }>) => void;
+  mode?: "manual" | "auto";
+  onModeChange?: (mode: "manual" | "auto") => void;
+  onAutoImported?: () => void;
+  onAutoClose?: () => void;
 }
 
 const HEALTH_LEVELS = [
