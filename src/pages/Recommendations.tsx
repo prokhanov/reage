@@ -1180,7 +1180,7 @@ export default function Recommendations() {
                         onClick={handleExportPDF}
                         variant="ghost"
                         size="icon"
-                        className="sm:hidden absolute top-3 right-12 h-8 w-8 rounded-lg flex-shrink-0 text-primary z-10"
+                        className="sm:hidden absolute top-4 right-12 h-6 w-6 rounded-md flex-shrink-0 text-primary z-10"
                         aria-label="Скачать PDF"
                       >
                         <Download className="h-4 w-4" />
