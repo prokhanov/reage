@@ -161,7 +161,7 @@ export default function Subscription() {
   }
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
+    <div className="container max-w-7xl mx-auto px-4 py-4 md:py-12">
       {isTestMode && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -174,31 +174,32 @@ export default function Subscription() {
       )}
 
       {/* Hero Section */}
-      <div className="text-center space-y-4 mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-4">
-          <Sparkles className="h-8 w-8 md:h-10 md:w-10 text-white" />
+      <div className="text-center space-y-2 md:space-y-4 mb-6 md:mb-12">
+        <div className="inline-flex items-center justify-center w-12 h-12 md:w-20 md:h-20 rounded-full bg-gradient-primary mb-2 md:mb-4">
+          <Sparkles className="h-6 w-6 md:h-10 md:w-10 text-white" />
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <h1 className="text-2xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent leading-tight">
           Выберите свой тариф
         </h1>
-        <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-sm md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
           Персонализированная медицина нового поколения для вашего здоровья и долголетия
         </p>
       </div>
 
       {/* Period Selector */}
-      <div className="flex flex-col items-center gap-4 mb-12">
-        <ToggleGroup 
-          type="single" 
+      <div className="flex flex-col items-center gap-4 mb-6 md:mb-12">
+        <ToggleGroup
+          type="single"
           value={selectedPeriod}
           onValueChange={(value) => value && setSelectedPeriod(value)}
-          className="inline-flex flex-wrap justify-center rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+          className="w-full sm:w-auto grid sm:inline-flex rounded-lg border border-border/50 p-1 bg-background/50 backdrop-blur-sm"
+          style={{ gridTemplateColumns: `repeat(${Math.min(availablePeriods.length || 1, 4)}, minmax(0, 1fr))` }}
         >
           {availablePeriods.map(period => (
-            <ToggleGroupItem 
+            <ToggleGroupItem
               key={period.value}
-              value={period.value} 
-              className="rounded-md px-4 md:px-6 py-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground transition-all"
+              value={period.value}
+              className="rounded-md px-2 md:px-6 py-2 text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground transition-all"
             >
               {period.label}
             </ToggleGroupItem>
@@ -215,7 +216,7 @@ export default function Subscription() {
 
       {/* Plans Grid */}
       {!isLoading && plans && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 mb-8 md:mb-12">
           {plans.map((plan, index) => (
             <PlanCard
               key={plan.id}
@@ -231,7 +232,7 @@ export default function Subscription() {
       )}
 
       {/* Промокод */}
-      <div className="max-w-md mx-auto mb-10">
+      <div className="max-w-md mx-auto mb-8 md:mb-10">
         <PromoCodeField
           applied={appliedPromo}
           onApplied={setAppliedPromo}
@@ -250,8 +251,8 @@ export default function Subscription() {
       </div>
 
       {/* Trust Indicators */}
-      <div className="text-center space-y-4 pt-8 border-t border-border/50">
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+      <div className="text-center space-y-4 pt-6 md:pt-8 border-t border-border/50">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 md:gap-x-6 gap-y-2 text-xs md:text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" />Безопасная оплата</span>
           <span className="inline-flex items-center gap-2"><Target className="h-4 w-4 text-primary" />Без скрытых платежей</span>
         </div>
