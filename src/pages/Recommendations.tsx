@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Brain, Download, Sparkles, Edit, Eye, List } from "lucide-react";
+import { Trash2, Brain, Download, Sparkles, Edit, Eye, List, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -13,7 +13,7 @@ import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -1029,7 +1029,7 @@ export default function Recommendations() {
 
         {/* View Dialog */}
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="h-[100dvh] w-screen max-w-none rounded-none p-0 overflow-hidden sm:h-[90vh] sm:w-[95vw] sm:max-w-7xl sm:rounded-lg">
+          <DialogContent hideCloseButton className="h-[100dvh] w-screen max-w-none rounded-none p-0 overflow-hidden sm:h-[90vh] sm:w-[95vw] sm:max-w-7xl sm:rounded-lg">
             <DialogHeader className="sr-only">
               <DialogTitle>Персональный отчет</DialogTitle>
               <DialogDescription>Детальный анализ здоровья</DialogDescription>
@@ -1123,7 +1123,7 @@ export default function Recommendations() {
 
                   {/* Content Area */}
                   <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-                    <div className="relative px-4 sm:px-8 py-3 sm:py-6 pr-24 sm:pr-16 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+                    <div className="relative px-4 sm:px-8 py-3 sm:py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {/* Mobile TOC trigger */}
                         <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
@@ -1176,24 +1176,38 @@ export default function Recommendations() {
                           </DialogDescription>
                         </div>
                       </div>
-                      <Button
-                        onClick={handleExportPDF}
-                        variant="ghost"
-                        size="icon"
-                        className="sm:hidden absolute top-4 right-12 h-6 w-6 rounded-md flex-shrink-0 text-primary z-10"
-                        aria-label="Скачать PDF"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
 
-                      <button
-                        onClick={handleExportPDF}
-                        className="hidden sm:flex text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors items-center gap-2 flex-shrink-0"
-                        aria-label="Скачать PDF"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span>Скачать PDF</span>
-                      </button>
+                      <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+                        <Button
+                          onClick={handleExportPDF}
+                          variant="ghost"
+                          size="icon"
+                          className="sm:hidden h-8 w-8 rounded-md flex-shrink-0 text-primary"
+                          aria-label="Скачать PDF"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+
+                        <button
+                          onClick={handleExportPDF}
+                          className="hidden sm:flex text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors items-center gap-2 flex-shrink-0"
+                          aria-label="Скачать PDF"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>Скачать PDF</span>
+                        </button>
+
+                        <DialogClose asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-md flex-shrink-0 opacity-70 hover:opacity-100"
+                            aria-label="Закрыть"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </DialogClose>
+                      </div>
                     </div>
 
 
