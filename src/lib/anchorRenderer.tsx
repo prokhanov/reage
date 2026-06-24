@@ -87,12 +87,13 @@ export function renderInterleavedWeb(
   const blocks = parseAnchors(reportText, codes, nameToCode);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-12">
       {blocks.map((block, idx) => {
         switch (block.type) {
           case 'summary':
             return (
-              <div key={idx} className="rounded-xl border border-primary/15 bg-primary/5 p-5">
+              <div key={idx} className="rounded-xl border border-primary/15 bg-primary/5 p-5 max-sm:border-0 max-sm:bg-transparent max-sm:p-0 max-sm:rounded-none">
+
                 <MarkdownContent content={block.content} />
               </div>
             );
