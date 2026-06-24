@@ -274,10 +274,10 @@ export default function Auth() {
       {/* Back to home link — corner on desktop */}
       <Link
         to="/"
-        className="absolute top-4 left-4 md:top-8 md:left-8 z-20 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group"
+        className="absolute top-4 left-4 md:top-8 md:left-8 z-20 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group p-2 -m-2 sm:p-0 sm:m-0"
       >
         <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-        <span className="hidden sm:inline">На главную</span>
+        <span>На главную</span>
       </Link>
 
       <AuthBackground />
