@@ -266,36 +266,37 @@ export default function HealthAssistant() {
   }
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 pt-6 h-[100dvh] lg:h-full flex flex-col overflow-hidden">
-      <div className="mb-4 flex-shrink-0">
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-neon-primary">
-              <Bot className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  AI Ассистент
-                </h1>
-                <p className="text-muted-foreground">
-                  Персональный помощник по здоровью
-                </p>
-              </div>
+    <div className="container max-w-5xl mx-auto px-4 pt-4 sm:pt-6 pb-20 sm:pb-0 h-[100dvh] lg:h-full flex flex-col overflow-hidden">
+      <div className="mb-3 sm:mb-4 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-primary flex items-center justify-center shadow-neon-primary flex-shrink-0">
+              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
-            <ChatHistoryDropdown
-              conversations={conversations || []}
-              currentConversationId={currentConversationId}
-              onSelectConversation={handleSwitchConversation}
-              onNewChat={handleNewChat}
-              onDeleteConversation={(id) => deleteConversation.mutate(id)}
-            />
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                AI Ассистент
+              </h1>
+              <p className="text-xs sm:text-base text-muted-foreground truncate">
+                Персональный помощник по здоровью
+              </p>
+            </div>
           </div>
+          <ChatHistoryDropdown
+            conversations={conversations || []}
+            currentConversationId={currentConversationId}
+            onSelectConversation={handleSwitchConversation}
+            onNewChat={handleNewChat}
+            onDeleteConversation={(id) => deleteConversation.mutate(id)}
+          />
         </div>
+      </div>
 
-        <Card className="flex flex-col flex-1 min-h-0 bg-card/50 backdrop-blur border-border/50">
-          <div 
-            ref={scrollRef}
-            className="flex-1 p-6 overflow-y-auto"
+      <Card className="flex flex-col flex-1 min-h-0 bg-card/50 backdrop-blur border-border/50">
+        <div
+          ref={scrollRef}
+          className="flex-1 p-4 sm:p-6 overflow-y-auto"
+
             onScroll={(e) => {
               const element = e.currentTarget;
               const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
