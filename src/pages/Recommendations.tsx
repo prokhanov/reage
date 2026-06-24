@@ -1093,7 +1093,7 @@ export default function Recommendations() {
                 : "Дата не указана";
 
               return (
-                <div className="flex h-full min-h-0 flex-col md:flex-row">
+                <div className="flex h-full w-full min-w-0 min-h-0 flex-col md:flex-row">
                   {/* Desktop Sidebar */}
                   <div className="hidden md:flex w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex-col min-h-0 overflow-hidden">
                     <div className="p-6 border-b border-border flex-shrink-0">
