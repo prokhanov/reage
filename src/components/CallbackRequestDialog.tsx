@@ -368,6 +368,7 @@ export function CallbackRequestDialog({
                   value={homeAddress}
                   onChange={(e) => setHomeAddress(e.target.value)}
                   placeholder="Улица, дом, квартира"
+                  className="h-12 text-base"
                 />
               </div>
             </div>
