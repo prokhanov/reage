@@ -316,35 +316,35 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
             </CardContent>
           </Card>
         ) : (
-          <Accordion type="multiple" defaultValue={Object.keys(biomarkers)} className="space-y-4">
+          <Accordion type="multiple" defaultValue={Object.keys(biomarkers)} className="space-y-3 md:space-y-4">
             {Object.entries(biomarkers).map(([category, categoryBiomarkers]) => (
               <AccordionItem 
                 key={category} 
                 value={category}
-                className="border border-primary/20 rounded-lg bg-card/50 backdrop-blur-sm"
+                className="border border-primary/20 rounded-2xl bg-card/50 backdrop-blur-sm"
               >
-                <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-primary/5">
+                <AccordionTrigger className="px-4 md:px-6 py-3 md:py-4 hover:no-underline hover:bg-primary/5 rounded-2xl">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {(() => {
                       const CatIcon = getBiomarkerCategoryIcon(category);
                       return <CatIcon className="h-5 w-5 text-primary flex-shrink-0" strokeWidth={1.75} />;
                     })()}
-                    <span className="text-lg font-semibold">{category}</span>
-                    <Badge variant="secondary" className="flex-shrink-0">
+                    <span className="text-base md:text-lg font-semibold truncate text-left flex-1 min-w-0">{category}</span>
+                    <Badge variant="secondary" className="flex-shrink-0 text-xs">
                       {categoryBiomarkers.length}
                     </Badge>
                     {(() => {
                       const score = getCategoryScore(category);
                       if (score === null) return null;
                       return (
-                        <div className="flex items-center gap-2 ml-auto mr-4 flex-shrink-0">
-                          <div className="relative h-2 w-24 bg-muted rounded-full overflow-hidden">
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="relative hidden sm:block h-2 w-20 md:w-24 bg-muted rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${getProgressColor(score)}`}
                               style={{ width: `${score}%` }}
                             />
                           </div>
-                          <span className={`text-sm font-bold ${getScoreColor(score)}`}>
+                          <span className={`text-sm font-bold tabular-nums ${getScoreColor(score)}`}>
                             {score}
                           </span>
                         </div>
@@ -352,8 +352,79 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
                     })()}
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-6 pb-4">
-                  <div className="mt-4 border rounded-lg overflow-x-auto">
+                <AccordionContent className="px-3 md:px-6 pb-4">
+                  {/* Mobile card list */}
+                  <div className="md:hidden mt-3 space-y-2">
+                    {categoryBiomarkers.map((biomarker) => {
+                      const statusInfo = getValueStatus(biomarker.latest_value, biomarker);
+                      const { min, max } = getNormalRange(biomarker);
+                      const valueColor = statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))";
+                      return (
+                        <div
+                          key={biomarker.id}
+                          className="rounded-xl border border-border/60 bg-background/40 p-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-semibold text-foreground leading-tight">
+                                {biomarker.name}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground mt-0.5">
+                                {biomarker.code}
+                              </div>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              {biomarker.latest_value !== null ? (
+                                <>
+                                  <div
+                                    className="text-base font-bold tabular-nums whitespace-nowrap leading-tight"
+                                    style={{ color: valueColor }}
+                                  >
+                                    {biomarker.latest_value.toFixed(2)}
+                                  </div>
+                                  <div className="text-[11px] text-muted-foreground mt-0.5">
+                                    {biomarker.unit}
+                                  </div>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground italic">—</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between gap-2">
+                            {statusInfo ? (
+                              <BiomarkerStatusBadge statusInfo={statusInfo} />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                            <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                              {biomarker.trend && getTrendIcon(biomarker.trend)}
+                              {biomarker.latest_date && (
+                                <span className="tabular-nums">
+                                  {new Date(biomarker.latest_date).toLocaleDateString("ru-RU")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {(min !== null || max !== null) && biomarker.latest_value !== null && (
+                            <div className="mt-2">
+                              <BiomarkerScale
+                                biomarker={biomarker}
+                                value={biomarker.latest_value}
+                                age={patientAge}
+                                gender={patientGender}
+                                unit={biomarker.unit}
+                                compact
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Desktop / tablet table */}
+                  <div className="hidden md:block mt-4 border rounded-lg overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-secondary/50">
