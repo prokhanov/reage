@@ -37,7 +37,7 @@ export function PrescriptionCard({ prescription, index, showStatus = false }: Pr
   const title = prescription.name || prescription.prescription;
   const reason = cleanReasonText(prescription.reason);
   return (
-    <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 space-y-4 hover:border-primary/30 transition-colors">
+    <div className="rounded-lg border border-border/50 bg-card/50 backdrop-blur p-6 space-y-4 hover:border-primary/30 transition-colors max-sm:!border-0 max-sm:!bg-transparent max-sm:!backdrop-blur-none max-sm:!p-0 max-sm:!rounded-none">
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-4">
           <h3 className="text-lg font-semibold leading-relaxed text-primary flex-1">
