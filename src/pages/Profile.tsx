@@ -195,39 +195,50 @@ export default function Profile() {
 
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 pt-4 pb-8 sm:py-8 max-w-4xl">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-5 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Профиль</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Управляйте своими персональными данными
         </p>
       </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Personal Info Card */}
-          <Card className="p-6 bg-card/50 backdrop-blur border-border/50">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-6 w-6 text-primary" />
+          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+            <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold">Личная информация</h2>
-                  <p className="text-sm text-muted-foreground">
+                <div className="min-w-0">
+                  <h2 className="text-lg sm:text-xl font-bold leading-tight">Личная информация</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                     Основные данные о вас
                   </p>
                 </div>
               </div>
               <Button
                 variant="outline"
+                size="icon"
+                aria-label="Редактировать"
+                onClick={() => setEditProfileOpen(true)}
+                className="sm:hidden flex-shrink-0"
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setEditProfileOpen(true)}
+                className="hidden sm:inline-flex"
               >
                 <Edit2 className="h-4 w-4 mr-2" />
                 Редактировать
               </Button>
             </div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Name */}
