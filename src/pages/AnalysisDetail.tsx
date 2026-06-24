@@ -893,24 +893,105 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
               </Card>
             ) : (
               <TooltipProvider delayDuration={0}>
-                <Accordion type="multiple" defaultValue={Object.keys(groupedValues)} className="space-y-4">
+                <Accordion type="multiple" defaultValue={Object.keys(groupedValues)} className="space-y-3 md:space-y-4">
                   {Object.entries(groupedValues).map(([category, categoryValues]) => (
                     <AccordionItem
                       key={category}
                       value={category}
-                      className="border border-primary/20 rounded-lg bg-card/50 backdrop-blur-sm overflow-hidden"
+                      className="border border-primary/20 rounded-2xl bg-card/50 backdrop-blur-sm"
                     >
-                      <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-primary/5">
-                        <div className="flex items-center gap-3">
-                          <Activity className="h-5 w-5 text-primary" />
-                          <span className="text-lg font-semibold">{category}</span>
-                          <Badge variant="secondary" className="ml-2">
-                            {categoryValues.length}
-                          </Badge>
+                      <AccordionTrigger className="px-4 md:px-6 py-3 md:py-4 hover:no-underline hover:bg-primary/5 rounded-2xl gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          {(() => {
+                            const CatIcon = getBiomarkerCategoryIcon(category);
+                            return <CatIcon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" strokeWidth={1.75} />;
+                          })()}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start gap-2">
+                              <span className="text-sm md:text-lg font-semibold text-left break-words leading-snug">
+                                {category}
+                              </span>
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 flex-shrink-0 mt-0.5">
+                                {categoryValues.length}
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="px-6 pb-4">
-                        <div className="mt-4 border rounded-lg overflow-x-auto">
+                      <AccordionContent className="px-3 md:px-6 pb-4">
+                        {/* Mobile card list */}
+                        <div className="md:hidden mt-3 space-y-2">
+                          {categoryValues.map((value) => {
+                            const { min, max } = getNormalRange(value.biomarkers);
+                            const gender = (patientGender === 'male' || patientGender === 'female') ? patientGender : 'male';
+                            const statusInfo = getBiomarkerStatus(value.value, value.biomarkers, patientAge, gender);
+                            const valueColor = statusInfo ? getStatusHslColor(statusInfo.status) : "hsl(var(--primary))";
+                            return (
+                              <div
+                                key={value.id}
+                                className="rounded-xl border border-border/60 bg-background/40 p-3"
+                              >
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-semibold text-foreground leading-tight">
+                                      {value.biomarkers.name}
+                                    </div>
+                                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                                      {value.biomarkers.code}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-start gap-2 flex-shrink-0">
+                                    <div className="text-right">
+                                      <div
+                                        className="text-base font-bold tabular-nums whitespace-nowrap leading-tight"
+                                        style={{ color: valueColor }}
+                                      >
+                                        {value.value}
+                                      </div>
+                                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                                        {value.biomarkers.unit}
+                                      </div>
+                                    </div>
+                                    {value.biomarkers.description && (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button className="inline-flex items-center justify-center rounded-full w-6 h-6 bg-primary/10 hover:bg-primary/20 transition-colors mt-0.5">
+                                            <Info className="h-3.5 w-3.5 text-primary" />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-[260px]" side="top" align="end" sideOffset={6}>
+                                          <p className="text-xs">{value.biomarkers.description}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between gap-2">
+                                  {statusInfo ? (
+                                    <BiomarkerStatusBadge statusInfo={statusInfo} />
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">—</span>
+                                  )}
+                                </div>
+                                {(min !== null || max !== null) && (
+                                  <div className="mt-2">
+                                    <BiomarkerScale
+                                      biomarker={value.biomarkers}
+                                      value={value.value}
+                                      age={patientAge}
+                                      gender={patientGender}
+                                      unit={value.biomarkers.unit}
+                                      compact
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Desktop / tablet table */}
+                        <div className="hidden md:block mt-4 border rounded-lg overflow-x-auto">
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-secondary/50">
