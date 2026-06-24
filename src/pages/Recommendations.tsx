@@ -1237,7 +1237,7 @@ export default function Recommendations() {
                                     <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                                   </div>
                                   {recs.map((rec) => (
-                                    <div key={rec.id} className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                                    <div key={rec.id} className="sm:p-6 sm:bg-card/50 sm:backdrop-blur-sm sm:rounded-xl sm:border sm:border-border sm:shadow-sm sm:hover:shadow-md sm:transition-shadow">
                                       {renderInterleavedWeb(rec.text, webBiomarkers.filter(b => b.category === type), patientAge, patientGender)}
                                     </div>
                                   ))}
