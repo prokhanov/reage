@@ -299,10 +299,11 @@ export default function HealthAssistant() {
         </div>
       </div>
 
-      <Card className="flex flex-col flex-1 min-h-0 bg-card/50 backdrop-blur border-border/50">
+      <Card className="flex flex-col sm:flex-1 sm:min-h-0 bg-card/50 backdrop-blur border-border/50">
         <div
           ref={scrollRef}
-          className="flex-1 p-4 sm:p-6 overflow-y-auto"
+          className="p-4 sm:p-6 sm:flex-1 sm:overflow-y-auto"
+
 
             onScroll={(e) => {
               const element = e.currentTarget;
