@@ -1180,11 +1180,12 @@ export default function Recommendations() {
                         onClick={handleExportPDF}
                         variant="ghost"
                         size="icon"
-                        className="sm:hidden h-9 w-9 rounded-xl flex-shrink-0 text-primary"
+                        className="sm:hidden absolute top-3 right-12 h-8 w-8 rounded-lg flex-shrink-0 text-primary z-10"
                         aria-label="Скачать PDF"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
+
                       <button
                         onClick={handleExportPDF}
                         className="hidden sm:flex text-sm text-primary hover:text-primary/80 underline-offset-4 hover:underline transition-colors items-center gap-2 flex-shrink-0"
