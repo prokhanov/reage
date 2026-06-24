@@ -351,8 +351,11 @@ ${catalogText}
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
-    console.error("parse-analysis-pdf error:", e);
-    return new Response(JSON.stringify({ error: e?.message || "Internal error" }), {
+    console.error(`[parse-pdf ${reqId}] FATAL`, e?.stack || e?.message || e);
+    return new Response(JSON.stringify({
+      error: e?.message || "Internal error",
+      stack: (e?.stack || "").split("\n").slice(0, 5).join("\n"),
+    }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
