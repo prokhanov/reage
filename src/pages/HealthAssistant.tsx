@@ -39,6 +39,12 @@ export default function HealthAssistant() {
   const isAutoScrollEnabled = useRef(true);
   const { toast } = useToast();
 
+  // Hide Jivo widget while user is in our own AI chat (overlaps Send button).
+  useEffect(() => {
+    document.body.classList.add("hide-jivo");
+    return () => document.body.classList.remove("hide-jivo");
+  }, []);
+
   // Load user ID
   useEffect(() => {
     getUserId().then((id) => {
@@ -46,6 +52,7 @@ export default function HealthAssistant() {
       setInitialLoading(false);
     });
   }, [getUserId]);
+
 
   // Load last conversation or create new one (check 24h rule) - only on initial load
   const hasLoadedInitialConversation = useRef(false);
