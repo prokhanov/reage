@@ -1093,7 +1093,7 @@ export default function Recommendations() {
                 : "Дата не указана";
 
               return (
-                <div className="flex h-full min-h-0 flex-col md:flex-row">
+                <div className="flex h-full w-full min-w-0 min-h-0 flex-col md:flex-row">
                   {/* Desktop Sidebar */}
                   <div className="hidden md:flex w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex-col min-h-0 overflow-hidden">
                     <div className="p-6 border-b border-border flex-shrink-0">
@@ -1188,8 +1188,9 @@ export default function Recommendations() {
                       </div>
                     </div>
 
-                    <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6" ref={contentRef}>
-                      <div id="report-content" className="space-y-8 sm:space-y-12 max-w-4xl">
+                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6" ref={contentRef}>
+                      <div id="report-content" className="space-y-8 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto">
+
                         {patientData && (
                           <div id="section-patient-data" className="scroll-mt-6">
                             <div className="prose prose-sm max-w-none">
