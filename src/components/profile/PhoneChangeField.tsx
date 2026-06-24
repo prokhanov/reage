@@ -107,34 +107,41 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
     return (
       <div className="space-y-2">
         <Label>Телефон</Label>
-        <div className="flex items-center justify-between gap-3 rounded-md border border-border/50 bg-background/40 px-3 py-2.5">
-          <div className="flex items-center gap-2 min-w-0">
-            {currentPhone ? (
-              <>
-                <span className="font-medium truncate">{formatDisplay(currentPhone)}</span>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 rounded-md border border-border/50 bg-background/40 px-3 py-2.5">
+          {currentPhone ? (
+            <>
+              <span className="font-medium break-all">{formatDisplay(currentPhone)}</span>
+              <div className="flex items-center justify-between gap-2 sm:justify-end">
                 {isVerified ? (
-                  <Badge variant="secondary" className="gap-1 bg-emerald-500/15 text-emerald-500 border-emerald-500/30">
+                  <Badge variant="secondary" className="gap-1 bg-emerald-500/15 text-emerald-500 border-emerald-500/30 whitespace-nowrap">
                     <ShieldCheck className="h-3 w-3" />
                     Подтверждён
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="text-muted-foreground">
+                  <Badge variant="outline" className="text-muted-foreground whitespace-nowrap">
                     Не подтверждён
                   </Badge>
                 )}
-              </>
-            ) : (
+                <Button type="button" size="sm" variant="ghost" onClick={() => setStage("edit")} className="gap-1.5 -mr-2">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Изменить
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-between gap-2">
               <span className="text-muted-foreground text-sm">Номер не указан</span>
-            )}
-          </div>
-          <Button type="button" size="sm" variant="ghost" onClick={() => setStage("edit")} className="gap-1.5">
-            <Pencil className="h-3.5 w-3.5" />
-            {currentPhone ? "Изменить" : "Добавить"}
-          </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => setStage("edit")} className="gap-1.5 -mr-2">
+                <Pencil className="h-3.5 w-3.5" />
+                Добавить
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
   }
+
 
   // ----- Edit / Code mode -----
   return (
