@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 
 const uuidv4 = () => (typeof crypto !== "undefined" && "randomUUID" in crypto)
   ? (crypto as any).randomUUID() as string
@@ -15,11 +15,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { BiomarkerValueCell } from "@/components/admin/BiomarkerValueCell";
+import { calculateAge } from "@/lib/biomarkerNorms";
 import {
   Upload,
   FileText,
   CheckCircle2,
-  AlertTriangle,
   XCircle,
   ChevronDown,
   Trash2,
