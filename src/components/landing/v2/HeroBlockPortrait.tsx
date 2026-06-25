@@ -8,7 +8,6 @@ import {
   FlaskConical,
   Heart,
   Droplets,
-  CalendarDays,
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
@@ -30,26 +29,26 @@ function CompactSystemsWidget() {
     systems.reduce((a, s) => a + s.value, 0) / systems.length
   );
   return (
-    <div className={`${glass} p-3.5`}>
-      <div className="flex items-center justify-between mb-3">
+    <div className={`${glass} p-3`}>
+      <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           Системы здоровья
         </span>
         <span className="text-[11px] font-semibold text-primary">
-          Рейтинг {overall}%
+          {overall}%
         </span>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {systems.map((s) => {
           const Icon = s.icon;
           const color = `hsl(var(${s.token}))`;
           return (
             <div key={s.label} className="flex items-center gap-2">
               <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-              <span className="text-[11px] text-foreground/90 flex-1 truncate">
+              <span className="text-[11px] text-foreground/90 max-w-[100px] truncate">
                 {s.label}
               </span>
-              <div className="w-12 h-1.5 bg-muted/60 rounded-full overflow-hidden">
+              <div className="w-10 h-1.5 bg-muted/60 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full"
                   style={{ width: `${s.value}%`, backgroundColor: color }}
@@ -74,18 +73,15 @@ function CompactBiomarkersWidget() {
     { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
   ];
   return (
-    <div className={`${glass} p-3.5`}>
-      <div className="flex items-center justify-between mb-2.5">
+    <div className={`${glass} p-3`}>
+      <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           Ключевые биомаркеры
-        </span>
-        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-          <CalendarDays className="w-3 h-3" /> 15 мая
         </span>
       </div>
       <div className="divide-y divide-border/40">
         {items.map((b) => (
-          <div key={b.name} className="py-1.5 first:pt-0 last:pb-0">
+          <div key={b.name} className="py-1 first:pt-0 last:pb-0">
             <div className="text-[11px] text-foreground/90 leading-tight">
               {b.name}
             </div>
@@ -121,16 +117,13 @@ function RecommendationsWidget() {
     "Контроль ферритина и HbA1c через 3 мес",
   ];
   return (
-    <div className={`${glass} p-3.5`}>
-      <div className="flex flex-col mb-2.5">
+    <div className={`${glass} p-3`}>
+      <div className="mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           Персональные назначения
         </span>
-        <span className="text-[10px] text-muted-foreground/70 mt-0.5">
-          по системам здоровья
-        </span>
       </div>
-      <ul className="space-y-1.5">
+      <ul className="space-y-1">
         {items.map((t, i) => (
           <li
             key={i}
@@ -303,7 +296,7 @@ export function HeroBlockPortrait() {
 
             {/* Biomarkers — below the face, right side, inside the edge */}
             <div
-              className="absolute top-[152px] right-[12px] sm:top-[180px] sm:right-[12px] lg:top-[210px] lg:right-[16px] xl:right-[20px] w-[220px] sm:w-[236px] lg:w-[252px] hidden sm:block animate-fade-in rotate-2 z-30"
+              className="absolute top-[152px] right-[12px] sm:top-[180px] sm:right-[12px] lg:top-[210px] lg:right-[16px] xl:right-[20px] w-[212px] sm:w-[224px] lg:w-[236px] hidden sm:block animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
               <CompactBiomarkersWidget />
@@ -311,7 +304,7 @@ export function HeroBlockPortrait() {
 
             {/* Systems — вернул на место (правая нижняя часть портрета) */}
             <div
-              className="absolute bottom-4 left-[96px] sm:bottom-5 sm:left-[74px] lg:bottom-5 lg:left-[30px] xl:left-[14px] w-[238px] sm:w-[252px] lg:w-[268px] hidden sm:block animate-fade-in rotate-1 z-30"
+              className="absolute bottom-4 left-[96px] sm:bottom-5 sm:left-[74px] lg:bottom-5 lg:left-[30px] xl:left-[14px] w-[228px] sm:w-[240px] lg:w-[252px] hidden sm:block animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
               <CompactSystemsWidget />
@@ -319,7 +312,7 @@ export function HeroBlockPortrait() {
 
             {/* Recommendations — чуть выше и правее от нижнего края */}
             <div
-              className="absolute bottom-[40px] right-[4px] sm:bottom-[48px] sm:right-[8px] lg:bottom-[48px] lg:right-[12px] xl:right-[16px] w-[232px] sm:w-[248px] lg:w-[260px] animate-fade-in -rotate-2 z-30"
+              className="absolute bottom-[40px] right-[4px] sm:bottom-[48px] sm:right-[8px] lg:bottom-[48px] lg:right-[12px] xl:right-[16px] w-[220px] sm:w-[232px] lg:w-[244px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <RecommendationsWidget />
