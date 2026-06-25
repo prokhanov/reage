@@ -127,7 +127,7 @@ export function HeroBlockPortrait() {
 
             {/* BioAge — smaller than the other widgets, lowered below the face */}
             <div
-              className="absolute top-[246px] left-[4px] sm:top-[292px] sm:left-[-6px] lg:top-[324px] lg:left-[-34px] xl:left-[-46px] w-[250px] sm:w-[265px] lg:w-[280px] origin-top-left scale-[0.64] sm:scale-[0.66] lg:scale-[0.68] animate-fade-in -rotate-2 z-20"
+              className="absolute top-[210px] left-[14px] sm:top-[238px] sm:left-[-4px] lg:top-[260px] lg:left-[-34px] xl:left-[-52px] w-[250px] sm:w-[265px] lg:w-[280px] origin-top-left scale-[0.58] sm:scale-[0.6] lg:scale-[0.62] animate-fade-in -rotate-2 z-20"
               style={{ animationDelay: "0.35s" }}
             >
               <BioAgeWidget />
@@ -143,7 +143,7 @@ export function HeroBlockPortrait() {
 
             {/* Systems — natural Block 1 widget */}
             <div
-              className="absolute bottom-4 left-[96px] sm:bottom-5 sm:left-[74px] lg:bottom-5 lg:left-[30px] xl:left-[14px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-1 z-30"
+              className="absolute bottom-4 left-[28px] sm:bottom-5 sm:left-[14px] lg:bottom-5 lg:left-[-14px] xl:left-[-26px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
               <SystemsWidget />
