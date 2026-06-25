@@ -587,15 +587,14 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
                 zIndex: zMap[id],
               }}
             >
-              {/* Поворот вынесен во внутренний div, чтобы animate-fade-in (translateY) не перетирал rotate */}
-              <div
-                className="animate-fade-in"
-                style={{
-                  transform: `rotate(${p.rotate}deg)`,
-                  animationDelay: delayMap[id],
-                }}
-              >
-                {renderWidget(id)}
+              {/* 3 уровня: position / rotate / animate — иначе keyframe translateY перетирает inline rotate */}
+              <div style={{ transform: `rotate(${p.rotate}deg)` }}>
+                <div
+                  className="animate-fade-in"
+                  style={{ animationDelay: delayMap[id] }}
+                >
+                  {renderWidget(id)}
+                </div>
               </div>
             </div>
           );
