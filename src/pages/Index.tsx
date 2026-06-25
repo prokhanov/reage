@@ -17,7 +17,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <VerifyEmailTokenHandler />
-      <HeroSection />
+      <HeroPortrait />
       <HowItWorksSection />
       <WhyCheckupsFail />
       <BenefitsSection />
