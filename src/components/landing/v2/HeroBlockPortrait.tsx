@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -9,6 +10,8 @@ import {
   FlaskConical,
   Heart,
   Droplets,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
