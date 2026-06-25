@@ -219,7 +219,7 @@ const ARTBOARDS: Record<Breakpoint, { width: number; height: number; scale: numb
     width: 560,
     height: 500,
     scale: 1,
-    man: { left: 140, bottom: 0, width: 280, height: 500, objectPosition: "50% 100%" },
+    man: { left: 140, bottom: 0, width: 280, height: 500, objectPosition: "50% 0" },
   },
   desktop: {
     width: 560,
