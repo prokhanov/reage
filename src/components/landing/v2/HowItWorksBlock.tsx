@@ -85,12 +85,12 @@ export function HowItWorksBlock() {
                 </p>
 
                 {/* Illustration */}
-                <div className="mt-auto w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 border border-border/40">
+                <div className="mt-auto w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 border border-border/40">
                   <img
                     src={step.image}
                     alt={step.title}
                     loading="lazy"
-                    width={768}
+                    width={1024}
                     height={768}
                     className="w-full h-full object-cover"
                   />
