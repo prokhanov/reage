@@ -124,11 +124,12 @@ function RecommendationsWidget() {
     "Омега-3 (EPA/DHA) 2 г/сут — 12 недель",
     "Контроль ферритина и HbA1c через 3 мес",
   ];
+  const isMobile = useIsMobile();
   return (
     <div className={`${glass} p-3`}>
       <div className="mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Персональные назначения
+          {isMobile ? "НАЗНАЧЕНИЯ" : "Персональные назначения"}
         </span>
       </div>
       <ul className="space-y-1">
