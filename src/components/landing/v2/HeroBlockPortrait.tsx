@@ -1,14 +1,149 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical } from "lucide-react";
+import {
+  ArrowRight,
+  MapPin,
+  ShieldCheck,
+  Activity,
+  FlaskConical,
+  Heart,
+  Droplets,
+  CalendarDays,
+} from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import {
-  SystemsWidget,
-  BiomarkersWidget,
-  AIAssistantWidget,
-} from "@/components/landing/v2/HeroBlock";
 import heroMan from "@/assets/landing-v2/hero-man-v2.png";
+
+const glass =
+  "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
+
+/* Compact Systems — narrower, "Сердце" first, overall rating */
+function CompactSystemsWidget() {
+  const systems = [
+    { label: "Сердце", value: 92, icon: Heart, token: "--status-optimal" },
+    { label: "Метаболизм", value: 78, icon: Activity, token: "--status-acceptable" },
+    { label: "Иммунитет", value: 84, icon: ShieldCheck, token: "--status-optimal" },
+    { label: "Печень и почки", value: 71, icon: Droplets, token: "--status-acceptable" },
+    { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
+  ];
+  const overall = Math.round(
+    systems.reduce((a, s) => a + s.value, 0) / systems.length
+  );
+  return (
+    <div className={`${glass} p-3.5`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+          Системы здоровья
+        </span>
+        <span className="text-[11px] font-semibold text-primary">
+          Рейтинг {overall}%
+        </span>
+      </div>
+      <div className="space-y-2">
+        {systems.map((s) => {
+          const Icon = s.icon;
+          const color = `hsl(var(${s.token}))`;
+          return (
+            <div key={s.label} className="flex items-center gap-2">
+              <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
+              <span className="text-[11px] text-foreground/90 flex-1 truncate">
+                {s.label}
+              </span>
+              <div className="w-12 h-1.5 bg-muted/60 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${s.value}%`, backgroundColor: color }}
+                />
+              </div>
+              <span className="text-[10px] font-semibold tabular-nums text-foreground w-7 text-right">
+                {s.value}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* Compact Biomarkers — 3 items, 2 lines per marker */
+function CompactBiomarkersWidget() {
+  const items = [
+    { name: "Витамин D", value: "62", unit: "нг/мл", status: "Оптимум", token: "--status-optimal" },
+    { name: "Ферритин", value: "38", unit: "мкг/л", status: "Допустимо", token: "--status-acceptable" },
+    { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
+  ];
+  return (
+    <div className={`${glass} p-3.5`}>
+      <div className="flex items-center justify-between mb-2.5">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+          Ключевые биомаркеры
+        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+          <CalendarDays className="w-3 h-3" /> 15 мая
+        </span>
+      </div>
+      <div className="divide-y divide-border/40">
+        {items.map((b) => (
+          <div key={b.name} className="py-1.5 first:pt-0 last:pb-0">
+            <div className="text-[11px] text-foreground/90 leading-tight">
+              {b.name}
+            </div>
+            <div className="flex items-center justify-between mt-0.5">
+              <span className="text-xs font-semibold tabular-nums text-foreground">
+                {b.value}
+                <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                  {b.unit}
+                </span>
+              </span>
+              <span
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                style={{
+                  color: `hsl(var(${b.token}))`,
+                  backgroundColor: `hsl(var(${b.token}) / 0.12)`,
+                }}
+              >
+                {b.status}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* Recommendations — was AI Assistant, no AI icon, renamed */
+function RecommendationsWidget() {
+  const items = [
+    "Витамин D3 5000 МЕ — утром с жирной пищей",
+    "Омега-3 (EPA/DHA) 2 г/сут — 12 недель",
+    "Контроль ферритина и HbA1c через 3 мес",
+  ];
+  return (
+    <div className={`${glass} p-3.5`}>
+      <div className="flex flex-col mb-2.5">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+          Рекомендации
+        </span>
+        <span className="text-[10px] text-muted-foreground mt-0.5">
+          Персональные назначения
+        </span>
+      </div>
+      <ul className="space-y-1.5">
+        {items.map((t, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-2 text-[11px] text-foreground/85 leading-snug"
+          >
+            <span className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
+            <span>{t}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function CompactBioAgeWidget() {
   return (
@@ -162,23 +297,23 @@ export function HeroBlockPortrait() {
               className="absolute top-6 right-[-18px] sm:top-10 sm:right-[-34px] lg:top-14 lg:right-[-76px] xl:right-[-98px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
-              <BiomarkersWidget />
+              <CompactBiomarkersWidget />
             </div>
 
-            {/* Systems — natural Block 1 widget */}
+            {/* Systems — narrower compact */}
             <div
-              className="absolute bottom-4 left-[28px] sm:bottom-5 sm:left-[14px] lg:bottom-5 lg:left-[-14px] xl:left-[-26px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-1 z-30"
+              className="absolute bottom-4 left-[28px] sm:bottom-5 sm:left-[14px] lg:bottom-5 lg:left-[-14px] xl:left-[-26px] w-[238px] sm:w-[252px] lg:w-[268px] hidden sm:block animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
-              <SystemsWidget />
+              <CompactSystemsWidget />
             </div>
 
-            {/* AI Assistant — natural Block 1 widget */}
+            {/* Recommendations (was AI Assistant) */}
             <div
               className="absolute bottom-0 right-0 sm:bottom-0 sm:right-[-16px] lg:bottom-[-2px] lg:right-[-40px] xl:right-[-52px] w-[260px] sm:w-[282px] lg:w-[302px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
-              <AIAssistantWidget />
+              <RecommendationsWidget />
             </div>
           </div>
         </div>
