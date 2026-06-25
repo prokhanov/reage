@@ -53,7 +53,7 @@ export function HowItWorksBlock() {
         </div>
 
         {/* 3 cards — reference style */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto pt-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 max-w-6xl mx-auto pt-10">
           {steps.map((step, i) => (
             <div
               key={i}
@@ -61,7 +61,7 @@ export function HowItWorksBlock() {
               style={{ animationDelay: `${0.1 + i * 0.1}s` }}
             >
               <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-b from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 px-5 pt-12 pb-5 md:px-7 md:pt-14 md:pb-6 flex flex-col items-center text-center transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
+              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 pt-12 pb-0 md:pt-14 md:pb-0 flex flex-col items-center text-center transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
                 {/* Numbered circle — top center, overflowing the card */}
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2">
                   <div className="relative">
@@ -74,18 +74,21 @@ export function HowItWorksBlock() {
                   </div>
                 </div>
 
-                {/* Title */}
-                <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
-                  {step.title}
-                </h3>
+                {/* Text content */}
+                <div className="px-5 md:px-7">
+                  {/* Title */}
+                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+                    {step.title}
+                  </h3>
 
-                {/* Subtitle */}
-                <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed mb-6">
-                  {step.subtitle}
-                </p>
+                  {/* Subtitle */}
+                  <p className="text-[15px] md:text-base text-muted-foreground leading-relaxed mb-6">
+                    {step.subtitle}
+                  </p>
+                </div>
 
-                {/* Illustration */}
-                <div className="mt-auto w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 border border-border/40">
+                {/* Illustration — full width, no gaps */}
+                <div className="mt-auto w-full aspect-[4/3] overflow-hidden rounded-b-3xl bg-gradient-to-br from-primary/5 to-accent/5">
                   <img
                     src={step.image}
                     alt={step.title}
