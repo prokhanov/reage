@@ -44,7 +44,7 @@ function CompactSystemsWidget() {
   const overall = Math.round(systems.reduce((a, s) => a + s.value, 0) / systems.length);
 
   return (
-    <div className={`${glass} p-3`}>
+    <div className={`${glass} p-2.5 sm:p-3`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           {isMobile ? "СИСТЕМЫ" : "Системы здоровья"}
@@ -56,14 +56,16 @@ function CompactSystemsWidget() {
           const Icon = s.icon;
           const color = `hsl(var(${s.token}))`;
           return (
-            <div key={s.label} className="flex items-center gap-2">
-              <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-              <span className={`text-[11px] text-foreground/90 flex-1 leading-tight ${isMobile ? "" : "truncate"}`}>{s.label}</span>
-              <div className="flex items-center gap-1.5 w-28">
-                <span className="text-[10px] font-semibold tabular-nums text-foreground w-6 text-left">
+            <div key={s.label} className="flex items-start gap-0.5 sm:gap-2">
+              <Icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color }} />
+              <span className="text-[10px] sm:text-[11px] text-foreground/90 flex-1 min-w-0 leading-tight">
+                {s.label}
+              </span>
+              <div className="flex items-center gap-1 sm:gap-1.5 w-14 sm:w-20 lg:w-24 mt-0.5">
+                <span className="text-[10px] font-semibold tabular-nums text-foreground w-5 text-left">
                   {s.value}%
                 </span>
-                <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
+                <div className="flex-1 h-1 sm:h-1.5 bg-muted/60 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full"
                     style={{ width: `${s.value}%`, backgroundColor: color }}
@@ -234,7 +236,7 @@ const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
     bioAge:         { top: 141, left: -6,  width: 170, rotate: -2 },
     biomarkers:     { top: 104, left: 190, width: 172, rotate: 2 },
     recommendations:{ top: 261, left: -30, width: 165, rotate: -1 },
-    systems:        { top: 266, left: 148, width: 175, rotate: 1 },
+    systems:        { top: 266, left: 140, width: 190, rotate: 1 },
   },
   tablet: {
     bioAge:         { top: 139, left: 4,   width: 208, rotate: -2 },
