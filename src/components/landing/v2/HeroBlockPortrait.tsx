@@ -350,7 +350,10 @@ export function HeroBlockPortrait() {
                 style={{ bottom: 20, left: -10, width: 252, animationDelay: "0.65s" }}>
                 <CompactSystemsWidget />
               </div>
+            </div>
           </div>
+
+
 
           {/* MOBILE/TABLET: stats + CTAs under the portrait */}
           <div className="order-3 lg:hidden flex flex-col items-start gap-5 w-full max-w-xl">
