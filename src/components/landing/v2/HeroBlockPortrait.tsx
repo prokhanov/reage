@@ -617,14 +617,15 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
 
   return (
     <section className="relative overflow-hidden bg-background">
-      <div
-        className="absolute inset-0 pointer-events-none animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 80% at 72% 45%, hsl(220 85% 50% / 0.45) 0%, hsl(190 90% 55% / 0.22) 38%, transparent 72%), radial-gradient(ellipse 90% 90% at 50% 50%, hsl(220 80% 50% / 0.12) 0%, transparent 70%)",
-        }}
-      />
-
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
+          style={{
+            background:
+              "radial-gradient(ellipse 50% 55% at 50% 50%, hsl(220 85% 50% / 0.28) 0%, hsl(190 90% 50% / 0.15) 40%, transparent 70%)",
+          }}
+        />
+      </div>
 
       <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-8 pb-10 md:pt-6 md:pb-8">
         <div className="flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-30">
