@@ -305,9 +305,9 @@ export function HeroBlockPortrait() {
               <CompactSystemsWidget />
             </div>
 
-            {/* Recommendations (was AI Assistant) */}
+            {/* Recommendations (was AI Assistant) — inside the right/bottom edge */}
             <div
-              className="absolute bottom-0 right-0 sm:bottom-0 sm:right-[-16px] lg:bottom-[-2px] lg:right-[-40px] xl:right-[-52px] w-[260px] sm:w-[282px] lg:w-[302px] animate-fade-in -rotate-2 z-30"
+              className="absolute bottom-4 right-[12px] sm:bottom-5 sm:right-[12px] lg:bottom-5 lg:right-[16px] xl:right-[20px] w-[244px] sm:w-[264px] lg:w-[282px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <RecommendationsWidget />
