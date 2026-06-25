@@ -139,8 +139,8 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     const missing = Array.from(ids).filter(id => !biomarkersMap[id]);
     if (!missing.length) return;
     (async () => {
-      const { data } = await supabase
-        .from("biomarkers")
+      const { data } = await (supabase
+        .from("biomarkers") as any)
         .select("id, name, code, unit, range_mode, age_ranges, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female")
         .in("id", missing);
       if (!data) return;
