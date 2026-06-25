@@ -24,7 +24,7 @@ import { useRegisterGuard } from "@/components/RegisterGuard";
 const glass =
   "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5 transition-transform duration-300";
 
-function BioAgeWidget() {
+export function BioAgeWidget() {
   return (
     <div className={`${glass} p-4 sm:p-5`}>
       <div className="flex items-center justify-between mb-3">
@@ -61,7 +61,7 @@ function BioAgeWidget() {
   );
 }
 
-function SystemsWidget() {
+export function SystemsWidget() {
   const systems = [
     { label: "Сердечно-сосудистая", value: 92, icon: Heart, token: "--status-optimal" },
     { label: "Метаболизм", value: 78, icon: Activity, token: "--status-acceptable" },
@@ -102,7 +102,7 @@ function SystemsWidget() {
   );
 }
 
-function BiomarkersWidget() {
+export function BiomarkersWidget() {
   const items = [
     { name: "Витамин D", value: "62", unit: "нг/мл", status: "Оптимум", token: "--status-optimal" },
     { name: "Омега-3 индекс", value: "8.4", unit: "%", status: "Оптимум", token: "--status-optimal" },
@@ -145,7 +145,7 @@ function BiomarkersWidget() {
   );
 }
 
-function AIAssistantWidget() {
+export function AIAssistantWidget() {
   const items = [
     "Витамин D3 5000 МЕ — утром с жирной пищей",
     "Омега-3 (EPA/DHA) 2 г/сут — 12 недель",
