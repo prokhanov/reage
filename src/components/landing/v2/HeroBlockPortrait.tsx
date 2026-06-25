@@ -289,9 +289,9 @@ export function HeroBlockPortrait() {
               <CompactBioAgeWidget />
             </div>
 
-            {/* Biomarkers — natural Block 1 widget, right side, away from face */}
+            {/* Biomarkers — smaller, lower, and safely inside the right edge */}
             <div
-              className="absolute top-6 right-[-18px] sm:top-10 sm:right-[-34px] lg:top-14 lg:right-[-76px] xl:right-[-98px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-2 z-30"
+              className="absolute top-[88px] right-[12px] sm:top-[104px] sm:right-[12px] lg:top-[120px] lg:right-[16px] xl:right-[20px] w-[220px] sm:w-[236px] lg:w-[252px] hidden sm:block animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
               <CompactBiomarkersWidget />
