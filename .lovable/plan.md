@@ -1,20 +1,51 @@
-## Цель
-Сделать переход от Hero к следующему блоку плавным — без резкой границы между синим градиентным фоном hero и чёрным фоном следующей секции.
+## Причина текущей проблемы
 
-## Что сделаю
-В `src/components/landing/HeroPortrait.tsx`:
+nginx на проде работает по whitelist (`deploy/nginx/default.conf`). Всё, что не разрешено явно, → 404. Сейчас:
+- `robots.txt`, `sitemap.xml`, `llms.txt`, `site.webmanifest`, `favicon.ico`, `placeholder.svg` — **разрешены**, работают.
+- Расширения `png|jpg|...|txt|xml|json|webmanifest|woff|...` — разрешены.
+- `.html` в корне (включая `yandex_*.html`, `google*.html`) — **НЕ разрешены** → 404. Поэтому Яндекс и не видит файл, даже если он лежит в `public/` и попал в образ.
+- `/.well-known/*` — не разрешён.
 
-1. Убрать резкую нижнюю границу секции hero — добавить декоративный градиентный «хвост» внизу секции: абсолютно позиционированный div высотой ~160–200px по нижнему краю, с `background: linear-gradient(to bottom, transparent, hsl(var(--background)))`, чтобы цвет фона hero (радиальный синий) плавно растворялся в фоне страницы.
+## Что меняем
 
-2. Дополнительно «продлить» атмосферу hero в начало следующей секции: на корневом контейнере `Index.tsx` (или обёртке секции после hero) добавить сверху overlay-градиент с лёгким синим тонированием (`hsl(210 85% 45% / 0.08)` → transparent на ~240px), чтобы цвет hero затухал уже внутри следующего блока, а не обрывался.
+### 1. Файл верификации
+Создать `public/yandex_3de2852024f6022b.html` с точным содержимым от Яндекса (UTF-8, без BOM, без лишних строк).
 
-3. Убедиться что overlay'ы `pointer-events-none` и `z-0`, не ломают клики по контенту.
+### 2. nginx — универсальные правила под верификации поисковиков и `.well-known`
 
-## Технические детали
-- Файлы: `src/components/landing/HeroPortrait.tsx` (fade-out внизу секции), `src/pages/Index.tsx` (fade-in вверху следующей секции).
-- Только CSS/JSX, без новых зависимостей и без правки логики.
-- Работает в светлой и тёмной теме т.к. используется `hsl(var(--background))`.
+В `deploy/nginx/default.conf` перед финальным `location / { return 404; }` добавить:
 
-## Что НЕ трогаю
-- Виджеты, координаты, тексты, edit-режим `/landing-v2`.
-- Структуру секций и контент «Как это работает».
+```text
+# Верификации поисковиков (Yandex, Google, Bing, Mail.ru и др.) — статический HTML в корне
+location ~* ^/(yandex_[a-f0-9]+|google[a-f0-9]+|BingSiteAuth|mailru-domain[0-9]+)\.(html|xml)$ {
+    try_files $uri =404;
+}
+
+# .well-known (security.txt, apple-app-site-association, acme-challenge и т.п.)
+location ^~ /.well-known/ {
+    try_files $uri =404;
+}
+```
+
+Так больше не придётся править nginx при каждой новой верификации того же класса — достаточно положить файл в `public/`.
+
+### 3. Деплой
+- Закоммитить.
+- Передеплоить nginx на REG.RU через Coolify (фронт-«Update» в Lovable конфиг nginx не обновляет — это отдельный контейнер).
+- Проверить:
+  ```
+  curl -I https://reage.life/yandex_3de2852024f6022b.html
+  curl -I https://www.reage.life/yandex_3de2852024f6022b.html
+  ```
+  Должно быть `200 OK`. Если `www` редиректит на apex — это ок, главное чтобы финальный ответ был 200.
+- Нажать «Подтвердить» в Яндекс.Вебмастере.
+
+## Что НЕ трогаем
+
+- `robots.txt`, `sitemap.xml`, `llms.txt` — уже работают, дополнительных действий не нужно.
+- IndexNow (`<key>.txt`) — попадёт под существующий regex статики автоматически.
+
+## Файлы
+
+- `public/yandex_3de2852024f6022b.html` — новый.
+- `deploy/nginx/default.conf` — +2 location-блока (верификации + `.well-known`).
