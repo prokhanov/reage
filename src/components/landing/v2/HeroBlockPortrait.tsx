@@ -278,46 +278,46 @@ export function HeroBlockPortrait() {
             </div>
           </div>
 
-          {/* RIGHT: portrait with floating widgets — asymmetric, varied sizes, face clear */}
-          <div className="relative w-full h-[500px] sm:h-[550px] lg:h-[600px]">
+          {/* RIGHT: portrait with floating widgets — fixed positions per breakpoint, no overlap */}
+          <div className="relative w-full h-[560px] sm:h-[600px] lg:h-[620px]">
             {/* Portrait */}
             <img
               src={heroMan}
               alt="Пациент изучает свой персональный отчёт ReAge"
-              className="absolute inset-0 w-full h-full object-contain object-bottom animate-fade-in"
+              className="absolute inset-0 w-full h-full object-contain object-bottom animate-fade-in pointer-events-none"
               style={{ animationDelay: "0.2s" }}
             />
 
-            {/* BioAge — smaller than the other widgets, lowered below the face */}
+            {/* BioAge — top-left */}
             <div
-              className="absolute top-[202px] left-[20px] sm:top-[222px] sm:left-[4px] lg:top-[238px] lg:left-[-24px] xl:left-[-42px] w-[188px] sm:w-[204px] lg:w-[216px] animate-fade-in -rotate-2 z-20"
+              className="absolute top-[150px] left-[0px] w-[168px] sm:top-[210px] sm:left-[8px] sm:w-[200px] lg:top-[230px] lg:left-[-20px] lg:w-[216px] animate-fade-in -rotate-2 z-20"
               style={{ animationDelay: "0.35s" }}
             >
               <CompactBioAgeWidget />
             </div>
 
-            {/* Biomarkers — below the face, right side, inside the edge */}
+            {/* Biomarkers — top-right */}
             <div
-              className="absolute top-[152px] right-[12px] sm:top-[180px] sm:right-[12px] lg:top-[210px] lg:right-[16px] xl:right-[20px] w-[212px] sm:w-[224px] lg:w-[236px] hidden sm:block animate-fade-in rotate-2 z-30"
+              className="absolute top-[130px] right-[0px] w-[170px] sm:top-[170px] sm:right-[8px] sm:w-[220px] lg:top-[200px] lg:right-[12px] lg:w-[236px] animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
               <CompactBiomarkersWidget />
             </div>
 
-            {/* Systems — вернул на место (правая нижняя часть портрета) */}
+            {/* Recommendations — middle-right */}
             <div
-              className="absolute bottom-4 left-[96px] sm:bottom-5 sm:left-[74px] lg:bottom-5 lg:left-[30px] xl:left-[14px] w-[228px] sm:w-[240px] lg:w-[252px] hidden sm:block animate-fade-in rotate-1 z-30"
-              style={{ animationDelay: "0.65s" }}
-            >
-              <CompactSystemsWidget />
-            </div>
-
-            {/* Recommendations — чуть выше и правее от нижнего края */}
-            <div
-              className="absolute bottom-[40px] right-[4px] sm:bottom-[48px] sm:right-[8px] lg:bottom-[48px] lg:right-[12px] xl:right-[16px] w-[220px] sm:w-[232px] lg:w-[244px] animate-fade-in -rotate-2 z-30"
+              className="absolute top-[300px] right-[0px] w-[200px] sm:top-[340px] sm:right-[8px] sm:w-[228px] lg:top-[360px] lg:right-[12px] lg:w-[244px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <RecommendationsWidget />
+            </div>
+
+            {/* Systems — bottom-left */}
+            <div
+              className="absolute bottom-[10px] left-[0px] w-[220px] sm:bottom-[16px] sm:left-[8px] sm:w-[240px] lg:bottom-[20px] lg:left-[-10px] lg:w-[252px] animate-fade-in rotate-1 z-30"
+              style={{ animationDelay: "0.65s" }}
+            >
+              <CompactSystemsWidget />
             </div>
           </div>
         </div>
