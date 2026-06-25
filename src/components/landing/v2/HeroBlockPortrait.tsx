@@ -237,21 +237,21 @@ const ARTBOARDS: Record<Breakpoint, { width: number; height: number; scale: numb
 
 const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    bioAge:         { top: 141, left: -6,  width: 170, rotate: -2 },
-    biomarkers:     { top: 104, left: 190, width: 172, rotate: 2 },
+    bioAge:         { top: 138, left: -15, width: 170, rotate: -2 },
+    biomarkers:     { top: 128, left: 185, width: 172, rotate: 2 },
     recommendations:{ top: 261, left: -30, width: 165, rotate: -1 },
-    systems:        { top: 266, left: 140, width: 190, rotate: 1 },
+    systems:        { top: 277, left: 148, width: 175, rotate: 1 },
   },
   tablet: {
-    bioAge:         { top: 139, left: 4,   width: 208, rotate: -2 },
-    biomarkers:     { top: 129, left: 350, width: 220, rotate: 2 },
-    recommendations:{ top: 329, left: 334, width: 232, rotate: -1 },
-    systems:        { top: 330, left: 27,  width: 240, rotate: 1 },
+    bioAge:         { top: 184, left: 39,  width: 208, rotate: -2 },
+    biomarkers:     { top: 162, left: 326, width: 220, rotate: 2 },
+    recommendations:{ top: 331, left: 286, width: 232, rotate: -1 },
+    systems:        { top: 332, left: 54,  width: 240, rotate: 1 },
   },
   desktop: {
-    bioAge:         { top: 299, left: 58,  width: 216, rotate: -2 },
-    biomarkers:     { top: 200, left: 324, width: 236, rotate: 2 },
-    recommendations:{ top: 402, left: 305, width: 244, rotate: -2 },
+    bioAge:         { top: 309, left: 59,  width: 216, rotate: -2 },
+    biomarkers:     { top: 265, left: 314, width: 236, rotate: 2 },
+    recommendations:{ top: 445, left: 301, width: 244, rotate: -2 },
     systems:        { top: 463, left: 32,  width: 252, rotate: 1 },
   },
 };
