@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import { HeroBlock } from "@/components/landing/v2/HeroBlock";
-import { HeroBlockCentered } from "@/components/landing/v2/HeroBlockCentered";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 
@@ -26,12 +24,6 @@ const LandingV2 = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Block n={1}>
-        <HeroBlock />
-      </Block>
-      <Block n={2}>
-        <HeroBlockCentered />
-      </Block>
       <Block n={3}>
         <HeroBlockPortrait />
       </Block>
