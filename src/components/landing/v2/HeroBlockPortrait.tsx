@@ -81,7 +81,7 @@ function CompactBiomarkersWidget() {
       </div>
       <div className="divide-y divide-border/40">
         {items.map((b) => (
-          <div key={b.name} className="py-1.5 first:pt-0 last:pb-0">
+          <div key={b.name} className="py-1 first:pt-0 last:pb-0">
             <div className="text-[11px] text-foreground/90 leading-tight">
               {b.name}
             </div>
