@@ -12,6 +12,7 @@ import { PatientRoute } from "@/components/PatientRoute";
 import { StaffRoute } from "@/components/StaffRoute";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Index from "./pages/Index";
+import LandingV2 from "./pages/LandingV2";
 import Auth from "./pages/Auth";
 import Register from "./pages/Register";
 import Onboarding from "./pages/Onboarding";
@@ -98,6 +99,7 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
+            <Route path="/landing-v2" element={<LandingV2 />} />
             {/* Публичный пример отчёта — рендерится как Dialog поверх лендинга. */}
             <Route
               path="/example-report"

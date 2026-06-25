@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import HeroSection from "@/components/landing/HeroSection";
+import { HeroSection } from "@/components/landing/HeroSection";
 
 const LandingV2 = () => {
   useEffect(() => {
