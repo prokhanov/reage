@@ -7,7 +7,6 @@ import {
   Eye,
   FileText,
   Target,
-  TrendingUp,
   Pill,
   CheckCircle2,
   Sparkles,
@@ -22,11 +21,6 @@ const reportFeatures = [
     icon: FileText,
     title: "Подробная расшифровка анализов",
     description: "Разбираем показатели простым языком и объясняем их влияние на организм",
-  },
-  {
-    icon: TrendingUp,
-    title: "Связи между показателями",
-    description: "Показываем, как анализы влияют друг на друга и что это означает для здоровья",
   },
   {
     icon: Target,
@@ -53,9 +47,6 @@ const reportFeatures = [
 // ============ Mockup pages ============
 type MockPage = { id: string; label: string; render: () => JSX.Element };
 
-const Dot = ({ color }: { color: string }) => (
-  <span className="inline-block w-2 h-2 rounded-full" style={{ background: color }} />
-);
 
 const Bar = ({ value, color }: { value: number; color: string }) => (
   <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
@@ -108,93 +99,78 @@ const PageSummary = () => (
   </div>
 );
 
-const PageBiomarkers = () => (
-  <div className="space-y-3">
-    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Биомаркеры · Метаболизм</div>
-    {[
-      { n: "Глюкоза", v: "5.2", u: "ммоль/л", p: 35, c: "hsl(142 71% 45%)" },
-      { n: "Инсулин", v: "9.4", u: "мкЕд/мл", p: 55, c: "hsl(142 71% 45%)" },
-      { n: "HOMA-IR", v: "2.18", u: "", p: 72, c: "hsl(38 92% 50%)" },
-      { n: "HbA1c", v: "5.6", u: "%", p: 48, c: "hsl(142 71% 45%)" },
-      { n: "Триглицериды", v: "1.9", u: "ммоль/л", p: 78, c: "hsl(25 95% 53%)" },
-    ].map((b) => (
-      <div key={b.n} className="rounded-lg border border-border/60 bg-card/60 p-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Dot color={b.c} />
-            <span className="text-sm font-medium">{b.n}</span>
-          </div>
-          <div className="text-sm font-semibold">
-            {b.v} <span className="text-muted-foreground text-xs">{b.u}</span>
-          </div>
-        </div>
-        <div className="relative h-1.5 rounded-full bg-gradient-to-r from-red-500/30 via-emerald-500/40 to-red-500/30">
-          <motion.div
-            initial={{ left: 0 }}
-            animate={{ left: `${b.p}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="absolute -top-1 w-3.5 h-3.5 rounded-full border-2 border-background shadow-md"
-            style={{ background: b.c, transform: "translateX(-50%)" }}
-          />
-        </div>
-      </div>
-    ))}
-  </div>
-);
+const PageBiomarkers = () => {
+  const items = [
+    { name: "Глюкоза", code: "GLU", value: "4.72", unit: "ммоль/л", p: 35, status: "optimal", label: "Оптимально" },
+    { name: "Гликированный гемоглобин", code: "HbA1c", value: "5.05", unit: "%", p: 40, status: "optimal", label: "Оптимально" },
+    { name: "Витамин D (25-OH D)", code: "25-OH D", value: "74.35", unit: "нг/мл", p: 70, status: "optimal", label: "Оптимально" },
+    { name: "Нейтрофилы", code: "NEUT", value: "79.13", unit: "%", p: 88, status: "risk", label: "Риск" },
+    { name: "Тестостерон общий", code: "TEST", value: "0.16", unit: "нмоль/л", p: 18, status: "critical", label: "Критично" },
+  ];
 
-const PageConnections = () => (
-  <div className="space-y-4">
-    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Связи между показателями</div>
-    <div className="rounded-xl border border-border/60 bg-card/60 p-4">
-      <svg viewBox="0 0 300 180" className="w-full h-40">
-        <defs>
-          <linearGradient id="ln" x1="0" x2="1">
-            <stop offset="0" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
-            <stop offset="1" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-        {[
-          ["60,40", "150,90"],
-          ["240,30", "150,90"],
-          ["60,140", "150,90"],
-          ["240,150", "150,90"],
-          ["150,20", "150,90"],
-        ].map(([a, b], i) => (
-          <motion.line
-            key={i}
-            x1={a.split(",")[0]} y1={a.split(",")[1]}
-            x2={b.split(",")[0]} y2={b.split(",")[1]}
-            stroke="url(#ln)" strokeWidth="2"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: i * 0.12 }}
-          />
-        ))}
-        {[
-          [150, 90, 18, "hsl(var(--primary))"],
-          [60, 40, 10, "hsl(142 71% 45%)"],
-          [240, 30, 10, "hsl(38 92% 50%)"],
-          [60, 140, 10, "hsl(25 95% 53%)"],
-          [240, 150, 10, "hsl(142 71% 45%)"],
-          [150, 20, 10, "hsl(38 92% 50%)"],
-        ].map(([x, y, r, c], i) => (
-          <motion.circle
-            key={i} cx={x as number} cy={y as number} r={r as number}
-            fill={c as string} fillOpacity="0.85"
-            initial={{ scale: 0 }} animate={{ scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
-            style={{ transformOrigin: `${x}px ${y}px` }}
-          />
-        ))}
-      </svg>
-    </div>
-    <div className="space-y-2">
-      {["Высокий HOMA-IR ⇄ снижение тестостерона", "Дефицит D ⇄ воспаление (CRP)", "Гомоцистеин ⇄ B12 / фолат"].map((t) => (
-        <div key={t} className="text-xs px-3 py-2 rounded-lg bg-card/60 border border-border/60">{t}</div>
+  const statusDot = (s: string) => {
+    switch (s) {
+      case "optimal": return "text-status-optimal";
+      case "acceptable": return "text-status-acceptable";
+      case "risk": return "text-status-risk";
+      case "critical": return "text-status-critical";
+      default: return "text-muted-foreground";
+    }
+  };
+  const statusMarker = (s: string) => {
+    switch (s) {
+      case "optimal": return "hsl(142 71% 45%)";
+      case "acceptable": return "hsl(38 92% 50%)";
+      case "risk": return "hsl(25 95% 53%)";
+      case "critical": return "hsl(0 84% 60%)";
+      default: return "hsl(var(--muted-foreground))";
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        Состояние биомаркеров
+      </div>
+      {items.map((b) => (
+        <div
+          key={b.code}
+          className="rounded-xl border border-border/40 bg-card/50 shadow-sm p-4 space-y-2"
+        >
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-sm font-semibold text-foreground truncate">{b.name}</span>
+              <span className="text-xs text-muted-foreground">({b.code})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-[10px] ${statusDot(b.status)}`}>●</span>
+              <span className={`text-xs font-medium ${statusDot(b.status)}`}>{b.label}</span>
+            </div>
+          </div>
+
+          <div className="relative h-1.5 rounded-full bg-gradient-to-r from-red-500/30 via-emerald-500/40 to-red-500/30">
+            <motion.div
+              initial={{ left: 0 }}
+              animate={{ left: `${b.p}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="absolute -top-1 w-3.5 h-3.5 rounded-full border-2 border-background shadow-md"
+              style={{ background: statusMarker(b.status), transform: "translateX(-50%)" }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Значение</span>
+            <span className="font-semibold">
+              {b.value} <span className="text-muted-foreground font-normal">{b.unit}</span>
+            </span>
+          </div>
+        </div>
       ))}
     </div>
-  </div>
-);
+  );
+};
+
+
 
 const PagePrescriptions = () => (
   <div className="space-y-3">
@@ -220,7 +196,6 @@ const PagePrescriptions = () => (
 const pages: MockPage[] = [
   { id: "summary", label: "Резюме", render: () => <PageSummary /> },
   { id: "bio", label: "Биомаркеры", render: () => <PageBiomarkers /> },
-  { id: "links", label: "Связи", render: () => <PageConnections /> },
   { id: "rx", label: "Рекомендации", render: () => <PagePrescriptions /> },
 ];
 
@@ -252,7 +227,7 @@ function ReportMockup() {
       {/* A4 page frame (1 : √2) */}
       <div
         className="relative mx-auto rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden"
-        style={{ aspectRatio: "1 / 1.4142", maxWidth: "440px" }}
+        style={{ aspectRatio: "1 / 1.4142", maxWidth: "520px" }}
       >
         {/* Page header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border/40">
