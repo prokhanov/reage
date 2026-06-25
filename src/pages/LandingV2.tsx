@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { HeroSection } from "@/components/landing/HeroSection";
+import { HeroBlock } from "@/components/landing/v2/HeroBlock";
+import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 
 const Block = ({ n, children }: { n: number; children: React.ReactNode }) => (
   <section className="relative">
@@ -24,7 +25,10 @@ const LandingV2 = () => {
   return (
     <div className="min-h-screen bg-background">
       <Block n={1}>
-        <HeroSection />
+        <HeroBlock />
+      </Block>
+      <Block n={2}>
+        <HowItWorksBlock />
       </Block>
     </div>
   );
