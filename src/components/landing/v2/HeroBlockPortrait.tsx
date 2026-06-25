@@ -73,13 +73,10 @@ function CompactBiomarkersWidget() {
     { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
   ];
   return (
-    <div className={`${glass} p-3.5`}>
-      <div className="flex items-center justify-between mb-2.5">
+    <div className={`${glass} p-3`}>
+      <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           Ключевые биомаркеры
-        </span>
-        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
-          <CalendarDays className="w-3 h-3" /> 15 мая
         </span>
       </div>
       <div className="divide-y divide-border/40">
