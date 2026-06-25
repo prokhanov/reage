@@ -58,8 +58,8 @@ export function HeroBlockCentered() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 lg:px-8 xl:px-12 py-8 md:py-10">
-        {/* Top-right location badge */}
-        <div className="absolute top-4 right-4 lg:right-10 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-20">
+        {/* Top-right location badge — desktop only */}
+        <div className="hidden lg:flex absolute top-4 right-4 lg:right-10 items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-20">
           <MapPin className="w-3.5 h-3.5 text-primary" />
           <span className="text-xs sm:text-sm font-medium text-primary">
             Москва и Санкт-Петербург
@@ -69,6 +69,16 @@ export function HeroBlockCentered() {
         {/* Logo */}
         <div className="flex justify-center lg:justify-start mb-5 md:mb-6">
           <ThemedLogo className="h-10 md:h-12 w-auto animate-hue-shift" />
+        </div>
+
+        {/* Mobile badge below logo */}
+        <div className="lg:hidden flex justify-center mb-4 animate-fade-in">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
+            <MapPin className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs sm:text-sm font-medium text-primary">
+              Москва и Санкт-Петербург
+            </span>
+          </div>
         </div>
 
         {/* Two-column hero */}
