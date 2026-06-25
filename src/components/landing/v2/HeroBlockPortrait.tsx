@@ -289,9 +289,9 @@ export function HeroBlockPortrait() {
               <CompactBioAgeWidget />
             </div>
 
-            {/* Biomarkers — smaller, lower, and safely inside the right edge */}
+            {/* Biomarkers — below the face, right side, inside the edge */}
             <div
-              className="absolute top-[88px] right-[12px] sm:top-[104px] sm:right-[12px] lg:top-[120px] lg:right-[16px] xl:right-[20px] w-[220px] sm:w-[236px] lg:w-[252px] hidden sm:block animate-fade-in rotate-2 z-30"
+              className="absolute top-[152px] right-[12px] sm:top-[180px] sm:right-[12px] lg:top-[210px] lg:right-[16px] xl:right-[20px] w-[220px] sm:w-[236px] lg:w-[252px] hidden sm:block animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
               <CompactBiomarkersWidget />
@@ -305,9 +305,9 @@ export function HeroBlockPortrait() {
               <CompactSystemsWidget />
             </div>
 
-            {/* Recommendations (was AI Assistant) */}
+            {/* Recommendations (was AI Assistant) — inside the right/bottom edge */}
             <div
-              className="absolute bottom-0 right-0 sm:bottom-0 sm:right-[-16px] lg:bottom-[-2px] lg:right-[-40px] xl:right-[-52px] w-[260px] sm:w-[282px] lg:w-[302px] animate-fade-in -rotate-2 z-30"
+              className="absolute bottom-4 right-[12px] sm:bottom-5 sm:right-[12px] lg:bottom-5 lg:right-[16px] xl:right-[20px] w-[244px] sm:w-[264px] lg:w-[282px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <RecommendationsWidget />
