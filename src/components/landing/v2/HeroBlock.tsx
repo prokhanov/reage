@@ -63,11 +63,11 @@ function BioAgeWidget() {
 
 function SystemsWidget() {
   const systems = [
-    { label: "Сердечно-сосудистая", value: 92, icon: Heart, color: "status-optimal" },
-    { label: "Метаболизм", value: 78, icon: Activity, color: "status-acceptable" },
-    { label: "Иммунитет", value: 84, icon: ShieldCheck, color: "status-optimal" },
-    { label: "Печень и почки", value: 71, icon: Droplets, color: "status-acceptable" },
-    { label: "Гормоны", value: 58, icon: FlaskConical, color: "status-risk" },
+    { label: "Сердечно-сосудистая", value: 92, icon: Heart, token: "--status-optimal" },
+    { label: "Метаболизм", value: 78, icon: Activity, token: "--status-acceptable" },
+    { label: "Иммунитет", value: 84, icon: ShieldCheck, token: "--status-optimal" },
+    { label: "Печень и почки", value: 71, icon: Droplets, token: "--status-acceptable" },
+    { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
   ];
   return (
     <div className={`${glass} p-4 sm:p-5`}>
@@ -80,14 +80,15 @@ function SystemsWidget() {
       <div className="space-y-2.5">
         {systems.map((s) => {
           const Icon = s.icon;
+          const color = `hsl(var(${s.token}))`;
           return (
             <div key={s.label} className="flex items-center gap-2.5">
-              <Icon className={`w-3.5 h-3.5 shrink-0 text-[hsl(var(--${s.color}))]`} />
+              <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
               <span className="text-xs text-foreground/90 flex-1 truncate">{s.label}</span>
               <div className="w-16 sm:w-20 h-1.5 bg-muted/60 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full bg-[hsl(var(--${s.color}))]`}
-                  style={{ width: `${s.value}%` }}
+                  className="h-full rounded-full"
+                  style={{ width: `${s.value}%`, backgroundColor: color }}
                 />
               </div>
               <span className="text-[11px] font-semibold tabular-nums text-foreground w-8 text-right">
