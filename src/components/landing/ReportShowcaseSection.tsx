@@ -296,20 +296,20 @@ function ReportMockup() {
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
 
-        {/* Dots */}
-        <div className="flex justify-center gap-1.5 pb-4">
-          {pages.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
-              className={`h-1.5 rounded-full transition-all ${
-                i === idx ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
-              }`}
-              aria-label={`Страница ${i + 1}`}
-            />
-          ))}
-        </div>
+      {/* Dots (outside A4) */}
+      <div className="flex justify-center gap-1.5 pt-4">
+        {pages.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
+            className={`h-1.5 rounded-full transition-all ${
+              i === idx ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
+            }`}
+            aria-label={`Страница ${i + 1}`}
+          />
+        ))}
       </div>
 
       {/* Nav arrows */}
