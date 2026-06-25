@@ -607,11 +607,12 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
 
 /* ===================== MAIN ===================== */
 
-export function HeroBlockPortrait() {
+export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boolean }) {
   const navigate = useNavigate();
   const { requestRegister } = useRegisterGuard();
   const bp = useBreakpoint();
-  const editMode = useEditMode();
+  const urlEditMode = useEditMode();
+  const editMode = editModeProp ?? urlEditMode;
 
   const ArtboardComp = editMode ? EditArtboard : StaticArtboard;
 

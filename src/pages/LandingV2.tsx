@@ -1,4 +1,4 @@
-import { useEffect, Children, isValidElement, cloneElement, ReactNode } from "react";
+import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 
@@ -37,14 +37,28 @@ const LandingV2 = () => {
     };
   }, []);
 
-  const editOn = typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("layoutEdit") === "1";
+  const [editOn, setEditOn] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("layoutEdit") === "1";
+  });
+
+  useEffect(() => {
+    const onPop = () => {
+      setEditOn(new URLSearchParams(window.location.search).get("layoutEdit") === "1");
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   const toggleEdit = () => {
-    const url = new URL(window.location.href);
-    if (editOn) url.searchParams.delete("layoutEdit");
-    else url.searchParams.set("layoutEdit", "1");
-    window.location.href = url.toString();
+    setEditOn((prev) => {
+      const next = !prev;
+      const url = new URL(window.location.href);
+      if (next) url.searchParams.set("layoutEdit", "1");
+      else url.searchParams.delete("layoutEdit");
+      window.history.replaceState({}, "", url.toString());
+      return next;
+    });
   };
 
   return (
@@ -63,7 +77,7 @@ const LandingV2 = () => {
       </div>
       <Blocks>
         <Block>
-          <HeroBlockPortrait />
+          <HeroBlockPortrait editMode={editOn} />
         </Block>
         <Block>
           <HowItWorksBlock />
