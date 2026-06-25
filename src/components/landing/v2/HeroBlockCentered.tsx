@@ -258,16 +258,13 @@ export function HeroBlockCentered() {
                     "radial-gradient(ellipse 60% 60% at 50% 45%, hsl(190 90% 50% / 0.35), transparent 70%)",
                 }}
               />
-              <div className="relative rounded-[2rem] overflow-hidden border border-border/40 shadow-[0_40px_120px_-30px_hsl(var(--primary)/0.5)] aspect-[4/5] bg-card/40">
+              <div className="relative aspect-[4/5]">
                 <img
                   src={heroMan}
                   alt="Здоровый и довольный пациент ReAge"
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain object-bottom drop-shadow-[0_30px_60px_hsl(var(--primary)/0.35)]"
                   loading="eager"
                 />
-                {/* soft top fade to blend with background */}
-                <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-background/60 to-transparent pointer-events-none" />
-                <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-background/70 to-transparent pointer-events-none" />
               </div>
             </div>
           </div>
