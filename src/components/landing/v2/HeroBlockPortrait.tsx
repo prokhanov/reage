@@ -535,8 +535,8 @@ function EditArtboard({ bp }: { bp: Breakpoint }) {
 
 function StaticArtboard({ bp }: { bp: Breakpoint }) {
   const ab = ARTBOARDS[bp];
-  const stored = loadStoredLayouts()[bp];
-  const layout = stored ?? DEFAULT_LAYOUTS[bp];
+  // Static view всегда использует захардкоженные дефолты, чтобы не зависеть от localStorage edit-режима
+  const layout = DEFAULT_LAYOUTS[bp];
 
   const zMap: Record<WidgetId, number> = {
     bioAge: 20,
