@@ -6,23 +6,23 @@ const steps = [
   {
     num: "01",
     image: stepCheckup,
-    title: "Чекап 4 раза в год",
+    title: "Регулярный до 4х раз в год",
     subtitle:
-      "Берём анализы у вас дома или в клинике и отслеживаем изменения показателей в динамике",
+      "Регулярно берём анализы дома или в клинике и проверяем 100+ показателей ключевых систем организма",
   },
   {
     num: "02",
     image: stepAnalysis,
-    title: "Глубокий анализ",
+    title: "Понятная расшифровка",
     subtitle:
-      "Анализ крови на 100+ показателей для комплексной проверки ключевых систем организма",
+      "Объясняем показатели и взаимосвязи — что происходит с организмом и почему, простым языком",
   },
   {
     num: "03",
     image: stepReport,
-    title: "Расшифровка и рекомендации",
+    title: "Рекомендации врача",
     subtitle:
-      "Объясняем показатели и взаимосвязи, что происходит с организмом и почему — и даём персональный план по витаминам, минералам, питанию и образу жизни",
+      "Персональный план по приёму витаминов и минералов, питанию и образу жизни",
   },
 ];
 
@@ -61,7 +61,7 @@ export function HowItWorksBlock() {
               style={{ animationDelay: `${0.1 + i * 0.1}s` }}
             >
               <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-b from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 px-6 pt-14 pb-6 md:px-8 md:pt-16 md:pb-8 flex flex-col items-center text-center transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
+              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 px-5 pt-12 pb-5 md:px-7 md:pt-14 md:pb-6 flex flex-col items-center text-center transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
                 {/* Numbered circle — top center, overflowing the card */}
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2">
                   <div className="relative">
@@ -85,12 +85,12 @@ export function HowItWorksBlock() {
                 </p>
 
                 {/* Illustration */}
-                <div className="mt-auto w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 border border-border/40">
+                <div className="mt-auto w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 border border-border/40">
                   <img
                     src={step.image}
                     alt={step.title}
                     loading="lazy"
-                    width={768}
+                    width={1024}
                     height={768}
                     className="w-full h-full object-cover"
                   />
