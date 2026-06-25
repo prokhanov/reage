@@ -530,14 +530,17 @@ function ReportMockup({
 export function ReportShowcaseSection() {
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState(1);
+  const [paused, setPaused] = useState(false);
+  const stopAuto = () => setPaused(true);
 
   useEffect(() => {
+    if (paused) return;
     const id = setInterval(() => {
       setDir(1);
       setIdx((i) => (i + 1) % reportFeatures.length);
     }, 8000);
     return () => clearInterval(id);
-  }, []);
+  }, [paused]);
 
   return (
     <section className="py-16 md:py-24 relative overflow-hidden">
