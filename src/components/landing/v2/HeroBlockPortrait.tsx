@@ -56,7 +56,7 @@ function CompactSystemsWidget() {
           const Icon = s.icon;
           const color = `hsl(var(${s.token}))`;
           return (
-            <div key={s.label} className="flex items-start gap-1 sm:gap-2">
+            <div key={s.label} className="flex items-start gap-0.5 sm:gap-2">
               <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 mt-0.5" style={{ color }} />
               <span className="text-[10px] sm:text-[11px] text-foreground/90 flex-1 min-w-0 leading-tight">
                 {s.label}
