@@ -299,35 +299,37 @@ function ReportMockup() {
         </div>
       </div>
 
-      {/* Dots (outside A4) */}
-      <div className="flex justify-center gap-1.5 pt-4">
-        {pages.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
-            className={`h-1.5 rounded-full transition-all ${
-              i === idx ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
-            }`}
-            aria-label={`Страница ${i + 1}`}
-          />
-        ))}
-      </div>
+      {/* Bottom navigation: arrows + dots */}
+      <div className="flex items-center justify-center gap-3 pt-4">
+        <button
+          onClick={() => go(-1)}
+          className="w-11 h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+          aria-label="Предыдущая страница"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
 
-      {/* Nav arrows */}
-      <button
-        onClick={() => go(-1)}
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 sm:-translate-x-1/3 w-11 h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all z-10"
-        aria-label="Предыдущая страница"
-      >
-        <ChevronLeft className="w-5 h-5" />
-      </button>
-      <button
-        onClick={() => go(1)}
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 sm:translate-x-1/3 w-11 h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all z-10"
-        aria-label="Следующая страница"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
+        <div className="flex items-center gap-1.5">
+          {pages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
+              className={`h-1.5 rounded-full transition-all ${
+                i === idx ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
+              }`}
+              aria-label={`Страница ${i + 1}`}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={() => go(1)}
+          className="w-11 h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+          aria-label="Следующая страница"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }
