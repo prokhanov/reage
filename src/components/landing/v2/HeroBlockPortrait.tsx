@@ -57,14 +57,12 @@ export function HeroBlockPortrait() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 pt-8 pb-10 md:pt-10 md:pb-14">
-        {/* Logo aligned left, larger */}
-        <div className="flex justify-start mb-8 md:mb-10">
-          <ThemedLogo className="h-14 md:h-16 w-auto animate-hue-shift" />
-        </div>
-
         <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-6 items-center">
           {/* LEFT: copy */}
-          <div className="flex flex-col items-start gap-5 md:gap-6 max-w-xl">
+          <div className="flex flex-col items-start gap-4 md:gap-5 max-w-xl">
+            {/* Logo — directly above the badge, larger */}
+            <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift mb-1" />
+
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
               <MapPin className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs sm:text-sm font-medium text-primary">
@@ -90,7 +88,6 @@ export function HeroBlockPortrait() {
               показателей, оценкой рисков и понятными следующими шагами.
             </p>
 
-            {/* Stats above CTA */}
             <div className="w-full animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <StatRow />
             </div>
@@ -118,8 +115,8 @@ export function HeroBlockPortrait() {
             </div>
           </div>
 
-          {/* RIGHT: portrait with floating widgets */}
-          <div className="relative w-full h-[420px] sm:h-[480px] lg:h-[560px]">
+          {/* RIGHT: portrait with floating widgets — asymmetric, varied sizes, face clear */}
+          <div className="relative w-full h-[480px] sm:h-[540px] lg:h-[620px]">
             {/* Portrait */}
             <img
               src={heroMan}
@@ -128,41 +125,36 @@ export function HeroBlockPortrait() {
               style={{ animationDelay: "0.2s" }}
             />
 
-            {/* Floating widgets — smaller, asymmetric, off the face */}
+            {/* BioAge — large hero card, top-left, off the face */}
             <div
-              className="absolute top-0 left-0 sm:top-[-10px] lg:left-[-10px] w-[170px] sm:w-[190px] lg:w-[205px] animate-fade-in"
+              className="absolute top-2 left-0 sm:top-0 sm:left-[-16px] lg:left-[-24px] w-[230px] sm:w-[260px] lg:w-[285px] animate-fade-in -rotate-2"
               style={{ animationDelay: "0.35s" }}
             >
-              <div className="scale-[0.65] sm:scale-[0.7] lg:scale-[0.75] origin-top-left -rotate-2">
-                <BioAgeWidget />
-              </div>
+              <BioAgeWidget />
             </div>
 
+            {/* Biomarkers — compact, top-right near shoulder */}
             <div
-              className="absolute top-16 right-0 sm:top-14 sm:right-[-10px] lg:top-12 lg:right-[-18px] w-[155px] sm:w-[175px] lg:w-[190px] hidden sm:block animate-fade-in"
+              className="absolute top-24 right-0 sm:top-20 sm:right-[-12px] lg:top-16 lg:right-[-20px] w-[180px] sm:w-[200px] lg:w-[215px] hidden sm:block animate-fade-in rotate-2"
               style={{ animationDelay: "0.5s" }}
             >
-              <div className="scale-[0.62] sm:scale-[0.66] lg:scale-[0.7] origin-top-right rotate-3">
-                <BiomarkersWidget />
-              </div>
+              <BiomarkersWidget />
             </div>
 
+            {/* Systems — compact, bottom-left */}
             <div
-              className="absolute bottom-6 left-0 sm:bottom-8 sm:left-[-6px] lg:bottom-6 lg:left-[-14px] w-[165px] sm:w-[185px] lg:w-[200px] hidden sm:block animate-fade-in"
+              className="absolute bottom-4 left-0 sm:bottom-6 sm:left-[-8px] lg:bottom-4 lg:left-[-16px] w-[185px] sm:w-[205px] lg:w-[220px] hidden sm:block animate-fade-in rotate-1"
               style={{ animationDelay: "0.65s" }}
             >
-              <div className="scale-[0.65] sm:scale-[0.7] lg:scale-[0.74] origin-bottom-left rotate-2">
-                <SystemsWidget />
-              </div>
+              <SystemsWidget />
             </div>
 
+            {/* AI Assistant — compact, bottom-right */}
             <div
-              className="absolute bottom-0 right-0 sm:bottom-[-6px] sm:right-[-10px] lg:bottom-[-10px] lg:right-[-16px] w-[160px] sm:w-[180px] lg:w-[195px] animate-fade-in"
+              className="absolute bottom-0 right-0 sm:bottom-[-4px] sm:right-[-10px] lg:bottom-[-8px] lg:right-[-18px] w-[180px] sm:w-[200px] lg:w-[215px] animate-fade-in -rotate-2"
               style={{ animationDelay: "0.8s" }}
             >
-              <div className="scale-[0.65] sm:scale-[0.7] lg:scale-[0.74] origin-bottom-right -rotate-3">
-                <AIAssistantWidget />
-              </div>
+              <AIAssistantWidget />
             </div>
           </div>
         </div>
