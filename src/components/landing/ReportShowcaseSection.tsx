@@ -205,7 +205,6 @@ const PagePrescriptions = () => (
 const pages: MockPage[] = [
   { id: "summary", label: "Резюме", render: () => <PageSummary /> },
   { id: "bio", label: "Биомаркеры", render: () => <PageBiomarkers /> },
-  { id: "links", label: "Связи", render: () => <PageConnections /> },
   { id: "rx", label: "Рекомендации", render: () => <PagePrescriptions /> },
 ];
 
