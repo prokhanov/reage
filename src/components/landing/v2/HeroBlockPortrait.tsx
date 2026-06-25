@@ -649,7 +649,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
   }[bp];
 
   return (
-    <section className="relative overflow-hidden bg-background min-h-[80vh] flex flex-col">
+    <section className="relative overflow-hidden bg-background min-h-[70vh] flex flex-col">
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
@@ -657,11 +657,11 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
         />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-6 pb-8 md:pt-6 md:pb-8 lg:pt-8 lg:pb-10">
+      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-16 lg:pb-10">
         {mounted && (
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
-            className="fixed top-4 right-4 z-50 p-3 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
+            className="fixed top-2 right-2 z-[100] p-2.5 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
             aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
           >
             {isDark ? (
@@ -674,11 +674,11 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
 
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
           <div className="order-1 flex flex-col items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full">
-            <div className="flex flex-col items-start gap-2">
+            <div className="flex items-end justify-between gap-3 w-full">
               <ThemedLogo className="h-16 sm:h-20 w-auto animate-hue-shift" />
               <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
                 <MapPin className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[11px] sm:text-sm font-medium text-primary">
+                <span className="text-[11px] sm:text-sm font-medium text-primary whitespace-nowrap">
                   Москва и Санкт-Петербург
                 </span>
               </div>
