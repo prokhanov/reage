@@ -63,7 +63,23 @@ const LandingV2 = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-[60] flex justify-end bg-background/80 backdrop-blur border-b border-border px-3 py-2">
+      <div className="sticky top-0 z-[60] flex justify-end gap-2 bg-background/80 backdrop-blur border-b border-border px-3 py-2">
+        {editOn && (
+          <button
+            onClick={async () => {
+              const text = localStorage.getItem("heroLayoutV2") || "{}";
+              try {
+                await navigator.clipboard.writeText(text);
+                alert("Скопировано в буфер!\n\n" + text);
+              } catch {
+                window.prompt("Скопируйте координаты:", text);
+              }
+            }}
+            className="px-3 py-1.5 rounded-md text-xs font-semibold bg-secondary text-secondary-foreground"
+          >
+            Copy layouts
+          </button>
+        )}
         <button
           onClick={toggleEdit}
           className={`px-3 py-1.5 rounded-md text-xs font-semibold ${
