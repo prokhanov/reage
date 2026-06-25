@@ -627,7 +627,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
         />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 pt-8 pb-10 md:pt-10 md:pb-10">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 pt-8 pb-10 md:pt-6 md:pb-8">
         <div className="flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-30">
           <MapPin className="w-3.5 h-3.5 text-primary" />
           <span className="text-[11px] sm:text-sm font-medium text-primary">
