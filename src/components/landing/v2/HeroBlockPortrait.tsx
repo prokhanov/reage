@@ -213,18 +213,19 @@ export function HeroBlockPortrait() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 pt-8 pb-10 md:pt-10 md:pb-14">
+        {/* Top-right location badge */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
+          <MapPin className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs sm:text-sm font-medium text-primary">
+            Москва и Санкт-Петербург
+          </span>
+        </div>
+
         <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-6 items-center">
           {/* LEFT: copy */}
           <div className="flex flex-col items-start gap-4 md:gap-5 max-w-xl">
-            {/* Logo — directly above the badge, larger */}
-            <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift mb-1" />
-
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-              <MapPin className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-primary">
-                Москва и Санкт-Петербург
-              </span>
-            </div>
+            {/* Logo */}
+            <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift" />
 
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in"
