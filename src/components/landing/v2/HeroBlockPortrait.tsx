@@ -41,6 +41,8 @@ function CompactSystemsWidget() {
     { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
   ];
   const isMobile = useIsMobile();
+  const overall = Math.round(systems.reduce((a, s) => a + s.value, 0) / systems.length);
+
   return (
     <div className={`${glass} p-3`}>
       <div className="flex items-center justify-between mb-2">
