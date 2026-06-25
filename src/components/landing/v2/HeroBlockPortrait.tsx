@@ -675,7 +675,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
         <div className="flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-30">
           <MapPin className="w-3.5 h-3.5 text-primary" />
           <span className="text-[11px] sm:text-sm font-medium text-primary">
-            Доступно в Москве и Санкт-Петербурге
+            Москва и Санкт-Петербург
           </span>
         </div>
 
