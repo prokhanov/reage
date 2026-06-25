@@ -685,12 +685,12 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
             <ArtboardComp bp={bp} />
           </div>
 
-          <div className="order-3 lg:hidden flex flex-col items-start gap-5 w-full max-w-xl">
-            <div className="w-full animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
+            <div className="w-full flex justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <StatRow />
             </div>
             <div
-              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-in"
+              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center animate-fade-in"
               style={{ animationDelay: "0.4s" }}
             >
               <Button
