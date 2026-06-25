@@ -26,12 +26,6 @@ const LandingV2 = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Block n={1}>
-        <HeroBlock />
-      </Block>
-      <Block n={2}>
-        <HeroBlockCentered />
-      </Block>
       <Block n={3}>
         <HeroBlockPortrait />
       </Block>
