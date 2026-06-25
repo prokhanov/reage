@@ -413,20 +413,22 @@ export function HeroPortrait() {
         />
       </div>
 
+      {mounted && (
+        <button
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+          className="fixed top-4 right-4 z-[100] p-3 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
+          aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
+        >
+          {isDark ? (
+            <Sun className="h-5 w-5 text-foreground" />
+          ) : (
+            <Moon className="h-5 w-5 text-foreground" />
+          )}
+        </button>
+      )}
+
       <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-6 pb-8 md:pt-6 md:pb-8 lg:pt-8 lg:pb-10">
-        {mounted && (
-          <button
-            onClick={() => setTheme(isDark ? "light" : "dark")}
-            className="fixed top-4 right-4 z-50 p-3 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
-            aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
-          >
-            {isDark ? (
-              <Sun className="h-5 w-5 text-foreground" />
-            ) : (
-              <Moon className="h-5 w-5 text-foreground" />
-            )}
-          </button>
-        )}
+
 
         <div className="flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-30">
           <MapPin className="w-3.5 h-3.5 text-primary" />
