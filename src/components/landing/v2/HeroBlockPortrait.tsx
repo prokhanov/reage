@@ -180,7 +180,7 @@ function StatRow() {
     { icon: FlaskConical, label: "анализов в год", value: "4" },
   ];
   return (
-    <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-md">
+    <div className="grid grid-cols-3 gap-4 sm:gap-8 lg:gap-10 max-w-md lg:max-w-none">
       {stats.map((s) => {
         const Icon = s.icon;
         return (
