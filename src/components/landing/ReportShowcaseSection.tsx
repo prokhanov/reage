@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
+  TrendingUp,
 } from "lucide-react";
 
 // ============ Mockup pages ============
