@@ -438,7 +438,7 @@ function ReportMockup({
   const page = pages[idx];
 
   return (
-    <div className="relative">
+    <div className="relative" onClick={stopAuto}>
       {/* Glow */}
       <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
 
