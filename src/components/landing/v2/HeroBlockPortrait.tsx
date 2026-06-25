@@ -122,11 +122,8 @@ function RecommendationsWidget() {
   ];
   return (
     <div className={`${glass} p-3.5`}>
-      <div className="flex flex-col mb-2.5">
+      <div className="flex items-center justify-between mb-2.5">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Рекомендации
-        </span>
-        <span className="text-[10px] text-muted-foreground mt-0.5">
           Персональные назначения
         </span>
       </div>
