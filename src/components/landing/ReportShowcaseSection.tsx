@@ -47,9 +47,6 @@ const reportFeatures = [
 // ============ Mockup pages ============
 type MockPage = { id: string; label: string; render: () => JSX.Element };
 
-const Dot = ({ color }: { color: string }) => (
-  <span className="inline-block w-2 h-2 rounded-full" style={{ background: color }} />
-);
 
 const Bar = ({ value, color }: { value: number; color: string }) => (
   <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
