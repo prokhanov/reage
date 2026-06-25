@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 
 const uuidv4 = () => (typeof crypto !== "undefined" && "randomUUID" in crypto)
   ? (crypto as any).randomUUID() as string
@@ -15,11 +15,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
+import { BiomarkerValueCell } from "@/components/admin/BiomarkerValueCell";
+import { calculateAge } from "@/lib/biomarkerNorms";
 import {
   Upload,
   FileText,
   CheckCircle2,
-  AlertTriangle,
   XCircle,
   ChevronDown,
   Trash2,
@@ -108,6 +109,48 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [patient, setPatient] = useState<{ age: number | null; gender: "male" | "female" | null }>({ age: null, gender: null });
+  const [biomarkersMap, setBiomarkersMap] = useState<Record<string, any>>({});
+
+  // Load patient profile (age/gender) once for status colouring
+  useEffect(() => {
+    if (!viewAsUserId) return;
+    let aborted = false;
+    (async () => {
+      const { data } = await (supabase
+        .from("profiles") as any)
+        .select("birth_date, gender")
+        .eq("user_id", viewAsUserId)
+        .maybeSingle();
+      if (aborted || !data) return;
+      const age = data.birth_date ? calculateAge(data.birth_date as string) : null;
+      const g = data.gender === "female" ? "female" : data.gender === "male" ? "male" : null;
+      setPatient({ age, gender: g });
+    })();
+    return () => { aborted = true; };
+  }, [viewAsUserId]);
+
+  // Load biomarker norms for any newly recognized biomarker ids
+  useEffect(() => {
+    const ids = new Set<string>();
+    for (const e of entries) {
+      if (e.result) for (const r of e.result.recognized) ids.add(r.biomarker_id);
+    }
+    const missing = Array.from(ids).filter(id => !biomarkersMap[id]);
+    if (!missing.length) return;
+    (async () => {
+      const { data } = await (supabase
+        .from("biomarkers") as any)
+        .select("id, name, code, unit, range_mode, age_ranges, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female")
+        .in("id", missing);
+      if (!data) return;
+      setBiomarkersMap(prev => {
+        const next = { ...prev };
+        for (const b of data) next[(b as any).id] = b;
+        return next;
+      });
+    })();
+  }, [entries, biomarkersMap]);
 
   function addFiles(files: FileList | File[]) {
     const arr = Array.from(files).filter(f => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
@@ -460,16 +503,16 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                               <div className="text-muted-foreground">в PDF: {r.printed_name}</div>
                             </td>
                             <td className="p-2">
-                              <Input
-                                className="h-7 text-xs w-24"
+                              <BiomarkerValueCell
                                 value={r.edited_value}
-                                onChange={e => updateItem(entry.id, idx, { edited_value: e.target.value })}
+                                onChange={(v) => updateItem(entry.id, idx, { edited_value: v })}
+                                biomarker={biomarkersMap[r.biomarker_id] || null}
+                                age={patient.age}
+                                gender={patient.gender}
+                                hint={r.value_converted !== null && r.use_expected_unit
+                                  ? `пересчёт из ${r.value_raw} ${r.unit_raw}`
+                                  : undefined}
                               />
-                              {r.value_converted !== null && r.use_expected_unit && (
-                                <div className="text-[10px] text-muted-foreground mt-1">
-                                  пересчёт из {r.value_raw} {r.unit_raw}
-                                </div>
-                              )}
                             </td>
                             <td className="p-2">
                               <div className="flex items-center gap-1">
