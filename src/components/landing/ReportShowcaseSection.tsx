@@ -216,7 +216,7 @@ const PageInsights = () => {
   );
 };
 
-// 3. Биологический возраст
+// 4. Биологический возраст
 const PageBioAge = () => (
   <div className="space-y-4">
     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -259,7 +259,7 @@ const PageBioAge = () => (
   </div>
 );
 
-// 4. Ранние сигналы риска → ключевые отклонения
+// 5. Ранние сигналы риска → ключевые отклонения
 const PageRisks = () => {
   const risks = [
     {
@@ -312,7 +312,7 @@ const PageRisks = () => {
   );
 };
 
-// 5. Рекомендации врача
+// 6. Рекомендации врача
 const PagePrescriptions = () => (
   <div className="space-y-3">
     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Рекомендации врача</div>
@@ -344,6 +344,14 @@ const reportFeatures = [
     pageId: "bio",
     pageLabel: "Биомаркеры",
     render: () => <PageBiomarkers />,
+  },
+  {
+    icon: TrendingUp,
+    title: "Связи между показателями",
+    description: "Показываем, как биомаркеры, системы и рекомендации влияют друг на друга",
+    pageId: "connections",
+    pageLabel: "Связи",
+    render: () => <PageConnections />,
   },
   {
     icon: Target,
