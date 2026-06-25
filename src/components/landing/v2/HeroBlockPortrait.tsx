@@ -579,17 +579,24 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
           return (
             <div
               key={id}
-              className="absolute animate-fade-in"
+              className="absolute"
               style={{
                 top: p.top,
                 left: p.left,
                 width: p.width,
-                transform: `rotate(${p.rotate}deg)`,
                 zIndex: zMap[id],
-                animationDelay: delayMap[id],
               }}
             >
-              {renderWidget(id)}
+              {/* Поворот вынесен во внутренний div, чтобы animate-fade-in (translateY) не перетирал rotate */}
+              <div
+                className="animate-fade-in"
+                style={{
+                  transform: `rotate(${p.rotate}deg)`,
+                  animationDelay: delayMap[id],
+                }}
+              >
+                {renderWidget(id)}
+              </div>
             </div>
           );
         })}
