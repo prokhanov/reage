@@ -647,27 +647,27 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
           </span>
         </div>
 
-        <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
-          <div className="order-1 flex flex-col items-start gap-3 md:gap-2 max-w-xl w-full">
+        <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
+          <div className="order-1 flex flex-col items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full">
             <ThemedLogo className="h-16 sm:h-20 w-auto animate-hue-shift" />
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
               <span className="block text-white">Ваше здоровье</span>
-              <span className="block mt-0.5 sm:mt-1 bg-gradient-hero bg-clip-text text-transparent">
+              <span className="block mt-0.5 sm:mt-1 lg:mt-2 bg-gradient-hero bg-clip-text text-transparent">
                 в цифрах, динамике и рекомендациях
               </span>
             </h1>
             <p
-              className="text-sm sm:text-base md:text-lg text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in"
+              className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in"
               style={{ animationDelay: "0.2s" }}
             >
               Регулярно берём анализы и предоставляем отчёт по системам организма — с динамикой
               показателей, оценкой рисков и понятными следующими шагами.
             </p>
 
-            <div className="hidden lg:block w-full animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <StatRow />
             </div>
             <div
