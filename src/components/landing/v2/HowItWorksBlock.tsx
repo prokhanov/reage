@@ -1,3 +1,13 @@
+import {
+  Activity,
+  Bot,
+  ClipboardList,
+  Home,
+  LayoutGrid,
+  Pill,
+  Stethoscope,
+  Target,
+} from "lucide-react";
 import stepCheckup from "@/assets/landing-v2/step-checkup.jpg";
 import stepAnalysis from "@/assets/landing-v2/step-analysis.jpg";
 import stepReport from "@/assets/landing-v2/step-report.jpg";
