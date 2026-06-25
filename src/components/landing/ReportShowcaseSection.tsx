@@ -7,7 +7,6 @@ import {
   Eye,
   FileText,
   Target,
-  TrendingUp,
   Pill,
   CheckCircle2,
   Sparkles,
