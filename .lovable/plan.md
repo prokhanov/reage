@@ -1,27 +1,14 @@
-# Откуда взялся test.reage.life
+Быстрый фикс hero на reage.life — без компрессии, просто переношу картинку из Lovable-CDN в обычные `src/assets`, чтобы Vite её забандлил в `/assets/*` (этот префикс уже разрешён в nginx).
 
-Lovable по дефолту проставил `https://test.reage.life` в `index.html` — это «project URL», который шаблон head-meta берёт из настроек проекта. В коде это здесь:
+## Шаги
 
-- `index.html:13` — `<meta property="og:url" content="https://test.reage.life/" />`
-- `index.html:43` — JSON-LD Organization `"url": "https://test.reage.life"`
-- `index.html:52` — JSON-LD WebSite `"url": "https://test.reage.life"`
+1. Скачать оригинал hero с Lovable CDN:
+   `curl -o src/assets/landing-v2/hero-couple-v2.png https://id-preview--86f3da23-8817-4756-ac7c-4097287e8ee5.lovable.app/__l5e/assets-v1/8997c026-4f1c-4c07-824a-7c3587fa9ff6/hero-couple-v2.png`
+2. В `src/components/landing/HeroPortrait.tsx` заменить:
+   - `import heroCoupleAsset from "@/assets/landing-v2/hero-couple-v2.png.asset.json";`
+   - `const heroMan = heroCoupleAsset.url;`
+   на обычный импорт:
+   - `import heroMan from "@/assets/landing-v2/hero-couple-v2.png";`
+3. Удалить `src/assets/landing-v2/hero-couple-v2.png.asset.json`.
 
-Production отдаётся на `reage.life` / `www.reage.life`, поэтому og:url и Schema.org «промахиваются» — Клод и видит этот поддомен в метаданных.
-
-# Что меняем
-
-1. **`index.html` — заменить три вхождения** `https://test.reage.life` → `https://reage.life`:
-   - `og:url` → `https://reage.life/`
-   - Organization `url` → `https://reage.life`
-   - WebSite `url` → `https://reage.life`
-2. **Добавить `<link rel="canonical" href="https://reage.life/" />`** — сейчас его нет вообще, и это отдельная SEO-дыра (мы её обсуждали раньше при усилении on-site сигналов).
-
-# Что НЕ трогаем
-
-- `og:image` уже на `https://reage.life/og-image.jpg` — ок.
-- `sitemap.xml` / `robots.txt` — уже на `reage.life`.
-- Сабдомен test.reage.life физически существует как preview, но в публичный HTML его пихать не надо.
-
-# Проверка
-
-После деплоя `curl -s https://www.reage.life | grep -E "og:url|canonical|\"url\""` должен вернуть только `reage.life`, без `test.`.
+После публикации фронта картинка поедет с `/assets/hero-couple-v2-<hash>.png` и nginx её отдаст без проблем. Компрессию сделаем отдельно, когда скажешь.
