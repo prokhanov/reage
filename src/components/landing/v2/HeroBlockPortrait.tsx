@@ -57,7 +57,7 @@ function CompactSystemsWidget() {
           const color = `hsl(var(${s.token}))`;
           return (
             <div key={s.label} className="flex items-start gap-0.5 sm:gap-2">
-              <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 mt-0.5" style={{ color }} />
+              <Icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color }} />
               <span className="text-[10px] sm:text-[11px] text-foreground/90 flex-1 min-w-0 leading-tight">
                 {s.label}
               </span>
@@ -236,7 +236,7 @@ const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
     bioAge:         { top: 141, left: -6,  width: 170, rotate: -2 },
     biomarkers:     { top: 104, left: 190, width: 172, rotate: 2 },
     recommendations:{ top: 261, left: -30, width: 165, rotate: -1 },
-    systems:        { top: 266, left: 148, width: 175, rotate: 1 },
+    systems:        { top: 266, left: 140, width: 190, rotate: 1 },
   },
   tablet: {
     bioAge:         { top: 139, left: 4,   width: 208, rotate: -2 },
