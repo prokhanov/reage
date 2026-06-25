@@ -431,9 +431,9 @@ export function HeroPortrait() {
 
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
           <div className="order-1 flex flex-col items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full">
-            <div className="flex items-end gap-3">
+            <div className="flex flex-col items-start gap-2">
               <ThemedLogo className="h-16 sm:h-20 w-auto animate-hue-shift" />
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in mb-0.5">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
                 <MapPin className="w-3.5 h-3.5 text-primary" />
                 <span className="text-[11px] sm:text-sm font-medium text-primary">
                   Москва и Санкт-Петербург
