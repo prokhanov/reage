@@ -2,28 +2,32 @@
  * /example-report
  *
  * Публичная страница-пример отчёта. Открывается поверх лендинга как полноэкранный
- * Dialog (95vw × 90vh). Имеет собственный URL, при закрытии возвращает на "/".
- *
- * Источник данных — статичный снимок (src/data/exampleReport.json), сделанный из
- * реального обработанного отчёта пациентки с заменой имени на «Елена».
- * Никаких сетевых запросов / Supabase — отчёт не зависит от состояния БД.
- *
- * UI 1:1 повторяет ViewDialog в src/pages/Recommendations.tsx:
- * слева — мини-сайдбар с навигацией по секциям, справа — контент со скроллом.
+ * Dialog. Адаптирован под мобильные и планшеты — мини-сайдбар скрывается и
+ * выезжает через Sheet (как в ЛК Recommendations.tsx).
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { List, X } from "lucide-react";
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import { getBiomarkerStatus } from "@/lib/biomarkerNorms";
@@ -35,11 +39,6 @@ import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
 import type { PdfBiomarkerData } from "@/lib/pdfExportHelpers";
 
 import exampleReportData from "@/data/exampleReport.json";
-
-// ────────────────────────────────────────────────────────────────────────────────
-// Helpers (slug + section grouping — копия из Recommendations.tsx, чтобы не
-// тащить туда новую логику и не ломать существующий экран).
-// ────────────────────────────────────────────────────────────────────────────────
 
 const toSlug = (s: string) =>
   s
@@ -101,16 +100,12 @@ const groupByType = (recs: ExampleRecommendation[]) =>
     return acc;
   }, {});
 
-// ────────────────────────────────────────────────────────────────────────────────
-// Component
-// ────────────────────────────────────────────────────────────────────────────────
-
 export default function ExampleReport() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
+  const [tocSheetOpen, setTocSheetOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // SEO
   useEffect(() => {
     const prevTitle = document.title;
     document.title = "Пример персонального отчёта ReAge | Елена";
@@ -131,16 +126,13 @@ export default function ExampleReport() {
     };
   }, []);
 
-  // Закрытие — возврат на лендинг.
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (!next) {
-      // Небольшая задержка, чтобы Radix успел сыграть анимацию выхода.
       setTimeout(() => navigate("/"), 150);
     }
   };
 
-  // Возраст / пол пациентки берём из снимка.
   const { age, gender } = useMemo(() => {
     const g: "male" | "female" = data.profile?.gender === "female" ? "female" : "male";
     let a = 40;
@@ -153,7 +145,6 @@ export default function ExampleReport() {
     return { age: a, gender: g };
   }, []);
 
-  // Готовим webBiomarkers — структура та же, что и в Recommendations.tsx.
   const webBiomarkers = useMemo<PdfBiomarkerData[]>(() => {
     return (data.analysis_values || []).map((v) => {
       const b = v.biomarker;
@@ -252,10 +243,14 @@ export default function ExampleReport() {
   const reportDate = data.analysis?.date
     ? new Date(data.analysis.date)
     : null;
+  const dateLabel =
+    reportDate && !isNaN(reportDate.getTime())
+      ? format(reportDate, "d MMMM yyyy", { locale: ru })
+      : "Пример отчёта";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-0 overflow-hidden">
+      <DialogContent className="h-[95vh] sm:h-[90vh] w-[100vw] sm:w-[95vw] max-w-7xl p-0 overflow-hidden rounded-none sm:rounded-lg">
         <DialogHeader className="sr-only">
           <DialogTitle>Пример персонального отчёта</DialogTitle>
           <DialogDescription>
@@ -264,18 +259,14 @@ export default function ExampleReport() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex h-full min-h-0">
-          {/* Mini Sidebar */}
-          <div className="w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex flex-col min-h-0 overflow-hidden">
+        <div className="flex h-full w-full min-w-0 min-h-0 flex-col md:flex-row">
+          {/* Desktop Sidebar */}
+          <div className="hidden md:flex w-64 border-r border-border bg-muted/30 backdrop-blur-sm flex-col min-h-0 overflow-hidden">
             <div className="p-6 border-b border-border flex-shrink-0">
               <h3 className="font-semibold text-lg bg-gradient-primary bg-clip-text text-transparent">
                 Содержание
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {reportDate && !isNaN(reportDate.getTime())
-                  ? format(reportDate, "d MMMM yyyy", { locale: ru })
-                  : "Пример отчёта"}
-              </p>
+              <p className="text-sm text-muted-foreground mt-1">{dateLabel}</p>
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
@@ -298,30 +289,97 @@ export default function ExampleReport() {
 
           {/* Content Area */}
           <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
-            <div className="px-8 py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  Пример персонального отчёта
-                </DialogTitle>
-                <DialogDescription className="mt-2">
-                  Демонстрация: Елена •{" "}
-                  {(data.recommendations || []).length}{" "}
-                  {(data.recommendations || []).length === 1
-                    ? "раздел"
-                    : "разделов"}
-                </DialogDescription>
+            <div className="relative px-4 sm:px-8 py-3 sm:py-6 border-b border-border bg-gradient-to-r from-background to-muted/20 flex-shrink-0 flex flex-row items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                {/* Mobile TOC trigger */}
+                <Sheet open={tocSheetOpen} onOpenChange={setTocSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="md:hidden h-9 w-9 rounded-xl flex-shrink-0"
+                      aria-label="Содержание"
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-[85vw] max-w-sm p-0">
+                    <SheetHeader className="p-5 border-b border-border">
+                      <SheetTitle className="bg-gradient-primary bg-clip-text text-transparent text-left">
+                        Содержание
+                      </SheetTitle>
+                      <p className="text-sm text-muted-foreground text-left">
+                        {dateLabel}
+                      </p>
+                    </SheetHeader>
+                    <div
+                      className="overflow-y-auto px-3 py-4"
+                      style={{ maxHeight: "calc(100dvh - 110px)" }}
+                    >
+                      <nav className="space-y-1">
+                        {sections.map((section) => (
+                          <button
+                            key={section.id}
+                            type="button"
+                            onClick={(e) => {
+                              scrollToSection(section.id, e);
+                              setTocSheetOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3 hover:bg-accent text-muted-foreground hover:text-foreground"
+                          >
+                            <span className="text-sm font-medium flex-1 line-clamp-2">
+                              {section.label}
+                            </span>
+                          </button>
+                        ))}
+                      </nav>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                <div className="min-w-0 flex-1">
+                  <DialogTitle className="text-base sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent truncate">
+                    <span className="md:hidden">{dateLabel}</span>
+                    <span className="hidden md:inline">
+                      Пример персонального отчёта
+                    </span>
+                  </DialogTitle>
+                  <DialogDescription className="mt-1 sm:mt-2 hidden sm:block">
+                    Демонстрация: Елена •{" "}
+                    {(data.recommendations || []).length}{" "}
+                    {(data.recommendations || []).length === 1
+                      ? "раздел"
+                      : "разделов"}
+                  </DialogDescription>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+                <DialogClose asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-md flex-shrink-0 opacity-70 hover:opacity-100"
+                    aria-label="Закрыть"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </DialogClose>
               </div>
             </div>
 
             <div
-              className="flex-1 min-h-0 overflow-y-auto px-8 py-6"
+              className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6"
               ref={contentRef}
             >
-              <div id="report-content" className="space-y-12 max-w-4xl">
+              <div
+                id="report-content"
+                className="space-y-5 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto"
+              >
                 {patientData && (
                   <div id="section-patient-data" className="scroll-mt-6">
                     <div className="prose prose-sm max-w-none">
-                      <div className="p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10 shadow-sm">
+                      <div className="sm:p-6 sm:bg-gradient-to-br sm:from-primary/5 sm:to-accent/5 sm:rounded-xl sm:border sm:border-primary/10 sm:shadow-sm">
                         <MarkdownContent
                           content={cleanMarkdownArtifacts(patientData.text)}
                         />
@@ -342,7 +400,7 @@ export default function ExampleReport() {
                     {summary && (
                       <div id="section-summary" className="scroll-mt-6">
                         <div className="prose prose-sm max-w-none">
-                          <div className="p-6 bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-accent/10 shadow-sm">
+                          <div className="sm:p-6 sm:bg-gradient-to-br sm:from-accent/5 sm:to-primary/5 sm:rounded-xl sm:border sm:border-accent/10 sm:shadow-sm">
                             <MarkdownContent
                               content={cleanMarkdownArtifacts(summary.text)}
                             />
@@ -358,8 +416,8 @@ export default function ExampleReport() {
                         className="scroll-mt-6"
                       >
                         <div className="space-y-4">
-                          <div className="mb-6">
-                            <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                          <div className="mb-4 sm:mb-6">
+                            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
                               {type}
                             </h2>
                             <div className="h-1 w-20 bg-gradient-primary rounded-full" />
@@ -367,7 +425,7 @@ export default function ExampleReport() {
                           {recs.map((rec) => (
                             <div
                               key={rec.id}
-                              className="p-6 bg-card/50 backdrop-blur-sm rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow"
+                              className="sm:p-6 sm:bg-card/50 sm:backdrop-blur-sm sm:rounded-xl sm:border sm:border-border sm:shadow-sm sm:hover:shadow-md sm:transition-shadow"
                             >
                               {renderInterleavedWeb(
                                 rec.text,
@@ -385,16 +443,16 @@ export default function ExampleReport() {
 
                 {hasPrescriptionsBlock && (
                   <div id="section-prescriptions" className="scroll-mt-6">
-                    <div className="mb-6">
-                      <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+                    <div className="mb-4 sm:mb-6">
+                      <h2 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
                         Рекомендации
                       </h2>
                       <div className="h-1 w-20 bg-gradient-primary rounded-full" />
                     </div>
 
                     {(data.prescriptions || []).length > 0 && (
-                      <section className="space-y-4 mb-8">
-                        <h3 className="text-xl font-semibold text-foreground">
+                      <section className="space-y-4 mb-6 sm:mb-8">
+                        <h3 className="text-lg sm:text-xl font-semibold text-foreground">
                           Нутрицевтики ({data.prescriptions.length})
                         </h3>
                         <div className="space-y-4">
