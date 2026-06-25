@@ -503,16 +503,16 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
                               <div className="text-muted-foreground">в PDF: {r.printed_name}</div>
                             </td>
                             <td className="p-2">
-                              <Input
-                                className="h-7 text-xs w-24"
+                              <BiomarkerValueCell
                                 value={r.edited_value}
-                                onChange={e => updateItem(entry.id, idx, { edited_value: e.target.value })}
+                                onChange={(v) => updateItem(entry.id, idx, { edited_value: v })}
+                                biomarker={biomarkersMap[r.biomarker_id] || null}
+                                age={patient.age}
+                                gender={patient.gender}
+                                hint={r.value_converted !== null && r.use_expected_unit
+                                  ? `пересчёт из ${r.value_raw} ${r.unit_raw}`
+                                  : undefined}
                               />
-                              {r.value_converted !== null && r.use_expected_unit && (
-                                <div className="text-[10px] text-muted-foreground mt-1">
-                                  пересчёт из {r.value_raw} {r.unit_raw}
-                                </div>
-                              )}
                             </td>
                             <td className="p-2">
                               <div className="flex items-center gap-1">
