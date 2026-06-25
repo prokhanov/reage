@@ -31,147 +31,126 @@ const Bar = ({ value, color }: { value: number; color: string }) => (
   </div>
 );
 
-// 1. Подробная расшифровка анализов → биомаркеры
-const PageBiomarkers = () => {
-  const items = [
-    { name: "Глюкоза", code: "GLU", value: "4.72", unit: "ммоль/л", p: 35, status: "optimal", label: "Оптимально" },
-    { name: "Гликированный гемоглобин", code: "HbA1c", value: "5.05", unit: "%", p: 40, status: "optimal", label: "Оптимально" },
-    { name: "Витамин D (25-OH D)", code: "25-OH D", value: "74.35", unit: "нг/мл", p: 70, status: "optimal", label: "Оптимально" },
-    { name: "Нейтрофилы", code: "NEUT", value: "79.13", unit: "%", p: 88, status: "risk", label: "Риск" },
-    { name: "Тестостерон общий", code: "TEST", value: "0.16", unit: "нмоль/л", p: 18, status: "critical", label: "Критично" },
-  ];
-
-  const statusDot = (s: string) => {
-    switch (s) {
-      case "optimal": return "text-status-optimal";
-      case "acceptable": return "text-status-acceptable";
-      case "risk": return "text-status-risk";
-      case "critical": return "text-status-critical";
-      default: return "text-muted-foreground";
-    }
-  };
-  const statusMarker = (s: string) => {
-    switch (s) {
-      case "optimal": return "hsl(142 71% 45%)";
-      case "acceptable": return "hsl(38 92% 50%)";
-      case "risk": return "hsl(25 95% 53%)";
-      case "critical": return "hsl(0 84% 60%)";
-      default: return "hsl(var(--muted-foreground))";
-    }
-  };
-
-  return (
-    <div className="space-y-3">
-      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        Состояние биомаркеров
-      </div>
-      {items.map((b) => (
-        <div
-          key={b.code}
-          className="rounded-xl border border-border/40 bg-card/50 shadow-sm p-4 space-y-2"
-        >
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-sm font-semibold text-foreground truncate">{b.name}</span>
-              <span className="text-xs text-muted-foreground">({b.code})</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className={`text-[10px] ${statusDot(b.status)}`}>●</span>
-              <span className={`text-xs font-medium ${statusDot(b.status)}`}>{b.label}</span>
-            </div>
-          </div>
-
-          <div className="relative h-1.5 rounded-full bg-gradient-to-r from-red-500/30 via-emerald-500/40 to-red-500/30">
-            <motion.div
-              initial={{ left: 0 }}
-              animate={{ left: `${b.p}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute -top-1 w-3.5 h-3.5 rounded-full border-2 border-background shadow-md"
-              style={{ background: statusMarker(b.status), transform: "translateX(-50%)" }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Значение</span>
-            <span className="font-semibold">
-              {b.value} <span className="text-muted-foreground font-normal">{b.unit}</span>
-            </span>
-          </div>
-        </div>
-      ))}
+// Small marker chip with mini-scale
+const MarkerChip = ({
+  name,
+  value,
+  unit,
+  p,
+  color,
+  label,
+}: {
+  name: string;
+  value: string;
+  unit: string;
+  p: number;
+  color: string;
+  label: string;
+}) => (
+  <div className="rounded-lg border border-border/40 bg-card/50 p-2.5 space-y-1.5">
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[11px] font-semibold truncate">{name}</span>
+      <span className="text-[10px] font-medium" style={{ color }}>
+        {label}
+      </span>
     </div>
-  );
-};
+    <div className="relative h-1 rounded-full bg-gradient-to-r from-red-500/30 via-emerald-500/40 to-red-500/30">
+      <div
+        className="absolute -top-0.5 w-2 h-2 rounded-full border border-background"
+        style={{ left: `${p}%`, background: color, transform: "translateX(-50%)" }}
+      />
+    </div>
+    <div className="text-[10px] text-muted-foreground">
+      {value} <span>{unit}</span>
+    </div>
+  </div>
+);
+
+// 1. Подробная расшифровка анализов
+const PageBiomarkers = () => (
+  <div className="space-y-3">
+    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+      Расшифровка анализов
+    </div>
+
+    <p className="text-[12px] leading-relaxed text-foreground/85">
+      Проанализировано <span className="font-semibold text-foreground">112 биомаркеров</span> по пяти ключевым системам организма.
+      Углеводный обмен и липидный профиль находятся в превосходном состоянии: гликированный
+      гемоглобин <span className="font-semibold">5.05%</span> и HOMA-IR в нижней трети нормы говорят
+      о высокой чувствительности тканей к инсулину и низком риске метаболических нарушений.
+    </p>
+
+    <div className="grid grid-cols-2 gap-2">
+      <MarkerChip name="HbA1c" value="5.05" unit="%" p={35} color="hsl(142 71% 45%)" label="Оптимально" />
+      <MarkerChip name="Витамин D" value="74.35" unit="нг/мл" p={70} color="hsl(142 71% 45%)" label="Оптимально" />
+      <MarkerChip name="Нейтрофилы" value="79.13" unit="%" p={88} color="hsl(25 95% 53%)" label="Риск" />
+      <MarkerChip name="Тестостерон" value="0.16" unit="нмоль/л" p={12} color="hsl(0 84% 60%)" label="Критично" />
+    </div>
+
+    <p className="text-[12px] leading-relaxed text-foreground/85">
+      На фоне сильных систем выделяется несколько зон внимания. Тестостерон значительно ниже
+      оптимальных значений — это ключевой анаболический гормон, и его дефицит проявляется
+      усталостью, снижением выносливости и когнитивной активности. Повышенные нейтрофилы и
+      сниженный альбумин формируют картину вялотекущего системного воспаления (inflammaging),
+      одного из главных факторов биологического старения.
+    </p>
+
+    <p className="text-[12px] leading-relaxed text-foreground/85">
+      Гомоцистеин <span className="font-semibold">9.79 мкмоль/л</span> формально в норме, но выше
+      оптимального порога <span className="font-semibold">&lt;8</span> — указывает на субоптимальный
+      метаболизм витаминов группы B и требует поддержки фолатами и B12.
+    </p>
+  </div>
+);
 
 // 2. Связи между показателями
 const PageConnections = () => {
   const links = [
-    {
-      from: "Гликированный гемоглобин",
-      to: "Инсулинорезистентность",
-      note: "Долгосрочный контроль глюкозы влияет на чувствительность к инсулину",
-    },
-    {
-      from: "Тестостерон общий",
-      to: "Энергия и восстановление",
-      note: "Низкий тестостерон снижает анаболический тонус и выносливость",
-    },
-    {
-      from: "Нейтрофилы",
-      to: "Системное воспаление",
-      note: "Повышенные нейтрофилы — маркер inflammaging и нагрузки на иммунитет",
-    },
-    {
-      from: "Альбумин",
-      to: "Белковый обмен",
-      note: "Сниженный белок усиливает воспалительный фон и замедляет регенерацию",
-    },
+    { from: "HbA1c", to: "Чувствительность к инсулину", note: "Долгосрочный контроль глюкозы определяет инсулинорезистентность и риск метаболического синдрома." },
+    { from: "Тестостерон ↓", to: "Энергия и мышцы", note: "Низкий тестостерон снижает анаболический тонус, выносливость, скорость восстановления и плотность костей." },
+    { from: "Нейтрофилы ↑ + Альбумин ↓", to: "Inflammaging", note: "Сочетание этих маркеров — типичная картина хронического воспаления низкой интенсивности, ускоряющего старение." },
+    { from: "Гомоцистеин ↑", to: "Сердечно-сосудистый риск", note: "Указывает на дефицит B6, B12 и фолиевой кислоты, повышает риск эндотелиальной дисфункции." },
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Связи между показателями
       </div>
 
-      <div className="relative rounded-2xl border border-border/40 bg-card/50 p-4 overflow-hidden">
-        {/* Decorative network SVG */}
-        <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="30%" cy="30%" r="6" fill="currentColor" />
-          <circle cx="70%" cy="25%" r="6" fill="currentColor" />
-          <circle cx="25%" cy="70%" r="6" fill="currentColor" />
-          <circle cx="75%" cy="75%" r="6" fill="currentColor" />
-          <line x1="30%" y1="30%" x2="70%" y2="25%" stroke="currentColor" strokeWidth="1.5" />
-          <line x1="30%" y1="30%" x2="25%" y2="70%" stroke="currentColor" strokeWidth="1.5" />
-          <line x1="70%" y1="25%" x2="75%" y2="75%" stroke="currentColor" strokeWidth="1.5" />
-          <line x1="25%" y1="70%" x2="75%" y2="75%" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
+      <p className="text-[12px] leading-relaxed text-foreground/85">
+        Организм работает как единая сеть — изолированный показатель редко объясняет причину.
+        Мы анализируем, как биомаркеры влияют друг на друга, и показываем цепочки, которые
+        формируют общую картину вашего здоровья.
+      </p>
 
-        <div className="relative space-y-3">
-          {links.map((l, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-              <div>
-                <div className="text-xs font-semibold">
-                  {l.from} <span className="text-muted-foreground">→</span> {l.to}
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">
-                  {l.note}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Compact network illustration */}
+      <div className="relative h-16 rounded-lg border border-border/40 bg-card/40 overflow-hidden">
+        <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+          <line x1="15%" y1="50%" x2="40%" y2="25%" stroke="currentColor" strokeWidth="1" />
+          <line x1="15%" y1="50%" x2="40%" y2="75%" stroke="currentColor" strokeWidth="1" />
+          <line x1="40%" y1="25%" x2="65%" y2="50%" stroke="currentColor" strokeWidth="1" />
+          <line x1="40%" y1="75%" x2="65%" y2="50%" stroke="currentColor" strokeWidth="1" />
+          <line x1="65%" y1="50%" x2="90%" y2="30%" stroke="currentColor" strokeWidth="1" />
+          <line x1="65%" y1="50%" x2="90%" y2="70%" stroke="currentColor" strokeWidth="1" />
+          <circle cx="15%" cy="50%" r="4" fill="hsl(var(--primary))" />
+          <circle cx="40%" cy="25%" r="4" fill="hsl(142 71% 45%)" />
+          <circle cx="40%" cy="75%" r="4" fill="hsl(25 95% 53%)" />
+          <circle cx="65%" cy="50%" r="4" fill="hsl(var(--primary))" />
+          <circle cx="90%" cy="30%" r="4" fill="hsl(38 92% 50%)" />
+          <circle cx="90%" cy="70%" r="4" fill="hsl(0 84% 60%)" />
+        </svg>
       </div>
 
-      <div className="rounded-xl border border-border/40 bg-card/50 p-4">
-        <div className="text-[11px] font-semibold text-primary uppercase tracking-wide mb-2">
-          Зачем это важно
-        </div>
-        <p className="text-xs text-foreground/80 leading-relaxed">
-          Организм — это единая система. Изолированный показатель редко объясняет причину.
-          ReAge показывает, какие маркеры влияют друг на друга, чтобы вы увидели полную картину.
-        </p>
+      <div className="space-y-2.5">
+        {links.map((l, i) => (
+          <div key={i} className="rounded-lg border border-border/40 bg-card/50 p-2.5">
+            <div className="text-[11px] font-semibold">
+              {l.from} <span className="text-muted-foreground">→</span> {l.to}
+            </div>
+            <p className="text-[11px] text-foreground/75 leading-relaxed mt-1">{l.note}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -187,14 +166,22 @@ const PageInsights = () => {
     { name: "Эндокринная и стресс", score: 80, color: "hsl(38 92% 50%)" },
   ];
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Баланс систем организма
       </div>
-      <div className="rounded-xl border border-border/40 bg-card/50 p-4 space-y-3">
+
+      <p className="text-[12px] leading-relaxed text-foreground/85">
+        Фундаментальные системы организма функционируют на высоком уровне — это и определяет
+        биологический возраст ниже хронологического. Превосходные показатели углеводного обмена
+        и липидного профиля компенсируют локальные отклонения.
+      </p>
+
+      {/* Compact bars */}
+      <div className="rounded-lg border border-border/40 bg-card/50 p-3 space-y-2">
         {systems.map((s) => (
-          <div key={s.name} className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
+          <div key={s.name} className="space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
               <span className="font-medium truncate pr-2">{s.name}</span>
               <span className="font-semibold tabular-nums">{s.score}</span>
             </div>
@@ -202,93 +189,107 @@ const PageInsights = () => {
           </div>
         ))}
       </div>
-      <div className="rounded-xl border border-border/40 bg-card/50 p-4">
-        <div className="text-[11px] font-semibold text-primary uppercase tracking-wide mb-2">
-          Главный инсайт
-        </div>
-        <p className="text-xs text-foreground/80 leading-relaxed">
-          Углеводный обмен и липидный профиль — в превосходном состоянии. Зона роста —
-          гормональная и иммунная сферы: снижены анаболические гормоны и есть признаки
-          лёгкого системного воспаления.
-        </p>
-      </div>
+
+      <p className="text-[12px] leading-relaxed text-foreground/85">
+        <span className="font-semibold">Зона роста — гормональная и иммунная сферы.</span>{" "}
+        Снижены анаболические гормоны (тестостерон, DHEA-S), есть признаки лёгкого системного
+        воспаления. Это не критично, но требует целенаправленной поддержки: восстановление
+        гормонального статуса даст прирост энергии, выносливости и улучшит регенерацию тканей.
+      </p>
+
+      <p className="text-[12px] leading-relaxed text-foreground/85">
+        Эндокринная система получила <span className="font-semibold">80/100</span> — самый низкий
+        балл среди пяти систем. На ближайшие 3 месяца это приоритетная зона работы.
+      </p>
     </div>
   );
 };
 
 // 4. Биологический возраст
 const PageBioAge = () => (
-  <div className="space-y-4">
+  <div className="space-y-3">
     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
       Биологический возраст
     </div>
-    <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-primary/10 via-card/60 to-card/40 p-5">
-      <div className="flex items-end justify-between gap-4">
+
+    {/* Smaller hero tile */}
+    <div className="rounded-xl border border-border/40 bg-gradient-to-br from-primary/10 via-card/60 to-card/40 p-3.5">
+      <div className="flex items-end justify-between gap-3">
         <div>
-          <div className="text-xs text-muted-foreground mb-1">Биологический</div>
-          <div className="text-5xl font-bold bg-gradient-hero bg-clip-text text-transparent leading-none">
+          <div className="text-[10px] text-muted-foreground mb-0.5">Биологический</div>
+          <div className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent leading-none">
             34.5
           </div>
-          <div className="text-xs text-muted-foreground mt-1">из 38 хроно</div>
+          <div className="text-[10px] text-muted-foreground mt-1">из 38 хроно</div>
         </div>
         <div className="text-right">
-          <div className="text-xs text-muted-foreground mb-1">Моложе на</div>
-          <div className="text-2xl font-bold text-emerald-500">−3.5 года</div>
-          <div className="text-[11px] text-muted-foreground mt-1">Индекс здоровья 91/100</div>
+          <div className="text-[10px] text-muted-foreground mb-0.5">Моложе на</div>
+          <div className="text-xl font-bold text-emerald-500">−3.5 года</div>
+          <div className="text-[10px] text-muted-foreground mt-0.5">Индекс здоровья 91/100</div>
         </div>
       </div>
     </div>
-    <div className="rounded-xl border border-border/40 bg-card/50 p-4 space-y-2">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+
+    <p className="text-[12px] leading-relaxed text-foreground/85">
+      Биологический возраст рассчитывается по совокупности 112 показателей с учётом их веса
+      в процессах старения. Значение <span className="font-semibold">34.5 года</span> при
+      хронологическом возрасте 38 — отличный результат, обусловленный сильным углеводным
+      обменом (HbA1c, HOMA-IR), благоприятным липидным профилем (ApoB/A1, hs-CRP) и низким
+      уровнем системного воспаления.
+    </p>
+
+    <div className="rounded-lg border border-border/40 bg-card/50 p-3 space-y-1.5">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         Что ускоряет старение
       </div>
       {[
-        { name: "Тестостерон общий", note: "влияет на энергию и мышечную массу" },
-        { name: "DHEA-S", note: "гормон стрессоустойчивости и восстановления" },
-        { name: "Альбумин", note: "белковый обмен и транспорт веществ" },
+        { name: "Тестостерон общий", note: "ключевой анаболический гормон, влияет на энергию и мышечную массу" },
+        { name: "DHEA-S", note: "«гормон молодости», определяет стрессоустойчивость и восстановление" },
+        { name: "Альбумин", note: "белковый обмен, маркер общего состояния здоровья" },
       ].map((f) => (
-        <div key={f.name} className="flex items-start gap-2 text-xs">
-          <Activity className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+        <div key={f.name} className="flex items-start gap-2 text-[11px]">
+          <Activity className="w-3 h-3 text-primary mt-0.5 shrink-0" />
           <div>
             <span className="font-semibold">{f.name}</span>
-            <span className="text-muted-foreground"> — {f.note}</span>
+            <span className="text-foreground/70"> — {f.note}</span>
           </div>
         </div>
       ))}
     </div>
+
+    <p className="text-[12px] leading-relaxed text-foreground/85">
+      Целевой ориентир на 6 месяцев — снижение биовозраста ещё на 1.5–2 года за счёт работы
+      с гормональным статусом и противовоспалительной поддержки.
+    </p>
   </div>
 );
 
-// 5. Ранние сигналы риска → ключевые отклонения
+// 5. Ранние сигналы риска
 const PageRisks = () => {
   const risks = [
     {
-      name: "Тестостерон общий",
-      value: "0.16 нмоль/л",
+      name: "Тестостерон общий — 0.16 нмоль/л",
       tag: "Критично",
       tagClr: "text-status-critical bg-status-critical/10",
-      reason: "Значительно ниже оптимальных значений. Влияет на энергию, либидо, мышечную массу и когнитивные функции.",
+      text: "Значительно ниже оптимальных значений. Является ключевым анаболическим гормоном — влияет на энергию, либидо, мышечную массу, плотность костей и когнитивные функции. Требует углублённой диагностики и коррекции у эндокринолога.",
     },
     {
-      name: "Нейтрофилы",
-      value: "79.13 %",
+      name: "Нейтрофилы — 79.13%",
       tag: "Риск",
       tagClr: "text-status-risk bg-status-risk/10",
-      reason: "Повышены — возможный признак системного воспаления. Требует наблюдения и противовоспалительной поддержки.",
+      text: "Повышены при норме до 72%. Может свидетельствовать о вялотекущем воспалительном процессе — одном из ключевых факторов старения (inflammaging). Рекомендуется противовоспалительная поддержка и повторный контроль через 8 недель.",
     },
     {
-      name: "DHEA-S",
-      value: "89.72 мкг/дл",
+      name: "Гомоцистеин — 9.79 мкмоль/л",
       tag: "Внимание",
       tagClr: "text-status-acceptable bg-status-acceptable/10",
-      reason: "Нижняя треть нормы. Для замедления старения оптимум — в верхней трети референсного диапазона.",
+      text: "Формально в пределах нормы, но выше оптимального порога <8 мкмоль/л. Указывает на субоптимальный метаболизм витаминов группы B. Фактор сердечно-сосудистого риска и эндотелиальной дисфункции в перспективе 5–10 лет.",
     },
     {
-      name: "Альбумин",
-      value: "39.1 г/л",
+      name: "Альбумин — 32.1 г/л",
       tag: "Внимание",
       tagClr: "text-status-acceptable bg-status-acceptable/10",
-      reason: "Снижен — может указывать на недостаточный белковый обмен и хроническое воспаление низкой степени.",
+      text: "Снижен — указывает на недостаточный белковый обмен, возможные скрытые воспалительные процессы или нагрузку на печень и почки. Усиливает воспалительный фон и замедляет регенерацию тканей.",
     },
   ];
   return (
@@ -296,16 +297,22 @@ const PageRisks = () => {
       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Ранние сигналы риска
       </div>
+
+      <p className="text-[12px] leading-relaxed text-foreground/85">
+        Четыре показателя требуют внимания: один в критической зоне, один в зоне риска и два —
+        формально в норме, но за пределами оптимума. Своевременная коррекция этих маркеров
+        предотвращает развитие хронических состояний за горизонтом 3–5 лет.
+      </p>
+
       {risks.map((r) => (
-        <div key={r.name} className="rounded-xl border border-border/40 bg-card/50 p-3.5 space-y-1.5">
+        <div key={r.name} className="rounded-lg border border-border/40 bg-card/50 p-3 space-y-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="text-sm font-semibold">{r.name}</div>
+            <div className="text-[12px] font-semibold">{r.name}</div>
             <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${r.tagClr}`}>
               {r.tag}
             </span>
           </div>
-          <div className="text-xs text-muted-foreground font-medium">{r.value}</div>
-          <p className="text-[11px] leading-relaxed text-foreground/75">{r.reason}</p>
+          <p className="text-[11px] leading-relaxed text-foreground/75">{r.text}</p>
         </div>
       ))}
     </div>
@@ -315,23 +322,44 @@ const PageRisks = () => {
 // 6. Рекомендации врача
 const PagePrescriptions = () => (
   <div className="space-y-3">
-    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Рекомендации врача</div>
-    {[
-      { t: "Магний глицинат", d: "400 мг · вечером · 8 недель", c: "hsl(280 70% 60%)" },
-      { t: "Витамин B6 (P-5-P)", d: "50 мг · утром с едой · 12 недель", c: "hsl(var(--primary))" },
-      { t: "Омега-3 (EPA/DHA)", d: "2000 мг/сут · с едой · постоянно", c: "hsl(142 71% 45%)" },
-      { t: "Кверцетин + биофлавоноиды", d: "500 мг · 2 раза в день · 8 недель", c: "hsl(38 92% 50%)" },
-      { t: "Питание и сон", d: "+30 г белка, циркадный режим 23:00–07:00", c: "hsl(200 80% 55%)" },
-    ].map((r) => (
-      <div key={r.t} className="rounded-lg border border-border/60 bg-card/60 p-3 flex gap-3">
-        <div className="w-1 rounded-full shrink-0" style={{ background: r.c }} />
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold">{r.t}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{r.d}</div>
+    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+      Рекомендации врача
+    </div>
+
+    <p className="text-[12px] leading-relaxed text-foreground/85">
+      Персональный план составлен с учётом ваших биомаркеров, образа жизни и приоритетных зон
+      роста. На 8–12 недель — нутрицевтическая поддержка для снижения воспаления и поддержки
+      нервной системы, дальше — повторный контроль и корректировка курса.
+    </p>
+
+    <div className="space-y-2">
+      {[
+        { t: "Магний глицинат", d: "400 мг · вечером · 8 недель — снижение тревожности, улучшение сна и нервно-мышечного восстановления", c: "hsl(280 70% 60%)" },
+        { t: "Витамин B6 (P-5-P)", d: "50 мг · утром с едой · 12 недель — нормализация гомоцистеина, поддержка нейромедиаторов", c: "hsl(var(--primary))" },
+        { t: "Омега-3 (EPA/DHA)", d: "2000 мг/сут · с едой · постоянно — противовоспалительное действие, поддержка сердца и мозга", c: "hsl(142 71% 45%)" },
+        { t: "Кверцетин + биофлавоноиды", d: "500 мг · 2 раза в день · 8 недель — снижение системного воспаления, поддержка иммунной системы", c: "hsl(38 92% 50%)" },
+      ].map((r) => (
+        <div key={r.t} className="rounded-lg border border-border/60 bg-card/60 p-2.5 flex gap-2.5">
+          <div className="w-1 rounded-full shrink-0" style={{ background: r.c }} />
+          <div className="flex-1 min-w-0">
+            <div className="text-[12px] font-semibold">{r.t}</div>
+            <div className="text-[11px] text-foreground/70 mt-0.5 leading-relaxed">{r.d}</div>
+          </div>
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
         </div>
-        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+      ))}
+    </div>
+
+    <div className="rounded-lg border border-border/40 bg-card/50 p-3">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-primary mb-1.5">
+        Образ жизни
       </div>
-    ))}
+      <p className="text-[11px] leading-relaxed text-foreground/80">
+        Добавить +30 г белка в суточный рацион (поддержка альбумина и анаболизма). Циркадный
+        режим сна 23:00–07:00 для естественного восстановления тестостерона и DHEA-S. Силовые
+        тренировки 2–3 раза в неделю. Повторный анализ — через 12 недель.
+      </p>
+    </div>
   </div>
 );
 
