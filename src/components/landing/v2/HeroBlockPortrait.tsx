@@ -291,11 +291,11 @@ export function HeroBlockPortrait() {
                   <CompactBiomarkersWidget />
                 </div>
                 <div className="absolute animate-fade-in -rotate-1 z-30"
-                  style={{ top: 300, left: -8, width: 165, animationDelay: "0.8s" }}>
+                  style={{ top: 280, left: -8, width: 165, animationDelay: "0.8s" }}>
                   <RecommendationsWidget />
                 </div>
                 <div className="absolute animate-fade-in rotate-1 z-30"
-                  style={{ top: 300, right: -8, width: 175, animationDelay: "0.65s" }}>
+                  style={{ top: 280, right: -8, width: 175, animationDelay: "0.65s" }}>
                   <CompactSystemsWidget />
                 </div>
               </div>
