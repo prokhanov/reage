@@ -59,7 +59,7 @@ export function HeroBlockCentered() {
 
       <div className="relative z-10 container mx-auto px-4 lg:px-8 xl:px-12 py-8 md:py-10">
         {/* Logo + location badge */}
-        <div className="flex justify-center lg:justify-start items-end gap-3 mb-5 md:mb-6">
+        <div className="flex flex-col items-center lg:items-start gap-2 mb-5 md:mb-6">
           <ThemedLogo className="h-10 md:h-12 w-auto animate-hue-shift" />
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
             <MapPin className="w-3.5 h-3.5 text-primary" />
