@@ -349,8 +349,37 @@ export function HeroBlockPortrait() {
                 style={{ bottom: 20, left: -10, width: 252, animationDelay: "0.65s" }}>
                 <CompactSystemsWidget />
               </div>
+          </div>
+
+          {/* MOBILE/TABLET: stats + CTAs under the portrait */}
+          <div className="order-3 lg:hidden flex flex-col items-start gap-5 w-full max-w-xl">
+            <div className="w-full animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <StatRow />
+            </div>
+            <div
+              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-in"
+              style={{ animationDelay: "0.4s" }}
+            >
+              <Button
+                size="lg"
+                onClick={requestRegister}
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+              >
+                Начать мониторинг
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("/auth")}
+                className="text-sm sm:text-base px-6 sm:px-7 py-5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground transition-all duration-300"
+              >
+                Войти в аккаунт
+              </Button>
             </div>
           </div>
+        </div>
+
         </div>
       </div>
     </section>
