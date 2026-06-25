@@ -178,6 +178,7 @@ const PageConnections = () => {
 };
 
 // 3. Инсайты о состоянии организма
+const PageInsights = () => {
   const systems = [
     { name: "Энергия и восстановление", score: 95, color: "hsl(142 71% 45%)" },
     { name: "Сердечно-сосудистая", score: 90, color: "hsl(142 71% 45%)" },
