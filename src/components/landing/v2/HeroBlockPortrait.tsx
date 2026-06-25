@@ -615,19 +615,31 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
 
   const ArtboardComp = editMode ? EditArtboard : StaticArtboard;
 
+  const glowStyle = {
+    desktop: {
+      background:
+        "radial-gradient(ellipse 95% 85% at 70% 50%, hsl(210 85% 45% / 0.35) 0%, hsl(190 90% 42% / 0.15) 45%, transparent 85%)",
+    },
+    tablet: {
+      background:
+        "radial-gradient(ellipse 110% 95% at 60% 50%, hsl(210 85% 45% / 0.34) 0%, hsl(190 90% 42% / 0.14) 45%, transparent 85%)",
+    },
+    mobile: {
+      background:
+        "radial-gradient(ellipse 140% 100% at 50% 40%, hsl(210 85% 45% / 0.32) 0%, hsl(190 90% 42% / 0.12) 50%, transparent 85%)",
+    },
+  }[bp];
+
   return (
     <section className="relative overflow-hidden bg-background">
       <div className="absolute inset-0 pointer-events-none">
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 55% at 50% 50%, hsl(220 85% 50% / 0.28) 0%, hsl(190 90% 50% / 0.15) 40%, transparent 70%)",
-          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
+          style={glowStyle}
         />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-8 pb-10 md:pt-6 md:pb-8">
+      <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-6 pb-8 md:pt-6 md:pb-8 lg:pt-8 lg:pb-10">
         <div className="flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-30">
           <MapPin className="w-3.5 h-3.5 text-primary" />
           <span className="text-[11px] sm:text-sm font-medium text-primary">
