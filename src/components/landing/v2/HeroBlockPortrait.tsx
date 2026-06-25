@@ -304,7 +304,7 @@ export function HeroBlockPortrait() {
 
             {/* Systems — вернул на место (правая нижняя часть портрета) */}
             <div
-              className="absolute bottom-4 left-[96px] sm:bottom-5 sm:left-[74px] lg:bottom-5 lg:left-[30px] xl:left-[14px] w-[238px] sm:w-[252px] lg:w-[268px] hidden sm:block animate-fade-in rotate-1 z-30"
+              className="absolute bottom-4 left-[96px] sm:bottom-5 sm:left-[74px] lg:bottom-5 lg:left-[30px] xl:left-[14px] w-[228px] sm:w-[240px] lg:w-[252px] hidden sm:block animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
               <CompactSystemsWidget />
