@@ -273,56 +273,56 @@ export function HeroBlockPortrait() {
           {/* RIGHT: STATIC artboards per breakpoint — like a fixed photo composition */}
           <div className="order-2 relative w-full flex justify-center lg:justify-end">
 
-            {/* ===== MOBILE artboard: 340x520 proportionally scaled ===== */}
-            <div className="sm:hidden mx-auto" style={{ width: 340 * 0.82, height: 520 * 0.82 }}>
-              <div className="relative origin-top-left" style={{ width: 340, height: 520, transform: "scale(0.82)" }}>
+            {/* ===== MOBILE artboard: 340x440 proportionally scaled ===== */}
+            <div className="sm:hidden mx-auto" style={{ width: 340 * 0.82, height: 440 * 0.82 }}>
+              <div className="relative origin-top-left" style={{ width: 340, height: 440, transform: "scale(0.82)" }}>
                 <img
                   src={heroMan}
                   alt="Пациент изучает свой персональный отчёт ReAge"
                   className="absolute animate-fade-in pointer-events-none object-contain object-bottom"
-                  style={{ left: 50, bottom: 0, width: 260, height: 500, animationDelay: "0.2s" }}
+                  style={{ left: 50, bottom: 0, width: 240, height: 440, animationDelay: "0.2s" }}
                 />
                 <div className="absolute animate-fade-in -rotate-2 z-20"
-                  style={{ top: 12, left: -8, width: 178, animationDelay: "0.35s" }}>
+                  style={{ top: 50, left: -8, width: 178, animationDelay: "0.35s" }}>
                   <CompactBioAgeWidget />
                 </div>
                 <div className="absolute animate-fade-in rotate-2 z-30"
-                  style={{ top: 0, right: -8, width: 180, animationDelay: "0.5s" }}>
+                  style={{ top: 40, right: -8, width: 180, animationDelay: "0.5s" }}>
                   <CompactBiomarkersWidget />
                 </div>
                 <div className="absolute animate-fade-in -rotate-1 z-30"
-                  style={{ top: 240, left: -8, width: 200, animationDelay: "0.8s" }}>
+                  style={{ top: 215, left: -8, width: 200, animationDelay: "0.8s" }}>
                   <RecommendationsWidget />
                 </div>
                 <div className="absolute animate-fade-in rotate-1 z-30"
-                  style={{ bottom: 8, right: -8, width: 220, animationDelay: "0.65s" }}>
+                  style={{ bottom: 0, right: -8, width: 220, animationDelay: "0.65s" }}>
                   <CompactSystemsWidget />
                 </div>
               </div>
             </div>
 
-            {/* ===== TABLET artboard: 560x560 ===== */}
-            <div className="hidden sm:block lg:hidden relative mx-auto" style={{ width: 560, height: 560 }}>
+            {/* ===== TABLET artboard: 560x500 ===== */}
+            <div className="hidden sm:block lg:hidden relative mx-auto" style={{ width: 560, height: 500 }}>
               <img
                 src={heroMan}
                 alt="Пациент изучает свой персональный отчёт ReAge"
                 className="absolute animate-fade-in pointer-events-none object-contain object-bottom"
-                style={{ left: 130, bottom: 0, width: 320, height: 560, animationDelay: "0.2s" }}
+                style={{ left: 140, bottom: 0, width: 280, height: 500, animationDelay: "0.2s" }}
               />
               <div className="absolute animate-fade-in -rotate-2 z-20"
-                style={{ top: 60, left: 0, width: 208, animationDelay: "0.35s" }}>
+                style={{ top: 90, left: 0, width: 208, animationDelay: "0.35s" }}>
                 <CompactBioAgeWidget />
               </div>
               <div className="absolute animate-fade-in rotate-2 z-30"
-                style={{ top: 40, right: 0, width: 220, animationDelay: "0.5s" }}>
+                style={{ top: 70, right: 0, width: 220, animationDelay: "0.5s" }}>
                 <CompactBiomarkersWidget />
               </div>
               <div className="absolute animate-fade-in -rotate-1 z-30"
-                style={{ top: 310, right: 0, width: 232, animationDelay: "0.8s" }}>
+                style={{ top: 270, right: 0, width: 232, animationDelay: "0.8s" }}>
                 <RecommendationsWidget />
               </div>
               <div className="absolute animate-fade-in rotate-1 z-30"
-                style={{ bottom: 16, left: 0, width: 240, animationDelay: "0.65s" }}>
+                style={{ bottom: 8, left: 0, width: 240, animationDelay: "0.65s" }}>
                 <CompactSystemsWidget />
               </div>
             </div>
