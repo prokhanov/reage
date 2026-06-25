@@ -238,9 +238,9 @@ const ARTBOARDS: Record<Breakpoint, { width: number; height: number; scale: numb
 const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
     bioAge:         { top: 138, left: -15, width: 170, rotate: -2 },
-    biomarkers:     { top: 128, left: 185, width: 172, rotate: 2 },
+    biomarkers:     { top: 139, left: 184, width: 172, rotate: 2 },
     recommendations:{ top: 261, left: -30, width: 165, rotate: -1 },
-    systems:        { top: 277, left: 148, width: 175, rotate: 1 },
+    systems:        { top: 296, left: 146, width: 175, rotate: 1 },
   },
   tablet: {
     bioAge:         { top: 184, left: 39,  width: 208, rotate: -2 },
