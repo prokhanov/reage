@@ -572,6 +572,8 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
             height: ab.man.height,
             objectPosition: ab.man.objectPosition,
             animationDelay: "0.2s",
+            WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 78%, transparent 100%)",
+            maskImage: "linear-gradient(to bottom, black 0%, black 78%, transparent 100%)",
           }}
         />
         {(Object.keys(layout) as WidgetId[]).map((id) => {
