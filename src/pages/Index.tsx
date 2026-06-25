@@ -18,7 +18,17 @@ const Index = () => {
     <div className="min-h-screen bg-background overflow-x-hidden">
       <VerifyEmailTokenHandler />
       <HeroPortrait />
-      <HowItWorksSection />
+      <div className="relative -mt-px">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-48 sm:h-56 lg:h-64 z-[1]"
+          style={{
+            background:
+              "linear-gradient(to bottom, hsl(210 85% 45% / 0.10) 0%, hsl(210 85% 45% / 0.04) 50%, transparent 100%)",
+          }}
+        />
+        <HowItWorksSection />
+      </div>
       <WhyCheckupsFail />
       <BenefitsSection />
       <BiomarkersDeepDiveSection />

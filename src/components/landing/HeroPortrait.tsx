@@ -413,6 +413,15 @@ export function HeroPortrait() {
         />
       </div>
 
+      {/* плавное затухание hero в фон следующей секции */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 sm:h-48 lg:h-56 z-[5]"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent 0%, hsl(var(--background) / 0.6) 55%, hsl(var(--background)) 100%)",
+        }}
+      />
+
       {mounted && (
         <button
           onClick={() => setTheme(isDark ? "light" : "dark")}
