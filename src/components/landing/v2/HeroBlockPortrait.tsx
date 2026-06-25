@@ -383,9 +383,8 @@ export function HeroBlockPortrait() {
             </div>
           </div>
         </div>
-
-        </div>
       </div>
+
     </section>
   );
 }
