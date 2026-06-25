@@ -279,7 +279,7 @@ export function HeroBlockPortrait() {
           </div>
 
           {/* RIGHT: portrait with floating widgets — fixed positions per breakpoint, no overlap */}
-          <div className="relative w-full h-[560px] sm:h-[600px] lg:h-[620px]">
+          <div className="relative w-full h-[660px] sm:h-[600px] lg:h-[620px]">
             {/* Portrait */}
             <img
               src={heroMan}
@@ -290,7 +290,7 @@ export function HeroBlockPortrait() {
 
             {/* BioAge — top-left */}
             <div
-              className="absolute top-[150px] left-[0px] w-[168px] sm:top-[210px] sm:left-[8px] sm:w-[200px] lg:top-[230px] lg:left-[-20px] lg:w-[216px] animate-fade-in -rotate-2 z-20"
+              className="absolute top-[140px] left-[0px] w-[168px] sm:top-[210px] sm:left-[8px] sm:w-[200px] lg:top-[230px] lg:left-[-20px] lg:w-[216px] animate-fade-in -rotate-2 z-20"
               style={{ animationDelay: "0.35s" }}
             >
               <CompactBioAgeWidget />
@@ -298,7 +298,7 @@ export function HeroBlockPortrait() {
 
             {/* Biomarkers — top-right */}
             <div
-              className="absolute top-[130px] right-[0px] w-[170px] sm:top-[170px] sm:right-[8px] sm:w-[220px] lg:top-[200px] lg:right-[12px] lg:w-[236px] animate-fade-in rotate-2 z-30"
+              className="absolute top-[120px] right-[0px] w-[170px] sm:top-[170px] sm:right-[8px] sm:w-[220px] lg:top-[200px] lg:right-[12px] lg:w-[236px] animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
               <CompactBiomarkersWidget />
@@ -306,7 +306,7 @@ export function HeroBlockPortrait() {
 
             {/* Recommendations — middle-right */}
             <div
-              className="absolute top-[300px] right-[0px] w-[200px] sm:top-[340px] sm:right-[8px] sm:w-[228px] lg:top-[360px] lg:right-[12px] lg:w-[244px] animate-fade-in -rotate-2 z-30"
+              className="absolute top-[320px] right-[0px] w-[200px] sm:top-[340px] sm:right-[8px] sm:w-[228px] lg:top-[378px] lg:right-[12px] lg:w-[244px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <RecommendationsWidget />
@@ -314,7 +314,7 @@ export function HeroBlockPortrait() {
 
             {/* Systems — bottom-left */}
             <div
-              className="absolute bottom-[10px] left-[0px] w-[220px] sm:bottom-[16px] sm:left-[8px] sm:w-[240px] lg:bottom-[20px] lg:left-[-10px] lg:w-[252px] animate-fade-in rotate-1 z-30"
+              className="absolute top-[490px] left-[0px] w-[220px] sm:top-auto sm:bottom-[16px] sm:left-[8px] sm:w-[240px] lg:bottom-[20px] lg:left-[-10px] lg:w-[252px] animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
               <CompactSystemsWidget />
