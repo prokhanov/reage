@@ -17,7 +17,20 @@ import heroMan from "@/assets/landing-v2/hero-man-v2.png";
 const glass =
   "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
 
+function useIsMobile() {
+  const [m, setM] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 640 : false,
+  );
+  useEffect(() => {
+    const u = () => setM(window.innerWidth < 640);
+    window.addEventListener("resize", u);
+    return () => window.removeEventListener("resize", u);
+  }, []);
+  return m;
+}
+
 /* ===================== WIDGETS ===================== */
+
 
 function CompactSystemsWidget() {
   const systems = [
@@ -27,12 +40,14 @@ function CompactSystemsWidget() {
     { label: "Печень и почки", value: 71, icon: Droplets, token: "--status-acceptable" },
     { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
   ];
+  const isMobile = useIsMobile();
   const overall = Math.round(systems.reduce((a, s) => a + s.value, 0) / systems.length);
+
   return (
     <div className={`${glass} p-3`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Системы здоровья
+          {isMobile ? "СИСТЕМЫ" : "Системы здоровья"}
         </span>
         <span className="text-[11px] font-semibold text-primary">{overall}%</span>
       </div>
@@ -43,7 +58,7 @@ function CompactSystemsWidget() {
           return (
             <div key={s.label} className="flex items-center gap-2">
               <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-              <span className="text-[11px] text-foreground/90 flex-1 truncate">{s.label}</span>
+              <span className={`text-[11px] text-foreground/90 flex-1 leading-tight ${isMobile ? "" : "truncate"}`}>{s.label}</span>
               <div className="flex items-center gap-1.5 w-28">
                 <span className="text-[10px] font-semibold tabular-nums text-foreground w-6 text-left">
                   {s.value}%
@@ -69,11 +84,12 @@ function CompactBiomarkersWidget() {
     { name: "Ферритин", value: "38", unit: "мкг/л", status: "Допустимо", token: "--status-acceptable" },
     { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
   ];
+  const isMobile = useIsMobile();
   return (
     <div className={`${glass} p-3`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Ключевые биомаркеры
+          {isMobile ? "БИОМАРКЕРЫ" : "Ключевые биомаркеры"}
         </span>
       </div>
       <div className="divide-y divide-border/40">
@@ -108,11 +124,12 @@ function RecommendationsWidget() {
     "Омега-3 (EPA/DHA) 2 г/сут — 12 недель",
     "Контроль ферритина и HbA1c через 3 мес",
   ];
+  const isMobile = useIsMobile();
   return (
     <div className={`${glass} p-3`}>
       <div className="mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Персональные назначения
+          {isMobile ? "НАЗНАЧЕНИЯ" : "Персональные назначения"}
         </span>
       </div>
       <ul className="space-y-1">
@@ -131,11 +148,12 @@ function RecommendationsWidget() {
 }
 
 function CompactBioAgeWidget() {
+  const isMobile = useIsMobile();
   return (
     <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] p-3.5">
       <div className="flex items-center justify-between gap-3 mb-2.5">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
-          Биологический возраст
+          {isMobile ? "БИО. ВОЗРАСТ" : "Биологический возраст"}
         </span>
         <span className="inline-flex items-center text-[10px] font-semibold text-[hsl(var(--status-optimal))] bg-[hsl(var(--status-optimal)/0.12)] px-2 py-0.5 rounded-full">
           −3.8
@@ -610,16 +628,16 @@ export function HeroBlockPortrait() {
           </span>
         </div>
 
-        <div className="flex flex-col items-center gap-5 md:gap-8 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
+        <div className="flex flex-col items-center gap-3 md:gap-4 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
           <div className="order-1 flex flex-col items-start gap-4 md:gap-5 max-w-xl w-full">
             <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift" />
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="block text-foreground">Ваше здоровье в цифрах,</span>
+              <span className="block text-white">Ваше здоровье</span>
               <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
-                динамике и рекомендациях
+                в цифрах, динамике и рекомендациях
               </span>
             </h1>
             <p
