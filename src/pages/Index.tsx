@@ -29,8 +29,8 @@ const Index = () => {
           }}
         />
         <HowItWorksBlock />
-        <ComparisonSection />
         <WhyCheckupsFail />
+        <ComparisonSection />
         <HowItWorksSection />
       </div>
       <BenefitsSection />
