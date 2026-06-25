@@ -569,7 +569,7 @@ export function ReportShowcaseSection() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start max-w-6xl mx-auto">
           {/* Left: report mockup */}
           <div className="order-2 lg:order-1 px-6 sm:px-10 lg:px-4">
-            <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} />
+            <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} stopAuto={stopAuto} />
           </div>
 
           {/* Right: features */}
@@ -581,7 +581,7 @@ export function ReportShowcaseSection() {
                 <motion.button
                   key={feature.title}
                   type="button"
-                  onClick={() => { setDir(index > idx ? 1 : -1); setIdx(index); }}
+                  onClick={() => { stopAuto(); setDir(index > idx ? 1 : -1); setIdx(index); }}
                   initial={{ opacity: 0, x: 20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
