@@ -84,11 +84,12 @@ function CompactBiomarkersWidget() {
     { name: "Ферритин", value: "38", unit: "мкг/л", status: "Допустимо", token: "--status-acceptable" },
     { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
   ];
+  const isMobile = useIsMobile();
   return (
     <div className={`${glass} p-3`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Ключевые биомаркеры
+          {isMobile ? "БИОМАРКЕРЫ" : "Ключевые биомаркеры"}
         </span>
       </div>
       <div className="divide-y divide-border/40">
