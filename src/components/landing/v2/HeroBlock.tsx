@@ -219,7 +219,7 @@ export function HeroBlock() {
       )}
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 pt-6 pb-12 md:pt-10 md:pb-16">
+      <div className="relative z-10 container mx-auto px-4 pt-6 pb-12 md:pt-10 md:pb-16">
         <div className="flex justify-center lg:justify-start mb-6 md:mb-8">
           <ThemedLogo className="h-14 md:h-20 w-auto animate-hue-shift" />
         </div>
@@ -235,7 +235,7 @@ export function HeroBlock() {
             </div>
 
             <h1
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold leading-[1.1] tracking-tight animate-fade-in"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
               <span className="block text-foreground">Ваше здоровье в цифрах,</span>
