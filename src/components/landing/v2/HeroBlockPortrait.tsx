@@ -45,7 +45,7 @@ function CompactSystemsWidget() {
           return (
             <div key={s.label} className="flex items-center gap-2">
               <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-              <span className="text-[11px] text-foreground/90 flex-1 truncate">
+              <span className="text-[11px] text-foreground/90 max-w-[100px] truncate">
                 {s.label}
               </span>
               <div className="w-10 h-1.5 bg-muted/60 rounded-full overflow-hidden">
