@@ -36,6 +36,49 @@ const steps = [
   },
 ];
 
+const features = [
+  {
+    icon: LayoutGrid,
+    label: "Контрольная панель",
+    description: "Все метрики здоровья в одном месте",
+  },
+  {
+    icon: Activity,
+    label: "Динамика и тренды",
+    description: "Отслеживание изменений показателей",
+  },
+  {
+    icon: ClipboardList,
+    label: "Отчёты и расшифровка",
+    description: "Понятный формат вместо сухих цифр",
+  },
+  {
+    icon: Bot,
+    label: "ИИ-ассистент",
+    description: "Ответы на вопросы по здоровью",
+  },
+  {
+    icon: Pill,
+    label: "Рекомендации и назначения",
+    description: "Персональный план лечения и профилактики",
+  },
+  {
+    icon: Stethoscope,
+    label: "Очные консультации",
+    description: "Приём у врача при необходимости",
+  },
+  {
+    icon: Home,
+    label: "Выезд на дом",
+    description: "Забор анализов без поездок в клинику",
+  },
+  {
+    icon: Target,
+    label: "Годовое сопровождение",
+    description: "Постоянный контроль и коррекция плана",
+  },
+];
+
 export function HowItWorksBlock() {
   return (
     <section className="relative py-16 md:py-24 overflow-hidden">
