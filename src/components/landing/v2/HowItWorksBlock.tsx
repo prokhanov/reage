@@ -99,6 +99,15 @@ export function HowItWorksBlock() {
             </div>
           ))}
         </div>
+        {/* Extra value proposition */}
+        <div className="mt-12 md:mt-16 max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <div className="relative rounded-3xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border border-primary/20 p-6 md:p-8 backdrop-blur-sm text-center">
+            <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-primary/20 to-accent/20 opacity-50 blur-lg -z-10" />
+            <p className="text-lg md:text-xl font-medium text-foreground">
+              А также дашборды, аналитика, очные консультации врача и многое другое
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   );
