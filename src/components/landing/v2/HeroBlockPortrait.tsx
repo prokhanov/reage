@@ -148,11 +148,12 @@ function RecommendationsWidget() {
 }
 
 function CompactBioAgeWidget() {
+  const isMobile = useIsMobile();
   return (
     <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] p-3.5">
       <div className="flex items-center justify-between gap-3 mb-2.5">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
-          Биологический возраст
+          {isMobile ? "БИО. ВОЗРАСТ" : "Биологический возраст"}
         </span>
         <span className="inline-flex items-center text-[10px] font-semibold text-[hsl(var(--status-optimal))] bg-[hsl(var(--status-optimal)/0.12)] px-2 py-0.5 rounded-full">
           −3.8
