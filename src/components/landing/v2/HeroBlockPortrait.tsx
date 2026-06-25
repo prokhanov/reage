@@ -309,17 +309,17 @@ export function HeroBlockPortrait() {
               <CompactBiomarkersWidget />
             </div>
 
-            {/* Systems — narrower compact */}
+            {/* Systems — вернул на место (правая нижняя часть портрета) */}
             <div
-              className="absolute bottom-4 left-[28px] sm:bottom-5 sm:left-[14px] lg:bottom-5 lg:left-[-14px] xl:left-[-26px] w-[238px] sm:w-[252px] lg:w-[268px] hidden sm:block animate-fade-in rotate-1 z-30"
+              className="absolute bottom-4 left-[96px] sm:bottom-5 sm:left-[74px] lg:bottom-5 lg:left-[30px] xl:left-[14px] w-[238px] sm:w-[252px] lg:w-[268px] hidden sm:block animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
               <CompactSystemsWidget />
             </div>
 
-            {/* Recommendations — moved up and right, tied to health systems */}
+            {/* Recommendations — чуть выше и правее от нижнего края */}
             <div
-              className="absolute top-[110px] right-[8px] sm:top-[120px] sm:right-[6px] lg:top-[130px] lg:right-[10px] xl:right-[18px] w-[232px] sm:w-[248px] lg:w-[260px] animate-fade-in -rotate-2 z-30"
+              className="absolute bottom-[40px] right-[4px] sm:bottom-[48px] sm:right-[8px] lg:bottom-[48px] lg:right-[12px] xl:right-[16px] w-[232px] sm:w-[248px] lg:w-[260px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <RecommendationsWidget />
