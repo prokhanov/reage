@@ -405,7 +405,7 @@ export function HeroPortrait() {
   }[bp];
 
   return (
-    <section className="relative overflow-hidden bg-background">
+    <section className="relative overflow-hidden bg-background min-h-[80vh] flex flex-col">
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250%] h-[250%] animate-[hero-glow-pulse_10s_ease-in-out_infinite]"
