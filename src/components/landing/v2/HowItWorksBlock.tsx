@@ -1,3 +1,13 @@
+import {
+  Activity,
+  Bot,
+  ClipboardList,
+  Home,
+  LayoutGrid,
+  Pill,
+  Stethoscope,
+  Target,
+} from "lucide-react";
 import stepCheckup from "@/assets/landing-v2/step-checkup.jpg";
 import stepAnalysis from "@/assets/landing-v2/step-analysis.jpg";
 import stepReport from "@/assets/landing-v2/step-report.jpg";
@@ -23,6 +33,49 @@ const steps = [
     title: "Рекомендации врача",
     subtitle:
       "Персональный план по приёму витаминов и минералов, питанию и образу жизни",
+  },
+];
+
+const features = [
+  {
+    icon: LayoutGrid,
+    label: "Контрольная панель",
+    description: "Все метрики здоровья в одном месте",
+  },
+  {
+    icon: Activity,
+    label: "Динамика и тренды",
+    description: "Отслеживание изменений показателей",
+  },
+  {
+    icon: ClipboardList,
+    label: "Отчёты и расшифровка",
+    description: "Понятный формат вместо сухих цифр",
+  },
+  {
+    icon: Bot,
+    label: "ИИ-ассистент",
+    description: "Ответы на вопросы по здоровью",
+  },
+  {
+    icon: Pill,
+    label: "Рекомендации и назначения",
+    description: "Персональный план лечения и профилактики",
+  },
+  {
+    icon: Stethoscope,
+    label: "Очные консультации",
+    description: "Приём у врача при необходимости",
+  },
+  {
+    icon: Home,
+    label: "Выезд на дом",
+    description: "Забор анализов без поездок в клинику",
+  },
+  {
+    icon: Target,
+    label: "Годовое сопровождение",
+    description: "Постоянный контроль и коррекция плана",
   },
 ];
 
@@ -102,13 +155,37 @@ export function HowItWorksBlock() {
             </div>
           ))}
         </div>
-        {/* Extra value proposition */}
-        <div className="mt-12 md:mt-16 max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <div className="relative rounded-3xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border border-primary/20 p-6 md:p-8 backdrop-blur-sm text-center">
-            <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-primary/20 to-accent/20 opacity-50 blur-lg -z-10" />
-            <p className="text-lg md:text-xl font-medium text-foreground">
-              А также дашборды, аналитика, очные консультации врача и многое другое
-            </p>
+        {/* Additional features */}
+        <div className="mt-12 md:mt-16 max-w-6xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <div className="text-center mb-8 md:mb-10">
+            <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+              И всё это внутри одной подписки
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {features.map((feature, i) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={i}
+                  className="group relative rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-4 md:p-5 transition-all duration-300 hover:bg-card/80 hover:border-primary/30 hover:-translate-y-0.5"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 text-primary">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-[15px] leading-tight">
+                        {feature.label}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1 leading-snug">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
