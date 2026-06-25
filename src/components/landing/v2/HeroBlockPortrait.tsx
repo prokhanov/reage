@@ -151,7 +151,7 @@ export function HeroBlockPortrait() {
 
             {/* BioAge — smaller than the other widgets, lowered below the face */}
             <div
-              className="absolute top-[246px] left-[22px] sm:top-[276px] sm:left-[6px] lg:top-[300px] lg:left-[-18px] xl:left-[-34px] w-[188px] sm:w-[204px] lg:w-[216px] animate-fade-in -rotate-2 z-20"
+              className="absolute top-[202px] left-[20px] sm:top-[222px] sm:left-[4px] lg:top-[238px] lg:left-[-24px] xl:left-[-42px] w-[188px] sm:w-[204px] lg:w-[216px] animate-fade-in -rotate-2 z-20"
               style={{ animationDelay: "0.35s" }}
             >
               <CompactBioAgeWidget />
@@ -159,7 +159,7 @@ export function HeroBlockPortrait() {
 
             {/* Biomarkers — natural Block 1 widget, right side, away from face */}
             <div
-              className="absolute top-6 right-0 sm:top-10 sm:right-[-18px] lg:top-14 lg:right-[-54px] xl:right-[-62px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-2 z-30"
+              className="absolute top-6 right-[-18px] sm:top-10 sm:right-[-34px] lg:top-14 lg:right-[-76px] xl:right-[-98px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
               <BiomarkersWidget />
