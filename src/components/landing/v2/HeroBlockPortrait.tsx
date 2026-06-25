@@ -117,16 +117,13 @@ function RecommendationsWidget() {
     "Контроль ферритина и HbA1c через 3 мес",
   ];
   return (
-    <div className={`${glass} p-3.5`}>
-      <div className="flex flex-col mb-2.5">
+    <div className={`${glass} p-3`}>
+      <div className="mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           Персональные назначения
         </span>
-        <span className="text-[10px] text-muted-foreground/70 mt-0.5">
-          по системам здоровья
-        </span>
       </div>
-      <ul className="space-y-1.5">
+      <ul className="space-y-1">
         {items.map((t, i) => (
           <li
             key={i}
