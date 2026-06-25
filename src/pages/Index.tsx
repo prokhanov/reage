@@ -1,6 +1,7 @@
 import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSection";
 import { BiomarkersDeepDiveSection } from "@/components/landing/BiomarkersDeepDiveSection";
 import { AppFeaturesSection } from "@/components/landing/AppFeaturesSection";
