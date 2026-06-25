@@ -8,7 +8,6 @@ import {
   FlaskConical,
   Heart,
   Droplets,
-  CalendarDays,
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
