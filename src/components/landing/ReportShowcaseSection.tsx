@@ -570,6 +570,17 @@ export function ReportShowcaseSection() {
           {/* Left: report mockup */}
           <div className="order-2 lg:order-1 px-2 sm:px-6 lg:px-4">
             <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} stopAuto={stopAuto} />
+
+            {/* CTA under mockup on mobile/tablet */}
+            <div className="pt-6 lg:hidden flex justify-center">
+              <Link to="/example-report" className="inline-block w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto group">
+                  <Eye className="w-5 h-5 mr-2" />
+                  Посмотреть пример отчёта
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Right: features */}
@@ -607,7 +618,7 @@ export function ReportShowcaseSection() {
               );
             })}
 
-            <div className="pt-4">
+            <div className="pt-4 hidden lg:block">
               <Link to="/example-report" className="inline-block w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto group">
                   <Eye className="w-5 h-5 mr-2" />
@@ -617,6 +628,7 @@ export function ReportShowcaseSection() {
               </Link>
             </div>
           </div>
+
         </div>
       </div>
     </section>
