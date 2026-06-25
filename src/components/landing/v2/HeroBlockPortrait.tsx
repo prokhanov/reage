@@ -47,7 +47,7 @@ function CompactSystemsWidget() {
     <div className={`${glass} p-2.5 sm:p-3`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          {isMobile ? "СИСТЕМЫ" : "Системы здоровья"}
+          {isMobile ? "СИСТЕМЫ" : "Системы организма"}
         </span>
         <span className="text-[11px] font-semibold text-primary">{overall}%</span>
       </div>
@@ -177,7 +177,7 @@ function CompactBioAgeWidget() {
 
 function StatRow() {
   const stats = [
-    { icon: ShieldCheck, label: "систем здоровья", value: "5" },
+    { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "30+" },
     { icon: FlaskConical, label: "анализов в год", value: "4" },
   ];
