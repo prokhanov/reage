@@ -28,9 +28,6 @@ const LandingV2 = () => {
         <HeroBlock />
       </Block>
       <Block n={2}>
-        <HeroBlockCentered />
-      </Block>
-      <Block n={3}>
         <HowItWorksBlock />
       </Block>
     </div>
