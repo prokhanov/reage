@@ -14,40 +14,10 @@ import {
   ShieldAlert,
   ChevronLeft,
   ChevronRight,
+  Activity,
 } from "lucide-react";
 
-const reportFeatures = [
-  {
-    icon: FileText,
-    title: "Подробная расшифровка анализов",
-    description: "Разбираем показатели простым языком и объясняем их влияние на организм",
-  },
-  {
-    icon: Target,
-    title: "Инсайты о состоянии организма",
-    description: "Объясняем сильные и слабые стороны организма, выявляем потенциальные риски",
-  },
-  {
-    icon: Pill,
-    title: "Биологический возраст",
-    description: "Рассчитываем ваш биологический возраст и показываем факторы, ускоряющие старение",
-  },
-  {
-    icon: ShieldAlert,
-    title: "Ранние сигналы риска",
-    description: "Показываем, какие показатели выходят за пределы оптимальных диапазонов и к каким последствиям это может привести",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Конкретные рекомендации врача",
-    description: "Подборка витаминов, питания и образа жизни. При необходимости рекомендуем дополнительные обследования",
-  },
-];
-
 // ============ Mockup pages ============
-type MockPage = { id: string; label: string; render: () => JSX.Element };
-
-
 const Bar = ({ value, color }: { value: number; color: string }) => (
   <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
     <motion.div
@@ -60,45 +30,7 @@ const Bar = ({ value, color }: { value: number; color: string }) => (
   </div>
 );
 
-const PageSummary = () => (
-  <div className="space-y-4">
-    <div className="flex items-center justify-between">
-      <div>
-        <div className="text-xs text-muted-foreground mb-1">Биологический возраст</div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">38.4</span>
-          <span className="text-sm text-muted-foreground">/ 42 хроно</span>
-        </div>
-      </div>
-      <div className="text-right">
-        <div className="text-xs text-muted-foreground mb-1">Динамика</div>
-        <div className="text-emerald-500 font-semibold text-lg">−1.8 года</div>
-      </div>
-    </div>
-    <div className="rounded-xl border border-border/60 p-4 bg-card/60 space-y-3">
-      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Краткое резюме</div>
-      <div className="space-y-2">
-        <div className="h-2 rounded bg-muted/60 w-[95%]" />
-        <div className="h-2 rounded bg-muted/60 w-[88%]" />
-        <div className="h-2 rounded bg-muted/60 w-[72%]" />
-      </div>
-    </div>
-    <div className="grid grid-cols-3 gap-2">
-      {[
-        { v: 82, c: "hsl(142 71% 45%)", l: "Метаб." },
-        { v: 64, c: "hsl(38 92% 50%)", l: "Гормоны" },
-        { v: 91, c: "hsl(142 71% 45%)", l: "Сердце" },
-      ].map((s) => (
-        <div key={s.l} className="rounded-lg bg-card/60 border border-border/60 p-3">
-          <div className="text-[10px] text-muted-foreground mb-1">{s.l}</div>
-          <div className="text-lg font-bold">{s.v}</div>
-          <div className="mt-1"><Bar value={s.v} color={s.c} /></div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
+// 1. Подробная расшифровка анализов → биомаркеры
 const PageBiomarkers = () => {
   const items = [
     { name: "Глюкоза", code: "GLU", value: "4.72", unit: "ммоль/л", p: 35, status: "optimal", label: "Оптимально" },
@@ -170,16 +102,151 @@ const PageBiomarkers = () => {
   );
 };
 
+// 2. Инсайты о состоянии организма → системные оценки + объяснение
+const PageInsights = () => {
+  const systems = [
+    { name: "Энергия и восстановление", score: 95, color: "hsl(142 71% 45%)" },
+    { name: "Сердечно-сосудистая", score: 90, color: "hsl(142 71% 45%)" },
+    { name: "Метаболизм и детокс", score: 88, color: "hsl(142 71% 45%)" },
+    { name: "Иммунная система", score: 85, color: "hsl(38 92% 50%)" },
+    { name: "Эндокринная и стресс", score: 80, color: "hsl(38 92% 50%)" },
+  ];
+  return (
+    <div className="space-y-4">
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        Баланс систем организма
+      </div>
+      <div className="rounded-xl border border-border/40 bg-card/50 p-4 space-y-3">
+        {systems.map((s) => (
+          <div key={s.name} className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-medium truncate pr-2">{s.name}</span>
+              <span className="font-semibold tabular-nums">{s.score}</span>
+            </div>
+            <Bar value={s.score} color={s.color} />
+          </div>
+        ))}
+      </div>
+      <div className="rounded-xl border border-border/40 bg-card/50 p-4">
+        <div className="text-[11px] font-semibold text-primary uppercase tracking-wide mb-2">
+          Главный инсайт
+        </div>
+        <p className="text-xs text-foreground/80 leading-relaxed">
+          Углеводный обмен и липидный профиль — в превосходном состоянии. Зона роста —
+          гормональная и иммунная сферы: снижены анаболические гормоны и есть признаки
+          лёгкого системного воспаления.
+        </p>
+      </div>
+    </div>
+  );
+};
 
+// 3. Биологический возраст
+const PageBioAge = () => (
+  <div className="space-y-4">
+    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+      Биологический возраст
+    </div>
+    <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-primary/10 via-card/60 to-card/40 p-5">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <div className="text-xs text-muted-foreground mb-1">Биологический</div>
+          <div className="text-5xl font-bold bg-gradient-hero bg-clip-text text-transparent leading-none">
+            34.5
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">из 38 хроно</div>
+        </div>
+        <div className="text-right">
+          <div className="text-xs text-muted-foreground mb-1">Моложе на</div>
+          <div className="text-2xl font-bold text-emerald-500">−3.5 года</div>
+          <div className="text-[11px] text-muted-foreground mt-1">Индекс здоровья 91/100</div>
+        </div>
+      </div>
+    </div>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-4 space-y-2">
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        Что ускоряет старение
+      </div>
+      {[
+        { name: "Тестостерон общий", note: "влияет на энергию и мышечную массу" },
+        { name: "DHEA-S", note: "гормон стрессоустойчивости и восстановления" },
+        { name: "Альбумин", note: "белковый обмен и транспорт веществ" },
+      ].map((f) => (
+        <div key={f.name} className="flex items-start gap-2 text-xs">
+          <Activity className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+          <div>
+            <span className="font-semibold">{f.name}</span>
+            <span className="text-muted-foreground"> — {f.note}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
+// 4. Ранние сигналы риска → ключевые отклонения
+const PageRisks = () => {
+  const risks = [
+    {
+      name: "Тестостерон общий",
+      value: "0.16 нмоль/л",
+      tag: "Критично",
+      tagClr: "text-status-critical bg-status-critical/10",
+      reason: "Значительно ниже оптимальных значений. Влияет на энергию, либидо, мышечную массу и когнитивные функции.",
+    },
+    {
+      name: "Нейтрофилы",
+      value: "79.13 %",
+      tag: "Риск",
+      tagClr: "text-status-risk bg-status-risk/10",
+      reason: "Повышены — возможный признак системного воспаления. Требует наблюдения и противовоспалительной поддержки.",
+    },
+    {
+      name: "DHEA-S",
+      value: "89.72 мкг/дл",
+      tag: "Внимание",
+      tagClr: "text-status-acceptable bg-status-acceptable/10",
+      reason: "Нижняя треть нормы. Для замедления старения оптимум — в верхней трети референсного диапазона.",
+    },
+    {
+      name: "Альбумин",
+      value: "39.1 г/л",
+      tag: "Внимание",
+      tagClr: "text-status-acceptable bg-status-acceptable/10",
+      reason: "Снижен — может указывать на недостаточный белковый обмен и хроническое воспаление низкой степени.",
+    },
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        Ранние сигналы риска
+      </div>
+      {risks.map((r) => (
+        <div key={r.name} className="rounded-xl border border-border/40 bg-card/50 p-3.5 space-y-1.5">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-sm font-semibold">{r.name}</div>
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${r.tagClr}`}>
+              {r.tag}
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground font-medium">{r.value}</div>
+          <p className="text-[11px] leading-relaxed text-foreground/75">{r.reason}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// 5. Рекомендации врача
 const PagePrescriptions = () => (
   <div className="space-y-3">
     <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Рекомендации врача</div>
     {[
-      { t: "Витамин D3", d: "5000 МЕ · утром с жирной пищей · 8 недель", c: "hsl(var(--primary))" },
-      { t: "Омега-3", d: "EPA 1000 + DHA 500 мг · с едой · постоянно", c: "hsl(142 71% 45%)" },
-      { t: "Магний глицинат", d: "400 мг · вечером · 12 недель", c: "hsl(280 70% 60%)" },
-      { t: "Питание", d: "−20% быстрых углеводов, +30 г клетчатки/день", c: "hsl(38 92% 50%)" },
+      { t: "Магний глицинат", d: "400 мг · вечером · 8 недель", c: "hsl(280 70% 60%)" },
+      { t: "Витамин B6 (P-5-P)", d: "50 мг · утром с едой · 12 недель", c: "hsl(var(--primary))" },
+      { t: "Омега-3 (EPA/DHA)", d: "2000 мг/сут · с едой · постоянно", c: "hsl(142 71% 45%)" },
+      { t: "Кверцетин + биофлавоноиды", d: "500 мг · 2 раза в день · 8 недель", c: "hsl(38 92% 50%)" },
+      { t: "Питание и сон", d: "+30 г белка, циркадный режим 23:00–07:00", c: "hsl(200 80% 55%)" },
     ].map((r) => (
       <div key={r.t} className="rounded-lg border border-border/60 bg-card/60 p-3 flex gap-3">
         <div className="w-1 rounded-full shrink-0" style={{ background: r.c }} />
@@ -193,28 +260,65 @@ const PagePrescriptions = () => (
   </div>
 );
 
-const pages: MockPage[] = [
-  { id: "summary", label: "Резюме", render: () => <PageSummary /> },
-  { id: "bio", label: "Биомаркеры", render: () => <PageBiomarkers /> },
-  { id: "rx", label: "Рекомендации", render: () => <PagePrescriptions /> },
+// ============ Features ↔ pages mapping ============
+const reportFeatures = [
+  {
+    icon: FileText,
+    title: "Подробная расшифровка анализов",
+    description: "Разбираем показатели простым языком и объясняем их влияние на организм",
+    pageId: "bio",
+    pageLabel: "Биомаркеры",
+    render: () => <PageBiomarkers />,
+  },
+  {
+    icon: Target,
+    title: "Инсайты о состоянии организма",
+    description: "Объясняем сильные и слабые стороны организма, выявляем потенциальные риски",
+    pageId: "insights",
+    pageLabel: "Инсайты",
+    render: () => <PageInsights />,
+  },
+  {
+    icon: Pill,
+    title: "Биологический возраст",
+    description: "Рассчитываем ваш биологический возраст и показываем факторы, ускоряющие старение",
+    pageId: "bioage",
+    pageLabel: "Био-возраст",
+    render: () => <PageBioAge />,
+  },
+  {
+    icon: ShieldAlert,
+    title: "Ранние сигналы риска",
+    description: "Показываем, какие показатели выходят за пределы оптимальных диапазонов и к каким последствиям это может привести",
+    pageId: "risks",
+    pageLabel: "Риски",
+    render: () => <PageRisks />,
+  },
+  {
+    icon: CheckCircle2,
+    title: "Конкретные рекомендации врача",
+    description: "Подборка витаминов, питания и образа жизни. При необходимости рекомендуем дополнительные обследования",
+    pageId: "rx",
+    pageLabel: "Рекомендации",
+    render: () => <PagePrescriptions />,
+  },
 ];
 
-function ReportMockup() {
-  const [idx, setIdx] = useState(0);
-  const [dir, setDir] = useState(1);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setDir(1);
-      setIdx((i) => (i + 1) % pages.length);
-    }, 8000);
-    return () => clearInterval(id);
-  }, []);
-
-
+function ReportMockup({
+  idx,
+  setIdx,
+  dir,
+  setDir,
+}: {
+  idx: number;
+  setIdx: (i: number) => void;
+  dir: number;
+  setDir: (d: number) => void;
+}) {
+  const pages = reportFeatures;
   const go = (delta: number) => {
     setDir(delta);
-    setIdx((i) => (i + delta + pages.length) % pages.length);
+    setIdx((idx + delta + pages.length) % pages.length);
   };
 
   const page = pages[idx];
@@ -244,7 +348,7 @@ function ReportMockup() {
         <div className="flex gap-1 px-5 pt-3 overflow-x-auto scrollbar-none">
           {pages.map((p, i) => (
             <button
-              key={p.id}
+              key={p.pageId}
               onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
               className={`text-[11px] px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
                 i === idx
@@ -252,16 +356,16 @@ function ReportMockup() {
                   : "bg-muted/40 text-muted-foreground hover:bg-muted/70"
               }`}
             >
-              {p.label}
+              {p.pageLabel}
             </button>
           ))}
         </div>
 
         {/* Page content */}
-        <div className="relative px-6 py-5 overflow-hidden" style={{ height: "calc(100% - 130px)" }}>
+        <div className="relative px-6 py-5 overflow-y-auto" style={{ height: "calc(100% - 130px)" }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
-              key={page.id}
+              key={page.pageId}
               custom={dir}
               initial={{ opacity: 0, x: dir * 40 }}
               animate={{ opacity: 1, x: 0 }}
@@ -310,6 +414,17 @@ function ReportMockup() {
 }
 
 export function ReportShowcaseSection() {
+  const [idx, setIdx] = useState(0);
+  const [dir, setDir] = useState(1);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setDir(1);
+      setIdx((i) => (i + 1) % reportFeatures.length);
+    }, 8000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section className="py-16 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
@@ -334,33 +449,44 @@ export function ReportShowcaseSection() {
         </div>
 
         {/* Split: mockup + features */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start max-w-6xl mx-auto">
           {/* Left: report mockup */}
           <div className="order-2 lg:order-1 px-6 sm:px-10 lg:px-4">
-            <ReportMockup />
+            <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} />
           </div>
 
           {/* Right: features */}
           <div className="order-1 lg:order-2 space-y-3">
             {reportFeatures.map((feature, index) => {
               const Icon = feature.icon;
+              const active = index === idx;
               return (
-                <motion.div
+                <motion.button
                   key={feature.title}
+                  type="button"
+                  onClick={() => { setDir(index > idx ? 1 : -1); setIdx(index); }}
                   initial={{ opacity: 0, x: 20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.4, delay: index * 0.08 }}
-                  className="flex gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/30 transition-all"
+                  className={`w-full text-left flex gap-4 p-4 rounded-xl border backdrop-blur-sm transition-all ${
+                    active
+                      ? "bg-primary/5 border-primary/50 shadow-md shadow-primary/10"
+                      : "bg-card/50 border-border/50 hover:bg-card/80 hover:border-primary/30"
+                  }`}
                 >
-                  <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-primary" />
+                  <div
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                      active ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1 leading-tight">{feature.title}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
-                </motion.div>
+                </motion.button>
               );
             })}
 
