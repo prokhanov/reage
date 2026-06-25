@@ -476,7 +476,7 @@ function ReportMockup({
         </div>
 
         {/* Page content */}
-        <div className="relative flex-1 min-h-0 overflow-y-auto px-3 py-3 sm:px-6 sm:py-5">
+        <div className="relative flex-1 min-h-0 overflow-hidden px-3 py-3 sm:px-6 sm:py-5">
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={page.pageId}
