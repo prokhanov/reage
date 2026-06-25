@@ -178,8 +178,8 @@ function CompactBioAgeWidget() {
 function StatRow() {
   const stats = [
     { icon: ShieldCheck, label: "систем организма", value: "5" },
-    { icon: Activity, label: "биомаркеров", value: "30+" },
-    { icon: FlaskConical, label: "анализов в год", value: "4" },
+    { icon: Activity, label: "биомаркеров", value: "100+" },
+    { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
   ];
   return (
     <div className="grid grid-cols-3 gap-4 sm:gap-8 lg:gap-10 max-w-md lg:max-w-none">
@@ -647,7 +647,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
         <div className="flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-30">
           <MapPin className="w-3.5 h-3.5 text-primary" />
           <span className="text-[11px] sm:text-sm font-medium text-primary">
-            Москва и Санкт-Петербург
+            Сервис доступен в Москве и Санкт-Петербурге
           </span>
         </div>
 
