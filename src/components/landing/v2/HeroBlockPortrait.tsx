@@ -47,7 +47,7 @@ function CompactSystemsWidget() {
     <div className={`${glass} p-3`}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Системы здоровья
+          {isMobile ? "СИСТЕМЫ" : "Системы здоровья"}
         </span>
         <span className="text-[11px] font-semibold text-primary">{overall}%</span>
       </div>
@@ -58,7 +58,7 @@ function CompactSystemsWidget() {
           return (
             <div key={s.label} className="flex items-center gap-2">
               <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-              <span className="text-[11px] text-foreground/90 flex-1 truncate">{s.label}</span>
+              <span className={`text-[11px] text-foreground/90 flex-1 leading-tight ${isMobile ? "" : "truncate"}`}>{s.label}</span>
               <div className="flex items-center gap-1.5 w-28">
                 <span className="text-[10px] font-semibold tabular-nums text-foreground w-6 text-left">
                   {s.value}%
