@@ -420,14 +420,17 @@ function ReportMockup({
   setIdx,
   dir,
   setDir,
+  stopAuto,
 }: {
   idx: number;
   setIdx: (i: number) => void;
   dir: number;
   setDir: (d: number) => void;
+  stopAuto: () => void;
 }) {
   const pages = reportFeatures;
   const go = (delta: number) => {
+    stopAuto();
     setDir(delta);
     setIdx((idx + delta + pages.length) % pages.length);
   };
