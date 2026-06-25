@@ -220,21 +220,10 @@ export function HeroBlock() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 pt-6 pb-12 md:pt-10 md:pb-16">
-        {/* Top-right location badge — desktop only */}
-        <div className="hidden lg:flex absolute top-4 right-4 lg:right-20 items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-20">
-          <MapPin className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs sm:text-sm font-medium text-primary">
-            Москва и Санкт-Петербург
-          </span>
-        </div>
-
-        <div className="flex justify-center lg:justify-start mb-6 md:mb-8">
+        {/* Logo + location badge */}
+        <div className="flex justify-center lg:justify-start items-end gap-3 mb-6 md:mb-8">
           <ThemedLogo className="h-14 md:h-20 w-auto animate-hue-shift" />
-        </div>
-
-        {/* Mobile badge below logo */}
-        <div className="lg:hidden flex justify-center mb-5 animate-fade-in">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
             <MapPin className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs sm:text-sm font-medium text-primary">
               Москва и Санкт-Петербург
