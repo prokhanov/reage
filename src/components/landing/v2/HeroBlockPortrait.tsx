@@ -510,6 +510,7 @@ function EditArtboard({ bp }: { bp: Breakpoint }) {
               width: ab.man.width,
               height: ab.man.height,
               objectPosition: ab.man.objectPosition,
+              transform: "translateY(-24px)",
             }}
           />
           {(Object.keys(layout) as WidgetId[]).map((id) => (
