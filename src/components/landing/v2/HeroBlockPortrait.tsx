@@ -616,9 +616,17 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
 export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boolean }) {
   const navigate = useNavigate();
   const { requestRegister } = useRegisterGuard();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const bp = useBreakpoint();
   const urlEditMode = useEditMode();
   const editMode = editModeProp ?? urlEditMode;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = theme === "dark";
 
   const ArtboardComp = editMode ? EditArtboard : StaticArtboard;
 
