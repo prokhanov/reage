@@ -29,16 +29,16 @@ function CompactSystemsWidget() {
     systems.reduce((a, s) => a + s.value, 0) / systems.length
   );
   return (
-    <div className={`${glass} p-3.5`}>
-      <div className="flex items-center justify-between mb-3">
+    <div className={`${glass} p-3`}>
+      <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
           Системы здоровья
         </span>
         <span className="text-[11px] font-semibold text-primary">
-          Рейтинг {overall}%
+          {overall}%
         </span>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {systems.map((s) => {
           const Icon = s.icon;
           const color = `hsl(var(${s.token}))`;
@@ -48,7 +48,7 @@ function CompactSystemsWidget() {
               <span className="text-[11px] text-foreground/90 flex-1 truncate">
                 {s.label}
               </span>
-              <div className="w-12 h-1.5 bg-muted/60 rounded-full overflow-hidden">
+              <div className="w-10 h-1.5 bg-muted/60 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full"
                   style={{ width: `${s.value}%`, backgroundColor: color }}
