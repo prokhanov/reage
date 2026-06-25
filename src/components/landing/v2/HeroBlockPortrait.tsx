@@ -119,7 +119,7 @@ export function HeroBlockPortrait() {
           </div>
 
           {/* RIGHT: portrait with floating widgets */}
-          <div className="relative w-full h-[460px] sm:h-[540px] lg:h-[600px]">
+          <div className="relative w-full h-[420px] sm:h-[480px] lg:h-[560px]">
             {/* Portrait */}
             <img
               src={heroMan}
@@ -128,39 +128,39 @@ export function HeroBlockPortrait() {
               style={{ animationDelay: "0.2s" }}
             />
 
-            {/* Floating widgets — smaller, overlapping around the man */}
+            {/* Floating widgets — smaller, asymmetric, off the face */}
             <div
-              className="absolute top-4 left-0 w-[230px] sm:w-[260px] animate-fade-in"
+              className="absolute top-0 left-0 sm:top-[-10px] lg:left-[-10px] w-[170px] sm:w-[190px] lg:w-[205px] animate-fade-in"
               style={{ animationDelay: "0.35s" }}
             >
-              <div className="scale-90 origin-top-left">
+              <div className="scale-[0.65] sm:scale-[0.7] lg:scale-[0.75] origin-top-left -rotate-2">
                 <BioAgeWidget />
               </div>
             </div>
 
             <div
-              className="absolute top-2 right-0 w-[210px] sm:w-[240px] hidden sm:block animate-fade-in"
-              style={{ animationDelay: "0.45s" }}
+              className="absolute top-16 right-0 sm:top-14 sm:right-[-10px] lg:top-12 lg:right-[-18px] w-[155px] sm:w-[175px] lg:w-[190px] hidden sm:block animate-fade-in"
+              style={{ animationDelay: "0.5s" }}
             >
-              <div className="scale-90 origin-top-right">
+              <div className="scale-[0.62] sm:scale-[0.66] lg:scale-[0.7] origin-top-right rotate-3">
                 <BiomarkersWidget />
               </div>
             </div>
 
             <div
-              className="absolute bottom-6 left-0 w-[230px] sm:w-[260px] hidden sm:block animate-fade-in"
-              style={{ animationDelay: "0.55s" }}
+              className="absolute bottom-6 left-0 sm:bottom-8 sm:left-[-6px] lg:bottom-6 lg:left-[-14px] w-[165px] sm:w-[185px] lg:w-[200px] hidden sm:block animate-fade-in"
+              style={{ animationDelay: "0.65s" }}
             >
-              <div className="scale-90 origin-bottom-left">
+              <div className="scale-[0.65] sm:scale-[0.7] lg:scale-[0.74] origin-bottom-left rotate-2">
                 <SystemsWidget />
               </div>
             </div>
 
             <div
-              className="absolute bottom-4 right-0 w-[220px] sm:w-[250px] animate-fade-in"
-              style={{ animationDelay: "0.65s" }}
+              className="absolute bottom-0 right-0 sm:bottom-[-6px] sm:right-[-10px] lg:bottom-[-10px] lg:right-[-16px] w-[160px] sm:w-[180px] lg:w-[195px] animate-fade-in"
+              style={{ animationDelay: "0.8s" }}
             >
-              <div className="scale-90 origin-bottom-right">
+              <div className="scale-[0.65] sm:scale-[0.7] lg:scale-[0.74] origin-bottom-right -rotate-3">
                 <AIAssistantWidget />
               </div>
             </div>
