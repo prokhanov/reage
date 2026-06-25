@@ -211,27 +211,18 @@ export function HeroBlockPortrait() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 pt-8 pb-10 md:pt-10 md:pb-14">
-        {/* Top-right location badge — desktop only */}
-        <div className="hidden lg:flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-20">
+        {/* Top-right location badge — all viewports */}
+        <div className="flex absolute top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 xl:right-10 items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in z-30">
           <MapPin className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs sm:text-sm font-medium text-primary">
+          <span className="text-[11px] sm:text-sm font-medium text-primary">
             Москва и Санкт-Петербург
           </span>
         </div>
 
-        <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-6 items-center">
-          {/* LEFT: copy */}
-          <div className="flex flex-col items-start gap-4 md:gap-5 max-w-xl">
-            {/* Logo */}
+        <div className="flex flex-col items-center gap-8 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
+          {/* LEFT: copy (logo + headline + sub) */}
+          <div className="order-1 flex flex-col items-start gap-4 md:gap-5 max-w-xl w-full">
             <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift" />
-
-            {/* Mobile badge below logo */}
-            <div className="lg:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-              <MapPin className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-primary">
-                Москва и Санкт-Петербург
-              </span>
-            </div>
 
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in"
@@ -251,12 +242,12 @@ export function HeroBlockPortrait() {
               показателей, оценкой рисков и понятными следующими шагами.
             </p>
 
-            <div className="w-full animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            {/* Desktop-only: stats + CTAs live here under the copy */}
+            <div className="hidden lg:block w-full animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <StatRow />
             </div>
-
             <div
-              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-in"
+              className="hidden lg:flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-in"
               style={{ animationDelay: "0.4s" }}
             >
               <Button
@@ -277,6 +268,7 @@ export function HeroBlockPortrait() {
               </Button>
             </div>
           </div>
+
 
           {/* RIGHT: STATIC artboards per breakpoint — like a fixed photo composition */}
           <div className="relative w-full flex justify-center lg:justify-end">
