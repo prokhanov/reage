@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import { HeroBlock } from "@/components/landing/v2/HeroBlock";
-import { HeroBlockCentered } from "@/components/landing/v2/HeroBlockCentered";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 
