@@ -37,8 +37,9 @@ const Index = () => {
       <BiomarkersDeepDiveSection />
       <ReportShowcaseSection />
       <AppFeaturesSection />
-      <PricingSection />
       <PreventiveMedicineSection />
+      <PricingSection />
+
 
       <WhereToTestSection />
 
