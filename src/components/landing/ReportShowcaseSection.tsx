@@ -236,7 +236,7 @@ function ReportMockup() {
       {/* A4 page frame (1 : √2) */}
       <div
         className="relative mx-auto rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden"
-        style={{ aspectRatio: "1 / 1.4142", maxWidth: "440px" }}
+        style={{ aspectRatio: "1 / 1.4142", maxWidth: "520px" }}
       >
         {/* Page header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border/40">
