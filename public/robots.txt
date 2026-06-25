@@ -12,5 +12,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /landing-v2
 
 Sitemap: https://reage.life/sitemap.xml
+
