@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-man.jpg";
+import heroMan from "@/assets/landing-v2/hero-man.png";
 
 const glass =
   "rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5 transition-transform duration-300";
