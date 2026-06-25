@@ -579,17 +579,24 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
           return (
             <div
               key={id}
-              className="absolute animate-fade-in"
+              className="absolute"
               style={{
                 top: p.top,
                 left: p.left,
                 width: p.width,
-                transform: `rotate(${p.rotate}deg)`,
                 zIndex: zMap[id],
-                animationDelay: delayMap[id],
               }}
             >
-              {renderWidget(id)}
+              {/* Поворот вынесен во внутренний div, чтобы animate-fade-in (translateY) не перетирал rotate */}
+              <div
+                className="animate-fade-in"
+                style={{
+                  transform: `rotate(${p.rotate}deg)`,
+                  animationDelay: delayMap[id],
+                }}
+              >
+                {renderWidget(id)}
+              </div>
             </div>
           );
         })}
@@ -628,7 +635,7 @@ export function HeroBlockPortrait() {
           </span>
         </div>
 
-        <div className="flex flex-col items-center gap-3 md:gap-4 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
+        <div className="flex flex-col items-center gap-3 md:gap-2 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
           <div className="order-1 flex flex-col items-start gap-4 md:gap-5 max-w-xl w-full">
             <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift" />
             <h1
