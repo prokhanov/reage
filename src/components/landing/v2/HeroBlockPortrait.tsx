@@ -271,7 +271,8 @@ export function HeroBlockPortrait() {
 
 
           {/* RIGHT: STATIC artboards per breakpoint — like a fixed photo composition */}
-          <div className="relative w-full flex justify-center lg:justify-end">
+          <div className="order-2 relative w-full flex justify-center lg:justify-end">
+
             {/* ===== MOBILE artboard: 340x680, shown < sm ===== */}
             <div className="sm:hidden relative" style={{ width: 340, height: 680 }}>
               <img
