@@ -4,12 +4,36 @@ import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical } from "lucide-
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import {
-  BioAgeWidget,
   SystemsWidget,
   BiomarkersWidget,
   AIAssistantWidget,
 } from "@/components/landing/v2/HeroBlock";
 import heroMan from "@/assets/landing-v2/hero-man-v2.png";
+
+function CompactBioAgeWidget() {
+  return (
+    <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] p-3.5">
+      <div className="flex items-center justify-between gap-3 mb-2.5">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
+          Биологический возраст
+        </span>
+        <span className="inline-flex items-center text-[10px] font-semibold text-[hsl(var(--status-optimal))] bg-[hsl(var(--status-optimal)/0.12)] px-2 py-0.5 rounded-full">
+          −3.8
+        </span>
+      </div>
+      <div className="flex items-end gap-2">
+        <span className="text-4xl sm:text-[2.65rem] font-bold tracking-tight text-foreground leading-none">
+          34.2
+        </span>
+        <span className="text-xs text-muted-foreground pb-1">года</span>
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-border/40 flex items-center justify-between">
+        <span className="text-[10px] text-muted-foreground">Хронологический</span>
+        <span className="text-[10px] font-medium text-foreground">38 лет</span>
+      </div>
+    </div>
+  );
+}
 
 function StatRow() {
   const stats = [
@@ -127,10 +151,10 @@ export function HeroBlockPortrait() {
 
             {/* BioAge — smaller than the other widgets, lowered below the face */}
             <div
-              className="absolute top-[210px] left-[14px] sm:top-[238px] sm:left-[-4px] lg:top-[260px] lg:left-[-34px] xl:left-[-52px] w-[250px] sm:w-[265px] lg:w-[280px] origin-top-left scale-[0.58] sm:scale-[0.6] lg:scale-[0.62] animate-fade-in -rotate-2 z-20"
+              className="absolute top-[246px] left-[22px] sm:top-[276px] sm:left-[6px] lg:top-[300px] lg:left-[-18px] xl:left-[-34px] w-[188px] sm:w-[204px] lg:w-[216px] animate-fade-in -rotate-2 z-20"
               style={{ animationDelay: "0.35s" }}
             >
-              <BioAgeWidget />
+              <CompactBioAgeWidget />
             </div>
 
             {/* Biomarkers — natural Block 1 widget, right side, away from face */}
