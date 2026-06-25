@@ -116,7 +116,7 @@ export function HeroBlockPortrait() {
           </div>
 
           {/* RIGHT: portrait with floating widgets — asymmetric, varied sizes, face clear */}
-          <div className="relative w-full h-[480px] sm:h-[540px] lg:h-[620px]">
+          <div className="relative w-full h-[500px] sm:h-[560px] lg:h-[620px]">
             {/* Portrait */}
             <img
               src={heroMan}
@@ -125,33 +125,33 @@ export function HeroBlockPortrait() {
               style={{ animationDelay: "0.2s" }}
             />
 
-            {/* BioAge — large hero card, top-left, off the face */}
+            {/* BioAge — intentionally smaller, lowered so it overlaps torso/space, not the face */}
             <div
-              className="absolute top-2 left-0 sm:top-0 sm:left-[-16px] lg:left-[-24px] w-[230px] sm:w-[260px] lg:w-[285px] animate-fade-in -rotate-2"
+              className="absolute top-[132px] left-[-8px] sm:top-[150px] sm:left-[-24px] lg:top-[178px] lg:left-[-72px] xl:left-[-92px] w-[210px] sm:w-[232px] lg:w-[252px] animate-fade-in -rotate-2 z-20"
               style={{ animationDelay: "0.35s" }}
             >
               <BioAgeWidget />
             </div>
 
-            {/* Biomarkers — compact, top-right near shoulder */}
+            {/* Biomarkers — natural Block 1 widget, right side, away from face */}
             <div
-              className="absolute top-24 right-0 sm:top-20 sm:right-[-12px] lg:top-16 lg:right-[-20px] w-[180px] sm:w-[200px] lg:w-[215px] hidden sm:block animate-fade-in rotate-2"
+              className="absolute top-4 right-0 sm:top-8 sm:right-[-18px] lg:top-12 lg:right-[-44px] xl:right-[-64px] w-[260px] sm:w-[282px] lg:w-[302px] hidden sm:block animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
               <BiomarkersWidget />
             </div>
 
-            {/* Systems — compact, bottom-left */}
+            {/* Systems — natural Block 1 widget */}
             <div
-              className="absolute bottom-4 left-0 sm:bottom-6 sm:left-[-8px] lg:bottom-4 lg:left-[-16px] w-[185px] sm:w-[205px] lg:w-[220px] hidden sm:block animate-fade-in rotate-1"
+              className="absolute bottom-8 left-0 sm:bottom-10 sm:left-[-22px] lg:bottom-8 lg:left-[-54px] xl:left-[-74px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
               <SystemsWidget />
             </div>
 
-            {/* AI Assistant — compact, bottom-right */}
+            {/* AI Assistant — natural Block 1 widget */}
             <div
-              className="absolute bottom-0 right-0 sm:bottom-[-4px] sm:right-[-10px] lg:bottom-[-8px] lg:right-[-18px] w-[180px] sm:w-[200px] lg:w-[215px] animate-fade-in -rotate-2"
+              className="absolute bottom-0 right-0 sm:bottom-0 sm:right-[-16px] lg:bottom-[-2px] lg:right-[-40px] xl:right-[-56px] w-[260px] sm:w-[282px] lg:w-[302px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <AIAssistantWidget />
