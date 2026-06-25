@@ -297,23 +297,23 @@ export function HeroBlockPortrait() {
               className="absolute top-6 right-[-18px] sm:top-10 sm:right-[-34px] lg:top-14 lg:right-[-76px] xl:right-[-98px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-2 z-30"
               style={{ animationDelay: "0.5s" }}
             >
-              <BiomarkersWidget />
+              <CompactBiomarkersWidget />
             </div>
 
-            {/* Systems — natural Block 1 widget */}
+            {/* Systems — narrower compact */}
             <div
-              className="absolute bottom-4 left-[28px] sm:bottom-5 sm:left-[14px] lg:bottom-5 lg:left-[-14px] xl:left-[-26px] w-[268px] sm:w-[292px] lg:w-[312px] hidden sm:block animate-fade-in rotate-1 z-30"
+              className="absolute bottom-4 left-[28px] sm:bottom-5 sm:left-[14px] lg:bottom-5 lg:left-[-14px] xl:left-[-26px] w-[238px] sm:w-[252px] lg:w-[268px] hidden sm:block animate-fade-in rotate-1 z-30"
               style={{ animationDelay: "0.65s" }}
             >
-              <SystemsWidget />
+              <CompactSystemsWidget />
             </div>
 
-            {/* AI Assistant — natural Block 1 widget */}
+            {/* Recommendations (was AI Assistant) */}
             <div
               className="absolute bottom-0 right-0 sm:bottom-0 sm:right-[-16px] lg:bottom-[-2px] lg:right-[-40px] xl:right-[-52px] w-[260px] sm:w-[282px] lg:w-[302px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
-              <AIAssistantWidget />
+              <RecommendationsWidget />
             </div>
           </div>
         </div>
