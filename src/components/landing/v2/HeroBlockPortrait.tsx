@@ -279,23 +279,23 @@ export function HeroBlockPortrait() {
                 <img
                   src={heroMan}
                   alt="Пациент изучает свой персональный отчёт ReAge"
-                  className="absolute animate-fade-in pointer-events-none object-contain object-bottom"
-                  style={{ left: 50, bottom: 0, width: 240, height: 440, animationDelay: "0.2s" }}
+                  className="absolute animate-fade-in pointer-events-none object-contain object-[50%_0]"
+                  style={{ left: 50, top: 0, width: 240, height: 440, animationDelay: "0.2s" }}
                 />
                 <div className="absolute animate-fade-in -rotate-2 z-20"
-                  style={{ top: 50, left: -8, width: 178, animationDelay: "0.35s" }}>
+                  style={{ top: 160, left: -8, width: 170, animationDelay: "0.35s" }}>
                   <CompactBioAgeWidget />
                 </div>
                 <div className="absolute animate-fade-in rotate-2 z-30"
-                  style={{ top: 40, right: -8, width: 180, animationDelay: "0.5s" }}>
+                  style={{ top: 150, right: -8, width: 172, animationDelay: "0.5s" }}>
                   <CompactBiomarkersWidget />
                 </div>
                 <div className="absolute animate-fade-in -rotate-1 z-30"
-                  style={{ top: 215, left: -8, width: 200, animationDelay: "0.8s" }}>
+                  style={{ top: 260, left: -8, width: 180, animationDelay: "0.8s" }}>
                   <RecommendationsWidget />
                 </div>
                 <div className="absolute animate-fade-in rotate-1 z-30"
-                  style={{ bottom: 0, right: -8, width: 220, animationDelay: "0.65s" }}>
+                  style={{ bottom: 5, right: -8, width: 190, animationDelay: "0.65s" }}>
                   <CompactSystemsWidget />
                 </div>
               </div>
