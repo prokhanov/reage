@@ -137,7 +137,7 @@ export function HowItWorksBlock() {
                   key={i}
                   ref={setRef(i)}
                   data-step={i}
-                  className="min-h-[70vh] flex flex-col justify-center py-10"
+                  className="min-h-[50vh] flex flex-col justify-start py-6 first:pt-0"
                 >
                   <div
                     className={`p-8 rounded-2xl border backdrop-blur-sm transition-all duration-500 ${
@@ -177,7 +177,7 @@ export function HowItWorksBlock() {
           </div>
 
           <div className="col-span-5">
-            <div className="sticky top-24 h-[80vh] flex items-center">
+            <div className="sticky top-24">
               <TimelineRail activeIndex={active} />
             </div>
           </div>
