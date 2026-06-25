@@ -1,4 +1,4 @@
-import { HeroSection } from "@/components/landing/HeroSection";
+import { HeroPortrait } from "@/components/landing/HeroPortrait";
 import { WhyCheckupsFail } from "@/components/landing/WhyCheckupsFail";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { ReportShowcaseSection } from "@/components/landing/ReportShowcaseSection";
