@@ -246,30 +246,33 @@ function ReportMockup() {
   return (
     <div className="relative">
       {/* Glow */}
-      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[3rem] pointer-events-none" />
+      <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
 
-      {/* Device frame */}
-      <div className="relative rounded-[2rem] border border-border/60 bg-card/80 backdrop-blur-xl shadow-2xl overflow-hidden">
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border/50 bg-card/60">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
+      {/* A4 page frame (1 : √2) */}
+      <div
+        className="relative mx-auto rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden"
+        style={{ aspectRatio: "1 / 1.4142", maxWidth: "440px" }}
+      >
+        {/* Page header */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border/40">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-gradient-hero" />
+            <span className="text-xs font-semibold tracking-wide">ReAge · Отчёт</span>
           </div>
-          <div className="text-xs text-muted-foreground font-medium">Персональный отчёт ReAge</div>
-          <div className="w-10" />
+          <div className="text-[10px] text-muted-foreground">
+            Стр. {idx + 1} / {pages.length}
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-4 pt-3 overflow-x-auto scrollbar-none">
+        <div className="flex gap-1 px-5 pt-3 overflow-x-auto scrollbar-none">
           {pages.map((p, i) => (
             <button
               key={p.id}
               onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
-              className={`text-xs px-3 py-1.5 rounded-full whitespace-nowrap transition-all ${
+              className={`text-[11px] px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
                 i === idx
-                  ? "bg-primary text-primary-foreground shadow-md"
+                  ? "bg-primary text-primary-foreground shadow"
                   : "bg-muted/40 text-muted-foreground hover:bg-muted/70"
               }`}
             >
@@ -279,7 +282,7 @@ function ReportMockup() {
         </div>
 
         {/* Page content */}
-        <div className="relative px-5 py-5 min-h-[420px] overflow-hidden">
+        <div className="relative px-6 py-5 overflow-hidden" style={{ height: "calc(100% - 130px)" }}>
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={page.id}
@@ -293,20 +296,20 @@ function ReportMockup() {
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
 
-        {/* Dots */}
-        <div className="flex justify-center gap-1.5 pb-4">
-          {pages.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
-              className={`h-1.5 rounded-full transition-all ${
-                i === idx ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
-              }`}
-              aria-label={`Страница ${i + 1}`}
-            />
-          ))}
-        </div>
+      {/* Dots (outside A4) */}
+      <div className="flex justify-center gap-1.5 pt-4">
+        {pages.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
+            className={`h-1.5 rounded-full transition-all ${
+              i === idx ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
+            }`}
+            aria-label={`Страница ${i + 1}`}
+          />
+        ))}
       </div>
 
       {/* Nav arrows */}
