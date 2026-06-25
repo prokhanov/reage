@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-man-v2.png";
+import heroCoupleAsset from "@/assets/landing-v2/hero-couple-v2.png.asset.json";
+const heroMan = heroCoupleAsset.url;
 
 const glass =
   "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
@@ -567,7 +568,7 @@ function StaticArtboard({ bp }: { bp: Breakpoint }) {
       >
         <img
           src={heroMan}
-          alt="Пациент изучает свой персональный отчёт ReAge"
+          alt="Пара изучает персональный отчёт ReAge на смартфоне"
           className="absolute animate-fade-in pointer-events-none object-contain"
           style={{
             left: ab.man.left,
