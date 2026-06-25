@@ -219,7 +219,7 @@ export function HeroBlockPortrait() {
           </span>
         </div>
 
-        <div className="flex flex-col items-center gap-8 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
+        <div className="flex flex-col items-center gap-5 md:gap-8 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
           {/* LEFT: copy (logo + headline + sub) */}
           <div className="order-1 flex flex-col items-start gap-4 md:gap-5 max-w-xl w-full">
             <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift" />
@@ -279,23 +279,23 @@ export function HeroBlockPortrait() {
                 <img
                   src={heroMan}
                   alt="Пациент изучает свой персональный отчёт ReAge"
-                  className="absolute animate-fade-in pointer-events-none object-contain object-bottom"
-                  style={{ left: 50, bottom: 0, width: 240, height: 440, animationDelay: "0.2s" }}
+                  className="absolute animate-fade-in pointer-events-none object-contain object-[50%_0]"
+                  style={{ left: 50, top: 0, width: 240, height: 440, animationDelay: "0.2s" }}
                 />
                 <div className="absolute animate-fade-in -rotate-2 z-20"
-                  style={{ top: 50, left: -8, width: 178, animationDelay: "0.35s" }}>
+                  style={{ top: 160, left: -8, width: 170, animationDelay: "0.35s" }}>
                   <CompactBioAgeWidget />
                 </div>
                 <div className="absolute animate-fade-in rotate-2 z-30"
-                  style={{ top: 40, right: -8, width: 180, animationDelay: "0.5s" }}>
+                  style={{ top: 160, right: -8, width: 172, animationDelay: "0.5s" }}>
                   <CompactBiomarkersWidget />
                 </div>
                 <div className="absolute animate-fade-in -rotate-1 z-30"
-                  style={{ top: 215, left: -8, width: 200, animationDelay: "0.8s" }}>
+                  style={{ top: 280, left: -8, width: 165, animationDelay: "0.8s" }}>
                   <RecommendationsWidget />
                 </div>
                 <div className="absolute animate-fade-in rotate-1 z-30"
-                  style={{ bottom: 0, right: -8, width: 220, animationDelay: "0.65s" }}>
+                  style={{ top: 280, right: -8, width: 175, animationDelay: "0.65s" }}>
                   <CompactSystemsWidget />
                 </div>
               </div>
