@@ -15,8 +15,7 @@ import {
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroCoupleAsset from "@/assets/landing-v2/hero-couple-v2.png.asset.json";
-const heroMan = heroCoupleAsset.url;
+import heroMan from "@/assets/landing-v2/hero-couple-v2.png";
 
 const glass =
   "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
