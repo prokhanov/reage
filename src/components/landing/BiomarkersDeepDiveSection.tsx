@@ -37,11 +37,11 @@ const HormoneMoleculeIcon = makeIcon(
   </>
 );
 
-import systemEnergy from "@/assets/system-energy.png";
-import systemHeart from "@/assets/system-heart.png";
-import systemImmune from "@/assets/system-immune.png";
-import systemEndocrine from "@/assets/system-endocrine.png";
-import systemMetabolism from "@/assets/system-metabolism.png";
+import systemEnergy from "@/assets/system-energy.webp";
+import systemHeart from "@/assets/system-heart.webp";
+import systemImmune from "@/assets/system-immune.webp";
+import systemEndocrine from "@/assets/system-endocrine.webp";
+import systemMetabolism from "@/assets/system-metabolism.webp";
 
 
 const biomarkerCategories = [
