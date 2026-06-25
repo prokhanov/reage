@@ -180,59 +180,6 @@ const PageBiomarkers = () => {
 };
 
 
-const PageConnections = () => (
-  <div className="space-y-4">
-    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Связи между показателями</div>
-    <div className="rounded-xl border border-border/60 bg-card/60 p-4">
-      <svg viewBox="0 0 300 180" className="w-full h-40">
-        <defs>
-          <linearGradient id="ln" x1="0" x2="1">
-            <stop offset="0" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
-            <stop offset="1" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
-          </linearGradient>
-        </defs>
-        {[
-          ["60,40", "150,90"],
-          ["240,30", "150,90"],
-          ["60,140", "150,90"],
-          ["240,150", "150,90"],
-          ["150,20", "150,90"],
-        ].map(([a, b], i) => (
-          <motion.line
-            key={i}
-            x1={a.split(",")[0]} y1={a.split(",")[1]}
-            x2={b.split(",")[0]} y2={b.split(",")[1]}
-            stroke="url(#ln)" strokeWidth="2"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.8, delay: i * 0.12 }}
-          />
-        ))}
-        {[
-          [150, 90, 18, "hsl(var(--primary))"],
-          [60, 40, 10, "hsl(142 71% 45%)"],
-          [240, 30, 10, "hsl(38 92% 50%)"],
-          [60, 140, 10, "hsl(25 95% 53%)"],
-          [240, 150, 10, "hsl(142 71% 45%)"],
-          [150, 20, 10, "hsl(38 92% 50%)"],
-        ].map(([x, y, r, c], i) => (
-          <motion.circle
-            key={i} cx={x as number} cy={y as number} r={r as number}
-            fill={c as string} fillOpacity="0.85"
-            initial={{ scale: 0 }} animate={{ scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
-            style={{ transformOrigin: `${x}px ${y}px` }}
-          />
-        ))}
-      </svg>
-    </div>
-    <div className="space-y-2">
-      {["Высокий HOMA-IR ⇄ снижение тестостерона", "Дефицит D ⇄ воспаление (CRP)", "Гомоцистеин ⇄ B12 / фолат"].map((t) => (
-        <div key={t} className="text-xs px-3 py-2 rounded-lg bg-card/60 border border-border/60">{t}</div>
-      ))}
-    </div>
-  </div>
-);
 
 const PagePrescriptions = () => (
   <div className="space-y-3">
