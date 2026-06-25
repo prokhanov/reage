@@ -104,10 +104,10 @@ function SystemsWidget() {
 
 function BiomarkersWidget() {
   const items = [
-    { name: "Витамин D", value: "62", unit: "нг/мл", status: "Оптимум", token: "status-optimal" },
-    { name: "Омега-3 индекс", value: "8.4", unit: "%", status: "Оптимум", token: "status-optimal" },
-    { name: "Ферритин", value: "38", unit: "мкг/л", status: "Допустимо", token: "status-acceptable" },
-    { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "status-risk" },
+    { name: "Витамин D", value: "62", unit: "нг/мл", status: "Оптимум", token: "--status-optimal" },
+    { name: "Омега-3 индекс", value: "8.4", unit: "%", status: "Оптимум", token: "--status-optimal" },
+    { name: "Ферритин", value: "38", unit: "мкг/л", status: "Допустимо", token: "--status-acceptable" },
+    { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
   ];
   return (
     <div className={`${glass} p-4 sm:p-5`}>
@@ -129,7 +129,11 @@ function BiomarkersWidget() {
                 <span className="ml-1 text-[10px] font-normal text-muted-foreground">{b.unit}</span>
               </span>
               <span
-                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full text-[hsl(var(--${b.token}))] bg-[hsl(var(--${b.token})/0.12)] whitespace-nowrap`}
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap"
+                style={{
+                  color: `hsl(var(${b.token}))`,
+                  backgroundColor: `hsl(var(${b.token}) / 0.12)`,
+                }}
               >
                 {b.status}
               </span>
