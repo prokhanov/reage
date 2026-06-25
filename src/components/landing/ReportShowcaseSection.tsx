@@ -103,8 +103,81 @@ const PageBiomarkers = () => {
   );
 };
 
-// 2. Инсайты о состоянии организма → системные оценки + объяснение
-const PageInsights = () => {
+// 2. Связи между показателями
+const PageConnections = () => {
+  const links = [
+    {
+      from: "Гликированный гемоглобин",
+      to: "Инсулинорезистентность",
+      note: "Долгосрочный контроль глюкозы влияет на чувствительность к инсулину",
+    },
+    {
+      from: "Тестостерон общий",
+      to: "Энергия и восстановление",
+      note: "Низкий тестостерон снижает анаболический тонус и выносливость",
+    },
+    {
+      from: "Нейтрофилы",
+      to: "Системное воспаление",
+      note: "Повышенные нейтрофилы — маркер inflammaging и нагрузки на иммунитет",
+    },
+    {
+      from: "Альбумин",
+      to: "Белковый обмен",
+      note: "Сниженный белок усиливает воспалительный фон и замедляет регенерацию",
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        Связи между показателями
+      </div>
+
+      <div className="relative rounded-2xl border border-border/40 bg-card/50 p-4 overflow-hidden">
+        {/* Decorative network SVG */}
+        <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30%" cy="30%" r="6" fill="currentColor" />
+          <circle cx="70%" cy="25%" r="6" fill="currentColor" />
+          <circle cx="25%" cy="70%" r="6" fill="currentColor" />
+          <circle cx="75%" cy="75%" r="6" fill="currentColor" />
+          <line x1="30%" y1="30%" x2="70%" y2="25%" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="30%" y1="30%" x2="25%" y2="70%" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="70%" y1="25%" x2="75%" y2="75%" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="25%" y1="70%" x2="75%" y2="75%" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+
+        <div className="relative space-y-3">
+          {links.map((l, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              <div>
+                <div className="text-xs font-semibold">
+                  {l.from} <span className="text-muted-foreground">→</span> {l.to}
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed mt-0.5">
+                  {l.note}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border/40 bg-card/50 p-4">
+        <div className="text-[11px] font-semibold text-primary uppercase tracking-wide mb-2">
+          Зачем это важно
+        </div>
+        <p className="text-xs text-foreground/80 leading-relaxed">
+          Организм — это единая система. Изолированный показатель редко объясняет причину.
+          ReAge показывает, какие маркеры влияют друг на друга, чтобы вы увидели полную картину.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// 3. Инсайты о состоянии организма
   const systems = [
     { name: "Энергия и восстановление", score: 95, color: "hsl(142 71% 45%)" },
     { name: "Сердечно-сосудистая", score: 90, color: "hsl(142 71% 45%)" },
