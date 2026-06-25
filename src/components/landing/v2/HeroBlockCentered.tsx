@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-man.jpg";
+import heroMan from "@/assets/landing-v2/hero-man.png";
 
 const glass =
   "rounded-2xl border border-border/50 bg-card/60 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5 transition-transform duration-300";
@@ -168,7 +168,7 @@ export function HeroBlockCentered() {
   const { requestRegister } = useRegisterGuard();
 
   return (
-    <section className="relative overflow-hidden bg-background min-h-[100svh] lg:min-h-[820px]">
+    <section className="relative overflow-hidden bg-background">
       {/* Ambient gradient */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div
@@ -180,14 +180,14 @@ export function HeroBlockCentered() {
         />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 pt-6 pb-10 md:pt-10 md:pb-14">
+      <div className="relative z-10 container mx-auto px-4 pt-4 pb-8 md:pt-6 md:pb-10">
         {/* Logo */}
-        <div className="flex justify-center mb-6 md:mb-8">
-          <ThemedLogo className="h-14 md:h-20 w-auto animate-hue-shift" />
+        <div className="flex justify-center mb-4 md:mb-6">
+          <ThemedLogo className="h-12 md:h-16 w-auto animate-hue-shift" />
         </div>
 
         {/* TOP — centered text */}
-        <div className="flex flex-col items-center text-center max-w-4xl mx-auto gap-4 md:gap-5">
+        <div className="flex flex-col items-center text-center max-w-4xl mx-auto gap-3 md:gap-4">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
             <MapPin className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs sm:text-sm font-medium text-primary">
@@ -196,7 +196,7 @@ export function HeroBlockCentered() {
           </div>
 
           <h1
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight animate-fade-in"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold leading-[1.1] tracking-tight animate-fade-in"
             style={{ animationDelay: "0.1s" }}
           >
             <span className="block text-foreground">Ваше здоровье в цифрах,</span>
@@ -206,7 +206,7 @@ export function HeroBlockCentered() {
           </h1>
 
           <p
-            className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed animate-fade-in"
+            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed animate-fade-in"
             style={{ animationDelay: "0.2s" }}
           >
             {"Регулярно берём анализы и предоставляем отчёт по системам организма:\u00a0с изменениями показателей, оценкой возможных рисков и понятными следующими шагами"}
@@ -236,7 +236,7 @@ export function HeroBlockCentered() {
         </div>
 
         {/* BOTTOM — 3-col: widgets | portrait | widgets */}
-        <div className="mt-10 md:mt-14 grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 items-center">
+        <div className="mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 items-end">
           {/* LEFT column */}
           <div className="lg:col-span-3 flex flex-col gap-4 md:gap-5 order-2 lg:order-1">
             <div className="animate-fade-in" style={{ animationDelay: "0.3s" }}>
@@ -249,7 +249,7 @@ export function HeroBlockCentered() {
 
           {/* CENTER — portrait */}
           <div className="lg:col-span-6 order-1 lg:order-2 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <div className="relative mx-auto max-w-md lg:max-w-none">
+            <div className="relative mx-auto max-w-xs sm:max-w-sm lg:max-w-md">
               {/* halo glow */}
               <div
                 className="absolute inset-0 -z-10 blur-3xl opacity-70"
@@ -258,16 +258,13 @@ export function HeroBlockCentered() {
                     "radial-gradient(ellipse 60% 60% at 50% 45%, hsl(190 90% 50% / 0.35), transparent 70%)",
                 }}
               />
-              <div className="relative rounded-[2rem] overflow-hidden border border-border/40 shadow-[0_40px_120px_-30px_hsl(var(--primary)/0.5)] aspect-[4/5] bg-card/40">
+              <div className="relative aspect-[4/5]">
                 <img
                   src={heroMan}
                   alt="Здоровый и довольный пациент ReAge"
-                  className="w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain object-bottom drop-shadow-[0_30px_60px_hsl(var(--primary)/0.35)]"
                   loading="eager"
                 />
-                {/* soft top fade to blend with background */}
-                <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-background/60 to-transparent pointer-events-none" />
-                <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-background/70 to-transparent pointer-events-none" />
               </div>
             </div>
           </div>
