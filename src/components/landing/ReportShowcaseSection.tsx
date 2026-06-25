@@ -444,14 +444,14 @@ function ReportMockup({
 
       {/* A4 page frame (1 : √2) */}
       <div
-        className="relative mx-auto rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden"
-        style={{ aspectRatio: "1 / 1.4142", maxWidth: "520px" }}
+        className="relative mx-auto w-full max-w-[340px] sm:max-w-[420px] lg:max-w-[520px] rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-2xl overflow-hidden flex flex-col"
+        style={{ aspectRatio: "1 / 1.4142" }}
       >
         {/* Page header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-border/40">
+        <div className="flex items-center justify-between px-3 pt-3 pb-2 sm:px-6 sm:pt-5 sm:pb-3 border-b border-border/40">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-hero" />
-            <span className="text-xs font-semibold tracking-wide">ReAge · Отчёт</span>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-gradient-hero" />
+            <span className="text-[10px] sm:text-xs font-semibold tracking-wide">ReAge · Отчёт</span>
           </div>
           <div className="text-[10px] text-muted-foreground">
             Стр. {idx + 1} / {pages.length}
@@ -459,12 +459,12 @@ function ReportMockup({
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-5 pt-3 overflow-x-auto scrollbar-none">
+        <div className="flex gap-1 px-3 pt-2 sm:px-5 sm:pt-3 overflow-x-auto scrollbar-none">
           {pages.map((p, i) => (
             <button
               key={p.pageId}
               onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
-              className={`text-[11px] px-2.5 py-1 rounded-full whitespace-nowrap transition-all ${
+              className={`text-[10px] sm:text-[11px] px-2 py-1 sm:px-2.5 sm:py-1 rounded-full whitespace-nowrap transition-all ${
                 i === idx
                   ? "bg-primary text-primary-foreground shadow"
                   : "bg-muted/40 text-muted-foreground hover:bg-muted/70"
@@ -476,7 +476,7 @@ function ReportMockup({
         </div>
 
         {/* Page content */}
-        <div className="relative px-6 py-5 overflow-y-auto" style={{ height: "calc(100% - 130px)" }}>
+        <div className="relative flex-1 min-h-0 overflow-y-auto px-3 py-3 sm:px-6 sm:py-5">
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={page.pageId}
@@ -493,13 +493,13 @@ function ReportMockup({
       </div>
 
       {/* Bottom navigation: arrows + dots */}
-      <div className="flex items-center justify-center gap-3 pt-4">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 pt-3 sm:pt-4">
         <button
           onClick={() => go(-1)}
-          className="w-11 h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+          className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
           aria-label="Предыдущая страница"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         <div className="flex items-center gap-1.5">
@@ -517,10 +517,10 @@ function ReportMockup({
 
         <button
           onClick={() => go(1)}
-          className="w-11 h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+          className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
           aria-label="Следующая страница"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
     </div>
@@ -543,14 +543,14 @@ export function ReportShowcaseSection() {
   }, [paused]);
 
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden">
+    <section className="py-12 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-primary/5" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-3xl opacity-30" />
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16 animate-fade-in">
-          <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm hover:bg-primary/10 transition-none">
+        <div className="text-center mb-8 md:mb-16 animate-fade-in">
+          <Badge className="mb-4 md:mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm hover:bg-primary/10 transition-none">
             <Sparkles className="w-4 h-4 mr-2 inline" />
             Что я получу?
           </Badge>
@@ -566,9 +566,9 @@ export function ReportShowcaseSection() {
         </div>
 
         {/* Split: mockup + features */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start max-w-6xl mx-auto">
           {/* Left: report mockup */}
-          <div className="order-2 lg:order-1 px-6 sm:px-10 lg:px-4">
+          <div className="order-2 lg:order-1 px-2 sm:px-6 lg:px-4">
             <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} stopAuto={stopAuto} />
           </div>
 
@@ -586,22 +586,22 @@ export function ReportShowcaseSection() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.4, delay: index * 0.08 }}
-                  className={`w-full text-left flex gap-4 p-4 rounded-xl border backdrop-blur-sm transition-all ${
+                  className={`w-full text-left flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border backdrop-blur-sm transition-all ${
                     active
                       ? "bg-primary/5 border-primary/50 shadow-md shadow-primary/10"
                       : "bg-card/50 border-border/50 hover:bg-card/80 hover:border-primary/30"
                   }`}
                 >
                   <div
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                       active ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div>
-                    <h4 className="font-semibold mb-1 leading-tight">{feature.title}</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <div className="min-w-0">
+                    <h4 className="font-semibold mb-1 leading-tight text-sm sm:text-base">{feature.title}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                   </div>
                 </motion.button>
               );
