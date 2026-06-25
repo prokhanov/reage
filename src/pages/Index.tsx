@@ -29,9 +29,10 @@ const Index = () => {
           }}
         />
         <HowItWorksBlock />
+        <ComparisonSection />
+        <WhyCheckupsFail />
         <HowItWorksSection />
       </div>
-      <WhyCheckupsFail />
       <BenefitsSection />
       <BiomarkersDeepDiveSection />
       <ReportShowcaseSection />
