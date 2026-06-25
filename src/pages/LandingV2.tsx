@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { HeroBlock } from "@/components/landing/v2/HeroBlock";
 import { HeroBlockCentered } from "@/components/landing/v2/HeroBlockCentered";
+import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 
 const Block = ({ n, children }: { n: number; children: React.ReactNode }) => (
@@ -32,6 +33,9 @@ const LandingV2 = () => {
         <HeroBlockCentered />
       </Block>
       <Block n={3}>
+        <HeroBlockPortrait />
+      </Block>
+      <Block n={4}>
         <HowItWorksBlock />
       </Block>
     </div>
