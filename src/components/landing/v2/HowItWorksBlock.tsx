@@ -1,100 +1,97 @@
-import stepCheckup from "@/assets/landing-v2/step-checkup.jpg";
-import stepAnalysis from "@/assets/landing-v2/step-analysis.jpg";
-import stepReport from "@/assets/landing-v2/step-report.jpg";
-import stepRecommendations from "@/assets/landing-v2/step-recommendations.jpg";
+import { CalendarCheck, FlaskConical, FileText, ChevronRight } from "lucide-react";
 
-type Item = {
-  image: string;
-  alt: string;
-  title: string;
-  subtitle: string;
-};
-
-const items: Item[] = [
+const steps = [
   {
-    image: stepCheckup,
-    alt: "Календарь квартальных чекапов",
+    icon: <CalendarCheck className="w-7 h-7 text-white" />,
+    num: "01",
     title: "Чекап 4 раза в год",
-    subtitle:
-      "Берём анализы у вас дома или в клинике и отслеживаем изменения показателей в динамике",
+    items: [
+      "Берём анализы у вас дома или в клинике",
+      "Отслеживаем изменения показателей в динамике",
+    ],
   },
   {
-    image: stepAnalysis,
-    alt: "Карточка биомаркера со шкалой статуса",
+    icon: <FlaskConical className="w-7 h-7 text-white" />,
+    num: "02",
     title: "Глубокий анализ",
-    subtitle:
-      "Анализ крови на 100+ показателей для комплексной проверки ключевых систем организма",
+    items: [
+      "Анализ крови на 100+ показателей",
+      "Комплексная проверка ключевых систем организма",
+    ],
   },
   {
-    image: stepReport,
-    alt: "Отчёт с динамикой показателей",
-    title: "Понятная расшифровка",
-    subtitle:
-      "Объясняем все показатели и взаимосвязи — что происходит с организмом и почему",
-  },
-  {
-    image: stepRecommendations,
-    alt: "Персональные рекомендации врача",
-    title: "Рекомендации врача",
-    subtitle:
-      "Персональный план по приёму витаминов и минералов, питанию и образу жизни",
+    icon: <FileText className="w-7 h-7 text-white" />,
+    num: "03",
+    title: "Расшифровка и рекомендации",
+    items: [
+      "Объясняем показатели и взаимосвязи — что происходит с организмом и почему",
+      "Даём персональный план по витаминам, минералам, питанию и образу жизни",
+    ],
   },
 ];
 
 export function HowItWorksBlock() {
   return (
-    <section className="relative overflow-hidden bg-background py-20 md:py-28">
-      <div className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[120%] h-[60%] opacity-60"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 50%, hsl(var(--primary) / 0.10) 0%, transparent 70%)",
-          }}
-        />
-      </div>
+    <section className="relative py-16 md:py-24 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
+      <div className="absolute top-1/3 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
 
-      <div className="container relative z-10 mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-5">
-            <span className="text-xs font-semibold tracking-wider uppercase text-primary">
-              Как устроено сопровождение
-            </span>
+      <div className="relative z-10 container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
+            <span className="text-sm font-medium text-primary">Как устроено сопровождение</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-            Что входит в годовую программу
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight animate-fade-in"
+            style={{ animationDelay: "0.1s" }}
+          >
+            <span className="text-foreground">Что входит в </span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">годовую программу</span>
           </h2>
-          <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
-            Четыре шага, которые превращают разрозненные анализы в системный контроль за здоровьем — от забора крови до конкретных назначений.
+          <p
+            className="mt-4 md:mt-5 text-base md:text-lg text-muted-foreground leading-relaxed animate-fade-in"
+            style={{ animationDelay: "0.2s" }}
+          >
+            Три шага от забора крови до персонального плана — в одной подписке.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 max-w-6xl mx-auto">
-          {items.map((item, i) => (
-            <article
+        {/* 3 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-8 max-w-6xl mx-auto">
+          {steps.map((step, i) => (
+            <div
               key={i}
-              className="flex flex-col items-center text-center p-6 md:p-7 rounded-3xl bg-card/70 backdrop-blur-sm border border-border/40 hover:border-primary/40 hover:bg-card/90 transition-all duration-300"
+              className="group relative animate-fade-in"
+              style={{ animationDelay: `${0.1 + i * 0.1}s` }}
             >
-              <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center text-lg font-bold mb-5">
-                {i + 1}
+              <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-b from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
+              <div className="relative h-full rounded-3xl bg-card/50 backdrop-blur-sm border border-border/50 p-6 md:p-8 transition-all duration-500 group-hover:bg-card/80 group-hover:border-primary/30 group-hover:shadow-2xl group-hover:-translate-y-1">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25">
+                    {step.icon}
+                  </div>
+                  <span className="text-3xl md:text-4xl font-black bg-gradient-to-br from-primary/40 to-accent/30 bg-clip-text text-transparent">
+                    {step.num}
+                  </span>
+                </div>
+                <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">
+                  {step.title}
+                </h3>
+                <ul className="space-y-2.5">
+                  {step.items.map((item, j) => (
+                    <li
+                      key={j}
+                      className="flex items-start gap-2.5 text-[15px] text-muted-foreground"
+                    >
+                      <ChevronRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="text-lg md:text-xl font-semibold text-foreground leading-snug mb-3">
-                {item.title}
-              </h3>
-              <p className="text-sm md:text-[15px] text-muted-foreground leading-relaxed mb-6">
-                {item.subtitle}
-              </p>
-              <div className="mt-auto w-full rounded-2xl overflow-hidden bg-[#F1F5FB]">
-                <img
-                  src={item.image}
-                  alt={item.alt}
-                  width={1024}
-                  height={1024}
-                  loading="lazy"
-                  className="w-full h-auto block"
-                />
-              </div>
-            </article>
+            </div>
           ))}
         </div>
       </div>
