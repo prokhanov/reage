@@ -45,18 +45,20 @@ function CompactSystemsWidget() {
           return (
             <div key={s.label} className="flex items-center gap-2">
               <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-              <span className="text-[11px] text-foreground/90 max-w-[100px] truncate">
+              <span className="text-[11px] text-foreground/90 flex-1 truncate">
                 {s.label}
               </span>
-              <div className="w-10 h-1.5 bg-muted/60 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full"
-                  style={{ width: `${s.value}%`, backgroundColor: color }}
-                />
+              <div className="flex items-center gap-1.5 w-28">
+                <span className="text-[10px] font-semibold tabular-nums text-foreground w-6 text-left">
+                  {s.value}%
+                </span>
+                <div className="flex-1 h-1.5 bg-muted/60 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${s.value}%`, backgroundColor: color }}
+                  />
+                </div>
               </div>
-              <span className="text-[10px] font-semibold tabular-nums text-foreground w-7 text-right">
-                {s.value}%
-              </span>
             </div>
           );
         })}
