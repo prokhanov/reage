@@ -40,7 +40,7 @@ function CompactSystemsWidget() {
     { label: "Печень и почки", value: 71, icon: Droplets, token: "--status-acceptable" },
     { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
   ];
-  const overall = Math.round(systems.reduce((a, s) => a + s.value, 0) / systems.length);
+  const isMobile = useIsMobile();
   return (
     <div className={`${glass} p-3`}>
       <div className="flex items-center justify-between mb-2">
