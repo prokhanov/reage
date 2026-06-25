@@ -117,8 +117,8 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     if (!viewAsUserId) return;
     let aborted = false;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
+      const { data } = await (supabase
+        .from("profiles") as any)
         .select("birth_date, gender")
         .eq("user_id", viewAsUserId)
         .maybeSingle();
