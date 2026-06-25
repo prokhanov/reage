@@ -628,16 +628,16 @@ export function HeroBlockPortrait() {
           </span>
         </div>
 
-        <div className="flex flex-col items-center gap-5 md:gap-8 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
+        <div className="flex flex-col items-center gap-3 md:gap-4 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
           <div className="order-1 flex flex-col items-start gap-4 md:gap-5 max-w-xl w-full">
             <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift" />
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="block text-foreground">Ваше здоровье в цифрах,</span>
+              <span className="block text-white">Ваше здоровье</span>
               <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
-                динамике и рекомендациях
+                в цифрах, динамике и рекомендациях
               </span>
             </h1>
             <p
