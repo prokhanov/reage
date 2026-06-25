@@ -420,14 +420,17 @@ function ReportMockup({
   setIdx,
   dir,
   setDir,
+  stopAuto,
 }: {
   idx: number;
   setIdx: (i: number) => void;
   dir: number;
   setDir: (d: number) => void;
+  stopAuto: () => void;
 }) {
   const pages = reportFeatures;
   const go = (delta: number) => {
+    stopAuto();
     setDir(delta);
     setIdx((idx + delta + pages.length) % pages.length);
   };
@@ -435,7 +438,7 @@ function ReportMockup({
   const page = pages[idx];
 
   return (
-    <div className="relative">
+    <div className="relative" onClick={stopAuto}>
       {/* Glow */}
       <div className="absolute -inset-8 bg-gradient-hero opacity-20 blur-3xl rounded-[2rem] pointer-events-none" />
 
@@ -527,14 +530,17 @@ function ReportMockup({
 export function ReportShowcaseSection() {
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState(1);
+  const [paused, setPaused] = useState(false);
+  const stopAuto = () => setPaused(true);
 
   useEffect(() => {
+    if (paused) return;
     const id = setInterval(() => {
       setDir(1);
       setIdx((i) => (i + 1) % reportFeatures.length);
     }, 8000);
     return () => clearInterval(id);
-  }, []);
+  }, [paused]);
 
   return (
     <section className="py-16 md:py-24 relative overflow-hidden">
@@ -563,7 +569,7 @@ export function ReportShowcaseSection() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start max-w-6xl mx-auto">
           {/* Left: report mockup */}
           <div className="order-2 lg:order-1 px-6 sm:px-10 lg:px-4">
-            <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} />
+            <ReportMockup idx={idx} setIdx={setIdx} dir={dir} setDir={setDir} stopAuto={stopAuto} />
           </div>
 
           {/* Right: features */}
@@ -575,7 +581,7 @@ export function ReportShowcaseSection() {
                 <motion.button
                   key={feature.title}
                   type="button"
-                  onClick={() => { setDir(index > idx ? 1 : -1); setIdx(index); }}
+                  onClick={() => { stopAuto(); setDir(index > idx ? 1 : -1); setIdx(index); }}
                   initial={{ opacity: 0, x: 20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
