@@ -232,9 +232,10 @@ function ReportMockup() {
     const id = setInterval(() => {
       setDir(1);
       setIdx((i) => (i + 1) % pages.length);
-    }, 5000);
+    }, 8000);
     return () => clearInterval(id);
   }, []);
+
 
   const go = (delta: number) => {
     setDir(delta);
