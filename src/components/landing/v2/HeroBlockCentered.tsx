@@ -153,110 +153,124 @@ export function HeroBlockCentered() {
         />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 pt-4 pb-10 md:pt-6 md:pb-12">
+      <div className="relative z-10 container mx-auto px-4 pt-6 pb-10 md:pt-8 md:pb-14">
         {/* Logo */}
-        <div className="flex justify-center mb-5 md:mb-7">
-          <ThemedLogo className="h-12 md:h-16 w-auto animate-hue-shift" />
+        <div className="flex justify-center lg:justify-start mb-6 md:mb-8">
+          <ThemedLogo className="h-10 md:h-12 w-auto animate-hue-shift" />
         </div>
 
-        {/* Headline */}
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto gap-3 md:gap-4">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-            <MapPin className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs sm:text-sm font-medium text-primary">
-              Москва и Санкт-Петербург
-            </span>
-          </div>
-
-          <h1
-            className="text-3xl sm:text-4xl md:text-5xl font-bold leading-[1.05] tracking-tight animate-fade-in"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <span className="block text-foreground">Ваше здоровье в цифрах,</span>
-            <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
-              динамике и рекомендациях
-            </span>
-          </h1>
-
-          <p
-            className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed animate-fade-in"
-            style={{ animationDelay: "0.2s" }}
-          >
-            Регулярно берём анализы и предоставляем отчёт по системам организма — с динамикой
-            показателей, оценкой рисков и понятными следующими шагами.
-          </p>
-
-          <div
-            className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center animate-fade-in mt-1"
-            style={{ animationDelay: "0.3s" }}
-          >
-            <Button
-              size="lg"
-              onClick={requestRegister}
-              className="text-base px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
-            >
-              Начать мониторинг
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate("/auth")}
-              className="text-base px-7 py-5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground transition-all duration-300"
-            >
-              Войти в аккаунт
-            </Button>
-          </div>
-        </div>
-
-        {/* Stage with portrait + floating widgets */}
-        <div className="relative mt-8 md:mt-10 max-w-5xl mx-auto animate-fade-in" style={{ animationDelay: "0.35s" }}>
-          {/* halo behind person */}
-          <div
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[80%] blur-3xl pointer-events-none -z-10"
-            style={{
-              background:
-                "radial-gradient(ellipse 50% 50% at 50% 50%, hsl(190 90% 50% / 0.45), hsl(220 85% 50% / 0.2) 50%, transparent 75%)",
-            }}
-          />
-
-          {/* Person */}
-          <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[420px] md:max-w-[480px] aspect-[3/4]">
-            <img
-              src={heroMan}
-              alt="Здоровый и довольный пациент ReAge"
-              className="absolute inset-0 w-full h-full object-contain object-bottom drop-shadow-[0_30px_60px_hsl(var(--primary)/0.4)]"
-              loading="eager"
-            />
-            {/* soft floor fade */}
-            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-          </div>
-
-          {/* Floating widgets — absolute on desktop, stacked grid on mobile */}
-          <div className="hidden md:block">
-            <div className="absolute left-0 top-[18%] animate-fade-in" style={{ animationDelay: "0.5s" }}>
-              <BioAgeFloat />
+        {/* Two-column hero */}
+        <div className="grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-6 items-center">
+          {/* LEFT: copy */}
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 md:gap-5 max-w-xl mx-auto lg:mx-0">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs sm:text-sm font-medium text-primary">
+                Москва и Санкт-Петербург
+              </span>
             </div>
-            <div className="absolute right-0 top-[14%] animate-fade-in" style={{ animationDelay: "0.6s" }}>
+
+            <h1
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.04] tracking-tight animate-fade-in"
+              style={{ animationDelay: "0.1s" }}
+            >
+              <span className="block text-foreground">Ваше здоровье в цифрах,</span>
+              <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
+                динамике и рекомендациях
+              </span>
+            </h1>
+
+            <p
+              className="text-base md:text-lg text-muted-foreground leading-relaxed animate-fade-in"
+              style={{ animationDelay: "0.2s" }}
+            >
+              Регулярно берём анализы и предоставляем отчёт по системам организма — с динамикой
+              показателей, оценкой рисков и понятными следующими шагами.
+            </p>
+
+            <div
+              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto animate-fade-in mt-1"
+              style={{ animationDelay: "0.3s" }}
+            >
+              <Button
+                size="lg"
+                onClick={requestRegister}
+                className="text-base px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
+              >
+                Начать мониторинг
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("/auth")}
+                className="text-base px-7 py-5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground transition-all duration-300"
+              >
+                Войти в аккаунт
+              </Button>
+            </div>
+
+            {/* Stat row under copy */}
+            <div className="w-full mt-6 md:mt-8 animate-fade-in" style={{ animationDelay: "0.55s" }}>
+              <StatRow />
+            </div>
+          </div>
+
+          {/* RIGHT: person + overlapping widgets */}
+          <div
+            className="relative w-full max-w-[520px] mx-auto lg:mx-0 lg:ml-auto animate-fade-in"
+            style={{ animationDelay: "0.35s" }}
+          >
+            {/* halo */}
+            <div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] h-[85%] blur-3xl pointer-events-none -z-10"
+              style={{
+                background:
+                  "radial-gradient(ellipse 55% 55% at 50% 50%, hsl(190 90% 50% / 0.5), hsl(220 85% 50% / 0.22) 50%, transparent 75%)",
+              }}
+            />
+
+            <div className="relative aspect-[3/4]">
+              <img
+                src={heroMan}
+                alt="Здоровый и довольный пациент ReAge"
+                className="absolute inset-0 w-full h-full object-contain object-bottom drop-shadow-[0_30px_60px_hsl(var(--primary)/0.4)]"
+                loading="eager"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+
+              {/* Floating widgets overlapping the person — desktop & tablet */}
+              <div className="hidden sm:block">
+                <div
+                  className="absolute -left-4 lg:-left-10 top-[12%] animate-fade-in"
+                  style={{ animationDelay: "0.5s" }}
+                >
+                  <BioAgeFloat />
+                </div>
+                <div
+                  className="absolute -right-4 lg:-right-8 top-[38%] animate-fade-in"
+                  style={{ animationDelay: "0.6s" }}
+                >
+                  <BiomarkersFloat />
+                </div>
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 bottom-[6%] animate-fade-in"
+                  style={{ animationDelay: "0.7s" }}
+                >
+                  <AIChip />
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile widgets row */}
+            <div className="sm:hidden mt-5 grid grid-cols-1 gap-3 [&>*]:!w-full">
+              <BioAgeFloat />
               <BiomarkersFloat />
             </div>
-            <div className="absolute right-[8%] bottom-[10%] animate-fade-in" style={{ animationDelay: "0.7s" }}>
-              <AIChip />
-            </div>
           </div>
-
-          {/* Mobile widgets row */}
-          <div className="md:hidden mt-5 grid grid-cols-2 gap-3 [&>*]:!w-full">
-            <BioAgeFloat />
-            <BiomarkersFloat />
-          </div>
-        </div>
-
-        {/* Stat row */}
-        <div className="mt-8 md:mt-10 animate-fade-in" style={{ animationDelay: "0.55s" }}>
-          <StatRow />
         </div>
       </div>
     </section>
   );
 }
+
