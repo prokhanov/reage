@@ -1211,6 +1211,10 @@ export default function Recommendations() {
                       </div>
                     </div>
 
+                    {/* Theme toggle under the report dialog on mobile */}
+                    <div className="md:hidden border-b border-border bg-muted/20 px-4 py-2 flex justify-end">
+                      <ThemeToggle isOpen={false} />
+                    </div>
 
                     <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6" ref={contentRef}>
                       <div id="report-content" className="space-y-5 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto">
