@@ -219,7 +219,7 @@ export function HeroBlockPortrait() {
           </span>
         </div>
 
-        <div className="flex flex-col items-center gap-8 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
+        <div className="flex flex-col items-center gap-5 md:gap-8 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:items-center">
           {/* LEFT: copy (logo + headline + sub) */}
           <div className="order-1 flex flex-col items-start gap-4 md:gap-5 max-w-xl w-full">
             <ThemedLogo className="h-20 md:h-24 w-auto animate-hue-shift" />
