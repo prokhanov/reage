@@ -317,9 +317,9 @@ export function HeroBlockPortrait() {
               <CompactSystemsWidget />
             </div>
 
-            {/* Recommendations (was AI Assistant) — inside the right/bottom edge */}
+            {/* Recommendations — moved up and right, tied to health systems */}
             <div
-              className="absolute bottom-4 right-[12px] sm:bottom-5 sm:right-[12px] lg:bottom-5 lg:right-[16px] xl:right-[20px] w-[244px] sm:w-[264px] lg:w-[282px] animate-fade-in -rotate-2 z-30"
+              className="absolute top-[110px] right-[8px] sm:top-[120px] sm:right-[6px] lg:top-[130px] lg:right-[10px] xl:right-[18px] w-[232px] sm:w-[248px] lg:w-[260px] animate-fade-in -rotate-2 z-30"
               style={{ animationDelay: "0.8s" }}
             >
               <RecommendationsWidget />
