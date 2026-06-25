@@ -1,51 +1,27 @@
-## Причина текущей проблемы
+# Откуда взялся test.reage.life
 
-nginx на проде работает по whitelist (`deploy/nginx/default.conf`). Всё, что не разрешено явно, → 404. Сейчас:
-- `robots.txt`, `sitemap.xml`, `llms.txt`, `site.webmanifest`, `favicon.ico`, `placeholder.svg` — **разрешены**, работают.
-- Расширения `png|jpg|...|txt|xml|json|webmanifest|woff|...` — разрешены.
-- `.html` в корне (включая `yandex_*.html`, `google*.html`) — **НЕ разрешены** → 404. Поэтому Яндекс и не видит файл, даже если он лежит в `public/` и попал в образ.
-- `/.well-known/*` — не разрешён.
+Lovable по дефолту проставил `https://test.reage.life` в `index.html` — это «project URL», который шаблон head-meta берёт из настроек проекта. В коде это здесь:
 
-## Что меняем
+- `index.html:13` — `<meta property="og:url" content="https://test.reage.life/" />`
+- `index.html:43` — JSON-LD Organization `"url": "https://test.reage.life"`
+- `index.html:52` — JSON-LD WebSite `"url": "https://test.reage.life"`
 
-### 1. Файл верификации
-Создать `public/yandex_3de2852024f6022b.html` с точным содержимым от Яндекса (UTF-8, без BOM, без лишних строк).
+Production отдаётся на `reage.life` / `www.reage.life`, поэтому og:url и Schema.org «промахиваются» — Клод и видит этот поддомен в метаданных.
 
-### 2. nginx — универсальные правила под верификации поисковиков и `.well-known`
+# Что меняем
 
-В `deploy/nginx/default.conf` перед финальным `location / { return 404; }` добавить:
+1. **`index.html` — заменить три вхождения** `https://test.reage.life` → `https://reage.life`:
+   - `og:url` → `https://reage.life/`
+   - Organization `url` → `https://reage.life`
+   - WebSite `url` → `https://reage.life`
+2. **Добавить `<link rel="canonical" href="https://reage.life/" />`** — сейчас его нет вообще, и это отдельная SEO-дыра (мы её обсуждали раньше при усилении on-site сигналов).
 
-```text
-# Верификации поисковиков (Yandex, Google, Bing, Mail.ru и др.) — статический HTML в корне
-location ~* ^/(yandex_[a-f0-9]+|google[a-f0-9]+|BingSiteAuth|mailru-domain[0-9]+)\.(html|xml)$ {
-    try_files $uri =404;
-}
+# Что НЕ трогаем
 
-# .well-known (security.txt, apple-app-site-association, acme-challenge и т.п.)
-location ^~ /.well-known/ {
-    try_files $uri =404;
-}
-```
+- `og:image` уже на `https://reage.life/og-image.jpg` — ок.
+- `sitemap.xml` / `robots.txt` — уже на `reage.life`.
+- Сабдомен test.reage.life физически существует как preview, но в публичный HTML его пихать не надо.
 
-Так больше не придётся править nginx при каждой новой верификации того же класса — достаточно положить файл в `public/`.
+# Проверка
 
-### 3. Деплой
-- Закоммитить.
-- Передеплоить nginx на REG.RU через Coolify (фронт-«Update» в Lovable конфиг nginx не обновляет — это отдельный контейнер).
-- Проверить:
-  ```
-  curl -I https://reage.life/yandex_3de2852024f6022b.html
-  curl -I https://www.reage.life/yandex_3de2852024f6022b.html
-  ```
-  Должно быть `200 OK`. Если `www` редиректит на apex — это ок, главное чтобы финальный ответ был 200.
-- Нажать «Подтвердить» в Яндекс.Вебмастере.
-
-## Что НЕ трогаем
-
-- `robots.txt`, `sitemap.xml`, `llms.txt` — уже работают, дополнительных действий не нужно.
-- IndexNow (`<key>.txt`) — попадёт под существующий regex статики автоматически.
-
-## Файлы
-
-- `public/yandex_3de2852024f6022b.html` — новый.
-- `deploy/nginx/default.conf` — +2 location-блока (верификации + `.well-known`).
+После деплоя `curl -s https://www.reage.life | grep -E "og:url|canonical|\"url\""` должен вернуть только `reage.life`, без `test.`.
