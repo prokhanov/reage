@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Heart, Shield, RefreshCw, Zap, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Shield, RefreshCw, Zap, Sparkles, type LucideIcon } from "lucide-react";
 
 // Helper to wrap raw SVG paths into a Lucide-compatible icon
 const makeIcon = (paths: React.ReactNode): LucideIcon =>
@@ -177,7 +177,7 @@ export function BiomarkersDeepDiveSection() {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-10 md:mb-12">
+        <div className="text-center mb-6 md:mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6 animate-fade-in">
             5 систем · 100+ биомаркеров
           </div>
@@ -189,6 +189,35 @@ export function BiomarkersDeepDiveSection() {
             Все системы взаимосвязаны — мы анализируем их комплексно
           </p>
         </div>
+
+        {/* Rationale */}
+        <div className="max-w-4xl mx-auto mb-12 md:mb-14">
+          <div className="relative rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 p-6 md:p-8 shadow-2xl shadow-primary/[0.03]">
+            <div className="flex items-center gap-2 text-sm font-medium text-primary mb-4">
+              <Sparkles className="w-4 h-4" />
+              За вас подумали
+            </div>
+            <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+              Почему именно эти 5 систем?
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Мы не гонимся за количеством анализов. Команда врачей и специалистов по данным отобрала маркеры, которые вместе формируют единую модель вашего здоровья. Каждый показатель объясняет, дополняет или уточняет другие — иначе можно было бы получить лишь набор случайных «срезов».
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { title: "Связь, а не изоляция", body: "Воспаление влияет на сосуды, гормоны — на метаболизм, а дефицит микроэлементов — на энергию. Мы видим эти связи." },
+                { title: "Баланс глубины и доступности", body: "Достаточно данных, чтобы построить персональную дорожную карту, но не перегрузить вас лишними тестами." },
+                { title: "Фокус на причины", body: "Один и тот же симптом может иметь разные корни. Комплексный набор помогает найти источник, а не лечить следствие." },
+              ].map((item) => (
+                <div key={item.title} className="rounded-2xl bg-muted/40 border border-border/30 p-4">
+                  <h4 className="text-sm font-semibold text-foreground mb-1">{item.title}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
 
         {/* Tab navigation */}
         <div className="flex flex-col items-center gap-3 mb-12">
