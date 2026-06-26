@@ -681,7 +681,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
         </div>
 
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
-          <div className="order-1 flex flex-col items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full">
+          <div className="order-1 flex flex-col items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full" style={{ fontFamily: "'Nunito', sans-serif" }}>
             <ThemedLogo className="h-16 sm:h-20 w-auto animate-hue-shift" />
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in"
@@ -730,7 +730,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
             <ArtboardComp bp={bp} />
           </div>
 
-          <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
+          <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl" style={{ fontFamily: "'Nunito', sans-serif" }}>
             <div className="w-full flex justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <StatRow />
             </div>
