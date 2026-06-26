@@ -38,6 +38,7 @@ function BenefitCard({ icon, title, description, delay, action }: BenefitCardPro
 }
 
 export function BenefitsSection() {
+  const { requestRegister } = useRegisterGuard();
   const benefits = [
   {
     icon: <Activity className="w-6 h-6 text-primary" />,
@@ -84,7 +85,19 @@ export function BenefitsSection() {
   {
     icon: <NotebookText className="w-6 h-6 text-primary" />,
     title: "Простой и понятный\nличный кабинет",
-    description: "Результаты анализов, динамика показателей, отчёт с персональными рекомендациями и AI-ассистент — всё в одном сервисе.\nСмотреть демо (ссылка)",
+    description: "Результаты анализов, динамика показателей, отчёт с персональными рекомендациями и AI-ассистент — всё в одном сервисе.",
+    action: (
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          requestRegister();
+        }}
+        className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+      >
+        Смотреть демо
+      </a>
+    ),
     delay: 0.45
   }];
 
