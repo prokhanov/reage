@@ -35,7 +35,6 @@ const Index = () => {
       </div>
       <BenefitsSection />
       <BiomarkersDeepDiveSection />
-      <WhereToTestSection />
       <ReportShowcaseSection />
       <AppFeaturesSection />
       <PreventiveMedicineSection />
