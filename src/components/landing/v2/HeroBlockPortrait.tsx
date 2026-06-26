@@ -730,7 +730,7 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
             <ArtboardComp bp={bp} />
           </div>
 
-          <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
+          <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl" style={{ fontFamily: "'Nunito', sans-serif" }}>
             <div className="w-full flex justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <StatRow />
             </div>
