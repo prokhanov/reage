@@ -258,7 +258,7 @@ export function getFormulaDescription(code: string): string | null {
     case "TSAT":
       return "Fe / (Трансферрин × 25.1) × 100";
     case "OSI-proxy":
-      return "(MDA / GSH-Px) × 1000";
+      return "(MDA / GSH) × 1000";
     default:
       return null;
   }
