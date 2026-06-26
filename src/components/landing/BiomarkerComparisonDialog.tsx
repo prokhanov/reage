@@ -4,6 +4,7 @@ import { Check, Minus, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { getPlanAudience } from "./PricingSection";
 
 interface BiomarkerComparisonDialogProps {
   open: boolean;
