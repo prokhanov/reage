@@ -191,9 +191,6 @@ export function BiomarkersDeepDiveSection() {
         </div>
 
 
-
-
-
         {/* Tab navigation */}
         <div className="flex flex-col items-center gap-3 mb-12">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
