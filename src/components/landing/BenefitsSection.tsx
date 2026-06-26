@@ -9,32 +9,36 @@ import {
   TrendingUp,
   Sparkles } from
 "lucide-react";
+import { useRegisterGuard } from "@/components/RegisterGuard";
 
 interface BenefitCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
   delay: number;
+  action?: React.ReactNode;
 }
 
-function BenefitCard({ icon, title, description, delay }: BenefitCardProps) {
+function BenefitCard({ icon, title, description, delay, action }: BenefitCardProps) {
   return (
     <div
       className="group relative animate-fade-in"
       style={{ animationDelay: `${delay}s` }}>
-      
+
       <div className="relative h-full rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 p-6 transition-all duration-500 hover:bg-card/80 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1">
         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 mb-4 group-hover:scale-110 transition-transform duration-300">
           {icon}
         </div>
         <h3 className="text-lg font-bold text-foreground mb-2 mx-0 px-0 whitespace-pre-line">{title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{description}</p>
+        {action && <div className="mt-3">{action}</div>}
       </div>
     </div>);
 
 }
 
 export function BenefitsSection() {
+  const { requestRegister } = useRegisterGuard();
   const benefits = [
   {
     icon: <Activity className="w-6 h-6 text-primary" />,
@@ -81,7 +85,19 @@ export function BenefitsSection() {
   {
     icon: <NotebookText className="w-6 h-6 text-primary" />,
     title: "Простой и понятный\nличный кабинет",
-    description: "Результаты анализов, динамика показателей, отчёт с персональными рекомендациями и AI-ассистент — всё в одном сервисе.\nСмотреть демо (ссылка)",
+    description: "Результаты анализов, динамика показателей, отчёт с персональными рекомендациями и AI-ассистент — всё в одном сервисе.",
+    action: (
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          requestRegister();
+        }}
+        className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+      >
+        Смотреть демо
+      </a>
+    ),
     delay: 0.45
   }];
 
