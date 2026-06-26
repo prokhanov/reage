@@ -464,11 +464,12 @@ export function HeroPortrait() {
           <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full text-center lg:text-left">
             <ThemedLogo className="h-16 sm:h-20 lg:h-40 w-auto animate-hue-shift mx-auto lg:mx-0" />
             <h1
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in text-center lg:text-left"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.1] tracking-tight animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="block text-foreground">Ваше здоровье</span>
-              <span className="block mt-0.5 sm:mt-1 lg:mt-2 bg-gradient-hero bg-clip-text text-transparent">
+              <span className="text-foreground">Ваше здоровье</span>
+              <br />
+              <span className="bg-gradient-hero bg-clip-text text-transparent">
                 в цифрах, динамике и рекомендациях
               </span>
             </h1>
