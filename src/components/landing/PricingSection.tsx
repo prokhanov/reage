@@ -290,6 +290,27 @@ function planToCard(
 
   const isPopular = plan.badge_color === "primary" || plan.display_order === 2;
 
+  const slugKey = slug.includes("эксп") || slug.includes("expert")
+    ? "expert"
+    : slug.includes("плюс") || slug.includes("plus")
+      ? "plus"
+      : "basic";
+  const audienceMap: Record<string, { who: string; gain: string }> = {
+    basic: {
+      who: "Тем, кто впервые системно проверяет здоровье или хочет недорогой регулярный мониторинг",
+      gain: "Базовая картина ключевых систем, раннее выявление отклонений и динамика показателей",
+    },
+    plus: {
+      who: "Тем, у кого есть жалобы или факторы риска, и кто хочет глубже понять сердце, обмен веществ и гормоны",
+      gain: "Расширенная оценка сердечно-сосудистых рисков, гормонального баланса и индивидуальные планы здоровья",
+    },
+    expert: {
+      who: "Тем, кто хочет максимум — оценить процессы старения и осознанно работать с биовозрастом",
+      gain: "Глубокая диагностика старения, полный охват систем, приоритетное сопровождение и контроль",
+    },
+  };
+  const audience = audienceMap[slugKey];
+
   return {
     id: plan.id,
     name: plan.display_name,
@@ -302,6 +323,8 @@ function planToCard(
     analyses,
     consultations,
     biomarkersBySystem,
+    who: audience.who,
+    gain: audience.gain,
     glowColor: glowByPlanSlug[slug] ?? defaultGlow,
     delay: 0.1 + index * 0.1,
   };
