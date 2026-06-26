@@ -364,7 +364,7 @@ export function PricingSection() {
 
 
   return (
-    <section className="relative py-12 md:py-16 overflow-hidden">
+    <section id="pricing" className="relative py-12 md:py-16 overflow-hidden scroll-mt-16">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
 
       <div className="absolute inset-0 opacity-[0.02]" style={{
