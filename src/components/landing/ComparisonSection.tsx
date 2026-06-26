@@ -216,8 +216,7 @@ export function ComparisonSection() {
           </p>
         </div>
 
-        {/* Desktop / Tablet table */}
-        <div className="hidden md:block max-w-6xl mx-auto animate-fade-in" style={{ animationDelay: "0.3s" }}>
+        <div className="max-w-6xl mx-auto animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 lg:mx-0 lg:px-0 lg:overflow-visible">
             <div className="relative min-w-[900px]">
               {/* Highlight ReAge column (2nd of 5) */}
@@ -241,16 +240,6 @@ export function ComparisonSection() {
           </div>
 
           <p className="text-sm text-muted-foreground mt-6 text-center">
-            * При регулярной сдаче расширенных панелей 3 раза в год
-          </p>
-        </div>
-
-        {/* Mobile cards */}
-        <div className="md:hidden max-w-xl mx-auto space-y-3 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-          {comparisons.map((row, index) => (
-            <MobileComparisonCard key={index} {...row} />
-          ))}
-          <p className="text-sm text-muted-foreground mt-4 text-center">
             * При регулярной сдаче расширенных панелей 3 раза в год
           </p>
         </div>
