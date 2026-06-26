@@ -33,7 +33,7 @@ export function HowItWorksBlock() {
       <div className="absolute top-1/3 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
 
-      <div className="relative z-10 container mx-auto px-4" style={{ fontFamily: "'Nunito', sans-serif" }}>
+      <div className="relative z-10 container mx-auto px-4">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
