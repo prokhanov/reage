@@ -26,6 +26,11 @@
     font-family: 'Golos Text', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "ss01";
   }
+  .font-manrope {
+    font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01";
+  }
+
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
@@ -176,6 +181,17 @@ All colors MUST be HSL.
     font-family: 'Golos Text', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "ss01";
   }
+
+  .font-manrope h1,
+  .font-manrope h2,
+  .font-manrope h3,
+  .font-manrope h4,
+  .font-manrope h5,
+  .font-manrope h6 {
+    font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01";
+  }
+
 }
 
 @layer utilities {
