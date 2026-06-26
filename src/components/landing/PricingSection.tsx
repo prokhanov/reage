@@ -70,6 +70,8 @@ interface PricingCardProps {
   analyses: string;
   consultations: string;
   biomarkersBySystem: BiomarkerCategory[];
+  who?: string;
+  gain?: string;
   glowColor?: string;
   isPopular?: boolean;
   badge?: string;
@@ -77,7 +79,7 @@ interface PricingCardProps {
   onSelect: () => void;
 }
 
-function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay, onSelect }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect }: PricingCardProps) {
   return (
     <div
       className="group relative h-full animate-fade-in"
@@ -115,6 +117,23 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={consultations} isPopular={isPopular} />
         </div>
 
+        {(who || gain) && (
+          <div className="mb-5 space-y-3 rounded-2xl border border-border/40 bg-muted/30 p-4">
+            {who && (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Кому подойдёт</div>
+                <p className="text-sm text-foreground/90 leading-relaxed">{who}</p>
+              </div>
+            )}
+            {gain && (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Что даст</div>
+                <p className="text-sm text-foreground/90 leading-relaxed">{gain}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1 whitespace-pre-line">{description}</p>
 
         <Button
@@ -122,7 +141,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
-          Посмотреть демо-аккаунт
+          Выбрать план
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>
@@ -271,6 +290,27 @@ function planToCard(
 
   const isPopular = plan.badge_color === "primary" || plan.display_order === 2;
 
+  const slugKey = slug.includes("эксп") || slug.includes("expert")
+    ? "expert"
+    : slug.includes("плюс") || slug.includes("plus")
+      ? "plus"
+      : "basic";
+  const audienceMap: Record<string, { who: string; gain: string }> = {
+    basic: {
+      who: "Тем, кто впервые системно проверяет здоровье или хочет недорогой регулярный мониторинг",
+      gain: "Базовая картина ключевых систем, раннее выявление отклонений и динамика показателей",
+    },
+    plus: {
+      who: "Тем, у кого есть жалобы или факторы риска, и кто хочет глубже понять сердце, обмен веществ и гормоны",
+      gain: "Расширенная оценка сердечно-сосудистых рисков, гормонального баланса и индивидуальные планы здоровья",
+    },
+    expert: {
+      who: "Тем, кто хочет максимум — оценить процессы старения и осознанно работать с биовозрастом",
+      gain: "Глубокая диагностика старения, полный охват систем, приоритетное сопровождение и контроль",
+    },
+  };
+  const audience = audienceMap[slugKey];
+
   return {
     id: plan.id,
     name: plan.display_name,
@@ -283,6 +323,8 @@ function planToCard(
     analyses,
     consultations,
     biomarkersBySystem,
+    who: audience.who,
+    gain: audience.gain,
     glowColor: glowByPlanSlug[slug] ?? defaultGlow,
     delay: 0.1 + index * 0.1,
   };
@@ -322,7 +364,7 @@ export function PricingSection() {
 
 
   return (
-    <section className="relative py-12 md:py-16 overflow-hidden">
+    <section id="pricing" className="relative py-12 md:py-16 overflow-hidden scroll-mt-16">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20" />
 
       <div className="absolute inset-0 opacity-[0.02]" style={{
@@ -350,44 +392,8 @@ export function PricingSection() {
 
         <BiomarkerComparisonDialog open={comparisonOpen} onOpenChange={setComparisonOpen} />
 
-        {/* Кому подойдёт / Что даст — чтобы разница между тарифами была очевидна */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto mb-6">
-          {[
-            {
-              title: "Базовый",
-              who: "Тем, кто впервые системно проверяет здоровье или хочет недорогой регулярный мониторинг",
-              gain: "Базовая картина ключевых систем, раннее выявление отклонений и динамика показателей",
-            },
-            {
-              title: "Плюс",
-              who: "Тем, у кого есть жалобы или факторы риска, и кто хочет глубже понять сердце, обмен веществ и гормоны",
-              gain: "Расширенная оценка сердечно-сосудистых рисков, гормонального баланса и индивидуальные планы здоровья",
-            },
-            {
-              title: "Экспертный",
-              who: "Тем, кто хочет максимум — оценить процессы старения и осознанно работать с биовозрастом",
-              gain: "Глубокая диагностика старения, полный охват систем, приоритетное сопровождение и контроль",
-            },
-          ].map((item, i) => (
-            <div
-              key={item.title}
-              className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm p-5 animate-fade-in"
-              style={{ animationDelay: `${0.15 + i * 0.05}s` }}
-            >
-              <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">{item.title}</div>
-              <div className="space-y-3">
-                <div>
-                  <div className="text-xs font-semibold text-muted-foreground mb-1">Кому подойдёт</div>
-                  <p className="text-sm text-foreground/90 leading-relaxed">{item.who}</p>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-muted-foreground mb-1">Что даст</div>
-                  <p className="text-sm text-foreground/90 leading-relaxed">{item.gain}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+
+
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
 

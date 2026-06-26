@@ -421,17 +421,30 @@ export function HeroPortrait() {
       />
 
       {mounted && (
-        <button
-          onClick={() => setTheme(isDark ? "light" : "dark")}
-          className="fixed top-2 right-2 z-[100] p-2.5 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
-          aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
-        >
-          {isDark ? (
-            <Sun className="h-5 w-5 text-foreground" />
-          ) : (
-            <Moon className="h-5 w-5 text-foreground" />
-          )}
-        </button>
+        <>
+          <button
+            onClick={() => setTheme(isDark ? "light" : "dark")}
+            className="fixed top-2 left-2 z-[100] p-2.5 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
+            aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
+          >
+            {isDark ? (
+              <Sun className="h-5 w-5 text-foreground" />
+            ) : (
+              <Moon className="h-5 w-5 text-foreground" />
+            )}
+          </button>
+          <a
+            href="#pricing"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            className="fixed top-2 right-2 z-[100] inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary hover:scale-[1.03] transition-all duration-300"
+          >
+            Начать мониторинг
+            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          </a>
+        </>
       )}
 
       <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-16 lg:pb-10">
