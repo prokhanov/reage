@@ -68,9 +68,11 @@ export function PlanCard({ plan, selectedPeriod, isRecommended, onSelect, isLoad
 
       <CardHeader className="text-center pb-3 md:pb-4 p-4 md:p-6">
         <h3 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">{plan.display_name}</h3>
-        <p className="text-sm text-muted-foreground md:min-h-[40px]">
-          {plan.description}
-        </p>
+        {plan.description && (
+          <p className="text-sm text-muted-foreground">
+            {plan.description}
+          </p>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6 pt-0 md:pt-0">
