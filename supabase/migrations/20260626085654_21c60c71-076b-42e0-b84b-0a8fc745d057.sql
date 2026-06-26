@@ -1,0 +1,1 @@
+UPDATE public.subscription_plans SET description = NULL WHERE id = '6e2390d3-d552-48f3-af3f-bed786a15456';
