@@ -458,25 +458,9 @@ function ReportMockup({
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 px-3 pt-2 sm:px-5 sm:pt-3 overflow-x-auto scrollbar-none">
-          {pages.map((p, i) => (
-            <button
-              key={p.pageId}
-              onClick={() => { setDir(i > idx ? 1 : -1); setIdx(i); }}
-              className={`text-[10px] sm:text-[11px] px-2 py-1 sm:px-2.5 sm:py-1 rounded-full whitespace-nowrap transition-all ${
-                i === idx
-                  ? "bg-primary text-primary-foreground shadow"
-                  : "bg-muted/40 text-muted-foreground hover:bg-muted/70"
-              }`}
-            >
-              {p.pageLabel}
-            </button>
-          ))}
-        </div>
-
         {/* Page content */}
-        <div className="relative flex-1 min-h-0 overflow-hidden px-3 py-3 sm:px-6 sm:py-5">
+        <div className="relative flex-1 min-h-0 overflow-hidden px-3 pt-3 pb-3 sm:px-6 sm:pt-5 sm:pb-5">
+
           <AnimatePresence mode="wait" custom={dir}>
             <motion.div
               key={page.pageId}
