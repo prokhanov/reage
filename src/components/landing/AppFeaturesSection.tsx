@@ -661,7 +661,7 @@ export function AppFeaturesSection() {
 
         <div className="mt-10 text-center animate-fade-in">
           <Button size="lg" className="rounded-full px-8" onClick={requestRegister}>
-            Попробовать демо бесплатно
+            Посмотреть демо-аккаунт
           </Button>
         </div>
       </div>

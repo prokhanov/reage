@@ -122,7 +122,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
-          Выбрать план
+          Посмотреть демо-аккаунт
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>
