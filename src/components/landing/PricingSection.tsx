@@ -70,6 +70,8 @@ interface PricingCardProps {
   analyses: string;
   consultations: string;
   biomarkersBySystem: BiomarkerCategory[];
+  who?: string;
+  gain?: string;
   glowColor?: string;
   isPopular?: boolean;
   badge?: string;
@@ -77,7 +79,7 @@ interface PricingCardProps {
   onSelect: () => void;
 }
 
-function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, glowColor, isPopular, badge, delay, onSelect }: PricingCardProps) {
+function PricingCard({ name, price, period, description, biomarkers, analyses, consultations, biomarkersBySystem, who, gain, glowColor, isPopular, badge, delay, onSelect }: PricingCardProps) {
   return (
     <div
       className="group relative h-full animate-fade-in"
@@ -115,6 +117,23 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
           <MetricRow icon={<UserCheck className="w-4 h-4" />} label="Консультаций" value={consultations} isPopular={isPopular} />
         </div>
 
+        {(who || gain) && (
+          <div className="mb-5 space-y-3 rounded-2xl border border-border/40 bg-muted/30 p-4">
+            {who && (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Кому подойдёт</div>
+                <p className="text-sm text-foreground/90 leading-relaxed">{who}</p>
+              </div>
+            )}
+            {gain && (
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Что даст</div>
+                <p className="text-sm text-foreground/90 leading-relaxed">{gain}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1 whitespace-pre-line">{description}</p>
 
         <Button
@@ -122,7 +141,7 @@ function PricingCard({ name, price, period, description, biomarkers, analyses, c
           variant={isPopular ? "default" : "outline"}
           size="lg"
           onClick={onSelect}>
-          Посмотреть демо-аккаунт
+          Выбрать план
           <ArrowRight className="ml-2 w-4 h-4" />
         </Button>
       </div>
