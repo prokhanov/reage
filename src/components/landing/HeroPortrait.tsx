@@ -422,28 +422,30 @@ export function HeroPortrait() {
 
       {mounted && (
         <>
-          <button
-            onClick={() => setTheme(isDark ? "light" : "dark")}
-            className="fixed top-3 left-3 sm:top-4 sm:left-4 z-[100] p-2.5 rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
-            aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
-          >
-            {isDark ? (
-              <Sun className="h-5 w-5 text-foreground" />
-            ) : (
-              <Moon className="h-5 w-5 text-foreground" />
-            )}
-          </button>
-          <a
-            href="#pricing"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-            className="fixed top-3 right-3 sm:top-4 sm:right-4 z-[100] inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300"
-          >
-            Начать мониторинг
-            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </a>
+          <div className="fixed top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-[100] flex items-center justify-between pointer-events-none">
+            <button
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className="pointer-events-auto h-10 w-10 flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
+              aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
+            >
+              {isDark ? (
+                <Sun className="h-5 w-5 text-foreground" />
+              ) : (
+                <Moon className="h-5 w-5 text-foreground" />
+              )}
+            </button>
+            <a
+              href="#pricing"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300"
+            >
+              Начать мониторинг
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </a>
+          </div>
         </>
       )}
 
