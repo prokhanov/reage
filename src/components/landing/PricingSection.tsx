@@ -218,7 +218,9 @@ function planToCard(
   const annual = plan.pricing.find((p) => p.period === "annual" && p.is_enabled !== false);
   const pricing = annual ?? plan.pricing.find((p) => p.is_enabled !== false) ?? plan.pricing[0];
   const amount = pricing?.amount ?? 0;
-  const priceStr = `${Math.round(amount).toLocaleString("ru-RU")} ₽₽₽₽`;
+  const priceStr = pricing?.period === "annual"
+    ? (amount >= 200000 ? "₽₽₽₽" : amount >= 100000 ? "₽₽₽" : "₽₽")
+    : `${Math.round(amount).toLocaleString("ru-RU")} ₽`;
   const periodStr = pricing?.period === "annual" ? "год"
     : pricing?.period === "semiannual" ? "полгода"
     : pricing?.period === "quarterly" ? "квартал"
