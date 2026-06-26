@@ -18,6 +18,10 @@
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     font-feature-settings: "tnum", "zero";
   }
+  .font-heading {
+    font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01";
+  }
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
