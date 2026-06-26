@@ -38,6 +38,7 @@ const Index = () => {
       <ReportShowcaseSection />
       <AppFeaturesSection />
       <PreventiveMedicineSection />
+      <WhereToTestSection />
       <PricingSection />
       <FAQSection />
       <CTASection />
