@@ -62,7 +62,7 @@ const LandingV2 = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-manrope">
+    <div className="min-h-screen bg-background font-onest">
       <div className="sticky top-0 z-[60] flex justify-end gap-2 bg-background/80 backdrop-blur border-b border-border px-3 py-2">
         {editOn && (
           <button

@@ -25,7 +25,11 @@
   .font-golos {
     font-family: 'Golos Text', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "ss01";
+  .font-onest {
+    font-family: 'Onest', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01";
   }
+
   .font-manrope {
     font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "ss01";
@@ -191,6 +195,17 @@ All colors MUST be HSL.
     font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "ss01";
   }
+
+  .font-onest h1,
+  .font-onest h2,
+  .font-onest h3,
+  .font-onest h4,
+  .font-onest h5,
+  .font-onest h6 {
+    font-family: 'Onest', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01";
+  }
+
 
 }
 
