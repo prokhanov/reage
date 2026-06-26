@@ -1,5 +1,6 @@
 import { Fragment, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Check, Minus, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +24,53 @@ interface CategoryGroup {
   name: string;
   display_order: number;
   rows: BiomarkerRow[];
+}
+
+type PlanSlug = "basic" | "plus" | "expert";
+
+function getPlanSlug(displayName: string): PlanSlug {
+  const slug = (displayName || "").toLowerCase();
+  if (slug.includes("эксп") || slug.includes("expert")) return "expert";
+  if (slug.includes("плюс") || slug.includes("plus")) return "plus";
+  return "basic";
+}
+
+// Шкала: ● базово · ●● хорошо · ●●● максимально · — нет
+type Level = 0 | 1 | 2 | 3;
+
+interface Direction {
+  title: string;
+  hint: string;
+  levels: Record<PlanSlug, Level>;
+}
+
+const DIRECTIONS: Direction[] = [
+  { title: "Биологический возраст и темп старения", hint: "насколько организм моложе или старше паспортного, в какую сторону движется", levels: { basic: 1, plus: 2, expert: 3 } },
+  { title: "Сердце и сосуды на годы вперёд", hint: "риск инфаркта, инсульта, атеросклероза задолго до симптомов", levels: { basic: 1, plus: 2, expert: 3 } },
+  { title: "Тромбы и скрытые повреждения миокарда", hint: "ранние сигналы тромбозов и микроповреждений сердца", levels: { basic: 0, plus: 1, expert: 3 } },
+  { title: "Гормональный фон и сексуальное здоровье", hint: "либидо, мышцы, фертильность, репродуктивное долголетие", levels: { basic: 0, plus: 2, expert: 3 } },
+  { title: "Стресс и выгорание", hint: "хронический стресс, упадок сил, сниженная стрессоустойчивость", levels: { basic: 0, plus: 2, expert: 3 } },
+  { title: "Щитовидная железа и метаболизм", hint: "вес, температура, скорость обмена, концентрация", levels: { basic: 1, plus: 2, expert: 3 } },
+  { title: "Энергия, митохондрии, антиоксиданты", hint: "усталость, восстановление, окислительное «ржавение» клеток", levels: { basic: 0, plus: 1, expert: 3 } },
+  { title: "Регенерация и анаболизм", hint: "способность к восстановлению тканей с возрастом", levels: { basic: 0, plus: 0, expert: 3 } },
+  { title: "Хроническое воспаление старения (inflammaging)", hint: "главный «тихий» фактор старения и возрастных болезней", levels: { basic: 1, plus: 2, expert: 3 } },
+  { title: "Иммунитет", hint: "устойчивость к инфекциям, готовность иммунной системы", levels: { basic: 1, plus: 2, expert: 3 } },
+  { title: "Дефициты витаминов и микроэлементов", hint: "скрытые причины усталости, плохой кожи, выпадения волос, нервозности", levels: { basic: 0, plus: 2, expert: 3 } },
+  { title: "Обмен железа и анемии", hint: "кислородное голодание тканей, утомляемость", levels: { basic: 1, plus: 2, expert: 3 } },
+  { title: "Сахар и инсулинорезистентность", hint: "риск диабета 2 типа, набора веса, метаболического синдрома", levels: { basic: 2, plus: 3, expert: 3 } },
+  { title: "Печень и детоксикация", hint: "переработка алкоголя, лекарств, гормонов, токсинов", levels: { basic: 2, plus: 3, expert: 3 } },
+  { title: "Почки и водно-солевой баланс", hint: "фильтрация, давление, отёки", levels: { basic: 2, plus: 3, expert: 3 } },
+];
+
+function renderLevel(level: Level) {
+  if (level === 0) {
+    return <Minus className="h-4 w-4 text-muted-foreground/50 mx-auto" />;
+  }
+  return (
+    <span className="text-primary font-semibold tracking-wider">
+      {"●".repeat(level)}
+    </span>
+  );
 }
 
 function renderCell(included: boolean) {
@@ -66,7 +114,7 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
       const byCategory = new Map<string, BiomarkerRow[]>();
       (biomarkersRes.data ?? []).forEach((b) => {
         const planIds = biomarkerToPlans.get(b.id) ?? new Set<string>();
-        if (planIds.size === 0) return; // показываем только те, что входят хотя бы в один тариф
+        if (planIds.size === 0) return;
         const row: BiomarkerRow = {
           id: b.id,
           name: b.name,
@@ -114,13 +162,38 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
 
   const recommendedPlanId = orderedPlans[1]?.id;
 
+  const planSlugs = useMemo(
+    () => orderedPlans.map((p) => getPlanSlug(p.display_name || "")),
+    [orderedPlans],
+  );
+
+  const renderPlanHeader = (extraColLabel: string) => (
+    <thead className="sticky top-0 bg-background z-10">
+      <tr className="border-b border-border">
+        <th className="text-left py-3 px-2 text-sm font-semibold text-foreground min-w-[180px]">
+          {extraColLabel}
+        </th>
+        {orderedPlans.map((p) => (
+          <th
+            key={p.id}
+            className={`text-center py-3 px-2 text-base font-bold text-primary min-w-[100px] ${
+              p.id === recommendedPlanId ? "bg-primary/5" : ""
+            }`}
+          >
+            {p.display_name}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Сравнение тарифов по биомаркерам</DialogTitle>
+          <DialogTitle className="text-2xl">Сравнение тарифов</DialogTitle>
           <DialogDescription>
-            Полный перечень биомаркеров, входящих в каждый тариф годовой подписки
+            Что отслеживаем и какие биомаркеры входят в каждый тариф годовой подписки
           </DialogDescription>
         </DialogHeader>
 
@@ -133,162 +206,184 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
             Тарифы пока не настроены
           </div>
         ) : (
-          <div className="overflow-auto flex-1 -mx-6 px-6">
-            <table className="w-full border-collapse">
-              <thead className="sticky top-0 bg-background z-10">
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-2 text-sm font-semibold text-foreground">
-                    Тариф
-                  </th>
-                  {orderedPlans.map((p) => (
-                    <th
-                      key={p.id}
-                      className={`text-center py-3 px-2 text-base font-bold text-primary min-w-[100px] ${
-                        p.id === recommendedPlanId ? "bg-primary/5" : ""
-                      }`}
-                    >
-                      {p.display_name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {(() => {
-                  const labels = Array.from(
-                    new Set(
-                      orderedPlans.flatMap((p) =>
-                        (p.comparison_highlights ?? [])
-                          .map((h) => h.label)
-                          .filter((l) => l && l.trim() !== "")
+          <Tabs defaultValue="overview" className="flex-1 overflow-hidden flex flex-col">
+            <TabsList className="self-start">
+              <TabsTrigger value="overview">Что отслеживаем</TabsTrigger>
+              <TabsTrigger value="biomarkers">Биомаркеры</TabsTrigger>
+            </TabsList>
+
+            {/* ===== Tab 1: Overview ===== */}
+            <TabsContent value="overview" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+              <table className="w-full border-collapse">
+                {renderPlanHeader("Тариф")}
+                <tbody>
+                  {(() => {
+                    const labels = Array.from(
+                      new Set(
+                        orderedPlans.flatMap((p) =>
+                          (p.comparison_highlights ?? [])
+                            .map((h) => h.label)
+                            .filter((l) => l && l.trim() !== "")
+                        )
                       )
-                    )
-                  );
-                  return labels.map((label) => (
-                    <tr key={`hl-${label}`} className="border-b border-border/50 bg-muted/20">
-                      <td className="py-2.5 px-2 text-sm font-semibold text-foreground">{label}</td>
-                      {orderedPlans.map((p) => {
-                        const value = (p.comparison_highlights ?? []).find((h) => h.label === label)?.value || "—";
-                        return (
-                          <td
-                            key={p.id}
-                            className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
-                              p.id === recommendedPlanId ? "bg-primary/5" : ""
-                            }`}
-                          >
-                            {value}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ));
-                })()}
+                    );
+                    return labels.map((label) => (
+                      <tr key={`hl-${label}`} className="border-b border-border/50 bg-muted/20">
+                        <td className="py-2.5 px-2 text-sm font-semibold text-foreground">{label}</td>
+                        {orderedPlans.map((p) => {
+                          const value = (p.comparison_highlights ?? []).find((h) => h.label === label)?.value || "—";
+                          return (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {value}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ));
+                  })()}
 
-                <tr className="border-b border-border/50 bg-muted/20">
-                  <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
-                  {orderedPlans.map((p) => (
+                  <tr className="border-b border-border/50 bg-muted/20">
+                    <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
+                    {orderedPlans.map((p) => (
+                      <td
+                        key={p.id}
+                        className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
+                          p.id === recommendedPlanId ? "bg-primary/5" : ""
+                        }`}
+                      >
+                        {totals.get(p.id) ?? 0}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {(() => {
+                    const rows = planSlugs.map((s) => getPlanAudience(s));
+                    if (rows.every((r) => !r)) return null;
+                    return (
+                      <>
+                        <tr className="border-b border-border/50 bg-muted/20">
+                          <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Кому подойдёт</td>
+                          {orderedPlans.map((p, idx) => (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center text-sm text-foreground align-top ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {rows[idx]?.who ?? "—"}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr className="border-b border-border/50 bg-muted/20">
+                          <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Что покрывает</td>
+                          {orderedPlans.map((p, idx) => (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center text-sm text-foreground align-top ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {rows[idx]?.gain ?? "—"}
+                            </td>
+                          ))}
+                        </tr>
+                      </>
+                    );
+                  })()}
+
+                  <tr className="bg-muted/40">
                     <td
-                      key={p.id}
-                      className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
-                        p.id === recommendedPlanId ? "bg-primary/5" : ""
-                      }`}
+                      colSpan={orderedPlans.length + 1}
+                      className="py-2 px-2 text-xs font-bold uppercase tracking-wider text-primary"
                     >
-                      {totals.get(p.id) ?? 0}
-                    </td>
-                  ))}
-                </tr>
-
-
-                {(() => {
-                  const rows = orderedPlans.map((p) => {
-                    const slug = (p.display_name || "").toLowerCase();
-                    const slugKey = slug.includes("эксп") || slug.includes("expert")
-                      ? "expert"
-                      : slug.includes("плюс") || slug.includes("plus")
-                        ? "plus"
-                        : "basic";
-                    return getPlanAudience(slugKey);
-                  });
-                  if (rows.every((r) => !r)) return null;
-                  return (
-                    <>
-                      <tr className="border-b border-border/50 bg-muted/20">
-                        <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Кому подойдёт</td>
-                        {orderedPlans.map((p, idx) => {
-                          const audience = rows[idx];
-                          return (
-                            <td
-                              key={p.id}
-                              className={`py-2.5 px-2 text-center text-sm text-foreground ${
-                                p.id === recommendedPlanId ? "bg-primary/5" : ""
-                              }`}
-                            >
-                              {audience?.who ?? "—"}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                      <tr className="border-b border-border/50 bg-muted/20">
-                        <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Что покрывает</td>
-                        {orderedPlans.map((p, idx) => {
-                          const audience = rows[idx];
-                          return (
-                            <td
-                              key={p.id}
-                              className={`py-2.5 px-2 text-center text-sm text-foreground ${
-                                p.id === recommendedPlanId ? "bg-primary/5" : ""
-                              }`}
-                            >
-                              {audience?.gain ?? "—"}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    </>
-                  );
-                })()}
-
-
-                {(comparisonData?.groups ?? []).length === 0 && (
-                  <tr>
-                    <td colSpan={orderedPlans.length + 1} className="py-8 text-center text-sm text-muted-foreground">
-                      Биомаркеры пока не привязаны к тарифам. Настройте привязку в админке (раздел «Управление данными → Тарифы»).
+                      Что отслеживаем — глубина по направлениям
                     </td>
                   </tr>
-                )}
+                  {DIRECTIONS.map((d) => (
+                    <tr
+                      key={d.title}
+                      className="border-b border-border/50 hover:bg-muted/30 transition-colors align-top"
+                    >
+                      <td className="py-2.5 px-2 text-sm text-foreground">
+                        <div className="font-medium">{d.title}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{d.hint}</div>
+                      </td>
+                      {planSlugs.map((slug, idx) => (
+                        <td
+                          key={orderedPlans[idx].id}
+                          className={`py-2.5 px-2 text-center ${
+                            orderedPlans[idx].id === recommendedPlanId ? "bg-primary/5" : ""
+                          }`}
+                        >
+                          {renderLevel(d.levels[slug])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
 
-                {(comparisonData?.groups ?? []).map((cat) => (
-                  <Fragment key={cat.name}>
-                    <tr className="bg-muted/40">
-                      <td
-                        colSpan={orderedPlans.length + 1}
-                        className="py-2 px-2 text-xs font-bold uppercase tracking-wider text-primary"
-                      >
-                        {cat.name}
+                  <tr>
+                    <td colSpan={orderedPlans.length + 1} className="pt-4 pb-2 text-xs text-muted-foreground">
+                      Шкала: <span className="text-primary font-semibold">●</span> базово ·{" "}
+                      <span className="text-primary font-semibold">●●</span> хорошо ·{" "}
+                      <span className="text-primary font-semibold">●●●</span> максимально · — не входит
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </TabsContent>
+
+            {/* ===== Tab 2: Biomarkers ===== */}
+            <TabsContent value="biomarkers" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+              <table className="w-full border-collapse">
+                {renderPlanHeader("Биомаркер")}
+                <tbody>
+                  {(comparisonData?.groups ?? []).length === 0 && (
+                    <tr>
+                      <td colSpan={orderedPlans.length + 1} className="py-8 text-center text-sm text-muted-foreground">
+                        Биомаркеры пока не привязаны к тарифам.
                       </td>
                     </tr>
-                    {cat.rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        className="border-b border-border/50 hover:bg-muted/30 transition-colors"
-                      >
-                        <td className="py-2.5 px-2 text-sm text-foreground">{row.name}</td>
-                        {orderedPlans.map((p) => (
-                          <td
-                            key={p.id}
-                            className={`py-2.5 px-2 text-center ${
-                              p.id === recommendedPlanId ? "bg-primary/5" : ""
-                            }`}
-                          >
-                            {renderCell(row.planIds.has(p.id))}
-                          </td>
-                        ))}
+                  )}
+
+                  {(comparisonData?.groups ?? []).map((cat) => (
+                    <Fragment key={cat.name}>
+                      <tr className="bg-muted/40">
+                        <td
+                          colSpan={orderedPlans.length + 1}
+                          className="py-2 px-2 text-xs font-bold uppercase tracking-wider text-primary"
+                        >
+                          {cat.name}
+                        </td>
                       </tr>
-                    ))}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      {cat.rows.map((row) => (
+                        <tr
+                          key={row.id}
+                          className="border-b border-border/50 hover:bg-muted/30 transition-colors"
+                        >
+                          <td className="py-2.5 px-2 text-sm text-foreground">{row.name}</td>
+                          {orderedPlans.map((p) => (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {renderCell(row.planIds.has(p.id))}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>
