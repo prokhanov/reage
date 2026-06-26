@@ -337,18 +337,60 @@ export function PricingSection() {
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px]" />
 
       <div className="relative z-10 container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight animate-fade-in whitespace-pre-line" style={{ animationDelay: '0.1s' }}>
-            <span className="text-foreground">У каждого есть история болезни </span>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">Мы создаём историю здоровья</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">Программы любой глубины</span>
           </h2>
+          <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.15s' }}>
+            Выберите уровень мониторинга под свои цели — от базового чек-апа до глубокой работы с биовозрастом
+          </p>
 
         </div>
 
         <BiomarkerComparisonDialog open={comparisonOpen} onOpenChange={setComparisonOpen} />
 
+        {/* Кому подойдёт / Что даст — чтобы разница между тарифами была очевидна */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto mb-6">
+          {[
+            {
+              title: "Базовый",
+              who: "Тем, кто впервые системно проверяет здоровье или хочет недорогой регулярный мониторинг",
+              gain: "Базовая картина ключевых систем, раннее выявление отклонений и динамика показателей",
+            },
+            {
+              title: "Плюс",
+              who: "Тем, у кого есть жалобы или факторы риска, и кто хочет глубже понять сердце, обмен веществ и гормоны",
+              gain: "Расширенная оценка сердечно-сосудистых рисков, гормонального баланса и индивидуальные планы здоровья",
+            },
+            {
+              title: "Экспертный",
+              who: "Тем, кто хочет максимум — оценить процессы старения и осознанно работать с биовозрастом",
+              gain: "Глубокая диагностика старения, полный охват систем, приоритетное сопровождение и контроль",
+            },
+          ].map((item, i) => (
+            <div
+              key={item.title}
+              className="rounded-2xl border border-border/40 bg-card/40 backdrop-blur-sm p-5 animate-fade-in"
+              style={{ animationDelay: `${0.15 + i * 0.05}s` }}
+            >
+              <div className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">{item.title}</div>
+              <div className="space-y-3">
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground mb-1">Кому подойдёт</div>
+                  <p className="text-sm text-foreground/90 leading-relaxed">{item.who}</p>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-muted-foreground mb-1">Что даст</div>
+                  <p className="text-sm text-foreground/90 leading-relaxed">{item.gain}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+
           {isLoading ? (
             [0, 1, 2].map((i) => (
               <Skeleton key={i} className="h-[520px] rounded-3xl" />
