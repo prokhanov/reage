@@ -321,7 +321,37 @@ export function BiomarkersDeepDiveSection() {
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Rationale */}
+          <div className="max-w-4xl mx-auto mt-12 md:mt-14">
+            <div className="relative rounded-3xl bg-card/60 backdrop-blur-xl border border-border/40 p-6 md:p-8 shadow-2xl shadow-primary/[0.03]">
+              <div className="flex items-center gap-2 text-sm font-medium text-primary mb-4">
+                <Sparkles className="w-4 h-4" />
+                За вас подумали
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+                Почему именно эти 5 систем?
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Мы не гонимся за количеством анализов. Команда врачей и специалистов по данным отобрала маркеры, которые вместе формируют единую модель вашего здоровья. Каждый показатель объясняет, дополняет или уточняет другие — иначе можно было бы получить лишь набор случайных «срезов».
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { title: "Связь, а не изоляция", body: "Воспаление влияет на сосуды, гормоны — на метаболизм, а дефицит микроэлементов — на энергию. Мы видим эти связи." },
+                  { title: "Баланс глубины и доступности", body: "Достаточно данных, чтобы построить персональную дорожную карту, но не перегрузить вас лишними тестами." },
+                  { title: "Фокус на причины", body: "Один и тот же симптом может иметь разные корни. Комплексный набор помогает найти источник, а не лечить следствие." },
+                ].map((item) => (
+                  <div key={item.title} className="rounded-2xl bg-muted/40 border border-border/30 p-4">
+                    <h4 className="text-sm font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
+
       </div>
     </section>
   );
