@@ -170,7 +170,7 @@ function CompactBioAgeWidget() {
         <span className="text-xs text-muted-foreground pb-1">года</span>
       </div>
       <div className="mt-2.5 pt-2.5 border-t border-border/40 flex items-center justify-between">
-        <span className="text-[10px] text-muted-foreground">Хронологический</span>
+        <span className="text-[10px] text-muted-foreground">Паспортный</span>
         <span className="text-[10px] font-medium text-foreground">38 лет</span>
       </div>
     </div>

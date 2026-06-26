@@ -42,7 +42,7 @@ export function BioAgeWidget() {
         <span className="text-sm text-muted-foreground pb-2">года</span>
       </div>
       <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Хронологический</span>
+        <span className="text-xs text-muted-foreground">Паспортный</span>
         <span className="text-xs font-medium text-foreground">38 лет</span>
       </div>
       {/* sparkline */}
