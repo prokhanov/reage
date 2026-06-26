@@ -183,6 +183,55 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                   ));
                 })()}
 
+                {(() => {
+                  const rows = orderedPlans.map((p) => {
+                    const slug = (p.display_name || "").toLowerCase();
+                    const slugKey = slug.includes("эксп") || slug.includes("expert")
+                      ? "expert"
+                      : slug.includes("плюс") || slug.includes("plus")
+                        ? "plus"
+                        : "basic";
+                    return getPlanAudience(slugKey);
+                  });
+                  if (rows.every((r) => !r)) return null;
+                  return (
+                    <>
+                      <tr className="border-b border-border/50 bg-muted/20">
+                        <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Кому подойдёт</td>
+                        {orderedPlans.map((p, idx) => {
+                          const audience = rows[idx];
+                          return (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center text-sm text-foreground ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {audience?.who ?? "—"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr className="border-b border-border/50 bg-muted/20">
+                        <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Что покрывает</td>
+                        {orderedPlans.map((p, idx) => {
+                          const audience = rows[idx];
+                          return (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center text-sm text-foreground ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {audience?.gain ?? "—"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </>
+                  );
+                })()}
+
                 <tr className="border-b border-border/50 bg-muted/20">
                   <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
                   {orderedPlans.map((p) => (
