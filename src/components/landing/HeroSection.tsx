@@ -104,7 +104,7 @@ export function HeroSection() {
               onClick={requestRegister}
               className="text-lg px-8 py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group">
               
-              Начать мониторинг
+              Посмотреть демо-аккаунт
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button

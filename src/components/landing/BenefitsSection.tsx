@@ -95,7 +95,7 @@ export function BenefitsSection() {
         }}
         className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
       >
-        Смотреть демо
+        Посмотреть демо-аккаунт
       </a>
     ),
     delay: 0.45

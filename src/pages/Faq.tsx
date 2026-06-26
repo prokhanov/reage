@@ -473,7 +473,7 @@ export default function Faq() {
             to="/register"
             className="inline-flex items-center justify-center h-12 px-8 rounded-xl text-base font-semibold text-primary-foreground bg-gradient-to-r from-primary to-accent shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] transition-all"
           >
-            Начать мониторинг
+            Посмотреть демо-аккаунт
           </Link>
         </section>
 

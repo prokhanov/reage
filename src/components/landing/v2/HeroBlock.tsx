@@ -260,7 +260,7 @@ export function HeroBlock() {
                 onClick={requestRegister}
                 className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-neon-primary hover:shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
               >
-                Начать мониторинг
+                Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button

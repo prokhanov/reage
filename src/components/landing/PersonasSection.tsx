@@ -234,7 +234,7 @@ export function PersonasSection() {
                       onClick={requestRegister}
                       className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-lg shadow-primary/25 group"
                     >
-                      Это про меня
+                      Посмотреть демо-аккаунт
                       <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </div>

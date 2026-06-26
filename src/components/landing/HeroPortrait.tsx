@@ -477,7 +477,7 @@ export function HeroPortrait() {
                 onClick={requestRegister}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
               >
-                Начать мониторинг
+                Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
@@ -508,7 +508,7 @@ export function HeroPortrait() {
                 onClick={requestRegister}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
               >
-                Начать мониторинг
+                Посмотреть демо-аккаунт
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
