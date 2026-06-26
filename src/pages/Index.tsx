@@ -35,10 +35,10 @@ const Index = () => {
       </div>
       <BenefitsSection />
       <BiomarkersDeepDiveSection />
-      <WhereToTestSection />
       <ReportShowcaseSection />
       <AppFeaturesSection />
       <PreventiveMedicineSection />
+      <WhereToTestSection />
       <PricingSection />
       <FAQSection />
       <CTASection />
