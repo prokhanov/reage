@@ -166,6 +166,16 @@ All colors MUST be HSL.
     font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "ss01";
   }
+
+  .font-golos h1,
+  .font-golos h2,
+  .font-golos h3,
+  .font-golos h4,
+  .font-golos h5,
+  .font-golos h6 {
+    font-family: 'Golos Text', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01";
+  }
 }
 
 @layer utilities {
