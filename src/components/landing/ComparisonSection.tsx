@@ -183,10 +183,10 @@ export function ComparisonSection() {
     },
     {
       feature: "Средняя стоимость за год",
-      reage: { text: "от 69 990 ₽" },
-      labs: { text: "≈ 80 000 ₽*" },
-      checkup: { text: "150 000–300 000 ₽" },
-      genetics: { text: "≈ 80 000 ₽" },
+      reage: { text: "от 69 990 ₽₽₽₽" },
+      labs: { text: "≈ 80 000 ₽₽₽₽*" },
+      checkup: { text: "150 000–300 000 ₽₽₽₽" },
+      genetics: { text: "≈ 80 000 ₽₽₽₽" },
     },
     {
       feature: "Результат",
