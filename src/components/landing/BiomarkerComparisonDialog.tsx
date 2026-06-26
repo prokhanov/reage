@@ -4,6 +4,7 @@ import { Check, Minus, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { getPlanAudience } from "./PricingSection";
 
 interface BiomarkerComparisonDialogProps {
   open: boolean;
@@ -180,6 +181,55 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                       })}
                     </tr>
                   ));
+                })()}
+
+                {(() => {
+                  const rows = orderedPlans.map((p) => {
+                    const slug = (p.display_name || "").toLowerCase();
+                    const slugKey = slug.includes("эксп") || slug.includes("expert")
+                      ? "expert"
+                      : slug.includes("плюс") || slug.includes("plus")
+                        ? "plus"
+                        : "basic";
+                    return getPlanAudience(slugKey);
+                  });
+                  if (rows.every((r) => !r)) return null;
+                  return (
+                    <>
+                      <tr className="border-b border-border/50 bg-muted/20">
+                        <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Кому подойдёт</td>
+                        {orderedPlans.map((p, idx) => {
+                          const audience = rows[idx];
+                          return (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center text-sm text-foreground ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {audience?.who ?? "—"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr className="border-b border-border/50 bg-muted/20">
+                        <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Что покрывает</td>
+                        {orderedPlans.map((p, idx) => {
+                          const audience = rows[idx];
+                          return (
+                            <td
+                              key={p.id}
+                              className={`py-2.5 px-2 text-center text-sm text-foreground ${
+                                p.id === recommendedPlanId ? "bg-primary/5" : ""
+                              }`}
+                            >
+                              {audience?.gain ?? "—"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </>
+                  );
                 })()}
 
                 <tr className="border-b border-border/50 bg-muted/20">

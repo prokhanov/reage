@@ -208,6 +208,25 @@ const glowByPlanSlug: Record<string, string> = {
 };
 const defaultGlow = "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))";
 
+const audienceMap: Record<string, { who: string; gain: string }> = {
+  basic: {
+    who: "Тем, кто впервые системно проверяет здоровье или хочет недорогой регулярный мониторинг",
+    gain: "Базовая картина ключевых систем, раннее выявление отклонений и динамика показателей",
+  },
+  plus: {
+    who: "Тем, у кого есть жалобы или факторы риска, и кто хочет глубже понять сердце, обмен веществ и гормоны",
+    gain: "Расширенная оценка сердечно-сосудистых рисков, гормонального баланса и индивидуальные планы здоровья",
+  },
+  expert: {
+    who: "Тем, кто хочет максимум — оценить процессы старения и осознанно работать с биовозрастом",
+    gain: "Глубокая диагностика старения, полный охват систем, приоритетное сопровождение и контроль",
+  },
+};
+
+export function getPlanAudience(slugKey: string): { who: string; gain: string } | null {
+  return audienceMap[slugKey] ?? null;
+}
+
 // Парсим количество из строк features вида «3 анализа в год», «4 консультации в год».
 function extractCount(features: string[], keywords: string[]): string | null {
   for (const f of features) {
@@ -295,21 +314,7 @@ function planToCard(
     : slug.includes("плюс") || slug.includes("plus")
       ? "plus"
       : "basic";
-  const audienceMap: Record<string, { who: string; gain: string }> = {
-    basic: {
-      who: "Тем, кто впервые системно проверяет здоровье или хочет недорогой регулярный мониторинг",
-      gain: "Базовая картина ключевых систем, раннее выявление отклонений и динамика показателей",
-    },
-    plus: {
-      who: "Тем, у кого есть жалобы или факторы риска, и кто хочет глубже понять сердце, обмен веществ и гормоны",
-      gain: "Расширенная оценка сердечно-сосудистых рисков, гормонального баланса и индивидуальные планы здоровья",
-    },
-    expert: {
-      who: "Тем, кто хочет максимум — оценить процессы старения и осознанно работать с биовозрастом",
-      gain: "Глубокая диагностика старения, полный охват систем, приоритетное сопровождение и контроль",
-    },
-  };
-  const audience = audienceMap[slugKey];
+  const audience = getPlanAudience(slugKey);
 
   return {
     id: plan.id,
