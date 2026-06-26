@@ -22,6 +22,10 @@
     font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "ss01";
   }
+  .font-golos {
+    font-family: 'Golos Text', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01";
+  }
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
