@@ -183,6 +183,21 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                   ));
                 })()}
 
+                <tr className="border-b border-border/50 bg-muted/20">
+                  <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
+                  {orderedPlans.map((p) => (
+                    <td
+                      key={p.id}
+                      className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
+                        p.id === recommendedPlanId ? "bg-primary/5" : ""
+                      }`}
+                    >
+                      {totals.get(p.id) ?? 0}
+                    </td>
+                  ))}
+                </tr>
+
+
                 {(() => {
                   const rows = orderedPlans.map((p) => {
                     const slug = (p.display_name || "").toLowerCase();
@@ -232,19 +247,6 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                   );
                 })()}
 
-                <tr className="border-b border-border/50 bg-muted/20">
-                  <td className="py-2.5 px-2 text-sm font-semibold text-foreground">Биомаркеров</td>
-                  {orderedPlans.map((p) => (
-                    <td
-                      key={p.id}
-                      className={`py-2.5 px-2 text-center text-sm font-semibold text-foreground ${
-                        p.id === recommendedPlanId ? "bg-primary/5" : ""
-                      }`}
-                    >
-                      {totals.get(p.id) ?? 0}
-                    </td>
-                  ))}
-                </tr>
 
                 {(comparisonData?.groups ?? []).length === 0 && (
                   <tr>
