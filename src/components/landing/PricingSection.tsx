@@ -382,7 +382,7 @@ export function PricingSection() {
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10">
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <span className="bg-gradient-hero bg-clip-text text-transparent">Программы любой глубины</span>
+            <span className="bg-gradient-hero bg-clip-text text-transparent">Варианты сопровождения</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground animate-fade-in" style={{ animationDelay: '0.15s' }}>
             Выберите уровень мониторинга под свои цели — от базового чек-апа до глубокой работы с биовозрастом
