@@ -38,7 +38,7 @@ export function BenefitsSection() {
   const benefits = [
   {
     icon: <Activity className="w-6 h-6 text-primary" />,
-    title: "85+ биомаркеров\nздоровья",
+    title: "100 + биомаркеров здоровья",
     description: "Расширенный анализ крови, который позволяет оценить состояние основных систем организма и выявить ключевые факторы риска",
     delay: 0.1
   },
