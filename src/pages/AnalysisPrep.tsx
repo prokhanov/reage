@@ -9,10 +9,11 @@ import {
   Cigarette,
   Clock,
   Utensils,
-  
   HeartPulse,
   CheckCircle2,
   AlertTriangle,
+  Info,
+  Phone,
 } from "lucide-react";
 import logoDark from "@/assets/reage-logo-dark.png";
 
@@ -26,60 +27,67 @@ const MAIN_RULES: Rule[] = [
   {
     icon: Clock,
     title: "Голод 8–12 часов",
-    text: "Большинство биохимических и гормональных анализов сдают натощак. Последний приём пищи — лёгкий ужин накануне до 20:00. Не более 14 часов голода — иначе показатели исказятся.",
-  },
-  {
-    icon: Droplet,
-    title: "Можно чистую воду",
-    text: "Утром перед забором крови разрешена негазированная вода в обычном объёме. Чай, кофе, соки, жвачка — нельзя: они меняют уровень глюкозы, инсулина и липидов.",
+    text: "Большинство анализов крови сдают натощак. Последний приём пищи — лёгкий ужин накануне вечером. Не стоит голодать более 14 часов: после этого организм начинает работать в другом режиме, и некоторые показатели могут измениться.",
   },
   {
     icon: Utensils,
-    title: "За 1–2 дня — обычный рацион",
-    text: "Не переедайте, не садитесь на диету и не пробуйте новые продукты. Исключите жирное, жареное, острое и алкоголь минимум за 24 часа — это смажет липидограмму и печёночные пробы.",
-  },
-  {
-    icon: Cigarette,
-    title: "Без алкоголя и курения",
-    text: "Алкоголь — за 48–72 часа до сдачи (особенно перед печёночными пробами, гормонами и липидами). Не курите минимум за 1 час до забора крови.",
+    title: "Без алкоголя",
+    text: "Не употребляйте алкоголь за 48–72 часа до исследования. Он способен временно изменить показатели печени, липидного обмена, воспаления и ряда гормонов.",
   },
   {
     icon: Dumbbell,
     title: "Без интенсивных нагрузок",
-    text: "За 24 часа исключите тяжёлые тренировки, баню, сауну, массаж и физиопроцедуры. Они меняют КФК, АЛТ, АСТ, кортизол и показатели воспаления.",
+    text: "За сутки исключите тяжёлые тренировки, баню, сауну, массаж и физиотерапию. После серьёзной нагрузки организм ещё восстанавливается, поэтому часть показателей может отличаться от привычного уровня.",
+  },
+  {
+    icon: Droplet,
+    title: "Утром — только вода",
+    text: "Перед сдачей крови можно пить обычную негазированную воду. Кофе, чай, соки, сладкие напитки и жевательная резинка могут повлиять на результаты.",
+  },
+];
+
+const EXTRA_RULES: Rule[] = [
+  {
+    icon: Utensils,
+    title: "Питайтесь как обычно",
+    text: "За 1–2 дня не меняйте рацион, не переедайте и не начинайте диету. Нам важно увидеть привычное состояние вашего организма.",
+  },
+  {
+    icon: Cigarette,
+    title: "Не курите перед анализом",
+    text: "Воздержитесь от курения минимум за 1 час до процедуры.",
   },
   {
     icon: Moon,
-    title: "Сон и спокойствие",
-    text: "Полноценный сон 7–8 часов накануне. Перед забором крови посидите 10–15 минут в спокойствии — стресс и спешка повышают кортизол, глюкозу и лейкоциты.",
+    title: "Хорошо выспитесь",
+    text: "Постарайтесь спать 7–8 часов. Перед забором крови спокойно посидите 10–15 минут — это помогает избежать влияния стресса и спешки на некоторые показатели.",
   },
   {
     icon: Pill,
-    title: "Лекарства и БАД",
-    text: "Если принимаете препараты или витамины — обсудите с врачом, можно ли пропустить утренний приём. Биотин (B7) и высокие дозы витамина C искажают гормональные тесты — отмените за 3 дня.",
+    title: "Лекарства и витамины",
+    text: "Если вы принимаете препараты или биологически активные добавки, заранее обсудите с врачом, нужно ли пропустить утренний приём. Биотин (витамин B7), а также высокие дозы витамина C могут влиять на результаты некоторых анализов. Если врач не рекомендовал иначе, их желательно отменить за 3 дня до исследования.",
   },
   {
     icon: Coffee,
-    title: "Утро дня анализа",
-    text: "Никакого кофе, чая и сигарет. Если плохо переносите голод — возьмите с собой воду и перекус на после процедуры. Приезжайте за 10–15 минут до записи.",
+    title: "После процедуры",
+    text: "Если вы плохо переносите длительный голод, возьмите с собой воду и небольшой перекус, чтобы поесть сразу после сдачи крови.",
   },
 ];
 
-
 const URINE = [
-  "Соберите утреннюю порцию мочи сразу после пробуждения.",
-  "Перед сбором — гигиенический душ без мыла на область промежности.",
-  "Используйте стерильный аптечный контейнер.",
-  "Соберите среднюю порцию — первые секунды пропустите.",
-  "Доставьте в лабораторию в течение 1–2 часов.",
-  "За сутки исключите свёклу, морковь, витамины группы B, мочегонные.",
+  "Соберите первую утреннюю мочу сразу после пробуждения.",
+  "Перед сбором выполните обычную гигиену без использования мыла в области промежности.",
+  "Используйте только стерильный аптечный контейнер.",
+  "Для анализа нужна средняя порция мочи: первые секунды мочеиспускания пропустите.",
+  "Доставьте контейнер в лабораторию в течение 1–2 часов после сбора.",
+  "За сутки до исследования желательно исключить свёклу, морковь, витамины группы B и мочегонные препараты (если их отмена согласована с врачом).",
 ];
 
 const DONT = [
-  "Сдавать анализы во время острого ОРВИ, температуры, обострения хронических болезней (кроме случаев контроля).",
-  "Делать анализы сразу после рентгена, УЗИ, физиопроцедур, колоноскопии.",
-  "Женщинам — сдавать общий анализ мочи и кровь на половые гормоны во время менструации.",
-  "Менять привычный режим сна и питания «ради хороших результатов» — вы получите нереальную картину.",
+  "вы болеете ОРВИ, у вас повышена температура или обострилось хроническое заболевание (если исследование не назначено именно для контроля этого состояния);",
+  "анализы планируются сразу после рентгенографии, эндоскопических исследований, физиотерапии или других медицинских процедур;",
+  "кровь на половые гормоны или общий анализ мочи сдаётся во время менструации;",
+  "вы специально меняете режим питания, сна или физической активности, чтобы получить «лучшие» результаты. Для точной оценки нам важно увидеть ваш организм таким, каким он живёт обычно.",
 ];
 
 export default function AnalysisPrep() {
@@ -123,9 +131,11 @@ export default function AnalysisPrep() {
                 сдачей анализов
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              Точность результатов на 70% зависит от подготовки. Эти простые правила помогут получить
-              достоверную картину вашего здоровья и избежать пересдачи.
+            <p className="text-xl md:text-2xl text-foreground font-medium mb-4">
+              Чтобы результаты отражали ваше реальное состояние
+            </p>
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+              Качество отчёта зависит не только от лаборатории, но и от подготовки к сдаче анализов. Несколько простых правил помогут получить точную картину вашего здоровья и избежать повторной сдачи.
             </p>
           </div>
         </section>
@@ -135,7 +145,7 @@ export default function AnalysisPrep() {
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center gap-3 mb-10">
               <CheckCircle2 className="w-7 h-7 text-primary" />
-              <h2 className="text-2xl md:text-3xl font-bold">Основные правила</h2>
+              <h2 className="text-2xl md:text-3xl font-bold">Самое важное</h2>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-5">
@@ -162,6 +172,39 @@ export default function AnalysisPrep() {
           </div>
         </section>
 
+        {/* Extra recommendations */}
+        <section className="border-t border-border/40 bg-card/30">
+          <div className="container mx-auto px-4 py-16 md:py-20">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-center gap-3 mb-10">
+                <Info className="w-7 h-7 text-primary" />
+                <h2 className="text-2xl md:text-3xl font-bold">Дополнительные рекомендации</h2>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-5">
+                {EXTRA_RULES.map((rule) => {
+                  const Icon = rule.icon;
+                  return (
+                    <article
+                      key={rule.title}
+                      className="group relative rounded-2xl border border-border/60 bg-background p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                          <Icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold mb-2 text-foreground">{rule.title}</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{rule.text}</p>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Urine */}
         <section className="container mx-auto px-4 py-16 md:py-20 max-w-5xl">
@@ -188,15 +231,18 @@ export default function AnalysisPrep() {
           <div className="container mx-auto px-4 py-16 md:py-20 max-w-5xl">
             <div className="flex items-center gap-3 mb-8">
               <AlertTriangle className="w-7 h-7 text-destructive" />
-              <h2 className="text-2xl md:text-3xl font-bold">Когда сдавать не стоит</h2>
+              <h2 className="text-2xl md:text-3xl font-bold">Когда лучше перенести сдачу анализов</h2>
             </div>
+            <p className="text-muted-foreground mb-6 leading-relaxed">
+              Результаты могут быть менее информативными, если:
+            </p>
             <div className="space-y-3">
               {DONT.map((item, i) => (
                 <div
                   key={i}
                   className="flex items-start gap-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4"
                 >
-                  <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <span className="text-destructive flex-shrink-0 mt-0.5">•</span>
                   <span className="text-sm md:text-base text-foreground leading-relaxed">{item}</span>
                 </div>
               ))}
@@ -204,20 +250,18 @@ export default function AnalysisPrep() {
           </div>
         </section>
 
-        {/* Footer note */}
-        <section className="container mx-auto px-4 py-16 max-w-3xl text-center">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Материал носит общеинформационный характер. Точные требования по подготовке к
-            конкретному исследованию уточняйте у вашего врача или в лаборатории, в которой вы
-            сдаёте анализ.
-          </p>
-        </section>
-
-        <footer className="border-t border-border/40 py-8">
-          <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ReAge — премиальный мониторинг здоровья
+        {/* Contact */}
+        <section className="container mx-auto px-4 py-16 md:py-20 max-w-3xl text-center">
+          <div className="rounded-2xl border border-border/60 bg-card p-6 md:p-8">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Phone className="w-6 h-6 text-primary" />
+              <h2 className="text-xl md:text-2xl font-bold">Если возникли вопросы</h2>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              Если вы сомневаетесь, как подготовиться именно к вашим анализам, свяжитесь с нами заранее. Мы подскажем, как сделать всё правильно и получить максимально достоверные результаты.
+            </p>
           </div>
-        </footer>
+        </section>
       </div>
     </>
   );
