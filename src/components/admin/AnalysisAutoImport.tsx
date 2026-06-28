@@ -87,7 +87,7 @@ interface Props {
 
 const MAX_FILES = 30;
 const MAX_SIZE = 50 * 1024 * 1024;
-const CONCURRENCY = 2;
+const CONCURRENCY = 1;
 
 function statusBadge(s: ItemStatus) {
   switch (s) {
@@ -203,7 +203,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     const tag = `[auto-import ${entry.file.name}]`;
     try {
       console.log(`${tag} start`, { size: entry.file.size, type: entry.file.type, viewAsUserId });
-      updateEntry(entry.id, { status: "uploading" });
+      updateEntry(entry.id, { status: "parsing" });
       console.log(`${tag} sending PDF to parser directly`);
 
       // Ретраи на сетевые сбои (Failed to fetch / TypeError / 5xx через прокси).
