@@ -85,9 +85,9 @@ interface Props {
   onClose?: () => void;
 }
 
-const MAX_FILES = 10;
+const MAX_FILES = 30;
 const MAX_SIZE = 50 * 1024 * 1024;
-const CONCURRENCY = 2;
+const CONCURRENCY = 3;
 
 function statusBadge(s: ItemStatus) {
   switch (s) {
