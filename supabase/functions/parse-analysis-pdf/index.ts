@@ -87,6 +87,19 @@ function normalizeUnit(u: string): string {
   return s;
 }
 
+const QUALITATIVE_URINE_CODES = new Set(["HB-U", "KET-U", "NIT-U", "BIL-U", "GLU-U", "PRO-U", "UBG"]);
+
+function parseQualitative(raw: string): number | null {
+  const s = (raw || "").toLowerCase().replace(/\s+/g, "").replace(".", "");
+  if (!s) return null;
+  if (/^(neg|отриц|необнаруж|нет|нея|0|—|-|none|negative)/.test(s)) return 0;
+  if (/^(след|trace|±)/.test(s)) return 0.5;
+  const plus = s.match(/^\++$/);
+  if (plus) return plus[0].length;
+  if (/^(pos|положит)/.test(s)) return 1;
+  return null;
+}
+
 function parseValue(raw: string): { value: number | null; cleaned: string } {
   if (!raw) return { value: null, cleaned: "" };
   const cleaned = String(raw).replace(",", ".").replace(/[<>]/g, "").trim();
@@ -336,7 +349,11 @@ ${catalogText}
       if (it.biomarker_code) bm = byCode.get(String(it.biomarker_code).toUpperCase());
       if (!bm && printedNorm) bm = byName.get(printedNorm);
 
-      const { value: numericValue } = parseValue(it.value_raw);
+      const { value: parsedNum } = parseValue(it.value_raw);
+      let numericValue = parsedNum;
+      if (numericValue === null && bm && QUALITATIVE_URINE_CODES.has(bm.code)) {
+        numericValue = parseQualitative(it.value_raw);
+      }
       const conf = typeof it.confidence === "number" ? it.confidence : 0.7;
 
       if (!bm) {
