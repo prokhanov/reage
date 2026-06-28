@@ -185,11 +185,22 @@ function renderBlockWeb(
               />
             </div>
           )}
+          {bm?.biomarker?.general_description && (
+            <div className="pt-1 border-t border-border/20">
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {bm.biomarker.general_description}
+              </p>
+            </div>
+          )}
           {trimmedCommentary && (
             <div className={bm ? "pt-1 border-t border-border/20" : ""}>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground/70 mb-1.5">
+                Ваш результат
+              </div>
               <MarkdownContent content={trimmedCommentary} />
             </div>
           )}
+
         </div>
       );
     }
