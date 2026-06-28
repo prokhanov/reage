@@ -349,7 +349,11 @@ ${catalogText}
       if (it.biomarker_code) bm = byCode.get(String(it.biomarker_code).toUpperCase());
       if (!bm && printedNorm) bm = byName.get(printedNorm);
 
-      const { value: numericValue } = parseValue(it.value_raw);
+      const { value: parsedNum } = parseValue(it.value_raw);
+      let numericValue = parsedNum;
+      if (numericValue === null && bm && QUALITATIVE_URINE_CODES.has(bm.code)) {
+        numericValue = parseQualitative(it.value_raw);
+      }
       const conf = typeof it.confidence === "number" ? it.confidence : 0.7;
 
       if (!bm) {
