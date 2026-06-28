@@ -1511,7 +1511,7 @@ export default function DataManagement() {
             </div>
             </>)}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="aging_weight">Вес старения</Label>
                 <Input
@@ -1529,15 +1529,36 @@ export default function DataManagement() {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Описание</Label>
+                <Label htmlFor="description">Краткое / внутреннее описание</Label>
                 <Textarea
                   id="description"
                   name="description"
                   defaultValue={editingBiomarker?.description}
-                  placeholder="Описание биомаркера..."
+                  placeholder="Краткое описание для админки..."
                   rows={3}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="general_description">Общее описание для отчётов</Label>
+                {editingBiomarker?.general_description && (
+                  <span className="text-xs text-muted-foreground">
+                    {editingBiomarker.general_description.length.toLocaleString('ru-RU')} симв.
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Энциклопедическое описание, которое показывается в отчёте перед персональным AI-комментарием.
+              </p>
+              <Textarea
+                id="general_description"
+                name="general_description"
+                defaultValue={editingBiomarker?.general_description}
+                placeholder="Общее описание биомаркера для всех отчётов..."
+                rows={8}
+              />
             </div>
 
             {rangeMode === 'age' && (
