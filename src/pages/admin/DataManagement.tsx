@@ -493,6 +493,7 @@ export default function DataManagement() {
       unit: formData.get("unit") as string,
       category: formData.get("category") as string,
       description: formData.get("description") as string,
+      general_description: formData.get("general_description") as string,
       normal_min: formData.get("normal_min") ? Number(formData.get("normal_min")) : null,
       normal_max: formData.get("normal_max") ? Number(formData.get("normal_max")) : null,
       normal_min_male: formData.get("normal_min_male") ? Number(formData.get("normal_min_male")) : null,
