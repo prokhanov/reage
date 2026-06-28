@@ -330,6 +330,7 @@ export type Database = {
           critical_min_male: number | null
           description: string | null
           display_order: number
+          general_description: string | null
           id: string
           name: string
           normal_max: number | null
@@ -362,6 +363,7 @@ export type Database = {
           critical_min_male?: number | null
           description?: string | null
           display_order?: number
+          general_description?: string | null
           id?: string
           name: string
           normal_max?: number | null
@@ -394,6 +396,7 @@ export type Database = {
           critical_min_male?: number | null
           description?: string | null
           display_order?: number
+          general_description?: string | null
           id?: string
           name?: string
           normal_max?: number | null
