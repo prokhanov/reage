@@ -206,12 +206,36 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
       updateEntry(entry.id, { status: "uploading" });
       const path = `${viewAsUserId}/${uuidv4()}.pdf`;
       console.log(`${tag} uploading to`, path);
-      const t0 = performance.now();
-      const { error: upErr } = await supabase.storage
-        .from("analysis-uploads")
-        .upload(path, entry.file, { contentType: "application/pdf", upsert: false });
-      console.log(`${tag} upload finished in ${Math.round(performance.now() - t0)}ms`, { upErr });
-      if (upErr) throw new Error(`upload: ${upErr.message}`);
+
+      // Ретраи на сетевые сбои (Failed to fetch / TypeError / 5xx через прокси).
+      // Большие PDF и параллельные загрузки иногда обрывают коннект на fly-proxy.
+      const MAX_ATTEMPTS = 4;
+      let lastErr: any = null;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const t0 = performance.now();
+        try {
+          const { error: upErr } = await supabase.storage
+            .from("analysis-uploads")
+            .upload(path, entry.file, { contentType: "application/pdf", upsert: true });
+          console.log(`${tag} upload attempt ${attempt} finished in ${Math.round(performance.now() - t0)}ms`, { upErr });
+          if (!upErr) { lastErr = null; break; }
+          lastErr = upErr;
+          const msg = String(upErr.message || "");
+          const retriable = /failed to fetch|network|fetch|timeout|aborted|load failed|5\d\d/i.test(msg);
+          if (!retriable || attempt === MAX_ATTEMPTS) throw new Error(`upload: ${msg}`);
+        } catch (e: any) {
+          lastErr = e;
+          const msg = String(e?.message || e);
+          const retriable = /failed to fetch|network|fetch|timeout|aborted|load failed/i.test(msg);
+          console.log(`${tag} upload attempt ${attempt} threw`, { msg, retriable });
+          if (!retriable || attempt === MAX_ATTEMPTS) throw e instanceof Error ? e : new Error(`upload: ${msg}`);
+        }
+        const backoff = 800 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400);
+        updateEntry(entry.id, { error: `Сеть нестабильна, повтор ${attempt + 1}/${MAX_ATTEMPTS} через ${Math.round(backoff/100)/10}s` });
+        await new Promise(r => setTimeout(r, backoff));
+      }
+      if (lastErr) throw lastErr instanceof Error ? lastErr : new Error(`upload: ${String(lastErr?.message || lastErr)}`);
+      updateEntry(entry.id, { error: undefined });
 
       updateEntry(entry.id, { status: "parsing", storagePath: path });
 
