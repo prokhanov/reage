@@ -87,6 +87,19 @@ function normalizeUnit(u: string): string {
   return s;
 }
 
+const QUALITATIVE_URINE_CODES = new Set(["HB-U", "KET-U", "NIT-U", "BIL-U", "GLU-U", "PRO-U", "UBG"]);
+
+function parseQualitative(raw: string): number | null {
+  const s = (raw || "").toLowerCase().replace(/\s+/g, "").replace(".", "");
+  if (!s) return null;
+  if (/^(neg|отриц|необнаруж|нет|нея|0|—|-|none|negative)/.test(s)) return 0;
+  if (/^(след|trace|±)/.test(s)) return 0.5;
+  const plus = s.match(/^\++$/);
+  if (plus) return plus[0].length;
+  if (/^(pos|положит)/.test(s)) return 1;
+  return null;
+}
+
 function parseValue(raw: string): { value: number | null; cleaned: string } {
   if (!raw) return { value: null, cleaned: "" };
   const cleaned = String(raw).replace(",", ".").replace(/[<>]/g, "").trim();
