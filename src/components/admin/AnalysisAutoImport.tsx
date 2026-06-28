@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
@@ -204,64 +205,64 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     try {
       console.log(`${tag} start`, { size: entry.file.size, type: entry.file.type, viewAsUserId });
       updateEntry(entry.id, { status: "uploading" });
-      const path = `${viewAsUserId}/${uuidv4()}.pdf`;
-      console.log(`${tag} uploading to`, path);
+      console.log(`${tag} sending PDF to parser directly`);
 
       // Ретраи на сетевые сбои (Failed to fetch / TypeError / 5xx через прокси).
       // Большие PDF и параллельные загрузки иногда обрывают коннект на fly-proxy.
       const MAX_ATTEMPTS = 4;
       let lastErr: any = null;
+      let data: any = null;
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const t0 = performance.now();
         try {
-          const { error: upErr } = await supabase.storage
-            .from("analysis-uploads")
-            .upload(path, entry.file, { contentType: "application/pdf", upsert: true });
-          console.log(`${tag} upload attempt ${attempt} finished in ${Math.round(performance.now() - t0)}ms`, { upErr });
-          if (!upErr) { lastErr = null; break; }
-          lastErr = upErr;
-          const msg = String(upErr.message || "");
-          const retriable = /failed to fetch|network|fetch|timeout|aborted|load failed|5\d\d/i.test(msg);
-          if (!retriable || attempt === MAX_ATTEMPTS) throw new Error(`upload: ${msg}`);
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData.session?.access_token;
+          if (!accessToken) throw new Error("Сессия не найдена. Войдите заново.");
+
+          const formData = new FormData();
+          formData.append("file", entry.file, entry.file.name);
+          formData.append("patientId", viewAsUserId);
+
+          const response = await fetch(edgeFunctionUrl("parse-analysis-pdf"), {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: formData,
+          });
+
+          const payload = await response.json().catch(() => null);
+          console.log(`${tag} direct parse attempt ${attempt} finished in ${Math.round(performance.now() - t0)}ms`, {
+            status: response.status,
+            ok: response.ok,
+            hasPayload: !!payload,
+          });
+
+          if (response.ok && payload?.success) {
+            data = payload;
+            lastErr = null;
+            break;
+          }
+
+          const msg = payload?.error || payload?.details || `HTTP ${response.status}`;
+          const retriable = response.status >= 500 || /failed to fetch|network|fetch|timeout|aborted|load failed|5\d\d/i.test(String(msg));
+          lastErr = new Error(String(msg));
+          if (!retriable || attempt === MAX_ATTEMPTS) throw lastErr;
         } catch (e: any) {
           lastErr = e;
           const msg = String(e?.message || e);
           const retriable = /failed to fetch|network|fetch|timeout|aborted|load failed/i.test(msg);
-          console.log(`${tag} upload attempt ${attempt} threw`, { msg, retriable });
-          if (!retriable || attempt === MAX_ATTEMPTS) throw e instanceof Error ? e : new Error(`upload: ${msg}`);
+          console.log(`${tag} direct parse attempt ${attempt} threw`, { msg, retriable });
+          if (!retriable || attempt === MAX_ATTEMPTS) throw e instanceof Error ? e : new Error(msg);
         }
         const backoff = 800 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 400);
         updateEntry(entry.id, { error: `Сеть нестабильна, повтор ${attempt + 1}/${MAX_ATTEMPTS} через ${Math.round(backoff/100)/10}s` });
         await new Promise(r => setTimeout(r, backoff));
       }
-      if (lastErr) throw lastErr instanceof Error ? lastErr : new Error(`upload: ${String(lastErr?.message || lastErr)}`);
+      if (lastErr || !data) throw lastErr instanceof Error ? lastErr : new Error(String(lastErr?.message || lastErr || "Распознавание не удалось"));
       updateEntry(entry.id, { error: undefined });
 
-      updateEntry(entry.id, { status: "parsing", storagePath: path });
-
-      const t1 = performance.now();
-      console.log(`${tag} invoking parse-analysis-pdf`);
-      const { data, error } = await supabase.functions.invoke("parse-analysis-pdf", {
-        body: { storagePath: path, patientId: viewAsUserId },
-      });
-      const ms = Math.round(performance.now() - t1);
-      console.log(`${tag} invoke finished in ${ms}ms`, { hasData: !!data, error });
-
-      if (error) {
-        // FunctionsHttpError has .context (Response), FunctionsFetchError — нет
-        let bodyText = "";
-        try {
-          const resp: Response | undefined = (error as any).context;
-          if (resp && typeof resp.text === "function") {
-            bodyText = await resp.text();
-            console.log(`${tag} error response body:`, bodyText.slice(0, 1000));
-          }
-        } catch (readErr) {
-          console.log(`${tag} could not read error body`, readErr);
-        }
-        const name = (error as any).name || "FunctionsError";
-        throw new Error(`invoke ${name}: ${error.message}${bodyText ? ` — ${bodyText.slice(0, 300)}` : ""}`);
-      }
       if (!data?.success) {
         console.log(`${tag} non-success data`, data);
         throw new Error(data?.error || "Распознавание не удалось");
@@ -364,11 +365,6 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
           if (values.length) {
             const { error: vErr } = await supabase.from("analysis_values").insert(values);
             if (vErr) throw vErr;
-          }
-
-          // cleanup storage
-          if (e.storagePath) {
-            await supabase.storage.from("analysis-uploads").remove([e.storagePath]).catch(() => {});
           }
 
           updateEntry(e.id, { status: "imported" });
