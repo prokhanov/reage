@@ -55,12 +55,36 @@ function normalizeName(s: string): string {
     .trim();
 }
 
+const UNIT_ALIASES: Record<string, string> = {
+  "сек": "с",
+  "сек.": "с",
+  "second": "с",
+  "seconds": "с",
+  "мм/час": "мм/ч",
+  "ммч": "мм/ч",
+  "соотношение": "",
+  "отношение": "",
+  "ratio": "",
+  "индекс": "",
+  "index": "",
+  "коэффициент": "",
+  "ед": "",
+  "—": "",
+  "-": "",
+};
+
 function normalizeUnit(u: string): string {
-  return (u || "")
+  let s = (u || "")
     .toLowerCase()
     .replace(/\s+/g, "")
-    .replace("µ", "мк")
-    .replace("μ", "мк");
+    .replace(/[×x*∗·]/g, "")
+    .replace(/[µμ]/g, "мк")
+    .replace(/[\u00a0\u200b]/g, "")
+    .trim();
+  // strip leading multiplier like 10^9, 10*9, ×10⁹
+  s = s.replace(/^10\^?(\d+)/, "10^$1");
+  if (UNIT_ALIASES[s] !== undefined) return UNIT_ALIASES[s];
+  return s;
 }
 
 function parseValue(raw: string): { value: number | null; cleaned: string } {
