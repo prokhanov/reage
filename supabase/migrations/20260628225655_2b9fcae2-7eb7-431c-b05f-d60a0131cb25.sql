@@ -1,0 +1,2 @@
+ALTER TABLE public.biomarkers ADD COLUMN IF NOT EXISTS general_description text;
+COMMENT ON COLUMN public.biomarkers.general_description IS 'Единое многоразовое описание биомаркера для отчётов. Не содержит персональных оценок (значения пациента, статус) — только общеобразовательная справка.';
