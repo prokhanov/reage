@@ -72,6 +72,53 @@ function parseValue(raw: string): { value: number | null; cleaned: string } {
   return { value: Number.isFinite(num) ? num : null, cleaned };
 }
 
+async function readPdfBytes(req: Request, log: (...args: unknown[]) => void): Promise<{ bytes: Uint8Array; patientId?: string | null; source: string }> {
+  const contentType = req.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const form = await req.formData();
+    const file = form.get("file");
+    if (!(file instanceof File)) {
+      throw new Error("PDF file is missing");
+    }
+    if (file.type && file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      throw new Error("Only PDF files are supported");
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    log("direct upload", { name: file.name, type: file.type, size: file.size });
+    return {
+      bytes: new Uint8Array(arrayBuffer),
+      patientId: String(form.get("patientId") || "") || null,
+      source: "multipart",
+    };
+  }
+
+  const body = await req.json().catch(() => null) as { storagePath?: string; patientId?: string } | null;
+  log("body", body);
+  if (!body?.storagePath) {
+    throw new Error("Missing storagePath");
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const admin = createClient(supabaseUrl, serviceKey);
+
+  const tDl = Date.now();
+  const { data: fileBlob, error: dlErr } = await admin.storage
+    .from("analysis-uploads")
+    .download(body.storagePath);
+  log("download", { ms: Date.now() - tDl, ok: !!fileBlob, err: dlErr?.message });
+  if (dlErr || !fileBlob) {
+    throw new Error(`PDF not found in storage${dlErr?.message ? `: ${dlErr.message}` : ""}`);
+  }
+
+  return {
+    bytes: new Uint8Array(await fileBlob.arrayBuffer()),
+    patientId: body.patientId || null,
+    source: "storage",
+  };
+}
+
 function tryConvert(code: string, fromUnit: string, toUnit: string, value: number): number | null {
   const f = UNIT_CONVERSIONS[code]?.[normalizeUnit(fromUnit)]?.[normalizeUnit(toUnit)];
   if (typeof f === "number") return Math.round(value * f * 10000) / 10000;
@@ -133,28 +180,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const body = await req.json().catch(() => null) as { storagePath?: string; patientId?: string } | null;
-    log("body", body);
-    if (!body?.storagePath) {
-      return new Response(JSON.stringify({ error: "Missing storagePath" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Download PDF from storage
-    const tDl = Date.now();
-    const { data: fileBlob, error: dlErr } = await admin.storage
-      .from("analysis-uploads")
-      .download(body.storagePath);
-    log("download", { ms: Date.now() - tDl, ok: !!fileBlob, err: dlErr?.message });
-    if (dlErr || !fileBlob) {
-      return new Response(JSON.stringify({ error: "PDF not found in storage", details: dlErr?.message }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const arrayBuffer = await fileBlob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
+    const { bytes, source } = await readPdfBytes(req, log);
+    log("pdf source", source);
     log("pdf bytes", bytes.byteLength);
     if (bytes.byteLength > 50 * 1024 * 1024) {
       return new Response(JSON.stringify({ error: "PDF too large (>50MB)" }), {
