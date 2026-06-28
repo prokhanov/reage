@@ -75,7 +75,6 @@ interface FileEntry {
   file: File;
   status: FileStatus;
   error?: string;
-  storagePath?: string;
   result?: ParseResult;
   editLab: string;
   editDate: string;
