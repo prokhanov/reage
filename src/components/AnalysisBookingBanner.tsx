@@ -140,23 +140,6 @@ export function AnalysisBookingBanner() {
   // Determine displayed status key
   const statusKey = bookingInfo?.status ?? "empty";
 
-  const dismissKey = `bookingBannerDismissed:${mode}:${statusKey}:${
-    bookingInfo?.booking_date || ""
-  }:${bookingInfo?.booking_time || ""}`;
-  if (
-    typeof window !== "undefined" &&
-    sessionStorage.getItem(dismissKey) === "1"
-  ) {
-    return null;
-  }
-
-  const handleDismiss = () => {
-    try {
-      sessionStorage.setItem(dismissKey, "1");
-    } catch {}
-    setShowBanner(false);
-  };
-
   // Build dynamic texts
   const fallbackMap: Record<string, { title: string; subtitle: string }> = {
     empty: {
