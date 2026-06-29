@@ -258,8 +258,8 @@ export function ActionMap({ actions, systems }: Props) {
 
         {items.length === 0 ? (
           <div className="py-16 flex flex-col items-center justify-center gap-2">
-            <Pill className="h-10 w-10 dark:text-white/30 text-slate-300" />
-            <p className="text-xs dark:text-white/40 text-slate-400">Назначений пока нет</p>
+            <Pill className="h-10 w-10 text-muted-foreground/40" />
+            <p className="text-xs text-muted-foreground">Назначений пока нет</p>
           </div>
         ) : (
           <div className="relative">
