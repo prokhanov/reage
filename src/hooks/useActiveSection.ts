@@ -1,24 +1,36 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 /**
  * Scroll-spy hook: tracks which section (by ID) is currently in view inside
  * a scrollable container. Returns the active section id.
  */
 export function useActiveSection(
-  containerRef: RefObject<HTMLElement | null>,
+  container: HTMLElement | null,
   sectionIds: string[],
   options: { offset?: number; enabled?: boolean } = {}
 ) {
   const { offset = 120, enabled = true } = options;
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // Use the container element directly. When callers pass a state-backed ref
+  // (setContentEl) the effect re-runs automatically as soon as the DOM element
+  // is mounted, avoiding the stale-null problem of plain useRef.
+  const containerElement = useSyncExternalStore(
+    (callback) => {
+      if (!container) return () => {};
+      callback();
+      return () => {};
+    },
+    () => container,
+    () => null
+  );
+
   useEffect(() => {
-    const container = containerRef.current;
-    console.log("[useActiveSection] setup", { container: !!container, enabled, sectionIdsCount: sectionIds.length });
-    if (!container || !enabled || sectionIds.length === 0) return;
+    const element = containerElement;
+    if (!element || !enabled || sectionIds.length === 0) return;
 
     const computeActive = () => {
-      const containerRect = container.getBoundingClientRect();
+      const containerRect = element.getBoundingClientRect();
       const threshold = containerRect.top + offset;
 
       let current: string | null = null;
@@ -30,18 +42,18 @@ export function useActiveSection(
           current = id;
         }
       }
-      console.log("[useActiveSection] compute", { threshold, active: current, positions: sectionIds.map(id => ({ id, top: document.getElementById(`section-${id}`)?.getBoundingClientRect().top })) });
       setActiveId(current);
     };
 
-    container.addEventListener("scroll", computeActive, { passive: true });
+    element.addEventListener("scroll", computeActive, { passive: true });
+    // Initial calculation after layout settles
     const raf = requestAnimationFrame(computeActive);
 
     return () => {
-      container.removeEventListener("scroll", computeActive);
+      element.removeEventListener("scroll", computeActive);
       cancelAnimationFrame(raf);
     };
-  }, [containerRef, sectionIds, offset, enabled]);
+  }, [containerElement, sectionIds, offset, enabled]);
 
   return activeId;
 }
