@@ -197,9 +197,8 @@ export default function Recommendations() {
     ];
   }, [selectedReport, selectedPrescriptions]);
 
-  const activeSection = useActiveSection(contentRef, sections.map((s) => s.id), {
-    offset: 140,
-  });
+  const sectionIds = useMemo(() => sections.map((s) => s.id), [sections]);
+  const activeSection = useActiveSection(contentRef, sectionIds, { offset: 140 });
 
   useEffect(() => {
     if (demoLoading) {
