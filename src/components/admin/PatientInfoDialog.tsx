@@ -635,6 +635,26 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
             />
           </>
         )}
+
+        {/* Edit Personal Info Dialog */}
+        {patientId && patientData?.profile && (
+          <EditProfileDialog
+            open={isEditProfileOpen}
+            onOpenChange={setIsEditProfileOpen}
+            profile={{
+              name: patientData.profile.name || "",
+              birth_date: patientData.profile.birth_date || "",
+              gender: patientData.profile.gender || "male",
+              height: patientData.profile.height ?? null,
+              weight: (patientData as any).actualWeight ?? patientData.profile.weight ?? null,
+            }}
+            userId={patientId}
+            onSuccess={() => {
+              setIsEditProfileOpen(false);
+              queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] });
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
