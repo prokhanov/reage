@@ -51,11 +51,11 @@ export function CTASection() {
                   <Button 
                     size="lg"
                     variant="outline"
-                    onClick={requestRegister}
+                    onClick={() => setIsFeedbackOpen(true)}
                     className="text-lg px-10 py-6 border-accent/50 hover:border-accent hover:bg-accent/10 hover:text-foreground group"
                   >
-                    <Sparkles className="mr-2 w-5 h-5 text-accent" />
-                    Посмотреть демо-аккаунт
+                    <MessageSquare className="mr-2 w-5 h-5 text-accent" />
+                    Написать
                   </Button>
                 </div>
                 
