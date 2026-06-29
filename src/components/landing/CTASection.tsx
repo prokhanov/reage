@@ -1,4 +1,4 @@
-import { ArrowRight, Mail, Phone, MessageCircle, Sparkles } from "lucide-react";
+import { ArrowRight, Mail, Phone, MessageCircle, Sparkles, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import logoDark from "@/assets/reage-logo-dark.png";
@@ -111,9 +111,26 @@ export function Footer() {
               Связаться с нами
             </p>
             <div className="flex md:justify-end gap-2.5 mb-5">
-              <ContactButton icon={<Mail className="w-4 h-4" />} label="Email" />
-              <ContactButton icon={<Phone className="w-4 h-4" />} label="Телефон" />
-              <ContactButton icon={<MessageCircle className="w-4 h-4" />} label="Telegram" />
+              <ContactButton
+                icon={<Mail className="w-4 h-4" />}
+                label="Email"
+                href="mailto:team@reage.life"
+              />
+              <ContactButton
+                icon={<Phone className="w-4 h-4" />}
+                label="Телефон"
+                href="tel:+79959984638"
+              />
+              <ContactButton
+                icon={<MessageCircle className="w-4 h-4" />}
+                label="Telegram"
+                href="https://t.me/reage.life"
+              />
+              <ContactButton
+                icon={<Instagram className="w-4 h-4" />}
+                label="Instagram"
+                href="https://instagram.com/reage.life"
+              />
             </div>
             <a
               href="mailto:team@reage.life"
@@ -149,14 +166,25 @@ export function Footer() {
   );
 }
 
-function ContactButton({ icon, label }: { icon: React.ReactNode; label: string }) {
+function ContactButton({
+  icon,
+  label,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+}) {
   return (
-    <button
+    <a
+      href={href}
+      target={href.startsWith("http") ? "_blank" : undefined}
+      rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
       className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/40 border border-border/60 text-muted-foreground hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all duration-300"
       aria-label={label}
     >
       {icon}
-    </button>
+    </a>
   );
 }
 
