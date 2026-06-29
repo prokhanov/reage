@@ -1202,9 +1202,14 @@ export default function Recommendations() {
                                       scrollToSection(section.id, e);
                                       setTocSheetOpen(false);
                                     }}
-                                    className="w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3 hover:bg-accent text-muted-foreground hover:text-foreground"
+                                    className={cn(
+                                      "w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3",
+                                      activeSection === section.id
+                                        ? "bg-accent text-foreground font-medium border-l-2 border-l-primary"
+                                        : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                                    )}
                                   >
-                                    <span className="text-sm font-medium flex-1 line-clamp-2">
+                                    <span className="text-sm flex-1 line-clamp-2">
                                       {section.label}
                                     </span>
                                   </button>
