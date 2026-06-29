@@ -28,6 +28,7 @@ interface Profile {
   birth_date: string;
   gender: string;
   height: number | null;
+  weight?: number | null;
 }
 
 interface EditProfileDialogProps {
@@ -44,6 +45,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     gender: profile?.gender || "male",
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
+    weight: profile?.weight != null ? String(profile.weight) : "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -56,6 +58,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         gender: profile.gender || "male",
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
+        weight: profile.weight != null ? String(profile.weight) : "",
       });
     }
   }, [profile]);
