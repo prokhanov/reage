@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { ArrowRight, MessageSquare, Mail, Phone, MessageCircle, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import logoDark from "@/assets/reage-logo-dark.png";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 
