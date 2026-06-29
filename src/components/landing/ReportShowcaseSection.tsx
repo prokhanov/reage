@@ -134,15 +134,6 @@ const PageConnections = () => {
           </div>
         ))}
       </div>
-        {links.map((l, i) => (
-          <div key={i} className="rounded-lg border border-border/40 bg-card/50 p-2.5">
-            <div className="text-[11px] font-semibold">
-              {l.from} <span className="text-muted-foreground">→</span> {l.to}
-            </div>
-            <p className="text-[11px] text-foreground/75 leading-relaxed mt-1">{l.note}</p>
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
