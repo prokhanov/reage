@@ -25,7 +25,7 @@ import { RefreshCw, Save, Download, Pencil, Eye } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import MDEditor from '@uiw/react-md-editor';
 import { useTheme } from "next-themes";
-import { toast } from "sonner";
+import { notify as toast } from "@/lib/toast";
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;

@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { notify as toast } from "@/lib/toast";
 import { Plus, Trash2, Edit2, Search, FileText, Activity } from "lucide-react";
 import { getSymptomCategoryIcon, getConditionCategoryIcon, stripEmoji } from "@/lib/categoryIcons";
 import {
