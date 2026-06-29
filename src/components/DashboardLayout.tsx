@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Menu, PanelLeftOpen } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
+import { DemoBanner } from "@/components/DemoBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
 
 interface DashboardLayoutProps {
