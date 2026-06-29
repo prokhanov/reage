@@ -503,6 +503,43 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
         />
       </div>
 
+      <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
+        <label className="flex items-start gap-2 cursor-pointer">
+          <Checkbox
+            checked={mergeMode}
+            onCheckedChange={(v) => setMergeMode(!!v)}
+            className="mt-0.5"
+          />
+          <div className="text-sm">
+            <div className="font-medium">Объединить все файлы в один анализ</div>
+            <div className="text-xs text-muted-foreground">
+              Все PDF из этой загрузки — части одного блока анализов (один забор крови, одна дата). Будет создан 1 анализ со всеми показателями.
+            </div>
+          </div>
+        </label>
+        {mergeMode && readyCount > 0 && (
+          <div className="grid grid-cols-2 gap-2 pl-6">
+            <div>
+              <Label className="text-xs">Общая дата сдачи</Label>
+              <Input
+                type="date"
+                value={mergedDate}
+                onChange={e => setMergedDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Лаборатория</Label>
+              <Input
+                value={mergedLab}
+                onChange={e => setMergedLab(e.target.value)}
+                placeholder="—"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+
       {entries.length > 0 && (
         <div className="flex gap-2">
           <Button
