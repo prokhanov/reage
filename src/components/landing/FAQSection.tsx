@@ -176,6 +176,8 @@ export function FAQSection() {
           ))}
         </div>
       </div>
+
+      <FeedbackDialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
     </section>
     </>
   );
