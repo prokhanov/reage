@@ -245,13 +245,13 @@ export default function Auth() {
     setForgotLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const { error } = await supabase.functions.invoke("send-password-reset", {
+        body: { email: forgotEmail.trim().toLowerCase() },
       });
       if (error) throw error;
       toast({
         title: "Письмо отправлено",
-        description: "Проверьте почту — мы отправили ссылку для сброса пароля",
+        description: "Если адрес зарегистрирован — мы отправили ссылку для сброса пароля. Проверьте почту.",
       });
       setForgotMode(false);
     } catch (error: any) {

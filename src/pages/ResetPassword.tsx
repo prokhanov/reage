@@ -21,14 +21,24 @@ export default function ResetPassword() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Listen for PASSWORD_RECOVERY event from the redirect
+    // Если пришли по новой ссылке вида /reset-password?password_reset_token=... —
+    // перебросим на корневой URL, где PasswordResetTokenHandler покажет форму.
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get("password_reset_token");
+      if (t) {
+        window.location.replace(`/?password_reset_token=${encodeURIComponent(t)}`);
+        return;
+      }
+    }
+
+    // Старая схема (Supabase recovery session) — оставляем как есть для совместимости.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setReady(true);
       }
     });
 
-    // Also check if we already have a session (user clicked the link)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setReady(true);
