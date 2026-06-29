@@ -1203,26 +1203,35 @@ export default function Recommendations() {
                             </SheetHeader>
                             <div className="overflow-y-auto px-3 py-4" style={{ maxHeight: 'calc(100dvh - 110px)' }}>
                               <nav className="space-y-1">
-                                {sections.map((section) => (
-                                  <button
-                                    key={section.id}
-                                    type="button"
-                                    onClick={(e) => {
-                                      scrollToSection(section.id, e);
-                                      setTocSheetOpen(false);
-                                    }}
-                                    className={cn(
-                                      "w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3",
-                                      activeSection === section.id
-                                        ? "bg-accent text-foreground font-medium border-l-2 border-l-primary"
-                                        : "hover:bg-accent text-muted-foreground hover:text-foreground"
-                                    )}
-                                  >
-                                    <span className="text-sm flex-1 line-clamp-2">
-                                      {section.label}
-                                    </span>
-                                  </button>
-                                ))}
+                                {sections.map((section) => {
+                                  const isActive = activeSection === section.id;
+                                  return (
+                                    <button
+                                      key={section.id}
+                                      type="button"
+                                      onClick={(e) => {
+                                        scrollToSection(section.id, e);
+                                        setTocSheetOpen(false);
+                                      }}
+                                      className={cn(
+                                        "w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3",
+                                        isActive
+                                          ? "bg-accent text-foreground font-medium"
+                                          : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                                      )}
+                                    >
+                                      <span
+                                        className={cn(
+                                          "w-1 h-5 rounded-full transition-colors",
+                                          isActive ? "bg-gradient-primary" : "bg-transparent"
+                                        )}
+                                      />
+                                      <span className="text-sm font-medium flex-1 line-clamp-2">
+                                        {section.label}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
                               </nav>
                             </div>
                           </SheetContent>
