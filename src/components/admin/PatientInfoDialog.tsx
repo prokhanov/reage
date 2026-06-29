@@ -42,6 +42,7 @@ import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTa
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import { PatientBookingsCard } from "@/components/admin/PatientBookingsCard";
+import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
@@ -55,6 +56,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
   const [isEditDateOpen, setIsEditDateOpen] = useState(false);
   const [isEditSubscriptionOpen, setIsEditSubscriptionOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const queryClient = useQueryClient();
   
   // Real-time subscription for analysis bookings and subscriptions updates
@@ -348,10 +350,20 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                   {/* Личные данные */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <User className="w-5 h-5" />
-                        Личные данные
-                      </CardTitle>
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="flex items-center gap-2">
+                          <User className="w-5 h-5" />
+                          Личные данные
+                        </CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditProfileOpen(true)}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Изменить
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex justify-between items-center">
@@ -622,6 +634,26 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               patientName={patientData?.profile.name || ""}
             />
           </>
+        )}
+
+        {/* Edit Personal Info Dialog */}
+        {patientId && patientData?.profile && (
+          <EditProfileDialog
+            open={isEditProfileOpen}
+            onOpenChange={setIsEditProfileOpen}
+            profile={{
+              name: patientData.profile.name || "",
+              birth_date: patientData.profile.birth_date || "",
+              gender: patientData.profile.gender || "male",
+              height: patientData.profile.height ?? null,
+              weight: (patientData as any).actualWeight ?? patientData.profile.weight ?? null,
+            }}
+            userId={patientId}
+            onSuccess={() => {
+              setIsEditProfileOpen(false);
+              queryClient.invalidateQueries({ queryKey: ["patient-info", patientId] });
+            }}
+          />
         )}
       </DialogContent>
     </Dialog>

@@ -28,6 +28,7 @@ interface Profile {
   birth_date: string;
   gender: string;
   height: number | null;
+  weight?: number | null;
 }
 
 interface EditProfileDialogProps {
@@ -44,6 +45,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     gender: profile?.gender || "male",
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
+    weight: profile?.weight != null ? String(profile.weight) : "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -56,6 +58,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         gender: profile.gender || "male",
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
+        weight: profile.weight != null ? String(profile.weight) : "",
       });
     }
   }, [profile]);
@@ -74,6 +77,8 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     try {
       if (!userId) throw new Error("Не авторизован");
 
+      const weightValue = formData.weight ? parseFloat(formData.weight) : null;
+
       const { error, data } = await supabase
         .from("profiles")
         .update({
@@ -81,13 +86,21 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           gender: formData.gender,
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
+          weight: weightValue,
         } as any)
         .eq("id", userId)
         .select()
         .maybeSingle();
 
       if (error || !data) {
-        throw new Error("Недостаточно прав для обновления профиля");
+        throw new Error(error?.message || "Недостаточно прав для обновления профиля");
+      }
+
+      // Record weight change in history so trends update too
+      if (weightValue != null && weightValue !== (profile?.weight ?? null)) {
+        await supabase
+          .from("weight_history")
+          .insert({ user_id: userId, weight: weightValue } as any);
       }
 
       toast({
@@ -183,6 +196,19 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
               value={formData.height}
               onChange={(e) => setFormData({ ...formData, height: e.target.value })}
               placeholder="175"
+              step="0.1"
+            />
+          </div>
+
+          {/* Weight */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-weight">Вес (кг)</Label>
+            <Input
+              id="edit-weight"
+              type="number"
+              value={formData.weight}
+              onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+              placeholder="70"
               step="0.1"
             />
           </div>
