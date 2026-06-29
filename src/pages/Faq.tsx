@@ -22,7 +22,6 @@ interface QA {
 
 interface Section {
   id: string;
-  num: string;
   icon: LucideIcon;
   title: string;
   items: QA[];
