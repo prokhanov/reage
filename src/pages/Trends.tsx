@@ -38,7 +38,6 @@ interface AnalysisValue {
 
 export default function Trends() {
   const { getUserId } = useViewAsUser();
-  const { setSimPath } = useContext(ViewAsPatientContext);
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
