@@ -120,7 +120,7 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
       const { data } = await (supabase
         .from("profiles") as any)
         .select("birth_date, gender")
-        .eq("user_id", viewAsUserId)
+        .eq("id", viewAsUserId)
         .maybeSingle();
       if (aborted || !data) return;
       const age = data.birth_date ? calculateAge(data.birth_date as string) : null;
