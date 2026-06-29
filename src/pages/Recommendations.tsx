@@ -148,6 +148,60 @@ export default function Recommendations() {
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Compute report sections for the currently selected report (used by scroll spy + TOC).
+  const sections = useMemo(() => {
+    if (!selectedReport) return [];
+    const grouped = groupByType(selectedReport.recommendations);
+    const patientData = grouped["Данные пациента"]?.[0];
+    const summary = grouped["Общее резюме"]?.[0];
+    const prescriptionsRec = grouped["Назначения"]?.[0];
+    const lifestyleData = prescriptionsRec?.content_json?.lifestyle as
+      | { nutrition?: string[]; activity?: string[]; sleep?: string[] }
+      | undefined;
+    const followUpsData = prescriptionsRec?.content_json?.follow_ups as
+      | Array<{ specialist?: string; goal?: string; trigger?: string }>
+      | undefined;
+    const hasLifestyle =
+      !!lifestyleData &&
+      ((lifestyleData.nutrition?.length || 0) +
+        (lifestyleData.activity?.length || 0) +
+        (lifestyleData.sleep?.length || 0) >
+        0);
+    const hasFollowUps = !!followUpsData && followUpsData.length > 0;
+    const hasPrescriptionsBlock =
+      selectedPrescriptions.length > 0 || hasLifestyle || hasFollowUps;
+    const snapshotResult = summary?.content_json
+      ? parseReportSnapshot(summary.content_json)
+      : null;
+    const snapshot = snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+    return [
+      ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
+      ...(snapshot
+        ? snapshot.blocks
+            .map((b, i) =>
+              b.type === "section" ? { id: `snapshot-section-${i}`, label: b.title } : null
+            )
+            .filter((s): s is { id: string; label: string } => s !== null)
+        : [
+            ...(summary ? [{ id: "summary", label: "Общее резюме" }] : []),
+            ...Object.entries(grouped)
+              .filter(([type]) =>
+                type !== "Общее резюме" &&
+                type !== "Данные пациента" &&
+                type !== "Назначения" &&
+                type !== "Рекомендации"
+              )
+              .map(([type]) => ({ id: toSlug(type), label: type })),
+          ]),
+      ...(hasPrescriptionsBlock ? [{ id: "prescriptions", label: "Рекомендации" }] : []),
+    ];
+  }, [selectedReport, selectedPrescriptions]);
+
+  const activeSection = useActiveSection(contentRef, sections.map((s) => s.id), {
+    offset: 140,
+    throttle: 80,
+  });
+
   useEffect(() => {
     if (demoLoading) {
       return;
