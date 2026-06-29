@@ -948,7 +948,6 @@ export default function Recommendations() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       <div className="mb-8">
         <h2 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent leading-tight">
           Персональные отчёты

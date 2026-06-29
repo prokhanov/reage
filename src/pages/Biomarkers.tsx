@@ -293,7 +293,6 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="px-4 py-6 md:py-8 md:px-6 max-w-6xl mx-auto">
-      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {loading && <BiomarkerTableSkeleton />}
       {!loading && (
       <>

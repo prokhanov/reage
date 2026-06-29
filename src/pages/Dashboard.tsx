@@ -262,7 +262,6 @@ export default function Dashboard() {
   return (
     <div className="p-4 md:p-8 space-y-6">
       {/* Demo Banner */}
-      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
 
       {/* Passport data reminder (paid users only, until filled) */}
       {!demoMode && <PassportReminderCard />}

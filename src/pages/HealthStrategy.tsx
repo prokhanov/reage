@@ -195,7 +195,6 @@ export default function HealthStrategy() {
       </div>
 
       <div className="p-4 md:p-8 space-y-5 md:space-y-6">
-        {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
 
         <div className="flex items-end justify-between gap-4 flex-wrap">
           <div className="space-y-1.5 min-w-0">

@@ -738,7 +738,6 @@ export default function AnalysisDetail({ analysisId }: { analysisId?: string }) 
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-      {isDemoAnalysis && demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-start gap-2 md:gap-3 min-w-0 w-full md:w-auto">

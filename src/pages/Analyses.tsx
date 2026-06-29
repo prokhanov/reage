@@ -173,7 +173,6 @@ export default function Analyses() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
         {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
         {(!loading || analyses.length > 0) && (
           <>
