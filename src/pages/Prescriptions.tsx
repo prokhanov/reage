@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDemoMode } from "@/hooks/useDemoMode";
-import { DemoBanner } from "@/components/DemoBanner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -343,7 +342,6 @@ export default function Prescriptions() {
   return (
     <>
       <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl space-y-4 sm:space-y-6">
-        {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
         {(isLoading || accessLoading) && <PrescriptionListSkeleton />}
         {!isLoading && !accessLoading && (
           <>

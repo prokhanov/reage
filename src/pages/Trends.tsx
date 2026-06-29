@@ -7,7 +7,6 @@ import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine, ReferenceArea } from "recharts";
 import { useDemoMode } from "@/hooks/useDemoMode";
-import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -335,7 +334,6 @@ export default function Trends() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-    {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
     {loading && <TrendChartSkeleton />}
     {!loading && (
     <>

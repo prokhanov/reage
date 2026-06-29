@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Menu, PanelLeftOpen } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
+import { DemoBanner } from "@/components/DemoBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
 
 interface DashboardLayoutProps {
@@ -44,7 +45,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <main className={`pt-14 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
-        <div className="px-4 md:px-8 pt-4 md:pt-8">
+        <div className="px-4 md:px-8 pt-4 md:pt-8 space-y-4">
+          {demoMode && <DemoBanner />}
           <AnalysisBookingBanner />
         </div>
         {children}

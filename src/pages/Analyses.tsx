@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
-import { DemoBanner } from "@/components/DemoBanner";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
@@ -174,7 +173,6 @@ export default function Analyses() {
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
         {loading && analyses.length === 0 && <AnalysisCardSkeleton />}
         {(!loading || analyses.length > 0) && (
           <>

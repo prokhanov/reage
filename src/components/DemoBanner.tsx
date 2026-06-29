@@ -36,13 +36,13 @@ export const DemoBanner = ({ onDismiss, onToggleDemoMode }: DemoBannerProps) => 
 
   return (
     <>
-      <Alert className="mb-4 border-primary/50 bg-background/80 backdrop-blur-md sticky top-4 z-50">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <AlertDescription className="flex items-center justify-between gap-4">
-          <span className="text-sm">
+      <Alert className="mb-4 border-primary/50 bg-background/80 backdrop-blur-md">
+        <Sparkles className="h-4 w-4 text-primary shrink-0" />
+        <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+          <span className="text-xs sm:text-sm leading-snug">
             <strong>Демо-режим:</strong> вы видите примерные данные. Ваш врач добавит реальные анализы после их обработки.
           </span>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
             {onToggleDemoMode && (
               <Button 
                 size="sm" 
