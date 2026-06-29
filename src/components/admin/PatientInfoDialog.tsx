@@ -350,10 +350,20 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                   {/* Личные данные */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <User className="w-5 h-5" />
-                        Личные данные
-                      </CardTitle>
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="flex items-center gap-2">
+                          <User className="w-5 h-5" />
+                          Личные данные
+                        </CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditProfileOpen(true)}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Изменить
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="flex justify-between items-center">
