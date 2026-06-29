@@ -73,15 +73,22 @@ const UNIT_ALIASES: Record<string, string> = {
   "-": "",
 };
 
+const SUPERSCRIPT_MAP: Record<string, string> = {
+  "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
+  "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
+  "⁻": "-", "⁺": "+",
+};
+
 function normalizeUnit(u: string): string {
   let s = (u || "")
     .toLowerCase()
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, (c) => SUPERSCRIPT_MAP[c] || c)
     .replace(/\s+/g, "")
     .replace(/[×x*∗·]/g, "")
     .replace(/[µμ]/g, "мк")
     .replace(/[\u00a0\u200b]/g, "")
     .trim();
-  // strip leading multiplier like 10^9, 10*9, ×10⁹
+  // normalize 10^9, 10*9, 109 (after stripping ×) → 10^9
   s = s.replace(/^10\^?(\d+)/, "10^$1");
   if (UNIT_ALIASES[s] !== undefined) return UNIT_ALIASES[s];
   return s;
