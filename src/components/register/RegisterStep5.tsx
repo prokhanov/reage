@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { useSubscriptionPlans, type PlanWithPricing } from "@/hooks/useSubscriptionPlans";
@@ -162,7 +163,8 @@ function planToCard(plan: PlanWithPricing): CardData | null {
   };
 }
 
-function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean; }) {
+function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { biomarkers: string; biomarkersBySystem: BiomarkerCategory[]; isPopular?: boolean }) {
+  const hasData = biomarkersBySystem.length > 0;
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -170,6 +172,7 @@ function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { bi
           type="button"
           onClick={(e) => e.stopPropagation()}
           className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted/50 border border-border/30 hover:border-primary/40 hover:bg-muted/80 transition-colors cursor-pointer text-left"
+          disabled={!hasData}
         >
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FlaskConical className="w-4 h-4" />
@@ -177,29 +180,44 @@ function BiomarkersMetricRow({ biomarkers, biomarkersBySystem, isPopular }: { bi
           </div>
           <div className="flex items-center gap-1">
             <span className={cn("text-sm font-bold", isPopular ? "text-primary" : "text-foreground")}>{biomarkers}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            {hasData && <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
           </div>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="center" onClick={(e) => e.stopPropagation()}>
-        <h4 className="text-sm font-semibold text-foreground mb-3">Биомаркеры по системам</h4>
-        <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-          {biomarkersBySystem.map((cat, i) => (
-            <div key={i}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <cat.icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
-                <span className="text-xs font-semibold text-foreground">{cat.name}</span>
-                <span className="text-xs text-muted-foreground">({cat.markers.length})</span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {cat.markers.map((m, j) => (
-                  <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </PopoverContent>
+      {hasData && (
+        <PopoverContent className="w-80 sm:w-96 p-4" align="center" onClick={(e) => e.stopPropagation()}>
+          <h4 className="text-sm font-semibold text-foreground mb-3">Биомаркеры по системам</h4>
+          <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-1">
+            {biomarkersBySystem.map((cat, i) => (
+              <Collapsible key={i} defaultOpen={false}>
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={(e) => e.stopPropagation()}
+                    className="group w-full flex items-center justify-between gap-2 py-2 px-2 rounded-lg text-left transition-colors hover:bg-muted/60"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <cat.icon className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
+                      <span className="text-xs font-semibold text-foreground truncate">{cat.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-xs text-muted-foreground">({cat.markers.length})</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                    </div>
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="flex flex-wrap gap-1 pb-3 pl-7">
+                    {cat.markers.map((m, j) => (
+                      <span key={j} className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border/50 text-muted-foreground">{m}</span>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </div>
+        </PopoverContent>
+      )}
     </Popover>
   );
 }
