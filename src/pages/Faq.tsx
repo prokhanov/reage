@@ -413,9 +413,6 @@ export default function Faq() {
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs uppercase tracking-wider text-primary/80 font-semibold mb-1">
-                      Раздел {section.num}
-                    </div>
                     <h2 className="text-2xl md:text-3xl font-bold leading-tight">
                       {section.title}
                     </h2>
