@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, TrendingUp, Heart, Trophy, Calendar, Target } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
-import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
+
 import { PassportReminderCard } from "@/components/PassportReminderCard";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
   const [nextBooking, setNextBooking] = useState<any>(null);
-  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  
 
   useEffect(() => {
     setProfile(null);
