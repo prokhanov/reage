@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RotateCcw, AlertTriangle, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAvailabilitySlots } from "@/hooks/useAvailabilitySlots";
-import { toast } from "sonner";
+import { notify as toast } from "@/lib/toast";
 
 interface Slot {
   id: string;

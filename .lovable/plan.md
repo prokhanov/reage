@@ -1,68 +1,89 @@
-## Идея
 
-Повторяем рабочую схему «Подтвердите email»:
-- свой токен в нашей таблице;
-- ссылка в письме идёт на **корневой** URL `https://reage.life/?password_reset_token=...`, **не** через `api.reage.life/auth/v1/verify` (где Fly-прокси ломает gzip-редирект);
-- на главной хэндлер ловит токен и показывает диалог «Введите новый пароль» (по аналогии с `VerifyEmailTokenHandler`).
+## Аудит и унификация тостов
 
-Это соответствует памятке по инфре: «корневой URL менее чувствителен к ошибкам маршрутизации». Никакого `auth.resetPasswordForEmail`, никакого magic-link через прокси.
+### Текущая ситуация
 
-## Изменения
+- **Две системы одновременно**: `useToast` (shadcn) — в 89 файлах; `sonner` — в 4 файлах (`admin/DataManagement.tsx`, `admin/ReportVisualsTest.tsx`, `admin/DaySlotsManager.tsx`). У них разный API и разный внешний вид.
+- В `App.tsx` импортируется `Sonner` Toaster, но **не рендерится** — то есть `toast.success(...)` из тех 4 файлов сейчас вообще не показывается пользователю.
+- Жёстко зашитых английских строк в литералах тостов нет. Но в ~85 местах `description` выводит сырой `error.message` от Supabase Auth / Postgres / Edge runtime — это и есть «непонятные английские надписи».
 
-### 1. БД — таблица токенов
-Новая таблица `public.password_reset_tokens`:
-- `id`, `token uuid unique`, `user_id uuid → auth.users`, `email text`, `expires_at timestamptz` (TTL 30 мин), `used_at timestamptz`, `created_at`.
-- RLS: только service_role читает/пишет (как `email_verification_tokens`).
-- Триггер обновления `updated_at` не нужен.
+### Что сделаем
 
-### 2. Edge-функция `send-password-reset`
-По образцу `send-verification-email`:
-- вход: `{ email }`
-- проверяет, что пользователь существует (admin API), берёт `user.id`;
-- удаляет старые активные токены этого user_id, создаёт новый;
-- формирует `resetUrl = ${APP_URL}/?password_reset_token=${token}`;
-- ставит письмо в очередь через `send-transactional-email` с шаблоном `recovery` и `confirmationUrl = resetUrl`;
-- `APP_URL` берём из `Deno.env.get('APP_URL')` — без хардкода (требование памятки).
-- Возвращает `{ success: true }` без раскрытия, существует ли email.
+#### 1. Единый компонент — `sonner`
 
-### 3. Edge-функция `confirm-password-reset-token`
-Два режима:
-- `mode: 'verify'` — принимает token, проверяет (`not_found / expired / already_used / ok`), возвращает `{ ok, email }`. Токен не помечается использованным.
-- `mode: 'apply'` — принимает `{ token, password }`, повторно проверяет, и через `supabase.auth.admin.updateUserById(user_id, { password })` ставит новый пароль, помечает токен `used_at = now()`. Возвращает `{ ok: true }`.
+Sonner красивее, мобильнее, поддерживает `promise`, стек, swipe-to-dismiss. Переходим на него полностью.
 
-Валидация пароля: ≥6 символов, ≤72 (лимит bcrypt).
+- В `App.tsx`: убираем `<Toaster />` (shadcn), оставляем единственный `<Sonner />` с нашими настройками (позиция `top-center` на мобиле / `bottom-right` на десктопе, тема из `next-themes`, `richColors`, `closeButton`).
+- В `src/components/ui/sonner.tsx` донастраиваем визуал под наш дизайн-токен (radius, shadow, padding) — один источник правды для внешнего вида.
 
-### 4. Auth.tsx — форма «Забыл пароль»
-Заменить вызов `supabase.auth.resetPasswordForEmail(...)` на:
+#### 2. Тонкая обёртка `src/lib/toast.ts`
+
+Единая логика вызова, чтобы по всему коду был один и тот же API:
+
 ```ts
-await supabase.functions.invoke('send-password-reset', { body: { email: forgotEmail } })
+notify.success(title, description?)
+notify.error(title, errorOrDescription?)   // авто-перевод error.message
+notify.info(title, description?)
+notify.warning(title, description?)
+notify.promise(promise, { loading, success, error })
 ```
-Текст тоста: «Если адрес зарегистрирован — мы отправили ссылку для сброса».
 
-### 5. Новый компонент `PasswordResetTokenHandler.tsx`
-Полный аналог `VerifyEmailTokenHandler`, но:
-- читает `password_reset_token` из query;
-- при наличии — сразу очищает URL (`history.replaceState`);
-- вызывает `confirm-password-reset-token` с `mode: 'verify'`;
-- при `ok` — показывает диалог с двумя `PasswordInput` («Новый пароль» / «Повторите»), кнопкой «Сохранить»;
-- на submit — вызывает `mode: 'apply'`. Успех → CheckCircle + кнопка «Войти» (`/auth`). Ошибка → понятный текст + кнопка «Запросить новую ссылку» (`/auth`).
-- Подключаем в `src/App.tsx` рядом с `VerifyEmailTokenHandler` (один раз, в корневом лейауте).
+`notify.error` внутри прогоняет аргумент через `translateError` (см. ниже), так что нельзя случайно показать сырой английский `e.message`.
 
-### 6. Шаблон `recovery.tsx`
-Менять не нужно — он уже принимает `confirmationUrl`. Просто наш `send-password-reset` подставит туда наш корневой URL вместо supabase-verify-URL.
+#### 3. Словарь переводов `src/lib/errorMessages.ts`
 
-### 7. Старая страница `/reset-password`
-Оставляем как есть для совместимости со старыми ссылками (вдруг кто-то откроет из старого письма). Дополнительно в `ResetPassword.tsx` обработаем случай `?password_reset_token=...` (редирект на `/?password_reset_token=...`), чтобы старая логика тоже работала.
+Функция `translateError(err: unknown, fallback?: string): string` распознаёт по подстрокам/кодам типичные ошибки Supabase Auth, Postgres, Storage, Edge runtime:
 
-### 8. Nginx / прокси / Telegram — не трогаем
-- `/` уже в whitelist.
-- `api.reage.life` остаётся как есть для штатных POST-запросов SDK.
-- Никакого хардкода `reage.life` в коде edge-функции — только `APP_URL` из env (на test = `https://test.reage.life`, на prod = `https://reage.life`).
+| Английский оригинал | Русский перевод |
+|---|---|
+| Invalid login credentials | Неверный email или пароль |
+| Email not confirmed | Email ещё не подтверждён |
+| User already registered | Пользователь с таким email уже зарегистрирован |
+| Password should be at least N characters | Пароль должен содержать минимум N символов |
+| New password should be different from the old password | Новый пароль должен отличаться от текущего |
+| weak_password / Password is known to be weak | Этот пароль слишком простой. Выберите другой |
+| Email rate limit exceeded | Слишком много писем. Попробуйте через пару минут |
+| For security purposes, you can only request this after N seconds | В целях безопасности повторите попытку через N сек |
+| Token has expired or is invalid | Ссылка устарела. Запросите новую |
+| Unable to validate email address: invalid format | Некорректный формат email |
+| User not found | Пользователь не найден |
+| duplicate key value violates unique constraint | Запись с такими данными уже существует |
+| new row violates row-level security policy / permission denied | Недостаточно прав для этого действия |
+| null value in column ... violates not-null constraint | Заполните обязательное поле |
+| value too long for type ... | Значение слишком длинное |
+| foreign key constraint ... | Невозможно: запись связана с другими данными |
+| Failed to fetch / NetworkError / FunctionsHttpError | Не удалось связаться с сервером. Проверьте интернет |
+| Payload too large | Файл слишком большой |
+| The resource already exists | Файл с таким именем уже существует |
+| JSON parse error / Unexpected end of JSON input | Сервер вернул некорректный ответ. Попробуйте ещё раз |
 
-## Проверка
-1. Test-стенд: «забыл пароль» → письмо с ссылкой `https://test.reage.life/?password_reset_token=...`.
-2. Клик → главная открывается, диалог «Введите новый пароль».
-3. Сохранить → успех → войти со старого/нового пароля — работает только новый.
-4. Повторный клик по той же ссылке → «Ссылка уже использована».
-5. Ссылка старше 30 мин → «Срок действия истёк».
-6. Прод: то же самое, но домен `reage.life`.
+Для нераспознанной ошибки возвращается `fallback` (или общее «Что-то пошло не так. Попробуйте ещё раз»). Сырой английский `message` пользователю **никогда** не показывается; он только пишется в `console.error` для разработчика.
+
+#### 4. Массовая замена по всему коду
+
+- Все `import { useToast } from "@/hooks/use-toast"` и `import { toast } from "sonner"` → `import { notify } from "@/lib/toast"`.
+- `toast({ title, description, variant: "destructive" })` → `notify.error(title, errorOrText)`.
+- `toast({ title, description })` → `notify.success(title, description)` (или `.info` по смыслу).
+- `description: error.message` → `notify.error("Не удалось <действие>", error)` (с осмысленным заголовком).
+
+Файлы (96 шт.), сгруппировано:
+- **hooks**: `usePromoCodes`, `usePromoSettings`, `usePricing`, `useAISettings`, `useAvailabilitySlots`, `usePlans`, `usePlanBiomarkers`, `useChatConversations`
+- **pages**: `Auth`, `Register`, `RegisterStaff`, `ResetPassword`, `Onboarding`, `Subscription`, `MyState`, `HealthStrategy`, `HealthAssistant`, `Recommendations`, `Prescriptions`, `AnalysisDetail`, `Analyses`, `Trends`, `Biomarkers`, `Profile`, и весь `pages/admin/*`
+- **components**: `PassportDataDialog`, `CallbackRequestDialog`, `SubscriptionRequiredDialog`, `PasswordResetTokenHandler`, `subscription/*`, `profile/*`, `admin/*` (включая email-папку), `auth/VerificationDialogs`, `analysis/AnalysisBookingBanner` и др.
+
+#### 5. Чистка
+
+- Удаляем `src/hooks/use-toast.ts` и `src/components/ui/toaster.tsx` (shadcn-toaster), чтобы исключить рецидив.
+- В корне `App.tsx` остаётся ровно один `<Sonner />`.
+
+### Проверка после рефакторинга
+
+- `rg "from \"@/hooks/use-toast\""` → 0
+- `rg "from \"sonner\"" src` → только `src/lib/toast.ts` и `src/components/ui/sonner.tsx`
+- `rg "description:\s*\w+\??\.message"` → 0
+- Сборка зелёная, ручной тест: неверный пароль на `/auth`, дубль промокода, отвалившийся интернет — везде русский, единый вид.
+
+### Что НЕ трогаем
+
+- Литералы заголовков на русском («Сохранено», «Промокод создан» и т.п.) — оставляем как есть.
+- Тексты внутри edge-функций — отдельная задача, скажете — пройдусь.

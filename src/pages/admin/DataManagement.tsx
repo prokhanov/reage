@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { notify as toast } from "@/lib/toast";
 import { Plus, Trash2, Edit2, Search, FileText, Activity } from "lucide-react";
 import { getSymptomCategoryIcon, getConditionCategoryIcon, stripEmoji } from "@/lib/categoryIcons";
 import {
@@ -243,7 +243,7 @@ export default function DataManagement() {
       setEditingBiomarker(null);
     },
     onError: (error: any) => {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     },
   });
 
@@ -257,7 +257,7 @@ export default function DataManagement() {
       toast.success("Биомаркер удален");
     },
     onError: (error: any) => {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     },
   });
 
@@ -284,7 +284,7 @@ export default function DataManagement() {
       setEditingCondition(null);
     },
     onError: (error: any) => {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     },
   });
 
@@ -301,7 +301,7 @@ export default function DataManagement() {
       toast.success("Состояние удалено");
     },
     onError: (error: any) => {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     },
   });
 
@@ -328,7 +328,7 @@ export default function DataManagement() {
       setEditingSymptom(null);
     },
     onError: (error: any) => {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     },
   });
 
@@ -345,7 +345,7 @@ export default function DataManagement() {
       toast.success("Симптом удалён");
     },
     onError: (error: any) => {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     },
   });
 
@@ -571,7 +571,7 @@ export default function DataManagement() {
       queryClient.invalidateQueries({ queryKey: ["biomarker-categories"] });
       toast.success("Порядок обновлён");
     } catch (error: any) {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     }
   };
 
@@ -594,7 +594,7 @@ export default function DataManagement() {
       queryClient.invalidateQueries({ queryKey: ["medical-categories"] });
       toast.success("Порядок обновлён");
     } catch (error: any) {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     }
   };
 
@@ -617,7 +617,7 @@ export default function DataManagement() {
       queryClient.invalidateQueries({ queryKey: ["symptom-categories"] });
       toast.success("Порядок обновлён");
     } catch (error: any) {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     }
   };
 
@@ -640,7 +640,7 @@ export default function DataManagement() {
       queryClient.invalidateQueries({ queryKey: ["symptom-templates"] });
       toast.success("Порядок обновлён");
     } catch (error: any) {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     }
   };
 
@@ -663,7 +663,7 @@ export default function DataManagement() {
       queryClient.invalidateQueries({ queryKey: ["biomarkers"] });
       toast.success("Порядок обновлён");
     } catch (error: any) {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     }
   };
 
@@ -686,7 +686,7 @@ export default function DataManagement() {
       queryClient.invalidateQueries({ queryKey: ["medical-conditions"] });
       toast.success("Порядок обновлён");
     } catch (error: any) {
-      toast.error("Ошибка: " + error.message);
+      toast.error("Ошибка", error);
     }
   };
 
@@ -1111,7 +1111,7 @@ export default function DataManagement() {
                                       queryClient.invalidateQueries({ queryKey: ["biomarker-categories"] });
                                       toast.success("Категория удалена");
                                     } catch (error: any) {
-                                      toast.error("Ошибка: " + error.message);
+                                      toast.error("Ошибка", error);
                                     }
                                   }
                                 }}
@@ -1169,7 +1169,7 @@ export default function DataManagement() {
                                       queryClient.invalidateQueries({ queryKey: ["medical-categories"] });
                                       toast.success("Категория удалена");
                                     } catch (error: any) {
-                                      toast.error("Ошибка: " + error.message);
+                                      toast.error("Ошибка", error);
                                     }
                                   }
                                 }}
@@ -1227,7 +1227,7 @@ export default function DataManagement() {
                                       queryClient.invalidateQueries({ queryKey: ["symptom-categories"] });
                                       toast.success("Категория удалена");
                                     } catch (error: any) {
-                                      toast.error("Ошибка: " + error.message);
+                                      toast.error("Ошибка", error);
                                     }
                                   }
                                 }}
@@ -1902,7 +1902,7 @@ export default function DataManagement() {
                 toast.success(categoryDialog.editing ? "Категория обновлена" : "Категория добавлена");
                 setCategoryDialog({ open: false, type: null, editing: null });
               } catch (error: any) {
-                toast.error("Ошибка: " + error.message);
+                toast.error("Ошибка", error);
               }
             }}
             className="space-y-4"

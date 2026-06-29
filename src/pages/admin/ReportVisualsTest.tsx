@@ -25,7 +25,7 @@ import { RefreshCw, Save, Download, Pencil, Eye } from "lucide-react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import MDEditor from '@uiw/react-md-editor';
 import { useTheme } from "next-themes";
-import { toast } from "sonner";
+import { notify as toast } from "@/lib/toast";
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts;
@@ -270,7 +270,7 @@ export default function ReportVisualsTest() {
       }
     } catch (err: any) {
       console.error("Generation error:", err);
-      toast.error(`Ошибка генерации: ${err.message}`);
+      toast.error("Ошибка генерации", err);
     } finally {
       setGenerating(false);
     }
@@ -313,7 +313,7 @@ export default function ReportVisualsTest() {
       toast.success('PDF загружен');
     } catch (err: any) {
       console.error('PDF export error:', err);
-      toast.error(`Ошибка экспорта: ${err.message}`);
+      toast.error("Ошибка экспорта", err);
     }
   };
 
@@ -703,7 +703,7 @@ function PromptDemoTab({ biomarkers, categories, systemPrompt, setSystemPrompt, 
       if (e1 || e2) throw e1 || e2;
       toast.success("Промпты сохранены в БД");
     } catch (err: any) {
-      toast.error(`Ошибка сохранения: ${err.message}`);
+      toast.error("Ошибка сохранения", err);
     } finally {
       setSaving(false);
     }

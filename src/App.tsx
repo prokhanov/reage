@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useEmailVerificationHandler } from "@/hooks/useEmailVerificationHandler";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -89,7 +88,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <TooltipProvider>
-        <Toaster />
         <Sonner />
         <EmailVerificationListener />
         <BrowserRouter>
