@@ -257,8 +257,9 @@ function ClusterLayer({
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
-      const hours = (it.hours ?? []).filter(Boolean);
+      const hours = normalizeHours(it.hours ?? []).filter(Boolean);
       const isSelected = selectedId === it.id;
+
       const partnerBtn =
         showPartnerButton && it.page_url
           ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta lab-popup-cta-primary">${escapeHtml(partnerButtonLabel)}</a>`
@@ -311,6 +312,21 @@ function escapeAttr(s: string) {
   return escapeHtml(s);
 }
 
+function cleanHoursLine(s: string): string {
+  return s
+    .replace(/^[\s.,;:—\-|]+|[\s.,;:—\-|]+$/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function normalizeHours(hours: string[]): string[] {
+  return hours
+    .filter(Boolean)
+    .flatMap((line) => line.split(/[;|]/))
+    .map((s) => cleanHoursLine(s))
+    .filter(Boolean);
+}
+
+
 function filterCss(f: TileFilters) {
   return [
     `brightness(${f.brightness}%)`,
@@ -324,7 +340,8 @@ function filterCss(f: TileFilters) {
 }
 
 export type { TileStyleKey, TileFilters };
-export { TILE_STYLES, DEFAULT_FILTERS };
+export { TILE_STYLES, DEFAULT_FILTERS, cleanHoursLine, normalizeHours };
+
 
 export default function LabLocationsMap({
   items,

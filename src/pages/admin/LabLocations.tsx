@@ -1,3 +1,4 @@
+import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { useEffect, useRef, useState } from "react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { supabase } from "@/integrations/supabase/client";
@@ -458,7 +459,7 @@ export default function LabLocations() {
                             {row.phones.join("\n") || "—"}
                           </TableCell>
                           <TableCell className="text-xs whitespace-pre-line">
-                            {row.hours.join("\n") || "—"}
+                            {normalizeHours(row.hours).join("\n") || "—"}
                           </TableCell>
                           <TableCell>
                             <Switch
