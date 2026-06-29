@@ -257,8 +257,9 @@ function ClusterLayer({
     items.forEach((it) => {
       const m = L.marker([it.lat, it.lng], { icon, pane: LAB_MARKER_PANE, riseOnHover: true, zIndexOffset: 1000 });
       const phones = (it.phones ?? []).filter(Boolean);
-      const hours = (it.hours ?? []).filter(Boolean);
+      const hours = normalizeHours(it.hours ?? []).filter(Boolean);
       const isSelected = selectedId === it.id;
+
       const partnerBtn =
         showPartnerButton && it.page_url
           ? `<a href="${escapeAttr(it.page_url)}" target="_blank" rel="noreferrer" class="lab-popup-cta lab-popup-cta-primary">${escapeHtml(partnerButtonLabel)}</a>`
