@@ -104,14 +104,14 @@ export function renderSnapshotWeb(
 
   return (
     <div className="space-y-8">
-      {blocks.map((block, idx) => renderBlockWeb(block, idx, byId, age, gender))}
+      {blocks.map(({ block, originalIndex }) => renderBlockWeb(block, originalIndex, byId, age, gender))}
     </div>
   );
 }
 
 function renderBlockWeb(
   block: ReportBlock,
-  idx: number,
+  originalIndex: number,
   byId: Map<string, PdfBiomarkerData>,
   age: number,
   gender: "male" | "female",
@@ -129,7 +129,7 @@ function renderBlockWeb(
       // sections.id = `snapshot-section-${i}`, scrollToSection ищет
       // элемент `section-${id}` ⇒ итоговый DOM id = `section-snapshot-section-${i}`).
       return (
-        <div key={idx} id={`section-snapshot-section-${idx}`} className="pt-4 scroll-mt-6">
+        <div key={originalIndex} id={`section-snapshot-section-${originalIndex}`} className="pt-4 scroll-mt-6">
           <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
             {block.emoji ? `${block.emoji} ${block.title}` : block.title}
           </h2>
