@@ -6,11 +6,13 @@
  * выезжает через Sheet (как в ЛК Recommendations.tsx).
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { List, X } from "lucide-react";
+
+import { useActiveSection } from "@/hooks/useActiveSection";
 
 import {
   Dialog,
@@ -37,6 +39,7 @@ import { renderSnapshotWeb } from "@/lib/snapshotRenderer";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
 import type { PdfBiomarkerData } from "@/lib/pdfExportHelpers";
+import { cn } from "@/lib/utils";
 
 import exampleReportData from "@/data/exampleReport.json";
 
@@ -213,24 +216,33 @@ export default function ExampleReport() {
   const snapshot: ReportSnapshot | null =
     snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
 
-  const sections = [
-    ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
-    ...(snapshot
-      ? snapshot.blocks
-          .map((b, i) =>
-            b.type === "section"
-              ? { id: `snapshot-section-${i}`, label: b.title }
-              : null,
-          )
-          .filter((s): s is { id: string; label: string } => s !== null)
-      : [
-          ...(summary ? [{ id: "summary", label: "Общее резюме" }] : []),
-          ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
-        ]),
-    ...(hasPrescriptionsBlock
-      ? [{ id: "prescriptions", label: "Рекомендации" }]
-      : []),
-  ];
+  const sections = useMemo(
+    () => [
+      ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
+      ...(snapshot
+        ? snapshot.blocks
+            .map((b, i) =>
+              b.type === "section"
+                ? { id: `snapshot-section-${i}`, label: b.title }
+                : null,
+            )
+            .filter((s): s is { id: string; label: string } => s !== null)
+        : [
+            ...(summary ? [{ id: "summary", label: "Общее резюме" }] : []),
+            ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+          ]),
+      ...(hasPrescriptionsBlock
+        ? [{ id: "prescriptions", label: "Рекомендации" }]
+        : []),
+    ],
+    [patientData, snapshot, summary, categories, hasPrescriptionsBlock],
+  );
+
+  const activeSection = useActiveSection(
+    contentRef,
+    sections.map((s) => s.id),
+    { offset: 140 },
+  );
 
   const scrollToSection = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -271,18 +283,32 @@ export default function ExampleReport() {
 
             <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
               <nav className="space-y-1">
-                {sections.map((section) => (
-                  <button
-                    key={section.id}
-                    type="button"
-                    onClick={(e) => scrollToSection(section.id, e)}
-                    className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group hover:bg-accent text-muted-foreground hover:text-foreground"
-                  >
-                    <span className="text-sm font-medium flex-1 line-clamp-2">
-                      {section.label}
-                    </span>
-                  </button>
-                ))}
+                {sections.map((section) => {
+                  const isActive = activeSection === section.id;
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      onClick={(e) => scrollToSection(section.id, e)}
+                      className={cn(
+                        "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group",
+                        isActive
+                          ? "bg-accent text-foreground font-medium"
+                          : "hover:bg-accent text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "w-1 h-5 rounded-full transition-colors",
+                          isActive ? "bg-gradient-primary" : "bg-transparent",
+                        )}
+                      />
+                      <span className="text-sm font-medium flex-1 line-clamp-2">
+                        {section.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </nav>
             </div>
           </div>
@@ -317,21 +343,35 @@ export default function ExampleReport() {
                       style={{ maxHeight: "calc(100dvh - 110px)" }}
                     >
                       <nav className="space-y-1">
-                        {sections.map((section) => (
-                          <button
-                            key={section.id}
-                            type="button"
-                            onClick={(e) => {
-                              scrollToSection(section.id, e);
-                              setTocSheetOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3 hover:bg-accent text-muted-foreground hover:text-foreground"
-                          >
-                            <span className="text-sm font-medium flex-1 line-clamp-2">
-                              {section.label}
-                            </span>
-                          </button>
-                        ))}
+                        {sections.map((section) => {
+                          const isActive = activeSection === section.id;
+                          return (
+                            <button
+                              key={section.id}
+                              type="button"
+                              onClick={(e) => {
+                                scrollToSection(section.id, e);
+                                setTocSheetOpen(false);
+                              }}
+                              className={cn(
+                                "w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3",
+                                isActive
+                                  ? "bg-accent text-foreground font-medium"
+                                  : "hover:bg-accent text-muted-foreground hover:text-foreground",
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "w-1 h-5 rounded-full transition-colors",
+                                  isActive ? "bg-gradient-primary" : "bg-transparent",
+                                )}
+                              />
+                              <span className="text-sm font-medium flex-1 line-clamp-2">
+                                {section.label}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </nav>
                     </div>
                   </SheetContent>

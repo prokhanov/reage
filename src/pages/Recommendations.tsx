@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, useRef } from "react";
+import { useEffect, useState, useContext, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Trash2, Brain, Download, Sparkles, Edit, Eye, List, X } from "lucide-re
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
+import { useActiveSection } from "@/hooks/useActiveSection";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
@@ -46,6 +47,7 @@ import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
 import { buildPrescriptionsPdf } from "@/lib/pdfPrescriptions";
+import { cn } from "@/lib/utils";
 
 interface Recommendation {
   id: string;
@@ -105,6 +107,22 @@ const isAbortError = (error: unknown) => {
   const errorName = (error as { name?: string } | null)?.name;
   return errorName === "AbortError";
 };
+const toSlug = (s: string) =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
+
+const groupByType = (recommendations: Recommendation[]) => {
+  return recommendations.reduce((acc, rec) => {
+    if (!acc[rec.type]) {
+      acc[rec.type] = [];
+    }
+    acc[rec.type].push(rec);
+    return acc;
+  }, {} as Record<string, Recommendation[]>);
+};
 
 
 export default function Recommendations() {
@@ -129,12 +147,58 @@ export default function Recommendations() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
-  const toSlug = (s: string) =>
-    s
-      .toLowerCase()
-      .trim()
-      .replace(/[^\p{L}\p{N}]+/gu, "-")
-      .replace(/^-+|-+$/g, "");
+
+  // Compute report sections for the currently selected report (used by scroll spy + TOC).
+  const sections = useMemo(() => {
+    if (!selectedReport) return [];
+    const grouped = groupByType(selectedReport.recommendations);
+    const patientData = grouped["Данные пациента"]?.[0];
+    const summary = grouped["Общее резюме"]?.[0];
+    const prescriptionsRec = grouped["Назначения"]?.[0];
+    const lifestyleData = prescriptionsRec?.content_json?.lifestyle as
+      | { nutrition?: string[]; activity?: string[]; sleep?: string[] }
+      | undefined;
+    const followUpsData = prescriptionsRec?.content_json?.follow_ups as
+      | Array<{ specialist?: string; goal?: string; trigger?: string }>
+      | undefined;
+    const hasLifestyle =
+      !!lifestyleData &&
+      ((lifestyleData.nutrition?.length || 0) +
+        (lifestyleData.activity?.length || 0) +
+        (lifestyleData.sleep?.length || 0) >
+        0);
+    const hasFollowUps = !!followUpsData && followUpsData.length > 0;
+    const hasPrescriptionsBlock =
+      selectedPrescriptions.length > 0 || hasLifestyle || hasFollowUps;
+    const snapshotResult = summary?.content_json
+      ? parseReportSnapshot(summary.content_json)
+      : null;
+    const snapshot = snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
+    return [
+      ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
+      ...(snapshot
+        ? snapshot.blocks
+            .map((b, i) =>
+              b.type === "section" ? { id: `snapshot-section-${i}`, label: b.title } : null
+            )
+            .filter((s): s is { id: string; label: string } => s !== null)
+        : [
+            ...(summary ? [{ id: "summary", label: "Общее резюме" }] : []),
+            ...Object.entries(grouped)
+              .filter(([type]) =>
+                type !== "Общее резюме" &&
+                type !== "Данные пациента" &&
+                type !== "Назначения" &&
+                type !== "Рекомендации"
+              )
+              .map(([type]) => ({ id: toSlug(type), label: type })),
+          ]),
+      ...(hasPrescriptionsBlock ? [{ id: "prescriptions", label: "Рекомендации" }] : []),
+    ];
+  }, [selectedReport, selectedPrescriptions]);
+
+  const sectionIds = useMemo(() => sections.map((s) => s.id), [sections]);
+  const activeSection = useActiveSection(contentRef, sectionIds, { offset: 140 });
 
   useEffect(() => {
     if (demoLoading) {
@@ -636,16 +700,6 @@ export default function Recommendations() {
     }
   };
 
-  const groupByType = (recommendations: Recommendation[]) => {
-    return recommendations.reduce((acc, rec) => {
-      if (!acc[rec.type]) {
-        acc[rec.type] = [];
-      }
-      acc[rec.type].push(rec);
-      return acc;
-    }, {} as Record<string, Recommendation[]>);
-  };
-
   const getSectionLabel = (type: SectionType) => {
     if (type === 'patient-data') return 'Данные пациента';
     if (type === 'summary') return 'Общее резюме';
@@ -1076,19 +1130,6 @@ export default function Recommendations() {
               const snapshot: ReportSnapshot | null =
                 snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
 
-              const sections = [
-                ...(patientData ? [{ id: 'patient-data', label: 'Данные пациента' }] : []),
-                ...(snapshot
-                  ? snapshot.blocks
-                      .map((b, i) => b.type === 'section' ? { id: `snapshot-section-${i}`, label: b.title } : null)
-                      .filter((s): s is { id: string; label: string } => s !== null)
-                  : [
-                      ...(summary ? [{ id: 'summary', label: 'Общее резюме' }] : []),
-                      ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
-                    ]),
-                ...(hasPrescriptionsBlock ? [{ id: 'prescriptions', label: 'Рекомендации' }] : [])
-              ];
-
               const dateLabel = selectedReport.date && !isNaN(new Date(selectedReport.date).getTime())
                 ? format(new Date(selectedReport.date), "d MMMM yyyy", { locale: ru })
                 : "Дата не указана";
@@ -1106,18 +1147,32 @@ export default function Recommendations() {
                     
                     <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
                       <nav className="space-y-1">
-                        {sections.map((section) => (
-                          <button
-                            key={section.id}
-                            type="button"
-                            onClick={(e) => scrollToSection(section.id, e)}
-                            className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group hover:bg-accent text-muted-foreground hover:text-foreground"
-                          >
-                            <span className="text-sm font-medium flex-1 line-clamp-2">
-                              {section.label}
-                            </span>
-                          </button>
-                        ))}
+                        {sections.map((section) => {
+                          const isActive = activeSection === section.id;
+                          return (
+                            <button
+                              key={section.id}
+                              type="button"
+                              onClick={(e) => scrollToSection(section.id, e)}
+                              className={cn(
+                                "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group",
+                                isActive
+                                  ? "bg-accent text-foreground font-medium"
+                                  : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "w-1 h-5 rounded-full transition-colors",
+                                  isActive ? "bg-gradient-primary" : "bg-transparent"
+                                )}
+                              />
+                              <span className="text-sm font-medium flex-1 line-clamp-2">
+                                {section.label}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </nav>
                     </div>
                   </div>
@@ -1147,21 +1202,35 @@ export default function Recommendations() {
                             </SheetHeader>
                             <div className="overflow-y-auto px-3 py-4" style={{ maxHeight: 'calc(100dvh - 110px)' }}>
                               <nav className="space-y-1">
-                                {sections.map((section) => (
-                                  <button
-                                    key={section.id}
-                                    type="button"
-                                    onClick={(e) => {
-                                      scrollToSection(section.id, e);
-                                      setTocSheetOpen(false);
-                                    }}
-                                    className="w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3 hover:bg-accent text-muted-foreground hover:text-foreground"
-                                  >
-                                    <span className="text-sm font-medium flex-1 line-clamp-2">
-                                      {section.label}
-                                    </span>
-                                  </button>
-                                ))}
+                                {sections.map((section) => {
+                                  const isActive = activeSection === section.id;
+                                  return (
+                                    <button
+                                      key={section.id}
+                                      type="button"
+                                      onClick={(e) => {
+                                        scrollToSection(section.id, e);
+                                        setTocSheetOpen(false);
+                                      }}
+                                      className={cn(
+                                        "w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3",
+                                        isActive
+                                          ? "bg-accent text-foreground font-medium"
+                                          : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                                      )}
+                                    >
+                                      <span
+                                        className={cn(
+                                          "w-1 h-5 rounded-full transition-colors",
+                                          isActive ? "bg-gradient-primary" : "bg-transparent"
+                                        )}
+                                      />
+                                      <span className="text-sm font-medium flex-1 line-clamp-2">
+                                        {section.label}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
                               </nav>
                             </div>
                           </SheetContent>
