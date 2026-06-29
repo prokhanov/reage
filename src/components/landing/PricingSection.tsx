@@ -1,8 +1,7 @@
-import { Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
+import { Sparkles, ArrowRight, FlaskConical, CalendarCheck, UserCheck, ChevronDown, ChevronUp, Heart, Shield, RefreshCw, Zap, Droplet, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BiomarkerComparisonDialog } from "./BiomarkerComparisonDialog";
 import { useSubscriptionPlans, type PlanWithPricing } from "@/hooks/useSubscriptionPlans";
 import { Skeleton } from "@/components/ui/skeleton";
