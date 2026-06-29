@@ -307,7 +307,7 @@ ${catalogText}
       return r;
     };
 
-    let aiResp = await callAi("google/gemini-2.5-pro");
+    let aiResp = await callAi("google/gemini-2.5-flash");
 
     if (!aiResp.ok) {
       const txt = await aiResp.text();
