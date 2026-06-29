@@ -146,7 +146,7 @@ export default function Recommendations() {
   const [biomarkersLoading, setBiomarkersLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
 
   // Compute report sections for the currently selected report (used by scroll spy + TOC).
   const sections = useMemo(() => {
@@ -198,7 +198,7 @@ export default function Recommendations() {
   }, [selectedReport, selectedPrescriptions]);
 
   const sectionIds = useMemo(() => sections.map((s) => s.id), [sections]);
-  const activeSection = useActiveSection(contentRef, sectionIds, { offset: 140 });
+  const activeSection = useActiveSection(contentEl, sectionIds, { offset: 140 });
 
   useEffect(() => {
     if (demoLoading) {
@@ -1285,7 +1285,7 @@ export default function Recommendations() {
                       <ThemeToggle isOpen={false} />
                     </div>
 
-                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6" ref={contentRef}>
+                    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6" ref={setContentEl}>
                       <div id="report-content" className="space-y-5 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto">
 
                         {patientData && (
