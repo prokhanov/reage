@@ -14,7 +14,6 @@ import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslCol
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
-import { DemoBanner } from "@/components/DemoBanner";
 import { Progress } from "@/components/ui/progress";
 
 interface BiomarkerData {
