@@ -114,6 +114,16 @@ const toSlug = (s: string) =>
     .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "");
 
+const groupByType = (recommendations: Recommendation[]) => {
+  return recommendations.reduce((acc, rec) => {
+    if (!acc[rec.type]) {
+      acc[rec.type] = [];
+    }
+    acc[rec.type].push(rec);
+    return acc;
+  }, {} as Record<string, Recommendation[]>);
+};
+
 
 export default function Recommendations() {
   const { getUserId, isViewMode } = useViewAsUser();
