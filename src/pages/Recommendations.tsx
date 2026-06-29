@@ -638,16 +638,6 @@ export default function Recommendations() {
     }
   };
 
-  const groupByType = (recommendations: Recommendation[]) => {
-    return recommendations.reduce((acc, rec) => {
-      if (!acc[rec.type]) {
-        acc[rec.type] = [];
-      }
-      acc[rec.type].push(rec);
-      return acc;
-    }, {} as Record<string, Recommendation[]>);
-  };
-
   const getSectionLabel = (type: SectionType) => {
     if (type === 'patient-data') return 'Данные пациента';
     if (type === 'summary') return 'Общее резюме';
