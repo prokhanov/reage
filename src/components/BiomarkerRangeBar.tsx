@@ -32,22 +32,19 @@ function getZoneColor(
     return STATUS_COLORS.critical;
   }
 
-  // Check optimal BEFORE normal for open-ended ranges
+  // Outside normal = risk (проверяем до оптимума, иначе при отсутствии
+  // optimal_max значение выше нормы попадает в «зелёную» зону).
+  if ((normMin !== null && v < normMin) || (normMax !== null && v > normMax)) {
+    return STATUS_COLORS.risk;
+  }
+
+  // Внутри нормы — проверяем оптимум
   if (optMin !== null || optMax !== null) {
     const inOptimal =
       (optMin === null || v >= optMin) && (optMax === null || v <= optMax);
     if (inOptimal) {
       return STATUS_COLORS.optimal;
     }
-  }
-
-  // Outside normal = risk
-  if ((normMin !== null && v < normMin) || (normMax !== null && v > normMax)) {
-    return STATUS_COLORS.risk;
-  }
-
-  // Inside normal but outside optimal = acceptable
-  if (optMin !== null || optMax !== null) {
     return STATUS_COLORS.acceptable;
   }
 
