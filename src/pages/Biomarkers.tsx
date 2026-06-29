@@ -14,6 +14,7 @@ import { calculateAge, getNormalRangeForAge, getBiomarkerStatus, getStatusHslCol
 import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
 import { useDemoMode, transformDemoBiomarkersToDisplay } from "@/hooks/useDemoMode";
+import { DemoBanner } from "@/components/DemoBanner";
 import { Progress } from "@/components/ui/progress";
 
 interface BiomarkerData {
@@ -293,6 +294,7 @@ export default function Biomarkers({ categoryScores }: BiomarkersProps = {}) {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="px-4 py-6 md:py-8 md:px-6 max-w-6xl mx-auto">
+      {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
       {loading && <BiomarkerTableSkeleton />}
       {!loading && (
       <>
