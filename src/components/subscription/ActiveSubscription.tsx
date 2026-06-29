@@ -146,22 +146,6 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
             </div>
           )}
 
-          {/* Highlights from admin */}
-          {highlights.length > 0 && (
-            <div>
-              <h3 className="font-semibold text-sm md:text-base mb-3 md:mb-4">
-                Что выделяет ваш тариф
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-                {highlights.map((h, i) => (
-                  <div key={i} className="rounded-lg border border-border/50 bg-muted/30 p-3">
-                    <div className="text-xs md:text-sm text-muted-foreground">{h.label}</div>
-                    <div className="font-medium text-sm md:text-base mt-0.5 break-words">{h.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
         </CardContent>
       </Card>
