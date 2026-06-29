@@ -124,25 +124,16 @@ const PageConnections = () => {
         формируют общую картину вашего здоровья.
       </p>
 
-      {/* Compact network illustration */}
-      <div className="relative h-16 rounded-lg border border-border/40 bg-card/40 overflow-hidden">
-        <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
-          <line x1="15%" y1="50%" x2="40%" y2="25%" stroke="currentColor" strokeWidth="1" />
-          <line x1="15%" y1="50%" x2="40%" y2="75%" stroke="currentColor" strokeWidth="1" />
-          <line x1="40%" y1="25%" x2="65%" y2="50%" stroke="currentColor" strokeWidth="1" />
-          <line x1="40%" y1="75%" x2="65%" y2="50%" stroke="currentColor" strokeWidth="1" />
-          <line x1="65%" y1="50%" x2="90%" y2="30%" stroke="currentColor" strokeWidth="1" />
-          <line x1="65%" y1="50%" x2="90%" y2="70%" stroke="currentColor" strokeWidth="1" />
-          <circle cx="15%" cy="50%" r="4" fill="hsl(var(--primary))" />
-          <circle cx="40%" cy="25%" r="4" fill="hsl(142 71% 45%)" />
-          <circle cx="40%" cy="75%" r="4" fill="hsl(25 95% 53%)" />
-          <circle cx="65%" cy="50%" r="4" fill="hsl(var(--primary))" />
-          <circle cx="90%" cy="30%" r="4" fill="hsl(38 92% 50%)" />
-          <circle cx="90%" cy="70%" r="4" fill="hsl(0 84% 60%)" />
-        </svg>
-      </div>
-
       <div className="space-y-2.5">
+        {links.map((l, i) => (
+          <div key={i} className="rounded-lg border border-border/40 bg-card/50 p-2.5">
+            <div className="text-[11px] font-semibold">
+              {l.from} <span className="text-muted-foreground">→</span> {l.to}
+            </div>
+            <p className="text-[11px] text-foreground/75 leading-relaxed mt-1">{l.note}</p>
+          </div>
+        ))}
+      </div>
         {links.map((l, i) => (
           <div key={i} className="rounded-lg border border-border/40 bg-card/50 p-2.5">
             <div className="text-[11px] font-semibold">
@@ -448,14 +439,8 @@ function ReportMockup({
         style={{ aspectRatio: "1 / 1.4142" }}
       >
         {/* Page header */}
-        <div className="flex items-center justify-between px-3 pt-3 pb-2 sm:px-6 sm:pt-5 sm:pb-3 border-b border-border/40">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-gradient-hero" />
-            <span className="text-[10px] sm:text-xs font-semibold tracking-wide">ReAge · Отчёт</span>
-          </div>
-          <div className="text-[10px] text-muted-foreground">
-            Стр. {idx + 1} / {pages.length}
-          </div>
+        <div className="flex items-center justify-center px-3 pt-3 pb-2 sm:px-6 sm:pt-5 sm:pb-3 border-b border-border/40">
+          <span className="text-[10px] sm:text-xs font-semibold tracking-wide">ReAge · Отчёт</span>
         </div>
 
         {/* Page content */}
