@@ -144,6 +144,13 @@ export function FAQSection() {
       <div className="absolute top-1/2 -right-48 w-96 h-96 bg-accent/5 rounded-full blur-[150px]" />
 
       <div className="relative z-10 container mx-auto px-4">
+        {/* Logo */}
+        <div className="flex justify-end mb-6 md:mb-8">
+          <Link to="/">
+            <img src={logoDark} alt="ReAge" className="h-10 md:h-12 w-auto" />
+          </Link>
+        </div>
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
