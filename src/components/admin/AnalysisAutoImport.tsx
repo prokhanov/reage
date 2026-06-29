@@ -111,6 +111,18 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const [importing, setImporting] = useState(false);
   const [patient, setPatient] = useState<{ age: number | null; gender: "male" | "female" | null }>({ age: null, gender: null });
   const [biomarkersMap, setBiomarkersMap] = useState<Record<string, any>>({});
+  const [mergeMode, setMergeMode] = useState(true);
+  const [mergedDate, setMergedDate] = useState<string>("");
+  const [mergedLab, setMergedLab] = useState<string>("");
+
+  // Auto-fill merged date/lab from first recognized result
+  useEffect(() => {
+    if (!mergeMode) return;
+    const firstDone = entries.find(e => e.status === "done" && e.result);
+    if (!firstDone) return;
+    if (!mergedDate && firstDone.editDate) setMergedDate(firstDone.editDate);
+    if (!mergedLab && firstDone.editLab) setMergedLab(firstDone.editLab);
+  }, [entries, mergeMode, mergedDate, mergedLab]);
 
   // Load patient profile (age/gender) once for status colouring
   useEffect(() => {
@@ -323,27 +335,37 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
     let created = 0;
     let failed = 0;
     try {
-      for (const e of ready) {
+      if (mergeMode) {
+        // === MERGE MODE: single analysis from all files ===
         try {
-          if (!e.editDate) throw new Error("Не указана дата");
-          const selected = e.result!.recognized.filter(r => r.include);
-          if (!selected.length) continue;
+          const dateToUse = mergedDate || ready[0].editDate;
+          if (!dateToUse) throw new Error("Не указана дата анализа");
+          const labToUse = mergedLab || ready.map(e => e.editLab).find(Boolean) || null;
+
+          // Collect all selected items from all files, dedupe by biomarker_id (last wins)
+          const byBm = new Map<string, RecognizedItem>();
+          for (const e of ready) {
+            for (const r of e.result!.recognized) {
+              if (r.include) byBm.set(r.biomarker_id, r);
+            }
+          }
+          if (!byBm.size) {
+            toast({ title: "Нечего импортировать", description: "Не отмечено ни одного показателя", variant: "destructive" });
+            setImporting(false);
+            return;
+          }
 
           const { data: analysis, error: aErr } = await supabase
             .from("analyses")
             .insert({
               user_id: viewAsUserId,
-              date: e.editDate,
-              lab_name: e.editLab || null,
+              date: dateToUse,
+              lab_name: labToUse,
               status: "on_review" as const,
             })
             .select()
             .single();
           if (aErr) throw aErr;
-
-          // Dedupe by biomarker_id (keep last)
-          const byBm = new Map<string, RecognizedItem>();
-          for (const r of selected) byBm.set(r.biomarker_id, r);
 
           const values = Array.from(byBm.values()).map(r => {
             const numericEdited = parseFloat((r.edited_value || "").replace(",", "."));
@@ -366,21 +388,78 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
             if (vErr) throw vErr;
           }
 
-          updateEntry(e.id, { status: "imported" });
-          created++;
+          for (const e of ready) updateEntry(e.id, { status: "imported" });
+          created = 1;
+          toast({
+            title: "Импорт завершён",
+            description: `Создан 1 анализ из ${ready.length} файлов, показателей: ${values.length}`,
+          });
+          onImported?.();
+          onClose?.();
         } catch (err: any) {
-          console.error("import error", err);
-          updateEntry(e.id, { status: "error", error: err?.message || "Не удалось импортировать" });
-          failed++;
+          console.error("merged import error", err);
+          toast({ title: "Ошибка импорта", description: err?.message || "Не удалось импортировать", variant: "destructive" });
         }
-      }
-      toast({
-        title: "Импорт завершён",
-        description: `Создано анализов: ${created}${failed ? `, ошибок: ${failed}` : ""}`,
-      });
-      if (created > 0) {
-        onImported?.();
-        if (failed === 0) onClose?.();
+      } else {
+        // === SEPARATE MODE: one analysis per file ===
+        for (const e of ready) {
+          try {
+            if (!e.editDate) throw new Error("Не указана дата");
+            const selected = e.result!.recognized.filter(r => r.include);
+            if (!selected.length) continue;
+
+            const { data: analysis, error: aErr } = await supabase
+              .from("analyses")
+              .insert({
+                user_id: viewAsUserId,
+                date: e.editDate,
+                lab_name: e.editLab || null,
+                status: "on_review" as const,
+              })
+              .select()
+              .single();
+            if (aErr) throw aErr;
+
+            const byBm = new Map<string, RecognizedItem>();
+            for (const r of selected) byBm.set(r.biomarker_id, r);
+
+            const values = Array.from(byBm.values()).map(r => {
+              const numericEdited = parseFloat((r.edited_value || "").replace(",", "."));
+              const value = Number.isFinite(numericEdited)
+                ? numericEdited
+                : (r.use_expected_unit && r.value_converted !== null
+                  ? r.value_converted
+                  : r.value_numeric ?? 0);
+              const unit_override = r.use_expected_unit ? null : (r.unit_raw || null);
+              return {
+                analysis_id: analysis.id,
+                biomarker_id: r.biomarker_id,
+                value,
+                unit_override,
+              };
+            }).filter(v => Number.isFinite(v.value));
+
+            if (values.length) {
+              const { error: vErr } = await supabase.from("analysis_values").insert(values);
+              if (vErr) throw vErr;
+            }
+
+            updateEntry(e.id, { status: "imported" });
+            created++;
+          } catch (err: any) {
+            console.error("import error", err);
+            updateEntry(e.id, { status: "error", error: err?.message || "Не удалось импортировать" });
+            failed++;
+          }
+        }
+        toast({
+          title: "Импорт завершён",
+          description: `Создано анализов: ${created}${failed ? `, ошибок: ${failed}` : ""}`,
+        });
+        if (created > 0) {
+          onImported?.();
+          if (failed === 0) onClose?.();
+        }
       }
     } finally {
       setImporting(false);
@@ -423,6 +502,43 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
           }}
         />
       </div>
+
+      <div className="border rounded-lg p-3 space-y-3 bg-muted/20">
+        <label className="flex items-start gap-2 cursor-pointer">
+          <Checkbox
+            checked={mergeMode}
+            onCheckedChange={(v) => setMergeMode(!!v)}
+            className="mt-0.5"
+          />
+          <div className="text-sm">
+            <div className="font-medium">Объединить все файлы в один анализ</div>
+            <div className="text-xs text-muted-foreground">
+              Все PDF из этой загрузки — части одного блока анализов (один забор крови, одна дата). Будет создан 1 анализ со всеми показателями.
+            </div>
+          </div>
+        </label>
+        {mergeMode && readyCount > 0 && (
+          <div className="grid grid-cols-2 gap-2 pl-6">
+            <div>
+              <Label className="text-xs">Общая дата сдачи</Label>
+              <Input
+                type="date"
+                value={mergedDate}
+                onChange={e => setMergedDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Лаборатория</Label>
+              <Input
+                value={mergedLab}
+                onChange={e => setMergedLab(e.target.value)}
+                placeholder="—"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
 
       {entries.length > 0 && (
         <div className="flex gap-2">
