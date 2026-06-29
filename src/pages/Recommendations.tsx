@@ -47,6 +47,7 @@ import { renderSnapshotWeb, buildSnapshotPdf } from "@/lib/snapshotRenderer";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
 import { buildPrescriptionsPdf } from "@/lib/pdfPrescriptions";
+import { cn } from "@/lib/utils";
 
 interface Recommendation {
   id: string;
