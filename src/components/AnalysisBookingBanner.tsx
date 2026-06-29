@@ -87,7 +87,7 @@ export function AnalysisBookingBanner() {
         return;
       }
 
-      // Priority order
+      // Priority order: active statuses that need user attention
       const find = (status: string, requireFuture = false) =>
         bookings.find(
           (b) =>
@@ -105,10 +105,19 @@ export function AnalysisBookingBanner() {
       if (active) {
         setShowBanner(true);
         setBookingInfo(active as BookingInfo);
-      } else {
-        setShowBanner(true);
-        setBookingInfo(null);
+        return;
       }
+
+      // Terminal status: report uploaded / cycle completed — no reminder needed
+      const latest = bookings[0];
+      if (latest?.status === "uploaded") {
+        setShowBanner(false);
+        setBookingInfo(null);
+        return;
+      }
+
+      setShowBanner(true);
+      setBookingInfo(null);
     } catch (error) {
       console.error("Error checking booking status:", error);
     }
