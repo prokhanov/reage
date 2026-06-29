@@ -107,7 +107,6 @@ export default function ExampleReport() {
   const [open, setOpen] = useState(true);
   const [tocSheetOpen, setTocSheetOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const activeSection = useActiveSection(contentRef, sections.map((s) => s.id), { offset: 140 });
 
   useEffect(() => {
     const prevTitle = document.title;
