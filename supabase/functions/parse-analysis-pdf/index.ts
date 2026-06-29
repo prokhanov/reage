@@ -400,7 +400,10 @@ ${catalogText}
       }
 
       const expectedUnit = bm.unit;
-      const unitMatches = normalizeUnit(it.unit_raw || "") === normalizeUnit(expectedUnit);
+      const isQualitative = QUALITATIVE_URINE_CODES.has(bm.code);
+      const unitMatches = isQualitative
+        ? true
+        : normalizeUnit(it.unit_raw || "") === normalizeUnit(expectedUnit);
       let convertedValue: number | null = null;
       if (!unitMatches && numericValue !== null) {
         convertedValue = tryConvert(bm.code, it.unit_raw || "", expectedUnit, numericValue);
@@ -411,6 +414,7 @@ ${catalogText}
       else if (!unitMatches) status = "unit_mismatch";
       else if (conf < 0.6) status = "low_confidence";
       else status = "ok";
+
 
       recognized.push({
         biomarker_id: bm.id,
