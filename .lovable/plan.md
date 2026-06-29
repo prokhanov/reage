@@ -1,42 +1,68 @@
-План: заменить дублирующую кнопку «Посмотреть демо-аккаунт» в CTA-блоке после FAQ на кнопку «Напишите нам», открывающую форму обратной связи. Форма отправляет уведомление на team@reage.life через transactional email инфраструктуру Lovable.
+## Идея
 
-### Что будем делать
+Повторяем рабочую схему «Подтвердите email»:
+- свой токен в нашей таблице;
+- ссылка в письме идёт на **корневой** URL `https://reage.life/?password_reset_token=...`, **не** через `api.reage.life/auth/v1/verify` (где Fly-прокси ломает gzip-редирект);
+- на главной хэндлер ловит токен и показывает диалог «Введите новый пароль» (по аналогии с `VerifyEmailTokenHandler`).
 
-1. **Исправить CTA-блок**
-   - В `src/components/landing/CTASection.tsx` заменить вторую кнопку «Посмотреть демо-аккаунт» на кнопку «Написать» / «Напишите нам».
-   - Кнопка открывает диалог с формой обратной связи.
+Это соответствует памятке по инфре: «корневой URL менее чувствителен к ошибкам маршрутизации». Никакого `auth.resetPasswordForEmail`, никакого magic-link через прокси.
 
-2. **Создать форму обратной связи**
-   - Новый компонент `src/components/landing/FeedbackDialog.tsx`.
-   - Поля: имя, email, сообщение (по умолчанию, как выбрано ранее).
-   - Валидация на стороне клиента (обязательные поля, корректный email, лимит длины сообщения).
-   - Состояния отправки: loading, success, error.
-   - После успешной отправки показывается подтверждение и диалог закрывается.
+## Изменения
 
-3. **Настроить отправку transactional email**
-   - Проверить и при необходимости доставить `email_domain--setup_email_infra` и `email_domain--scaffold_transactional_email` для проекта.
-   - Создать шаблон письма `supabase/functions/_shared/transactional-email-templates/feedback-notification.tsx`.
-   - Шаблон содержит имя, email, сообщение и ссылку на ответ (mailto:).
-   - Зарегистрировать шаблон в `registry.ts`.
-   - Создать Edge Function `supabase/functions/send-feedback/index.ts`, который:
-     - Принимает `{ name, email, message }`.
-     - Валидирует входные данные через Zod.
-     - Вызывает `send-transactional-email` для отправки письма на `team@reage.life`.
-     - Возвращает `{ success: true }` или ошибку 400/500.
+### 1. БД — таблица токенов
+Новая таблица `public.password_reset_tokens`:
+- `id`, `token uuid unique`, `user_id uuid → auth.users`, `email text`, `expires_at timestamptz` (TTL 30 мин), `used_at timestamptz`, `created_at`.
+- RLS: только service_role читает/пишет (как `email_verification_tokens`).
+- Триггер обновления `updated_at` не нужен.
 
-4. **Подключить форму к UI**
-   - В `CTASection.tsx` добавить импорт `FeedbackDialog` и состояние `isFeedbackOpen`.
-   - При нажатии на новую кнопку открывать диалог.
-   - В `FAQSection.tsx` превратить текст «напишите нам» в кликабельную кнопку/ссылку, открывающую тот же `FeedbackDialog`.
+### 2. Edge-функция `send-password-reset`
+По образцу `send-verification-email`:
+- вход: `{ email }`
+- проверяет, что пользователь существует (admin API), берёт `user.id`;
+- удаляет старые активные токены этого user_id, создаёт новый;
+- формирует `resetUrl = ${APP_URL}/?password_reset_token=${token}`;
+- ставит письмо в очередь через `send-transactional-email` с шаблоном `recovery` и `confirmationUrl = resetUrl`;
+- `APP_URL` берём из `Deno.env.get('APP_URL')` — без хардкода (требование памятки).
+- Возвращает `{ success: true }` без раскрытия, существует ли email.
 
-5. **Проверить и задеплоить**
-   - Запустить TypeScript-проверку и сборку.
-   - Задеплоить Edge Function `send-feedback` и `send-transactional-email` после изменений.
-   - Протестировать отправку формы через браузер (Playwright), проверить `email_send_log`.
+### 3. Edge-функция `confirm-password-reset-token`
+Два режима:
+- `mode: 'verify'` — принимает token, проверяет (`not_found / expired / already_used / ok`), возвращает `{ ok, email }`. Токен не помечается использованным.
+- `mode: 'apply'` — принимает `{ token, password }`, повторно проверяет, и через `supabase.auth.admin.updateUserById(user_id, { password })` ставит новый пароль, помечает токен `used_at = now()`. Возвращает `{ ok: true }`.
 
-### Технические детали
-- Email-инфраструктура: Lovable Cloud, домен `notify.reage.life` уже верифицирован.
-- Для отправки используется существующая функция `send-transactional-email` (будет создана/обновлена скаффолдом).
-- Отправитель письма: `notify.reage.life`, получатель: `team@reage.life`.
-- Edge Function `send-feedback` не требует авторизации (anonymous users on landing page), но будет иметь базовую защиту через rate-limit на уровне формы (debounce) и валидацию.
-- Все пользовательские входы валидируются и не логируются в консоль.
+Валидация пароля: ≥6 символов, ≤72 (лимит bcrypt).
+
+### 4. Auth.tsx — форма «Забыл пароль»
+Заменить вызов `supabase.auth.resetPasswordForEmail(...)` на:
+```ts
+await supabase.functions.invoke('send-password-reset', { body: { email: forgotEmail } })
+```
+Текст тоста: «Если адрес зарегистрирован — мы отправили ссылку для сброса».
+
+### 5. Новый компонент `PasswordResetTokenHandler.tsx`
+Полный аналог `VerifyEmailTokenHandler`, но:
+- читает `password_reset_token` из query;
+- при наличии — сразу очищает URL (`history.replaceState`);
+- вызывает `confirm-password-reset-token` с `mode: 'verify'`;
+- при `ok` — показывает диалог с двумя `PasswordInput` («Новый пароль» / «Повторите»), кнопкой «Сохранить»;
+- на submit — вызывает `mode: 'apply'`. Успех → CheckCircle + кнопка «Войти» (`/auth`). Ошибка → понятный текст + кнопка «Запросить новую ссылку» (`/auth`).
+- Подключаем в `src/App.tsx` рядом с `VerifyEmailTokenHandler` (один раз, в корневом лейауте).
+
+### 6. Шаблон `recovery.tsx`
+Менять не нужно — он уже принимает `confirmationUrl`. Просто наш `send-password-reset` подставит туда наш корневой URL вместо supabase-verify-URL.
+
+### 7. Старая страница `/reset-password`
+Оставляем как есть для совместимости со старыми ссылками (вдруг кто-то откроет из старого письма). Дополнительно в `ResetPassword.tsx` обработаем случай `?password_reset_token=...` (редирект на `/?password_reset_token=...`), чтобы старая логика тоже работала.
+
+### 8. Nginx / прокси / Telegram — не трогаем
+- `/` уже в whitelist.
+- `api.reage.life` остаётся как есть для штатных POST-запросов SDK.
+- Никакого хардкода `reage.life` в коде edge-функции — только `APP_URL` из env (на test = `https://test.reage.life`, на prod = `https://reage.life`).
+
+## Проверка
+1. Test-стенд: «забыл пароль» → письмо с ссылкой `https://test.reage.life/?password_reset_token=...`.
+2. Клик → главная открывается, диалог «Введите новый пароль».
+3. Сохранить → успех → войти со старого/нового пароля — работает только новый.
+4. Повторный клик по той же ссылке → «Ссылка уже использована».
+5. Ссылка старше 30 мин → «Срок действия истёк».
+6. Прод: то же самое, но домен `reage.life`.
