@@ -600,7 +600,7 @@ export function AppFeaturesSection() {
           </div>
 
           {/* RIGHT: floating widgets + description */}
-          <div className="relative min-h-[500px]">
+          <div className="relative h-[560px] md:h-[600px] overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={active}
@@ -608,7 +608,7 @@ export function AppFeaturesSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
-                className="space-y-5"
+                className="space-y-5 h-full overflow-y-auto pr-2"
               >
                 {/* Header */}
                 <div className="flex items-start gap-3">
