@@ -278,30 +278,36 @@ ${catalogText}
 - Десятичный разделитель в value_raw сохраняй как в PDF.
 - Верни ТОЛЬКО JSON, без markdown-обёртки.`;
 
-    const tAi = Date.now();
-    log("calling AI gateway");
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${lovableKey}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Распознай показатели из этого PDF и верни JSON по схеме." },
-              { type: "file", file: { filename: "analysis.pdf", file_data: dataUrl } },
-            ],
-          },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-    log("AI gateway responded", { ms: Date.now() - tAi, status: aiResp.status });
+    const callAi = async (model: string) => {
+      const tAi = Date.now();
+      log("calling AI gateway", { model });
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${lovableKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "Распознай показатели из этого PDF и верни JSON по схеме." },
+                { type: "file", file: { filename: "analysis.pdf", file_data: dataUrl } },
+              ],
+            },
+          ],
+          response_format: { type: "json_object" },
+          max_tokens: 16000,
+        }),
+      });
+      log("AI gateway responded", { model, ms: Date.now() - tAi, status: r.status });
+      return r;
+    };
+
+    let aiResp = await callAi("google/gemini-2.5-pro");
 
     if (!aiResp.ok) {
       const txt = await aiResp.text();
@@ -318,20 +324,38 @@ ${catalogText}
       });
     }
 
-    const aiJson = await aiResp.json();
-    log("AI json keys", Object.keys(aiJson || {}));
-    const rawContent: string = aiJson?.choices?.[0]?.message?.content ?? "";
+    let aiJson = await aiResp.json();
+    let finish: string | undefined = aiJson?.choices?.[0]?.finish_reason;
+    let rawContent: string = aiJson?.choices?.[0]?.message?.content ?? "";
+    log("AI json keys", { keys: Object.keys(aiJson || {}), finish, len: rawContent.length });
+
+    // Empty content (often Gemini 2.5 Pro burns budget on thinking) — retry on flash.
+    if (!rawContent.trim()) {
+      log("empty content, retrying with flash");
+      const retry = await callAi("google/gemini-2.5-flash");
+      if (retry.ok) {
+        aiJson = await retry.json();
+        finish = aiJson?.choices?.[0]?.finish_reason;
+        rawContent = aiJson?.choices?.[0]?.message?.content ?? "";
+        log("retry result", { finish, len: rawContent.length });
+      }
+    }
+
     let parsed: AIResponse;
     try {
-      // strip code fences if AI ignored response_format
       const cleaned = rawContent.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+      if (!cleaned) throw new Error("empty AI content");
       parsed = JSON.parse(cleaned);
     } catch (e) {
-      console.error("Failed to parse AI JSON:", rawContent.slice(0, 800));
-      return new Response(JSON.stringify({ error: "AI вернул невалидный JSON", details: rawContent.slice(0, 500) }), {
+      console.error("Failed to parse AI JSON:", rawContent.slice(0, 800), "finish:", finish);
+      return new Response(JSON.stringify({
+        error: "AI вернул невалидный JSON",
+        details: rawContent.slice(0, 500) || `finish_reason=${finish ?? "unknown"} (пустой ответ модели)`,
+      }), {
         status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     // Reconcile with catalog
     const byCode = new Map(catalog.map(b => [b.code.toUpperCase(), b]));
