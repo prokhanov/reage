@@ -103,6 +103,11 @@ export function PasswordResetTokenHandler() {
         } else if (reason === "invalid_password") {
           setLocalError("Пароль не подходит (6–72 символа)");
           setState((s) => ({ kind: "form", email: (s as any)?.email }));
+        } else if (reason === "weak_password") {
+          setLocalError(
+            "Этот пароль слишком простой или встречался в утечках. Придумайте более сложный: не менее 8 символов, буквы разного регистра, цифры и знак."
+          );
+          setState((s) => ({ kind: "form", email: (s as any)?.email }));
         } else {
           setState({ kind: "error", reason: "update_failed" });
         }
