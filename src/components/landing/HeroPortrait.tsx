@@ -18,7 +18,7 @@ import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroMan from "@/assets/landing-v2/hero-couple-v2.webp";
 
 const glass =
-  "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
+  "rounded-2xl border border-border/50 bg-card/75 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
 
 function useIsMobile() {
   const [m, setM] = useState(
@@ -154,7 +154,7 @@ function RecommendationsWidget() {
 function CompactBioAgeWidget() {
   const isMobile = useIsMobile();
   return (
-    <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] p-3.5">
+    <div className="rounded-2xl border border-border/50 bg-card/75 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] p-3.5">
       <div className="flex items-center justify-between gap-3 mb-2.5">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
           {isMobile ? "БИО. ВОЗРАСТ" : "Биологический возраст"}
