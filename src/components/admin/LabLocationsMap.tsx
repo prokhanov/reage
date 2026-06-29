@@ -157,6 +157,37 @@ function InvalidateSize() {
   return null;
 }
 
+function DelayedScrollWheelZoom({ delay = 500 }: { delay?: number }) {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const handleEnter = () => {
+      timer = setTimeout(() => {
+        map.scrollWheelZoom?.enable();
+        timer = null;
+      }, delay);
+    };
+    const handleLeave = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      map.scrollWheelZoom?.disable();
+    };
+    container.addEventListener("mouseenter", handleEnter);
+    container.addEventListener("mouseleave", handleLeave);
+    return () => {
+      container.removeEventListener("mouseenter", handleEnter);
+      container.removeEventListener("mouseleave", handleLeave);
+      if (timer) clearTimeout(timer);
+      map.scrollWheelZoom?.disable();
+    };
+  }, [map, delay]);
+  return null;
+}
+
+
 function FitBounds({ items }: { items: LabMapItem[] }) {
   const map = useMap();
   useEffect(() => {
@@ -315,6 +346,7 @@ export default function LabLocationsMap({
   onSelect,
   hideControls = false,
   hideAttribution = false,
+  scrollWheelZoomDelay = 500,
 }: {
   items: LabMapItem[];
   center?: [number, number];
@@ -335,6 +367,7 @@ export default function LabLocationsMap({
   onSelect?: (item: LabMapItem) => void;
   hideControls?: boolean;
   hideAttribution?: boolean;
+  scrollWheelZoomDelay?: number;
 }) {
   useTheme();
   const [styleKeyLocal, setStyleKeyLocal] = useState<TileStyleKey>(styleKeyProp ?? "osm");
@@ -531,7 +564,7 @@ export default function LabLocationsMap({
         <MapContainer
           center={center}
           zoom={zoomProp ?? 10}
-          scrollWheelZoom
+          scrollWheelZoom={false}
           attributionControl={false}
           zoomControl={false}
           className="lab-map-tiles"
@@ -547,6 +580,7 @@ export default function LabLocationsMap({
             updateWhenZooming
             keepBuffer={4}
           />
+          <DelayedScrollWheelZoom delay={scrollWheelZoomDelay} />
           <CustomZoomControl />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}

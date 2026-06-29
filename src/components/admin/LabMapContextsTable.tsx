@@ -361,6 +361,7 @@ function SettingsDialog({
                 showSelectButton={draft.show_select_button}
                 partnerButtonLabel={draft.partner_button_label}
                 selectButtonLabel={draft.select_button_label}
+                scrollWheelZoomDelay={0}
               />
             </div>
           </div>
