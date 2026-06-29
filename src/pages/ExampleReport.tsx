@@ -291,18 +291,12 @@ export default function ExampleReport() {
                       type="button"
                       onClick={(e) => scrollToSection(section.id, e)}
                       className={cn(
-                        "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group",
+                        "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center",
                         isActive
                           ? "bg-accent text-foreground font-medium"
                           : "hover:bg-accent text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      <span
-                        className={cn(
-                          "w-1 h-5 rounded-full transition-colors",
-                          isActive ? "bg-gradient-primary" : "bg-transparent",
-                        )}
-                      />
                       <span className="text-sm font-medium flex-1 line-clamp-2">
                         {section.label}
                       </span>
@@ -354,18 +348,12 @@ export default function ExampleReport() {
                                 setTocSheetOpen(false);
                               }}
                               className={cn(
-                                "w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3",
+                                "w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center",
                                 isActive
                                   ? "bg-accent text-foreground font-medium"
                                   : "hover:bg-accent text-muted-foreground hover:text-foreground",
                               )}
                             >
-                              <span
-                                className={cn(
-                                  "w-1 h-5 rounded-full transition-colors",
-                                  isActive ? "bg-gradient-primary" : "bg-transparent",
-                                )}
-                              />
                               <span className="text-sm font-medium flex-1 line-clamp-2">
                                 {section.label}
                               </span>
