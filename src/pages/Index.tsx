@@ -13,11 +13,13 @@ import { FAQSection } from "@/components/landing/FAQSection";
 import { CTASection, Footer } from "@/components/landing/CTASection";
 import { WhereToTestSection } from "@/components/landing/WhereToTestSection";
 import { VerifyEmailTokenHandler } from "@/components/VerifyEmailTokenHandler";
+import { PasswordResetTokenHandler } from "@/components/PasswordResetTokenHandler";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       <VerifyEmailTokenHandler />
+      <PasswordResetTokenHandler />
       <HeroPortrait />
       <div className="relative -mt-px">
         <div
