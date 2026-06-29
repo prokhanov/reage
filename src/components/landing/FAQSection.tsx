@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { cn } from "@/lib/utils";
+import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
+
 
 interface FAQItemProps {
   question: string;
@@ -52,6 +54,8 @@ function FAQItem({ question, answer, isOpen, onToggle, delay }: FAQItemProps) {
 
 export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   
   const faqs = [
     {
@@ -153,8 +157,9 @@ export function FAQSection() {
           </h2>
           
           <p className="text-lg md:text-xl text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Не нашли ответ? <Link to="/faq" onClick={() => window.scrollTo({ top: 0, behavior: "auto" })} className="text-primary hover:underline font-medium">Смотрите полный FAQ</Link> — или напишите нам, ответим в течение часа
+            Не нашли ответ? <Link to="/faq" onClick={() => window.scrollTo({ top: 0, behavior: "auto" })} className="text-primary hover:underline font-medium">Смотрите полный FAQ</Link> — или <button type="button" onClick={() => setIsFeedbackOpen(true)} className="text-primary hover:underline font-medium">напишите нам</button>, ответим в течение часа
           </p>
+
         </div>
 
         {/* FAQ List */}
@@ -171,6 +176,8 @@ export function FAQSection() {
           ))}
         </div>
       </div>
+
+      <FeedbackDialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
     </section>
     </>
   );

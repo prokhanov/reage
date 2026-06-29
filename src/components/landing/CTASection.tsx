@@ -1,13 +1,13 @@
-import { ArrowRight, Mail, Phone, MessageCircle, Sparkles, Instagram } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, MessageSquare, Mail, Phone, MessageCircle, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import logoDark from "@/assets/reage-logo-dark.png";
 import { useRegisterGuard } from "@/components/RegisterGuard";
+import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 
 export function CTASection() {
-  const navigate = useNavigate();
   const { requestRegister } = useRegisterGuard();
-
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   return (
     <section className="relative py-12 md:py-16 overflow-hidden">
@@ -49,11 +49,11 @@ export function CTASection() {
                   <Button 
                     size="lg"
                     variant="outline"
-                    onClick={requestRegister}
+                    onClick={() => setIsFeedbackOpen(true)}
                     className="text-lg px-10 py-6 border-accent/50 hover:border-accent hover:bg-accent/10 hover:text-foreground group"
                   >
-                    <Sparkles className="mr-2 w-5 h-5 text-accent" />
-                    Посмотреть демо-аккаунт
+                    <MessageSquare className="mr-2 w-5 h-5 text-accent" />
+                    Написать
                   </Button>
                 </div>
                 
@@ -65,6 +65,8 @@ export function CTASection() {
           </div>
         </div>
       </div>
+
+      <FeedbackDialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
     </section>
   );
 }
