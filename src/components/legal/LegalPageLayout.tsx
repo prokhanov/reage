@@ -1,7 +1,6 @@
-import { ArrowLeft, FileText, Download } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ReactNode, useRef } from "react";
-import { downloadLegalPdf } from "@/lib/legalPdf";
+import { ReactNode } from "react";
 
 interface LegalPageLayoutProps {
   title: string;
@@ -12,12 +11,6 @@ interface LegalPageLayoutProps {
 
 export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLayoutProps) {
   const navigate = useNavigate();
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const handleDownload = () => {
-    if (!contentRef.current) return;
-    downloadLegalPdf({ title, subtitle, container: contentRef.current, fileName: title });
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -38,16 +31,6 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               На главную
             </button>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleDownload}
-                title="Скачать PDF"
-                className="group inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all text-sm font-medium"
-              >
-                <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-                <span className="hidden sm:inline">Скачать PDF</span>
-              </button>
-            </div>
           </div>
         </header>
 
@@ -81,7 +64,7 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
                 {/* Gradient border */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-border/50 to-accent/20 rounded-3xl print:hidden" />
                 <div className="relative m-[1px] rounded-[23px] bg-card/80 backdrop-blur-sm border border-border/30 p-8 md:p-12 lg:p-16 print:m-0 print:rounded-none print:border-0 print:bg-transparent print:p-0 print:backdrop-blur-none">
-                  <div ref={contentRef} className="prose prose-invert prose-lg max-w-none print:prose-base print:text-black">
+                  <div className="prose prose-invert prose-lg max-w-none print:prose-base print:text-black">
                     {children}
                   </div>
                 </div>
