@@ -107,7 +107,7 @@ export default function ExampleReport() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
   const [tocSheetOpen, setTocSheetOpen] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const prevTitle = document.title;
@@ -239,7 +239,7 @@ export default function ExampleReport() {
   );
 
   const activeSection = useActiveSection(
-    contentRef,
+    contentEl,
     sections.map((s) => s.id),
     { offset: 140 },
   );
@@ -408,10 +408,10 @@ export default function ExampleReport() {
               </div>
             </div>
 
-            <div
-              className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6"
-              ref={contentRef}
-            >
+                    <div
+                      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-4 sm:py-6"
+                      ref={setContentEl}
+                    >
               <div
                 id="report-content"
                 className="space-y-5 sm:space-y-12 max-w-full md:max-w-4xl break-words [&_*]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:overflow-x-auto"

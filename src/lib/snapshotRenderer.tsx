@@ -36,7 +36,7 @@ function indexById(biomarkers: PdfBiomarkerData[]): Map<string, PdfBiomarkerData
   return map;
 }
 
-function normalizeSnapshotBlocks(blocks: ReportSnapshot["blocks"], byId: Map<string, PdfBiomarkerData>): ReportSnapshot["blocks"] {
+function normalizeSnapshotBlocks(blocks: ReportSnapshot["blocks"], byId: Map<string, PdfBiomarkerData>): { block: ReportSnapshot["blocks"][number]; originalIndex: number }[] {
   const skip = new Set<number>();
   let currentSection = "";
 
@@ -44,12 +44,12 @@ function normalizeSnapshotBlocks(blocks: ReportSnapshot["blocks"], byId: Map<str
     if (skip.has(idx)) return [];
     if (block.type === "section") currentSection = block.title;
 
-    if (block.type !== "text" || !block.content.trim()) return [block];
+    if (block.type !== "text" || !block.content.trim()) return [{ block, originalIndex: idx }];
 
     const text = block.content.trim();
     const looksLikeSummary = /^(Общая оценка|Сильные стороны|Дефициты|Заключение|Резюме|Итоги|Выводы|Далее|Теперь|Ключевые показатели)/i.test(text);
     const looksLikeBiomarkerComment = /\b(Ваш(?:\s+уровень|\s+показатель)?|уровень|показатель|значение)\b/i.test(text);
-    if (looksLikeSummary || !looksLikeBiomarkerComment) return [block];
+    if (looksLikeSummary || !looksLikeBiomarkerComment) return [{ block, originalIndex: idx }];
 
     for (let j = idx + 1; j < blocks.length; j++) {
       const next = blocks[j];
@@ -58,10 +58,10 @@ function normalizeSnapshotBlocks(blocks: ReportSnapshot["blocks"], byId: Map<str
       const bm = byId.get(next.biomarker_id);
       if (!bm || (currentSection && bm.category !== currentSection)) continue;
       skip.add(j);
-      return [{ ...next, commentary: text }];
+      return [{ block: { ...next, commentary: text }, originalIndex: idx }];
     }
 
-    return [block];
+    return [{ block, originalIndex: idx }];
   });
 }
 
@@ -104,14 +104,14 @@ export function renderSnapshotWeb(
 
   return (
     <div className="space-y-8">
-      {blocks.map((block, idx) => renderBlockWeb(block, idx, byId, age, gender))}
+      {blocks.map(({ block, originalIndex }) => renderBlockWeb(block, originalIndex, byId, age, gender))}
     </div>
   );
 }
 
 function renderBlockWeb(
   block: ReportBlock,
-  idx: number,
+  originalIndex: number,
   byId: Map<string, PdfBiomarkerData>,
   age: number,
   gender: "male" | "female",
@@ -119,7 +119,7 @@ function renderBlockWeb(
   switch (block.type) {
     case "text":
       return (
-        <div key={idx}>
+        <div key={originalIndex}>
           <MarkdownContent content={block.content} />
         </div>
       );
@@ -129,7 +129,7 @@ function renderBlockWeb(
       // sections.id = `snapshot-section-${i}`, scrollToSection ищет
       // элемент `section-${id}` ⇒ итоговый DOM id = `section-snapshot-section-${i}`).
       return (
-        <div key={idx} id={`section-snapshot-section-${idx}`} className="pt-4 scroll-mt-6">
+        <div key={originalIndex} id={`section-snapshot-section-${originalIndex}`} className="pt-4 scroll-mt-6">
           <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
             {block.emoji ? `${block.emoji} ${block.title}` : block.title}
           </h2>
@@ -140,7 +140,7 @@ function renderBlockWeb(
     case "summary":
       return (
         <div
-          key={idx}
+          key={originalIndex}
           className="rounded-xl border border-primary/20 bg-primary/5 p-5"
         >
           <MarkdownContent content={block.content} />
@@ -154,7 +154,7 @@ function renderBlockWeb(
 
       return (
         <div
-          key={idx}
+          key={originalIndex}
           className={`rounded-xl border shadow-sm p-4 space-y-3 ${
             bm ? statusBgMap[bm.status] : "border-border/40 bg-card/50"
           }`}
@@ -197,7 +197,7 @@ function renderBlockWeb(
 
     case "spacer": {
       const sizeMap = { small: "h-3", medium: "h-6", large: "h-10" } as const;
-      return <div key={idx} className={sizeMap[block.size]} />;
+      return <div key={originalIndex} className={sizeMap[block.size]} />;
     }
 
     case "pagebreak":
@@ -222,7 +222,7 @@ export function buildSnapshotPdf(
   const out: any[] = [];
   const blocks = normalizeSnapshotBlocks(snapshot.blocks, byId);
 
-  for (const block of blocks) {
+  for (const { block } of blocks) {
     switch (block.type) {
       case "text": {
         if (block.content) {

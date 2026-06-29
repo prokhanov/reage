@@ -1,11 +1,15 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Scroll-spy hook: tracks which section (by ID) is currently in view inside
  * a scrollable container. Returns the active section id.
+ *
+ * The `container` argument should be a state-backed element (e.g. from a callback
+ * ref `setContentEl`) so the effect re-runs once the element is mounted.
+ * Plain `useRef` values won't trigger a re-run when the DOM node is assigned.
  */
 export function useActiveSection(
-  containerRef: RefObject<HTMLElement | null>,
+  container: HTMLElement | null,
   sectionIds: string[],
   options: { offset?: number; enabled?: boolean } = {}
 ) {
@@ -13,11 +17,11 @@ export function useActiveSection(
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !enabled || sectionIds.length === 0) return;
+    const element = container;
+    if (!element || !enabled || sectionIds.length === 0) return;
 
     const computeActive = () => {
-      const containerRect = container.getBoundingClientRect();
+      const containerRect = element.getBoundingClientRect();
       const threshold = containerRect.top + offset;
 
       let current: string | null = null;
@@ -32,15 +36,15 @@ export function useActiveSection(
       setActiveId(current);
     };
 
-    container.addEventListener("scroll", computeActive, { passive: true });
+    element.addEventListener("scroll", computeActive, { passive: true });
     // Initial calculation after layout settles
     const raf = requestAnimationFrame(computeActive);
 
     return () => {
-      container.removeEventListener("scroll", computeActive);
+      element.removeEventListener("scroll", computeActive);
       cancelAnimationFrame(raf);
     };
-  }, [containerRef, sectionIds, offset, enabled]);
+  }, [container, sectionIds, offset, enabled]);
 
   return activeId;
 }
