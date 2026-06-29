@@ -77,6 +77,8 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     try {
       if (!userId) throw new Error("Не авторизован");
 
+      const weightValue = formData.weight ? parseFloat(formData.weight) : null;
+
       const { error, data } = await supabase
         .from("profiles")
         .update({
@@ -84,13 +86,21 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           gender: formData.gender,
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
+          weight: weightValue,
         } as any)
         .eq("id", userId)
         .select()
         .maybeSingle();
 
       if (error || !data) {
-        throw new Error("Недостаточно прав для обновления профиля");
+        throw new Error(error?.message || "Недостаточно прав для обновления профиля");
+      }
+
+      // Record weight change in history so trends update too
+      if (weightValue != null && weightValue !== (profile?.weight ?? null)) {
+        await supabase
+          .from("weight_history")
+          .insert({ user_id: userId, weight: weightValue } as any);
       }
 
       toast({
