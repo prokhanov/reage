@@ -14,6 +14,7 @@ export function useActiveSection(
 
   useEffect(() => {
     const container = containerRef.current;
+    console.log("[useActiveSection] setup", { container: !!container, enabled, sectionIdsCount: sectionIds.length });
     if (!container || !enabled || sectionIds.length === 0) return;
 
     const computeActive = () => {
@@ -29,11 +30,11 @@ export function useActiveSection(
           current = id;
         }
       }
+      console.log("[useActiveSection] compute", { threshold, active: current, positions: sectionIds.map(id => ({ id, top: document.getElementById(`section-${id}`)?.getBoundingClientRect().top })) });
       setActiveId(current);
     };
 
     container.addEventListener("scroll", computeActive, { passive: true });
-    // Initial calculation after layout settles
     const raf = requestAnimationFrame(computeActive);
 
     return () => {
