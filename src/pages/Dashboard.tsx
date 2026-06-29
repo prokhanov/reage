@@ -1,8 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, Plus } from "lucide-react";
+import { Activity, TrendingUp, Heart, Trophy, Calendar, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -13,7 +13,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
-import { AnalysisBookingDialog } from "@/components/AnalysisBookingDialog";
+
 import { PassportReminderCard } from "@/components/PassportReminderCard";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
   const [nextBooking, setNextBooking] = useState<any>(null);
-  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  
 
   useEffect(() => {
     setProfile(null);
@@ -456,15 +456,6 @@ export default function Dashboard() {
                       ) : (
                         <div className="text-sm text-muted-foreground mb-2 mt-auto">Не запланирован</div>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full h-9 text-xs px-2 mt-auto"
-                        onClick={() => setBookingDialogOpen(true)}
-                      >
-                        <Plus className="h-3 w-3 mr-1 flex-shrink-0" />
-                        <span className="truncate">Назначить</span>
-                      </Button>
                     </div>
 
                     {/* Health Percentile */}
@@ -591,14 +582,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-      {/* Analysis Booking Dialog */}
-      <AnalysisBookingDialog
-        open={bookingDialogOpen}
-        onOpenChange={setBookingDialogOpen}
-        onSuccess={() => {
-          fetchNextBooking();
-        }}
-      />
     </div>
   );
 }
