@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useDemoMode } from "@/hooks/useDemoMode";
-import { DemoBanner } from "@/components/DemoBanner";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { RejuvenationTrajectory } from "@/components/health-strategy/RejuvenationTrajectory";

@@ -19,7 +19,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { MyStateSkeleton } from "@/components/skeletons/MyStateSkeleton";
 import { useSymptomCategories } from "@/hooks/useSymptomCategories";
 import { useDemoMode } from "@/hooks/useDemoMode";
-import { DemoBanner } from "@/components/DemoBanner";
 
 interface Prescription {
   id: string;

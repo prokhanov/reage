@@ -11,7 +11,6 @@ import { format, differenceInDays } from "date-fns";
 import { ru } from "date-fns/locale";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
-import { DemoBanner } from "@/components/DemoBanner";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 
 import { PassportReminderCard } from "@/components/PassportReminderCard";
