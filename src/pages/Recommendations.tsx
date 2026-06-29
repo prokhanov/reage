@@ -1148,23 +1148,32 @@ export default function Recommendations() {
                     
                     <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
                       <nav className="space-y-1">
-                        {sections.map((section) => (
-                          <button
-                            key={section.id}
-                            type="button"
-                            onClick={(e) => scrollToSection(section.id, e)}
-                            className={cn(
-                              "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group",
-                              activeSection === section.id
-                                ? "bg-accent text-foreground font-medium border-l-2 border-l-primary"
-                                : "hover:bg-accent text-muted-foreground hover:text-foreground"
-                            )}
-                          >
-                            <span className="text-sm flex-1 line-clamp-2">
-                              {section.label}
-                            </span>
-                          </button>
-                        ))}
+                        {sections.map((section) => {
+                          const isActive = activeSection === section.id;
+                          return (
+                            <button
+                              key={section.id}
+                              type="button"
+                              onClick={(e) => scrollToSection(section.id, e)}
+                              className={cn(
+                                "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group",
+                                isActive
+                                  ? "bg-accent text-foreground font-medium"
+                                  : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              <span
+                                className={cn(
+                                  "w-1 h-5 rounded-full transition-colors",
+                                  isActive ? "bg-gradient-primary" : "bg-transparent"
+                                )}
+                              />
+                              <span className="text-sm font-medium flex-1 line-clamp-2">
+                                {section.label}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </nav>
                     </div>
                   </div>
