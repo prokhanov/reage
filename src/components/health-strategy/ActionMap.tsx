@@ -485,34 +485,25 @@ export function ActionMap({ actions, systems }: Props) {
               })}
             </svg>
 
-            {/* Tooltip / detail panel */}
             <div className="mt-3 min-h-[88px]">
               {hoveredAction ? (
-                <div
-                  className="p-3 rounded-lg animate-in fade-in slide-in-from-bottom-2 duration-200 border"
-                  style={{
-                    background: "#1E293B",
-                    borderColor: "rgba(255,255,255,0.10)",
-                    color: "#fff",
-                    borderRadius: 8,
-                  }}
-                >
+                <div className="p-3 rounded-lg border border-border bg-popover text-popover-foreground animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="text-sm font-semibold text-white font-display">
+                    <div className="text-sm font-semibold">
                       {hoveredAction.prescription_name}
                     </div>
-                    <span className="text-[10px] text-slate-300 whitespace-nowrap font-mono-tech px-2 py-0.5 rounded bg-white/10">
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap font-mono px-2 py-0.5 rounded bg-muted">
                       ETA {hoveredAction.effect_eta}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {hoveredAction.expected_effect}
                   </p>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {hoveredAction.biomarker_codes.slice(0, 6).map((code) => (
                       <span
                         key={code}
-                        className="px-1.5 py-0.5 rounded-md text-[10px] font-mono-tech bg-white/10 text-white/90 border border-white/15"
+                        className="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-muted text-foreground/80 border border-border"
                       >
                         {code}
                       </span>
@@ -520,7 +511,7 @@ export function ActionMap({ actions, systems }: Props) {
                     {hoveredAction.systems.slice(0, 3).map((s) => (
                       <span
                         key={s}
-                        className="px-1.5 py-0.5 rounded-md text-[10px] bg-violet-500/25 text-violet-100 border border-violet-300/20"
+                        className="px-1.5 py-0.5 rounded-md text-[10px] bg-primary/15 text-primary border border-primary/30"
                       >
                         {s}
                       </span>
@@ -528,8 +519,8 @@ export function ActionMap({ actions, systems }: Props) {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-xl border border-dashed dark:border-white/10 border-slate-200 text-center">
-                  <p className="text-[11px] dark:text-white/45 text-slate-400">
+                <div className="p-3 rounded-xl border border-dashed border-border text-center">
+                  <p className="text-[11px] text-muted-foreground">
                     Поток препарат → система. Наведите на узел, чтобы увидеть прогноз нормализации.
                   </p>
                 </div>
