@@ -111,6 +111,18 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
   const [importing, setImporting] = useState(false);
   const [patient, setPatient] = useState<{ age: number | null; gender: "male" | "female" | null }>({ age: null, gender: null });
   const [biomarkersMap, setBiomarkersMap] = useState<Record<string, any>>({});
+  const [mergeMode, setMergeMode] = useState(true);
+  const [mergedDate, setMergedDate] = useState<string>("");
+  const [mergedLab, setMergedLab] = useState<string>("");
+
+  // Auto-fill merged date/lab from first recognized result
+  useEffect(() => {
+    if (!mergeMode) return;
+    const firstDone = entries.find(e => e.status === "done" && e.result);
+    if (!firstDone) return;
+    if (!mergedDate && firstDone.editDate) setMergedDate(firstDone.editDate);
+    if (!mergedLab && firstDone.editLab) setMergedLab(firstDone.editLab);
+  }, [entries, mergeMode, mergedDate, mergedLab]);
 
   // Load patient profile (age/gender) once for status colouring
   useEffect(() => {
