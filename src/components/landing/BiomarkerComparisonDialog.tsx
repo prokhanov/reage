@@ -214,6 +214,11 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
 
             {/* ===== Tab 1: Overview ===== */}
             <TabsContent value="overview" className="flex-1 overflow-auto -mx-6 px-6 mt-4">
+              <p className="text-xs text-muted-foreground mb-3 sticky top-0 bg-background py-2 z-10">
+                Шкала: <span className="text-primary font-semibold">●</span> базово ·{" "}
+                <span className="text-primary font-semibold">●●</span> хорошо ·{" "}
+                <span className="text-primary font-semibold">●●●</span> максимально · — не входит
+              </p>
               <table className="w-full border-collapse">
                 {renderPlanHeader("Тариф")}
                 <tbody>
@@ -326,13 +331,6 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                     </tr>
                   ))}
 
-                  <tr>
-                    <td colSpan={orderedPlans.length + 1} className="pt-4 pb-2 text-xs text-muted-foreground">
-                      Шкала: <span className="text-primary font-semibold">●</span> базово ·{" "}
-                      <span className="text-primary font-semibold">●●</span> хорошо ·{" "}
-                      <span className="text-primary font-semibold">●●●</span> максимально · — не входит
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </TabsContent>
