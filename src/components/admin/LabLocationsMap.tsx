@@ -340,7 +340,8 @@ function filterCss(f: TileFilters) {
 }
 
 export type { TileStyleKey, TileFilters };
-export { TILE_STYLES, DEFAULT_FILTERS };
+export { TILE_STYLES, DEFAULT_FILTERS, cleanHoursLine, normalizeHours };
+
 
 export default function LabLocationsMap({
   items,
