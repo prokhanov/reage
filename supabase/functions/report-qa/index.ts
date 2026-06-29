@@ -224,6 +224,9 @@ const ENGLISH_WHITELIST_BASE = new Set<string>([
   "ph", "spo2", "po2", "pco2", "hco3",
   "vo2", "vo2max", "max", "min", "avg",
   "id", "url", "api", "json", "pdf", "ai", "qa",
+  // chemical group fragments that appear in vitamin/metabolite names
+  // e.g. "25-OH D", "1,25-OH D", "OH-vitamin D" — both parts must be whitelisted
+  "oh", "d", "ohd", "ohvitamind", "calcidiol", "calcitriol",
   // common Latin-in-Russian (may slip in)
   "in", "vivo", "vitro", "ex", "vs", "et", "al",
   // common supplement / brand fragments that legitimately appear in Russian text
