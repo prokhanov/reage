@@ -1,24 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Calendar, CreditCard, Package, ArrowRight, XCircle } from "lucide-react";
+import { CheckCircle2, Calendar, CreditCard, Package } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface ActiveSubscriptionProps {
   subscription: {
@@ -41,56 +25,6 @@ interface ActiveSubscriptionProps {
 }
 
 export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-
-  const handleCancelSubscription = async () => {
-    setCancelling(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({ status: 'cancelled' })
-        .eq('id', subscription.id);
-
-      if (error) throw error;
-
-      // Log history
-      await supabase.from('subscription_history').insert({
-        subscription_id: subscription.id,
-        user_id: user?.id || '',
-        action: 'cancelled',
-        changed_by: user?.id,
-        old_data: { status: 'active' },
-        new_data: { status: 'cancelled' },
-        note: 'Отменено пользователем',
-      });
-
-      toast({
-        title: "Подписка отменена",
-        description: "Ваша подписка успешно отменена. Доступ будет сохранен до окончания оплаченного периода.",
-      });
-
-      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      setShowCancelDialog(false);
-      
-      // Явное обновление UI - переход на страницу выбора тарифа
-      navigate('/subscription', { replace: true });
-    } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось отменить подписку. Попробуйте позже.",
-        variant: "destructive",
-      });
-    } finally {
-      setCancelling(false);
-    }
-  };
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "d MMMM yyyy", { locale: ru });
   };
@@ -229,49 +163,8 @@ export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 border-t">
-            <Button
-              variant="default"
-              className="flex-1"
-              onClick={() => window.location.href = '/dashboard'}
-            >
-              Перейти к анализам
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="sm:w-auto text-destructive hover:text-destructive"
-              onClick={() => setShowCancelDialog(true)}
-            >
-              <XCircle className="mr-2 h-4 w-4" />
-              Отменить подписку
-            </Button>
-          </div>
         </CardContent>
       </Card>
-
-      {/* Cancel Confirmation Dialog */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Отменить подписку?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Вы уверены, что хотите отменить подписку? Доступ к функциям будет сохранен до окончания оплаченного периода ({formatDate(subscription.end_date)}), после чего подписка прекратит действие.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={cancelling}>Не отменять</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleCancelSubscription}
-              disabled={cancelling}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {cancelling ? "Отмена..." : "Да, отменить"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Trust Indicators */}
       <div className="text-center space-y-2 pt-8">
