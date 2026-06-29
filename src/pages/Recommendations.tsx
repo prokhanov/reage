@@ -107,36 +107,15 @@ const isAbortError = (error: unknown) => {
   const errorName = (error as { name?: string } | null)?.name;
   return errorName === "AbortError";
 };
+const toSlug = (s: string) =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
 
 
 export default function Recommendations() {
-  const { getUserId, isViewMode } = useViewAsUser();
-  const { setSimPath } = useContext(ViewAsPatientContext);
-  const { hasPatientAccess, loading: accessLoading } = usePatientModuleAccess();
-  const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [reports, setReports] = useState<RecommendationReport[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [tocSheetOpen, setTocSheetOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<RecommendationReport | null>(null);
-  const [selectedPrescriptions, setSelectedPrescriptions] = useState<Prescription[]>([]);
-  const [deleting, setDeleting] = useState(false);
-  const [webBiomarkers, setWebBiomarkers] = useState<PdfBiomarkerData[]>([]);
-  const [patientAge, setPatientAge] = useState(40);
-  const [patientGender, setPatientGender] = useState<'male' | 'female'>('male');
-  const [biomarkersLoading, setBiomarkersLoading] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const contentRef = useRef<HTMLDivElement>(null);
-  const toSlug = (s: string) =>
-    s
-      .toLowerCase()
-      .trim()
-      .replace(/[^\p{L}\p{N}]+/gu, "-")
-      .replace(/^-+|-+$/g, "");
 
   useEffect(() => {
     if (demoLoading) {
