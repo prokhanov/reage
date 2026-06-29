@@ -331,13 +331,6 @@ export function BiomarkerComparisonDialog({ open, onOpenChange }: BiomarkerCompa
                     </tr>
                   ))}
 
-                  <tr>
-                    <td colSpan={orderedPlans.length + 1} className="pt-4 pb-2 text-xs text-muted-foreground">
-                      Шкала: <span className="text-primary font-semibold">●</span> базово ·{" "}
-                      <span className="text-primary font-semibold">●●</span> хорошо ·{" "}
-                      <span className="text-primary font-semibold">●●●</span> максимально · — не входит
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </TabsContent>
