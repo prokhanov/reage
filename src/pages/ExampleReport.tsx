@@ -215,24 +215,33 @@ export default function ExampleReport() {
   const snapshot: ReportSnapshot | null =
     snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
 
-  const sections = [
-    ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
-    ...(snapshot
-      ? snapshot.blocks
-          .map((b, i) =>
-            b.type === "section"
-              ? { id: `snapshot-section-${i}`, label: b.title }
-              : null,
-          )
-          .filter((s): s is { id: string; label: string } => s !== null)
-      : [
-          ...(summary ? [{ id: "summary", label: "Общее резюме" }] : []),
-          ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
-        ]),
-    ...(hasPrescriptionsBlock
-      ? [{ id: "prescriptions", label: "Рекомендации" }]
-      : []),
-  ];
+  const sections = useMemo(
+    () => [
+      ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
+      ...(snapshot
+        ? snapshot.blocks
+            .map((b, i) =>
+              b.type === "section"
+                ? { id: `snapshot-section-${i}`, label: b.title }
+                : null,
+            )
+            .filter((s): s is { id: string; label: string } => s !== null)
+        : [
+            ...(summary ? [{ id: "summary", label: "Общее резюме" }] : []),
+            ...categories.map(([type]) => ({ id: toSlug(type), label: type })),
+          ]),
+      ...(hasPrescriptionsBlock
+        ? [{ id: "prescriptions", label: "Рекомендации" }]
+        : []),
+    ],
+    [patientData, snapshot, summary, categories, hasPrescriptionsBlock],
+  );
+
+  const activeSection = useActiveSection(
+    contentRef,
+    sections.map((s) => s.id),
+    { offset: 140 },
+  );
 
   const scrollToSection = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
