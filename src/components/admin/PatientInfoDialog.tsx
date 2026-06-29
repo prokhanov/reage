@@ -42,6 +42,7 @@ import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTa
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
 import { PatientBookingsCard } from "@/components/admin/PatientBookingsCard";
+import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 
