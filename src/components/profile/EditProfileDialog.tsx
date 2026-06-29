@@ -200,6 +200,19 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
             />
           </div>
 
+          {/* Weight */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-weight">Вес (кг)</Label>
+            <Input
+              id="edit-weight"
+              type="number"
+              value={formData.weight}
+              onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+              placeholder="70"
+              step="0.1"
+            />
+          </div>
+
         </div>
 
         <div className="flex gap-3">
