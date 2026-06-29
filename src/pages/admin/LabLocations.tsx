@@ -1,3 +1,4 @@
+import { normalizeHours } from "@/components/admin/LabLocationsMap";
 import { useEffect, useRef, useState } from "react";
 import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { supabase } from "@/integrations/supabase/client";
