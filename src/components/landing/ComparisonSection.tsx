@@ -184,7 +184,7 @@ export function ComparisonSection() {
     {
       feature: "Средняя стоимость за год",
       reage: { text: "₽₽₽₽" },
-      labs: { text: "₽₽₽*" },
+      labs: { text: "₽₽₽" },
       checkup: { text: "₽₽₽₽" },
       genetics: { text: "₽₽₽" },
     },
