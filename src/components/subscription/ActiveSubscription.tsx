@@ -26,56 +26,6 @@ interface ActiveSubscriptionProps {
 }
 
 export function ActiveSubscription({ subscription }: ActiveSubscriptionProps) {
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-
-  const handleCancelSubscription = async () => {
-    setCancelling(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({ status: 'cancelled' })
-        .eq('id', subscription.id);
-
-      if (error) throw error;
-
-      // Log history
-      await supabase.from('subscription_history').insert({
-        subscription_id: subscription.id,
-        user_id: user?.id || '',
-        action: 'cancelled',
-        changed_by: user?.id,
-        old_data: { status: 'active' },
-        new_data: { status: 'cancelled' },
-        note: 'Отменено пользователем',
-      });
-
-      toast({
-        title: "Подписка отменена",
-        description: "Ваша подписка успешно отменена. Доступ будет сохранен до окончания оплаченного периода.",
-      });
-
-      await queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      setShowCancelDialog(false);
-      
-      // Явное обновление UI - переход на страницу выбора тарифа
-      navigate('/subscription', { replace: true });
-    } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось отменить подписку. Попробуйте позже.",
-        variant: "destructive",
-      });
-    } finally {
-      setCancelling(false);
-    }
-  };
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "d MMMM yyyy", { locale: ru });
   };
