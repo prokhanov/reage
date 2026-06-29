@@ -54,6 +54,8 @@ function FAQItem({ question, answer, isOpen, onToggle, delay }: FAQItemProps) {
 
 export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   
   const faqs = [
     {
