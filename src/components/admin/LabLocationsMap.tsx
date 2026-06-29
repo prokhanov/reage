@@ -312,6 +312,21 @@ function escapeAttr(s: string) {
   return escapeHtml(s);
 }
 
+function cleanHoursLine(s: string): string {
+  return s
+    .replace(/^[\s.,;:—\-|]+|[\s.,;:—\-|]+$/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function normalizeHours(hours: string[]): string[] {
+  return hours
+    .filter(Boolean)
+    .flatMap((line) => line.split(/[;|]/))
+    .map((s) => cleanHoursLine(s))
+    .filter(Boolean);
+}
+
+
 function filterCss(f: TileFilters) {
   return [
     `brightness(${f.brightness}%)`,
