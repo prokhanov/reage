@@ -30,7 +30,6 @@ interface Section {
 const SECTIONS: Section[] = [
   {
     id: "about",
-    num: "1",
     icon: Info,
     title: "О сервисе",
     items: [
@@ -78,7 +77,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "biomarkers",
-    num: "2",
     icon: FlaskConical,
     title: "Анализы и биомаркеры",
     items: [
@@ -129,7 +127,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "report",
-    num: "3",
     icon: FileText,
     title: "Отчёт и биологический возраст",
     items: [
@@ -173,7 +170,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "doctor",
-    num: "4",
     icon: Stethoscope,
     title: "Рекомендации и врач",
     items: [
@@ -197,7 +193,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "pricing",
-    num: "5",
     icon: CreditCard,
     title: "Тарифы и подписка",
     items: [
@@ -233,7 +228,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "security",
-    num: "6",
     icon: ShieldCheck,
     title: "Безопасность и доверие",
     items: [
@@ -261,7 +255,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "comparison",
-    num: "7",
     icon: Scale,
     title: "Сравнение с другими подходами",
     items: [
@@ -285,7 +278,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "practical",
-    num: "8",
     icon: HelpCircle,
     title: "Когда начинать и кому подходит",
     items: [
