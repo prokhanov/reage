@@ -456,15 +456,6 @@ export default function Dashboard() {
                       ) : (
                         <div className="text-sm text-muted-foreground mb-2 mt-auto">Не запланирован</div>
                       )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full h-9 text-xs px-2 mt-auto"
-                        onClick={() => setBookingDialogOpen(true)}
-                      >
-                        <Plus className="h-3 w-3 mr-1 flex-shrink-0" />
-                        <span className="truncate">Назначить</span>
-                      </Button>
                     </div>
 
                     {/* Health Percentile */}
