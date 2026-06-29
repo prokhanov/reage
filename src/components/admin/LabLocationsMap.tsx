@@ -581,7 +581,6 @@ export default function LabLocationsMap({
             keepBuffer={4}
           />
           <DelayedScrollWheelZoom delay={scrollWheelZoomDelay} />
-          <MapRefExporter />
           <CustomZoomControl />
           <InvalidateSize />
           {fitToItems && <FitBounds items={items} />}
