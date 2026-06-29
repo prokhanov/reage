@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { 
   User, Mail, Calendar, Ruler, Heart, Edit2, LogOut, 
-  Shield, Activity, AlertCircle, Sparkles, Phone, FileText, CheckCircle2
+  Shield, Activity, AlertCircle, Sparkles, Phone, FileText, CheckCircle2, KeyRound
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -17,6 +17,7 @@ import { ru } from "date-fns/locale";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { EditMedicalHistoryDialog } from "@/components/profile/EditMedicalHistoryDialog";
 import { PassportDataDialog } from "@/components/PassportDataDialog";
+import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { MedicalAnketaCard } from "@/components/profile/MedicalAnketaCard";
 import { PhoneChangeField } from "@/components/profile/PhoneChangeField";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -55,6 +56,7 @@ export default function Profile() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editMedicalOpen, setEditMedicalOpen] = useState(false);
   const [editPassportOpen, setEditPassportOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [nextAnalysisDate, setNextAnalysisDate] = useState<string | null>(null);
   const [hasAnalyses, setHasAnalyses] = useState(false);
@@ -520,14 +522,26 @@ export default function Profile() {
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="w-full text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Выйти из системы
-            </Button>
+            <div className="space-y-3">
+              {!isViewMode && (
+                <Button
+                  variant="outline"
+                  onClick={() => setChangePasswordOpen(true)}
+                  className="w-full justify-start"
+                >
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Сменить пароль
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="w-full text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Выйти из системы
+              </Button>
+            </div>
           </Card>
 
         </div>
@@ -563,6 +577,13 @@ export default function Profile() {
           open={editPassportOpen}
           onOpenChange={setEditPassportOpen}
           onSaved={() => loadProfile()}
+        />
+
+        <ChangePasswordDialog
+          open={changePasswordOpen}
+          onOpenChange={setChangePasswordOpen}
+          email={email}
+          userName={profile?.name ?? null}
         />
 
       </div>
