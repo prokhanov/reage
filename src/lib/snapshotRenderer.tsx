@@ -119,7 +119,7 @@ function renderBlockWeb(
   switch (block.type) {
     case "text":
       return (
-        <div key={idx}>
+        <div key={originalIndex}>
           <MarkdownContent content={block.content} />
         </div>
       );
@@ -140,7 +140,7 @@ function renderBlockWeb(
     case "summary":
       return (
         <div
-          key={idx}
+          key={originalIndex}
           className="rounded-xl border border-primary/20 bg-primary/5 p-5"
         >
           <MarkdownContent content={block.content} />
@@ -154,7 +154,7 @@ function renderBlockWeb(
 
       return (
         <div
-          key={idx}
+          key={originalIndex}
           className={`rounded-xl border shadow-sm p-4 space-y-3 ${
             bm ? statusBgMap[bm.status] : "border-border/40 bg-card/50"
           }`}
@@ -197,7 +197,7 @@ function renderBlockWeb(
 
     case "spacer": {
       const sizeMap = { small: "h-3", medium: "h-6", large: "h-10" } as const;
-      return <div key={idx} className={sizeMap[block.size]} />;
+      return <div key={originalIndex} className={sizeMap[block.size]} />;
     }
 
     case "pagebreak":
@@ -222,7 +222,7 @@ export function buildSnapshotPdf(
   const out: any[] = [];
   const blocks = normalizeSnapshotBlocks(snapshot.blocks, byId);
 
-  for (const block of blocks) {
+  for (const { block } of blocks) {
     switch (block.type) {
       case "text": {
         if (block.content) {
