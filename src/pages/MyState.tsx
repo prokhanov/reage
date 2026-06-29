@@ -386,7 +386,19 @@ export default function MyState() {
         return;
       }
 
-      // Редактирование = создание новой записи (старые не удаляем — сохраняем хронологию)
+      // Если редактируем существующую запись — удаляем старые симптомы за эту дату,
+      // чтобы повторное сохранение без изменений не дублировало записи.
+      if (editingDate) {
+        const startOfDay = `${editingDate}T00:00:00.000Z`;
+        const endOfDay = `${editingDate}T23:59:59.999Z`;
+        const { error: deleteError } = await supabase
+          .from('user_symptoms')
+          .delete()
+          .eq('user_id', userId)
+          .gte('tracked_at', startOfDay)
+          .lte('tracked_at', endOfDay);
+        if (deleteError) throw deleteError;
+      }
 
       // Сначала сохраняем соблюдение назначений
       if (Object.keys(adherenceAnswers).length > 0) {
@@ -404,6 +416,9 @@ export default function MyState() {
       }
 
       // Сохраняем симптомы (историческая запись)
+      const trackedAt = editingDate
+        ? `${editingDate}T12:00:00.000Z`
+        : new Date().toISOString();
       const symptomsData = Object.entries(answers)
         .filter(([_, severity]) => severity > 0)
         .map(([key, severity]) => {
@@ -412,7 +427,8 @@ export default function MyState() {
             user_id: userId,
             category,
             symptom,
-            severity
+            severity,
+            tracked_at: trackedAt
           };
         });
 
@@ -423,6 +439,7 @@ export default function MyState() {
       if (symptomsData.length > 0) {
         const { error } = await supabase
           .from('user_symptoms')
+
           .insert(symptomsData);
 
         if (error) throw error;
