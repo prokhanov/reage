@@ -58,8 +58,10 @@ export async function isAnalysisReportComplete(
       [...expectedCategories].every((category) => recommendationTypes.has(category));
 
     // «Назначения» могут отсутствовать, если ИИ не нашёл lifestyle/follow-up действий.
-    // Поэтому финальным признаком считаем свежие текстовые разделы + рассчитанные метрики.
-    const hasMetrics = analysis?.health_index != null && analysis?.biological_age != null;
+    // Финальный признак — health_index. biological_age опционален: finalize-analysis
+    // легитимно оставляет его NULL, если у профиля не заполнена дата рождения
+    // (иначе мастер генерации висел бы на 8/8 бесконечно).
+    const hasMetrics = analysis?.health_index != null;
     return hasPatientData && hasSummary && hasAllCategories && hasMetrics;
   } catch {
     return false;
