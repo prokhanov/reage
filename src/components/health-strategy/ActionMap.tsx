@@ -235,26 +235,23 @@ export function ActionMap({ actions, systems }: Props) {
   }, [prescNodes, sysNodes]);
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-slate-200/60 dark:bg-white/[0.03] bg-white/60 backdrop-blur-xl dark:shadow-2xl shadow-xl shadow-slate-200/50 transition-colors duration-300">
-      <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full dark:bg-violet-500/10 bg-indigo-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -right-24 w-64 h-64 rounded-full dark:bg-amber-500/10 bg-amber-200/30 blur-3xl pointer-events-none" />
-
-      <CardContent className="relative p-5 md:p-6 space-y-4">
+    <Card className="border-border bg-card overflow-hidden">
+      <CardContent className="p-5 md:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg md:text-xl font-bold dark:text-white text-slate-900 font-display">
+            <h3 className="text-lg md:text-xl font-bold text-foreground">
               Активная карта действий
             </h3>
-            <p className="text-xs dark:text-white/55 text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {items.length === 0
                 ? "Нет активных назначений"
                 : `${items.length} назначений · ${targetSystems.length} систем-целей`}
             </p>
           </div>
           {items.length > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full dark:bg-white/5 bg-white/70 border dark:border-white/10 border-slate-200/70">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono-tech dark:text-white/70 text-slate-600">LIVE</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-good animate-pulse" />
+              <span className="text-[10px] font-mono text-muted-foreground">LIVE</span>
             </div>
           )}
         </div>
