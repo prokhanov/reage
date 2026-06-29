@@ -1153,9 +1153,14 @@ export default function Recommendations() {
                             key={section.id}
                             type="button"
                             onClick={(e) => scrollToSection(section.id, e)}
-                            className="w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group hover:bg-accent text-muted-foreground hover:text-foreground"
+                            className={cn(
+                              "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center gap-3 group",
+                              activeSection === section.id
+                                ? "bg-accent text-foreground font-medium border-l-2 border-l-primary"
+                                : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                            )}
                           >
-                            <span className="text-sm font-medium flex-1 line-clamp-2">
+                            <span className="text-sm flex-1 line-clamp-2">
                               {section.label}
                             </span>
                           </button>
