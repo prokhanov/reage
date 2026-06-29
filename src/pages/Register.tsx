@@ -239,6 +239,32 @@ export default function Register() {
         return;
       }
 
+      // Проверка email на дубликат (signUp Supabase обфусцирует ответ ради защиты от перебора)
+      const { data: emailCheck, error: emailErr } = await supabase.functions.invoke("check-email-exists", {
+        body: { email: formData.email },
+      });
+      if (emailErr) {
+        toast({
+          title: "Не удалось проверить email",
+          description: "Попробуйте ещё раз через минуту.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      if (emailCheck?.exists) {
+        toast({
+          title: emailCheck.type === "pending" ? "Приглашение уже отправлено" : "Email уже зарегистрирован",
+          description:
+            emailCheck.type === "pending"
+              ? "На этот email уже отправлено приглашение, проверьте почту."
+              : "Войдите в аккаунт или восстановите пароль.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Создаём пользователя с минимумом данных
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
