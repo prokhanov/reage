@@ -31,16 +31,6 @@ export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLa
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               На главную
             </button>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleDownload}
-                title="Скачать PDF"
-                className="group inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 hover:border-primary/50 transition-all text-sm font-medium"
-              >
-                <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-                <span className="hidden sm:inline">Скачать PDF</span>
-              </button>
-            </div>
           </div>
         </header>
 
