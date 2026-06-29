@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { ArrowRight, MessageSquare, Mail, Phone, MessageCircle, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logoDark from "@/assets/reage-logo-dark.png";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
 
 export function CTASection() {
-  const navigate = useNavigate();
   const { requestRegister } = useRegisterGuard();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
