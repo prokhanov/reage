@@ -240,19 +240,8 @@ export function AnalysisBookingBanner() {
         onSuccess={checkBookingStatus}
       />
       <div className="relative rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5 animate-fade-in">
-        {statusKey !== "waiting_call" && (
-          <Button
-            onClick={handleDismiss}
-            size="icon"
-            variant="ghost"
-            className="absolute top-2 right-2 text-muted-foreground hover:bg-primary/10 h-8 w-8 rounded-full"
-            aria-label="Закрыть напоминание"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
         <div className="flex items-start gap-3 sm:items-center sm:justify-between sm:flex-row flex-col">
-          <div className={`flex items-start gap-3 flex-1 min-w-0 ${statusKey !== "waiting_call" ? "pr-8 sm:pr-0" : ""}`}>
+          <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
               <Icon className="h-5 w-5 text-primary" />
             </div>
