@@ -313,24 +313,7 @@ export function buildSnapshotPdf(
           });
         }
 
-        if (bm?.biomarker?.general_description) {
-          cardStack.push({
-            text: bm.biomarker.general_description,
-            fontSize: 9,
-            color: "#4B5563",
-            italics: true,
-            margin: [0, 6, 0, 4],
-          });
-        }
-
         if (trimmedCommentary) {
-          cardStack.push({
-            text: "Ваш результат",
-            fontSize: 7,
-            color: "#9CA3AF",
-            characterSpacing: 0.5,
-            margin: [0, 4, 0, 2],
-          });
           cardStack.push(...parseMarkdownToPdfContent(trimmedCommentary));
         }
 
