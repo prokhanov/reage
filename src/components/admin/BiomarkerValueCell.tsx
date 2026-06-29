@@ -144,8 +144,13 @@ export function BiomarkerValueCell({ value, onChange, biomarker, age, gender, hi
   let extreme = false;
   if (num != null && hasBio) {
     status = getBiomarkerStatus(num, biomarker, age, gender);
-    extreme = isExtremeDeviation(num, biomarker, age ?? 40, gender ?? "male");
+    // Only flag extreme deviation when gender is known — otherwise male defaults
+    // give false positives for female-specific ranges (e.g. FAI).
+    if (gender) {
+      extreme = isExtremeDeviation(num, biomarker, age ?? 40, gender);
+    }
   }
+
 
   const inputEl = (
     <Input
