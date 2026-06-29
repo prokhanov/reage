@@ -65,6 +65,16 @@ Deno.serve(async (req) => {
       const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(user_id, { password })
       if (updErr) {
         console.error('password update failed', updErr)
+        const code = (updErr as any)?.code || ''
+        const message = (updErr as any)?.message || ''
+        const reasons = (updErr as any)?.reasons || []
+        if (
+          code === 'weak_password' ||
+          /weak|easy to guess|pwned/i.test(message) ||
+          (Array.isArray(reasons) && reasons.includes('pwned'))
+        ) {
+          return json({ ok: false, error: 'weak_password', reasons }, 422)
+        }
         return json({ ok: false, error: 'update_failed' }, 500)
       }
       await supabaseAdmin
