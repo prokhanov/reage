@@ -170,7 +170,7 @@ function DashboardWidgets() {
         </div>
         <div className="flex items-end gap-2">
           <div className="text-4xl font-bold tabular-nums">34.5</div>
-          <div className="text-sm text-muted-foreground mb-1">из 38 хроно</div>
+          <div className="text-sm text-muted-foreground mb-1">из 38 лет</div>
         </div>
         <div className="mt-2 inline-flex items-center gap-1 text-xs text-status-optimal font-medium">
           <TrendingDown className="w-3.5 h-3.5" /> −1.2 за 6 мес
