@@ -53,7 +53,7 @@ export function CTASection() {
                     className="text-lg px-10 py-6 border-accent/50 hover:border-accent hover:bg-accent/10 hover:text-foreground group"
                   >
                     <MessageSquare className="mr-2 w-5 h-5 text-accent" />
-                    Написать
+                    Задать вопрос
                   </Button>
                 </div>
                 
