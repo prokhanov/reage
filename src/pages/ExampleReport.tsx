@@ -250,7 +250,7 @@ export default function ExampleReport() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="h-[95vh] sm:h-[90vh] w-[100vw] sm:w-[95vw] max-w-7xl p-0 overflow-hidden rounded-none sm:rounded-lg">
+      <DialogContent hideCloseButton className="h-[95vh] sm:h-[90vh] w-[100vw] sm:w-[95vw] max-w-7xl p-0 overflow-hidden rounded-none sm:rounded-lg">
         <DialogHeader className="sr-only">
           <DialogTitle>Пример персонального отчёта</DialogTitle>
           <DialogDescription>
