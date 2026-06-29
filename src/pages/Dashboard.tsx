@@ -16,6 +16,7 @@ import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 import { PassportReminderCard } from "@/components/PassportReminderCard";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
+import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Biomarkers from "@/pages/Biomarkers";
 import Trends from "@/pages/Trends";
@@ -559,6 +560,12 @@ export default function Dashboard() {
 
         {/* Weight Tracker */}
         <WeightTracker />
+
+        {/* System Ratings */}
+        <SystemRatingsCard
+          categoryScores={displayCategoryScores}
+          analyses={displayAllAnalyses}
+        />
 
         {/* Biomarkers & Trends Tabs */}
         <Card className="border-border bg-card overflow-visible">

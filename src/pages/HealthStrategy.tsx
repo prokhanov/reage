@@ -10,9 +10,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { RejuvenationTrajectory } from "@/components/health-strategy/RejuvenationTrajectory";
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
-import { SystemStatusBars } from "@/components/health-strategy/SystemStatusBars";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
-import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
@@ -247,13 +245,7 @@ export default function HealthStrategy() {
               <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
             </div>
 
-            {/* 3. Рейтинг систем организма */}
-            <SystemRatingsCard
-              categoryScores={currentScores}
-              analyses={allAnalyses}
-            />
-
-            {/* 4. Активная карта действий — на всю ширину */}
+            {/* 3. Активная карта действий — на всю ширину */}
             <ActionMap
               actions={(snapshot.action_map as any[]) || []}
               systems={categories}
