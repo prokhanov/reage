@@ -87,20 +87,12 @@ export function NextAnalysisCard({ userId, compact = false }: NextAnalysisCardPr
     return (
       <Card className="border-border bg-card backdrop-blur-sm">
         <CardContent className="py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-primary" />
-              <div>
-                <p className="text-sm font-medium text-foreground">Следующий анализ</p>
-                <p className="text-xs text-muted-foreground">Запланируйте визит для анализа</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <Calendar className="h-8 w-8 text-primary" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Следующий анализ</p>
+              <p className="text-xs text-muted-foreground">Не запланирован</p>
             </div>
-            <Button 
-              variant="default"
-              onClick={() => navigate('/analyses')}
-            >
-              Запланировать
-            </Button>
           </div>
         </CardContent>
       </Card>
