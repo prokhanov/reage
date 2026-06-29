@@ -1,8 +1,12 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Scroll-spy hook: tracks which section (by ID) is currently in view inside
  * a scrollable container. Returns the active section id.
+ *
+ * The `container` argument should be a state-backed element (e.g. from a callback
+ * ref `setContentEl`) so the effect re-runs once the element is mounted.
+ * Plain `useRef` values won't trigger a re-run when the DOM node is assigned.
  */
 export function useActiveSection(
   container: HTMLElement | null,
@@ -12,21 +16,8 @@ export function useActiveSection(
   const { offset = 120, enabled = true } = options;
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // Use the container element directly. When callers pass a state-backed ref
-  // (setContentEl) the effect re-runs automatically as soon as the DOM element
-  // is mounted, avoiding the stale-null problem of plain useRef.
-  const containerElement = useSyncExternalStore(
-    (callback) => {
-      if (!container) return () => {};
-      callback();
-      return () => {};
-    },
-    () => container,
-    () => null
-  );
-
   useEffect(() => {
-    const element = containerElement;
+    const element = container;
     if (!element || !enabled || sectionIds.length === 0) return;
 
     const computeActive = () => {
@@ -53,7 +44,7 @@ export function useActiveSection(
       element.removeEventListener("scroll", computeActive);
       cancelAnimationFrame(raf);
     };
-  }, [containerElement, sectionIds, offset, enabled]);
+  }, [container, sectionIds, offset, enabled]);
 
   return activeId;
 }
