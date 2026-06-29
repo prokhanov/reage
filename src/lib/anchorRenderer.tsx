@@ -129,18 +129,8 @@ export function renderInterleavedWeb(
                     />
                   </div>
                 )}
-                {bm?.biomarker?.general_description && (
-                  <div className="pt-1 border-t border-border/20">
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      {bm.biomarker.general_description}
-                    </p>
-                  </div>
-                )}
                 {trimmedContent && (
                   <div className={bm ? "pt-1 border-t border-border/20" : ""}>
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground/70 mb-1.5">
-                      Ваш результат
-                    </div>
                     <MarkdownContent content={trimmedContent} />
                   </div>
                 )}
@@ -247,17 +237,7 @@ export function buildInterleavedPdf(
             margin: [0, 0, 0, 0],
           });
         }
-        if (bm?.biomarker?.general_description) {
-          cardStack.push({
-            text: bm.biomarker.general_description,
-            fontSize: 9,
-            color: '#4B5563',
-            italics: true,
-            margin: [0, 6, 0, 4],
-          });
-        }
         if (trimmedContent) {
-          cardStack.push({ text: 'Ваш результат', fontSize: 7, color: '#9CA3AF', characterSpacing: 0.5, margin: [0, 6, 0, 2] });
           cardStack.push(...parseMarkdownToPdfContent(trimmedContent));
         }
 
