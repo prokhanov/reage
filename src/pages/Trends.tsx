@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { format } from "date-fns";
 import { TrendChartSkeleton } from "@/components/skeletons/TrendChartSkeleton";
 import { getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, calculateAge, AgeRanges } from "@/lib/biomarkerNorms";
@@ -39,7 +38,6 @@ interface AnalysisValue {
 
 export default function Trends() {
   const { getUserId } = useViewAsUser();
-  const { setSimPath } = useContext(ViewAsPatientContext);
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [biomarkers, setBiomarkers] = useState<Biomarker[]>([]);
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
@@ -355,12 +353,9 @@ export default function Trends() {
             <CardContent className="flex flex-col items-center justify-center py-16">
               <TrendingUp className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">Нет данных для анализа</h3>
-              <p className="text-muted-foreground text-center mb-6">
+              <p className="text-muted-foreground text-center">
                 Добавьте несколько анализов, чтобы увидеть тренды
               </p>
-              <Button onClick={() => setSimPath("/analyses")} className="shadow-neon-primary">
-                Добавить анализ
-              </Button>
             </CardContent>
           </Card>
         ) : (
