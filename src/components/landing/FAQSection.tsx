@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { cn } from "@/lib/utils";
+import { FeedbackDialog } from "@/components/landing/FeedbackDialog";
+
 
 interface FAQItemProps {
   question: string;
