@@ -87,11 +87,26 @@ export function AnalysisBookingBanner() {
         return;
       }
 
+      // If the cycle was completed (any booking has status "uploaded"),
+      // ignore the auto-created "not_scheduled" placeholder for the next cycle —
+      // it should not nag the user immediately after their report is ready.
+      const hasUploaded = bookings.some((b) => b.status === "uploaded");
+      const lastUploadedAt = hasUploaded
+        ? Math.max(
+            ...bookings
+              .filter((b) => b.status === "uploaded")
+              .map((b) => new Date(b.created_at).getTime())
+          )
+        : 0;
+
       // Priority order: active statuses that need user attention
       const find = (status: string, requireFuture = false) =>
         bookings.find(
           (b) =>
-            b.status === status && (!requireFuture || !isBookingExpired(b))
+            b.status === status &&
+            (!requireFuture || !isBookingExpired(b)) &&
+            // skip the next-cycle "not_scheduled" placeholder created right after upload
+            !(status === "not_scheduled" && hasUploaded && new Date(b.created_at).getTime() >= lastUploadedAt)
         );
 
       const active =
@@ -109,8 +124,7 @@ export function AnalysisBookingBanner() {
       }
 
       // Terminal status: report uploaded / cycle completed — no reminder needed
-      const latest = bookings[0];
-      if (latest?.status === "uploaded") {
+      if (hasUploaded) {
         setShowBanner(false);
         setBookingInfo(null);
         return;
