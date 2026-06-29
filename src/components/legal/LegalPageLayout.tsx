@@ -1,7 +1,6 @@
-import { ArrowLeft, FileText, Download } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ReactNode, useRef } from "react";
-import { downloadLegalPdf } from "@/lib/legalPdf";
+import { ReactNode } from "react";
 
 interface LegalPageLayoutProps {
   title: string;
