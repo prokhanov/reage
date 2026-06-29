@@ -15,6 +15,10 @@ interface Props {
   previousDate?: string | null;
 }
 
+// Brand palette — primary (violet 270) → accent (magenta 320), matches index.css tokens.
+const PRIMARY = "hsl(270, 90%, 60%)";
+const ACCENT = "hsl(320, 100%, 60%)";
+
 export function RejuvenationTrajectory({
   startDate,
   chronologicalAge,
@@ -49,41 +53,43 @@ export function RejuvenationTrajectory({
   const trendDelta = previousBioAge != null ? currentBioAge - previousBioAge : null;
   const trendIcon = trendDelta == null ? Minus : trendDelta < -0.1 ? TrendingDown : trendDelta > 0.1 ? TrendingUp : Minus;
   const TrendIcon = trendIcon;
-  const trendColor = trendDelta == null ? "text-muted-foreground" : trendDelta < -0.1 ? "text-emerald-500 dark:text-emerald-400" : trendDelta > 0.1 ? "text-rose-500 dark:text-rose-400" : "text-muted-foreground";
+  const trendColor =
+    trendDelta == null
+      ? "text-muted-foreground"
+      : trendDelta < -0.1
+      ? "text-status-good"
+      : trendDelta > 0.1
+      ? "text-status-danger"
+      : "text-muted-foreground";
 
   const ringPct = healthIndex ?? 0;
   const ringDash = (ringPct / 100) * 2 * Math.PI * 38;
 
-  // Theme-driven chart colors
-  const gridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.10)";
+  const gridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
   const axisColor = isDark ? "rgba(255,255,255,0.55)" : "rgba(30,41,59,0.65)";
-  const chronoColor = isDark ? "rgba(255,255,255,0.45)" : "rgba(71,85,105,0.55)";
-  const bioStrokeWidth = isDark ? 3 : 3.5;
-  const bigNumColor = isDark ? "text-white" : "text-indigo-900";
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-slate-200/60 dark:bg-white/[0.04] bg-white/60 backdrop-blur-2xl dark:shadow-2xl shadow-xl shadow-slate-200/60">
-      {/* Decorative glow / soft gradient */}
-      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full dark:bg-violet-500/20 bg-indigo-300/30 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full dark:bg-fuchsia-500/15 bg-blue-300/25 blur-3xl pointer-events-none" />
-
-      <CardContent className="relative p-5 md:p-6 space-y-4">
+    <Card className="border-border bg-card overflow-hidden">
+      <CardContent className="p-5 md:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg md:text-xl font-bold dark:text-white text-slate-900">Траектория омоложения</h3>
-            <div className="flex items-center gap-3 mt-1.5 text-xs dark:text-white/60 text-slate-500">
+            <h3 className="text-lg md:text-xl font-bold text-foreground">Траектория омоложения</h3>
+            <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-3 border-t border-dashed dark:border-white/40 border-slate-400" />
+                <span className="inline-block w-3 border-t border-dashed border-muted-foreground/50" />
                 Хронологический
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="inline-block w-3 h-[2px] rounded-full bg-gradient-to-r from-violet-500 to-blue-500" />
+                <span
+                  className="inline-block w-3 h-[2px] rounded-full"
+                  style={{ background: `linear-gradient(90deg, ${PRIMARY}, ${ACCENT})` }}
+                />
                 Биологический
               </span>
             </div>
           </div>
           {trendDelta != null && (
-            <div className={`flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-lg dark:bg-white/5 bg-slate-100/80 ${trendColor}`}>
+            <div className={`flex items-center gap-1 text-xs font-mono px-2 py-1 rounded-lg bg-muted ${trendColor}`}>
               <TrendIcon className="h-3.5 w-3.5" />
               {trendDelta > 0 ? "+" : ""}{trendDelta.toFixed(1)}
             </div>
@@ -95,48 +101,41 @@ export function RejuvenationTrajectory({
             <ComposedChart data={data} margin={{ top: 28, right: 16, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="bioStroke" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#3B82F6" />
-                  <stop offset="100%" stopColor="#8B5CF6" />
+                  <stop offset="0%" stopColor={PRIMARY} />
+                  <stop offset="100%" stopColor={ACCENT} />
                 </linearGradient>
                 <linearGradient id="bioFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
+                  <stop offset="0%" stopColor={ACCENT} stopOpacity={0.22} />
+                  <stop offset="100%" stopColor={PRIMARY} stopOpacity={0} />
                 </linearGradient>
-                <filter id="bioShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="2" stdDeviation={isDark ? "3" : "4"} floodColor="#6366f1" floodOpacity={isDark ? "0.5" : "0.35"} />
-                </filter>
               </defs>
               <CartesianGrid strokeDasharray="2 4" stroke={gridStroke} vertical={false} />
               <XAxis dataKey="label" stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} interval={1} />
               <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={28} />
               <Tooltip
                 contentStyle={{
-                  background: isDark ? "rgba(15,16,22,0.92)" : "rgba(255,255,255,0.95)",
-                  border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(226,232,240,0.9)",
+                  background: "hsl(var(--popover))",
+                  border: "1px solid hsl(var(--border))",
                   borderRadius: 12,
                   fontSize: 12,
-                  color: isDark ? "#fff" : "#0f172a",
-                  boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.4)" : "0 8px 24px rgba(15,23,42,0.12)",
+                  color: "hsl(var(--popover-foreground))",
                 }}
                 labelFormatter={(_l, p) => p?.[0]?.payload?.fullLabel || ""}
                 formatter={(v: any, name: string) => [`${v} лет`, name === "bio" ? "Биологический" : "Хронологический"]}
               />
-              {/* Bio — gradient stroke + 0.2 opacity area fill */}
               <Area
                 type="monotone"
                 dataKey="bio"
                 stroke="url(#bioStroke)"
-                strokeWidth={bioStrokeWidth}
+                strokeWidth={3}
                 fill="url(#bioFill)"
                 dot={false}
-                filter="url(#bioShadow)"
-                activeDot={{ r: 6, fill: "#8b5cf6", stroke: isDark ? "#0B0C10" : "#fff", strokeWidth: 2 }}
+                activeDot={{ r: 6, fill: ACCENT, stroke: isDark ? "hsl(var(--card))" : "#fff", strokeWidth: 2 }}
               />
-              {/* Chronological — dashed, drawn ON TOP so it stays visible */}
               <Line
                 type="linear"
                 dataKey="chrono"
-                stroke={isDark ? "rgba(255,255,255,0.65)" : "rgba(71,85,105,0.75)"}
+                stroke={axisColor}
                 strokeWidth={2}
                 strokeDasharray="6 5"
                 dot={false}
@@ -144,50 +143,48 @@ export function RejuvenationTrajectory({
               />
               <ReferenceDot
                 x={data[0].label} y={data[0].bio} r={6}
-                fill="#8b5cf6" stroke={isDark ? "#0B0C10" : "#fff"} strokeWidth={2}
-                label={{ value: `${currentBioAge.toFixed(1)}`, position: "top", fill: isDark ? "#FFFFFF" : "#312e81", fontSize: 24, fontWeight: 600, dy: -8 }}
+                fill={PRIMARY} stroke={isDark ? "hsl(var(--card))" : "#fff"} strokeWidth={2}
+                label={{ value: `${currentBioAge.toFixed(1)}`, position: "top", fill: "hsl(var(--foreground))", fontSize: 20, fontWeight: 700, dy: -8 }}
               />
               <ReferenceDot
                 x={data[12].label} y={data[12].bio} r={6}
-                fill="#3b82f6" stroke={isDark ? "#0B0C10" : "#fff"} strokeWidth={2}
-                label={{ value: `${targetBioAge.toFixed(1)}`, position: "top", fill: isDark ? "#60a5fa" : "#1e3a8a", fontSize: 14, fontWeight: 800, dy: -8 }}
+                fill={ACCENT} stroke={isDark ? "hsl(var(--card))" : "#fff"} strokeWidth={2}
+                label={{ value: `${targetBioAge.toFixed(1)}`, position: "top", fill: ACCENT, fontSize: 14, fontWeight: 800, dy: -8 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Health index ring (RadialBar style, stroke-width 10px per spec) + numbers */}
-        <div className="flex items-center gap-4 pt-3 border-t dark:border-white/10 border-slate-200/70">
+        <div className="flex items-center gap-4 pt-3 border-t border-border">
           <div className="relative w-[96px] h-[96px] flex items-center justify-center shrink-0">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="38" stroke={isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)"} strokeWidth="10" fill="none" />
+              <circle cx="50" cy="50" r="38" stroke="hsl(var(--muted))" strokeWidth="10" fill="none" />
               <circle
                 cx="50" cy="50" r="38"
                 stroke="url(#ringGrad)" strokeWidth="10" fill="none"
                 strokeDasharray={`${ringDash} 999`} strokeLinecap="round"
-                style={{ filter: isDark ? "drop-shadow(0 0 6px rgba(139,92,246,0.6))" : "drop-shadow(0 2px 6px rgba(99,102,241,0.35))" }}
               />
               <defs>
                 <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" />
-                  <stop offset="100%" stopColor="#3b82f6" />
+                  <stop offset="0%" stopColor={PRIMARY} />
+                  <stop offset="100%" stopColor={ACCENT} />
                 </linearGradient>
               </defs>
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-              <Heart className={`${isDark ? "text-white" : "text-indigo-700"}`} style={{ width: 20, height: 20 }} strokeWidth={2.2} />
-              <div className={`text-base font-bold leading-none font-mono-tech ${bigNumColor}`}>{healthIndex ?? "—"}</div>
+              <Heart className="text-primary" style={{ width: 20, height: 20 }} strokeWidth={2.2} />
+              <div className="text-base font-bold leading-none tabular-nums text-foreground">{healthIndex ?? "—"}</div>
             </div>
           </div>
           <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-            <Stat label="Сейчас" value={`${currentBioAge.toFixed(1)}`} unit="лет" isDark={isDark} />
-            <Stat label="Цель 12 мес" value={`${targetBioAge.toFixed(1)}`} unit="лет" accent isDark={isDark} />
-            <Stat label="Хроно" value={`${chronologicalAge}`} unit="лет" muted isDark={isDark} />
+            <Stat label="Сейчас" value={`${currentBioAge.toFixed(1)}`} unit="лет" />
+            <Stat label="Цель 12 мес" value={`${targetBioAge.toFixed(1)}`} unit="лет" accent />
+            <Stat label="Хроно" value={`${chronologicalAge}`} unit="лет" muted />
           </div>
         </div>
 
         {previousBioAge != null && previousDate && (
-          <p className="text-[11px] dark:text-white/50 text-slate-500 flex items-center gap-1">
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
             Предыдущий анализ ({format(new Date(previousDate), "d MMM yyyy", { locale: ru })}): {previousBioAge.toFixed(1)} лет
           </p>
@@ -197,17 +194,17 @@ export function RejuvenationTrajectory({
   );
 }
 
-function Stat({ label, value, unit, accent, muted, isDark }: { label: string; value: string; unit: string; accent?: boolean; muted?: boolean; isDark: boolean }) {
+function Stat({ label, value, unit, accent, muted }: { label: string; value: string; unit: string; accent?: boolean; muted?: boolean }) {
   const numColor = accent
-    ? "bg-gradient-to-r from-violet-500 to-blue-500 bg-clip-text text-transparent"
+    ? "bg-gradient-primary bg-clip-text text-transparent"
     : muted
-    ? "dark:text-white/50 text-slate-500"
-    : isDark ? "text-white" : "text-indigo-900";
+    ? "text-muted-foreground"
+    : "text-foreground";
   return (
     <div className="space-y-0.5">
-      <div className="text-[10px] uppercase tracking-wide dark:text-white/50 text-slate-500">{label}</div>
-      <div className={`text-lg font-bold tabular-nums font-mono-tech ${numColor}`}>
-        {value}<span className="text-[10px] font-normal dark:text-white/50 text-slate-500 ml-0.5">{unit}</span>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={`text-lg font-bold tabular-nums ${numColor}`}>
+        {value}<span className="text-[10px] font-normal text-muted-foreground ml-0.5">{unit}</span>
       </div>
     </div>
   );

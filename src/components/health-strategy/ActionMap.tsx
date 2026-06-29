@@ -235,34 +235,31 @@ export function ActionMap({ actions, systems }: Props) {
   }, [prescNodes, sysNodes]);
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border dark:border-white/10 border-slate-200/60 dark:bg-white/[0.03] bg-white/60 backdrop-blur-xl dark:shadow-2xl shadow-xl shadow-slate-200/50 transition-colors duration-300">
-      <div className="absolute -top-24 -left-24 w-64 h-64 rounded-full dark:bg-violet-500/10 bg-indigo-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -right-24 w-64 h-64 rounded-full dark:bg-amber-500/10 bg-amber-200/30 blur-3xl pointer-events-none" />
-
-      <CardContent className="relative p-5 md:p-6 space-y-4">
+    <Card className="border-border bg-card overflow-hidden">
+      <CardContent className="p-5 md:p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg md:text-xl font-bold dark:text-white text-slate-900 font-display">
+            <h3 className="text-lg md:text-xl font-bold text-foreground">
               Активная карта действий
             </h3>
-            <p className="text-xs dark:text-white/55 text-slate-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {items.length === 0
                 ? "Нет активных назначений"
                 : `${items.length} назначений · ${targetSystems.length} систем-целей`}
             </p>
           </div>
           {items.length > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full dark:bg-white/5 bg-white/70 border dark:border-white/10 border-slate-200/70">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono-tech dark:text-white/70 text-slate-600">LIVE</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted border border-border">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-good animate-pulse" />
+              <span className="text-[10px] font-mono text-muted-foreground">LIVE</span>
             </div>
           )}
         </div>
 
         {items.length === 0 ? (
           <div className="py-16 flex flex-col items-center justify-center gap-2">
-            <Pill className="h-10 w-10 dark:text-white/30 text-slate-300" />
-            <p className="text-xs dark:text-white/40 text-slate-400">Назначений пока нет</p>
+            <Pill className="h-10 w-10 text-muted-foreground/40" />
+            <p className="text-xs text-muted-foreground">Назначений пока нет</p>
           </div>
         ) : (
           <div className="relative">
@@ -488,34 +485,25 @@ export function ActionMap({ actions, systems }: Props) {
               })}
             </svg>
 
-            {/* Tooltip / detail panel */}
             <div className="mt-3 min-h-[88px]">
               {hoveredAction ? (
-                <div
-                  className="p-3 rounded-lg animate-in fade-in slide-in-from-bottom-2 duration-200 border"
-                  style={{
-                    background: "#1E293B",
-                    borderColor: "rgba(255,255,255,0.10)",
-                    color: "#fff",
-                    borderRadius: 8,
-                  }}
-                >
+                <div className="p-3 rounded-lg border border-border bg-popover text-popover-foreground animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="text-sm font-semibold text-white font-display">
+                    <div className="text-sm font-semibold">
                       {hoveredAction.prescription_name}
                     </div>
-                    <span className="text-[10px] text-slate-300 whitespace-nowrap font-mono-tech px-2 py-0.5 rounded bg-white/10">
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap font-mono px-2 py-0.5 rounded bg-muted">
                       ETA {hoveredAction.effect_eta}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {hoveredAction.expected_effect}
                   </p>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {hoveredAction.biomarker_codes.slice(0, 6).map((code) => (
                       <span
                         key={code}
-                        className="px-1.5 py-0.5 rounded-md text-[10px] font-mono-tech bg-white/10 text-white/90 border border-white/15"
+                        className="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-muted text-foreground/80 border border-border"
                       >
                         {code}
                       </span>
@@ -523,7 +511,7 @@ export function ActionMap({ actions, systems }: Props) {
                     {hoveredAction.systems.slice(0, 3).map((s) => (
                       <span
                         key={s}
-                        className="px-1.5 py-0.5 rounded-md text-[10px] bg-violet-500/25 text-violet-100 border border-violet-300/20"
+                        className="px-1.5 py-0.5 rounded-md text-[10px] bg-primary/15 text-primary border border-primary/30"
                       >
                         {s}
                       </span>
@@ -531,8 +519,8 @@ export function ActionMap({ actions, systems }: Props) {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 rounded-xl border border-dashed dark:border-white/10 border-slate-200 text-center">
-                  <p className="text-[11px] dark:text-white/45 text-slate-400">
+                <div className="p-3 rounded-xl border border-dashed border-border text-center">
+                  <p className="text-[11px] text-muted-foreground">
                     Поток препарат → система. Наведите на узел, чтобы увидеть прогноз нормализации.
                   </p>
                 </div>
