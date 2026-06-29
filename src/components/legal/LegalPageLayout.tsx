@@ -11,12 +11,6 @@ interface LegalPageLayoutProps {
 
 export function LegalPageLayout({ title, subtitle, icon, children }: LegalPageLayoutProps) {
   const navigate = useNavigate();
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const handleDownload = () => {
-    if (!contentRef.current) return;
-    downloadLegalPdf({ title, subtitle, container: contentRef.current, fileName: title });
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
