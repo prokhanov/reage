@@ -582,14 +582,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-      {/* Analysis Booking Dialog */}
-      <AnalysisBookingDialog
-        open={bookingDialogOpen}
-        onOpenChange={setBookingDialogOpen}
-        onSuccess={() => {
-          fetchNextBooking();
-        }}
-      />
     </div>
   );
 }
