@@ -107,7 +107,7 @@ export default function ExampleReport() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
   const [tocSheetOpen, setTocSheetOpen] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const prevTitle = document.title;
