@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { DemoBanner } from "@/components/DemoBanner";
 import { DEMO_TO_DB_CODE } from "@/lib/biomarkerCodeMap";
 
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
 import { format } from "date-fns";
 import { TrendChartSkeleton } from "@/components/skeletons/TrendChartSkeleton";
 import { getNormalRangeForAge, getOptimalRangeForAge, getCriticalRangeForAge, calculateAge, AgeRanges } from "@/lib/biomarkerNorms";
