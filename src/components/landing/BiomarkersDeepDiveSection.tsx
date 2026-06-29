@@ -277,11 +277,6 @@ export function BiomarkersDeepDiveSection() {
                         </span>
                       </div>
                     </div>
-                    <div className="absolute top-6 right-6 lg:top-8 lg:right-8">
-                      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        {index + 1} / {biomarkerCategories.length}
-                      </span>
-                    </div>
                   </div>
 
                   {/* Content side */}
