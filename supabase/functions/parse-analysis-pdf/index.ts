@@ -329,10 +329,10 @@ ${catalogText}
     let rawContent: string = aiJson?.choices?.[0]?.message?.content ?? "";
     log("AI json keys", { keys: Object.keys(aiJson || {}), finish, len: rawContent.length });
 
-    // Empty content (often Gemini 2.5 Pro burns budget on thinking) — retry on flash.
+    // Empty content — retry on pro as fallback.
     if (!rawContent.trim()) {
-      log("empty content, retrying with flash");
-      const retry = await callAi("google/gemini-2.5-flash");
+      log("empty content, retrying with pro");
+      const retry = await callAi("google/gemini-2.5-pro");
       if (retry.ok) {
         aiJson = await retry.json();
         finish = aiJson?.choices?.[0]?.finish_reason;
