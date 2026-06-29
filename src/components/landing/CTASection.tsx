@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, MessageSquare } from "lucide-react";
+import { ArrowRight, MessageSquare, Mail, Phone, MessageCircle, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import logoDark from "@/assets/reage-logo-dark.png";
