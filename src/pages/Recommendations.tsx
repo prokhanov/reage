@@ -199,7 +199,6 @@ export default function Recommendations() {
 
   const activeSection = useActiveSection(contentRef, sections.map((s) => s.id), {
     offset: 140,
-    throttle: 80,
   });
 
   useEffect(() => {
