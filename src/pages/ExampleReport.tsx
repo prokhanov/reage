@@ -39,6 +39,7 @@ import { renderSnapshotWeb } from "@/lib/snapshotRenderer";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
 import type { PdfBiomarkerData } from "@/lib/pdfExportHelpers";
+import { cn } from "@/lib/utils";
 
 import exampleReportData from "@/data/exampleReport.json";
 
