@@ -355,12 +355,9 @@ export default function Trends() {
             <CardContent className="flex flex-col items-center justify-center py-16">
               <TrendingUp className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-xl font-semibold mb-2">Нет данных для анализа</h3>
-              <p className="text-muted-foreground text-center mb-6">
+              <p className="text-muted-foreground text-center">
                 Добавьте несколько анализов, чтобы увидеть тренды
               </p>
-              <Button onClick={() => setSimPath("/analyses")} className="shadow-neon-primary">
-                Добавить анализ
-              </Button>
             </CardContent>
           </Card>
         ) : (
