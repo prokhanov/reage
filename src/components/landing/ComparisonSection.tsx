@@ -184,7 +184,7 @@ export function ComparisonSection() {
     {
       feature: "Средняя стоимость за год",
       reage: { text: "₽₽₽₽" },
-      labs: { text: "₽₽₽*" },
+      labs: { text: "₽₽₽" },
       checkup: { text: "₽₽₽₽" },
       genetics: { text: "₽₽₽" },
     },
@@ -238,10 +238,6 @@ export function ComparisonSection() {
               </div>
             </div>
           </div>
-
-          <p className="text-sm text-muted-foreground mt-6 text-center">
-            * При регулярной сдаче расширенных панелей 3 раза в год
-          </p>
         </div>
       </div>
     </section>
