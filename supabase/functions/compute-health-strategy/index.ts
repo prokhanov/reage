@@ -84,8 +84,69 @@ serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { userId, force } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { userId, force, preview, publish, edited } = body || {};
     const targetUserId = userId || user.id;
+
+    // Helper: superadmin guard for preview/publish on other users
+    const requireSuperadminForOther = async () => {
+      if (targetUserId === user.id) return true;
+      const { data: roleRow } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "superadmin")
+        .maybeSingle();
+      return !!roleRow;
+    };
+
+    // PUBLISH MODE — accept edited snapshot and insert without recomputing
+    if (publish && edited && typeof edited === "object") {
+      const ok = await requireSuperadminForOther();
+      if (!ok) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (!edited.analysis_id) {
+        return new Response(JSON.stringify({ error: "analysis_id required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const insertRow: any = {
+        user_id: targetUserId,
+        analysis_id: edited.analysis_id,
+        current_bio_age: Number(edited.current_bio_age),
+        chronological_age: Number(edited.chronological_age),
+        target_bio_age: Number(edited.target_bio_age),
+        health_index: edited.health_index != null ? Math.round(Number(edited.health_index)) : null,
+        system_goals: edited.system_goals ?? [],
+        action_map: edited.action_map ?? [],
+        rationale: normalizeRationale(edited.rationale),
+        cohort_percentile: edited.cohort_percentile ?? null,
+        cohort_label: edited.cohort_label ?? null,
+        trajectory: edited.trajectory ?? null,
+        roadmap: edited.roadmap ?? null,
+        key_biomarkers: edited.key_biomarkers ?? null,
+        expectations: edited.expectations ?? [],
+        analyses_per_year: edited.analyses_per_year ?? null,
+        model: "google/gemini-2.5-flash (edited)",
+      };
+      const { data: saved, error: pubErr } = await supabase
+        .from("health_strategy_snapshots")
+        .insert(insertRow)
+        .select()
+        .single();
+      if (pubErr) {
+        return new Response(JSON.stringify({ error: pubErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify(saved), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // PREVIEW MODE — require superadmin guard when targeting another user
+    if (preview) {
+      const ok = await requireSuperadminForOther();
+      if (!ok) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
 
     const { data: latestAnalysisRow } = await supabase
       .from("analyses")
@@ -96,7 +157,7 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    if (!force && latestAnalysisRow) {
+    if (!force && !preview && latestAnalysisRow) {
       const { data: cached } = await supabase
         .from("health_strategy_snapshots")
         .select("*")
@@ -598,33 +659,107 @@ ${prescContext || "(нет активных назначений — дейст�
           .slice(0, 16)
       : [];
 
+    const snapshotPayload: any = {
+      user_id: targetUserId,
+      analysis_id: latest.id,
+      current_bio_age: currentBio,
+      chronological_age: chronoAge,
+      target_bio_age: target,
+      health_index: latest.health_index ? Math.round(latest.health_index) : null,
+      system_goals: parsed.system_goals,
+      action_map: actionMap,
+      rationale: normalizeRationale(parsed.rationale),
+      cohort_percentile: cohortPct,
+      cohort_label: parsed.cohort_label || null,
+      trajectory,
+      roadmap,
+      key_biomarkers: keyBiomarkers,
+      expectations,
+      analyses_per_year: analysesPerYear,
+      model: "google/gemini-2.5-flash",
+    };
+
+    // Build explanation block (for preview/admin transparency)
+    const hiVal = snapshotPayload.health_index ?? 0;
+    const baseBioAge = chronoAge + (85 - hiVal) * 0.20;
+    const aiDelta = currentBio - baseBioAge;
+
+    // Top deviations across all biomarkers
+    const allDeviations: any[] = [];
+    for (const cat of Object.keys(byCat)) {
+      for (const b of byCat[cat]) {
+        if (!b.deviated) continue;
+        // Pull range info from raw analysis_values for ratio calc
+        const raw = (latest.analysis_values || []).find((av: any) => av.biomarkers?.code === b.code);
+        const bm = raw?.biomarkers;
+        const optMin = bm?.optimal_min ?? bm?.normal_min;
+        const optMax = bm?.optimal_max ?? bm?.normal_max;
+        let deltaPct = 0;
+        if (optMin != null && b.value < Number(optMin)) {
+          deltaPct = ((Number(optMin) - b.value) / Number(optMin)) * 100;
+        } else if (optMax != null && b.value > Number(optMax)) {
+          deltaPct = ((b.value - Number(optMax)) / Number(optMax)) * 100;
+        }
+        allDeviations.push({
+          name: b.name,
+          code: b.code,
+          value: b.value,
+          unit: b.unit,
+          category: cat,
+          optimal_min: optMin != null ? Number(optMin) : null,
+          optimal_max: optMax != null ? Number(optMax) : null,
+          deviation_pct: Math.round(deltaPct * 10) / 10,
+        });
+      }
+    }
+    allDeviations.sort((a, b) => Math.abs(b.deviation_pct) - Math.abs(a.deviation_pct));
+    const topDeviations = allDeviations.slice(0, 5);
+
+    const explanation = {
+      formula: {
+        anchor: 85,
+        slope: 0.20,
+        base_bio_age: Math.round(baseBioAge * 10) / 10,
+        ai_delta: Math.round(aiDelta * 10) / 10,
+        ai_corridor: 5,
+        final_bio_age: Math.round(currentBio * 10) / 10,
+        chronological_age: chronoAge,
+        health_index: hiVal,
+      },
+      health_index: {
+        value: hiVal,
+        total_deviations: allDeviations.length,
+        total_markers: (latest.analysis_values || []).length,
+        top_deviations: topDeviations,
+      },
+      drivers: [
+        `Хронологический возраст: ${chronoAge} лет`,
+        `Health Index: ${hiVal} (якорь формулы — 85)`,
+        `Базовый био-возраст: ${baseBioAge.toFixed(1)} = ${chronoAge} + (85 − ${hiVal}) × 0.20`,
+        `AI-корректировка: ${aiDelta >= 0 ? "+" : ""}${aiDelta.toFixed(1)} год${Math.abs(aiDelta) === 1 ? "" : "а"} (коридор ±5)`,
+        `Итоговый био-возраст: ${currentBio.toFixed(1)}`,
+        `Отклонений от оптимума: ${allDeviations.length} из ${(latest.analysis_values || []).length}`,
+      ],
+    };
+
+    // PREVIEW: return computed payload + explanation without inserting
+    if (preview) {
+      return new Response(
+        JSON.stringify({ ...snapshotPayload, adherence_pct: adherencePct, explanation, preview: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { data: snapshot, error: insErr } = await supabase
       .from("health_strategy_snapshots")
-      .insert({
-        user_id: targetUserId,
-        analysis_id: latest.id,
-        current_bio_age: currentBio,
-        chronological_age: chronoAge,
-        target_bio_age: target,
-        health_index: latest.health_index ? Math.round(latest.health_index) : null,
-        system_goals: parsed.system_goals,
-        action_map: actionMap,
-        rationale: normalizeRationale(parsed.rationale),
-        cohort_percentile: cohortPct,
-        cohort_label: parsed.cohort_label || null,
-        trajectory,
-        roadmap,
-        key_biomarkers: keyBiomarkers,
-        expectations,
-        analyses_per_year: analysesPerYear,
-        model: "google/gemini-2.5-flash",
-      })
+      .insert(snapshotPayload)
       .select()
       .single();
 
     if (insErr) throw insErr;
 
-    return new Response(JSON.stringify({ ...snapshot, adherence_pct: adherencePct }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ...snapshot, adherence_pct: adherencePct, explanation }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   } catch (e) {
     console.error(e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });

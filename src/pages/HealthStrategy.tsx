@@ -13,6 +13,7 @@ import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
 import { ExpectationsTimeline } from "@/components/health-strategy/ExpectationsTimeline";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
 import { toast } from "@/hooks/use-toast";
+import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPreviewDialog";
 
 interface Snapshot {
   current_bio_age: number;
@@ -71,8 +72,11 @@ export default function HealthStrategy() {
   const [riskZone, setRiskZone] = useState<any>(null);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [publishing, setPublishing] = useState(false);
 
-  const canForceRefresh = isSuperAdmin || isViewMode;
+  const canRecalculate = isSuperAdmin && isViewMode;
 
   const displayRationale = useMemo(
     () => sanitizeRationale(snapshot?.rationale ?? null),
@@ -195,6 +199,55 @@ export default function HealthStrategy() {
     }
   };
 
+  const openPreview = async () => {
+    try {
+      setGenerating(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, preview: true },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPreviewData(data);
+      setPreviewOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось пересчитать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const publishEdited = async (edited: any) => {
+    try {
+      setPublishing(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, publish: true, edited },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setSnapshot(data);
+      setPreviewOpen(false);
+      setPreviewData(null);
+      toast({ title: "Стратегия опубликована клиенту" });
+      await load();
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось опубликовать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+
+
   if (loading || demoLoading) {
     return <div className="p-4 md:p-8"><DashboardSkeleton /></div>;
   }
@@ -227,13 +280,26 @@ export default function HealthStrategy() {
               Персональный план управления биологическим возрастом
             </p>
           </div>
-          {hasAnalyses && canForceRefresh && (
-            <Button onClick={() => generate(true)} disabled={generating} variant="outline" size="sm">
+          {hasAnalyses && canRecalculate && (
+            <Button onClick={openPreview} disabled={generating} variant="outline" size="sm">
               <RefreshCw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-              {generating ? "Анализируем..." : "Пересчитать"}
+              {generating ? "Считаем..." : "Пересчитать и проверить"}
             </Button>
           )}
         </div>
+
+        <StrategyPreviewDialog
+          open={previewOpen}
+          data={previewData}
+          startDate={analysis?.date || new Date().toISOString().slice(0, 10)}
+          nextCheckupDate={nextCheckup}
+          categories={categories}
+          publishing={publishing}
+          onCancel={() => setPreviewOpen(false)}
+          onPublish={publishEdited}
+        />
+
+
 
         {!hasAnalyses ? (
           <Card className="border-dashed bg-card/40 backdrop-blur-xl">
