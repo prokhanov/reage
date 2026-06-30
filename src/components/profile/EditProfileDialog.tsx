@@ -33,6 +33,13 @@ interface Profile {
   reproductive_status?: string | null;
   last_menstrual_date?: string | null;
   pregnancy_start_date?: string | null;
+  postpartum_date?: string | null;
+  menopause_date?: string | null;
+  contraceptive_type?: string | null;
+  contraceptive_start_date?: string | null;
+  hrt_type?: string | null;
+  hrt_route?: string | null;
+  hrt_start_date?: string | null;
 }
 
 interface EditProfileDialogProps {
