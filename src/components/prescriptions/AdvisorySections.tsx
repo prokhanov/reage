@@ -58,10 +58,23 @@ const FOLLOWUPS_INTRO_KEYWORDS = [
   "нутрицевтическая поддержка",
 ];
 
+/** Снимает markdown-разметку (**жирный**, *курсив*) которая иногда
+ *  просачивается в текст буллетов и видна пользователю как литералы «**...**». */
+function stripInlineMarkdown(s: string): string {
+  return s
+    .replace(/\*\*\*(.+?)\*\*\*/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/(^|[\s(])\*(?!\s)([^*\n]+?)\*(?=[\s).,;:!?]|$)/g, "$1$2")
+    // Висячие пары/одиночные звёздочки на концах строки
+    .replace(/\*+$/g, "")
+    .replace(/^\*+/g, "")
+    .trim();
+}
+
 export function sanitizeLifestyleItems(items?: string[]): string[] {
   if (!items?.length) return [];
   return items
-    .map((i) => (typeof i === "string" ? i.trim() : ""))
+    .map((i) => (typeof i === "string" ? stripInlineMarkdown(i.trim()) : ""))
     .filter((i) => {
       if (!i) return false;
       const norm = i.toLowerCase().replace(/\s+/g, " ").trim();
