@@ -29,6 +29,8 @@ interface Explanation {
     value: number;
     total_deviations: number;
     total_markers: number;
+    optimal_share_pct?: number;
+    breakdown?: string[];
     top_deviations: Array<{
       name: string;
       code: string;
@@ -40,8 +42,16 @@ interface Explanation {
       deviation_pct: number;
     }>;
   };
+  system_ratings?: Array<{
+    category: string;
+    score: number | null;
+    deviated: number;
+    total: number;
+    rationale: string;
+  }>;
   drivers: string[];
 }
+
 
 interface PreviewPayload {
   analysis_id: string;
