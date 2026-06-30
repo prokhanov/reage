@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, RefreshCw } from "lucide-react";
+import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, RefreshCw, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
@@ -57,9 +57,11 @@ export default function Dashboard() {
   const [categories, setCategories] = useState<string[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [previewMode, setPreviewMode] = useState<"preview" | "edit">("preview");
   const [previewing, setPreviewing] = useState(false);
   const [previewStage, setPreviewStage] = useState<number>(0);
   const [publishing, setPublishing] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const canRecalculate = isSuperAdmin && isViewMode;
 
 
@@ -241,6 +243,7 @@ export default function Dashboard() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setPreviewData(data);
+      setPreviewMode("preview");
       setPreviewOpen(true);
     } catch (e: any) {
       console.error(e);
@@ -249,6 +252,52 @@ export default function Dashboard() {
       if (stageTimer) clearInterval(stageTimer);
       setPreviewing(false);
       setPreviewStage(0);
+    }
+  };
+
+  const openStrategyEdit = async () => {
+    try {
+      setLoadingEdit(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: snap, error } = await supabase
+        .from("health_strategy_snapshots")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!snap) {
+        toast({ title: "Нет сохранённой стратегии", description: "Сначала выполните перерасчёт и публикацию.", variant: "destructive" });
+        return;
+      }
+      setPreviewData({
+        analysis_id: snap.analysis_id,
+        current_bio_age: Number(snap.current_bio_age),
+        chronological_age: Number(snap.chronological_age),
+        target_bio_age: Number(snap.target_bio_age),
+        health_index: snap.health_index,
+        rationale: snap.rationale,
+        system_goals: snap.system_goals || [],
+        action_map: snap.action_map || [],
+        cohort_percentile: snap.cohort_percentile,
+        cohort_label: snap.cohort_label,
+        trajectory: snap.trajectory,
+        roadmap: snap.roadmap || [],
+        key_biomarkers: snap.key_biomarkers,
+        expectations: snap.expectations || [],
+        analyses_per_year: snap.analyses_per_year,
+        adherence_pct: null,
+        explanation: null,
+      });
+      setPreviewMode("edit");
+      setPreviewOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось загрузить стратегию", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setLoadingEdit(false);
     }
   };
 
@@ -374,10 +423,16 @@ export default function Dashboard() {
           </div>
           {canRecalculate && displayAnalysesCount > 0 && (
             <div className="flex flex-col items-end gap-1 min-w-[240px]">
-              <Button onClick={openStrategyPreview} disabled={previewing} variant="outline" size="sm">
-                <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
-                {previewing ? "Считаем..." : "Пересчитать и проверить"}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={openStrategyPreview} disabled={previewing || loadingEdit} variant="outline" size="sm">
+                  <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
+                  {previewing ? "Считаем..." : "Пересчитать"}
+                </Button>
+                <Button onClick={openStrategyEdit} disabled={previewing || loadingEdit} variant="outline" size="sm">
+                  <Pencil className={`mr-2 h-4 w-4 ${loadingEdit ? "animate-pulse" : ""}`} />
+                  {loadingEdit ? "Загружаем..." : "Изменить"}
+                </Button>
+              </div>
               {previewing && (
                 <>
                   <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
@@ -403,6 +458,7 @@ export default function Dashboard() {
             nextCheckupDate={nextBooking?.booking_date || null}
             categories={categories}
             publishing={publishing}
+            mode={previewMode}
             onCancel={() => setPreviewOpen(false)}
             onPublish={publishStrategy}
           />
