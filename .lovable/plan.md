@@ -1,72 +1,67 @@
-## Корень проблемы
+## Цель
 
-1. **Хроновозраст — целое число.**
-   В обоих edge-функциях он считается как разница годов:
-   - `finalize-analysis` (стр. 174): `new Date().getFullYear() - new Date(birth).getFullYear()`
-   - `compute-health-strategy` (стр. 9, `calcAge`): то же самое, без учёта месяца/дня правильно (там есть месяц, но возвращается целое).
-   Поэтому в окне всегда `23.0`, а не реальное `23.7`.
+Сделать так, чтобы диалог `StrategyPreviewDialog` показывал одинаковый набор вкладок и полей в обоих режимах (`mode="preview"` и `mode="edit"`). Сейчас «Изменить» загружает только то, что лежит в `health_strategy_snapshots`, и часть блоков остаётся пустой/невидимой. Берём данные только из снапшота (без вызова edge-функции).
 
-2. **Био-возраст в окне «Пересчитать» не пересчитывается, а просто читается из БД.**
-   `compute-health-strategy` берёт `latest.biological_age` (стр. 202) — это значение, посчитанное `finalize-analysis` в момент загрузки анализа со **старой** формулой (или старым `aging_weight`/штрафами). Поэтому когда мы усилили формулу — кнопка «Пересчитать» это не видит, число остаётся прежним.
+## Что отличается сейчас
 
-3. Из-за п.1 даже базовая часть формулы `chronoAge + (85 − HI) × 0.25` даёт «круглый» результат: целое + целое × 0.25 = .0 / .25 / .5 / .75, что усиливает ощущение «всё округлено».
+После «Пересчитать» в `data` есть:
+- `explanation` (текст «Что повлияло на расчёт» / drivers / формула)
+- `rationale.bio_age_calc`, `rationale.health_index`, `rationale.system_ratings`, `rationale.drivers`
+- `adherence_pct`
 
-## Что делаем
+После «Изменить» (`openStrategyEdit` в `src/pages/Dashboard.tsx`) эти поля либо `null`, либо берутся только из `snap.rationale`. Из-за этого ряд блоков на вкладке «Моё здоровье» не рендерится, а вкладки/секции выглядят по-разному.
 
-### A. Дробный хроновозраст (1 знак)
+## Изменения
 
-Новый общий хелпер в обоих edge-функциях (заменяем оба `calcAge`/inline-вычисление):
+### 1. `src/pages/Dashboard.tsx` — `openStrategyEdit`
+
+Расширить маппинг снапшота → `previewData`, чтобы он давал ту же структуру, что возвращает edge-функция в preview-режиме:
 
 ```ts
-function calcAgeYears(birthIso: string): number {
-  const birth = new Date(birthIso);
-  const now = new Date();
-  const ms = now.getTime() - birth.getTime();
-  const years = ms / (365.2425 * 24 * 3600 * 1000);
-  return Math.round(years * 10) / 10; // 1 знак
-}
+setPreviewData({
+  analysis_id: snap.analysis_id,
+  current_bio_age: Number(snap.current_bio_age),
+  chronological_age: Number(snap.chronological_age),
+  target_bio_age: Number(snap.target_bio_age),
+  health_index: snap.health_index,
+  rationale: snap.rationale ?? {},          // bio_age_calc / health_index / system_ratings / drivers — как есть из БД
+  system_goals: snap.system_goals || [],
+  action_map: snap.action_map || [],
+  cohort_percentile: snap.cohort_percentile,
+  cohort_label: snap.cohort_label,
+  trajectory: snap.trajectory,
+  roadmap: snap.roadmap || [],
+  key_biomarkers: snap.key_biomarkers ?? null,
+  expectations: snap.expectations || [],
+  analyses_per_year: snap.analyses_per_year,
+  adherence_pct: null,
+  explanation: (snap.rationale as any)?.explanation ?? null,
+});
 ```
 
-Точки замены:
-- `supabase/functions/finalize-analysis/index.ts:174` — `const age = ... calcAgeYears(profile.birth_date)`. Дальше переменная `chronologicalAge = age` уже используется в формуле — она автоматически станет дробной.
-- `supabase/functions/compute-health-strategy/index.ts:9-16` (`calcAge`) — заменить тело; все callers продолжат работать.
-- В `explanation.formula.chronological_age` и тексте `drivers` (`compute-health-strategy:767, 785, 787`) — выводить через `.toFixed(1)`.
+Источник данных строго один — сохранённый снапшот. Если поле пустое, блок просто отрисуется пустым (как и договорились).
 
-### B. «Пересчитать» реально пересчитывает био-возраст
+### 2. `src/components/health-strategy/StrategyPreviewDialog.tsx` — единый рендер
 
-В `compute-health-strategy` (только когда `preview === true`) перед формированием `snapshotPayload` пересчитать `currentBio` по той же формуле, что в `finalize-analysis`, но **без AI-вызова** (детерминированно, опираясь на сохранённый AI-сдвиг):
+Сейчас часть секций условно скрывается (например `data.explanation && ...`, `rationale?.bio_age_calc && ...`). Заменить на единый набор секций, общий для обоих режимов:
 
-1. `baseBioAge = chronoAge + (85 − HI) × 0.25` (уже считается на стр. 684).
-2. Достать сохранённый AI-сдвиг: `prevAiAdjust = latest.biomarkers_metadata?.bio_age_calc?.ai_adjustment ?? 0`.
-3. Применить **новый** асимметричный коридор:
-   - `aiLower = HI < 70 ? baseBioAge + 0.5 : HI < 80 ? baseBioAge - 2 : baseBioAge - 5`
-   - `aiUpper = baseBioAge + 5`
-   - `clampedDelta = clamp(prevAiAdjust, aiLower − baseBioAge, aiUpper − baseBioAge)`
-4. `currentBio = round1(baseBioAge + clampedDelta)`.
-5. Этим `currentBio` подменить значение, которое идёт в `snapshotPayload.current_bio_age`, `explanation.formula.final_bio_age`, `drivers`, `roadmap[0]`, target-расчёт и т.д. (заменить присваивание `const currentBio = Number(latest.biological_age)` на эту логику; в режиме НЕ-preview оставить старое чтение из БД, чтобы публикация работала как сейчас, либо тоже использовать пересчёт — см. ниже).
+- Вкладка **«Моё здоровье»**: всегда показывать «Ключевые цифры здоровья» (bio/chrono/HI/target) и «Что повлияло на расчёт» (drivers из `rationale.drivers` или пустое сообщение «нет данных в сохранённом снапшоте»).
+- Вкладка **«Стратегия здоровья»**: всегда показывать «Системные рейтинги», «Цели по системам», «Дорожная карта», «Ожидания по срокам», «Ключевые биомаркеры», «План действий», независимо от `mode`.
+- Поля редактирования (input/textarea/JSON-редакторы) остаются доступны и в `edit`, и в `preview` для суперадмина — как сейчас.
+- Где данных нет — выводить placeholder «—» вместо скрытия блока, чтобы структура вкладок не «прыгала».
 
-   - **Решение:** делаем пересчёт ВСЕГДА (и в preview, и при публикации), чтобы публикуемое значение совпадало с тем, что админ видит и редактирует. Это уже соответствует ожиданию «нажал пересчитать — обновилось везде».
+### 3. Никаких изменений в edge-функции и схеме БД
 
-6. **Запись пересчитанного био в анализ.** В блоке публикации (`mode !== preview`) после успешной записи `health_strategy_snapshots` также обновлять `analyses.biological_age = edited.current_bio_age` (или пересчитанное значение, если правка не пришла), чтобы дашборд/отчёты показывали то же число. Это уже частично делается — проверим в коде публикации и при необходимости добавим update.
+Edge-функция `compute-health-strategy` уже сохраняет `rationale` целиком (включая `bio_age_calc`, `health_index`, `system_ratings`, `drivers`). Достаточно правильно прочитать его в `openStrategyEdit` и не «обнулять» поля.
 
-### C. Формат в UI
+## Технические детали
 
-В `StrategyPreviewDialog.tsx` инициализация `chrono` уже идёт через `.toFixed(1)` — после фикса A значение само станет дробным (23.7), не 23.0. Дополнительно в строке-сводке `drivers` в едж-функции тоже использовать `.toFixed(1)` для согласованности.
+- Файлы: `src/pages/Dashboard.tsx` (функция `openStrategyEdit`), `src/components/health-strategy/StrategyPreviewDialog.tsx`.
+- Логика публикации (`publishStrategy`) не меняется — формат `edited` уже совпадает.
+- Кнопка «Опубликовать» в `edit`-режиме продолжит сохранять snapshot и синхронизировать `analyses.biological_age` / `health_index`.
 
-## Что НЕ трогаем
+## Что НЕ делаем
 
-- Сам коэффициент `0.25`, штрафы массовости, `aging_weight` — остаются как в последней калибровке.
-- AI-вызов в `finalize-analysis` — он по-прежнему срабатывает при загрузке анализа. «Пересчитать» в админке использует уже сохранённый AI-сдвиг + новые границы коридора, без повторного дорогого AI-вызова.
-- Поведение публикации (записи в `health_strategy_snapshots`) — структура та же.
-
-## Файлы
-
-- `supabase/functions/finalize-analysis/index.ts` — заменить расчёт `age` на `calcAgeYears`.
-- `supabase/functions/compute-health-strategy/index.ts` — заменить `calcAge`, добавить пересчёт `currentBio` с применением нового коридора, обновить вывод в `explanation` и `drivers`. В блоке публикации проверить обновление `analyses.biological_age`.
-
-## Технические детали (для проверки)
-
-После правки на тестовом пациенте:
-- Хроно покажется как, например, `23.7`, а не `23.0`.
-- При HI=70: `base = 23.7 + (85−70)·0.25 = 27.45`. Если предыдущий `ai_adjustment` был `-3.0`, новый коридор при HI<70 разрешает только `+0.5` снизу → дельта обрежется до `0`, итог `27.5` (вместо старого `24.0`).
-- При HI=82 и сохранённой дельте `-2.0`: `base = 23.7 + 0.75 = 24.45`, коридор `[base−5, base+5]`, дельта остаётся `-2.0`, итог `22.5`.
+- Не дёргаем edge-функцию из «Изменить» (по решению пользователя — данные только из БД).
+- Не добавляем новые колонки в `health_strategy_snapshots`.
+- Не меняем формулу био-возраста.
