@@ -717,10 +717,15 @@ ${symptomsText}
             .replace(/{symptomsData}/g, symptomsForAI.length > 0 ? JSON.stringify(symptomsForAI, null, 2) : "Симптомы не указаны")
             .replace(/{categoriesList}/g, categoriesList);
 
+          // Асимметричный коридор: при плохом HI нельзя омолаживать (только старение),
+          // при хорошем — обе стороны.
+          const aiLower = health_index < 70 ? baseBioAge : (health_index < 80 ? baseBioAge - 2 : baseBioAge - 5);
+          const aiUpper = baseBioAge + 5;
           const aiConstraintPrompt = `\n\nВАЖНО: Сервер уже рассчитал base_bio_age = ${baseBioAge.toFixed(1)} и health_index = ${health_index}.
-Скорректируй biological_age в [${(baseBioAge - 5).toFixed(1)}, ${(baseBioAge + 5).toFixed(1)}].
-При ≥5 биомаркерах с impact=high — двигайся к верхней границе коридора (+5).
-При ≥80% маркеров в оптимальной зоне и улучшении динамики — к нижней (−5).
+Скорректируй biological_age строго в диапазоне [${aiLower.toFixed(1)}, ${aiUpper.toFixed(1)}].
+${health_index < 70 ? "При HI<70 (плохое здоровье) ЗАПРЕЩЕНО ставить bio_age ниже base_bio_age — только старение." : ""}
+При ≥5 биомаркерах с impact=high — двигайся к верхней границе коридора.
+При ≥80% маркеров в оптимальной зоне и улучшении динамики — к нижней.
 Приоритетные геромаркеры: OSI, hs-CRP, HbA1c, HCY, ACR, eGFR, альбумин, B12, витамин D.
 health_index ДОЛЖЕН быть равен ${health_index}.`;
 
