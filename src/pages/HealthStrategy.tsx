@@ -290,7 +290,13 @@ export default function HealthStrategy() {
             />
 
 
-            {/* 3. Активная карта действий — на всю ширину */}
+            {/* 3. Что будет происходить с организмом — таймлайн ожиданий */}
+            <ExpectationsTimeline
+              startDate={startDate}
+              expectations={(snapshot as any).expectations ?? null}
+            />
+
+            {/* 4. Активная карта действий — на всю ширину */}
             <ActionMap
               actions={(snapshot.action_map as any[]) || []}
               systems={categories}
