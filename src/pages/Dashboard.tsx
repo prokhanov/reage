@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [previewStage, setPreviewStage] = useState<number>(0);
   const [publishing, setPublishing] = useState(false);
   const canRecalculate = isSuperAdmin && isViewMode;
 
@@ -214,8 +215,13 @@ export default function Dashboard() {
   }, [canRecalculate]);
 
   const openStrategyPreview = async () => {
+    let stageTimer: ReturnType<typeof setInterval> | null = null;
     try {
       setPreviewing(true);
+      setPreviewStage(0);
+      stageTimer = setInterval(() => {
+        setPreviewStage((s) => Math.min(s + 1, PREVIEW_STAGES.length - 1));
+      }, 4000);
       const userId = await getUserId();
       if (!userId) return;
       const { data: { session } } = await supabase.auth.getSession();
@@ -231,7 +237,9 @@ export default function Dashboard() {
       console.error(e);
       toast({ title: "Не удалось пересчитать", description: e?.message || "Попробуйте позже", variant: "destructive" });
     } finally {
+      if (stageTimer) clearInterval(stageTimer);
       setPreviewing(false);
+      setPreviewStage(0);
     }
   };
 
@@ -356,15 +364,23 @@ export default function Dashboard() {
             </p>
           </div>
           {canRecalculate && displayAnalysesCount > 0 && (
-            <div className="flex flex-col items-end gap-1 min-w-[200px]">
+            <div className="flex flex-col items-end gap-1 min-w-[240px]">
               <Button onClick={openStrategyPreview} disabled={previewing} variant="outline" size="sm">
                 <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
                 {previewing ? "Считаем..." : "Пересчитать и проверить"}
               </Button>
               {previewing && (
-                <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full w-full bg-gradient-to-r from-transparent via-primary to-transparent animate-pulse" />
-                </div>
+                <>
+                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-500 ease-out"
+                      style={{ width: `${((previewStage + 1) / PREVIEW_STAGES.length) * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-[11px] text-muted-foreground text-right w-full">
+                    Шаг {previewStage + 1}/{PREVIEW_STAGES.length}: {PREVIEW_STAGES[previewStage]}
+                  </div>
+                </>
               )}
             </div>
           )}
