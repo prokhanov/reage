@@ -236,6 +236,20 @@ export default function HealthStrategy() {
               trajectoryPoints={snapshot.trajectory ?? null}
             />
 
+            {snapshot?.rationale && (
+              <Card className="border-primary/20 bg-primary/[0.04]">
+                <CardContent className="p-4 md:p-5 flex gap-3">
+                  <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="text-sm font-semibold text-foreground">Прогноз по вашей траектории</div>
+                    <p className="text-sm text-foreground/85 leading-relaxed">
+                      {snapshot.rationale}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* 2. Контрольные точки — карта пути на год */}
             <RoadmapTimeline
               startDate={startDate}
@@ -255,12 +269,6 @@ export default function HealthStrategy() {
           </div>
         )}
 
-        {snapshot?.rationale && (
-          <p className="text-xs text-muted-foreground/70 italic max-w-3xl">
-            <Sparkles className="inline h-3 w-3 mr-1 text-primary" />
-            {snapshot.rationale}
-          </p>
-        )}
       </div>
     </div>
   );
