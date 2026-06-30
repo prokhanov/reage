@@ -30,6 +30,8 @@ interface Profile {
   gender: string;
   height: number | null;
   weight?: number | null;
+  reproductive_status?: string | null;
+  last_menstrual_date?: string | null;
 }
 
 interface EditProfileDialogProps {
@@ -47,6 +49,8 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
     weight: profile?.weight != null ? String(profile.weight) : "",
+    reproductive_status: profile?.reproductive_status || "",
+    last_menstrual_date: profile?.last_menstrual_date || "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
