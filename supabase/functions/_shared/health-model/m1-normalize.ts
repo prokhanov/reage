@@ -63,7 +63,8 @@ function computeScore(
   if (zone === "optimal") return 1;
 
   if (zone === "normal") {
-    // Сигмоидально от 1 (на границе optimal) до 0.6 (на границе normal).
+    // На границе optimal score=1, на границе normal score=NORMAL_EDGE_SCORE,
+    // плавно (smoothstep) убывает с увеличением расстояния.
     const t = sideProgress(
       value,
       r.optimal_min,
@@ -71,9 +72,7 @@ function computeScore(
       r.normal_min,
       r.normal_max,
     );
-    // smoothstep от 1 → 0.6
-    const smooth = 1 - smoothstep(t);
-    return clamp01(1 - smooth * (1 - NORMAL_EDGE_SCORE));
+    return clamp01(1 - smoothstep(t) * (1 - NORMAL_EDGE_SCORE));
   }
 
   // risk/critical — квадратичное падение от 0.6 → 0
