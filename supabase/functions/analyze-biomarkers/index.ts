@@ -488,7 +488,14 @@ async function processAnalysis({
       : "  Симптомы не указаны";
 
     // Формируем контекст пациента
-    const age = profile?.birth_date ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : null;
+    const age = profile?.birth_date ? (() => {
+      const b = new Date(profile.birth_date);
+      const t = new Date();
+      let a = t.getFullYear() - b.getFullYear();
+      const m = t.getMonth() - b.getMonth();
+      if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+      return a;
+    })() : null;
 
     // Репродуктивный статус (только для женщин)
     const reproStatusMap: Record<string, string> = {
