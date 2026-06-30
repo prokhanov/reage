@@ -224,22 +224,28 @@ export default function HealthStrategy() {
           </Card>
         ) : (
           <div className="space-y-4 md:space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-              {/* 1. Траектория омоложения */}
-              <RejuvenationTrajectory
-                startDate={startDate}
-                chronologicalAge={snapshot.chronological_age}
-                currentBioAge={snapshot.current_bio_age}
-                targetBioAge={snapshot.target_bio_age}
-                healthIndex={snapshot.health_index}
-                previousBioAge={previousSnapshot?.current_bio_age ?? null}
-                previousDate={previousAnalysis?.date ?? null}
-                trajectoryPoints={snapshot.trajectory ?? null}
-              />
+            {/* 1. Траектория омоложения */}
+            <RejuvenationTrajectory
+              startDate={startDate}
+              chronologicalAge={snapshot.chronological_age}
+              currentBioAge={snapshot.current_bio_age}
+              targetBioAge={snapshot.target_bio_age}
+              healthIndex={snapshot.health_index}
+              previousBioAge={previousSnapshot?.current_bio_age ?? null}
+              previousDate={previousAnalysis?.date ?? null}
+              trajectoryPoints={snapshot.trajectory ?? null}
+            />
 
-              {/* 2. Контрольные точки */}
-              <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
-            </div>
+            {/* 2. Контрольные точки — карта пути на год */}
+            <RoadmapTimeline
+              startDate={startDate}
+              nextCheckupDate={nextCheckup}
+              roadmap={(snapshot as any).roadmap ?? null}
+              keyBiomarkers={(snapshot as any).key_biomarkers ?? null}
+              analysesPerYear={(snapshot as any).analyses_per_year ?? null}
+              adherencePct={(snapshot as any).adherence_pct ?? null}
+            />
+
 
             {/* 3. Активная карта действий — на всю ширину */}
             <ActionMap

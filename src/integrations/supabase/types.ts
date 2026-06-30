@@ -1039,6 +1039,7 @@ export type Database = {
       health_strategy_snapshots: {
         Row: {
           action_map: Json
+          analyses_per_year: number | null
           analysis_id: string | null
           chronological_age: number
           cohort_label: string | null
@@ -1047,8 +1048,10 @@ export type Database = {
           current_bio_age: number
           health_index: number | null
           id: string
+          key_biomarkers: Json | null
           model: string | null
           rationale: string | null
+          roadmap: Json | null
           system_goals: Json
           target_bio_age: number
           trajectory: Json | null
@@ -1056,6 +1059,7 @@ export type Database = {
         }
         Insert: {
           action_map?: Json
+          analyses_per_year?: number | null
           analysis_id?: string | null
           chronological_age: number
           cohort_label?: string | null
@@ -1064,8 +1068,10 @@ export type Database = {
           current_bio_age: number
           health_index?: number | null
           id?: string
+          key_biomarkers?: Json | null
           model?: string | null
           rationale?: string | null
+          roadmap?: Json | null
           system_goals?: Json
           target_bio_age: number
           trajectory?: Json | null
@@ -1073,6 +1079,7 @@ export type Database = {
         }
         Update: {
           action_map?: Json
+          analyses_per_year?: number | null
           analysis_id?: string | null
           chronological_age?: number
           cohort_label?: string | null
@@ -1081,8 +1088,10 @@ export type Database = {
           current_bio_age?: number
           health_index?: number | null
           id?: string
+          key_biomarkers?: Json | null
           model?: string | null
           rationale?: string | null
+          roadmap?: Json | null
           system_goals?: Json
           target_bio_age?: number
           trajectory?: Json | null
