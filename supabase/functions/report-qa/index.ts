@@ -583,13 +583,14 @@ Deno.serve(async (req) => {
 
         const { data: avRows, error: avErr } = await admin
           .from("analysis_values")
-          .select("biomarker_id, biomarkers!inner(code, name)")
+          .select("biomarker_id, biomarkers!inner(code, name, general_description)")
           .eq("analysis_id", analysisId);
         if (avErr) throw avErr;
 
         const biomarkers = (avRows || []).map((r: any) => ({
           code: r.biomarkers?.code,
           name: r.biomarkers?.name,
+          general_description: r.biomarkers?.general_description ?? null,
         }));
         const knownCodesNorm = new Set(
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
@@ -600,10 +601,17 @@ Deno.serve(async (req) => {
         // synonyms, or short names as errors.
         const { data: allBiomarkersData } = await admin
           .from("biomarkers")
-          .select("code, name");
+          .select("code, name, general_description");
         const englishWhitelistExtra = new Set<string>();
+        const generalDescByCode = new Map<string, string>();
         for (const b of (allBiomarkersData || []) as any[]) {
           if (b?.code) englishWhitelistExtra.add(normalizeWhitelistToken(String(b.code)));
+          if (b?.code && b?.general_description) {
+            generalDescByCode.set(
+              normalizeBiomarkerCode(String(b.code)),
+              String(b.general_description),
+            );
+          }
           if (b?.name) {
             // also add Latin tokens that may appear inside biomarker names
             for (const tok of String(b.name).split(/[\s,()/]+/)) {
