@@ -1033,8 +1033,23 @@ function calculateHealthIndex(
 
   if (markerCount === 0) return { raw: 70, adjusted: 70, coverage: 0, confidenceFactor: 0, penalties: [] };
 
+  // Гибрид: среднее + worst-5 (чтобы кластер тяжёлых отклонений не "размывался")
+  const sortedPenalties = [...penalties].sort((a, b) => b.penalty - a.penalty);
+  const topN = Math.min(5, sortedPenalties.length);
+  const topPenaltySum = sortedPenalties.slice(0, topN).reduce((sum, p) => sum + p.penalty, 0);
+  const topPenalty = topN > 0 ? topPenaltySum / 5 : 0; // делим всегда на 5: при <5 отклонений вес снижен пропорционально
   const avgPenalty = totalPenalty / markerCount;
-  const rawHealthIndex = Math.max(0, Math.min(100, 100 - avgPenalty * 15));
+  const effectivePenalty = 0.6 * avgPenalty + 0.4 * topPenalty;
+
+  let rawHealthIndex = Math.max(0, Math.min(100, 100 - effectivePenalty * 12));
+
+  // Симметричный бонус оптимума: если ≥80% маркеров чистые и нет critical/risk — +3 балла
+  const criticalOrRiskCount = penalties.filter((p) => p.tier === "critical" || p.tier === "risk").length;
+  const optimalShare = 1 - (penalties.length / markerCount);
+  if (criticalOrRiskCount === 0 && optimalShare >= 0.8) {
+    rawHealthIndex = Math.min(100, rawHealthIndex + 3);
+  }
+
   const coverage = markerCount / totalBiomarkersInSystem;
   const confidenceFactor = Math.min(1.0, coverage / 0.5);
 
@@ -1043,6 +1058,6 @@ function calculateHealthIndex(
     adjusted: Math.round(rawHealthIndex * 10) / 10,
     coverage: Math.round(coverage * 100),
     confidenceFactor: Math.round(confidenceFactor * 100) / 100,
-    penalties: penalties.sort((a, b) => b.penalty - a.penalty).slice(0, 10),
+    penalties: sortedPenalties.slice(0, 10),
   };
 }
