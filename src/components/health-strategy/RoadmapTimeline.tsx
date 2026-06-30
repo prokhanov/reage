@@ -31,7 +31,7 @@ interface Props {
 }
 
 const KIND_ICON: Record<string, any> = {
-  start: Flag,
+  start: FlaskConical,
   milestone: Sparkles,
   analysis: FlaskConical,
   summary: Trophy,
@@ -46,18 +46,56 @@ const SYSTEM_ICON: Record<string, any> = {
   inflammation: ShieldCheck,
 };
 
+// SVG canvas dimensions (viewBox). We use preserveAspectRatio="none" so it
+// stretches across the container; vector-effect="non-scaling-stroke" keeps
+// the line crisp at any width.
+const VB_W = 1000;
+const VB_H = 220;
+const PAD_X = 40; // leave room so the first/last marker don't touch edges
+const MID_Y = VB_H / 2;
+const AMP = 60; // vertical wave amplitude
+
+/** Build a smooth cubic-bezier "S" curve through points. */
+function buildSmoothPath(points: { x: number; y: number }[]): string {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const dx = (p1.x - p0.x) * 0.5;
+    const c1x = p0.x + dx;
+    const c1y = p0.y;
+    const c2x = p1.x - dx;
+    const c2y = p1.y;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+  }
+  return d;
+}
+
 export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomarkers, analysesPerYear, adherencePct }: Props) {
   const today = new Date();
   const start = new Date(startDate);
 
   // Fallback if roadmap not yet generated
-  const milestones: Milestone[] = (roadmap && roadmap.length > 0)
+  const milestonesRaw: Milestone[] = (roadmap && roadmap.length > 0)
     ? roadmap
     : [
-        { title: "Старт курса", date_iso: format(start, "yyyy-MM-dd"), kind: "start", description: "Чек-ап №1", bullets: ["Базовые анализы", "Оценка биомаркеров", "Формирование стратегии"], focus: "понимание исходной точки" },
-        { title: "Контрольный анализ", date_iso: format(new Date(start.getTime() + 90 * 86400000), "yyyy-MM-dd"), kind: "analysis", analysis_number: 2, description: "Анализы №2", bullets: ["Динамика биомаркеров", "Коррекция назначений"], focus: "точная коррекция" },
+        { title: "Анализ №1 · Старт", date_iso: format(start, "yyyy-MM-dd"), kind: "start", description: "Базовый чек-ап и стратегия", bullets: ["Базовые анализы", "Оценка биомаркеров", "Формирование стратегии"], focus: "понимание исходной точки" },
+        { title: "Контрольный анализ", date_iso: format(new Date(start.getTime() + 90 * 86400000), "yyyy-MM-dd"), kind: "analysis", description: "Анализ №2", bullets: ["Динамика биомаркеров", "Коррекция назначений"], focus: "точная коррекция" },
         { title: "Итоги года", date_iso: format(new Date(start.getTime() + 365 * 86400000), "yyyy-MM-dd"), kind: "summary", description: "Финальный чек-ап", bullets: ["Сравнение результатов", "План на следующий год"], focus: "результаты и развитие" },
       ];
+
+  // Renumber analyses so the start is always №1 and subsequent analyses
+  // continue counting from there (start IS the first analysis).
+  let analysisCounter = 0;
+  const milestones = milestonesRaw.map((m) => {
+    if (m.kind === "start" || m.kind === "analysis" || m.kind === "summary") {
+      analysisCounter += 1;
+      return { ...m, _num: analysisCounter };
+    }
+    return { ...m, _num: undefined as number | undefined };
+  });
 
   let activeIdx = -1;
   milestones.forEach((m, i) => {
@@ -66,11 +104,30 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
   });
   if (activeIdx < 0) activeIdx = 0;
 
-  const progressPct = activeIdx >= 0 && milestones.length > 1
-    ? Math.min(100, ((activeIdx + 0.5) / (milestones.length - 1)) * 100)
-    : 0;
+  // Time-proportional placement along the curve
+  const times = milestones.map((m) => new Date(m.date_iso).getTime());
+  const tMin = Math.min(...times);
+  const tMax = Math.max(...times);
+  const tSpan = Math.max(1, tMax - tMin);
+
+  const points = milestones.map((m, i) => {
+    const t = new Date(m.date_iso).getTime();
+    const xPct = (t - tMin) / tSpan; // 0..1
+    const x = PAD_X + xPct * (VB_W - PAD_X * 2);
+    // Alternate above/below for a winding "route" feel
+    const y = MID_Y + (i % 2 === 0 ? -AMP : AMP);
+    return { x, y, xPct };
+  });
+
+  const fullPath = buildSmoothPath(points);
+  // Progress path = path up to active point
+  const passedPath = buildSmoothPath(points.slice(0, Math.max(1, activeIdx + 1)));
 
   const nextAnalysisMs = milestones.find((m, i) => i > activeIdx && (m.kind === "analysis" || m.kind === "summary"));
+
+  // Convert SVG coords to overlay CSS percentages
+  const toLeftPct = (x: number) => (x / VB_W) * 100;
+  const toTopPct = (y: number) => (y / VB_H) * 100;
 
   return (
     <Card className="border-border bg-card overflow-hidden">
@@ -90,58 +147,97 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
           )}
         </div>
 
-        {/* Top timeline with icons */}
-        <div className="relative overflow-x-auto md:overflow-visible -mx-2 px-2">
-          <div className="min-w-[640px] md:min-w-0">
-            <div className="absolute top-[52px] md:top-[56px] left-2 right-2 h-[2px] bg-muted overflow-hidden rounded-full">
-              <div
-                className="h-full transition-all duration-700 rounded-full bg-gradient-primary"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-
-            <div
-              className="grid gap-x-2 relative"
-              style={{ gridTemplateColumns: `repeat(${milestones.length}, minmax(0, 1fr))` }}
+        {/* Winding-route timeline */}
+        <div className="overflow-x-auto md:overflow-visible -mx-2 px-2">
+          <div className="relative min-w-[720px] md:min-w-0" style={{ height: 260 }}>
+            <svg
+              viewBox={`0 0 ${VB_W} ${VB_H}`}
+              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full"
+              aria-hidden
             >
-              {milestones.map((m, i) => {
-                const Icon = KIND_ICON[m.kind] || Sparkles;
-                const passed = i < activeIdx;
-                const current = i === activeIdx;
-                const date = new Date(m.date_iso);
+              <defs>
+                <linearGradient id="roadmapGrad" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.85" />
+                </linearGradient>
+              </defs>
+              {/* Base path (dashed, muted) */}
+              <path
+                d={fullPath}
+                fill="none"
+                stroke="hsl(var(--muted-foreground) / 0.35)"
+                strokeWidth={2}
+                strokeDasharray="6 8"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              {/* Passed progress path */}
+              <path
+                d={passedPath}
+                fill="none"
+                stroke="url(#roadmapGrad)"
+                strokeWidth={3}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
 
-                return (
-                  <div key={i} className="flex flex-col items-center text-center px-1">
-                    <div className="text-[10px] md:text-[11px] mb-3 h-4 text-muted-foreground tabular-nums whitespace-nowrap">
-                      {format(date, "d MMM yyyy", { locale: ru })}
-                    </div>
-                    <div className="relative">
-                      {current && <div className="absolute inset-0 rounded-full animate-ping bg-primary/30" />}
-                      <div
-                        className={[
-                          "relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300",
-                          passed
-                            ? "bg-gradient-primary border-primary text-primary-foreground"
-                            : current
-                            ? "bg-card border-primary text-primary"
-                            : "bg-transparent border-border text-muted-foreground",
-                        ].join(" ")}
-                      >
-                        <Icon className="h-4 w-4" />
+            {/* Marker overlay */}
+            {milestones.map((m, i) => {
+              const Icon = KIND_ICON[m.kind] || Sparkles;
+              const passed = i < activeIdx;
+              const current = i === activeIdx;
+              const p = points[i];
+              const date = new Date(m.date_iso);
+              const above = i % 2 === 0; // matches y selection above
+              return (
+                <div
+                  key={i}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                  style={{ left: `${toLeftPct(p.x)}%`, top: `${toTopPct(p.y)}%` }}
+                >
+                  {/* Date + title positioned opposite the curve direction */}
+                  {above ? (
+                    <div className="absolute bottom-full mb-2 w-[140px] text-center">
+                      <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+                        {format(date, "d MMM yyyy", { locale: ru })}
+                      </div>
+                      <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
+                        {m.title}
                       </div>
                     </div>
-                    <div className={`text-xs md:text-sm font-semibold leading-tight mt-3 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
-                      {m.title}
+                  ) : null}
+
+                  <div className="relative">
+                    {current && <div className="absolute inset-0 rounded-full animate-ping bg-primary/30" />}
+                    <div
+                      className={[
+                        "relative w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 shadow-sm",
+                        passed
+                          ? "bg-gradient-primary border-primary text-primary-foreground"
+                          : current
+                          ? "bg-card border-primary text-primary ring-4 ring-primary/15"
+                          : "bg-card border-border text-muted-foreground",
+                      ].join(" ")}
+                    >
+                      <Icon className="h-4 w-4" />
                     </div>
-                    {m.description && (
-                      <div className="text-[10px] md:text-[11px] leading-tight mt-1 text-muted-foreground line-clamp-2">
-                        {m.description}
-                      </div>
-                    )}
                   </div>
-                );
-              })}
-            </div>
+
+                  {!above ? (
+                    <div className="absolute top-full mt-2 w-[140px] text-center">
+                      <div className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+                        {format(date, "d MMM yyyy", { locale: ru })}
+                      </div>
+                      <div className={`text-[11px] md:text-xs font-semibold leading-tight mt-0.5 line-clamp-2 ${i > activeIdx ? "text-muted-foreground" : "text-foreground"}`}>
+                        {m.title}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -151,6 +247,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
             const passed = i < activeIdx;
             const current = i === activeIdx;
             const future = i > activeIdx;
+            const num = (m as any)._num as number | undefined;
             return (
               <div
                 key={i}
@@ -165,7 +262,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               >
                 <div className="flex items-center justify-between gap-2">
                   <h4 className={`text-sm font-semibold leading-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
-                    {i + 1}. {m.title}
+                    {num ? `Анализ №${num} · ` : ""}{m.title}
                   </h4>
                   {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
                   {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
@@ -236,7 +333,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-foreground">
                 Следующий анализ: {format(new Date(nextAnalysisMs.date_iso), "d MMM yyyy", { locale: ru })}
-                {nextAnalysisMs.analysis_number ? ` (Анализы №${nextAnalysisMs.analysis_number})` : ""}
+                {(nextAnalysisMs as any)._num ? ` (Анализ №${(nextAnalysisMs as any)._num})` : ""}
               </div>
               <div className="text-xs text-muted-foreground">
                 Мы напомним вам за 7 дней до даты
