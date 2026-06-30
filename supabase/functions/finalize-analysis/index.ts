@@ -1046,13 +1046,14 @@ function calculateHealthIndex(
   const topPenaltySum = sortedPenalties.slice(0, topN).reduce((sum, p) => sum + p.penalty, 0);
   const topPenalty = topN > 0 ? topPenaltySum / 5 : 0; // делим всегда на 5: при <5 отклонений вес снижен пропорционально
   const avgPenalty = totalPenalty / markerCount;
-  let effectivePenalty = 0.6 * avgPenalty + 0.4 * topPenalty;
+  let effectivePenalty = 0.7 * avgPenalty + 0.3 * topPenalty;
 
-  // Множитель массовости: при доле отклонений > 25% усиливаем штраф (макс ×2.125 при 100%).
+  // Множитель массовости: только при значительной доле отклонений (>30%) усиливаем штраф (макс ×1.6 при 100%).
   const devShare = penalties.length / markerCount;
-  effectivePenalty *= 1 + Math.max(0, devShare - 0.25) * 1.5;
+  effectivePenalty *= 1 + Math.max(0, devShare - 0.30) * 0.85;
 
-  let rawHealthIndex = Math.max(0, Math.min(100, 100 - effectivePenalty * 12));
+  // Slope 7 (было 12) — единичные критические маркеры не должны обрушать HI до 20.
+  let rawHealthIndex = Math.max(0, Math.min(100, 100 - effectivePenalty * 7));
 
   // Симметричный бонус оптимума: если ≥80% маркеров чистые и нет critical/risk — +3 балла
   const criticalOrRiskCount = penalties.filter((p) => p.tier === "critical" || p.tier === "risk").length;
