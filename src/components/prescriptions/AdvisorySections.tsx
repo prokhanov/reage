@@ -43,8 +43,9 @@ const SECTION_LABELS = new Set(
   ].map((s) => s.toLowerCase()),
 );
 
-/** Регэксп строки follow-up: "Специалист → ..." (одна или две стрелки, → или ->). */
-const FOLLOW_UP_LINE_RE = /^\s*([^→\->\n]{2,80}?)\s*(?:→|->)\s+(.+)$/;
+/** Регэксп строки follow-up: "Специалист → ..." (одна или две стрелки, → или ->).
+ *  Допускаем дефис в названии специалиста («акушер-гинеколог»). */
+const FOLLOW_UP_LINE_RE = /^\s*([^→>\n]{2,80}?)\s*(?:→|->)\s+(.+)$/;
 
 /**
  * Список ключевых слов, по которым строка-«заголовок» из мусора AI считается
@@ -57,10 +58,23 @@ const FOLLOWUPS_INTRO_KEYWORDS = [
   "нутрицевтическая поддержка",
 ];
 
+/** Снимает markdown-разметку (**жирный**, *курсив*) которая иногда
+ *  просачивается в текст буллетов и видна пользователю как литералы «**...**». */
+function stripInlineMarkdown(s: string): string {
+  return s
+    .replace(/\*\*\*(.+?)\*\*\*/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/(^|[\s(])\*(?!\s)([^*\n]+?)\*(?=[\s).,;:!?]|$)/g, "$1$2")
+    // Висячие пары/одиночные звёздочки на концах строки
+    .replace(/\*+$/g, "")
+    .replace(/^\*+/g, "")
+    .trim();
+}
+
 export function sanitizeLifestyleItems(items?: string[]): string[] {
   if (!items?.length) return [];
   return items
-    .map((i) => (typeof i === "string" ? i.trim() : ""))
+    .map((i) => (typeof i === "string" ? stripInlineMarkdown(i.trim()) : ""))
     .filter((i) => {
       if (!i) return false;
       const norm = i.toLowerCase().replace(/\s+/g, " ").trim();
@@ -99,7 +113,8 @@ export function extractFollowUpsFromLifestyle(ls?: LifestyleData): FollowUpData[
   const out: FollowUpData[] = [];
   for (const raw of all) {
     if (typeof raw !== "string") continue;
-    const m = raw.match(FOLLOW_UP_LINE_RE);
+    const cleaned = stripInlineMarkdown(raw.trim());
+    const m = cleaned.match(FOLLOW_UP_LINE_RE);
     if (!m) continue;
     const specialist = m[1].trim().replace(/[:.,;]+$/, "");
     const goal = m[2].trim();

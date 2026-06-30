@@ -594,14 +594,24 @@ ${adherenceText}
 "Ваш ТТГ немного повышен (5.2 мМЕ/л при норме до 4), что может быть связано с ранее указанным гипотиреозом. Это требует консультации эндокринолога для возможной коррекции терапии."
     `.trim();
 
-    // Формируем вступительный раздел с данными пациента
+    // Формируем вступительный раздел с данными пациента.
+    // ВАЖНО: служебные строки «ВАЖНО: …» из reproductiveContext предназначены
+    // только для AI-промпта и НЕ должны попадать в отображаемые данные пациента.
+    const reproductiveDisplay = reproductiveContext
+      ? reproductiveContext
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l && !/^ВАЖНО\b/i.test(l))
+          .map((line) => `\n- **${line.split(':')[0]}:** ${line.split(':').slice(1).join(':').trim()}`)
+          .join('')
+      : '';
     const patientDataSection = `
 # ДАННЫЕ ПАЦИЕНТА
 
 ## Персональная информация
 - **Имя:** ${profile?.name || 'Не указано'}
 - **Возраст:** ${age || 'Не указано'} лет
-- **Пол:** ${profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : 'Не указано'}${reproductiveContext ? reproductiveContext.split('\n').filter(Boolean).map(line => `\n- **${line.split(':')[0]}:** ${line.split(':').slice(1).join(':').trim()}`).join('') : ''}
+- **Пол:** ${profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : 'Не указано'}${reproductiveDisplay}
 - **Рост:** ${profile?.height ? `${profile.height} см` : 'Не указано'}
 - **Вес:** ${actualWeight ? `${actualWeight} кг` : 'Не указано'}
 - **Индекс массы тела (BMI):** ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
@@ -1553,11 +1563,29 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         .filter((block) => /Форма\s*[:：]/i.test(block) || /Дозировка\s*[:：]/i.test(block))
         .map((block) => {
           const blockLines = block.split("\n").map((l) => l.trim()).filter(Boolean);
-          // Имя — первая строка, которая не является полем
-          const nameLine = blockLines.find(
-            (l) => !isFieldLine(l) && !l.startsWith("•") && !l.startsWith("-") && !isSectionHeader(l),
-          );
-          const name = (nameLine || "").replace(/^\d+[.)]\s*/, "").replace(/^\*\*|\*\*$/g, "").trim();
+          // Имя — первая короткая (<= 120 симв.) строка, не являющаяся полем,
+          // буллетом, заголовком секции или длинным вступительным абзацем
+          // (AI иногда пишет «Имя, Ваши анализы показывают…» перед карточкой).
+          const isCandidateName = (l: string) =>
+            !isFieldLine(l) &&
+            !l.startsWith("•") &&
+            !l.startsWith("-") &&
+            !isSectionHeader(l) &&
+            l.replace(/^\d+[.)]\s*/, "").replace(/^\*+|\*+$/g, "").trim().length <= 120;
+          // Берём ПОСЛЕДНЮЮ короткую строку перед первой строкой «Форма:» —
+          // так длинный вступительный параграф будет отброшен, а название
+          // препарата (которое стоит непосредственно перед «Форма:») выиграет.
+          const formIdx = blockLines.findIndex((l) => /^Форма\s*[:：]/i.test(l));
+          let nameLine: string | undefined;
+          const headLines = formIdx > 0 ? blockLines.slice(0, formIdx) : blockLines;
+          for (let i = headLines.length - 1; i >= 0; i--) {
+            if (isCandidateName(headLines[i])) {
+              nameLine = headLines[i];
+              break;
+            }
+          }
+          if (!nameLine) nameLine = blockLines.find(isCandidateName);
+          const name = (nameLine || "").replace(/^\d+[.)]\s*/, "").replace(/^\*+|\*+$/g, "").trim();
 
           const readField = (label: string) => {
             const re = new RegExp(`^${label}\\s*[:：]\\s*(.+)$`, "i");
