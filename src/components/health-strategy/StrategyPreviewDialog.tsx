@@ -68,11 +68,11 @@ interface Explanation {
     assumptions: string[];
   } | null;
   explainability?: {
-    systems: Array<{
-      category: string;
-      top_negative: Array<{ code: string; name: string; contribution: number; reason: string }>;
-      top_positive: Array<{ code: string; name: string; contribution: number; reason: string }>;
-    }>;
+    top_negative?: Array<{ code: string; system: string | null; contribution: number; zone?: string }>;
+    top_positive?: Array<{ code: string; system: string | null; contribution: number; zone?: string }>;
+    per_system?: Record<string, { code: string; contribution: number; zone?: string }>;
+    total_negative_load?: number;
+    total_positive_anchor?: number;
   } | null;
 }
 
@@ -384,40 +384,33 @@ export function StrategyPreviewDialog({
                   </Card>
                 )}
 
-                {/* Explainability (M8) — drivers per system */}
-                {exp?.explainability && exp.explainability.systems.length > 0 && (
+                {/* Explainability (M8) — top drivers */}
+                {exp?.explainability && (((exp.explainability.top_negative?.length ?? 0) > 0) || ((exp.explainability.top_positive?.length ?? 0) > 0)) && (
                   <Card>
                     <CardContent className="p-4 space-y-3">
-                      <div className="text-sm font-semibold">Драйверы по системам</div>
+                      <div className="text-sm font-semibold">Драйверы здоровья</div>
                       <div className="text-xs text-muted-foreground">
-                        Маркеры, которые сильнее всего тянут балл системы вверх или вниз.
+                        Маркеры, которые сильнее всего тянут балл вниз или удерживают его наверху.
                       </div>
-                      <div className="space-y-3 pt-1">
-                        {exp.explainability.systems.map((sys) => (
-                          <div key={sys.category} className="rounded-md bg-background/50 p-3 space-y-2">
-                            <div className="text-sm font-medium">{sys.category}</div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              <div className="space-y-1">
-                                <div className="text-[10px] uppercase tracking-wide text-destructive">Минусы</div>
-                                {sys.top_negative.length > 0 ? sys.top_negative.map((m) => (
-                                  <div key={m.code} className="text-xs flex items-center justify-between gap-2">
-                                    <span className="truncate">{m.name} <span className="text-muted-foreground">({m.code})</span></span>
-                                    <Badge variant="destructive" className="text-[10px] shrink-0">−{m.contribution.toFixed(1)}</Badge>
-                                  </div>
-                                )) : <div className="text-[11px] text-muted-foreground">—</div>}
-                              </div>
-                              <div className="space-y-1">
-                                <div className="text-[10px] uppercase tracking-wide text-emerald-600">Плюсы</div>
-                                {sys.top_positive.length > 0 ? sys.top_positive.map((m) => (
-                                  <div key={m.code} className="text-xs flex items-center justify-between gap-2">
-                                    <span className="truncate">{m.name} <span className="text-muted-foreground">({m.code})</span></span>
-                                    <Badge className="text-[10px] shrink-0 bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20">+{m.contribution.toFixed(1)}</Badge>
-                                  </div>
-                                )) : <div className="text-[11px] text-muted-foreground">—</div>}
-                              </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <div className="space-y-1">
+                          <div className="text-[10px] uppercase tracking-wide text-destructive">Минусы</div>
+                          {(exp.explainability.top_negative ?? []).length > 0 ? (exp.explainability.top_negative ?? []).map((m) => (
+                            <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background/50">
+                              <span className="truncate">{m.code} {m.system && <span className="text-muted-foreground">({m.system})</span>}</span>
+                              <Badge variant="destructive" className="text-[10px] shrink-0">−{Number(m.contribution).toFixed(2)}</Badge>
                             </div>
-                          </div>
-                        ))}
+                          )) : <div className="text-[11px] text-muted-foreground">—</div>}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-[10px] uppercase tracking-wide text-emerald-600">Плюсы</div>
+                          {(exp.explainability.top_positive ?? []).length > 0 ? (exp.explainability.top_positive ?? []).map((m) => (
+                            <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background/50">
+                              <span className="truncate">{m.code} {m.system && <span className="text-muted-foreground">({m.system})</span>}</span>
+                              <Badge className="text-[10px] shrink-0 bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20">+{Number(m.contribution).toFixed(2)}</Badge>
+                            </div>
+                          )) : <div className="text-[11px] text-muted-foreground">—</div>}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
