@@ -469,7 +469,7 @@ export default function Dashboard() {
           {canRecalculate && displayAnalysesCount > 0 && (
             <div className="flex flex-col items-end gap-1 min-w-[240px]">
               <div className="flex gap-2">
-                <Button onClick={openStrategyPreview} disabled={previewing || loadingEdit} variant="outline" size="sm">
+                <Button onClick={() => setOptionsOpen(true)} disabled={previewing || loadingEdit} variant="outline" size="sm">
                   <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
                   {previewing ? "Считаем..." : "Пересчитать"}
                 </Button>
