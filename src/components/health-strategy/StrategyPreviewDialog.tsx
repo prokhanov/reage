@@ -25,7 +25,7 @@ interface Explanation {
     chronological_age: number;
     health_index: number;
   };
-  health_index: {
+  health_index?: {
     value: number;
     total_deviations: number;
     total_markers: number;
@@ -49,7 +49,7 @@ interface Explanation {
     total: number;
     rationale: string;
   }>;
-  drivers: string[];
+  drivers?: string[];
   aging_pace?: {
     pace_bio_years_per_year: number | null;
     trend: "improving" | "stable" | "worsening" | "insufficient_data";
@@ -155,6 +155,14 @@ export function StrategyPreviewDialog({
   if (!data) return null;
   const exp = data.explanation ?? null;
   const isEdit = mode === "edit";
+  const drivers = Array.isArray(exp?.drivers) ? exp.drivers : [];
+  const topDeviations = Array.isArray(exp?.health_index?.top_deviations) ? exp.health_index.top_deviations : [];
+  const healthBreakdown = Array.isArray(exp?.health_index?.breakdown) ? exp.health_index.breakdown : [];
+  const trajectoryHorizons = Array.isArray(exp?.trajectory_v2?.horizons) ? exp.trajectory_v2.horizons : [];
+  const trajectoryAssumptions = Array.isArray(exp?.trajectory_v2?.assumptions) ? exp.trajectory_v2.assumptions : [];
+  const topNegativeDrivers = Array.isArray(exp?.explainability?.top_negative) ? exp.explainability.top_negative : [];
+  const topPositiveDrivers = Array.isArray(exp?.explainability?.top_positive) ? exp.explainability.top_positive : [];
+  const actionMapPreview = safeParseSilent(actionMapJson);
 
   const safeParse = (raw: string, fallback: any, key: string) => {
     try {
@@ -245,15 +253,15 @@ export function StrategyPreviewDialog({
                     {exp ? (
                       <>
                         <ul className="text-sm space-y-1 text-foreground/85">
-                          {exp.drivers.map((d, i) => <li key={i}>• {d}</li>)}
+                          {drivers.map((d, i) => <li key={i}>• {d}</li>)}
                         </ul>
-                        {exp.health_index.top_deviations.length > 0 && (
+                        {topDeviations.length > 0 && (
                           <div className="pt-2">
                             <div className="text-xs font-semibold text-muted-foreground mb-2">
-                              Топ-{exp.health_index.top_deviations.length} отклонений (из {exp.health_index.total_deviations})
+                              Топ-{topDeviations.length} отклонений (из {exp.health_index?.total_deviations ?? topDeviations.length})
                             </div>
                             <div className="space-y-1.5">
-                              {exp.health_index.top_deviations.map((d) => (
+                              {topDeviations.map((d) => (
                                 <div key={d.code} className="flex items-center justify-between text-xs gap-2 py-1 px-2 rounded bg-background/50">
                                   <span className="truncate">{d.name} <span className="text-muted-foreground">({d.code})</span></span>
                                   <span className="flex items-center gap-2 shrink-0">
@@ -277,12 +285,12 @@ export function StrategyPreviewDialog({
                 </Card>
 
                 {/* HI breakdown — show only if it adds info beyond drivers */}
-                {exp && Array.isArray(exp.health_index.breakdown) && exp.health_index.breakdown.length > 0 && (
+                {healthBreakdown.length > 0 && (
                   <Card>
                     <CardContent className="p-4 space-y-2">
                       <div className="text-sm font-semibold">Как сложился индекс здоровья</div>
                       <ul className="text-sm space-y-1 text-foreground/85">
-                        {exp.health_index.breakdown.map((s, i) => <li key={i}>• {s}</li>)}
+                        {healthBreakdown.map((s, i) => <li key={i}>• {s}</li>)}
                       </ul>
                     </CardContent>
                   </Card>
@@ -347,7 +355,7 @@ export function StrategyPreviewDialog({
                 )}
 
                 {/* Trajectory v2 (M7) */}
-                {exp?.trajectory_v2 && exp.trajectory_v2.horizons.length > 0 && (
+                {trajectoryHorizons.length > 0 && (
                   <Card>
                     <CardContent className="p-4 space-y-2">
                       <div className="text-sm font-semibold">Прогноз траектории</div>
@@ -355,7 +363,7 @@ export function StrategyPreviewDialog({
                         Ожидаемое значение био-возраста и индекса здоровья с учётом активных назначений.
                       </div>
                       <div className="grid grid-cols-3 gap-2 pt-2">
-                        {exp.trajectory_v2.horizons.map((h) => (
+                        {trajectoryHorizons.map((h) => (
                           <div key={h.months} className="rounded-md bg-background/60 p-3 space-y-1">
                             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
                               через {h.months} мес.
@@ -375,9 +383,9 @@ export function StrategyPreviewDialog({
                           </div>
                         ))}
                       </div>
-                      {exp.trajectory_v2.assumptions.length > 0 && (
+                      {trajectoryAssumptions.length > 0 && (
                         <ul className="text-[11px] text-muted-foreground pt-2 space-y-0.5">
-                          {exp.trajectory_v2.assumptions.map((a, i) => <li key={i}>• {a}</li>)}
+                          {trajectoryAssumptions.map((a, i) => <li key={i}>• {a}</li>)}
                         </ul>
                       )}
                     </CardContent>
@@ -385,7 +393,7 @@ export function StrategyPreviewDialog({
                 )}
 
                 {/* Explainability (M8) — top drivers */}
-                {exp?.explainability && (((exp.explainability.top_negative?.length ?? 0) > 0) || ((exp.explainability.top_positive?.length ?? 0) > 0)) && (
+                {(topNegativeDrivers.length > 0 || topPositiveDrivers.length > 0) && (
                   <Card>
                     <CardContent className="p-4 space-y-3">
                       <div className="text-sm font-semibold">Драйверы здоровья</div>
@@ -395,7 +403,7 @@ export function StrategyPreviewDialog({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                         <div className="space-y-1">
                           <div className="text-[10px] uppercase tracking-wide text-destructive">Минусы</div>
-                          {(exp.explainability.top_negative ?? []).length > 0 ? (exp.explainability.top_negative ?? []).map((m) => (
+                          {topNegativeDrivers.length > 0 ? topNegativeDrivers.map((m) => (
                             <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background/50">
                               <span className="truncate">{m.code} {m.system && <span className="text-muted-foreground">({m.system})</span>}</span>
                               <Badge variant="destructive" className="text-[10px] shrink-0">−{Number(m.contribution).toFixed(2)}</Badge>
@@ -404,7 +412,7 @@ export function StrategyPreviewDialog({
                         </div>
                         <div className="space-y-1">
                           <div className="text-[10px] uppercase tracking-wide text-emerald-600">Плюсы</div>
-                          {(exp.explainability.top_positive ?? []).length > 0 ? (exp.explainability.top_positive ?? []).map((m) => (
+                          {topPositiveDrivers.length > 0 ? topPositiveDrivers.map((m) => (
                             <div key={m.code} className="text-xs flex items-center justify-between gap-2 py-1 px-2 rounded bg-background/50">
                               <span className="truncate">{m.code} {m.system && <span className="text-muted-foreground">({m.system})</span>}</span>
                               <Badge className="text-[10px] shrink-0 bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20">+{Number(m.contribution).toFixed(2)}</Badge>
@@ -610,7 +618,7 @@ export function StrategyPreviewDialog({
                       startDate={startDate}
                       expectations={expectations}
                     />
-                    <ActionMap actions={(safeParseSilent(actionMapJson) as any[]) || []} systems={categories} />
+                    <ActionMap actions={Array.isArray(actionMapPreview) ? actionMapPreview : []} systems={categories} />
                   </div>
                 </div>
               </div>
