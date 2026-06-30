@@ -126,15 +126,41 @@ export function RejuvenationTrajectory({
               <XAxis dataKey="label" stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} interval={1} />
               <YAxis stroke={axisColor} fontSize={10} tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} width={28} />
               <Tooltip
-                contentStyle={{
-                  background: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: 12,
-                  fontSize: 12,
-                  color: "hsl(var(--popover-foreground))",
+                cursor={{ stroke: axisColor, strokeWidth: 1, strokeDasharray: "4 4" }}
+                content={({ active, payload }) => {
+                  if (!active || !payload || payload.length < 2) return null;
+                  const items = new Map<string, { name: string; value: number; color: string }>();
+                  for (const p of payload) {
+                    const key = p.dataKey as "chrono" | "bio";
+                    if (key === "chrono") {
+                      items.set("chrono", { name: "Хронологический", value: p.value as number, color: axisColor });
+                    } else if (key === "bio") {
+                      items.set("bio", { name: "Биологический", value: p.value as number, color: ACCENT });
+                    }
+                  }
+                  const order = ["chrono", "bio"].filter((k) => items.has(k)) as ("chrono" | "bio")[];
+                  const first = payload[0]?.payload as { fullLabel?: string } | undefined;
+                  return (
+                    <div
+                      className="px-3 py-2 rounded-xl border border-border shadow-sm"
+                      style={{ background: "hsl(var(--popover))", color: "hsl(var(--popover-foreground))", fontSize: 12 }}
+                    >
+                      {first?.fullLabel && <div className="font-medium mb-1.5">{first.fullLabel}</div>}
+                      <div className="space-y-1">
+                        {order.map((key) => {
+                          const item = items.get(key)!;
+                          return (
+                            <div key={key} className="flex items-center gap-2">
+                              <span className="inline-block w-3 h-[2px] rounded-full" style={{ background: item.color }} />
+                              <span className="text-muted-foreground">{item.name}:</span>
+                              <span className="font-semibold tabular-nums">{item.value.toFixed(1)} лет</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
                 }}
-                labelFormatter={(_l, p) => p?.[0]?.payload?.fullLabel || ""}
-                formatter={(v: any, name: string) => [`${v} лет`, name === "bio" ? "Биологический" : "Хронологический"]}
               />
               <Area
                 type="monotone"
