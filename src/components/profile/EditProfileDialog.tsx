@@ -32,6 +32,7 @@ interface Profile {
   weight?: number | null;
   reproductive_status?: string | null;
   last_menstrual_date?: string | null;
+  pregnancy_start_date?: string | null;
 }
 
 interface EditProfileDialogProps {
