@@ -43,6 +43,16 @@ function normalizeRoadmapText(text?: string | null) {
     .trim();
 }
 
+function normalizeRationale(text?: string | null) {
+  return String(text || "")
+    .replace(/\b(?:п|П)ациент(?:а|у|ом|е|ы|ов|ам|ах)?\b/g, "вас")
+    .replace(/\b(?:п|П)ациент(?:\s+\S+)?\b/g, "вы")
+    .replace(/\b(?:человека|клиента)\b/g, "вас")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+
 function hasLegacyRoadmap(roadmap: any) {
   if (!Array.isArray(roadmap)) return true;
   const text = JSON.stringify(roadmap).toLowerCase();
