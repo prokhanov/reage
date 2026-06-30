@@ -60,6 +60,13 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     reproductive_status: profile?.reproductive_status || "",
     last_menstrual_date: profile?.last_menstrual_date || "",
     pregnancy_start_date: profile?.pregnancy_start_date || "",
+    postpartum_date: profile?.postpartum_date || "",
+    menopause_date: profile?.menopause_date || "",
+    contraceptive_type: profile?.contraceptive_type || "",
+    contraceptive_start_date: profile?.contraceptive_start_date || "",
+    hrt_type: profile?.hrt_type || "",
+    hrt_route: profile?.hrt_route || "",
+    hrt_start_date: profile?.hrt_start_date || "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -76,6 +83,13 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         reproductive_status: profile.reproductive_status || "",
         last_menstrual_date: profile.last_menstrual_date || "",
         pregnancy_start_date: profile.pregnancy_start_date || "",
+        postpartum_date: profile.postpartum_date || "",
+        menopause_date: profile.menopause_date || "",
+        contraceptive_type: profile.contraceptive_type || "",
+        contraceptive_start_date: profile.contraceptive_start_date || "",
+        hrt_type: profile.hrt_type || "",
+        hrt_route: profile.hrt_route || "",
+        hrt_start_date: profile.hrt_start_date || "",
       });
     }
   }, [profile]);
