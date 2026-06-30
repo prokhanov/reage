@@ -249,7 +249,8 @@ export default function HealthStrategy() {
           onCancel={() => setPreviewOpen(false)}
           onPublish={publishEdited}
         />
-        </div>
+
+
 
         {!hasAnalyses ? (
           <Card className="border-dashed bg-card/40 backdrop-blur-xl">
