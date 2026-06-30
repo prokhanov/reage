@@ -679,8 +679,9 @@ ${symptomsText}
 
       const chronologicalAge = age;
       if (chronologicalAge) {
-        // Anchor at HI=85 ("optimal" tier), slope 0.25 — усиленная чувствительность
-        const baseBioAge = chronologicalAge + (85 - health_index) * 0.25;
+        // Anchor at HI=82, slope 0.18 — смягчённая чувствительность,
+        // чтобы редкие отклонения не давали скачка био-возраста на 10+ лет.
+        const baseBioAge = chronologicalAge + (82 - health_index) * 0.18;
 
         try {
           const biomarkersForAI = compositeBiomarkers.values.map((av: any) => ({
@@ -719,13 +720,12 @@ ${symptomsText}
             .replace(/{symptomsData}/g, symptomsForAI.length > 0 ? JSON.stringify(symptomsForAI, null, 2) : "Симптомы не указаны")
             .replace(/{categoriesList}/g, categoriesList);
 
-          // Асимметричный коридор: при плохом HI нельзя омолаживать (только старение),
-          // при хорошем — обе стороны.
-          const aiLower = health_index < 70 ? baseBioAge + 0.5 : (health_index < 80 ? baseBioAge - 2 : baseBioAge - 5);
-          const aiUpper = baseBioAge + 5;
+          // Асимметричный коридор: при плохом HI омоложение ограничено, при хорошем — обе стороны.
+          const aiLower = health_index < 70 ? baseBioAge - 1 : (health_index < 80 ? baseBioAge - 2.5 : baseBioAge - 4);
+          const aiUpper = baseBioAge + 3;
           const aiConstraintPrompt = `\n\nВАЖНО: Сервер уже рассчитал base_bio_age = ${baseBioAge.toFixed(1)} и health_index = ${health_index}.
 Скорректируй biological_age строго в диапазоне [${aiLower.toFixed(1)}, ${aiUpper.toFixed(1)}].
-${health_index < 70 ? "При HI<70 (плохое здоровье) ЗАПРЕЩЕНО ставить bio_age ниже base_bio_age — только старение." : ""}
+${health_index < 60 ? "При HI<60 (плохое здоровье) ЗАПРЕЩЕНО опускаться существенно ниже base_bio_age." : ""}
 При ≥5 биомаркерах с impact=high — двигайся к верхней границе коридора.
 При ≥80% маркеров в оптимальной зоне и улучшении динамики — к нижней.
 Приоритетные геромаркеры: OSI, hs-CRP, HbA1c, HCY, ACR, eGFR, альбумин, B12, витамин D.
@@ -805,6 +805,23 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
             aiBioAge = Math.max(aiLower, Math.min(aiUpper, aiBioAge));
             aiBioAge = Math.max(chronologicalAge - 15, Math.min(chronologicalAge + 15, aiBioAge));
             biological_age = Math.round(aiBioAge * 10) / 10;
+
+            // Защитный «пол» для оценок систем: разрыв между AI-score и HI ограничен,
+            // чтобы единичные отклонения не обрушали систему до 20-40 баллов.
+            if (aiResult.category_scores && typeof aiResult.category_scores === "object") {
+              for (const catName of Object.keys(aiResult.category_scores)) {
+                const cat = aiResult.category_scores[catName];
+                if (cat && typeof cat.score === "number") {
+                  const impact = cat.impact || "moderate";
+                  const maxGap = impact === "high" ? 30 : impact === "moderate" ? 20 : 12;
+                  const floor = Math.max(0, health_index - maxGap);
+                  if (cat.score < floor) cat.score = floor;
+                  // также не выше HI+10, чтобы не было «зелёных» систем при низком HI
+                  const ceiling = Math.min(100, health_index + 12);
+                  if (cat.score > ceiling) cat.score = ceiling;
+                }
+              }
+            }
 
             biomarkers_metadata = {
               ...compositeBiomarkers.metadata,
@@ -1046,13 +1063,14 @@ function calculateHealthIndex(
   const topPenaltySum = sortedPenalties.slice(0, topN).reduce((sum, p) => sum + p.penalty, 0);
   const topPenalty = topN > 0 ? topPenaltySum / 5 : 0; // делим всегда на 5: при <5 отклонений вес снижен пропорционально
   const avgPenalty = totalPenalty / markerCount;
-  let effectivePenalty = 0.6 * avgPenalty + 0.4 * topPenalty;
+  let effectivePenalty = 0.7 * avgPenalty + 0.3 * topPenalty;
 
-  // Множитель массовости: при доле отклонений > 25% усиливаем штраф (макс ×2.125 при 100%).
+  // Множитель массовости: только при значительной доле отклонений (>30%) усиливаем штраф (макс ×1.6 при 100%).
   const devShare = penalties.length / markerCount;
-  effectivePenalty *= 1 + Math.max(0, devShare - 0.25) * 1.5;
+  effectivePenalty *= 1 + Math.max(0, devShare - 0.30) * 0.85;
 
-  let rawHealthIndex = Math.max(0, Math.min(100, 100 - effectivePenalty * 12));
+  // Slope 7 (было 12) — единичные критические маркеры не должны обрушать HI до 20.
+  let rawHealthIndex = Math.max(0, Math.min(100, 100 - effectivePenalty * 7));
 
   // Симметричный бонус оптимума: если ≥80% маркеров чистые и нет critical/risk — +3 балла
   const criticalOrRiskCount = penalties.filter((p) => p.tier === "critical" || p.tier === "risk").length;
