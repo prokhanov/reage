@@ -74,7 +74,7 @@ const PageBiomarkers = () => (
     </div>
 
     <p className="text-[12px] leading-relaxed text-foreground/85">
-      Проанализировано <span className="font-semibold text-foreground">112 биомаркеров</span> по пяти ключевым системам организма.
+      Проанализировано <span className="font-semibold text-foreground">135 биомаркеров</span> по пяти ключевым системам организма.
       Углеводный обмен и липидный профиль находятся в превосходном состоянии: гликированный
       гемоглобин <span className="font-semibold">5.05%</span> и HOMA-IR в нижней трети нормы говорят
       о высокой чувствительности тканей к инсулину и низком риске метаболических нарушений.

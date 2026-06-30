@@ -94,7 +94,12 @@ function normalizeUnit(u: string): string {
   return s;
 }
 
-const QUALITATIVE_URINE_CODES = new Set(["HB-U", "KET-U", "NIT-U", "BIL-U", "GLU-U", "PRO-U", "UBG"]);
+const QUALITATIVE_URINE_CODES = new Set([
+  "HB-U", "KET-U", "NIT-U", "BIL-U", "GLU-U", "PRO-U", "UBG",
+  // Микроскопия осадка: значения могут приходить как "не обнаружено" / "+" / "++" / "+++" / число
+  "LEU-EST-U", "ERY-RXN-U", "EPI-SQ-U", "EPI-TR-U", "EPI-REN-U",
+  "CYL-HYA-U", "CYL-PATH-U", "MUC-U", "BACT-U", "YEAST-U", "SALT-U",
+]);
 
 function parseQualitative(raw: string): number | null {
   const s = (raw || "").toLowerCase().replace(/\s+/g, "").replace(".", "");
