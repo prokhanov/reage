@@ -1762,6 +1762,8 @@ export type Database = {
       profiles: {
         Row: {
           birth_date: string | null
+          contraceptive_start_date: string | null
+          contraceptive_type: string | null
           created_at: string
           demo_mode_enabled: boolean | null
           email: string | null
@@ -1770,10 +1772,14 @@ export type Database = {
           gender: string | null
           health_note: string | null
           height: number | null
+          hrt_route: string | null
+          hrt_start_date: string | null
+          hrt_type: string | null
           id: string
           last_menstrual_date: string | null
           last_name: string | null
           medications: string[] | null
+          menopause_date: string | null
           name: string
           needs_risk_refresh: boolean | null
           operations: Json | null
@@ -1781,6 +1787,7 @@ export type Database = {
           passport_series: string | null
           phone: string | null
           phone_verified_at: string | null
+          postpartum_date: string | null
           pregnancy_start_date: string | null
           reproductive_status: string | null
           telegram_id: string | null
@@ -1789,6 +1796,8 @@ export type Database = {
         }
         Insert: {
           birth_date?: string | null
+          contraceptive_start_date?: string | null
+          contraceptive_type?: string | null
           created_at?: string
           demo_mode_enabled?: boolean | null
           email?: string | null
@@ -1797,10 +1806,14 @@ export type Database = {
           gender?: string | null
           health_note?: string | null
           height?: number | null
+          hrt_route?: string | null
+          hrt_start_date?: string | null
+          hrt_type?: string | null
           id: string
           last_menstrual_date?: string | null
           last_name?: string | null
           medications?: string[] | null
+          menopause_date?: string | null
           name: string
           needs_risk_refresh?: boolean | null
           operations?: Json | null
@@ -1808,6 +1821,7 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          postpartum_date?: string | null
           pregnancy_start_date?: string | null
           reproductive_status?: string | null
           telegram_id?: string | null
@@ -1816,6 +1830,8 @@ export type Database = {
         }
         Update: {
           birth_date?: string | null
+          contraceptive_start_date?: string | null
+          contraceptive_type?: string | null
           created_at?: string
           demo_mode_enabled?: boolean | null
           email?: string | null
@@ -1824,10 +1840,14 @@ export type Database = {
           gender?: string | null
           health_note?: string | null
           height?: number | null
+          hrt_route?: string | null
+          hrt_start_date?: string | null
+          hrt_type?: string | null
           id?: string
           last_menstrual_date?: string | null
           last_name?: string | null
           medications?: string[] | null
+          menopause_date?: string | null
           name?: string
           needs_risk_refresh?: boolean | null
           operations?: Json | null
@@ -1835,6 +1855,7 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          postpartum_date?: string | null
           pregnancy_start_date?: string | null
           reproductive_status?: string | null
           telegram_id?: string | null
