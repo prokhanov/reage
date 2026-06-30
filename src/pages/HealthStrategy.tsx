@@ -28,6 +28,28 @@ interface Snapshot {
   trajectory?: Array<{ month: number; bio_age: number }> | null;
 }
 
+function sanitizeRationale(text: string | null): string {
+  if (!text) return "";
+  return (
+    text
+      // Common awkward phrasing → natural personal-account wording
+      .replace(/Учитывая текущие биомаркеры и хронологический возраст пациента/gi, "Учитывая ваши текущие биомаркеры и хронологический возраст")
+      .replace(/Учитывая текущие биомаркеры пациента/gi, "Учитывая ваши текущие биомаркеры")
+      .replace(/хронологический возраст пациента/gi, "ваш хронологический возраст")
+      .replace(/биомаркеры пациента/gi, "ваши биомаркеры")
+      .replace(/биомаркеры и хронологический возраст пациента/gi, "ваши биомаркеры и хронологический возраст")
+      .replace(/\bпациента\b/gi, "вас")
+      .replace(/\bпациенту\b/gi, "вам")
+      .replace(/\bпациентом\b/gi, "вами")
+      .replace(/\bпациенте\b/gi, "вас")
+      .replace(/\bпациенты\b/gi, "вы")
+      .replace(/\bпациентов\b/gi, "вас")
+      .replace(/\bпациент\b/gi, "вы")
+      .replace(/\s{2,}/g, " ")
+      .trim()
+  );
+}
+
 export default function HealthStrategy() {
   const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
   const { data: roleData } = useUserRole();
