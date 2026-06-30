@@ -261,7 +261,7 @@ export function StrategyPreviewDialog({
                   <Field label="Хронологический возраст">
                     <Input type="number" step="0.1" value={chrono} onChange={(e) => setChrono(e.target.value)} />
                   </Field>
-                  <Field label="Био-возраст (текущий)">
+                  <Field label="Новый био-возраст (к публикации)">
                     <Input type="number" step="0.1" value={bio} onChange={(e) => setBio(e.target.value)} />
                   </Field>
                   <Field label="Целевой био-возраст">
