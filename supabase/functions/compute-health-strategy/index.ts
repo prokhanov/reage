@@ -558,6 +558,46 @@ ${prescContext || "(нет активных назначений — дейст�
       ? parsed.action_map.filter((a: any) => !a.prescription_name || prescNameSet.has(String(a.prescription_name).toLowerCase()) || prescTitles.some((t: string) => String(a.prescription_name).toLowerCase().includes(t.toLowerCase())))
       : [];
 
+    // Normalize and validate expectations timeline
+    const ALLOWED_SYSTEMS = new Set(["energy", "sleep", "gut", "hormones", "metabolism", "inflammation", "general"]);
+    const ALLOWED_CATS = new Set(["wellbeing", "biomarker", "system", "milestone"]);
+    const startMsForExp = startDate.getTime();
+    const expectations = Array.isArray(parsed.expectations)
+      ? parsed.expectations
+          .map((e: any) => {
+            const day = Math.max(1, Math.min(365, Math.round(Number(e.day_from_start) || 0)));
+            const dateIso = e.date_iso || toIso(new Date(startMsForExp + day * 86400000));
+            const category = ALLOWED_CATS.has(e.category) ? e.category : "wellbeing";
+            const sys = ALLOWED_SYSTEMS.has(e.system_key) ? e.system_key : "general";
+            let target: any = undefined;
+            if (category === "biomarker" && e.biomarker_target && patientCodeSet.has(e.biomarker_target.code)) {
+              target = {
+                code: e.biomarker_target.code,
+                from: Number(e.biomarker_target.from),
+                to: Number(e.biomarker_target.to),
+                unit: String(e.biomarker_target.unit || ""),
+              };
+            }
+            // Drop biomarker events without a valid target
+            if (category === "biomarker" && !target) return null;
+            return {
+              day_from_start: day,
+              date_iso: dateIso,
+              category,
+              system_key: sys,
+              title: normalizeRationale(String(e.title || "")).slice(0, 80),
+              description: normalizeRationale(String(e.description || "")).slice(0, 320),
+              driver: normalizeRationale(String(e.driver || "")).slice(0, 200),
+              biomarker_target: target,
+              linked_roadmap_date: e.linked_roadmap_date || undefined,
+              confidence: ["high", "medium", "low"].includes(e.confidence) ? e.confidence : "medium",
+            };
+          })
+          .filter(Boolean)
+          .sort((a: any, b: any) => a.day_from_start - b.day_from_start)
+          .slice(0, 16)
+      : [];
+
     const { data: snapshot, error: insErr } = await supabase
       .from("health_strategy_snapshots")
       .insert({
@@ -575,6 +615,7 @@ ${prescContext || "(нет активных назначений — дейст�
         trajectory,
         roadmap,
         key_biomarkers: keyBiomarkers,
+        expectations,
         analyses_per_year: analysesPerYear,
         model: "google/gemini-2.5-flash",
       })
