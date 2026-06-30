@@ -266,9 +266,9 @@ export function StrategyPreviewDialog({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <Field label="Хронологический возраст">
-                          <Input type="number" step="0.1" placeholder="23.4" value={chrono} onChange={(e) => setChrono(e.target.value)} />
+                          <Input type="number" value={chrono} readOnly disabled className="bg-muted/40" />
                         </Field>
-                        <p className="text-[11px] text-muted-foreground mt-1">по дате рождения</p>
+                        <p className="text-[11px] text-muted-foreground mt-1">считается автоматически по дате рождения</p>
                       </div>
                       <div>
                         <Field label="Биологический возраст">
