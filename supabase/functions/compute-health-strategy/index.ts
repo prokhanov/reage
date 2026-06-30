@@ -1,5 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
+import { loadHealthModelSettings } from "../_shared/health-model/settings.ts";
+import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
+import { toMarkerInputs } from "../_shared/health-model/adapter.ts";
+import { computeAgingPace } from "../_shared/health-model/m6-aging-pace.ts";
+import { computeTrajectory } from "../_shared/health-model/m7-trajectory.ts";
+import { computeExplainability } from "../_shared/health-model/m8-explainability.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
