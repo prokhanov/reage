@@ -2,6 +2,45 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+
+function sanitizeReportTextForPatient(text: string): string {
+  if (!text) return "";
+
+  let cleaned = String(text).replace(/\r\n/g, "\n");
+
+  // Remove complete internal prompt blocks if the model echoes them.
+  cleaned = cleaned.replace(
+    /^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
+    "",
+  );
+  cleaned = cleaned.replace(
+    /^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ\s+И\s+СИМПТОМОВ\s*[:：][\s\S]*?(?=^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
+    "",
+  );
+  cleaned = cleaned.replace(
+    /^\s*Всегда\s+указывай\s+связь\s+показателей[\s\S]*?(?=^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
+    "",
+  );
+
+  const serviceLinePatterns = [
+    /^\s*ВАЖНО\s*[:：]/i,
+    /^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：]?/i,
+    /^\s*(?:учитывай|учесть)\s+(?:физиологические|лактационные|постменопаузальные|сдвиги|при интерпретации)(?=\s|$|[.,:;—-])/i,
+    /^\s*(?:КОК|прогестиновые методы|пероральная МГТ|трансдермальная МГТ)(?=\s|$|[.,:;—-]).*(?:учитывай|интерпретируй|влияют|повышают|снижают)(?=\s|$|[.,:;—-])/i,
+    /^\s*(?:служебн(?:ая|ые|ое)|внутренн(?:яя|ие|ее))\s+(?:инструкц|правил|контекст)/i,
+    /(?:^|[\s.,:;—-])(?:не\s+вывод(?:и|ить)|не\s+показыва(?:й|ть)|не\s+цитиру(?:й|йте)|только\s+для\s+AI|для\s+ИИ|AI-промпт|промпта|system prompt)(?=$|[\s.,:;—-])/i,
+  ];
+
+  cleaned = cleaned
+    .split("\n")
+    .filter((line) => !serviceLinePatterns.some((pattern) => pattern.test(line.trim())))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return cleaned;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -1392,7 +1431,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryStatuses[category] = { success: true, tokens: tokensUsed, retries: retryCount };
         }
         
-        categoryReports[category] = categoryReport;
+        const cleanedCategoryReport = sanitizeReportTextForPatient(categoryReport);
+        categoryReports[category] = cleanedCategoryReport;
         totalTokens += tokensUsed;
 
         // Сохраняем категорию сразу — клиент увидит прогресс через polling
@@ -1400,7 +1440,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           user_id: analysis.user_id,
           analysis_id: analysisId,
           type: category,
-          text: categoryReport
+          text: cleanedCategoryReport
         });
         if (catInsertError) {
           console.error(`Failed to save category ${category}:`, catInsertError.message);
@@ -1413,7 +1453,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
         if (String(error?.message || "").includes("Недостаточно AI-кредитов")) throw error;
-        const fallbackReport = buildCategoryFallbackReport(category, biomarkers as any[], profile, age);
+        const fallbackReport = sanitizeReportTextForPatient(buildCategoryFallbackReport(category, biomarkers as any[], profile, age));
         const { error: fallbackInsertError } = await supabase.from("recommendations").insert({
           user_id: analysis.user_id,
           analysis_id: analysisId,
@@ -1446,7 +1486,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
       }
       for (const rec of savedRecs ?? []) {
         if (rec?.type && typeof rec.text === "string" && rec.text.trim()) {
-          categoryReports[rec.type] = rec.text;
+          categoryReports[rec.type] = sanitizeReportTextForPatient(rec.text);
           categoryStatuses[rec.type] = { success: true, loaded_from_db: true };
         }
       }
@@ -1875,7 +1915,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .join('\n');
 
         const keyFindings = Object.entries(categoryReports)
-          .map(([category, report]) => `${category}: ${report.substring(0, 3000)}...`)
+          .map(([category, report]) => `${category}: ${sanitizeReportTextForPatient(String(report)).substring(0, 3000)}...`)
           .join('\n\n');
 
         const finalPrescriptionsPrompt = prescriptionsUserPrompt.prompt_text
@@ -2076,6 +2116,22 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         summaryParts.push("Назначения сохранены в текстовом формате");
       }
       const summaryText = summaryParts.join(". ") + ".";
+      const cleanedPrescriptionsText = sanitizeReportTextForPatient(
+        hasMarkdownFallback ? prescriptionsRawContent : summaryText,
+      );
+      const cleanedRawMarkdown = sanitizeReportTextForPatient(prescriptionsRawContent);
+      const cleanedLifestyle = {
+        nutrition: lifestyleFinal.nutrition.map(sanitizeReportTextForPatient).filter(Boolean),
+        activity: lifestyleFinal.activity.map(sanitizeReportTextForPatient).filter(Boolean),
+        sleep: lifestyleFinal.sleep.map(sanitizeReportTextForPatient).filter(Boolean),
+      };
+      const cleanedFollowUps = followUpsFinal
+        .map((item) => ({
+          specialist: sanitizeReportTextForPatient(item.specialist),
+          goal: sanitizeReportTextForPatient(item.goal),
+          trigger: sanitizeReportTextForPatient(item.trigger),
+        }))
+        .filter((item) => item.specialist || item.goal || item.trigger);
 
       const { error: rxRecError } = await supabase
         .from("recommendations")
@@ -2083,11 +2139,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           user_id: analysis.user_id,
           analysis_id: analysisId,
           type: "Назначения",
-          text: hasMarkdownFallback ? prescriptionsRawContent : summaryText,
+          text: cleanedPrescriptionsText,
           content_json: {
-            lifestyle: lifestyleFinal,
-            follow_ups: followUpsFinal,
-            ...(hasMarkdownFallback ? { raw_markdown: prescriptionsRawContent } : {}),
+            lifestyle: cleanedLifestyle,
+            follow_ups: cleanedFollowUps,
+            ...(hasMarkdownFallback && cleanedRawMarkdown ? { raw_markdown: cleanedRawMarkdown } : {}),
           },
         });
 

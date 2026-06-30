@@ -7,6 +7,45 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+
+function sanitizeReportTextForPatient(text: string): string {
+  if (!text) return "";
+
+  let cleaned = String(text).replace(/\r\n/g, "\n");
+
+  // Remove complete internal prompt blocks if the model echoes them.
+  cleaned = cleaned.replace(
+    /^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
+    "",
+  );
+  cleaned = cleaned.replace(
+    /^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ\s+И\s+СИМПТОМОВ\s*[:：][\s\S]*?(?=^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
+    "",
+  );
+  cleaned = cleaned.replace(
+    /^\s*Всегда\s+указывай\s+связь\s+показателей[\s\S]*?(?=^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
+    "",
+  );
+
+  const serviceLinePatterns = [
+    /^\s*ВАЖНО\s*[:：]/i,
+    /^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：]?/i,
+    /^\s*(?:учитывай|учесть)\s+(?:физиологические|лактационные|постменопаузальные|сдвиги|при интерпретации)(?=\s|$|[.,:;—-])/i,
+    /^\s*(?:КОК|прогестиновые методы|пероральная МГТ|трансдермальная МГТ)(?=\s|$|[.,:;—-]).*(?:учитывай|интерпретируй|влияют|повышают|снижают)(?=\s|$|[.,:;—-])/i,
+    /^\s*(?:служебн(?:ая|ые|ое)|внутренн(?:яя|ие|ее))\s+(?:инструкц|правил|контекст)/i,
+    /(?:^|[\s.,:;—-])(?:не\s+вывод(?:и|ить)|не\s+показыва(?:й|ть)|не\s+цитиру(?:й|йте)|только\s+для\s+AI|для\s+ИИ|AI-промпт|промпта|system prompt)(?=$|[\s.,:;—-])/i,
+  ];
+
+  cleaned = cleaned
+    .split("\n")
+    .filter((line) => !serviceLinePatterns.some((pattern) => pattern.test(line.trim())))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return cleaned;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -117,7 +156,7 @@ async function finalize({ analysisId, mode, phase }: { analysisId: string; mode:
     const categoryReports: Record<string, string> = {};
     for (const rec of (existingRecs || []) as any[]) {
       if (rec.type && categoryNames.has(rec.type) && rec.text) {
-        categoryReports[rec.type] = rec.text;
+        categoryReports[rec.type] = sanitizeReportTextForPatient(rec.text);
       }
     }
     if (Object.keys(categoryReports).length === 0) {
@@ -180,7 +219,7 @@ ${symptomsText}
 
     // Список «коротких» рекомендаций из готовых отчётов
     const categoryRecommendations = Object.entries(categoryReports)
-      .map(([cat, txt]) => `--- ${cat} ---\n${(txt as string).substring(0, 1200)}`)
+      .map(([cat, txt]) => `--- ${cat} ---\n${sanitizeReportTextForPatient(String(txt)).substring(0, 1200)}`)
       .join("\n\n");
 
     // Список назначений из БД (могут быть пустыми) — передаём ВСЕ структурные поля,
@@ -207,7 +246,7 @@ ${symptomsText}
     if (doSummary) {
     try {
       const allReportsText = Object.entries(categoryReports)
-        .map(([cat, report]) => `=== ${cat} ===\n${(report as string).substring(0, 8000)}`)
+        .map(([cat, report]) => `=== ${cat} ===\n${sanitizeReportTextForPatient(String(report)).substring(0, 8000)}`)
         .join("\n\n");
 
       const summaryUserPromptTemplate = prompts["summary_user"];
@@ -239,7 +278,7 @@ ${symptomsText}
 
       if (summaryResponse.ok) {
         const summaryData = await summaryResponse.json();
-        summaryReport = summaryData.choices?.[0]?.message?.content || "";
+        summaryReport = sanitizeReportTextForPatient(summaryData.choices?.[0]?.message?.content || "");
         totalTokens += summaryData.usage?.total_tokens || 0;
         console.log(`Summary: tokens=${summaryData.usage?.total_tokens}, length=${summaryReport.length}`);
       } else {
@@ -271,7 +310,7 @@ ${symptomsText}
         // @ts-ignore — content_json обновим ниже, здесь только text
         const { error: updErr } = await supabase
           .from("recommendations")
-          .update({ text: summaryReport })
+          .update({ text: sanitizeReportTextForPatient(summaryReport) })
           .eq("id", existing.id);
         if (updErr) console.error("Error updating summary:", updErr);
         else console.log(`Updated: Общее резюме (id: ${summaryRecommendationId})`);
@@ -282,7 +321,7 @@ ${symptomsText}
             user_id: analysis.user_id,
             analysis_id: analysisId,
             type: "Общее резюме",
-            text: summaryReport,
+            text: sanitizeReportTextForPatient(summaryReport),
           })
           .select("id")
           .single();
@@ -359,7 +398,7 @@ ${symptomsText}
       // 1) Общее резюме — отдельная секция в самом начале
       if (summaryReport && summaryReport.trim()) {
         blocks.push({ type: "section", title: "Общее резюме", emoji: "📋" });
-        blocks.push({ type: "summary", content: summaryReport, scope: "overall" });
+        blocks.push({ type: "summary", content: sanitizeReportTextForPatient(summaryReport), scope: "overall" });
         blocks.push({ type: "spacer", size: "medium" });
       }
 
@@ -433,11 +472,10 @@ ${symptomsText}
 
           // Чистилка от прочих якорей и заголовков-обёрток.
           const stripMisc = (s: string) =>
-            s
+            sanitizeReportTextForPatient(s
               .replace(/<!--\s*anchor:[^\n>]*?-->/g, "")
               .replace(/^\s*Интерпретация биомаркеров\s*$/im, "")
-              .replace(/\n{3,}/g, "\n\n")
-              .trim();
+              .replace(/\n{3,}/g, "\n\n"));
 
           if (anchors.length === 0) {
             // Якорей нет — кладём весь нарратив одним текстовым блоком.
@@ -565,7 +603,7 @@ ${symptomsText}
             user_id: analysis.user_id,
             analysis_id: analysisId,
             type: "Общее резюме",
-            text: summaryReport || "Резюме недоступно — отчёт сформирован в режиме fallback.",
+            text: sanitizeReportTextForPatient(summaryReport) || "Резюме недоступно — отчёт сформирован в режиме fallback.",
           })
           .select("id")
           .single();
