@@ -1051,6 +1051,7 @@ export type Database = {
           rationale: string | null
           system_goals: Json
           target_bio_age: number
+          trajectory: Json | null
           user_id: string
         }
         Insert: {
@@ -1067,6 +1068,7 @@ export type Database = {
           rationale?: string | null
           system_goals?: Json
           target_bio_age: number
+          trajectory?: Json | null
           user_id: string
         }
         Update: {
@@ -1083,6 +1085,7 @@ export type Database = {
           rationale?: string | null
           system_goals?: Json
           target_bio_age?: number
+          trajectory?: Json | null
           user_id?: string
         }
         Relationships: []
