@@ -423,8 +423,14 @@ export function StrategyPreviewDialog({
                   </Card>
                 )}
 
-
+                {/* System ratings — editable, always shown */}
+                <Card>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="text-sm font-semibold">Рейтинги систем организма</div>
+                    <div className="text-xs text-muted-foreground">Балл и обоснование можно менять.</div>
+                    {systemRatings.length > 0 ? (
                       <div className="space-y-2 pt-1">
+
                         {systemRatings.map((r, i) => (
                           <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
                             <div className="col-span-12 md:col-span-4 text-sm font-medium pt-1.5">{r.category}</div>
