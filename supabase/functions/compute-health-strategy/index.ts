@@ -15,6 +15,24 @@ function calcAge(birth: string) {
   return a;
 }
 
+function addMonths(d: Date, m: number) {
+  const r = new Date(d);
+  r.setMonth(r.getMonth() + m);
+  return r;
+}
+
+function toIso(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+function detectAnalysesPerYear(planName?: string | null): number {
+  const n = (planName || "").toLowerCase();
+  if (n.includes("базов") || n.includes("basic") || n.includes("старт")) return 2;
+  if (n.includes("оптим") || n.includes("optim") || n.includes("стандарт")) return 3;
+  if (n.includes("прем") || n.includes("premium") || n.includes("макс")) return 4;
+  return 3;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -33,8 +51,6 @@ serve(async (req) => {
     const { userId, force } = await req.json().catch(() => ({}));
     const targetUserId = userId || user.id;
 
-    // Always reuse snapshot if it's tied to the latest analysis.
-    // Strategy is recalculated ONLY when a new analysis appears (or force=true from admin).
     const { data: latestAnalysisRow } = await supabase
       .from("analyses")
       .select("id")
@@ -53,41 +69,56 @@ serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (cached) {
+      if (cached && cached.roadmap && cached.key_biomarkers) {
         return new Response(JSON.stringify(cached), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
 
-    const [profileRes, analysesRes, prescRes, categoriesRes] = await Promise.all([
+    const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", targetUserId).single(),
-      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit))").eq("user_id", targetUserId).eq("status", "processed").order("date", { ascending: false }).limit(1),
+      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, optimal_min, optimal_max))").eq("user_id", targetUserId).eq("status", "processed").order("date", { ascending: false }).limit(1),
       supabase.from("prescriptions").select("*").eq("user_id", targetUserId).eq("is_archived", false),
       supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
+      supabase.from("complaints").select("main_complaints, goals, lifestyle").eq("user_id", targetUserId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("subscriptions").select("plan_id, status, start_date, subscription_plans(name, display_name)").eq("user_id", targetUserId).eq("status", "active").order("start_date", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("analysis_bookings").select("booking_date, status").eq("user_id", targetUserId).gte("booking_date", new Date().toISOString().slice(0, 10)).order("booking_date", { ascending: true }),
+      supabase.from("prescription_adherence").select("status").eq("user_id", targetUserId).gte("date", new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().slice(0, 10)),
     ]);
 
     const profile = profileRes.data;
     const latest = analysesRes.data?.[0];
     const prescriptions = prescRes.data || [];
     const categories = categoriesRes.data || [];
+    const complaints = complaintsRes.data;
+    const subscription: any = subRes.data;
+    const futureBookings = bookingsRes.data || [];
+    const adherenceRows = adherenceRes.data || [];
 
     if (!profile || !latest || latest.biological_age == null) {
       return new Response(JSON.stringify({ error: "No analysis data" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const planName = subscription?.subscription_plans?.display_name || subscription?.subscription_plans?.name || null;
+    const analysesPerYear = detectAnalysesPerYear(planName);
+
     const chronoAge = calcAge(profile.birth_date);
     const currentBio = Number(latest.biological_age);
 
-    // Build biomarker summary by category
-    const byCat: Record<string, Array<{ name: string; code: string; value: number; unit: string }>> = {};
+    // Build biomarker summary + deviation flags
+    const byCat: Record<string, Array<{ name: string; code: string; value: number; unit: string; deviated: boolean }>> = {};
     for (const av of latest.analysis_values || []) {
       const b = av.biomarkers;
       if (!b) continue;
+      const v = Number(av.value);
+      const optMin = b.optimal_min ?? b.normal_min;
+      const optMax = b.optimal_max ?? b.normal_max;
+      const deviated = (optMin != null && v < Number(optMin)) || (optMax != null && v > Number(optMax));
       byCat[b.category] = byCat[b.category] || [];
-      byCat[b.category].push({ name: b.name, code: b.code, value: av.value, unit: b.unit });
+      byCat[b.category].push({ name: b.name, code: b.code, value: v, unit: b.unit, deviated });
     }
 
     const categoriesContext = categories.map((c: any) => {
-      const items = (byCat[c.name] || []).slice(0, 12).map((b) => `${b.name} (${b.code}): ${b.value} ${b.unit}`).join("; ");
+      const items = (byCat[c.name] || []).slice(0, 14).map((b) => `${b.name} (${b.code}): ${b.value} ${b.unit}${b.deviated ? " [ОТКЛОНЕНИЕ]" : ""}`).join("; ");
       return `${c.name}: ${items || "нет данных"}`;
     }).join("\n");
 
@@ -98,17 +129,54 @@ serve(async (req) => {
 
     const systemNames = categories.map((c: any) => c.name);
 
-    const systemPrompt = `Ты — врач превентивной медицины. По данным пациента рассчитай реалистичный прогноз биологического возраста через 12 месяцев и сформируй план для каждой системы организма. Ответ строго в JSON по схеме инструмента. Прогноз учитывает текущие назначения (приверженность ~80% при соблюдении рекомендаций ИИ-отчёта), тяжесть отклонений биомаркеров и физиологические пределы. Допустимый диапазон снижения биовозраста за 12 мес: -0.3 до -2.5 года. Если пациент уже моложе хроновозраста на >5 лет, прогноз умереннее. Цели систем — короткие (до 100 символов), конкретные, в естественном русском.
+    // Compute adherence %
+    const adherenceTotal = adherenceRows.length;
+    const adherenceDone = adherenceRows.filter((r: any) => r.status === "completed" || r.status === "done").length;
+    const adherencePct = adherenceTotal > 0 ? Math.round((adherenceDone / adherenceTotal) * 100) : null;
 
-ВАЖНО про trajectory_points: верни массив из 13 точек (месяцы 0..12). Точка 0 = текущий биовозраст. Точка 12 = target_bio_age. Кривая нелинейная: первые 1-2 месяца — медленный старт (адаптация, подбор доз), 2-6 мес — основная фаза эффекта от ключевых назначений (нутриенты, образ жизни), 7-12 мес — выход на плато. Учитывай конкретные сроки effect_eta назначений: если эффект через 4 недели — улучшение видно к месяцу 2-3; если через 3 месяца — основной сдвиг в 4-6 месяце. Каждая точка: { "month": 0..12, "bio_age": число с 1 знаком после запятой }.`;
+    // Plan analysis milestone dates
+    const startDate = new Date(latest.date);
+    const intervalMonths = Math.round(12 / analysesPerYear);
+    const plannedAnalysisDates: string[] = [];
+    for (let i = 1; i < analysesPerYear; i++) {
+      plannedAnalysisDates.push(toIso(addMonths(startDate, i * intervalMonths)));
+    }
+    plannedAnalysisDates.push(toIso(addMonths(startDate, 12)));
+
+    // Override with real booking dates where possible
+    const realDates = futureBookings.map((b: any) => b.booking_date).slice(0, plannedAnalysisDates.length);
+    const finalAnalysisDates = plannedAnalysisDates.map((d, i) => realDates[i] || d);
+
+    const complaintsText = [complaints?.main_complaints, complaints?.goals, complaints?.lifestyle].filter(Boolean).join(" | ") || "не указано";
+
+    const FIXED_SYSTEMS = [
+      { key: "energy", label: "Энергия и выносливость" },
+      { key: "sleep", label: "Сон и восстановление" },
+      { key: "gut", label: "ЖКТ и пищеварение" },
+      { key: "hormones", label: "Гормональный баланс" },
+      { key: "metabolism", label: "Метаболизм" },
+      { key: "inflammation", label: "Воспаление и иммунитет" },
+    ];
+
+    const milestonesCount = analysesPerYear === 2 ? 4 : analysesPerYear === 3 ? 5 : 6;
+
+    const systemPrompt = `Ты — врач превентивной медицины. По данным пациента сформируй:
+1) Реалистичный прогноз биовозраста через 12 мес (target_bio_age, trajectory_points).
+2) Цели по системам (system_goals) и карту действий (action_map) — связь назначений с биомаркерами.
+3) ГОДОВУЮ КАРТУ ПУТИ ПАЦИЕНТА (roadmap) — ровно ${milestonesCount} майлстоунов на 12 месяцев. Майлстоуны типа "analysis" должны быть привязаны к датам плановых анализов: ${finalAnalysisDates.join(", ")}. Первый майлстоун — старт (kind=start, date=${toIso(startDate)}). Последний — итоги года (kind=summary). Промежуточные: первые результаты (kind=milestone, через 2 недели), баланс/коррекция (kind=analysis к датам), стабильность/глубокая оптимизация (kind=milestone или analysis). В bullets КАЖДОГО майлстоуна явно отрази главные жалобы пациента и работу с ними по фазам (например, если жалоба на сон — на этапе 3-4 «работа со сном: кортизол, мелатонин»). Фокус (focus) — короткая мотивирующая фраза до 40 символов.
+4) КЛЮЧЕВЫЕ БИОМАРКЕРЫ (key_biomarkers) — РОВНО 6 систем: energy, sleep, gut, hormones, metabolism, inflammation. Для каждой — 2-4 КОДА биомаркеров (HbA1c, Ferritin, B12, VitD, Cortisol, CRP, Insulin, HOMA-IR, Mg и т.п.) из реальных данных пациента; приоритет — отклонённые маркеры.
+
+Допустимый сдвиг биовозраста: -0.3..-2.5 года. Все тексты — естественный русский, без канцелярита.`;
 
     const userPrompt = `ПАЦИЕНТ:
-- Хронологический возраст: ${chronoAge} лет
-- Биологический возраст сейчас: ${currentBio} лет
-- Пол: ${profile.gender === "female" ? "женский" : "мужской"}
-- Дата анализа: ${latest.date}
+- Хроновозраст: ${chronoAge} | Биовозраст: ${currentBio} | Пол: ${profile.gender === "female" ? "женский" : "мужской"}
+- Тариф: ${planName || "не указан"} → ${analysesPerYear} анализа/год
+- Жалобы и цели: ${complaintsText}
+- Приверженность назначениям (30 дн): ${adherencePct != null ? adherencePct + "%" : "нет данных"}
+- Дата старта: ${toIso(startDate)}
+- Плановые даты анализов: ${finalAnalysisDates.join(", ")}
 
-БИОМАРКЕРЫ ПО СИСТЕМАМ:
+БИОМАРКЕРЫ:
 ${categoriesContext}
 
 АКТИВНЫЕ НАЗНАЧЕНИЯ:
@@ -124,17 +192,16 @@ ${prescContext || "(нет)"}
         parameters: {
           type: "object",
           properties: {
-            target_bio_age: { type: "number", description: "Целевой биовозраст через 12 месяцев (1 знак после запятой)" },
-            rationale: { type: "string", description: "Краткое обоснование прогноза, 1-2 предложения" },
+            target_bio_age: { type: "number" },
+            rationale: { type: "string" },
             system_goals: {
               type: "array",
-              description: "По одной цели на каждую систему",
               items: {
                 type: "object",
                 properties: {
-                  system: { type: "string", description: "Точное название системы из списка" },
-                  goal: { type: "string", description: "Главная цель: что улучшить и до какого значения" },
-                  target_biomarkers: { type: "array", items: { type: "string" }, description: "Коды биомаркеров (HbA1c, Mg, ...)" },
+                  system: { type: "string" },
+                  goal: { type: "string" },
+                  target_biomarkers: { type: "array", items: { type: "string" } },
                 },
                 required: ["system", "goal", "target_biomarkers"],
                 additionalProperties: false,
@@ -142,37 +209,64 @@ ${prescContext || "(нет)"}
             },
             action_map: {
               type: "array",
-              description: "Связи между активными назначениями и системами/биомаркерами",
               items: {
                 type: "object",
                 properties: {
-                  prescription_name: { type: "string", description: "Название как в списке назначений" },
-                  systems: { type: "array", items: { type: "string" }, description: "Системы, на которые влияет" },
-                  biomarker_codes: { type: "array", items: { type: "string" }, description: "Коды затрагиваемых биомаркеров" },
-                  expected_effect: { type: "string", description: "Краткое описание эффекта (до 120 символов)" },
-                  effect_eta: { type: "string", description: "Срок наступления эффекта, например '14 дней', '4 недели'" },
+                  prescription_name: { type: "string" },
+                  systems: { type: "array", items: { type: "string" } },
+                  biomarker_codes: { type: "array", items: { type: "string" } },
+                  expected_effect: { type: "string" },
+                  effect_eta: { type: "string" },
                 },
                 required: ["prescription_name", "systems", "biomarker_codes", "expected_effect", "effect_eta"],
                 additionalProperties: false,
               },
             },
-            cohort_percentile: { type: "integer", description: "Процент людей того же пола и возраста (±5 лет), КОТОРЫХ ПАЦИЕНТ ОПЕРЕЖАЕТ по состоянию здоровья. Например 85 = 'здоровее, чем 85% когорты'. Учитывай дельту био-хроно возраста, тяжесть отклонений биомаркеров, индекс здоровья. Диапазон 1-99." },
-            cohort_label: { type: "string", description: "Описание когорты, например 'женщины 35–40 лет' или 'мужчины 40–45 лет'" },
+            cohort_percentile: { type: "integer" },
+            cohort_label: { type: "string" },
             trajectory_points: {
               type: "array",
-              description: "13 точек прогноза биовозраста по месяцам 0..12 при соблюдении рекомендаций",
               items: {
                 type: "object",
-                properties: {
-                  month: { type: "integer", description: "Номер месяца 0..12" },
-                  bio_age: { type: "number", description: "Прогнозируемый биовозраст в этот месяц, 1 знак после запятой" },
-                },
+                properties: { month: { type: "integer" }, bio_age: { type: "number" } },
                 required: ["month", "bio_age"],
                 additionalProperties: false,
               },
             },
+            roadmap: {
+              type: "array",
+              description: `Ровно ${milestonesCount} майлстоунов на год`,
+              items: {
+                type: "object",
+                properties: {
+                  title: { type: "string", description: "Короткое название этапа, 2-4 слова" },
+                  date_iso: { type: "string", description: "Дата майлстоуна YYYY-MM-DD" },
+                  kind: { type: "string", enum: ["start", "milestone", "analysis", "summary"] },
+                  analysis_number: { type: "integer", description: "№ анализа 1..N для kind=analysis или summary" },
+                  description: { type: "string", description: "Подзаголовок, 1 строка" },
+                  bullets: { type: "array", items: { type: "string" }, description: "3-4 пункта что произойдёт/будет сделано" },
+                  focus: { type: "string", description: "Фокус этапа, до 40 символов" },
+                },
+                required: ["title", "date_iso", "kind", "description", "bullets", "focus"],
+                additionalProperties: false,
+              },
+            },
+            key_biomarkers: {
+              type: "array",
+              description: "Ровно 6 систем: energy, sleep, gut, hormones, metabolism, inflammation",
+              items: {
+                type: "object",
+                properties: {
+                  system_key: { type: "string", enum: ["energy", "sleep", "gut", "hormones", "metabolism", "inflammation"] },
+                  system_label: { type: "string" },
+                  markers: { type: "array", items: { type: "string" }, description: "2-4 кода биомаркеров" },
+                },
+                required: ["system_key", "system_label", "markers"],
+                additionalProperties: false,
+              },
+            },
           },
-          required: ["target_bio_age", "rationale", "system_goals", "action_map", "cohort_percentile", "cohort_label", "trajectory_points"],
+          required: ["target_bio_age", "rationale", "system_goals", "action_map", "cohort_percentile", "cohort_label", "trajectory_points", "roadmap", "key_biomarkers"],
           additionalProperties: false,
         },
       },
@@ -214,7 +308,7 @@ ${prescContext || "(нет)"}
       ? Math.min(99, Math.max(1, Math.round(parsed.cohort_percentile)))
       : null;
 
-    // Normalize trajectory: 13 points, monotone-ish from currentBio to target
+    // Trajectory normalization (unchanged)
     let trajectory: Array<{ month: number; bio_age: number }> | null = null;
     if (Array.isArray(parsed.trajectory_points) && parsed.trajectory_points.length >= 2) {
       const map = new Map<number, number>();
@@ -223,20 +317,41 @@ ${prescContext || "(нет)"}
         const v = Number(p.bio_age);
         if (m >= 0 && m <= 12 && isFinite(v)) map.set(m, Math.round(v * 10) / 10);
       }
-      // Force anchors
       map.set(0, Math.round(currentBio * 10) / 10);
       map.set(12, target);
-      // Fill missing months by linear interpolation between known points
       const filled: Array<{ month: number; bio_age: number }> = [];
       const known = [...map.entries()].sort((a, b) => a[0] - b[0]);
       for (let m = 0; m <= 12; m++) {
         if (map.has(m)) { filled.push({ month: m, bio_age: map.get(m)! }); continue; }
         const prev = [...known].reverse().find(([k]) => k < m)!;
         const next = known.find(([k]) => k > m)!;
-        const t = (m - prev[0]) / (next[0] - prev[0]);
-        filled.push({ month: m, bio_age: Math.round((prev[1] + (next[1] - prev[1]) * t) * 10) / 10 });
+        const tt = (m - prev[0]) / (next[0] - prev[0]);
+        filled.push({ month: m, bio_age: Math.round((prev[1] + (next[1] - prev[1]) * tt) * 10) / 10 });
       }
       trajectory = filled;
+    }
+
+    // Roadmap normalization: force start date + override analysis dates with real bookings
+    let roadmap: any[] = Array.isArray(parsed.roadmap) ? parsed.roadmap.slice(0, milestonesCount) : [];
+    if (roadmap.length > 0) {
+      roadmap[0] = { ...roadmap[0], date_iso: toIso(startDate), kind: "start" };
+      let analysisIdx = 0;
+      const allAnalysisDates = [toIso(startDate), ...finalAnalysisDates]; // includes start (A1) + future
+      for (let i = 0; i < roadmap.length; i++) {
+        if (roadmap[i].kind === "analysis" || roadmap[i].kind === "summary" || (i === 0)) {
+          if (i === 0) { analysisIdx = 1; continue; }
+          if (analysisIdx < allAnalysisDates.length) {
+            roadmap[i].date_iso = allAnalysisDates[analysisIdx];
+            roadmap[i].analysis_number = analysisIdx + 1;
+            analysisIdx++;
+          }
+        }
+      }
+      // Force last to be summary at 12 months
+      const last = roadmap[roadmap.length - 1];
+      last.date_iso = toIso(addMonths(startDate, 12));
+      last.kind = "summary";
+      last.analysis_number = analysesPerYear;
     }
 
     const { data: snapshot, error: insErr } = await supabase
@@ -254,6 +369,9 @@ ${prescContext || "(нет)"}
         cohort_percentile: cohortPct,
         cohort_label: parsed.cohort_label || null,
         trajectory,
+        roadmap,
+        key_biomarkers: parsed.key_biomarkers || [],
+        analyses_per_year: analysesPerYear,
         model: "google/gemini-2.5-flash",
       })
       .select()
@@ -261,7 +379,7 @@ ${prescContext || "(нет)"}
 
     if (insErr) throw insErr;
 
-    return new Response(JSON.stringify(snapshot), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ ...snapshot, adherence_pct: adherencePct }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error(e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
