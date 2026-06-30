@@ -180,7 +180,7 @@ export function computeBioAge(
   chronoAge: number,
   opts: BioAgeOptions = {},
 ): BioAgeBreakdown {
-  const blend = opts.blend ?? { phenoage: 0.5, kdm: 0.5 };
+  const blend = opts.blend ?? { phenoage: 0.7, kdm: 0.3 };
   const corridor = opts.corridor ?? { years_below: 15, years_above: 15 };
 
   const pheno = (() => {
@@ -196,11 +196,13 @@ export function computeBioAge(
     raw = (wp * pheno + wk * kdm) / (wp + wk);
   } else if (pheno != null) {
     raw = pheno;
-  } else if (kdm != null) {
-    raw = kdm;
   } else if (opts.fallback != null && Number.isFinite(opts.fallback)) {
+    // PhenoAge недоступен — пользуемся фолбэком, а не одиноким KDM
+    // (он слишком шумный в одиночку).
     raw = opts.fallback;
     fallback_used = true;
+  } else if (kdm != null) {
+    raw = kdm;
   } else {
     raw = chronoAge;
     fallback_used = true;
