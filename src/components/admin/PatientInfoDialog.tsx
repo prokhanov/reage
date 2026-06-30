@@ -647,6 +647,8 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               gender: patientData.profile.gender || "male",
               height: patientData.profile.height ?? null,
               weight: (patientData as any).actualWeight ?? patientData.profile.weight ?? null,
+              reproductive_status: (patientData.profile as any).reproductive_status ?? null,
+              last_menstrual_date: (patientData.profile as any).last_menstrual_date ?? null,
             }}
             userId={patientId}
             onSuccess={() => {

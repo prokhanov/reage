@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { BirthDatePicker } from "@/components/BirthDatePicker";
 import genderMale from "@/assets/gender-male.webp";
@@ -29,6 +30,8 @@ interface Profile {
   gender: string;
   height: number | null;
   weight?: number | null;
+  reproductive_status?: string | null;
+  last_menstrual_date?: string | null;
 }
 
 interface EditProfileDialogProps {
@@ -46,6 +49,8 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
     weight: profile?.weight != null ? String(profile.weight) : "",
+    reproductive_status: profile?.reproductive_status || "",
+    last_menstrual_date: profile?.last_menstrual_date || "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -59,6 +64,8 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
         weight: profile.weight != null ? String(profile.weight) : "",
+        reproductive_status: profile.reproductive_status || "",
+        last_menstrual_date: profile.last_menstrual_date || "",
       });
     }
   }, [profile]);
@@ -87,6 +94,12 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
           weight: weightValue,
+          reproductive_status: formData.gender === 'female' && formData.reproductive_status
+            ? formData.reproductive_status
+            : null,
+          last_menstrual_date: formData.gender === 'female' && formData.reproductive_status === 'regular' && formData.last_menstrual_date
+            ? formData.last_menstrual_date
+            : null,
         } as any)
         .eq("id", userId)
         .select()
@@ -213,7 +226,58 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
             />
           </div>
 
+          {/* Reproductive status (female only) */}
+          {formData.gender === "female" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="edit-repro">Репродуктивный статус</Label>
+                <Select
+                  value={formData.reproductive_status || "none"}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      reproductive_status: value === "none" ? "" : value,
+                      last_menstrual_date: value === "regular" ? formData.last_menstrual_date : "",
+                    })
+                  }
+                >
+                  <SelectTrigger id="edit-repro">
+                    <SelectValue placeholder="Не указано" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Не указано</SelectItem>
+                    <SelectItem value="regular">Регулярный цикл</SelectItem>
+                    <SelectItem value="contraceptives">Принимаю КОК</SelectItem>
+                    <SelectItem value="pregnant">Беременность</SelectItem>
+                    <SelectItem value="lactating">Кормление грудью</SelectItem>
+                    <SelectItem value="perimenopause">Пременопауза</SelectItem>
+                    <SelectItem value="menopause">Менопауза</SelectItem>
+                    <SelectItem value="hormonal_therapy">ЗГТ (гормональная терапия)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Помогает ИИ корректно интерпретировать гормоны и другие показатели
+                </p>
+              </div>
+
+              {formData.reproductive_status === "regular" && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-lmp">Дата начала последней менструации</Label>
+                  <Input
+                    id="edit-lmp"
+                    type="date"
+                    value={formData.last_menstrual_date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, last_menstrual_date: e.target.value })
+                    }
+                  />
+                </div>
+              )}
+            </>
+          )}
+
         </div>
+
 
         <div className="flex gap-3">
           <Button
