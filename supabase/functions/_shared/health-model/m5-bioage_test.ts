@@ -99,3 +99,24 @@ Deno.test("computeBioAge: blend веса работают (100% PhenoAge)", () =
   const r = computeBioAge(HEALTHY_40, 40, { blend: { phenoage: 1, kdm: 0 } });
   assertEquals(r.bio_age, r.phenoage);
 });
+
+Deno.test("KDM: выброс одного маркера не утаскивает BA на >20 лет (clamp+trim)", () => {
+  // здоровый 25-летний, но CRP искусственно =15 (шумный выброс)
+  const noisy = [
+    mkMarker("ALB", 47), mkMarker("CREA", 78), mkMarker("GLU", 4.8),
+    mkMarker("hs-CRP", 15), mkMarker("LYMPH", 36), mkMarker("MCV", 88),
+    mkMarker("RDW", 12.7), mkMarker("ALP", 70), mkMarker("WBC", 6.4),
+  ];
+  const ba = computeKDMAge(noisy, 25);
+  assert(ba !== null);
+  assert(Math.abs(ba! - 25) <= 20, `выброс должен быть подавлен, BA=${ba!.toFixed(1)}`);
+});
+
+Deno.test("computeBioAge: при PhenoAge=null используется fallback, а не одинокий KDM", () => {
+  // Не хватает RDW → PhenoAge null, KDM=ок (8 маркеров)
+  const noRdw = HEALTHY_40.filter((m) => m.code !== "RDW");
+  const r = computeBioAge(noRdw, 40, { fallback: 42 });
+  assertEquals(r.phenoage, null);
+  assert(r.fallback_used, "должны взять fallback, а не пустить чистый KDM");
+  assertEquals(r.bio_age, 42);
+});
