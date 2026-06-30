@@ -734,12 +734,17 @@ Deno.serve(async (req) => {
                 type: "status",
                 message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
               });
+              const generalDesc =
+                (bm as any).general_description ??
+                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
+                null;
               const generated = await generateBiomarkerEducation(
                 bm.name,
                 bm.code,
                 valueLine,
                 aiModel,
                 reportContext,
+                generalDesc,
               );
               aiRepairsDone++;
               if (generated) {
