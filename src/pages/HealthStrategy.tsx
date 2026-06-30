@@ -25,6 +25,7 @@ interface Snapshot {
   created_at: string;
   cohort_percentile?: number | null;
   cohort_label?: string | null;
+  trajectory?: Array<{ month: number; bio_age: number }> | null;
 }
 
 export default function HealthStrategy() {
@@ -233,6 +234,7 @@ export default function HealthStrategy() {
                 healthIndex={snapshot.health_index}
                 previousBioAge={previousSnapshot?.current_bio_age ?? null}
                 previousDate={previousAnalysis?.date ?? null}
+                trajectoryPoints={snapshot.trajectory ?? null}
               />
 
               {/* 2. Контрольные точки */}

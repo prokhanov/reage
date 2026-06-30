@@ -98,7 +98,9 @@ serve(async (req) => {
 
     const systemNames = categories.map((c: any) => c.name);
 
-    const systemPrompt = `Ты — врач превентивной медицины. По данным пациента рассчитай реалистичный прогноз биологического возраста через 12 месяцев и сформируй план для каждой системы организма. Ответ строго в JSON по схеме инструмента. Прогноз учитывает текущие назначения (приверженность ~70%), тяжесть отклонений биомаркеров и физиологические пределы. Допустимый диапазон снижения биовозраста за 12 мес: -0.3 до -2.5 года. Если пациент уже моложе хроновозраста на >5 лет, прогноз умереннее. Цели систем — короткие (до 100 символов), конкретные, в естественном русском.`;
+    const systemPrompt = `Ты — врач превентивной медицины. По данным пациента рассчитай реалистичный прогноз биологического возраста через 12 месяцев и сформируй план для каждой системы организма. Ответ строго в JSON по схеме инструмента. Прогноз учитывает текущие назначения (приверженность ~80% при соблюдении рекомендаций ИИ-отчёта), тяжесть отклонений биомаркеров и физиологические пределы. Допустимый диапазон снижения биовозраста за 12 мес: -0.3 до -2.5 года. Если пациент уже моложе хроновозраста на >5 лет, прогноз умереннее. Цели систем — короткие (до 100 символов), конкретные, в естественном русском.
+
+ВАЖНО про trajectory_points: верни массив из 13 точек (месяцы 0..12). Точка 0 = текущий биовозраст. Точка 12 = target_bio_age. Кривая нелинейная: первые 1-2 месяца — медленный старт (адаптация, подбор доз), 2-6 мес — основная фаза эффекта от ключевых назначений (нутриенты, образ жизни), 7-12 мес — выход на плато. Учитывай конкретные сроки effect_eta назначений: если эффект через 4 недели — улучшение видно к месяцу 2-3; если через 3 месяца — основной сдвиг в 4-6 месяце. Каждая точка: { "month": 0..12, "bio_age": число с 1 знаком после запятой }.`;
 
     const userPrompt = `ПАЦИЕНТ:
 - Хронологический возраст: ${chronoAge} лет
@@ -156,8 +158,21 @@ ${prescContext || "(нет)"}
             },
             cohort_percentile: { type: "integer", description: "Процент людей того же пола и возраста (±5 лет), КОТОРЫХ ПАЦИЕНТ ОПЕРЕЖАЕТ по состоянию здоровья. Например 85 = 'здоровее, чем 85% когорты'. Учитывай дельту био-хроно возраста, тяжесть отклонений биомаркеров, индекс здоровья. Диапазон 1-99." },
             cohort_label: { type: "string", description: "Описание когорты, например 'женщины 35–40 лет' или 'мужчины 40–45 лет'" },
+            trajectory_points: {
+              type: "array",
+              description: "13 точек прогноза биовозраста по месяцам 0..12 при соблюдении рекомендаций",
+              items: {
+                type: "object",
+                properties: {
+                  month: { type: "integer", description: "Номер месяца 0..12" },
+                  bio_age: { type: "number", description: "Прогнозируемый биовозраст в этот месяц, 1 знак после запятой" },
+                },
+                required: ["month", "bio_age"],
+                additionalProperties: false,
+              },
+            },
           },
-          required: ["target_bio_age", "rationale", "system_goals", "action_map", "cohort_percentile", "cohort_label"],
+          required: ["target_bio_age", "rationale", "system_goals", "action_map", "cohort_percentile", "cohort_label", "trajectory_points"],
           additionalProperties: false,
         },
       },
@@ -199,6 +214,31 @@ ${prescContext || "(нет)"}
       ? Math.min(99, Math.max(1, Math.round(parsed.cohort_percentile)))
       : null;
 
+    // Normalize trajectory: 13 points, monotone-ish from currentBio to target
+    let trajectory: Array<{ month: number; bio_age: number }> | null = null;
+    if (Array.isArray(parsed.trajectory_points) && parsed.trajectory_points.length >= 2) {
+      const map = new Map<number, number>();
+      for (const p of parsed.trajectory_points) {
+        const m = Math.round(Number(p.month));
+        const v = Number(p.bio_age);
+        if (m >= 0 && m <= 12 && isFinite(v)) map.set(m, Math.round(v * 10) / 10);
+      }
+      // Force anchors
+      map.set(0, Math.round(currentBio * 10) / 10);
+      map.set(12, target);
+      // Fill missing months by linear interpolation between known points
+      const filled: Array<{ month: number; bio_age: number }> = [];
+      const known = [...map.entries()].sort((a, b) => a[0] - b[0]);
+      for (let m = 0; m <= 12; m++) {
+        if (map.has(m)) { filled.push({ month: m, bio_age: map.get(m)! }); continue; }
+        const prev = [...known].reverse().find(([k]) => k < m)!;
+        const next = known.find(([k]) => k > m)!;
+        const t = (m - prev[0]) / (next[0] - prev[0]);
+        filled.push({ month: m, bio_age: Math.round((prev[1] + (next[1] - prev[1]) * t) * 10) / 10 });
+      }
+      trajectory = filled;
+    }
+
     const { data: snapshot, error: insErr } = await supabase
       .from("health_strategy_snapshots")
       .insert({
@@ -213,6 +253,7 @@ ${prescContext || "(нет)"}
         rationale: parsed.rationale,
         cohort_percentile: cohortPct,
         cohort_label: parsed.cohort_label || null,
+        trajectory,
         model: "google/gemini-2.5-flash",
       })
       .select()

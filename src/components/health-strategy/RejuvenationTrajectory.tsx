@@ -13,6 +13,7 @@ interface Props {
   healthIndex: number | null;
   previousBioAge?: number | null;
   previousDate?: string | null;
+  trajectoryPoints?: Array<{ month: number; bio_age: number }> | null;
 }
 
 // Brand palette — primary (violet 270) → accent (magenta 320), matches index.css tokens.
@@ -27,6 +28,7 @@ export function RejuvenationTrajectory({
   healthIndex,
   previousBioAge,
   previousDate,
+  trajectoryPoints,
 }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
@@ -35,12 +37,23 @@ export function RejuvenationTrajectory({
   const months = Array.from({ length: 13 }, (_, i) => i);
   const totalDelta = targetBioAge - currentBioAge;
 
+  const aiByMonth = new Map<number, number>();
+  if (trajectoryPoints && trajectoryPoints.length >= 2) {
+    for (const p of trajectoryPoints) aiByMonth.set(Math.round(p.month), Number(p.bio_age));
+  }
+  const hasAi = aiByMonth.size >= 2;
+
   const data = months.map((m) => {
     const d = addMonths(start, m);
     const chrono = chronologicalAge + m / 12;
-    const k = 2.2;
-    const progress = (1 - Math.exp(-k * (m / 12))) / (1 - Math.exp(-k));
-    const bio = currentBioAge + totalDelta * progress;
+    let bio: number;
+    if (hasAi && aiByMonth.has(m)) {
+      bio = aiByMonth.get(m)!;
+    } else {
+      const k = 2.2;
+      const progress = (1 - Math.exp(-k * (m / 12))) / (1 - Math.exp(-k));
+      bio = currentBioAge + totalDelta * progress;
+    }
     return {
       month: m,
       label: format(d, "MMM", { locale: ru }),

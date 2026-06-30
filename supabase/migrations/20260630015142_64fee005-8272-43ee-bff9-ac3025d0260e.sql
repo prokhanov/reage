@@ -1,0 +1,1 @@
+ALTER TABLE public.health_strategy_snapshots ADD COLUMN IF NOT EXISTS trajectory jsonb;
