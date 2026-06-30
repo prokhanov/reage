@@ -1184,7 +1184,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
-        const baseCategoryTokens = categoryKey === "metabolism" ? 24000 : 16000;
+        const baseCategoryTokens = categoryKey === "metabolism" ? 14000 : 10000;
         const categoryMaxCompletionTokens = Math.round(baseCategoryTokens * aiProfile.tokenMultiplier);
 
         const categoryRequestBody = JSON.stringify({
@@ -1306,8 +1306,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         // Fallback при полной неудаче
         if (!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) {
           console.error(`FAILED: Category ${category} content too short after ${retryCount} retries (${categoryReport?.length || 0} chars). Using fallback.`);
-          categoryReport = `## ${category}\n\nАнализ этой категории не удался при генерации (получено ${categoryReport?.length || 0} символов вместо минимальных ${MIN_CONTENT_LENGTH}). Рекомендуется перегенерировать отчёт.`;
-          categoryStatuses[category] = { success: false, error: `Content too short after ${retryCount} retries`, tokens: tokensUsed };
+          categoryReport = buildCategoryFallbackReport(category, biomarkers as any[], profile, age);
+          categoryStatuses[category] = {
+            success: true,
+            fallback: true,
+            error: `Content too short after ${retryCount} retries`,
+            tokens: tokensUsed,
+          };
         } else if (finishReason === "length") {
           console.warn(`WARNING: Category ${category} was truncated at token limit`);
           categoryReport += "\n\n[⚠️ ВНИМАНИЕ: Отчёт был сокращён из-за ограничения по длине. Рекомендуется перегенерировать.]";
@@ -1336,7 +1341,22 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
-        categoryStatuses[category] = { success: false, error: error.message };
+        if (String(error?.message || "").includes("Недостаточно AI-кредитов")) throw error;
+        const fallbackReport = buildCategoryFallbackReport(category, biomarkers as any[], profile, age);
+        const { error: fallbackInsertError } = await supabase.from("recommendations").insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: category,
+          text: fallbackReport,
+        });
+        if (fallbackInsertError) {
+          console.error(`Failed to save fallback category ${category}:`, fallbackInsertError.message);
+          categoryStatuses[category] = { success: false, error: error.message };
+        } else {
+          categoryReports[category] = fallbackReport;
+          categoryStatuses[category] = { success: true, fallback: true, error: error.message };
+          console.log(`Saved fallback: ${category}`);
+        }
         if (String(error?.message || "").includes("Недостаточно AI-кредитов")) throw error;
       }
     };
