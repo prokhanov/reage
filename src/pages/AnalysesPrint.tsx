@@ -74,7 +74,7 @@ export default function AnalysesPrint() {
 
         const { data: prof, error: profErr } = await supabase
           .from("profiles")
-          .select("id, full_name, birth_date, gender")
+          .select("id, first_name, last_name, birth_date, gender")
           .eq("id", userId)
           .maybeSingle();
         if (profErr) throw profErr;
