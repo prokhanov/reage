@@ -351,11 +351,16 @@ export function StrategyPreviewDialog({
                   </CardContent>
                 </Card>
 
-                {/* Roadmap — editable */}
-                {roadmap.length > 0 && (
-                  <Card>
-                    <CardContent className="p-4 space-y-2">
+                {/* Roadmap — editable, always shown */}
+                <Card>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
                       <div className="text-sm font-semibold">Контрольные точки (дорожная карта)</div>
+                      <Button size="sm" variant="outline" onClick={() => setRoadmap((r) => [...r, { date_iso: "", title: "", description: "" }])}>
+                        + Добавить
+                      </Button>
+                    </div>
+                    {roadmap.length > 0 ? (
                       <div className="space-y-2 pt-1">
                         {roadmap.map((r: any, i: number) => (
                           <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
@@ -387,15 +392,22 @@ export function StrategyPreviewDialog({
                           </div>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    ) : (
+                      <p className="text-xs text-muted-foreground pt-1">Дорожная карта пуста. Нажмите «+ Добавить» или «Пересчитать».</p>
+                    )}
+                  </CardContent>
+                </Card>
 
-                {/* Expectations — editable */}
-                {expectations.length > 0 && (
-                  <Card>
-                    <CardContent className="p-4 space-y-2">
+                {/* Expectations — editable, always shown */}
+                <Card>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
                       <div className="text-sm font-semibold">Ожидания по организму</div>
+                      <Button size="sm" variant="outline" onClick={() => setExpectations((r) => [...r, { date_iso: "", title: "", description: "" }])}>
+                        + Добавить
+                      </Button>
+                    </div>
+                    {expectations.length > 0 ? (
                       <div className="space-y-2 pt-1">
                         {expectations.map((e: any, i: number) => (
                           <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
@@ -427,9 +439,12 @@ export function StrategyPreviewDialog({
                           </div>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    ) : (
+                      <p className="text-xs text-muted-foreground pt-1">Ожидания пока не заданы. Нажмите «+ Добавить» или «Пересчитать».</p>
+                    )}
+                  </CardContent>
+                </Card>
+
 
                 {/* JSON editors */}
                 <Card>
