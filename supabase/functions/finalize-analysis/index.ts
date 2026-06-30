@@ -184,7 +184,7 @@ async function finalize({ analysisId, mode, phase }: { analysisId: string; mode:
     };
     const bmi = calculateBMI(actualWeight, profile?.height ? Number(profile.height) : null);
     const age = profile?.birth_date
-      ? Math.round(((new Date().getTime() - new Date(profile.birth_date).getTime()) / (365.2425 * 24 * 3600 * 1000)) * 10) / 10
+      ? Math.floor(((new Date().getTime() - new Date(profile.birth_date).getTime()) / (365.2425 * 24 * 3600 * 1000)) * 10) / 10
       : null;
     const patientGender = profile?.gender === "male" ? "male" : profile?.gender === "female" ? "female" : null;
 
