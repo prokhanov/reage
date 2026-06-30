@@ -370,7 +370,3 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
     </Card>
   );
 }
-      </CardContent>
-    </Card>
-  );
-}
