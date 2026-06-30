@@ -677,8 +677,8 @@ ${symptomsText}
 
       const chronologicalAge = age;
       if (chronologicalAge) {
-        // Anchor at HI=85 ("optimal" tier), slope 0.20 — симметрично для омоложения и старения
-        const baseBioAge = chronologicalAge + (85 - health_index) * 0.20;
+        // Anchor at HI=85 ("optimal" tier), slope 0.25 — усиленная чувствительность
+        const baseBioAge = chronologicalAge + (85 - health_index) * 0.25;
 
         try {
           const biomarkersForAI = compositeBiomarkers.values.map((av: any) => ({
@@ -719,7 +719,7 @@ ${symptomsText}
 
           // Асимметричный коридор: при плохом HI нельзя омолаживать (только старение),
           // при хорошем — обе стороны.
-          const aiLower = health_index < 70 ? baseBioAge : (health_index < 80 ? baseBioAge - 2 : baseBioAge - 5);
+          const aiLower = health_index < 70 ? baseBioAge + 0.5 : (health_index < 80 ? baseBioAge - 2 : baseBioAge - 5);
           const aiUpper = baseBioAge + 5;
           const aiConstraintPrompt = `\n\nВАЖНО: Сервер уже рассчитал base_bio_age = ${baseBioAge.toFixed(1)} и health_index = ${health_index}.
 Скорректируй biological_age строго в диапазоне [${aiLower.toFixed(1)}, ${aiUpper.toFixed(1)}].
@@ -997,7 +997,7 @@ function calculateHealthIndex(
 
     if (isCriticalLow || isCriticalHigh) { penalty = 25 * agingWeight; tier = "critical"; }
     else if (isOutsideNormal) { penalty = 8 * agingWeight; tier = "risk"; }
-    else if (!isInOptimal) { penalty = 2 * agingWeight; tier = "acceptable"; }
+    else if (!isInOptimal) { penalty = 3 * agingWeight; tier = "acceptable"; }
 
     totalPenalty += penalty;
     if (penalty > 0) penalties.push({ name: av.biomarkers.name, code: av.biomarkers.code, tier, penalty, weight: agingWeight });
@@ -1044,7 +1044,11 @@ function calculateHealthIndex(
   const topPenaltySum = sortedPenalties.slice(0, topN).reduce((sum, p) => sum + p.penalty, 0);
   const topPenalty = topN > 0 ? topPenaltySum / 5 : 0; // делим всегда на 5: при <5 отклонений вес снижен пропорционально
   const avgPenalty = totalPenalty / markerCount;
-  const effectivePenalty = 0.6 * avgPenalty + 0.4 * topPenalty;
+  let effectivePenalty = 0.6 * avgPenalty + 0.4 * topPenalty;
+
+  // Множитель массовости: при доле отклонений > 25% усиливаем штраф (макс ×2.125 при 100%).
+  const devShare = penalties.length / markerCount;
+  effectivePenalty *= 1 + Math.max(0, devShare - 0.25) * 1.5;
 
   let rawHealthIndex = Math.max(0, Math.min(100, 100 - effectivePenalty * 12));
 
