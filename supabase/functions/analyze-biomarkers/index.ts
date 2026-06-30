@@ -1428,7 +1428,6 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryStatuses[category] = { success: true, fallback: true, error: error.message };
           console.log(`Saved fallback: ${category}`);
         }
-        if (String(error?.message || "").includes("Недостаточно AI-кредитов")) throw error;
       }
     };
 
