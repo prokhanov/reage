@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -13,7 +12,7 @@ import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
 import { ExpectationsTimeline } from "@/components/health-strategy/ExpectationsTimeline";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
 import { toast } from "@/hooks/use-toast";
-import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPreviewDialog";
+
 
 interface Snapshot {
   current_bio_age: number;
