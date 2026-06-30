@@ -487,6 +487,71 @@ async function processAnalysis({
           reproductiveContext += `\nВАЖНО: при интерпретации учитывай физиологические сдвиги беременности для текущего триместра — ТТГ (снижение в I триместре), ферритин/Hb/Hct (гемодилюция), СОЭ/лейкоциты/D-димер/фибриноген (рост к III триместру), щёлочная фосфатаза (плацентарная фракция), липиды (физиологический рост), креатинин (снижение из-за роста СКФ), нормы глюкозы и инсулина по протоколам ГСД.`;
         }
       }
+      if (profile.reproductive_status === 'lactating' && profile.postpartum_date) {
+        const start = new Date(profile.postpartum_date);
+        const months = Math.floor((Date.now() - start.getTime()) / (86400000 * 30));
+        if (months >= 0 && months <= 36) {
+          reproductiveContext += `\nМесяцев после родов: ${months}`;
+          reproductiveContext += `\nВАЖНО: учитывай лактационные сдвиги — повышен пролактин, возможна послеродовая анемия (Hb, ферритин), сдвиги ТТГ (послеродовый тиреоидит чаще в первые 6 мес), физиологический рост щёлочной фосфатазы, изменения липидного профиля. Первые 3–6 мес — наиболее выраженные сдвиги.`;
+        }
+      }
+      if ((profile.reproductive_status === 'menopause' || profile.reproductive_status === 'perimenopause') && profile.menopause_date) {
+        const start = new Date(profile.menopause_date);
+        const years = Math.floor((Date.now() - start.getTime()) / (86400000 * 365));
+        if (years >= 0 && years <= 50) {
+          const stage = profile.reproductive_status === 'menopause'
+            ? (years < 5 ? 'ранняя постменопауза' : 'поздняя постменопауза')
+            : 'перименопауза';
+          reproductiveContext += `\nЛет от последней менструации: ${years} (${stage})`;
+          reproductiveContext += `\nВАЖНО: учитывай постменопаузальные сдвиги — рост ЛПНП/общего холестерина, снижение ЛПВП, рост инсулинорезистентности, ускоренная потеря костной массы (ЩФ, кальций, вит. D), снижение СГСГ, возможный рост ферритина при прекращении менструаций.`;
+        }
+      }
+      if (profile.reproductive_status === 'contraceptives' && profile.contraceptive_type) {
+        const typeMap: Record<string, string> = {
+          coc: 'КОК (комбинированные оральные контрацептивы)',
+          progestin_only: 'Только прогестины (мини-пили)',
+          iud_hormonal: 'ВМС с левоноргестрелом (Мирена)',
+          iud_copper: 'ВМС медная (негормональная)',
+          implant: 'Подкожный имплант',
+          injection: 'Инъекционная (Депо-Провера)',
+          patch_ring: 'Пластырь / вагинальное кольцо',
+        };
+        reproductiveContext += `\nТип контрацепции: ${typeMap[profile.contraceptive_type] || profile.contraceptive_type}`;
+        if (profile.contraceptive_start_date) {
+          const months = Math.floor((Date.now() - new Date(profile.contraceptive_start_date).getTime()) / (86400000 * 30));
+          if (months >= 0) reproductiveContext += `\nДлительность приёма: ~${months} мес.`;
+        }
+        if (profile.contraceptive_type === 'coc' || profile.contraceptive_type === 'patch_ring') {
+          reproductiveContext += `\nВАЖНО: КОК/комбинированные системные методы повышают СГСГ, ТГ, ЛПВП, церулоплазмин, медь, факторы свёртывания (фибриноген, D-димер), СРБ; могут влиять на ТТГ-связывающий глобулин и общие тиреоидные гормоны (свободные обычно стабильны); снижают ферритин при сохранении менструаций.`;
+        } else if (profile.contraceptive_type === 'iud_hormonal' || profile.contraceptive_type === 'progestin_only' || profile.contraceptive_type === 'implant' || profile.contraceptive_type === 'injection') {
+          reproductiveContext += `\nВАЖНО: прогестиновые методы минимально влияют на липиды и СГСГ; Депо-Провера может снижать минеральную плотность кости (учитывай при оценке ЩФ, кальция, вит. D).`;
+        }
+      }
+      if (profile.reproductive_status === 'hormonal_therapy') {
+        const hrtTypeMap: Record<string, string> = {
+          estrogen_only: 'Только эстроген',
+          estrogen_progestin: 'Эстроген + прогестин',
+          progestin_only: 'Только прогестин',
+          tibolone: 'Тиболон',
+        };
+        const hrtRouteMap: Record<string, string> = {
+          oral: 'перорально (таблетки)',
+          transdermal: 'трансдермально (пластырь/гель)',
+          vaginal: 'вагинально',
+          injection: 'инъекции',
+        };
+        if (profile.hrt_type) reproductiveContext += `\nТип МГТ: ${hrtTypeMap[profile.hrt_type] || profile.hrt_type}`;
+        if (profile.hrt_route) reproductiveContext += `\nПуть введения МГТ: ${hrtRouteMap[profile.hrt_route] || profile.hrt_route}`;
+        if (profile.hrt_start_date) {
+          const months = Math.floor((Date.now() - new Date(profile.hrt_start_date).getTime()) / (86400000 * 30));
+          if (months >= 0) reproductiveContext += `\nДлительность МГТ: ~${months} мес.`;
+        }
+        if (profile.hrt_route === 'oral') {
+          reproductiveContext += `\nВАЖНО: пероральная МГТ из-за эффекта первого прохождения через печень значительно повышает СГСГ, ТГ, СРБ, факторы свёртывания, ангиотензиноген; снижает ЛПНП и повышает ЛПВП; может повышать ТТГ-связывающий глобулин.`;
+        } else if (profile.hrt_route === 'transdermal') {
+          reproductiveContext += `\nВАЖНО: трансдермальная МГТ минимально влияет на липиды, СГСГ, СРБ и коагуляцию — интерпретируй эти показатели почти как у не получающих МГТ.`;
+        }
+      }
     }
 
     const userContext = `
