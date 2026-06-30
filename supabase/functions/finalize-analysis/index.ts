@@ -677,7 +677,8 @@ ${symptomsText}
 
       const chronologicalAge = age;
       if (chronologicalAge) {
-        const baseBioAge = chronologicalAge + (70 - health_index) * 0.15;
+        // Anchor at HI=85 ("optimal" tier), slope 0.20 — симметрично для омоложения и старения
+        const baseBioAge = chronologicalAge + (85 - health_index) * 0.20;
 
         try {
           const biomarkersForAI = compositeBiomarkers.values.map((av: any) => ({
