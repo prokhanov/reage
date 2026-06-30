@@ -68,11 +68,11 @@ interface Explanation {
     assumptions: string[];
   } | null;
   explainability?: {
-    systems: Array<{
-      category: string;
-      top_negative: Array<{ code: string; name: string; contribution: number; reason: string }>;
-      top_positive: Array<{ code: string; name: string; contribution: number; reason: string }>;
-    }>;
+    top_negative?: Array<{ code: string; system: string | null; contribution: number; zone?: string }>;
+    top_positive?: Array<{ code: string; system: string | null; contribution: number; zone?: string }>;
+    per_system?: Record<string, { code: string; contribution: number; zone?: string }>;
+    total_negative_load?: number;
+    total_positive_anchor?: number;
   } | null;
 }
 
