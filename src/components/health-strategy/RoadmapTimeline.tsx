@@ -87,7 +87,14 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
         { title: "Итоги года", date_iso: format(new Date(start.getTime() + 365 * 86400000), "yyyy-MM-dd"), kind: "summary", description: "Финальный чек-ап", bullets: ["Сравнение результатов", "План на следующий год"], focus: "результаты и развитие" },
       ];
 
-  const cleanTitle = (title: string, num?: number) => {
+  const ORDINALS: Record<number, string> = {
+    2: "Второй", 3: "Третий", 4: "Четвёртый", 5: "Пятый", 6: "Шестой", 7: "Седьмой", 8: "Восьмой",
+  };
+
+  const cleanTitle = (title: string, num?: number, kind?: string) => {
+    if (kind === "analysis" && num && ORDINALS[num]) {
+      return `${ORDINALS[num]} этап сдачи анализов`;
+    }
     let next = title
       .replace(/Анализ\s*№\s*\d+\s*[·—-]?\s*/gi, "")
       .replace(/Контрольн(?:ый|ого|ом|ые|ых)\s+анализ(?:а|ы|ов)?\s*№?\s*\d*/gi, "Плановая сдача анализов")
@@ -99,9 +106,17 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
     return next || title;
   };
 
+  const cleanBullets = (bullets: string[] | undefined, kind?: string): string[] => {
+    if (!Array.isArray(bullets)) return [];
+    const filtered = kind === "analysis"
+      ? bullets.filter((b) => !/сдать\s+полную\s+панель|полную\s+панель\s+по\s+тарифу|сдать\s+панель\s+по\s+тарифу/i.test(b))
+      : bullets;
+    return filtered.slice(0, 4);
+  };
+
   const milestones = milestonesRaw.map((m) => {
     const num = m.kind === "start" ? 1 : m.kind === "analysis" ? m.analysis_number : undefined;
-    return { ...m, title: cleanTitle(m.title, num), _num: num };
+    return { ...m, title: cleanTitle(m.title, num, m.kind), bullets: cleanBullets(m.bullets, m.kind), _num: num };
   });
 
   let activeIdx = -1;
