@@ -13,6 +13,7 @@ import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
 import { ExpectationsTimeline } from "@/components/health-strategy/ExpectationsTimeline";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
 import { toast } from "@/hooks/use-toast";
+import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPreviewDialog";
 
 interface Snapshot {
   current_bio_age: number;
