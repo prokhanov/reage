@@ -193,12 +193,18 @@ function isBiomarkerMissingEducation(content: string): boolean {
     .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/^\s*#{1,6}\s+.*$/gm, " ") // headers
     .trim();
+  // Empty / near-empty block — definitely missing.
   if (stripped.length < 60) return true;
   const valueMatch =
     /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i.exec(
       stripped,
     );
-  if (!valueMatch) return false; // no value sentence — probably custom block, skip
+  if (!valueMatch) {
+    // Нет value-предложения — но может это просто заглушка без обучения.
+    // Если всего <200 символов прозы кириллицы, считаем что описания нет.
+    const cyr = (stripped.match(/[а-яё]/gi) || []).length;
+    return cyr < 200;
+  }
   const prefix = stripped.slice(0, valueMatch.index).trim();
   // Drop the first line (likely the biomarker title) and check what's left
   const withoutTitle = prefix.split(/\n/).slice(1).join(" ").trim();
@@ -281,9 +287,17 @@ function detectEnglishArtifacts(
     .replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, (m) => " ".repeat(m.length));
 
   // Mask Latin-in-parentheses right after a Cyrillic word: "Магний (Magnesium glycinate)"
+  // Also covers parens with digits/punctuation at start: "(25-OH D)", "(1,25-OH D)".
   masked = masked.replace(
-    /([А-Яа-яЁё])(\s*\(\s*[A-Za-z][A-Za-z0-9\s,.\-/]*\))/g,
+    /([А-Яа-яЁё])(\s*\(\s*[A-Za-z0-9][A-Za-z0-9\s,.\-/]*\))/g,
     (_full, lead, paren) => lead + " ".repeat(paren.length),
+  );
+
+  // Mask vitamin-D-style chemical notation anywhere: "25-OH D", "1,25-OH D",
+  // "25(OH)D", "25-OH-витамин D" — these are legitimate biomarker codes.
+  masked = masked.replace(
+    /\b\d{1,2}(?:[.,]\d{1,2})?[\s\-]?\(?OH\)?[\s\-]?(?:витамин\s*)?D\d?\b/gi,
+    (m) => " ".repeat(m.length),
   );
 
   // Mask single Latin letter glued to Cyrillic via hyphen: "L-карнитин", "D-аспарагин",
@@ -400,6 +414,7 @@ async function generateBiomarkerEducation(
   valueLine: string,
   model: string,
   reportContext: string,
+  generalDescription: string | null,
 ): Promise<string | null> {
   const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
@@ -413,11 +428,26 @@ ${valueLine}
 [Если отклонение — добавь блок «Что это значит для вас» с практическим выводом для конкретного значения.]
 <!-- anchor:biomarker_end -->`;
 
+  const knowledge = generalDescription && generalDescription.trim().length > 40
+    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
+    : "";
+
   const user = `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
 Контекст отчёта (для тонального соответствия, не цитируй):
-${reportContext.slice(0, 2000)}
+${reportContext.slice(0, 2000)}${knowledge}
 
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
+
+  const buildFromKnowledge = (): string | null => {
+    if (!generalDescription || generalDescription.trim().length < 40) return null;
+    return `<!-- anchor:biomarker ${biomarkerCode} -->
+${biomarkerName}
+
+${generalDescription.trim()}
+
+${valueLine}
+<!-- anchor:biomarker_end -->`;
+  };
 
   const resp = await fetchWithTimeout(
     "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -440,11 +470,16 @@ ${reportContext.slice(0, 2000)}
 
   if (!resp.ok) {
     console.error("AI gateway error:", resp.status, await resp.text());
-    return null;
+    return buildFromKnowledge();
   }
   const data = await resp.json();
-  const text: string = data?.choices?.[0]?.message?.content ?? "";
-  return text.trim() || null;
+  const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
+  // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
+  const cyrCount = (text.match(/[а-яё]/gi) || []).length;
+  if (!text || cyrCount < 120) {
+    return buildFromKnowledge() || text || null;
+  }
+  return text;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
@@ -548,13 +583,14 @@ Deno.serve(async (req) => {
 
         const { data: avRows, error: avErr } = await admin
           .from("analysis_values")
-          .select("biomarker_id, biomarkers!inner(code, name)")
+          .select("biomarker_id, biomarkers!inner(code, name, general_description)")
           .eq("analysis_id", analysisId);
         if (avErr) throw avErr;
 
         const biomarkers = (avRows || []).map((r: any) => ({
           code: r.biomarkers?.code,
           name: r.biomarkers?.name,
+          general_description: r.biomarkers?.general_description ?? null,
         }));
         const knownCodesNorm = new Set(
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
@@ -565,10 +601,17 @@ Deno.serve(async (req) => {
         // synonyms, or short names as errors.
         const { data: allBiomarkersData } = await admin
           .from("biomarkers")
-          .select("code, name");
+          .select("code, name, general_description");
         const englishWhitelistExtra = new Set<string>();
+        const generalDescByCode = new Map<string, string>();
         for (const b of (allBiomarkersData || []) as any[]) {
           if (b?.code) englishWhitelistExtra.add(normalizeWhitelistToken(String(b.code)));
+          if (b?.code && b?.general_description) {
+            generalDescByCode.set(
+              normalizeBiomarkerCode(String(b.code)),
+              String(b.general_description),
+            );
+          }
           if (b?.name) {
             // also add Latin tokens that may appear inside biomarker names
             for (const tok of String(b.name).split(/[\s,()/]+/)) {
@@ -691,12 +734,17 @@ Deno.serve(async (req) => {
                 type: "status",
                 message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
               });
+              const generalDesc =
+                (bm as any).general_description ??
+                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
+                null;
               const generated = await generateBiomarkerEducation(
                 bm.name,
                 bm.code,
                 valueLine,
                 aiModel,
                 reportContext,
+                generalDesc,
               );
               aiRepairsDone++;
               if (generated) {
