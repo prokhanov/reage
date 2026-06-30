@@ -17,7 +17,8 @@ function calcAge(birth: string) {
   const b = new Date(birth);
   const t = new Date();
   const years = (t.getTime() - b.getTime()) / (365.2425 * 24 * 3600 * 1000);
-  return Math.round(years * 10) / 10;
+  // floor по десятым: 37.99 → 37.9 (не показываем 38 до фактического ДР)
+  return Math.floor(years * 10) / 10;
 }
 
 
