@@ -56,19 +56,20 @@ Deno.test("M6: ускоренное старение +3 биогода за 1 г
   assertEquals(r.trend, "worsening");
 });
 
-Deno.test("M6: 4 точки → окно ограничено max_history_points, регрессия по хвосту", () => {
+Deno.test("M6: 4 точки, ровный stable-тренд → pace ≈ 1", () => {
   const r = computeAgingPace(
     [
-      { date: "2022-01-01", bio_age: 30 }, // должна быть отброшена, если max=4
+      { date: "2022-01-01", bio_age: 30 },
       { date: "2023-01-01", bio_age: 31 },
-      { date: "2024-01-01", bio_age: 31.5 },
-      { date: "2025-01-01", bio_age: 32 },
+      { date: "2024-01-01", bio_age: 32 },
+      { date: "2025-01-01", bio_age: 33 },
     ],
     S,
   );
   assert(r.pace !== null);
   assertEquals(r.points_used, Math.min(4, S.aging_pace.max_history_points));
   assertEquals(r.trend, "stable");
+  assert(Math.abs(r.pace! - 1.0) < 0.05, `pace=${r.pace}`);
 });
 
 Deno.test("M6: все точки в одной дате → null + reason zero_time_span", () => {
