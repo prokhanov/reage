@@ -255,7 +255,7 @@ function AnalysesWidgets() {
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
             Последний анализ • 15 марта 2026
           </div>
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">112 показателей</span>
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">135 показателей</span>
         </div>
         <div className="space-y-2.5">
           {biomarkers.map((b) => {
