@@ -214,6 +214,31 @@ ${prescContext || "(нет)"}
       ? Math.min(99, Math.max(1, Math.round(parsed.cohort_percentile)))
       : null;
 
+    // Normalize trajectory: 13 points, monotone-ish from currentBio to target
+    let trajectory: Array<{ month: number; bio_age: number }> | null = null;
+    if (Array.isArray(parsed.trajectory_points) && parsed.trajectory_points.length >= 2) {
+      const map = new Map<number, number>();
+      for (const p of parsed.trajectory_points) {
+        const m = Math.round(Number(p.month));
+        const v = Number(p.bio_age);
+        if (m >= 0 && m <= 12 && isFinite(v)) map.set(m, Math.round(v * 10) / 10);
+      }
+      // Force anchors
+      map.set(0, Math.round(currentBio * 10) / 10);
+      map.set(12, target);
+      // Fill missing months by linear interpolation between known points
+      const filled: Array<{ month: number; bio_age: number }> = [];
+      const known = [...map.entries()].sort((a, b) => a[0] - b[0]);
+      for (let m = 0; m <= 12; m++) {
+        if (map.has(m)) { filled.push({ month: m, bio_age: map.get(m)! }); continue; }
+        const prev = [...known].reverse().find(([k]) => k < m)!;
+        const next = known.find(([k]) => k > m)!;
+        const t = (m - prev[0]) / (next[0] - prev[0]);
+        filled.push({ month: m, bio_age: Math.round((prev[1] + (next[1] - prev[1]) * t) * 10) / 10 });
+      }
+      trajectory = filled;
+    }
+
     const { data: snapshot, error: insErr } = await supabase
       .from("health_strategy_snapshots")
       .insert({
@@ -228,6 +253,7 @@ ${prescContext || "(нет)"}
         rationale: parsed.rationale,
         cohort_percentile: cohortPct,
         cohort_label: parsed.cohort_label || null,
+        trajectory,
         model: "google/gemini-2.5-flash",
       })
       .select()
