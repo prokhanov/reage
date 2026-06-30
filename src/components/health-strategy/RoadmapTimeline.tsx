@@ -165,8 +165,6 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
   // Progress path = path up to active point
   const passedPath = buildSmoothPath(points.slice(0, Math.max(1, activeIdx + 1)));
 
-  const nextAnalysisMs = milestones.find((m, i) => i > activeIdx && m.kind === "analysis");
-
   // Convert SVG coords to overlay CSS percentages
   const toLeftPct = (x: number) => (x / VB_W) * 100;
   const toTopPct = (y: number) => (y / VB_H) * 100;
