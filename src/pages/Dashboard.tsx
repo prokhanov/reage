@@ -203,6 +203,65 @@ export default function Dashboard() {
     }
   };
 
+  // Load category list once (used by strategy preview dialog)
+  useEffect(() => {
+    if (!canRecalculate) return;
+    void supabase
+      .from("biomarker_categories")
+      .select("name, display_order")
+      .order("display_order")
+      .then(({ data }) => setCategories((data || []).map((c: any) => c.name)));
+  }, [canRecalculate]);
+
+  const openStrategyPreview = async () => {
+    try {
+      setPreviewing(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, preview: true },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPreviewData(data);
+      setPreviewOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось пересчитать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  const publishStrategy = async (edited: any) => {
+    try {
+      setPublishing(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, publish: true, edited },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPreviewOpen(false);
+      setPreviewData(null);
+      toast({ title: "Стратегия опубликована клиенту" });
+      // Refresh dashboard data so updated bio age / HI surface immediately
+      await fetchAnalysesStats();
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось опубликовать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+
+
   if (loading || demoLoading) {
     return (
       <div className="p-4 md:p-8">
