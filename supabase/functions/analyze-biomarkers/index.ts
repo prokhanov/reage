@@ -1532,14 +1532,18 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .trim();
         return SECTION_HEADER_RE.test(t);
       };
+      const stripBold = (s: string) => s.replace(/^\*+\s*/, "").replace(/\s*\*+$/, "").trim();
       const isLikelyName = (l: string) => {
-        const t = l.trim().replace(/^\d+[.)]\s*/, "");
+        let t = l.trim().replace(/^\d+[.)]\s*/, "");
         if (!t) return false;
         if (isFieldLine(t)) return false;
-        if (t.startsWith("•") || t.startsWith("-") || t.startsWith("*")) return false;
-        if (t.startsWith("#")) return false; // markdown header
-        if (isSectionHeader(t)) return false; // "Нутрицевтики" и т.п.
-        // Имя — короткая строка без двоеточия в начале и не пустая
+        if (t.startsWith("#")) return false;
+        // Markdown-жирный (**Цинк**) — допустимое имя препарата
+        const boldOnly = /^\*\*[^*\n]+\*\*\s*[:：]?\s*$/.test(t);
+        if (!boldOnly && (t.startsWith("•") || t.startsWith("- ") || t.startsWith("* "))) return false;
+        t = stripBold(t).replace(/[:：]\s*$/, "");
+        if (!t) return false;
+        if (isSectionHeader(t)) return false;
         return t.length >= 2 && t.length <= 200;
       };
 
@@ -1566,12 +1570,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           // Имя — первая короткая (<= 120 симв.) строка, не являющаяся полем,
           // буллетом, заголовком секции или длинным вступительным абзацем
           // (AI иногда пишет «Имя, Ваши анализы показывают…» перед карточкой).
-          const isCandidateName = (l: string) =>
-            !isFieldLine(l) &&
-            !l.startsWith("•") &&
-            !l.startsWith("-") &&
-            !isSectionHeader(l) &&
-            l.replace(/^\d+[.)]\s*/, "").replace(/^\*+|\*+$/g, "").trim().length <= 120;
+          const isCandidateName = (l: string) => {
+            if (isFieldLine(l)) return false;
+            if (l.startsWith("•") || l.startsWith("- ") || l.startsWith("* ")) return false;
+            if (isSectionHeader(l)) return false;
+            const cleaned = stripBold(l.replace(/^\d+[.)]\s*/, "")).replace(/[:：]\s*$/, "");
+            return cleaned.length >= 2 && cleaned.length <= 120;
+          };
           // Берём ПОСЛЕДНЮЮ короткую строку перед первой строкой «Форма:» —
           // так длинный вступительный параграф будет отброшен, а название
           // препарата (которое стоит непосредственно перед «Форма:») выиграет.
