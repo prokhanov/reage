@@ -117,7 +117,14 @@ const KDM_REF: Record<string, KDMRef> = {
 /**
  * Упрощённый KDM по фиксированной reference-таблице.
  * Возвращает BA или null если меньше 4 маркеров.
+ *
+ * Защита от выбросов: каждый marker_implied_age клампится к
+ * chrono ± KDM_MARKER_RADIUS лет (отдельный маркер с малым slope
+ * может дать +50 лет от шума и обрушить среднее). При ≥6 маркерах
+ * отбрасываем самый высокий и самый низкий impliedAge (trimmed mean).
+ * Финальный шринкаж 50 % к хроновозрасту.
  */
+const KDM_MARKER_RADIUS = 25;
 export function computeKDMAge(markers: MarkerInput[], chronoAge: number): number | null {
   const samples: { age: number; w: number }[] = [];
   for (const [code, ref] of Object.entries(KDM_REF)) {
@@ -125,17 +132,28 @@ export function computeKDMAge(markers: MarkerInput[], chronoAge: number): number
     if (!m || !Number.isFinite(m.value)) continue;
     let v = m.value;
     if (ref.clamp) v = Math.min(Math.max(v, ref.clamp[0]), ref.clamp[1]);
-    const impliedAge = 25 + (v - ref.median25) / ref.slope;
-    // вес = 1/variance, нормализованный по slope² (чем чувствительнее маркер, тем выше вес)
+    let impliedAge = 25 + (v - ref.median25) / ref.slope;
+    // per-marker clamp: единичный шумный маркер не должен утаскивать BA на 50+ лет
+    const lo = chronoAge - KDM_MARKER_RADIUS;
+    const hi = chronoAge + KDM_MARKER_RADIUS;
+    if (impliedAge < lo) impliedAge = lo;
+    if (impliedAge > hi) impliedAge = hi;
     const w = (ref.slope * ref.slope) / Math.max(ref.variance, 1e-6);
     samples.push({ age: impliedAge, w });
   }
   if (samples.length < 4) return null;
+
+  // Trimmed mean: при ≥6 маркерах отбрасываем крайние.
+  let pool = samples;
+  if (samples.length >= 6) {
+    const sorted = [...samples].sort((a, b) => a.age - b.age);
+    pool = sorted.slice(1, -1);
+  }
   let sumW = 0, sumWA = 0;
-  for (const s of samples) { sumW += s.w; sumWA += s.w * s.age; }
+  for (const s of pool) { sumW += s.w; sumWA += s.w * s.age; }
   const raw = sumWA / sumW;
-  // Шринкаж к хроновозрасту: KDM сам по себе шумный, подмешиваем 30 % chrono.
-  return 0.7 * raw + 0.3 * chronoAge;
+  // Шринкаж 50 % к chrono: KDM шумный, делаем консервативно.
+  return 0.5 * raw + 0.5 * chronoAge;
 }
 
 // ---- Гибрид -------------------------------------------------------------
