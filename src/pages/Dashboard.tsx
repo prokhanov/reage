@@ -65,6 +65,7 @@ export default function Dashboard() {
   const [publishing, setPublishing] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [bioPercentile, setBioPercentile] = useState<{ topPercent: number; percentileBetter: number; norm: { mean_bio_age: number; sd_bio_age: number; source: string } } | null>(null);
   const canRecalculate = isSuperAdmin && isViewMode;
 
 
