@@ -410,6 +410,20 @@ export default function Dashboard() {
   })();
   const ageDifference = displayBioAge && chronologicalAge ? chronologicalAge - displayBioAge : null;
 
+  // Перцентиль по популяционной норме (NHANES + PhenoAge)
+  useEffect(() => {
+    let cancelled = false;
+    const gender = profile?.gender || (demoMode && demoData ? demoData.profile.gender : null);
+    if (!displayBioAge || !chronologicalAge) {
+      setBioPercentile(null);
+      return;
+    }
+    getBioAgePercentile(chronologicalAge, displayBioAge, gender).then((res) => {
+      if (!cancelled) setBioPercentile(res);
+    });
+    return () => { cancelled = true; };
+  }, [displayBioAge, chronologicalAge, profile?.gender, demoMode, demoData]);
+
   // Calculate progress metrics
   const analyses = demoMode && demoData ? demoData.analyses : allAnalyses;
   let displayRecentChange: number | null = null;
