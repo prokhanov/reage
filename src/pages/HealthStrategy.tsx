@@ -10,6 +10,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { RejuvenationTrajectory } from "@/components/health-strategy/RejuvenationTrajectory";
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
+import { ExpectationsTimeline } from "@/components/health-strategy/ExpectationsTimeline";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
 import { toast } from "@/hooks/use-toast";
 
@@ -289,7 +290,13 @@ export default function HealthStrategy() {
             />
 
 
-            {/* 3. Активная карта действий — на всю ширину */}
+            {/* 3. Что будет происходить с организмом — таймлайн ожиданий */}
+            <ExpectationsTimeline
+              startDate={startDate}
+              expectations={(snapshot as any).expectations ?? null}
+            />
+
+            {/* 4. Активная карта действий — на всю ширину */}
             <ActionMap
               actions={(snapshot.action_map as any[]) || []}
               systems={categories}

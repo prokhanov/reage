@@ -1046,6 +1046,7 @@ export type Database = {
           cohort_percentile: number | null
           created_at: string
           current_bio_age: number
+          expectations: Json | null
           health_index: number | null
           id: string
           key_biomarkers: Json | null
@@ -1066,6 +1067,7 @@ export type Database = {
           cohort_percentile?: number | null
           created_at?: string
           current_bio_age: number
+          expectations?: Json | null
           health_index?: number | null
           id?: string
           key_biomarkers?: Json | null
@@ -1086,6 +1088,7 @@ export type Database = {
           cohort_percentile?: number | null
           created_at?: string
           current_bio_age?: number
+          expectations?: Json | null
           health_index?: number | null
           id?: string
           key_biomarkers?: Json | null
