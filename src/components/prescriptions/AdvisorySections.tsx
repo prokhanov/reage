@@ -113,7 +113,8 @@ export function extractFollowUpsFromLifestyle(ls?: LifestyleData): FollowUpData[
   const out: FollowUpData[] = [];
   for (const raw of all) {
     if (typeof raw !== "string") continue;
-    const m = raw.match(FOLLOW_UP_LINE_RE);
+    const cleaned = stripInlineMarkdown(raw.trim());
+    const m = cleaned.match(FOLLOW_UP_LINE_RE);
     if (!m) continue;
     const specialist = m[1].trim().replace(/[:.,;]+$/, "");
     const goal = m[2].trim();
