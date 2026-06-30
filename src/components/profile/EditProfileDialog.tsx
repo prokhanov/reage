@@ -188,15 +188,16 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>Редактировать профиль</DialogTitle>
           <DialogDescription>
             Обновите вашу личную информацию
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 px-6 overflow-y-auto flex-1 min-h-0">
+
           {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="edit-name">Имя *</Label>
