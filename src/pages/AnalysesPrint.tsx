@@ -174,7 +174,7 @@ export default function AnalysesPrint() {
             <div>
               <h1 className="text-2xl font-bold mb-1">История анализов</h1>
               <div className="text-sm text-muted-foreground">
-                {profile?.full_name || "—"}
+                {[profile?.last_name, profile?.first_name].filter(Boolean).join(" ") || "—"}
                 {profile?.birth_date && (
                   <> · ДР: {new Date(profile.birth_date).toLocaleDateString("ru-RU")}</>
                 )}
