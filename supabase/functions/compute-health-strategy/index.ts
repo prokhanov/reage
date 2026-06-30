@@ -210,6 +210,8 @@ serve(async (req) => {
     const subscription: any = subRes.data;
     const futureBookings = bookingsRes.data || [];
     const adherenceRows = adherenceRes.data || [];
+    const bioAgeHistory = (historyRes.data || []).map((r: any) => ({ date: r.date, bio_age: Number(r.biological_age) })).filter((p: any) => Number.isFinite(p.bio_age));
+
 
     if (!profile || !latest || latest.biological_age == null) {
       return new Response(JSON.stringify({ error: "No analysis data" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
