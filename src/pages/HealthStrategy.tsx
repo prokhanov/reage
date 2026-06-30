@@ -72,8 +72,11 @@ export default function HealthStrategy() {
   const [riskZone, setRiskZone] = useState<any>(null);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [publishing, setPublishing] = useState(false);
 
-  const canForceRefresh = isSuperAdmin || isViewMode;
+  const canRecalculate = isSuperAdmin && isViewMode;
 
   const displayRationale = useMemo(
     () => sanitizeRationale(snapshot?.rationale ?? null),
