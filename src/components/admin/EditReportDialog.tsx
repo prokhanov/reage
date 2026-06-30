@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { edgeFunctionUrl } from "@/lib/supabaseUrl";
+import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -97,17 +97,29 @@ export function EditReportDialog({
     setQaRunning(true);
     setQaCompleted(false);
     setQaEvents([{ type: "status", message: "Запускаю проверку отчёта…" }]);
+    const abortController = new AbortController();
+    let qaFinished = false;
+    let lastEventAt = Date.now();
+    const hardTimeout = window.setTimeout(() => abortController.abort(), 10 * 60 * 1000);
+    const idleTimeout = window.setInterval(() => {
+      if (Date.now() - lastEventAt > 90 * 1000) {
+        abortController.abort();
+      }
+    }, 5 * 1000);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
+      if (!token) throw new Error("Сессия администратора не найдена. Обновите страницу и войдите снова.");
       const url = edgeFunctionUrl("report-qa");
       const resp = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ analysisId }),
+        signal: abortController.signal,
       });
       if (!resp.ok || !resp.body) {
         const t = await resp.text();
@@ -119,7 +131,11 @@ export function EditReportDialog({
       let streamDone = false;
       while (!streamDone) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          streamDone = true;
+          break;
+        }
+        lastEventAt = Date.now();
         buf += decoder.decode(value, { stream: true });
         let nl: number;
         while ((nl = buf.indexOf("\n")) !== -1) {
@@ -131,6 +147,7 @@ export function EditReportDialog({
             const evt = JSON.parse(line.slice(6));
             setQaEvents((prev) => [...prev, evt]);
             if (evt.type === "done" || evt.type === "error") {
+              qaFinished = true;
               streamDone = true;
               if (evt.type === "error") {
                 toast({ title: "Ошибка проверки", description: evt.message, variant: "destructive" });
@@ -142,13 +159,23 @@ export function EditReportDialog({
           }
         }
       }
+      if (!qaFinished) {
+        throw new Error("Проверка отчёта прервалась без финального статуса. Запустите её ещё раз.");
+      }
       setQaCompleted(true);
       // Reload sections to reflect any AI-generated repairs
       await loadRecommendations();
       toast({ title: "Проверка завершена", description: "Контент перезагружен в редактор." });
     } catch (e: any) {
-      toast({ title: "Ошибка", description: e.message, variant: "destructive" });
+      const message = e?.name === "AbortError"
+        ? "Проверка отчёта не ответила вовремя. Процесс остановлен, чтобы окно не зависало. Запустите проверку ещё раз."
+        : e.message;
+      setQaEvents((prev) => [...prev, { type: "error", message }]);
+      setQaCompleted(true);
+      toast({ title: "Ошибка", description: message, variant: "destructive" });
     } finally {
+      window.clearTimeout(hardTimeout);
+      window.clearInterval(idleTimeout);
       setQaRunning(false);
     }
   };

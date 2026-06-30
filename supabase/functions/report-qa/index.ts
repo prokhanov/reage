@@ -22,6 +22,9 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+const AI_CALL_TIMEOUT_MS = 45_000;
+const QA_TIME_BUDGET_MS = 125_000;
+const MAX_AI_REPAIRS_PER_RUN = 8;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
@@ -348,7 +351,7 @@ async function translateEnglishFragments(
 
   const user = JSON.stringify({ fragments }, null, 2);
 
-  const resp = await fetch(
+  const resp = await fetchWithTimeout(
     "https://ai.gateway.lovable.dev/v1/chat/completions",
     {
       method: "POST",
@@ -365,6 +368,7 @@ async function translateEnglishFragments(
         response_format: { type: "json_object" },
       }),
     },
+    AI_CALL_TIMEOUT_MS,
   );
 
   if (!resp.ok) {
@@ -415,7 +419,7 @@ ${reportContext.slice(0, 2000)}
 
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
 
-  const resp = await fetch(
+  const resp = await fetchWithTimeout(
     "https://ai.gateway.lovable.dev/v1/chat/completions",
     {
       method: "POST",
@@ -431,6 +435,7 @@ ${reportContext.slice(0, 2000)}
         ],
       }),
     },
+    AI_CALL_TIMEOUT_MS,
   );
 
   if (!resp.ok) {
@@ -440,6 +445,21 @@ ${reportContext.slice(0, 2000)}
   const data = await resp.json();
   const text: string = data?.choices?.[0]?.message?.content ?? "";
   return text.trim() || null;
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`AI gateway timeout after ${Math.round(timeoutMs / 1000)}s`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // ──────────────────── handler ────────────────────
@@ -502,10 +522,18 @@ Deno.serve(async (req) => {
   const stream = new ReadableStream({
     async start(controller) {
       const enc = new TextEncoder();
+      let closed = false;
       const send = (event: Record<string, unknown>) => {
+        if (closed) return;
         controller.enqueue(enc.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
       const fixes: string[] = [];
+      const startedAt = Date.now();
+      let aiRepairsDone = 0;
+      const isTimeBudgetLow = () => Date.now() - startedAt > QA_TIME_BUDGET_MS;
+      const heartbeat = setInterval(() => {
+        send({ type: "status", message: "Проверка продолжается…" });
+      }, 15_000);
 
       try {
         send({ type: "status", message: "Загружаю отчёт…" });
@@ -573,6 +601,13 @@ Deno.serve(async (req) => {
         });
 
         for (const sec of sections as any[]) {
+          if (isTimeBudgetLow()) {
+            const msg = "Проверка остановлена по лимиту времени. Уже найденные исправления сохранены; оставшиеся секции можно проверить повторным запуском.";
+            fixes.push(msg);
+            send({ type: "warn", message: msg });
+            break;
+          }
+
           let text: string = sec.text;
           const sectionLabel = sec.type;
 
@@ -632,6 +667,12 @@ Deno.serve(async (req) => {
             });
             // process from last to first to keep indices stable on `text`
             for (let i = blocksToFix.length - 1; i >= 0; i--) {
+              if (isTimeBudgetLow() || aiRepairsDone >= MAX_AI_REPAIRS_PER_RUN) {
+                const msg = `[${sectionLabel}] Часть AI-догенерации пропущена, чтобы проверка не зависла. Запустите проверку ещё раз после сохранения текущих правок.`;
+                fixes.push(msg);
+                send({ type: "warn", message: msg });
+                break;
+              }
               const blk = blocksToFix[i];
               const bm = biomarkers.find(
                 (b) =>
@@ -657,6 +698,7 @@ Deno.serve(async (req) => {
                 aiModel,
                 reportContext,
               );
+              aiRepairsDone++;
               if (generated) {
                 // Find end-of-block (anchor:biomarker_end) — replace whole block
                 const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
@@ -692,11 +734,20 @@ Deno.serve(async (req) => {
               }
             }
             const unique = [...uniqueMap.values()];
-            send({
-              type: "status",
-              message: `[${sectionLabel}] Найдены английские артефакты (${unique.length} уник.). Перевожу…`,
-            });
-            const translations = await translateEnglishFragments(unique, aiModel);
+            const canTranslate = !isTimeBudgetLow() && aiRepairsDone < MAX_AI_REPAIRS_PER_RUN;
+            let translations: Record<string, string> = {};
+            if (canTranslate) {
+              send({
+                type: "status",
+                message: `[${sectionLabel}] Найдены английские артефакты (${unique.length} уник.). Перевожу…`,
+              });
+              translations = await translateEnglishFragments(unique, aiModel);
+              aiRepairsDone++;
+            } else {
+              const msg = `[${sectionLabel}] Английские фрагменты найдены, но перевод пропущен по лимиту времени.`;
+              fixes.push(msg);
+              send({ type: "warn", message: msg });
+            }
             let replaced = 0;
             // Replace longest first to avoid overlapping substring issues
             const sortedKeys = Object.keys(translations).sort(
@@ -760,6 +811,8 @@ Deno.serve(async (req) => {
           message: err instanceof Error ? err.message : String(err),
         });
       } finally {
+        clearInterval(heartbeat);
+        closed = true;
         controller.close();
       }
     },
