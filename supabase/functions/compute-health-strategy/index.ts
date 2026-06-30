@@ -183,8 +183,18 @@ serve(async (req) => {
     // Override with real booking dates where possible
     const realDates = futureBookings.map((b: any) => b.booking_date).slice(0, plannedAnalysisDates.length);
     const finalAnalysisDates = plannedAnalysisDates.map((d, i) => realDates[i] || d);
-    const reportReadyDate = new Date(startDate.getTime() + 14 * 86400000); // 12 days lab + 2 days report upload/correction
-    const doctorReviewDate = new Date(startDate.getTime() + 16 * 86400000); // +2 days doctor review/consultation
+    // If analysis is already processed (report exists), pull the "report ready"
+    // milestone forward to whichever happened first: today or start+14d. This
+    // keeps "сейчас" on a meaningful step instead of pinning it to start.
+    const todayMs = Date.now();
+    const startMs = startDate.getTime();
+    const isProcessed = latest.status === "processed";
+    const plannedReportMs = startMs + 14 * 86400000;
+    const reportReadyMs = isProcessed
+      ? Math.max(startMs + 1 * 86400000, Math.min(todayMs, plannedReportMs))
+      : plannedReportMs;
+    const reportReadyDate = new Date(reportReadyMs);
+    const doctorReviewDate = new Date(reportReadyMs + 2 * 86400000);
     const firstEffectDate = new Date(doctorReviewDate.getTime() + 28 * 86400000);
 
     const complaintsText = [complaints?.main_complaints, complaints?.goals, complaints?.lifestyle].filter(Boolean).join(" | ") || "не указано";
