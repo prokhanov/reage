@@ -375,23 +375,13 @@ export default function Dashboard() {
 
 
 
-  if (loading || demoLoading) {
-    return (
-      <div className="p-4 md:p-8">
-        <DashboardSkeleton />
-      </div>
-    );
-  }
-
-  // Use demo data if demo mode is active
+  // Compute display values (must run before any early return to keep hook order stable)
   const latestDemoAnalysis = getLatestDemoAnalysis(demoData);
   const displayBioAge = latestDemoAnalysis ? latestDemoAnalysis.biological_age : latestBioAge;
   const displayHealthIndex = latestDemoAnalysis ? latestDemoAnalysis.health_index : latestHealthIndex;
   const displayAnalysesCount = demoMode && demoData ? demoData.analyses.length : analysesCount;
-  
   const displayBiomarkersMetadata = latestDemoAnalysis?.biomarkers_metadata || latestBiomarkersMetadata;
 
-  // Calculate chronological age at the date of the latest analysis
   const latestAnalysisDate = (() => {
     const ans = demoMode && demoData ? demoData.analyses : allAnalyses;
     if (!ans || ans.length === 0) return null;
@@ -423,6 +413,16 @@ export default function Dashboard() {
     });
     return () => { cancelled = true; };
   }, [displayBioAge, chronologicalAge, profile?.gender, demoMode, demoData]);
+
+  if (loading || demoLoading) {
+    return (
+      <div className="p-4 md:p-8">
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
+
 
   // Calculate progress metrics
   const analyses = demoMode && demoData ? demoData.analyses : allAnalyses;
