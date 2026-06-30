@@ -344,16 +344,39 @@ export default function Dashboard() {
       {!demoMode && <PassportReminderCard />}
 
       {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
-            <span className="text-foreground">Добро пожаловать,</span>
-            <br />
-            <span className="bg-gradient-primary bg-clip-text text-transparent">{profile?.name}</span>
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Паспортный возраст: <span className="text-primary font-medium">{birthDateStr ? calculateAge(birthDateStr) : (chronologicalAge ? Math.floor(chronologicalAge) : "—")} лет</span>
-          </p>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="space-y-1 min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+              <span className="text-foreground">Добро пожаловать,</span>
+              <br />
+              <span className="bg-gradient-primary bg-clip-text text-transparent">{profile?.name}</span>
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Паспортный возраст: <span className="text-primary font-medium">{birthDateStr ? calculateAge(birthDateStr) : (chronologicalAge ? Math.floor(chronologicalAge) : "—")} лет</span>
+            </p>
+          </div>
+          {canRecalculate && displayAnalysesCount > 0 && (
+            <Button onClick={openStrategyPreview} disabled={previewing} variant="outline" size="sm">
+              <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
+              {previewing ? "Считаем..." : "Пересчитать и проверить"}
+            </Button>
+          )}
         </div>
+
+        {canRecalculate && (
+          <StrategyPreviewDialog
+            open={previewOpen}
+            data={previewData}
+            startDate={new Date().toISOString().slice(0, 10)}
+            nextCheckupDate={nextBooking?.booking_date || null}
+            categories={categories}
+            publishing={publishing}
+            onCancel={() => setPreviewOpen(false)}
+            onPublish={publishStrategy}
+          />
+        )}
+
+
 
         {/* Data Status Alerts */}
         {!demoMode && displayAnalysesCount === 0 && (
