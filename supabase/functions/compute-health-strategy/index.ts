@@ -198,7 +198,10 @@ serve(async (req) => {
     const analysesPerYear = detectAnalysesPerYear(planName);
 
     const chronoAge = calcAge(profile.birth_date);
-    const currentBio = Number(latest.biological_age);
+    const storedBio = Number(latest.biological_age);
+    const storedAiAdjust = Number(
+      (latest.biomarkers_metadata as any)?.bio_age_calc?.ai_adjustment ?? 0,
+    );
 
     // Build biomarker summary + deviation flags
     const byCat: Record<string, Array<{ name: string; code: string; value: number; unit: string; deviated: boolean }>> = {};
