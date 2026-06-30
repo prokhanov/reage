@@ -15,7 +15,8 @@ import {
 
 interface Profile {
   id: string;
-  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   birth_date: string | null;
   gender: string | null;
 }
