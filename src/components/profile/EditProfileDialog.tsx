@@ -68,6 +68,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         weight: profile.weight != null ? String(profile.weight) : "",
         reproductive_status: profile.reproductive_status || "",
         last_menstrual_date: profile.last_menstrual_date || "",
+        pregnancy_start_date: profile.pregnancy_start_date || "",
       });
     }
   }, [profile]);
