@@ -84,8 +84,69 @@ serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { userId, force } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { userId, force, preview, publish, edited } = body || {};
     const targetUserId = userId || user.id;
+
+    // Helper: superadmin guard for preview/publish on other users
+    const requireSuperadminForOther = async () => {
+      if (targetUserId === user.id) return true;
+      const { data: roleRow } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "superadmin")
+        .maybeSingle();
+      return !!roleRow;
+    };
+
+    // PUBLISH MODE — accept edited snapshot and insert without recomputing
+    if (publish && edited && typeof edited === "object") {
+      const ok = await requireSuperadminForOther();
+      if (!ok) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (!edited.analysis_id) {
+        return new Response(JSON.stringify({ error: "analysis_id required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const insertRow: any = {
+        user_id: targetUserId,
+        analysis_id: edited.analysis_id,
+        current_bio_age: Number(edited.current_bio_age),
+        chronological_age: Number(edited.chronological_age),
+        target_bio_age: Number(edited.target_bio_age),
+        health_index: edited.health_index != null ? Math.round(Number(edited.health_index)) : null,
+        system_goals: edited.system_goals ?? [],
+        action_map: edited.action_map ?? [],
+        rationale: normalizeRationale(edited.rationale),
+        cohort_percentile: edited.cohort_percentile ?? null,
+        cohort_label: edited.cohort_label ?? null,
+        trajectory: edited.trajectory ?? null,
+        roadmap: edited.roadmap ?? null,
+        key_biomarkers: edited.key_biomarkers ?? null,
+        expectations: edited.expectations ?? [],
+        analyses_per_year: edited.analyses_per_year ?? null,
+        model: "google/gemini-2.5-flash (edited)",
+      };
+      const { data: saved, error: pubErr } = await supabase
+        .from("health_strategy_snapshots")
+        .insert(insertRow)
+        .select()
+        .single();
+      if (pubErr) {
+        return new Response(JSON.stringify({ error: pubErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify(saved), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // PREVIEW MODE — require superadmin guard when targeting another user
+    if (preview) {
+      const ok = await requireSuperadminForOther();
+      if (!ok) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
 
     const { data: latestAnalysisRow } = await supabase
       .from("analyses")
