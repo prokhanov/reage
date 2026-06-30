@@ -990,9 +990,9 @@ function calculateHealthIndex(
       ? (optimalMin === null || av.value >= optimalMin) && (optimalMax === null || av.value <= optimalMax)
       : !isOutsideNormal;
 
-    if (isCriticalLow || isCriticalHigh) { penalty = 15 * agingWeight; tier = "critical"; }
-    else if (isOutsideNormal) { penalty = 5 * agingWeight; tier = "risk"; }
-    else if (!isInOptimal) { penalty = 1 * agingWeight; tier = "acceptable"; }
+    if (isCriticalLow || isCriticalHigh) { penalty = 25 * agingWeight; tier = "critical"; }
+    else if (isOutsideNormal) { penalty = 8 * agingWeight; tier = "risk"; }
+    else if (!isInOptimal) { penalty = 2 * agingWeight; tier = "acceptable"; }
 
     totalPenalty += penalty;
     if (penalty > 0) penalties.push({ name: av.biomarkers.name, code: av.biomarkers.code, tier, penalty, weight: agingWeight });
