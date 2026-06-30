@@ -1781,6 +1781,7 @@ export type Database = {
           passport_series: string | null
           phone: string | null
           phone_verified_at: string | null
+          pregnancy_start_date: string | null
           reproductive_status: string | null
           telegram_id: string | null
           updated_at: string
@@ -1807,6 +1808,7 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          pregnancy_start_date?: string | null
           reproductive_status?: string | null
           telegram_id?: string | null
           updated_at?: string
@@ -1833,6 +1835,7 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          pregnancy_start_date?: string | null
           reproductive_status?: string | null
           telegram_id?: string | null
           updated_at?: string
