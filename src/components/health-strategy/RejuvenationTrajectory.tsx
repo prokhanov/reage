@@ -28,6 +28,7 @@ export function RejuvenationTrajectory({
   healthIndex,
   previousBioAge,
   previousDate,
+  trajectoryPoints,
 }: Props) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
