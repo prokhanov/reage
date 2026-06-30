@@ -1532,14 +1532,18 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .trim();
         return SECTION_HEADER_RE.test(t);
       };
+      const stripBold = (s: string) => s.replace(/^\*+\s*/, "").replace(/\s*\*+$/, "").trim();
       const isLikelyName = (l: string) => {
-        const t = l.trim().replace(/^\d+[.)]\s*/, "");
+        let t = l.trim().replace(/^\d+[.)]\s*/, "");
         if (!t) return false;
         if (isFieldLine(t)) return false;
-        if (t.startsWith("•") || t.startsWith("-") || t.startsWith("*")) return false;
-        if (t.startsWith("#")) return false; // markdown header
-        if (isSectionHeader(t)) return false; // "Нутрицевтики" и т.п.
-        // Имя — короткая строка без двоеточия в начале и не пустая
+        if (t.startsWith("#")) return false;
+        // Markdown-жирный (**Цинк**) — допустимое имя препарата
+        const boldOnly = /^\*\*[^*\n]+\*\*\s*[:：]?\s*$/.test(t);
+        if (!boldOnly && (t.startsWith("•") || t.startsWith("- ") || t.startsWith("* "))) return false;
+        t = stripBold(t).replace(/[:：]\s*$/, "");
+        if (!t) return false;
+        if (isSectionHeader(t)) return false;
         return t.length >= 2 && t.length <= 200;
       };
 
