@@ -188,15 +188,21 @@ function StatRow() {
       {stats.map((s) => {
         const Icon = s.icon;
         return (
-          <div key={s.label} className="flex flex-col items-start gap-1 flex-shrink-0">
+          <div
+            key={s.label}
+            className="flex flex-col items-center lg:items-start gap-1 flex-shrink-0"
+          >
+            <Icon className="w-3 h-3 text-primary shrink-0 lg:hidden mb-0.5" />
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
                 {s.value}
               </span>
             </div>
             <div className="flex items-center gap-1 text-muted-foreground">
-              <Icon className="w-3 h-3 text-primary shrink-0" />
-              <span className="text-[11px] sm:text-xs leading-tight whitespace-nowrap">{s.label}</span>
+              <Icon className="w-3 h-3 text-primary shrink-0 hidden lg:block" />
+              <span className="text-[11px] sm:text-xs leading-tight whitespace-nowrap">
+                {s.label}
+              </span>
             </div>
           </div>
         );
