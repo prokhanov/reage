@@ -900,6 +900,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
                 confidence_factor: healthResult.confidenceFactor,
                 top_penalties: healthResult.penalties.slice(0, 5),
               },
+              new_model: newModelBreakdown,
               ai_analysis: {
                 ai_bio_age_raw: aiResult.biological_age,
                 ai_adjustment: Math.round((biological_age - baseBioAge) * 10) / 10,
@@ -912,6 +913,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
                 calculated_at: new Date().toISOString(),
               },
             };
+
             console.log(`Final bio age: ${biological_age} (base: ${baseBioAge.toFixed(1)})`);
           } else {
             throw new Error("AI did not return structured data");
