@@ -990,6 +990,77 @@ ${globalBiomarkersInstructions}
       return `${normalized.trim()}\n${fallbackAnchorBlock}`.trim();
     }
 
+    function buildCategoryFallbackReport(category: string, biomarkers: any[], profile: any, age: number | null): string {
+      const gender = profile?.gender === "male" ? "male" : profile?.gender === "female" ? "female" : null;
+      const markerBlocks = biomarkers.map((bm: any) => {
+        let normalMin = bm.biomarkers.normal_min;
+        let normalMax = bm.biomarkers.normal_max;
+        let optimalMin = bm.biomarkers.optimal_min;
+        let optimalMax = bm.biomarkers.optimal_max;
+
+        if (age && gender && bm.biomarkers.range_mode === "age" && bm.biomarkers.age_ranges?.[gender]) {
+          const ageRange = bm.biomarkers.age_ranges[gender].find((range: any) => age >= range.age_from && age <= range.age_to);
+          if (ageRange) {
+            normalMin = ageRange.min;
+            normalMax = ageRange.max;
+            if (ageRange.optimal_min !== undefined) optimalMin = ageRange.optimal_min;
+            if (ageRange.optimal_max !== undefined) optimalMax = ageRange.optimal_max;
+          }
+        }
+
+        if ((normalMin === null || normalMax === null) && gender === "male" && bm.biomarkers.normal_min_male !== null) {
+          normalMin = bm.biomarkers.normal_min_male;
+          normalMax = bm.biomarkers.normal_max_male;
+        } else if ((normalMin === null || normalMax === null) && gender === "female" && bm.biomarkers.normal_min_female !== null) {
+          normalMin = bm.biomarkers.normal_min_female;
+          normalMax = bm.biomarkers.normal_max_female;
+        }
+
+        if (optimalMin === null && gender === "male" && bm.biomarkers.optimal_min_male !== null) {
+          optimalMin = bm.biomarkers.optimal_min_male;
+          optimalMax = bm.biomarkers.optimal_max_male;
+        } else if (optimalMin === null && gender === "female" && bm.biomarkers.optimal_min_female !== null) {
+          optimalMin = bm.biomarkers.optimal_min_female;
+          optimalMax = bm.biomarkers.optimal_max_female;
+        }
+
+        const isLow = normalMin !== null && bm.value < normalMin;
+        const isHigh = normalMax !== null && bm.value > normalMax;
+        const isOptimal = optimalMin !== null && optimalMax !== null
+          ? bm.value >= optimalMin && bm.value <= optimalMax
+          : !isLow && !isHigh;
+        const status = isLow ? "ниже референса" : isHigh ? "выше референса" : isOptimal ? "в оптимальном диапазоне" : "в пределах референса";
+        const rangeText = normalMin !== null || normalMax !== null
+          ? `Референс: ${normalMin ?? "—"}–${normalMax ?? "—"} ${bm.biomarkers.unit}.`
+          : "Референс не задан.";
+        const optimalText = optimalMin !== null || optimalMax !== null
+          ? ` Оптимум: ${optimalMin ?? "—"}–${optimalMax ?? "—"} ${bm.biomarkers.unit}.`
+          : "";
+        const description = bm.biomarkers.general_description || bm.biomarkers.description || "Показатель оценивается в связке с остальными маркерами этой системы.";
+
+        return [
+          `<!-- anchor:biomarker ${bm.biomarkers.code} -->`,
+          `### ${bm.biomarkers.name} (${bm.biomarkers.code})`,
+          `Значение: ${bm.value} ${bm.biomarkers.unit} — ${status}. ${rangeText}${optimalText}`,
+          description,
+          `<!-- anchor:biomarker_end -->`,
+        ].join("\n\n");
+      }).join("\n\n");
+
+      return [
+        category,
+        "",
+        "<!-- anchor:intro_start -->",
+        `Раздел сформирован по фактическим значениям биомаркеров системы «${category}». Интерпретация ниже сохраняет проверенные значения, референсы и привязку каждого показателя к карточкам отчёта.`,
+        "<!-- anchor:intro_end -->",
+        "",
+        markerBlocks,
+        "",
+        "## Вывод по системе",
+        "Клинические выводы и назначения нужно сверять с разделом «Назначения» и финальным резюме отчёта. При необходимости раздел можно перегенерировать или отредактировать вручную перед публикацией клиенту.",
+      ].join("\n").trim();
+    }
+
     // Запросы для каждой категории. В deep-режиме не запускаем 5 тяжёлых AI-вызовов одновременно:
     // пакетный параллельный старт периодически упирался в gateway rate limit, и клиент видел «0 из 5 систем».
     const categoryReports: Record<string, string> = {};
@@ -1184,7 +1255,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
-        const baseCategoryTokens = categoryKey === "metabolism" ? 24000 : 16000;
+        const baseCategoryTokens = categoryKey === "metabolism" ? 14000 : 10000;
         const categoryMaxCompletionTokens = Math.round(baseCategoryTokens * aiProfile.tokenMultiplier);
 
         const categoryRequestBody = JSON.stringify({
@@ -1306,8 +1377,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         // Fallback при полной неудаче
         if (!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) {
           console.error(`FAILED: Category ${category} content too short after ${retryCount} retries (${categoryReport?.length || 0} chars). Using fallback.`);
-          categoryReport = `## ${category}\n\nАнализ этой категории не удался при генерации (получено ${categoryReport?.length || 0} символов вместо минимальных ${MIN_CONTENT_LENGTH}). Рекомендуется перегенерировать отчёт.`;
-          categoryStatuses[category] = { success: false, error: `Content too short after ${retryCount} retries`, tokens: tokensUsed };
+          categoryReport = buildCategoryFallbackReport(category, biomarkers as any[], profile, age);
+          categoryStatuses[category] = {
+            success: true,
+            fallback: true,
+            error: `Content too short after ${retryCount} retries`,
+            tokens: tokensUsed,
+          };
         } else if (finishReason === "length") {
           console.warn(`WARNING: Category ${category} was truncated at token limit`);
           categoryReport += "\n\n[⚠️ ВНИМАНИЕ: Отчёт был сокращён из-за ограничения по длине. Рекомендуется перегенерировать.]";
@@ -1336,8 +1412,22 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
-        categoryStatuses[category] = { success: false, error: error.message };
         if (String(error?.message || "").includes("Недостаточно AI-кредитов")) throw error;
+        const fallbackReport = buildCategoryFallbackReport(category, biomarkers as any[], profile, age);
+        const { error: fallbackInsertError } = await supabase.from("recommendations").insert({
+          user_id: analysis.user_id,
+          analysis_id: analysisId,
+          type: category,
+          text: fallbackReport,
+        });
+        if (fallbackInsertError) {
+          console.error(`Failed to save fallback category ${category}:`, fallbackInsertError.message);
+          categoryStatuses[category] = { success: false, error: error.message };
+        } else {
+          categoryReports[category] = fallbackReport;
+          categoryStatuses[category] = { success: true, fallback: true, error: error.message };
+          console.log(`Saved fallback: ${category}`);
+        }
       }
     };
 
