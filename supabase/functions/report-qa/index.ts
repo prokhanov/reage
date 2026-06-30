@@ -287,9 +287,17 @@ function detectEnglishArtifacts(
     .replace(/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, (m) => " ".repeat(m.length));
 
   // Mask Latin-in-parentheses right after a Cyrillic word: "Магний (Magnesium glycinate)"
+  // Also covers parens with digits/punctuation at start: "(25-OH D)", "(1,25-OH D)".
   masked = masked.replace(
-    /([А-Яа-яЁё])(\s*\(\s*[A-Za-z][A-Za-z0-9\s,.\-/]*\))/g,
+    /([А-Яа-яЁё])(\s*\(\s*[A-Za-z0-9][A-Za-z0-9\s,.\-/]*\))/g,
     (_full, lead, paren) => lead + " ".repeat(paren.length),
+  );
+
+  // Mask vitamin-D-style chemical notation anywhere: "25-OH D", "1,25-OH D",
+  // "25(OH)D", "25-OH-витамин D" — these are legitimate biomarker codes.
+  masked = masked.replace(
+    /\b\d{1,2}(?:[.,]\d{1,2})?[\s\-]?\(?OH\)?[\s\-]?(?:витамин\s*)?D\d?\b/gi,
+    (m) => " ".repeat(m.length),
   );
 
   // Mask single Latin letter glued to Cyrillic via hyphen: "L-карнитин", "D-аспарагин",
