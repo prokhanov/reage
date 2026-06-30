@@ -94,6 +94,12 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
           weight: weightValue,
+          reproductive_status: formData.gender === 'female' && formData.reproductive_status
+            ? formData.reproductive_status
+            : null,
+          last_menstrual_date: formData.gender === 'female' && formData.reproductive_status === 'regular' && formData.last_menstrual_date
+            ? formData.last_menstrual_date
+            : null,
         } as any)
         .eq("id", userId)
         .select()
