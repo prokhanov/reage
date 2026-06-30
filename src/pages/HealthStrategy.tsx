@@ -25,6 +25,7 @@ interface Snapshot {
   created_at: string;
   cohort_percentile?: number | null;
   cohort_label?: string | null;
+  trajectory?: Array<{ month: number; bio_age: number }> | null;
 }
 
 export default function HealthStrategy() {
