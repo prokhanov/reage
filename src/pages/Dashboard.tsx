@@ -356,10 +356,17 @@ export default function Dashboard() {
             </p>
           </div>
           {canRecalculate && displayAnalysesCount > 0 && (
-            <Button onClick={openStrategyPreview} disabled={previewing} variant="outline" size="sm">
-              <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
-              {previewing ? "Считаем..." : "Пересчитать и проверить"}
-            </Button>
+            <div className="flex flex-col items-end gap-1 min-w-[200px]">
+              <Button onClick={openStrategyPreview} disabled={previewing} variant="outline" size="sm">
+                <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
+                {previewing ? "Считаем..." : "Пересчитать и проверить"}
+              </Button>
+              {previewing && (
+                <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full w-full bg-gradient-to-r from-transparent via-primary to-transparent animate-pulse" />
+                </div>
+              )}
+            </div>
           )}
         </div>
 
