@@ -7,13 +7,12 @@ const corsHeaders = {
 };
 
 function calcAge(birth: string) {
-  const t = new Date();
   const b = new Date(birth);
-  let a = t.getFullYear() - b.getFullYear();
-  const m = t.getMonth() - b.getMonth();
-  if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
-  return a;
+  const t = new Date();
+  const years = (t.getTime() - b.getTime()) / (365.2425 * 24 * 3600 * 1000);
+  return Math.round(years * 10) / 10;
 }
+
 
 function addMonths(d: Date, m: number) {
   const r = new Date(d);
