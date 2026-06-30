@@ -754,9 +754,6 @@ export default function Dashboard() {
                                 <div className="text-xs text-muted-foreground mt-0.5">
                                   Лучше {percentileBetter}% людей вашего возраста и пола
                                 </div>
-                                <div className="text-[10px] text-muted-foreground/70 mt-1">
-                                  Норма: μ={norm.mean_bio_age.toFixed(1)} · σ={norm.sd_bio_age.toFixed(1)} (NHANES + PhenoAge)
-                                </div>
                               </div>
                             </div>
                             {diff !== 0 && (
