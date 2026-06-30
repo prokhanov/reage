@@ -8,7 +8,7 @@
 //
 // Никаких внешних зависимостей — чистая функция, удобно тестировать в Deno.
 
-import type { HealthModelSettings, MarkerInput, MarkerScore, MarkerZone } from "./types.ts";
+import type { HealthModelSettings, MarkerInput, MarkerRange, MarkerScore, MarkerZone } from "./types.ts";
 
 const NORMAL_EDGE_SCORE = 0.6; // целевой score ровно на границе normal
 
