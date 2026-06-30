@@ -363,7 +363,7 @@ export default function Dashboard() {
               </Button>
               {previewing && (
                 <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full w-1/3 bg-primary animate-[progress-slide_1.4s_ease-in-out_infinite]" />
+                  <div className="h-full w-full bg-gradient-to-r from-transparent via-primary to-transparent animate-pulse" />
                 </div>
               )}
             </div>
