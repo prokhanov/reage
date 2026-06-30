@@ -188,25 +188,32 @@ serve(async (req) => {
     const deviatedCodes = Object.values(byCat).flat().filter((b) => b.deviated).map((b) => b.code);
     const prescTitles = prescriptions.map((p: any) => p.name || p.prescription?.slice(0, 60)).filter(Boolean);
 
-    const requiredSlots = [
+    const startSlots = [
       { kind: "start", date: toIso(startDate), title: "Стартовая точка", analysis_number: 1 },
       { kind: "milestone", date: toIso(reportReadyDate), title: "Отчёт почти готов" },
       { kind: "milestone", date: toIso(doctorReviewDate), title: "Консультация и старт назначений" },
       { kind: "milestone", date: toIso(firstEffectDate), title: "Первое ожидаемое улучшение" },
-      ...finalAnalysisDates.flatMap((date, i) => {
-        const analysisDate = new Date(date);
-        const correctionDate = new Date(analysisDate.getTime() + 16 * 86400000);
-        const items: any[] = [{ kind: "analysis", date, title: "Плановая сдача анализов", analysis_number: i + 2 }];
-        if (i < finalAnalysisDates.length - 1 || analysesPerYear < 4) {
-          items.push({ kind: "milestone", date: toIso(correctionDate), title: `Коррекция назначений после анализа №${i + 2}` });
-        }
-        return items;
-      }),
+    ];
+    const analysisSlots = finalAnalysisDates.map((date, i) => ({
+      kind: "analysis",
+      date,
+      title: "Плановая сдача анализов",
+      analysis_number: i + 2,
+    }));
+    const correctionSlots = finalAnalysisDates.map((date, i) => ({
+      kind: "milestone",
+      date: toIso(new Date(new Date(date).getTime() + 16 * 86400000)),
+      title: `Коррекция назначений после анализа №${i + 2}`,
+    }));
+    const correctionCount = Math.max(0, milestonesCount - startSlots.length - analysisSlots.length - 1);
+    const requiredSlots = [
+      ...startSlots,
+      ...analysisSlots,
+      ...correctionSlots.slice(0, correctionCount),
       { kind: "summary", date: toIso(addMonths(startDate, 12)), title: "Итоги года" },
     ]
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, milestonesCount - 1);
-    if (!requiredSlots.some((s) => s.kind === "summary")) requiredSlots.push({ kind: "summary", date: toIso(addMonths(startDate, 12)), title: "Итоги года" });
+      .slice(0, milestonesCount);
 
     const requiredSlotsText = requiredSlots
       .slice(0, milestonesCount)
