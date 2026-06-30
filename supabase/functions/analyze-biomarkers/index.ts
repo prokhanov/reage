@@ -476,6 +476,17 @@ async function processAnalysis({
           'лютеиновая фаза';
         if (cycleDay) reproductiveContext += `\nДень цикла (приблизительно): ${cycleDay} (${phase})`;
       }
+      if (profile.reproductive_status === 'pregnant' && profile.pregnancy_start_date) {
+        const start = new Date(profile.pregnancy_start_date);
+        const diffDays = Math.floor((Date.now() - start.getTime()) / 86400000);
+        if (diffDays >= 0 && diffDays <= 320) {
+          const weeks = Math.floor(diffDays / 7);
+          const daysRem = diffDays % 7;
+          const trimester = weeks < 13 ? 'I триместр' : weeks < 27 ? 'II триместр' : 'III триместр';
+          reproductiveContext += `\nСрок беременности: ${weeks} нед. ${daysRem} дн. (${trimester})`;
+          reproductiveContext += `\nВАЖНО: при интерпретации учитывай физиологические сдвиги беременности для текущего триместра — ТТГ (снижение в I триместре), ферритин/Hb/Hct (гемодилюция), СОЭ/лейкоциты/D-димер/фибриноген (рост к III триместру), щёлочная фосфатаза (плацентарная фракция), липиды (физиологический рост), креатинин (снижение из-за роста СКФ), нормы глюкозы и инсулина по протоколам ГСД.`;
+        }
+      }
     }
 
     const userContext = `
