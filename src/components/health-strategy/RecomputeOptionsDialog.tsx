@@ -42,8 +42,13 @@ export function RecomputeOptionsDialog({ open, onOpenChange, onConfirm, loading 
   const chosen = ALL_SECTIONS.filter((s) => selected[s.key]).map((s) => s.key);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={(v) => { if (!loading) onOpenChange(v); }}>
+      <DialogContent
+        className="max-w-md"
+        onPointerDownOutside={(e) => { if (loading) e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (loading) e.preventDefault(); }}
+        onInteractOutside={(e) => { if (loading) e.preventDefault(); }}
+      >
         <DialogHeader>
           <DialogTitle>Что пересчитать?</DialogTitle>
           <DialogDescription>
