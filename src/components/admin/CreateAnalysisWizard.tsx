@@ -40,6 +40,25 @@ interface WizardData {
   };
 }
 
+const getReportJobStage = (job: any) => {
+  const steps = Array.isArray(job?.steps) ? job.steps : [];
+  const currentStepId = job?.current_step;
+  const currentStep = steps.find((step: any) => step?.id === currentStepId);
+  const label = currentStep?.label || currentStepId || "";
+
+  if (!label) return "Подготовка данных...";
+  if (String(currentStepId).startsWith("category:")) return `${label}...`;
+  if (currentStepId === "prescriptions") return "Формирование назначений...";
+  if (String(currentStepId).startsWith("finalize:")) return `${label}...`;
+  return `${label}...`;
+};
+
+const getUniqueSavedRecommendationProgress = (recs: Array<{ type: string | null }> | null | undefined) => {
+  const uniqueTypes = [...new Set((recs || []).map((rec) => rec.type).filter(Boolean) as string[])];
+  const lastType = uniqueTypes[uniqueTypes.length - 1] || "";
+  return { count: uniqueTypes.length, lastType };
+};
+
 export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAnalysisWizardProps) {
   const { viewAsUserId } = useContext(ViewAsPatientContext);
   const [currentStep, setCurrentStep] = useState(1);
@@ -186,26 +205,49 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
       const stageNames: Record<string, string> = {
         "Данные пациента": "Сохранение данных пациента...",
         "Общее резюме": "Формирование общего резюме...",
+        "Назначения": "Формирование назначений...",
       };
       categories.forEach(c => { stageNames[c] = `Анализ: ${c}...`; });
 
       const pollInterval = setInterval(async () => {
         if (pollingStopped) return;
         try {
-          const { data: recs } = await supabase
-            .from("recommendations")
-            .select("type")
-            .eq("analysis_id", analysisId);
+          const [{ data: job }, { data: recs }] = await Promise.all([
+            supabase
+              .from("report_jobs")
+              .select("status, error, steps, steps_done, steps_total, current_step")
+              .eq("analysis_id", analysisId)
+              .order("started_at", { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+            supabase
+              .from("recommendations")
+              .select("type, created_at")
+              .eq("analysis_id", analysisId)
+              .order("created_at", { ascending: true }),
+          ]);
 
-          const savedCount = recs?.length || 0;
-          const lastSaved = recs?.[recs.length - 1]?.type || "";
-          const stageName = stageNames[lastSaved] || lastSaved;
+          if (job) {
+            const current = Number(job.steps_done || 0);
+            const total = Number(job.steps_total || totalSteps);
+            const isDone = job.status === "done";
+            setAnalysisProgress({
+              current: isDone ? total : Math.min(current, total),
+              total,
+              currentCategory: String(job.current_step || ""),
+              stage: isDone ? "Готово!" : getReportJobStage(job),
+            });
+            return;
+          }
+
+          const savedProgress = getUniqueSavedRecommendationProgress(recs as any);
+          const stageName = stageNames[savedProgress.lastType] || savedProgress.lastType;
 
           setAnalysisProgress({
-            current: savedCount,
+            current: savedProgress.count,
             total: totalSteps,
-            currentCategory: lastSaved,
-            stage: savedCount < totalSteps ? stageName : "Генерация назначений...",
+            currentCategory: savedProgress.lastType,
+            stage: savedProgress.count < totalSteps ? stageName : "Генерация назначений...",
           });
         } catch {}
       }, 2500);
@@ -478,7 +520,7 @@ export function CreateAnalysisWizard({ open, onOpenChange, onSuccess }: CreateAn
                 <Progress value={analysisProgress.total > 0 ? (analysisProgress.current / analysisProgress.total) * 100 : 0} />
               </div>
               <p className="text-xs text-muted-foreground">
-                Это может занять 2-3 минуты. Создаем детальный отчет с персональными советами...
+                Глубокий отчёт может занять до 15–25 минут. Если один раздел обрабатывается дольше обычного, генерация продолжится в фоне.
               </p>
             </div>
           </Card>
