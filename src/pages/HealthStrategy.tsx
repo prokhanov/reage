@@ -234,6 +234,7 @@ export default function HealthStrategy() {
                 healthIndex={snapshot.health_index}
                 previousBioAge={previousSnapshot?.current_bio_age ?? null}
                 previousDate={previousAnalysis?.date ?? null}
+                trajectoryPoints={snapshot.trajectory ?? null}
               />
 
               {/* 2. Контрольные точки */}
