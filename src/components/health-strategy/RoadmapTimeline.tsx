@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flag, Sparkles, FlaskConical, Target, Trophy, Lotus, CalendarClock, Zap, Moon, Wheat, FlaskRound, Activity, ShieldCheck } from "lucide-react";
+import { Flag, Sparkles, FlaskConical, Trophy, CalendarClock, Zap, Moon, Wheat, FlaskRound, Activity, ShieldCheck } from "lucide-react";
 import { format, isBefore, isSameDay, differenceInDays } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
