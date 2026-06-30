@@ -304,7 +304,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               >
                 <div className="flex items-center justify-between gap-2">
                   <h4 className={`text-sm font-semibold leading-tight ${future ? "text-muted-foreground" : "text-foreground"}`}>
-                    {num ? `Анализ №${num} · ` : ""}{m.title}
+                    {num && !/этап сдачи/i.test(m.title) ? `Анализ №${num} · ` : ""}{m.title}
                   </h4>
                   {current && <Badge className="text-[10px] px-1.5 py-0">сейчас</Badge>}
                   {passed && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">пройдено</Badge>}
