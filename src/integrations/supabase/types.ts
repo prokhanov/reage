@@ -1771,6 +1771,7 @@ export type Database = {
           health_note: string | null
           height: number | null
           id: string
+          last_menstrual_date: string | null
           last_name: string | null
           medications: string[] | null
           name: string
@@ -1780,6 +1781,7 @@ export type Database = {
           passport_series: string | null
           phone: string | null
           phone_verified_at: string | null
+          reproductive_status: string | null
           telegram_id: string | null
           updated_at: string
           weight: number | null
@@ -1795,6 +1797,7 @@ export type Database = {
           health_note?: string | null
           height?: number | null
           id: string
+          last_menstrual_date?: string | null
           last_name?: string | null
           medications?: string[] | null
           name: string
@@ -1804,6 +1807,7 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          reproductive_status?: string | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null
@@ -1819,6 +1823,7 @@ export type Database = {
           health_note?: string | null
           height?: number | null
           id?: string
+          last_menstrual_date?: string | null
           last_name?: string | null
           medications?: string[] | null
           name?: string
@@ -1828,6 +1833,7 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           phone_verified_at?: string | null
+          reproductive_status?: string | null
           telegram_id?: string | null
           updated_at?: string
           weight?: number | null
