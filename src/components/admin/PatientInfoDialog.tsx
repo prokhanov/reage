@@ -649,6 +649,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               weight: (patientData as any).actualWeight ?? patientData.profile.weight ?? null,
               reproductive_status: (patientData.profile as any).reproductive_status ?? null,
               last_menstrual_date: (patientData.profile as any).last_menstrual_date ?? null,
+              pregnancy_start_date: (patientData.profile as any).pregnancy_start_date ?? null,
             }}
             userId={patientId}
             onSuccess={() => {

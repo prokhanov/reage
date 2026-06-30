@@ -32,6 +32,7 @@ interface Profile {
   weight?: number | null;
   reproductive_status?: string | null;
   last_menstrual_date?: string | null;
+  pregnancy_start_date?: string | null;
 }
 
 interface EditProfileDialogProps {
@@ -51,6 +52,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
     weight: profile?.weight != null ? String(profile.weight) : "",
     reproductive_status: profile?.reproductive_status || "",
     last_menstrual_date: profile?.last_menstrual_date || "",
+    pregnancy_start_date: profile?.pregnancy_start_date || "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -66,6 +68,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         weight: profile.weight != null ? String(profile.weight) : "",
         reproductive_status: profile.reproductive_status || "",
         last_menstrual_date: profile.last_menstrual_date || "",
+        pregnancy_start_date: profile.pregnancy_start_date || "",
       });
     }
   }, [profile]);
@@ -99,6 +102,9 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
             : null,
           last_menstrual_date: formData.gender === 'female' && formData.reproductive_status === 'regular' && formData.last_menstrual_date
             ? formData.last_menstrual_date
+            : null,
+          pregnancy_start_date: formData.gender === 'female' && formData.reproductive_status === 'pregnant' && formData.pregnancy_start_date
+            ? formData.pregnancy_start_date
             : null,
         } as any)
         .eq("id", userId)
@@ -238,6 +244,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                       ...formData,
                       reproductive_status: value === "none" ? "" : value,
                       last_menstrual_date: value === "regular" ? formData.last_menstrual_date : "",
+                      pregnancy_start_date: value === "pregnant" ? formData.pregnancy_start_date : "",
                     })
                   }
                 >
@@ -271,6 +278,28 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                       setFormData({ ...formData, last_menstrual_date: e.target.value })
                     }
                   />
+                </div>
+              )}
+
+              {formData.reproductive_status === "pregnant" && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-preg-start">Дата начала беременности (первый день последней менструации перед беременностью)</Label>
+                  <Input
+                    id="edit-preg-start"
+                    type="date"
+                    value={formData.pregnancy_start_date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, pregnancy_start_date: e.target.value })
+                    }
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                  />
+                  {formData.pregnancy_start_date && (() => {
+                    const days = Math.floor((Date.now() - parseLocalDate(formData.pregnancy_start_date).getTime()) / 86400000);
+                    if (days < 0 || days > 320) return null;
+                    const weeks = Math.floor(days / 7);
+                    const tri = weeks < 13 ? 'I триместр' : weeks < 27 ? 'II триместр' : 'III триместр';
+                    return <p className="text-xs text-muted-foreground">Текущий срок: ~{weeks} нед. ({tri})</p>;
+                  })()}
                 </div>
               )}
             </>
