@@ -677,7 +677,8 @@ ${symptomsText}
 
       const chronologicalAge = age;
       if (chronologicalAge) {
-        const baseBioAge = chronologicalAge + (70 - health_index) * 0.15;
+        // Anchor at HI=85 ("optimal" tier), slope 0.20 — симметрично для омоложения и старения
+        const baseBioAge = chronologicalAge + (85 - health_index) * 0.20;
 
         try {
           const biomarkersForAI = compositeBiomarkers.values.map((av: any) => ({
@@ -717,7 +718,10 @@ ${symptomsText}
             .replace(/{categoriesList}/g, categoriesList);
 
           const aiConstraintPrompt = `\n\nВАЖНО: Сервер уже рассчитал base_bio_age = ${baseBioAge.toFixed(1)} и health_index = ${health_index}.
-Скорректируй biological_age в [${(baseBioAge - 3).toFixed(1)}, ${(baseBioAge + 3).toFixed(1)}].
+Скорректируй biological_age в [${(baseBioAge - 5).toFixed(1)}, ${(baseBioAge + 5).toFixed(1)}].
+При ≥5 биомаркерах с impact=high — двигайся к верхней границе коридора (+5).
+При ≥80% маркеров в оптимальной зоне и улучшении динамики — к нижней (−5).
+Приоритетные геромаркеры: OSI, hs-CRP, HbA1c, HCY, ACR, eGFR, альбумин, B12, витамин D.
 health_index ДОЛЖЕН быть равен ${health_index}.`;
 
           const categoryScoresProperties = (biomarkerCategoriesData || []).reduce((acc: any, cat: any) => {
@@ -791,7 +795,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
           if (toolCall?.function?.arguments) {
             const aiResult = JSON.parse(toolCall.function.arguments);
             let aiBioAge = aiResult.biological_age;
-            aiBioAge = Math.max(baseBioAge - 3, Math.min(baseBioAge + 3, aiBioAge));
+            aiBioAge = Math.max(baseBioAge - 5, Math.min(baseBioAge + 5, aiBioAge));
             aiBioAge = Math.max(chronologicalAge - 15, Math.min(chronologicalAge + 15, aiBioAge));
             biological_age = Math.round(aiBioAge * 10) / 10;
 
@@ -986,9 +990,9 @@ function calculateHealthIndex(
       ? (optimalMin === null || av.value >= optimalMin) && (optimalMax === null || av.value <= optimalMax)
       : !isOutsideNormal;
 
-    if (isCriticalLow || isCriticalHigh) { penalty = 15 * agingWeight; tier = "critical"; }
-    else if (isOutsideNormal) { penalty = 5 * agingWeight; tier = "risk"; }
-    else if (!isInOptimal) { penalty = 1 * agingWeight; tier = "acceptable"; }
+    if (isCriticalLow || isCriticalHigh) { penalty = 25 * agingWeight; tier = "critical"; }
+    else if (isOutsideNormal) { penalty = 8 * agingWeight; tier = "risk"; }
+    else if (!isInOptimal) { penalty = 2 * agingWeight; tier = "acceptable"; }
 
     totalPenalty += penalty;
     if (penalty > 0) penalties.push({ name: av.biomarkers.name, code: av.biomarkers.code, tier, penalty, weight: agingWeight });
@@ -999,9 +1003,9 @@ function calculateHealthIndex(
     const bmiWeight = 5.0;
     let bmiPenalty = 0;
     let bmiTier = "optimal";
-    if (patientBMI > 30 || patientBMI < 16) { bmiPenalty = 15 * bmiWeight; bmiTier = "critical"; }
-    else if (patientBMI > 27 || patientBMI < 17) { bmiPenalty = 5 * bmiWeight; bmiTier = "risk"; }
-    else if (patientBMI > 25 || patientBMI < 18.5) { bmiPenalty = 1 * bmiWeight; bmiTier = "acceptable"; }
+    if (patientBMI > 30 || patientBMI < 16) { bmiPenalty = 25 * bmiWeight; bmiTier = "critical"; }
+    else if (patientBMI > 27 || patientBMI < 17) { bmiPenalty = 8 * bmiWeight; bmiTier = "risk"; }
+    else if (patientBMI > 25 || patientBMI < 18.5) { bmiPenalty = 2 * bmiWeight; bmiTier = "acceptable"; }
     totalPenalty += bmiPenalty;
     bmiMarkerAdded = true;
     if (bmiPenalty > 0) penalties.push({ name: "Индекс массы тела", code: "BMI", tier: bmiTier, penalty: bmiPenalty, weight: bmiWeight });
@@ -1029,8 +1033,23 @@ function calculateHealthIndex(
 
   if (markerCount === 0) return { raw: 70, adjusted: 70, coverage: 0, confidenceFactor: 0, penalties: [] };
 
+  // Гибрид: среднее + worst-5 (чтобы кластер тяжёлых отклонений не "размывался")
+  const sortedPenalties = [...penalties].sort((a, b) => b.penalty - a.penalty);
+  const topN = Math.min(5, sortedPenalties.length);
+  const topPenaltySum = sortedPenalties.slice(0, topN).reduce((sum, p) => sum + p.penalty, 0);
+  const topPenalty = topN > 0 ? topPenaltySum / 5 : 0; // делим всегда на 5: при <5 отклонений вес снижен пропорционально
   const avgPenalty = totalPenalty / markerCount;
-  const rawHealthIndex = Math.max(0, Math.min(100, 100 - avgPenalty * 15));
+  const effectivePenalty = 0.6 * avgPenalty + 0.4 * topPenalty;
+
+  let rawHealthIndex = Math.max(0, Math.min(100, 100 - effectivePenalty * 12));
+
+  // Симметричный бонус оптимума: если ≥80% маркеров чистые и нет critical/risk — +3 балла
+  const criticalOrRiskCount = penalties.filter((p) => p.tier === "critical" || p.tier === "risk").length;
+  const optimalShare = 1 - (penalties.length / markerCount);
+  if (criticalOrRiskCount === 0 && optimalShare >= 0.8) {
+    rawHealthIndex = Math.min(100, rawHealthIndex + 3);
+  }
+
   const coverage = markerCount / totalBiomarkersInSystem;
   const confidenceFactor = Math.min(1.0, coverage / 0.5);
 
@@ -1039,6 +1058,6 @@ function calculateHealthIndex(
     adjusted: Math.round(rawHealthIndex * 10) / 10,
     coverage: Math.round(coverage * 100),
     confidenceFactor: Math.round(confidenceFactor * 100) / 100,
-    penalties: penalties.sort((a, b) => b.penalty - a.penalty).slice(0, 10),
+    penalties: sortedPenalties.slice(0, 10),
   };
 }
