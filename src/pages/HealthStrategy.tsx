@@ -231,12 +231,24 @@ export default function HealthStrategy() {
               Персональный план управления биологическим возрастом
             </p>
           </div>
-          {hasAnalyses && canForceRefresh && (
-            <Button onClick={() => generate(true)} disabled={generating} variant="outline" size="sm">
+          {hasAnalyses && canRecalculate && (
+            <Button onClick={openPreview} disabled={generating} variant="outline" size="sm">
               <RefreshCw className={`mr-2 h-4 w-4 ${generating ? "animate-spin" : ""}`} />
-              {generating ? "Анализируем..." : "Пересчитать"}
+              {generating ? "Считаем..." : "Пересчитать и проверить"}
             </Button>
           )}
+        </div>
+
+        <StrategyPreviewDialog
+          open={previewOpen}
+          data={previewData}
+          startDate={analysis?.date || new Date().toISOString().slice(0, 10)}
+          nextCheckupDate={nextCheckup}
+          categories={categories}
+          publishing={publishing}
+          onCancel={() => setPreviewOpen(false)}
+          onPublish={publishEdited}
+        />
         </div>
 
         {!hasAnalyses ? (
