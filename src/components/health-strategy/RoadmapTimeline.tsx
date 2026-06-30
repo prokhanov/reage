@@ -366,27 +366,10 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
           </div>
         )}
 
-        {/* Next analysis reminder */}
-        {nextAnalysisMs && (
-          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
-            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <CalendarClock className="h-4 w-4 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-foreground">
-                Следующая плановая сдача: {format(new Date(nextAnalysisMs.date_iso), "d MMM yyyy", { locale: ru })}
-                {(nextAnalysisMs as any)._num ? ` (Анализ №${(nextAnalysisMs as any)._num})` : ""}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Мы напомним вам за 7 дней до даты
-                {(() => {
-                  const days = differenceInDays(new Date(nextAnalysisMs.date_iso), today);
-                  return days > 0 ? ` · через ${days} дн.` : "";
-                })()}
-              </div>
-            </div>
-          </div>
-        )}
+      </CardContent>
+    </Card>
+  );
+}
       </CardContent>
     </Card>
   );
