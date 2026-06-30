@@ -244,6 +244,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                       ...formData,
                       reproductive_status: value === "none" ? "" : value,
                       last_menstrual_date: value === "regular" ? formData.last_menstrual_date : "",
+                      pregnancy_start_date: value === "pregnant" ? formData.pregnancy_start_date : "",
                     })
                   }
                 >
