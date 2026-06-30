@@ -10,6 +10,7 @@ import { loadHealthModelSettings } from "../_shared/health-model/settings.ts";
 import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
 import { computeSystemScores } from "../_shared/health-model/m3-systems.ts";
 import { computeHealthIndex } from "../_shared/health-model/m4-health-index.ts";
+import { computeBioAge } from "../_shared/health-model/m5-bioage.ts";
 import {
   toMarkerInputs,
   computeTotalsPerSystem,
