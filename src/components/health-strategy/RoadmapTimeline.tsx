@@ -111,20 +111,40 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
   });
   if (activeIdx < 0) activeIdx = 0;
 
-  // Time-proportional placement along the curve
+  // Time-proportional placement along the curve, with enforced minimum gap so
+  // closely-spaced milestones don't pile up and labels stay readable.
   const times = milestones.map((m) => new Date(m.date_iso).getTime());
   const tMin = Math.min(...times);
   const tMax = Math.max(...times);
   const tSpan = Math.max(1, tMax - tMin);
+  const usableW = VB_W - PAD_X * 2;
+  const n = milestones.length;
+  // Minimum gap between adjacent points so labels (~140px) don't collide.
+  const MIN_GAP = n > 1 ? Math.min(usableW / (n - 1), 150) : 0;
 
-  const points = milestones.map((m, i) => {
+  // Initial time-proportional X positions
+  const rawX = milestones.map((m) => {
     const t = new Date(m.date_iso).getTime();
-    const xPct = (t - tMin) / tSpan; // 0..1
-    const x = PAD_X + xPct * (VB_W - PAD_X * 2);
-    // Alternate above/below for a winding "route" feel
-    const y = MID_Y + (i % 2 === 0 ? -AMP : AMP);
-    return { x, y, xPct };
+    return PAD_X + ((t - tMin) / tSpan) * usableW;
   });
+  // Forward pass: enforce min gap
+  const xs = [...rawX];
+  for (let i = 1; i < n; i++) {
+    if (xs[i] < xs[i - 1] + MIN_GAP) xs[i] = xs[i - 1] + MIN_GAP;
+  }
+  // If overflow past right edge, scale back proportionally
+  const maxX = PAD_X + usableW;
+  if (xs[n - 1] > maxX) {
+    const scale = usableW / (xs[n - 1] - PAD_X);
+    for (let i = 0; i < n; i++) xs[i] = PAD_X + (xs[i] - PAD_X) * scale;
+  }
+
+  const points = milestones.map((m, i) => ({
+    x: xs[i],
+    y: MID_Y + (i % 2 === 0 ? -AMP : AMP),
+    xPct: (xs[i] - PAD_X) / usableW,
+  }));
+
 
   const fullPath = buildSmoothPath(points);
   // Progress path = path up to active point
