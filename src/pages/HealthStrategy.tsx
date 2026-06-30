@@ -199,6 +199,55 @@ export default function HealthStrategy() {
     }
   };
 
+  const openPreview = async () => {
+    try {
+      setGenerating(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, preview: true },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPreviewData(data);
+      setPreviewOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось пересчитать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const publishEdited = async (edited: any) => {
+    try {
+      setPublishing(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, publish: true, edited },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setSnapshot(data);
+      setPreviewOpen(false);
+      setPreviewData(null);
+      toast({ title: "Стратегия опубликована клиенту" });
+      await load();
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось опубликовать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+
+
   if (loading || demoLoading) {
     return <div className="p-4 md:p-8"><DashboardSkeleton /></div>;
   }
