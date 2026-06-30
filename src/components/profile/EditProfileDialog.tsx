@@ -127,6 +127,27 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           pregnancy_start_date: formData.gender === 'female' && formData.reproductive_status === 'pregnant' && formData.pregnancy_start_date
             ? formData.pregnancy_start_date
             : null,
+          postpartum_date: formData.gender === 'female' && formData.reproductive_status === 'lactating' && formData.postpartum_date
+            ? formData.postpartum_date
+            : null,
+          menopause_date: formData.gender === 'female' && (formData.reproductive_status === 'menopause' || formData.reproductive_status === 'perimenopause') && formData.menopause_date
+            ? formData.menopause_date
+            : null,
+          contraceptive_type: formData.gender === 'female' && formData.reproductive_status === 'contraceptives' && formData.contraceptive_type
+            ? formData.contraceptive_type
+            : null,
+          contraceptive_start_date: formData.gender === 'female' && formData.reproductive_status === 'contraceptives' && formData.contraceptive_start_date
+            ? formData.contraceptive_start_date
+            : null,
+          hrt_type: formData.gender === 'female' && formData.reproductive_status === 'hormonal_therapy' && formData.hrt_type
+            ? formData.hrt_type
+            : null,
+          hrt_route: formData.gender === 'female' && formData.reproductive_status === 'hormonal_therapy' && formData.hrt_route
+            ? formData.hrt_route
+            : null,
+          hrt_start_date: formData.gender === 'female' && formData.reproductive_status === 'hormonal_therapy' && formData.hrt_start_date
+            ? formData.hrt_start_date
+            : null,
         } as any)
         .eq("id", userId)
         .select()
