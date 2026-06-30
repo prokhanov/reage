@@ -91,6 +91,7 @@ export function StrategyPreviewDialog({
   nextCheckupDate,
   categories,
   publishing,
+  mode = "preview",
   onCancel,
   onPublish,
 }: Props) {
