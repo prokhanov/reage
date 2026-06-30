@@ -238,7 +238,14 @@ export default function HealthStrategy() {
               />
 
               {/* 2. Контрольные точки */}
-              <RoadmapTimeline startDate={startDate} nextCheckupDate={nextCheckup} />
+              <RoadmapTimeline
+                startDate={startDate}
+                nextCheckupDate={nextCheckup}
+                roadmap={(snapshot as any).roadmap ?? null}
+                keyBiomarkers={(snapshot as any).key_biomarkers ?? null}
+                analysesPerYear={(snapshot as any).analyses_per_year ?? null}
+                adherencePct={(snapshot as any).adherence_pct ?? null}
+              />
             </div>
 
             {/* 3. Активная карта действий — на всю ширину */}
