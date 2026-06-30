@@ -945,8 +945,10 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
             coverage_percent: healthResult.coverage,
             confidence_factor: healthResult.confidenceFactor,
           },
+          new_model: newModelBreakdown,
           error: "No birth date available",
         };
+
       }
     }
     } // end if (doBioAge)
