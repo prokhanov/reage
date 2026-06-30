@@ -1,0 +1,1 @@
+UPDATE public.analyses SET status='processed' WHERE id='675bb1df-3e9f-49ce-8d44-13e7471c9fe7';
