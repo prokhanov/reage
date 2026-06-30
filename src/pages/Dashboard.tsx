@@ -243,6 +243,7 @@ export default function Dashboard() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setPreviewData(data);
+      setPreviewMode("preview");
       setPreviewOpen(true);
     } catch (e: any) {
       console.error(e);
@@ -251,6 +252,52 @@ export default function Dashboard() {
       if (stageTimer) clearInterval(stageTimer);
       setPreviewing(false);
       setPreviewStage(0);
+    }
+  };
+
+  const openStrategyEdit = async () => {
+    try {
+      setLoadingEdit(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: snap, error } = await supabase
+        .from("health_strategy_snapshots")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      if (!snap) {
+        toast({ title: "Нет сохранённой стратегии", description: "Сначала выполните перерасчёт и публикацию.", variant: "destructive" });
+        return;
+      }
+      setPreviewData({
+        analysis_id: snap.analysis_id,
+        current_bio_age: Number(snap.current_bio_age),
+        chronological_age: Number(snap.chronological_age),
+        target_bio_age: Number(snap.target_bio_age),
+        health_index: snap.health_index,
+        rationale: snap.rationale,
+        system_goals: snap.system_goals || [],
+        action_map: snap.action_map || [],
+        cohort_percentile: snap.cohort_percentile,
+        cohort_label: snap.cohort_label,
+        trajectory: snap.trajectory,
+        roadmap: snap.roadmap || [],
+        key_biomarkers: snap.key_biomarkers,
+        expectations: snap.expectations || [],
+        analyses_per_year: snap.analyses_per_year,
+        adherence_pct: null,
+        explanation: null,
+      });
+      setPreviewMode("edit");
+      setPreviewOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось загрузить стратегию", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setLoadingEdit(false);
     }
   };
 
