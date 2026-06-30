@@ -72,6 +72,11 @@ export default function HealthStrategy() {
 
   const canForceRefresh = isSuperAdmin || isViewMode;
 
+  const displayRationale = useMemo(
+    () => sanitizeRationale(snapshot?.rationale ?? null),
+    [snapshot?.rationale]
+  );
+
   useEffect(() => {
     setSnapshot(null);
     setPreviousSnapshot(null);
