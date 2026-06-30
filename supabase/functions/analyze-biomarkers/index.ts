@@ -1570,12 +1570,13 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           // Имя — первая короткая (<= 120 симв.) строка, не являющаяся полем,
           // буллетом, заголовком секции или длинным вступительным абзацем
           // (AI иногда пишет «Имя, Ваши анализы показывают…» перед карточкой).
-          const isCandidateName = (l: string) =>
-            !isFieldLine(l) &&
-            !l.startsWith("•") &&
-            !l.startsWith("-") &&
-            !isSectionHeader(l) &&
-            l.replace(/^\d+[.)]\s*/, "").replace(/^\*+|\*+$/g, "").trim().length <= 120;
+          const isCandidateName = (l: string) => {
+            if (isFieldLine(l)) return false;
+            if (l.startsWith("•") || l.startsWith("- ") || l.startsWith("* ")) return false;
+            if (isSectionHeader(l)) return false;
+            const cleaned = stripBold(l.replace(/^\d+[.)]\s*/, "")).replace(/[:：]\s*$/, "");
+            return cleaned.length >= 2 && cleaned.length <= 120;
+          };
           // Берём ПОСЛЕДНЮЮ короткую строку перед первой строкой «Форма:» —
           // так длинный вступительный параграф будет отброшен, а название
           // препарата (которое стоит непосредственно перед «Форма:») выиграет.
