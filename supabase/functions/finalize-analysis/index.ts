@@ -6,6 +6,17 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { loadHealthModelSettings } from "../_shared/health-model/settings.ts";
+import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
+import { computeSystemScores } from "../_shared/health-model/m3-systems.ts";
+import { computeHealthIndex } from "../_shared/health-model/m4-health-index.ts";
+import {
+  toMarkerInputs,
+  computeTotalsPerSystem,
+  categoryToSystem,
+} from "../_shared/health-model/adapter.ts";
+
+
 
 
 function sanitizeReportTextForPatient(text: string): string {
@@ -675,7 +686,63 @@ ${symptomsText}
       );
       health_index = Math.round(healthResult.adjusted);
 
-      console.log(`health_index=${health_index} coverage=${healthResult.coverage}%`);
+      console.log(`[legacy] health_index=${health_index} coverage=${healthResult.coverage}%`);
+
+      // ===== New unified health model (M1 → M3 → M4) =====
+      let newModelBreakdown: any = null;
+      try {
+        const settings = await loadHealthModelSettings(supabase as any);
+        const markerInputs = toMarkerInputs(compositeBiomarkers.values, age, patientGender);
+        const markerScores = markerInputs.map((m) => normalizeMarker(m, settings));
+
+        // Get plan biomarkers categories for accurate totals
+        let planRows: Array<{ category: string | null }> | null = null;
+        if (subscription?.plan_id) {
+          const { data: pb } = await supabase
+            .from("plan_biomarkers")
+            .select("biomarkers!inner(category)")
+            .eq("plan_id", subscription.plan_id);
+          if (pb) planRows = (pb as any[]).map((r) => ({ category: r.biomarkers?.category ?? null }));
+        }
+        const totalsPerSystem = computeTotalsPerSystem(planRows, markerInputs);
+
+        const systemScores = computeSystemScores(markerScores, totalsPerSystem, settings);
+
+        // Previous HI for improvement bonus
+        let previousHi: number | null = null;
+        if (previousAnalyses && previousAnalyses.length > 0) {
+          const prev = previousAnalyses.find((p: any) => typeof p.health_index === "number");
+          if (prev) previousHi = prev.health_index;
+        }
+
+        const hiBreakdown = computeHealthIndex(systemScores, settings, previousHi);
+        const newHi = Math.round(hiBreakdown.hi * 10) / 10;
+        console.log(`[new-model] HI=${newHi} raw=${hiBreakdown.hi_raw.toFixed(2)} disp=-${hiBreakdown.dispersion_penalty.toFixed(2)} bonus=+${hiBreakdown.improvement_bonus.toFixed(2)}`);
+        for (const s of systemScores) {
+          console.log(`[new-model]   ${s.system}: ${s.score == null ? "n/a" : s.score.toFixed(1)} (${s.markers_used}/${s.markers_total})`);
+        }
+        newModelBreakdown = {
+          hi: newHi,
+          hi_raw: Math.round(hiBreakdown.hi_raw * 10) / 10,
+          dispersion_penalty: Math.round(hiBreakdown.dispersion_penalty * 10) / 10,
+          improvement_bonus: Math.round(hiBreakdown.improvement_bonus * 10) / 10,
+          systems: systemScores.map((s) => ({
+            system: s.system,
+            score: s.score == null ? null : Math.round(s.score * 10) / 10,
+            markers_used: s.markers_used,
+            markers_total: s.markers_total,
+            coverage: Math.round(s.coverage * 100) / 100,
+            insufficient: s.insufficient,
+          })),
+          settings_version: "v1",
+        };
+        // Switch primary HI to new model
+        health_index = Math.round(newHi);
+      } catch (e: any) {
+        console.error("[new-model] failed, keeping legacy HI:", e?.message);
+      }
+
+
 
       const chronologicalAge = age;
       if (chronologicalAge) {
@@ -833,6 +900,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
                 confidence_factor: healthResult.confidenceFactor,
                 top_penalties: healthResult.penalties.slice(0, 5),
               },
+              new_model: newModelBreakdown,
               ai_analysis: {
                 ai_bio_age_raw: aiResult.biological_age,
                 ai_adjustment: Math.round((biological_age - baseBioAge) * 10) / 10,
@@ -845,6 +913,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
                 calculated_at: new Date().toISOString(),
               },
             };
+
             console.log(`Final bio age: ${biological_age} (base: ${baseBioAge.toFixed(1)})`);
           } else {
             throw new Error("AI did not return structured data");
@@ -861,9 +930,11 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
               coverage_percent: healthResult.coverage,
               confidence_factor: healthResult.confidenceFactor,
             },
+            new_model: newModelBreakdown,
             calculation_method: "server_only_fallback",
             error: String(e),
           };
+
         }
       } else {
         biomarkers_metadata = {
@@ -874,8 +945,10 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
             coverage_percent: healthResult.coverage,
             confidence_factor: healthResult.confidenceFactor,
           },
+          new_model: newModelBreakdown,
           error: "No birth date available",
         };
+
       }
     }
     } // end if (doBioAge)
