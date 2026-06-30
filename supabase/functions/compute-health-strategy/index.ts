@@ -157,7 +157,7 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    if (!force && latestAnalysisRow) {
+    if (!force && !preview && latestAnalysisRow) {
       const { data: cached } = await supabase
         .from("health_strategy_snapshots")
         .select("*")
