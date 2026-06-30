@@ -11,6 +11,10 @@ export function cleanMarkdownArtifacts(text: string): string {
   // Also strip any other HTML comment that survives.
   let preprocessed = text
     .replace(/\r\n/g, "\n")
+    // Strip internal prompt/instruction blocks if AI echoed them into report text.
+    .replace(/^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
+    .replace(/^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ\s+И\s+СИМПТОМОВ\s*[:：][\s\S]*?(?=^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
+    .replace(/^\s*Всегда\s+указывай\s+связь\s+показателей[\s\S]*?(?=^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim, "")
     .replace(/<!--\s*anchor:[^\n>]*?-->/gi, "")
     .replace(/<!--[\s\S]*?-->/g, "")
     // Strip stray markdown code-fence delimiters (``` on their own line) — they appear
@@ -70,6 +74,18 @@ export function cleanMarkdownArtifacts(text: string): string {
   
   for (const line of lines) {
     const trimmed = line.trim();
+    const isInternalInstructionLine = [
+      /^\s*ВАЖНО\s*[:：]/i,
+      /^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：]?/i,
+      /^\s*(?:учитывай|учесть)\s+(?:физиологические|лактационные|постменопаузальные|сдвиги|при интерпретации)\b/i,
+      /^\s*(?:КОК|прогестиновые методы|пероральная МГТ|трансдермальная МГТ)\b.*\b(?:учитывай|интерпретируй|влияют|повышают|снижают)\b/i,
+      /^\s*(?:служебн(?:ая|ые|ое)|внутренн(?:яя|ие|ее))\s+(?:инструкц|правил|контекст)/i,
+      /\b(?:не\s+вывод(?:и|ить)|не\s+показыва(?:й|ть)|не\s+цитиру(?:й|йте)|только\s+для\s+AI|для\s+ИИ|AI-промпт|промпта|system prompt)\b/i,
+    ].some((pattern) => pattern.test(trimmed));
+
+    if (isInternalInstructionLine) {
+      continue;
+    }
     
     // Skip horizontal rules (---, ***, ___) including with spaces (* * *, - - -)
     if (/^[-*_]{3,}$/.test(trimmed) || /^[\*\-_](\s+[\*\-_]){2,}$/.test(trimmed)) {
