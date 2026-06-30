@@ -601,7 +601,7 @@ ${adherenceText}
       ? reproductiveContext
           .split('\n')
           .map((l) => l.trim())
-          .filter((l) => l && !/^ВАЖНО\b/i.test(l))
+          .filter((l) => l && !/^\s*ВАЖНО\s*[:：]/i.test(l))
           .map((line) => `\n- **${line.split(':')[0]}:** ${line.split(':').slice(1).join(':').trim()}`)
           .join('')
       : '';
