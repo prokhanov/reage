@@ -113,10 +113,10 @@ export function StrategyPreviewDialog({
 
   useEffect(() => {
     if (!data) return;
-    setBio(String(data.current_bio_age ?? ""));
-    setTarget(String(data.target_bio_age ?? ""));
-    setHi(String(data.health_index ?? ""));
-    setChrono(String(data.chronological_age ?? ""));
+    setBio(data.current_bio_age != null ? Number(data.current_bio_age).toFixed(1) : "");
+    setTarget(data.target_bio_age != null ? Number(data.target_bio_age).toFixed(1) : "");
+    setHi(data.health_index != null ? String(Math.round(Number(data.health_index))) : "");
+    setChrono(data.chronological_age != null ? Number(data.chronological_age).toFixed(1) : "");
     setPerYear(String(data.analyses_per_year ?? ""));
     setRationale(data.rationale ?? "");
     setRoadmap(Array.isArray(data.roadmap) ? JSON.parse(JSON.stringify(data.roadmap)) : []);
@@ -217,20 +217,14 @@ export function StrategyPreviewDialog({
                   <Card className="border-primary/30 bg-primary/[0.04]">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center gap-2 text-sm font-semibold">
-                        <Info className="h-4 w-4 text-primary" /> Почему такие цифры
+                        <Info className="h-4 w-4 text-primary" /> Что повлияло на расчёт
                       </div>
                       <ul className="text-sm space-y-1 text-foreground/85">
                         {exp.drivers.map((d, i) => <li key={i}>• {d}</li>)}
                       </ul>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 text-xs">
-                        <Stat label="Хроно" value={`${exp.formula.chronological_age} л.`} />
-                        <Stat label="Health Index" value={`${exp.formula.health_index}`} />
-                        <Stat label="База био" value={`${exp.formula.base_bio_age}`} />
-                        <Stat label="AI δ" value={`${exp.formula.ai_delta >= 0 ? "+" : ""}${exp.formula.ai_delta}`} />
-                      </div>
 
                       {exp.health_index.top_deviations.length > 0 && (
-                        <div className="pt-3">
+                        <div className="pt-2">
                           <div className="text-xs font-semibold text-muted-foreground mb-2">
                             Топ-{exp.health_index.top_deviations.length} отклонений (из {exp.health_index.total_deviations})
                           </div>
@@ -253,14 +247,11 @@ export function StrategyPreviewDialog({
                   </Card>
                 )}
 
-                {/* HI breakdown */}
+                {/* HI breakdown — show only if it adds info beyond drivers */}
                 {exp && Array.isArray(exp.health_index.breakdown) && exp.health_index.breakdown.length > 0 && (
                   <Card>
                     <CardContent className="p-4 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-sm font-semibold">Индекс здоровья — разбивка</div>
-                        <Badge variant="secondary" className="text-xs">{exp.health_index.value}/100</Badge>
-                      </div>
+                      <div className="text-sm font-semibold">Как сложился индекс здоровья</div>
                       <ul className="text-sm space-y-1 text-foreground/85">
                         {exp.health_index.breakdown.map((s, i) => <li key={i}>• {s}</li>)}
                       </ul>
@@ -272,16 +263,25 @@ export function StrategyPreviewDialog({
                 <Card>
                   <CardContent className="p-4 space-y-3">
                     <div className="text-sm font-semibold">Ключевые цифры здоровья</div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      <Field label="Хронологический возраст">
-                        <Input type="number" step="0.1" value={chrono} onChange={(e) => setChrono(e.target.value)} />
-                      </Field>
-                      <Field label={isEdit ? "Био-возраст (к публикации)" : "Новый био-возраст (к публикации)"}>
-                        <Input type="number" step="0.1" value={bio} onChange={(e) => setBio(e.target.value)} />
-                      </Field>
-                      <Field label="Health Index">
-                        <Input type="number" step="1" value={hi} onChange={(e) => setHi(e.target.value)} />
-                      </Field>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Field label="Хронологический возраст">
+                          <Input type="number" step="0.1" placeholder="23.4" value={chrono} onChange={(e) => setChrono(e.target.value)} />
+                        </Field>
+                        <p className="text-[11px] text-muted-foreground mt-1">по дате рождения</p>
+                      </div>
+                      <div>
+                        <Field label="Биологический возраст">
+                          <Input type="number" step="0.1" placeholder="23.4" value={bio} onChange={(e) => setBio(e.target.value)} />
+                        </Field>
+                        <p className="text-[11px] text-muted-foreground mt-1">итог расчёта — это число увидит клиент</p>
+                      </div>
+                      <div>
+                        <Field label="Индекс здоровья">
+                          <Input type="number" step="1" min="0" max="100" placeholder="0–100" value={hi} onChange={(e) => setHi(e.target.value)} />
+                        </Field>
+                        <p className="text-[11px] text-muted-foreground mt-1">доля показателей в норме, с учётом важности</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
