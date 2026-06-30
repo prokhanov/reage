@@ -757,9 +757,11 @@ ${symptomsText}
 
       const chronologicalAge = age;
       if (chronologicalAge) {
-        // Anchor at HI=82, slope 0.18 — смягчённая чувствительность,
-        // чтобы редкие отклонения не давали скачка био-возраста на 10+ лет.
-        const baseBioAge = chronologicalAge + (82 - health_index) * 0.18;
+        // Якорь био-возраста: новый M5 (PhenoAge+KDM, коридор ±15).
+        // Если M5 не сработал — фолбэк к HI-формуле.
+        const baseBioAge = (newModelBreakdown?.bioage?.bio_age != null)
+          ? newModelBreakdown.bioage.bio_age
+          : chronologicalAge + (82 - health_index) * 0.18;
 
         try {
           const biomarkersForAI = compositeBiomarkers.values.map((av: any) => ({
