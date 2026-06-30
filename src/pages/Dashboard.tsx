@@ -22,6 +22,7 @@ import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendCh
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPreviewDialog";
+import { RecomputeOptionsDialog, ALL_SECTIONS, type RecomputeSection } from "@/components/health-strategy/RecomputeOptionsDialog";
 import Biomarkers from "@/pages/Biomarkers";
 import Trends from "@/pages/Trends";
 
