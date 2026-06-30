@@ -423,10 +423,16 @@ export default function Dashboard() {
           </div>
           {canRecalculate && displayAnalysesCount > 0 && (
             <div className="flex flex-col items-end gap-1 min-w-[240px]">
-              <Button onClick={openStrategyPreview} disabled={previewing} variant="outline" size="sm">
-                <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
-                {previewing ? "Считаем..." : "Пересчитать и проверить"}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={openStrategyPreview} disabled={previewing || loadingEdit} variant="outline" size="sm">
+                  <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
+                  {previewing ? "Считаем..." : "Пересчитать"}
+                </Button>
+                <Button onClick={openStrategyEdit} disabled={previewing || loadingEdit} variant="outline" size="sm">
+                  <Pencil className={`mr-2 h-4 w-4 ${loadingEdit ? "animate-pulse" : ""}`} />
+                  {loadingEdit ? "Загружаем..." : "Изменить"}
+                </Button>
+              </div>
               {previewing && (
                 <>
                   <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
