@@ -1563,11 +1563,29 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         .filter((block) => /Форма\s*[:：]/i.test(block) || /Дозировка\s*[:：]/i.test(block))
         .map((block) => {
           const blockLines = block.split("\n").map((l) => l.trim()).filter(Boolean);
-          // Имя — первая строка, которая не является полем
-          const nameLine = blockLines.find(
-            (l) => !isFieldLine(l) && !l.startsWith("•") && !l.startsWith("-") && !isSectionHeader(l),
-          );
-          const name = (nameLine || "").replace(/^\d+[.)]\s*/, "").replace(/^\*\*|\*\*$/g, "").trim();
+          // Имя — первая короткая (<= 120 симв.) строка, не являющаяся полем,
+          // буллетом, заголовком секции или длинным вступительным абзацем
+          // (AI иногда пишет «Имя, Ваши анализы показывают…» перед карточкой).
+          const isCandidateName = (l: string) =>
+            !isFieldLine(l) &&
+            !l.startsWith("•") &&
+            !l.startsWith("-") &&
+            !isSectionHeader(l) &&
+            l.replace(/^\d+[.)]\s*/, "").replace(/^\*+|\*+$/g, "").trim().length <= 120;
+          // Берём ПОСЛЕДНЮЮ короткую строку перед первой строкой «Форма:» —
+          // так длинный вступительный параграф будет отброшен, а название
+          // препарата (которое стоит непосредственно перед «Форма:») выиграет.
+          const formIdx = blockLines.findIndex((l) => /^Форма\s*[:：]/i.test(l));
+          let nameLine: string | undefined;
+          const headLines = formIdx > 0 ? blockLines.slice(0, formIdx) : blockLines;
+          for (let i = headLines.length - 1; i >= 0; i--) {
+            if (isCandidateName(headLines[i])) {
+              nameLine = headLines[i];
+              break;
+            }
+          }
+          if (!nameLine) nameLine = blockLines.find(isCandidateName);
+          const name = (nameLine || "").replace(/^\d+[.)]\s*/, "").replace(/^\*+|\*+$/g, "").trim();
 
           const readField = (label: string) => {
             const re = new RegExp(`^${label}\\s*[:：]\\s*(.+)$`, "i");
