@@ -82,19 +82,26 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
     ? roadmap
     : [
         { title: "Анализ №1 · Старт", date_iso: format(start, "yyyy-MM-dd"), kind: "start", description: "Базовый чек-ап и стратегия", bullets: ["Базовые анализы", "Оценка биомаркеров", "Формирование стратегии"], focus: "понимание исходной точки" },
-        { title: "Контрольный анализ", date_iso: format(new Date(start.getTime() + 90 * 86400000), "yyyy-MM-dd"), kind: "analysis", description: "Анализ №2", bullets: ["Динамика биомаркеров", "Коррекция назначений"], focus: "точная коррекция" },
+        { title: "Консультация и старт назначений", date_iso: format(new Date(start.getTime() + 16 * 86400000), "yyyy-MM-dd"), kind: "milestone", description: "Отчёт просмотрен врачом, назначения стартуют сразу", bullets: ["Начать назначения после консультации", "Отслеживать переносимость", "Зафиксировать сон и энергию"], focus: "старт терапии" },
+        { title: "Плановая сдача анализов", date_iso: format(new Date(start.getTime() + 120 * 86400000), "yyyy-MM-dd"), kind: "analysis", analysis_number: 2, description: "Полная панель по тарифу", bullets: ["Сдать полную панель", "Оценить динамику ключевых маркеров", "Скорректировать назначения"], focus: "динамика панели" },
         { title: "Итоги года", date_iso: format(new Date(start.getTime() + 365 * 86400000), "yyyy-MM-dd"), kind: "summary", description: "Финальный чек-ап", bullets: ["Сравнение результатов", "План на следующий год"], focus: "результаты и развитие" },
       ];
 
-  // Renumber analyses so the start is always №1 and subsequent analyses
-  // continue counting from there (start IS the first analysis).
-  let analysisCounter = 0;
+  const cleanTitle = (title: string, num?: number) => {
+    let next = title
+      .replace(/Анализ\s*№\s*\d+\s*[·—-]?\s*/gi, "")
+      .replace(/Контрольн(?:ый|ого|ом|ые|ых)\s+анализ(?:а|ы|ов)?\s*№?\s*\d*/gi, "Плановая сдача анализов")
+      .replace(/Повторн(?:ый|ого|ом|ые|ых)\s+анализ(?:а|ы|ов)?\s*№?\s*\d*/gi, "Плановая сдача анализов")
+      .replace(/Пересдача/gi, "Плановая сдача")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    if (!next && num) next = "Плановая сдача анализов";
+    return next || title;
+  };
+
   const milestones = milestonesRaw.map((m) => {
-    if (m.kind === "start" || m.kind === "analysis" || m.kind === "summary") {
-      analysisCounter += 1;
-      return { ...m, _num: analysisCounter };
-    }
-    return { ...m, _num: undefined as number | undefined };
+    const num = m.kind === "start" ? 1 : m.kind === "analysis" ? m.analysis_number : undefined;
+    return { ...m, title: cleanTitle(m.title, num), _num: num };
   });
 
   let activeIdx = -1;
@@ -123,7 +130,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
   // Progress path = path up to active point
   const passedPath = buildSmoothPath(points.slice(0, Math.max(1, activeIdx + 1)));
 
-  const nextAnalysisMs = milestones.find((m, i) => i > activeIdx && (m.kind === "analysis" || m.kind === "summary"));
+  const nextAnalysisMs = milestones.find((m, i) => i > activeIdx && m.kind === "analysis");
 
   // Convert SVG coords to overlay CSS percentages
   const toLeftPct = (x: number) => (x / VB_W) * 100;
@@ -135,9 +142,9 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
         {/* Header */}
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
-            <h3 className="text-lg md:text-xl font-bold text-foreground">Контрольные точки</h3>
+            <h3 className="text-lg md:text-xl font-bold text-foreground">План здоровья на год</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Ваш путь к здоровью на 12 месяцев{analysesPerYear ? ` · ${analysesPerYear} анализа в год` : ""}
+              Плановые сдачи полной панели и ожидаемые улучшения{analysesPerYear ? ` · ${analysesPerYear} анализа в год` : ""}
             </p>
           </div>
           {adherencePct != null && (
@@ -331,8 +338,8 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
               <CalendarClock className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium text-foreground">
-                Следующий анализ: {format(new Date(nextAnalysisMs.date_iso), "d MMM yyyy", { locale: ru })}
+                <div className="text-sm font-medium text-foreground">
+                Следующая плановая сдача: {format(new Date(nextAnalysisMs.date_iso), "d MMM yyyy", { locale: ru })}
                 {(nextAnalysisMs as any)._num ? ` (Анализ №${(nextAnalysisMs as any)._num})` : ""}
               </div>
               <div className="text-xs text-muted-foreground">
