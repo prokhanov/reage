@@ -10,6 +10,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
 import { RejuvenationTrajectory } from "@/components/health-strategy/RejuvenationTrajectory";
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
+import { ExpectationsTimeline } from "@/components/health-strategy/ExpectationsTimeline";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
 import { toast } from "@/hooks/use-toast";
 
