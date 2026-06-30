@@ -19,6 +19,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Analyses from "./pages/Analyses";
 import AnalysisDetail from "./pages/AnalysisDetail";
+import AnalysesPrint from "./pages/AnalysesPrint";
 import { Navigate } from "react-router-dom";
 import Biomarkers from "./pages/Biomarkers";
 import Recommendations from "./pages/Recommendations";
@@ -122,6 +123,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Onboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analyses/print"
+              element={
+                <ProtectedRoute>
+                  <AnalysesPrint />
                 </ProtectedRoute>
               }
             />

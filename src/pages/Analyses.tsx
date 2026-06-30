@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit } from "lucide-react";
+import { Calendar, FlaskConical, Sparkles, Trash2, Plus, Edit, Printer } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useDemoMode } from "@/hooks/useDemoMode";
@@ -183,16 +183,32 @@ export default function Analyses() {
             </h2>
             <p className="text-muted-foreground">Отслеживайте динамику своих показателей</p>
           </div>
-          {isViewMode && hasPatientAccess && (
-            <Button
-              onClick={() => setCreateDialogOpen(true)}
-              variant="default"
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Добавить анализ
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {displayAnalyses.length > 0 && !demoMode && (
+              <Button
+                onClick={async () => {
+                  const uid = await getUserId();
+                  const url = isViewMode && uid ? `/analyses/print?uid=${uid}` : "/analyses/print";
+                  window.open(url, "_blank");
+                }}
+                variant="outline"
+                size="sm"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Скачать PDF
+              </Button>
+            )}
+            {isViewMode && hasPatientAccess && (
+              <Button
+                onClick={() => setCreateDialogOpen(true)}
+                variant="default"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Добавить анализ
+              </Button>
+            )}
+          </div>
         </div>
 
         {displayAnalyses.length === 0 ? (
