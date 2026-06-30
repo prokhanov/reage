@@ -29,6 +29,8 @@ import Trends from "@/pages/Trends";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
+  const { data: roleData } = useUserRole();
+  const isSuperAdmin = !!roleData?.isSuperAdmin;
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -37,10 +39,20 @@ export default function Dashboard() {
   const [latestHealthIndex, setLatestHealthIndex] = useState<number | null>(null);
   const [latestBiomarkersMetadata, setLatestBiomarkersMetadata] = useState<any>(null);
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
-  
+
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
   const [nextBooking, setNextBooking] = useState<any>(null);
+
+  // Superadmin "recalculate & preview" (only in view-as-patient mode)
+  const [categories, setCategories] = useState<string[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const canRecalculate = isSuperAdmin && isViewMode;
+
+
   
 
   useEffect(() => {
