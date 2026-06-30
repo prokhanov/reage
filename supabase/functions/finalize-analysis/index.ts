@@ -930,9 +930,11 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
               coverage_percent: healthResult.coverage,
               confidence_factor: healthResult.confidenceFactor,
             },
+            new_model: newModelBreakdown,
             calculation_method: "server_only_fallback",
             error: String(e),
           };
+
         }
       } else {
         biomarkers_metadata = {
