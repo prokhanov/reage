@@ -315,12 +315,115 @@ export function StrategyPreviewDialog({
                   </CardContent>
                 </Card>
 
-                {/* System ratings — editable, always shown */}
-                <Card>
-                  <CardContent className="p-4 space-y-2">
-                    <div className="text-sm font-semibold">Рейтинги систем организма</div>
-                    <div className="text-xs text-muted-foreground">Балл и обоснование можно менять.</div>
-                    {systemRatings.length > 0 ? (
+                {/* Aging pace (M6) */}
+                {exp?.aging_pace && (
+                  <Card>
+                    <CardContent className="p-4 space-y-2">
+                      <div className="text-sm font-semibold">Темп старения</div>
+                      {exp.aging_pace.pace_bio_years_per_year != null ? (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <div className="text-2xl font-semibold">
+                              {exp.aging_pace.pace_bio_years_per_year.toFixed(2)}
+                              <span className="text-sm text-muted-foreground font-normal ml-1">биолет / год</span>
+                            </div>
+                            <Badge variant={paceBadgeVariant(exp.aging_pace.trend)}>
+                              {paceTrendLabel(exp.aging_pace.trend)}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            По истории {exp.aging_pace.samples} анализов
+                            {exp.aging_pace.window_months ? ` за последние ${exp.aging_pace.window_months} мес.` : ""}
+                            {" "}— значения &lt;1.0 означают замедление старения, &gt;1.0 — ускорение.
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          {exp.aging_pace.note ?? "Недостаточно данных. Нужно минимум 2 анализа."}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Trajectory v2 (M7) */}
+                {exp?.trajectory_v2 && exp.trajectory_v2.horizons.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4 space-y-2">
+                      <div className="text-sm font-semibold">Прогноз траектории</div>
+                      <div className="text-xs text-muted-foreground">
+                        Ожидаемое значение био-возраста и индекса здоровья с учётом активных назначений.
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 pt-2">
+                        {exp.trajectory_v2.horizons.map((h) => (
+                          <div key={h.months} className="rounded-md bg-background/60 p-3 space-y-1">
+                            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                              через {h.months} мес.
+                            </div>
+                            <div className="text-sm font-semibold">
+                              BA {h.projected_bio_age.toFixed(1)}{" "}
+                              <span className={`text-[11px] font-normal ${h.ba_delta <= 0 ? "text-emerald-500" : "text-amber-500"}`}>
+                                ({h.ba_delta >= 0 ? "+" : ""}{h.ba_delta.toFixed(2)})
+                              </span>
+                            </div>
+                            <div className="text-xs">
+                              HI {Math.round(h.projected_health_index)}{" "}
+                              <span className={`text-[11px] ${h.hi_delta >= 0 ? "text-emerald-500" : "text-amber-500"}`}>
+                                ({h.hi_delta >= 0 ? "+" : ""}{h.hi_delta.toFixed(1)})
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {exp.trajectory_v2.assumptions.length > 0 && (
+                        <ul className="text-[11px] text-muted-foreground pt-2 space-y-0.5">
+                          {exp.trajectory_v2.assumptions.map((a, i) => <li key={i}>• {a}</li>)}
+                        </ul>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Explainability (M8) — drivers per system */}
+                {exp?.explainability && exp.explainability.systems.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="text-sm font-semibold">Драйверы по системам</div>
+                      <div className="text-xs text-muted-foreground">
+                        Маркеры, которые сильнее всего тянут балл системы вверх или вниз.
+                      </div>
+                      <div className="space-y-3 pt-1">
+                        {exp.explainability.systems.map((sys) => (
+                          <div key={sys.category} className="rounded-md bg-background/50 p-3 space-y-2">
+                            <div className="text-sm font-medium">{sys.category}</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <div className="space-y-1">
+                                <div className="text-[10px] uppercase tracking-wide text-destructive">Минусы</div>
+                                {sys.top_negative.length > 0 ? sys.top_negative.map((m) => (
+                                  <div key={m.code} className="text-xs flex items-center justify-between gap-2">
+                                    <span className="truncate">{m.name} <span className="text-muted-foreground">({m.code})</span></span>
+                                    <Badge variant="destructive" className="text-[10px] shrink-0">−{m.contribution.toFixed(1)}</Badge>
+                                  </div>
+                                )) : <div className="text-[11px] text-muted-foreground">—</div>}
+                              </div>
+                              <div className="space-y-1">
+                                <div className="text-[10px] uppercase tracking-wide text-emerald-600">Плюсы</div>
+                                {sys.top_positive.length > 0 ? sys.top_positive.map((m) => (
+                                  <div key={m.code} className="text-xs flex items-center justify-between gap-2">
+                                    <span className="truncate">{m.name} <span className="text-muted-foreground">({m.code})</span></span>
+                                    <Badge className="text-[10px] shrink-0 bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20">+{m.contribution.toFixed(1)}</Badge>
+                                  </div>
+                                )) : <div className="text-[11px] text-muted-foreground">—</div>}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+
                       <div className="space-y-2 pt-1">
                         {systemRatings.map((r, i) => (
                           <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
