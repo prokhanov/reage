@@ -53,10 +53,8 @@ function sanitizeRationale(text: string | null): string {
 
 
 export default function HealthStrategy() {
-  const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
-  const { data: roleData } = useUserRole();
-  const isSuperAdmin = !!roleData?.isSuperAdmin;
-  const { demoMode, loading: demoLoading, toggleDemoMode } = useDemoMode();
+  const { getUserId, viewAsUserId } = useViewAsUser();
+  const { demoMode, loading: demoLoading } = useDemoMode();
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -71,11 +69,8 @@ export default function HealthStrategy() {
   const [riskZone, setRiskZone] = useState<any>(null);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewData, setPreviewData] = useState<any>(null);
-  const [publishing, setPublishing] = useState(false);
 
-  const canRecalculate = isSuperAdmin && isViewMode;
+
 
   const displayRationale = useMemo(
     () => sanitizeRationale(snapshot?.rationale ?? null),
