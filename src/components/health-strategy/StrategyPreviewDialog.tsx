@@ -129,7 +129,8 @@ export function StrategyPreviewDialog({
   }, [dataKey]);
 
   if (!data) return null;
-  const exp = data.explanation;
+  const exp = data.explanation ?? null;
+  const isEdit = mode === "edit";
 
   const safeParse = (raw: string, fallback: any, key: string) => {
     try {
