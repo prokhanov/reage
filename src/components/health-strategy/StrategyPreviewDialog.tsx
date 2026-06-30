@@ -113,10 +113,10 @@ export function StrategyPreviewDialog({
 
   useEffect(() => {
     if (!data) return;
-    setBio(String(data.current_bio_age ?? ""));
-    setTarget(String(data.target_bio_age ?? ""));
-    setHi(String(data.health_index ?? ""));
-    setChrono(String(data.chronological_age ?? ""));
+    setBio(data.current_bio_age != null ? Number(data.current_bio_age).toFixed(1) : "");
+    setTarget(data.target_bio_age != null ? Number(data.target_bio_age).toFixed(1) : "");
+    setHi(data.health_index != null ? String(Math.round(Number(data.health_index))) : "");
+    setChrono(data.chronological_age != null ? Number(data.chronological_age).toFixed(1) : "");
     setPerYear(String(data.analyses_per_year ?? ""));
     setRationale(data.rationale ?? "");
     setRoadmap(Array.isArray(data.roadmap) ? JSON.parse(JSON.stringify(data.roadmap)) : []);
