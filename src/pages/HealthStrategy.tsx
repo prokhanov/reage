@@ -263,14 +263,14 @@ export default function HealthStrategy() {
               trajectoryPoints={snapshot.trajectory ?? null}
             />
 
-            {snapshot?.rationale && (
+            {displayRationale && (
               <Card className="border-primary/20 bg-primary/[0.04]">
                 <CardContent className="p-4 md:p-5 flex gap-3">
                   <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <div className="text-sm font-semibold text-foreground">Прогноз по вашей траектории</div>
                     <p className="text-sm text-foreground/85 leading-relaxed">
-                      {snapshot.rationale}
+                      {displayRationale}
                     </p>
                   </div>
                 </CardContent>
