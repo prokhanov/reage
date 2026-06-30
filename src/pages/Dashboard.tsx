@@ -467,7 +467,8 @@ export default function Dashboard() {
                 const src = birthDateStr;
                 if (!src) return chronologicalAge != null ? chronologicalAge.toFixed(1) : "—";
                 const years = (Date.now() - new Date(src).getTime()) / (365.2425 * 24 * 3600 * 1000);
-                return (Math.round(years * 10) / 10).toFixed(1);
+                // Округление вниз: 37.99 → 37.9, чтобы не показывать «38» до фактического дня рождения
+                return (Math.floor(years * 10) / 10).toFixed(1);
               })()} лет</span>
             </p>
           </div>
