@@ -10,6 +10,7 @@ import { loadHealthModelSettings } from "../_shared/health-model/settings.ts";
 import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
 import { computeSystemScores } from "../_shared/health-model/m3-systems.ts";
 import { computeHealthIndex } from "../_shared/health-model/m4-health-index.ts";
+import { computeBioAge } from "../_shared/health-model/m5-bioage.ts";
 import {
   toMarkerInputs,
   computeTotalsPerSystem,
@@ -721,6 +722,15 @@ ${symptomsText}
         for (const s of systemScores) {
           console.log(`[new-model]   ${s.system}: ${s.score == null ? "n/a" : s.score.toFixed(1)} (${s.markers_used}/${s.markers_total})`);
         }
+        // M5 — BioAge (PhenoAge + KDM, blended, corridor ±15)
+        let bioAgeBreakdown: ReturnType<typeof computeBioAge> | null = null;
+        if (age != null) {
+          // Фолбэк — HI-based оценка (как раньше) на случай нехватки маркеров.
+          const fallbackBA = age + (82 - Math.round(newHi)) * 0.18;
+          bioAgeBreakdown = computeBioAge(markerInputs, age, { fallback: fallbackBA });
+          console.log(`[new-model] BA=${bioAgeBreakdown.bio_age} pheno=${bioAgeBreakdown.phenoage} kdm=${bioAgeBreakdown.kdm} clamped=${bioAgeBreakdown.clamped} fallback=${bioAgeBreakdown.fallback_used}`);
+        }
+
         newModelBreakdown = {
           hi: newHi,
           hi_raw: Math.round(hiBreakdown.hi_raw * 10) / 10,
@@ -734,6 +744,7 @@ ${symptomsText}
             coverage: Math.round(s.coverage * 100) / 100,
             insufficient: s.insufficient,
           })),
+          bioage: bioAgeBreakdown,
           settings_version: "v1",
         };
         // Switch primary HI to new model
@@ -746,9 +757,11 @@ ${symptomsText}
 
       const chronologicalAge = age;
       if (chronologicalAge) {
-        // Anchor at HI=82, slope 0.18 — смягчённая чувствительность,
-        // чтобы редкие отклонения не давали скачка био-возраста на 10+ лет.
-        const baseBioAge = chronologicalAge + (82 - health_index) * 0.18;
+        // Якорь био-возраста: новый M5 (PhenoAge+KDM, коридор ±15).
+        // Если M5 не сработал — фолбэк к HI-формуле.
+        const baseBioAge = (newModelBreakdown?.bioage?.bio_age != null)
+          ? newModelBreakdown.bioage.bio_age
+          : chronologicalAge + (82 - health_index) * 0.18;
 
         try {
           const biomarkersForAI = compositeBiomarkers.values.map((av: any) => ({
