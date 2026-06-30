@@ -22,6 +22,7 @@ import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendCh
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPreviewDialog";
+import { RecomputeOptionsDialog, ALL_SECTIONS, type RecomputeSection } from "@/components/health-strategy/RecomputeOptionsDialog";
 import Biomarkers from "@/pages/Biomarkers";
 import Trends from "@/pages/Trends";
 
@@ -62,6 +63,7 @@ export default function Dashboard() {
   const [previewStage, setPreviewStage] = useState<number>(0);
   const [publishing, setPublishing] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const canRecalculate = isSuperAdmin && isViewMode;
 
 
@@ -225,7 +227,7 @@ export default function Dashboard() {
       .then(({ data }) => setCategories((data || []).map((c: any) => c.name)));
   }, [canRecalculate]);
 
-  const openStrategyPreview = async () => {
+  const runRecompute = async (sections: RecomputeSection[]) => {
     let stageTimer: ReturnType<typeof setInterval> | null = null;
     try {
       setPreviewing(true);
@@ -236,14 +238,56 @@ export default function Dashboard() {
       const userId = await getUserId();
       if (!userId) return;
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Fetch last snapshot to merge unselected sections
+      const { data: lastSnap } = await supabase
+        .from("health_strategy_snapshots")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
         body: { userId, preview: true },
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setPreviewData(data);
+
+      const allKeys = ALL_SECTIONS.map((s) => s.key);
+      const skip = allKeys.filter((k) => !sections.includes(k));
+      let merged = { ...data };
+
+      if (lastSnap && skip.length > 0) {
+        for (const key of skip) {
+          if (key === "ages") {
+            merged.current_bio_age = Number(lastSnap.current_bio_age);
+            merged.chronological_age = Number(lastSnap.chronological_age);
+            merged.target_bio_age = Number(lastSnap.target_bio_age);
+            merged.health_index = lastSnap.health_index;
+          } else if (key === "system_ratings") {
+            merged.rationale = {
+              ...(merged.rationale || {}),
+              system_ratings: (lastSnap.rationale as any)?.system_ratings,
+            };
+          } else if (key === "system_goals") {
+            merged.system_goals = lastSnap.system_goals || [];
+          } else if (key === "roadmap") {
+            merged.roadmap = lastSnap.roadmap || [];
+          } else if (key === "expectations") {
+            merged.expectations = lastSnap.expectations || [];
+          } else if (key === "key_biomarkers") {
+            merged.key_biomarkers = lastSnap.key_biomarkers;
+          } else if (key === "action_map") {
+            merged.action_map = lastSnap.action_map || [];
+          }
+        }
+      }
+
+      setPreviewData(merged);
       setPreviewMode("preview");
+      setOptionsOpen(false);
       setPreviewOpen(true);
     } catch (e: any) {
       console.error(e);
@@ -254,6 +298,7 @@ export default function Dashboard() {
       setPreviewStage(0);
     }
   };
+
 
   const openStrategyEdit = async () => {
     try {
@@ -424,7 +469,7 @@ export default function Dashboard() {
           {canRecalculate && displayAnalysesCount > 0 && (
             <div className="flex flex-col items-end gap-1 min-w-[240px]">
               <div className="flex gap-2">
-                <Button onClick={openStrategyPreview} disabled={previewing || loadingEdit} variant="outline" size="sm">
+                <Button onClick={() => setOptionsOpen(true)} disabled={previewing || loadingEdit} variant="outline" size="sm">
                   <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
                   {previewing ? "Считаем..." : "Пересчитать"}
                 </Button>
@@ -461,6 +506,15 @@ export default function Dashboard() {
             mode={previewMode}
             onCancel={() => setPreviewOpen(false)}
             onPublish={publishStrategy}
+          />
+        )}
+
+        {canRecalculate && (
+          <RecomputeOptionsDialog
+            open={optionsOpen}
+            onOpenChange={(v) => !previewing && setOptionsOpen(v)}
+            onConfirm={runRecompute}
+            loading={previewing}
           />
         )}
 
