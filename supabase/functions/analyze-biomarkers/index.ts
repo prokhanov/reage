@@ -525,7 +525,7 @@ ${adherenceText}
 ## Персональная информация
 - **Имя:** ${profile?.name || 'Не указано'}
 - **Возраст:** ${age || 'Не указано'} лет
-- **Пол:** ${profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : 'Не указано'}
+- **Пол:** ${profile?.gender === 'male' ? 'Мужской' : profile?.gender === 'female' ? 'Женский' : 'Не указано'}${reproductiveContext ? reproductiveContext.split('\n').filter(Boolean).map(line => `\n- **${line.split(':')[0]}:** ${line.split(':').slice(1).join(':').trim()}`).join('') : ''}
 - **Рост:** ${profile?.height ? `${profile.height} см` : 'Не указано'}
 - **Вес:** ${actualWeight ? `${actualWeight} кг` : 'Не указано'}
 - **Индекс массы тела (BMI):** ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
