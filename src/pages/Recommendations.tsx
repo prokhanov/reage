@@ -174,7 +174,7 @@ export default function Recommendations() {
       : null;
     const snapshot = snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
     return [
-      ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
+      ...(patientData ? [{ id: "patient-data", label: "Мои данные" }] : []),
       ...(snapshot
         ? snapshot.blocks
             .map((b, i) =>
