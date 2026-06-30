@@ -650,6 +650,13 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               reproductive_status: (patientData.profile as any).reproductive_status ?? null,
               last_menstrual_date: (patientData.profile as any).last_menstrual_date ?? null,
               pregnancy_start_date: (patientData.profile as any).pregnancy_start_date ?? null,
+              postpartum_date: (patientData.profile as any).postpartum_date ?? null,
+              menopause_date: (patientData.profile as any).menopause_date ?? null,
+              contraceptive_type: (patientData.profile as any).contraceptive_type ?? null,
+              contraceptive_start_date: (patientData.profile as any).contraceptive_start_date ?? null,
+              hrt_type: (patientData.profile as any).hrt_type ?? null,
+              hrt_route: (patientData.profile as any).hrt_route ?? null,
+              hrt_start_date: (patientData.profile as any).hrt_start_date ?? null,
             }}
             userId={patientId}
             onSuccess={() => {
