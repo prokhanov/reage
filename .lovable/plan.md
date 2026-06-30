@@ -1,67 +1,139 @@
-## Цель
 
-Сделать так, чтобы диалог `StrategyPreviewDialog` показывал одинаковый набор вкладок и полей в обоих режимах (`mode="preview"` и `mode="edit"`). Сейчас «Изменить» загружает только то, что лежит в `health_strategy_snapshots`, и часть блоков остаётся пустой/невидимой. Берём данные только из снапшота (без вызова edge-функции).
+# План: единая система расчётов здоровья пациента
 
-## Что отличается сейчас
+Цель — заменить текущую упрощённую логику (`finalize-analysis`, `compute-health-strategy`) на модульную, прозрачную и параметризуемую модель. Все коэффициенты выносятся в `ai_prompt_settings` (или новую таблицу `health_model_settings`), формулы — детерминированные на TypeScript в edge-функциях, AI используется только там, где это явно нужно (объяснимость, ожидания, рекомендации).
 
-После «Пересчитать» в `data` есть:
-- `explanation` (текст «Что повлияло на расчёт» / drivers / формула)
-- `rationale.bio_age_calc`, `rationale.health_index`, `rationale.system_ratings`, `rationale.drivers`
-- `adherence_pct`
+## 1. Архитектура модулей
 
-После «Изменить» (`openStrategyEdit` в `src/pages/Dashboard.tsx`) эти поля либо `null`, либо берутся только из `snap.rationale`. Из-за этого ряд блоков на вкладке «Моё здоровье» не рендерится, а вкладки/секции выглядят по-разному.
+Расчёт разбивается на независимые слои, выполняемые строго по порядку:
 
-## Изменения
-
-### 1. `src/pages/Dashboard.tsx` — `openStrategyEdit`
-
-Расширить маппинг снапшота → `previewData`, чтобы он давал ту же структуру, что возвращает edge-функция в preview-режиме:
-
-```ts
-setPreviewData({
-  analysis_id: snap.analysis_id,
-  current_bio_age: Number(snap.current_bio_age),
-  chronological_age: Number(snap.chronological_age),
-  target_bio_age: Number(snap.target_bio_age),
-  health_index: snap.health_index,
-  rationale: snap.rationale ?? {},          // bio_age_calc / health_index / system_ratings / drivers — как есть из БД
-  system_goals: snap.system_goals || [],
-  action_map: snap.action_map || [],
-  cohort_percentile: snap.cohort_percentile,
-  cohort_label: snap.cohort_label,
-  trajectory: snap.trajectory,
-  roadmap: snap.roadmap || [],
-  key_biomarkers: snap.key_biomarkers ?? null,
-  expectations: snap.expectations || [],
-  analyses_per_year: snap.analyses_per_year,
-  adherence_pct: null,
-  explanation: (snap.rationale as any)?.explanation ?? null,
-});
+```text
+ввод (analysis_values, profile, prescriptions, история)
+  │
+  ├─► [M1] Нормализация маркеров      → marker_scores[0..1] + штраф
+  │
+  ├─► [M2] Производные индексы        → NLR, TyG, AIP, HOMA-IR*, eGFR, ...
+  │
+  ├─► [M3] Скоры систем (5 систем)    → system_scores[0..100]
+  │
+  ├─► [M4] Health Index (HI)          → 0..(<100), агрегат + штраф дисбаланса
+  │
+  ├─► [M5] Biological Age (BA)        → PhenoAge+KDM+AgingAI гибрид, коридор ±15
+  │
+  ├─► [M6] Aging Pace                 → ΔBA/Δt по истории + AI-валидация
+  │
+  ├─► [M7] Траектория омоложения      → прогноз BA/HI на 3/6/12 мес
+  │
+  └─► [M8] Explainability             → топ-факторов влияния (детерминированно)
 ```
 
-Источник данных строго один — сохранённый снапшот. Если поле пустое, блок просто отрисуется пустым (как и договорились).
+Каждый модуль — отдельный TS-файл в `supabase/functions/_shared/health-model/`, чтобы переиспользовать в `finalize-analysis`, `compute-health-strategy` и будущих пересчётах.
 
-### 2. `src/components/health-strategy/StrategyPreviewDialog.tsx` — единый рендер
+## 2. Модули — что внутри
 
-Сейчас часть секций условно скрывается (например `data.explanation && ...`, `rationale?.bio_age_calc && ...`). Заменить на единый набор секций, общий для обоих режимов:
+### M1. Нормализация маркеров
+Для каждого маркера из Longevity Ranges (наши `biomarkers.optimal_*` и `normal_*` — да, это и есть Longevity Ranges) считаем непрерывный скор `s ∈ [0..1]`:
 
-- Вкладка **«Моё здоровье»**: всегда показывать «Ключевые цифры здоровья» (bio/chrono/HI/target) и «Что повлияло на расчёт» (drivers из `rationale.drivers` или пустое сообщение «нет данных в сохранённом снапшоте»).
-- Вкладка **«Стратегия здоровья»**: всегда показывать «Системные рейтинги», «Цели по системам», «Дорожная карта», «Ожидания по срокам», «Ключевые биомаркеры», «План действий», независимо от `mode`.
-- Поля редактирования (input/textarea/JSON-редакторы) остаются доступны и в `edit`, и в `preview` для суперадмина — как сейчас.
-- Где данных нет — выводить placeholder «—» вместо скрытия блока, чтобы структура вкладок не «прыгала».
+- `s = 1` если значение в optimal-коридоре;
+- плавный спад через **сигмоиду** до границ normal (`s ≈ 0.6`);
+- **квадратичное** падение в зоне risk → critical (`s → 0`).
 
-### 3. Никаких изменений в edge-функции и схеме БД
+Возвращаем `{ score, penalty, zone, weight_effective }`. Критические маркеры (флаг `is_critical` в `biomarkers`) получают усиленный вес ×1.5–2.
 
-Edge-функция `compute-health-strategy` уже сохраняет `rationale` целиком (включая `bio_age_calc`, `health_index`, `system_ratings`, `drivers`). Достаточно правильно прочитать его в `openStrategyEdit` и не «обнулять» поля.
+### M2. Производные индексы
+Считаем, если есть входы: NLR (нейтрофилы/лимфоциты), TyG (ln(TG·GLU/2)), AIP (log10(TG/HDL)), HOMA-IR/Caro (уже есть), eGFR (CKD-EPI), de Ritis (AST/ALT), Fib-4. Добавляются в общий пул маркеров со своими нормами.
 
-## Технические детали
+### M3. Скоры 5 систем
+Для каждой из 5 систем (`biomarker_categories`):
 
-- Файлы: `src/pages/Dashboard.tsx` (функция `openStrategyEdit`), `src/components/health-strategy/StrategyPreviewDialog.tsx`.
-- Логика публикации (`publishStrategy`) не меняется — формат `edited` уже совпадает.
-- Кнопка «Опубликовать» в `edit`-режиме продолжит сохранять snapshot и синхронизировать `analyses.biological_age` / `health_index`.
+```text
+system_score = 100 · Σ(wᵢ · sᵢ) / Σ(wᵢ)        — взвешенное среднее по доступным маркерам
+              · coverage_factor                  — штраф за низкое покрытие (<40% маркеров системы)
+              · imbalance_bonus                  — небольшой бонус, если в системе нет красных
+```
 
-## Что НЕ делаем
+Отсутствующие маркеры **не штрафуют** — веса перераспределяются (БЛОК 2). Минимум маркеров для расчёта системы — 3, иначе `null` + пометка «недостаточно данных».
 
-- Не дёргаем edge-функцию из «Изменить» (по решению пользователя — данные только из БД).
-- Не добавляем новые колонки в `health_strategy_snapshots`.
-- Не меняем формулу био-возраста.
+### M4. Health Index
+```text
+HI_raw = Σ(W_system · system_score) / Σ(W_system)
+HI = HI_raw
+   − dispersion_penalty(σ систем)        — штраф за разбаланс
+   + improvement_bonus(Δ vs прошлый)     — бонус за улучшение/стабильность
+HI ∈ [10 .. 97]                          — потолок <100, нижняя граница мягкая
+```
+
+Базовые веса систем `W_system` — фиксированные стартовые значения (CV ≈ 0.28, метаболизм 0.24, воспаление 0.20, энергия 0.16, эндокринная 0.12), но хранятся в `health_model_settings` и могут редактироваться суперадмином.
+
+### M5. Biological Age
+Гибрид трёх подходов:
+
+```text
+BA_pheno  = PhenoAge(альбумин, креатинин, GLU, CRP, лимф%, MCV, RDW, ЩФ, лейк, возраст)
+BA_kdm    = KDM по тем же 7–10 ключевым маркерам с популяционными reference (NHANES/UKB константы зашиты)
+BA_aging  = chrono + (82 − HI) · k                     — наш текущий «AgingAI»-стиль
+
+BA = w1·BA_pheno + w2·BA_kdm + w3·BA_aging              — w зависит от полноты данных
+BA = clamp(BA, chrono − 15, chrono + 15)
+```
+
+Тариф влияет через **количество доступных маркеров** → автоматически меняет веса (Эксперт получает больше PhenoAge/KDM, Базовый — больше AgingAI). Отдельной зависимости от тарифа нет.
+
+### M6. Aging Pace
+- Основной путь: линейная регрессия `BA(t)` по последним 2–4 точкам истории → `pace = dBA/dt` (лет биологических на год календарных).
+- Если точек <2: оценка через `pace ≈ 1 + (HI_target − HI) / 100` (приближение).
+- Результат: `pace`, `trend ∈ {улучшение, стабильно, ухудшение}`.
+
+### M7. Траектория омоложения
+Прогноз на 3/6/12 мес исходя из:
+- текущего `pace`,
+- эффекта активных назначений (каждый `prescriptions.expected_impact` → дельта HI),
+- ожидаемого восстановления маркеров (таблица `marker_recovery_times` — новая, ~30 строк).
+
+Выдаём массив точек `{date, BA_predicted, HI_predicted}` для графика на дашборде и в стратегии.
+
+### M8. Explainability
+Детерминированно сортируем маркеры по `wᵢ · (1 − sᵢ)` — это и есть «вклад в отклонение от идеала». Топ-5 идёт в карточку «Что повлияло на расчёт». AI больше не нужен для этого блока — убираем источник «каши».
+
+## 3. Хранение коэффициентов
+
+Новая таблица:
+```text
+health_model_settings (key text PK, value jsonb, description text, updated_at)
+```
+Ключи: `system_weights`, `marker_weights_override`, `bio_age_blend`, `penalties`, `bonuses`, `ba_corridor`, `recovery_times`. Редактируется в админке (`/admin/data`, новая вкладка «Модель расчётов»).
+
+## 4. Интеграция в текущий код
+
+| Файл | Что меняется |
+|---|---|
+| `supabase/functions/_shared/health-model/*` | **новое**, 8 модулей |
+| `supabase/functions/finalize-analysis/index.ts` | заменяем текущую формулу HI/BA на вызов M1–M5 |
+| `supabase/functions/compute-health-strategy/index.ts` | использует M6–M7 для дорожной карты и ожиданий, M8 для drivers |
+| `analyses` | добавляем `pace`, `bio_age_components jsonb` (для прозрачности) |
+| `health_strategy_snapshots` | добавляем `trajectory jsonb` |
+| `StrategyPreviewDialog.tsx` | блок «Что повлияло» теперь берёт данные из `bio_age_components`, без AI |
+| Админка | новая страница `/admin/health-model` с редактором коэффициентов |
+
+## 5. Этапы внедрения
+
+1. **Каркас**: таблица `health_model_settings` + seed дефолтов, папка `_shared/health-model/`, типы.
+2. **M1–M4** + замена в `finalize-analysis`, прогон на Минеевой/Дарбинян, сверка.
+3. **M5** (BioAge гибрид) + миграция `analyses.bio_age_components`.
+4. **M6–M7** в `compute-health-strategy` + UI траектории на дашборде.
+5. **M8 explainability** → замена «каши» в `StrategyPreviewDialog`.
+6. **Админ-UI** для коэффициентов.
+7. Регрессионный прогон на 10–15 пациентах, калибровка дефолтов.
+
+## Вопросы и противоречия, которые надо снять до старта
+
+1. **Longevity Ranges**: подтверди — наши `biomarkers.optimal_min/max` уже считать каноничными Longevity-диапазонами, или ты пришлёшь отдельную таблицу значений (тогда я подготовлю миграцию импорта)?
+2. **PhenoAge / KDM коэффициенты**: использовать опубликованные коэффициенты Levine 2018 (PhenoAge) и стандартные KDM-веса по NHANES, или ты дашь свои откалиброванные?
+3. **Потолок HI** — ты сказал «не 100, чуть ниже». Зафиксируем **97**? Или 95?
+4. **Веса систем** (CV / метаболизм / воспаление / энергия / эндокринная) — мой дефолт `0.28 / 0.24 / 0.20 / 0.16 / 0.12` ок, или у тебя есть своя пропорция?
+5. **Эффект назначений на траекторию**: брать из существующего поля `prescriptions.expected_impact` (если оно заполняется), или ввести справочник «препарат/добавка → ожидаемая дельта HI за N недель»?
+6. **Производные индексы** — включаем все (NLR, TyG, AIP, eGFR, de Ritis, Fib-4), или ограничиваемся подмножеством на первом этапе?
+7. **Aging Pace при первом анализе** (истории нет): показывать `null` с пометкой «нужен повторный анализ», или давать приближённую оценку из HI?
+8. **Бонус за улучшение**: насколько агрессивный — например, +1 балл HI за каждое улучшение системы на 5+ баллов между анализами, потолок +5? Подходит?
+
+Жду ответы — после этого начну с этапа 1.
