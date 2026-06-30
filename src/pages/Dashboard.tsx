@@ -509,6 +509,15 @@ export default function Dashboard() {
           />
         )}
 
+        {canRecalculate && (
+          <RecomputeOptionsDialog
+            open={optionsOpen}
+            onOpenChange={(v) => !previewing && setOptionsOpen(v)}
+            onConfirm={runRecompute}
+            loading={previewing}
+          />
+        )}
+
 
 
         {/* Data Status Alerts */}
