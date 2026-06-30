@@ -287,6 +287,13 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                       reproductive_status: value === "none" ? "" : value,
                       last_menstrual_date: value === "regular" ? formData.last_menstrual_date : "",
                       pregnancy_start_date: value === "pregnant" ? formData.pregnancy_start_date : "",
+                      postpartum_date: value === "lactating" ? formData.postpartum_date : "",
+                      menopause_date: (value === "menopause" || value === "perimenopause") ? formData.menopause_date : "",
+                      contraceptive_type: value === "contraceptives" ? formData.contraceptive_type : "",
+                      contraceptive_start_date: value === "contraceptives" ? formData.contraceptive_start_date : "",
+                      hrt_type: value === "hormonal_therapy" ? formData.hrt_type : "",
+                      hrt_route: value === "hormonal_therapy" ? formData.hrt_route : "",
+                      hrt_start_date: value === "hormonal_therapy" ? formData.hrt_start_date : "",
                     })
                   }
                 >
@@ -343,6 +350,138 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                     return <p className="text-xs text-muted-foreground">Текущий срок: ~{weeks} нед. ({tri})</p>;
                   })()}
                 </div>
+              )}
+
+              {formData.reproductive_status === "lactating" && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-postpartum">Дата родов</Label>
+                  <Input
+                    id="edit-postpartum"
+                    type="date"
+                    value={formData.postpartum_date}
+                    onChange={(e) => setFormData({ ...formData, postpartum_date: e.target.value })}
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                  />
+                  {formData.postpartum_date && (() => {
+                    const days = Math.floor((Date.now() - parseLocalDate(formData.postpartum_date).getTime()) / 86400000);
+                    if (days < 0) return null;
+                    const months = Math.floor(days / 30);
+                    return <p className="text-xs text-muted-foreground">Прошло после родов: ~{months} мес.</p>;
+                  })()}
+                </div>
+              )}
+
+              {(formData.reproductive_status === "menopause" || formData.reproductive_status === "perimenopause") && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-menopause">
+                    {formData.reproductive_status === "menopause"
+                      ? "Дата последней менструации (год менопаузы)"
+                      : "Дата последней менструации (если ещё бывают)"}
+                  </Label>
+                  <Input
+                    id="edit-menopause"
+                    type="date"
+                    value={formData.menopause_date}
+                    onChange={(e) => setFormData({ ...formData, menopause_date: e.target.value })}
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                  />
+                </div>
+              )}
+
+              {formData.reproductive_status === "contraceptives" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-contra-type">Тип контрацепции</Label>
+                    <Select
+                      value={formData.contraceptive_type || "none"}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, contraceptive_type: value === "none" ? "" : value })
+                      }
+                    >
+                      <SelectTrigger id="edit-contra-type">
+                        <SelectValue placeholder="Не указан" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Не указан</SelectItem>
+                        <SelectItem value="coc">КОК (комбинированные)</SelectItem>
+                        <SelectItem value="progestin_only">Только прогестины (мини-пили)</SelectItem>
+                        <SelectItem value="iud_hormonal">ВМС с левоноргестрелом (Мирена)</SelectItem>
+                        <SelectItem value="iud_copper">ВМС медная (негормональная)</SelectItem>
+                        <SelectItem value="implant">Имплант</SelectItem>
+                        <SelectItem value="injection">Инъекционная (Депо-Провера)</SelectItem>
+                        <SelectItem value="patch_ring">Пластырь / кольцо</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-contra-start">Дата начала приёма</Label>
+                    <Input
+                      id="edit-contra-start"
+                      type="date"
+                      value={formData.contraceptive_start_date}
+                      onChange={(e) => setFormData({ ...formData, contraceptive_start_date: e.target.value })}
+                      max={format(new Date(), 'yyyy-MM-dd')}
+                    />
+                  </div>
+                </>
+              )}
+
+              {formData.reproductive_status === "hormonal_therapy" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-hrt-type">Тип МГТ</Label>
+                    <Select
+                      value={formData.hrt_type || "none"}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, hrt_type: value === "none" ? "" : value })
+                      }
+                    >
+                      <SelectTrigger id="edit-hrt-type">
+                        <SelectValue placeholder="Не указан" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Не указан</SelectItem>
+                        <SelectItem value="estrogen_only">Только эстроген</SelectItem>
+                        <SelectItem value="estrogen_progestin">Эстроген + прогестин</SelectItem>
+                        <SelectItem value="progestin_only">Только прогестин</SelectItem>
+                        <SelectItem value="tibolone">Тиболон</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-hrt-route">Путь введения</Label>
+                    <Select
+                      value={formData.hrt_route || "none"}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, hrt_route: value === "none" ? "" : value })
+                      }
+                    >
+                      <SelectTrigger id="edit-hrt-route">
+                        <SelectValue placeholder="Не указан" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Не указан</SelectItem>
+                        <SelectItem value="oral">Перорально (таблетки)</SelectItem>
+                        <SelectItem value="transdermal">Трансдермально (пластырь/гель)</SelectItem>
+                        <SelectItem value="vaginal">Вагинально</SelectItem>
+                        <SelectItem value="injection">Инъекции</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Путь введения влияет на липиды, СГСГ, СРБ, коагулограмму
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-hrt-start">Дата начала терапии</Label>
+                    <Input
+                      id="edit-hrt-start"
+                      type="date"
+                      value={formData.hrt_start_date}
+                      onChange={(e) => setFormData({ ...formData, hrt_start_date: e.target.value })}
+                      max={format(new Date(), 'yyyy-MM-dd')}
+                    />
+                  </div>
+                </>
               )}
             </>
           )}
