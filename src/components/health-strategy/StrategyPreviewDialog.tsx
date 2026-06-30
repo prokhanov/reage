@@ -363,7 +363,7 @@ export function StrategyPreviewDialog({
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="p-4 border-t gap-2">
           <Button variant="outline" onClick={onCancel} disabled={publishing}>Отменить</Button>
