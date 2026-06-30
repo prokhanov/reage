@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, RefreshCw } from "lucide-react";
+import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, RefreshCw, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
