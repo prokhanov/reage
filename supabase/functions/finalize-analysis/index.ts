@@ -718,7 +718,10 @@ ${symptomsText}
             .replace(/{categoriesList}/g, categoriesList);
 
           const aiConstraintPrompt = `\n\nВАЖНО: Сервер уже рассчитал base_bio_age = ${baseBioAge.toFixed(1)} и health_index = ${health_index}.
-Скорректируй biological_age в [${(baseBioAge - 3).toFixed(1)}, ${(baseBioAge + 3).toFixed(1)}].
+Скорректируй biological_age в [${(baseBioAge - 5).toFixed(1)}, ${(baseBioAge + 5).toFixed(1)}].
+При ≥5 биомаркерах с impact=high — двигайся к верхней границе коридора (+5).
+При ≥80% маркеров в оптимальной зоне и улучшении динамики — к нижней (−5).
+Приоритетные геромаркеры: OSI, hs-CRP, HbA1c, HCY, ACR, eGFR, альбумин, B12, витамин D.
 health_index ДОЛЖЕН быть равен ${health_index}.`;
 
           const categoryScoresProperties = (biomarkerCategoriesData || []).reduce((acc: any, cat: any) => {
