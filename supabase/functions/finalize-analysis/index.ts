@@ -1003,9 +1003,9 @@ function calculateHealthIndex(
     const bmiWeight = 5.0;
     let bmiPenalty = 0;
     let bmiTier = "optimal";
-    if (patientBMI > 30 || patientBMI < 16) { bmiPenalty = 15 * bmiWeight; bmiTier = "critical"; }
-    else if (patientBMI > 27 || patientBMI < 17) { bmiPenalty = 5 * bmiWeight; bmiTier = "risk"; }
-    else if (patientBMI > 25 || patientBMI < 18.5) { bmiPenalty = 1 * bmiWeight; bmiTier = "acceptable"; }
+    if (patientBMI > 30 || patientBMI < 16) { bmiPenalty = 25 * bmiWeight; bmiTier = "critical"; }
+    else if (patientBMI > 27 || patientBMI < 17) { bmiPenalty = 8 * bmiWeight; bmiTier = "risk"; }
+    else if (patientBMI > 25 || patientBMI < 18.5) { bmiPenalty = 2 * bmiWeight; bmiTier = "acceptable"; }
     totalPenalty += bmiPenalty;
     bmiMarkerAdded = true;
     if (bmiPenalty > 0) penalties.push({ name: "Индекс массы тела", code: "BMI", tier: bmiTier, penalty: bmiPenalty, weight: bmiWeight });
