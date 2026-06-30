@@ -1,5 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
+import { loadHealthModelSettings } from "../_shared/health-model/settings.ts";
+import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
+import { toMarkerInputs } from "../_shared/health-model/adapter.ts";
+import { computeAgingPace } from "../_shared/health-model/m6-aging-pace.ts";
+import { computeTrajectory } from "../_shared/health-model/m7-trajectory.ts";
+import { computeExplainability } from "../_shared/health-model/m8-explainability.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -182,16 +189,18 @@ serve(async (req) => {
       }
     }
 
-    const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes] = await Promise.all([
+    const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes, historyRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", targetUserId).single(),
-      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, optimal_min, optimal_max))").eq("user_id", targetUserId).eq("status", "processed").order("date", { ascending: false }).limit(1),
+      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode, is_critical, aging_weight))").eq("user_id", targetUserId).eq("status", "processed").order("date", { ascending: false }).limit(1),
       supabase.from("prescriptions").select("*").eq("user_id", targetUserId).eq("is_archived", false),
       supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
       supabase.from("complaints").select("main_complaints, goals, lifestyle").eq("user_id", targetUserId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("subscriptions").select("plan_id, status, start_date, subscription_plans(name, display_name)").eq("user_id", targetUserId).eq("status", "active").order("start_date", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("analysis_bookings").select("booking_date, status").eq("user_id", targetUserId).gte("booking_date", new Date().toISOString().slice(0, 10)).order("booking_date", { ascending: true }),
       supabase.from("prescription_adherence").select("status").eq("user_id", targetUserId).gte("date", new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().slice(0, 10)),
+      supabase.from("analyses").select("date, biological_age").eq("user_id", targetUserId).eq("status", "processed").not("biological_age", "is", null).order("date", { ascending: true }),
     ]);
+
 
     const profile = profileRes.data;
     const latest = analysesRes.data?.[0];
@@ -201,6 +210,8 @@ serve(async (req) => {
     const subscription: any = subRes.data;
     const futureBookings = bookingsRes.data || [];
     const adherenceRows = adherenceRes.data || [];
+    const bioAgeHistory = (historyRes.data || []).map((r: any) => ({ date: r.date, bio_age: Number(r.biological_age) })).filter((p: any) => Number.isFinite(p.bio_age));
+
 
     if (!profile || !latest || latest.biological_age == null) {
       return new Response(JSON.stringify({ error: "No analysis data" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -786,7 +797,45 @@ ${prescContext || "(нет активных назначений — дейст�
     const optimalCount = totalMarkers - allDeviations.length;
     const optimalShare = totalMarkers > 0 ? Math.round((optimalCount / totalMarkers) * 100) : 0;
 
+    // ===== M6 / M7 / M8 — детерминированные модули старения =====
+    let agingPace: any = null;
+    let trajectoryV2: any = null;
+    let explainability: any = null;
+    try {
+      const hmSettings = await loadHealthModelSettings(supabase as any);
+      const markerInputs = toMarkerInputs(latest.analysis_values || [], chronoAge, profile.gender || null);
+      const markerScores = markerInputs.map((m) => normalizeMarker(m, hmSettings));
+
+      // M6 — Aging Pace (по истории BA)
+      agingPace = computeAgingPace(bioAgeHistory, hmSettings);
+
+      // M7 — Траектория с активными назначениями (дефолтные effect-параметры)
+      const prescImpacts = (prescriptions as any[]).map((p) => ({
+        id: p.id,
+        title: p.name || (p.prescription ? String(p.prescription).slice(0, 80) : "Назначение"),
+        bio_age_delta: 0.3,
+        hi_delta: 1.5,
+        recovery_months: 6,
+      }));
+      trajectoryV2 = computeTrajectory(
+        {
+          bio_age_now: currentBio,
+          hi_now: hiVal,
+          chrono_age: chronoAge,
+          pace: agingPace?.pace ?? null,
+          prescriptions: prescImpacts,
+        },
+        hmSettings,
+      );
+
+      // M8 — Explainability
+      explainability = computeExplainability(markerScores);
+    } catch (e: any) {
+      console.error("[health-model M6/M7/M8] failed:", e?.message);
+    }
+
     const explanation = {
+
       formula: {
         anchor: 85,
         slope: 0.25,
@@ -819,7 +868,11 @@ ${prescContext || "(нет активных назначений — дейст�
         `Итоговый био-возраст: ${currentBio.toFixed(1)}`,
         `Отклонений от оптимума: ${allDeviations.length} из ${totalMarkers}`,
       ],
+      aging_pace: agingPace,
+      trajectory_v2: trajectoryV2,
+      explainability,
     };
+
 
 
     // PREVIEW: return computed payload + explanation without inserting
