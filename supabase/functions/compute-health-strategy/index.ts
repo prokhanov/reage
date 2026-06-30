@@ -158,8 +158,21 @@ ${prescContext || "(нет)"}
             },
             cohort_percentile: { type: "integer", description: "Процент людей того же пола и возраста (±5 лет), КОТОРЫХ ПАЦИЕНТ ОПЕРЕЖАЕТ по состоянию здоровья. Например 85 = 'здоровее, чем 85% когорты'. Учитывай дельту био-хроно возраста, тяжесть отклонений биомаркеров, индекс здоровья. Диапазон 1-99." },
             cohort_label: { type: "string", description: "Описание когорты, например 'женщины 35–40 лет' или 'мужчины 40–45 лет'" },
+            trajectory_points: {
+              type: "array",
+              description: "13 точек прогноза биовозраста по месяцам 0..12 при соблюдении рекомендаций",
+              items: {
+                type: "object",
+                properties: {
+                  month: { type: "integer", description: "Номер месяца 0..12" },
+                  bio_age: { type: "number", description: "Прогнозируемый биовозраст в этот месяц, 1 знак после запятой" },
+                },
+                required: ["month", "bio_age"],
+                additionalProperties: false,
+              },
+            },
           },
-          required: ["target_bio_age", "rationale", "system_goals", "action_map", "cohort_percentile", "cohort_label"],
+          required: ["target_bio_age", "rationale", "system_goals", "action_map", "cohort_percentile", "cohort_label", "trajectory_points"],
           additionalProperties: false,
         },
       },
