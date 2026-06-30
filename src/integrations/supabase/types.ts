@@ -282,6 +282,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bioage_population_norms: {
+        Row: {
+          chrono_age: number
+          created_at: string
+          gender: string
+          id: string
+          mean_bio_age: number
+          notes: string | null
+          sd_bio_age: number
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          chrono_age: number
+          created_at?: string
+          gender: string
+          id?: string
+          mean_bio_age: number
+          notes?: string | null
+          sd_bio_age: number
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          chrono_age?: number
+          created_at?: string
+          gender?: string
+          id?: string
+          mean_bio_age?: number
+          notes?: string | null
+          sd_bio_age?: number
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       biomarker_categories: {
         Row: {
           created_at: string

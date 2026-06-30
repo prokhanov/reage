@@ -25,6 +25,7 @@ import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPrev
 import { RecomputeOptionsDialog, ALL_SECTIONS, type RecomputeSection } from "@/components/health-strategy/RecomputeOptionsDialog";
 import Biomarkers from "@/pages/Biomarkers";
 import Trends from "@/pages/Trends";
+import { getBioAgePercentile } from "@/lib/bioagePercentile";
 
 
 const PREVIEW_STAGES = [
@@ -64,6 +65,7 @@ export default function Dashboard() {
   const [publishing, setPublishing] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [bioPercentile, setBioPercentile] = useState<{ topPercent: number; percentileBetter: number; norm: { mean_bio_age: number; sd_bio_age: number; source: string } } | null>(null);
   const canRecalculate = isSuperAdmin && isViewMode;
 
 
@@ -408,6 +410,20 @@ export default function Dashboard() {
   })();
   const ageDifference = displayBioAge && chronologicalAge ? chronologicalAge - displayBioAge : null;
 
+  // Перцентиль по популяционной норме (NHANES + PhenoAge)
+  useEffect(() => {
+    let cancelled = false;
+    const gender = profile?.gender || (demoMode && demoData ? demoData.profile.gender : null);
+    if (!displayBioAge || !chronologicalAge) {
+      setBioPercentile(null);
+      return;
+    }
+    getBioAgePercentile(chronologicalAge, displayBioAge, gender).then((res) => {
+      if (!cancelled) setBioPercentile(res);
+    });
+    return () => { cancelled = true; };
+  }, [displayBioAge, chronologicalAge, profile?.gender, demoMode, demoData]);
+
   // Calculate progress metrics
   const analyses = demoMode && demoData ? demoData.analyses : allAnalyses;
   let displayRecentChange: number | null = null;
@@ -707,7 +723,7 @@ export default function Dashboard() {
                     {/* Health Percentile */}
                     <div className="col-span-2 p-4 rounded-2xl bg-background/50 border border-border/50">
                       {(() => {
-                        if (!displayBiologicalAge || !chronologicalAge) {
+                        if (!displayBiologicalAge || !chronologicalAge || !bioPercentile) {
                           return (
                             <div className="flex items-center gap-3">
                               <Trophy className="h-5 w-5 text-muted-foreground" />
@@ -720,37 +736,13 @@ export default function Dashboard() {
                         }
 
                         const diff = chronologicalAge - displayBiologicalAge;
-                        let topPercent = 0;
-                        let betterThanPercent = 0;
+                        const { topPercent, percentileBetter, norm } = bioPercentile;
                         let Icon = Trophy;
                         let color = "text-muted-foreground";
-
-                        if (diff >= 10) {
-                          topPercent = 5;
-                          betterThanPercent = 95;
-                          color = "text-status-good";
-                        } else if (diff >= 7) {
-                          topPercent = 10;
-                          betterThanPercent = 90;
-                          color = "text-status-good";
-                        } else if (diff >= 4) {
-                          topPercent = 20;
-                          betterThanPercent = 80;
-                          color = "text-status-good";
-                        } else if (diff >= 2) {
-                          topPercent = 40;
-                          betterThanPercent = 60;
-                          color = "text-status-moderate";
-                        } else if (diff >= -2) {
-                          topPercent = 60;
-                          betterThanPercent = 40;
-                          Icon = Target;
-                        } else {
-                          topPercent = 80;
-                          betterThanPercent = 20;
-                          color = "text-status-warning";
-                          Icon = TrendingUp;
-                        }
+                        if (topPercent <= 10) color = "text-status-good";
+                        else if (topPercent <= 30) color = "text-status-good";
+                        else if (topPercent <= 60) { color = "text-status-moderate"; Icon = Target; }
+                        else { color = "text-status-warning"; Icon = TrendingUp; }
 
                         return (
                           <div className="flex items-start justify-between gap-3">
@@ -760,7 +752,10 @@ export default function Dashboard() {
                                 <div className="text-xs text-muted-foreground">Место среди ровесников</div>
                                 <div className={`text-xl md:text-2xl font-bold ${color} tabular-nums`}>Топ {topPercent}%</div>
                                 <div className="text-xs text-muted-foreground mt-0.5">
-                                  Лучше {betterThanPercent}% людей вашего возраста
+                                  Лучше {percentileBetter}% людей вашего возраста и пола
+                                </div>
+                                <div className="text-[10px] text-muted-foreground/70 mt-1">
+                                  Норма: μ={norm.mean_bio_age.toFixed(1)} · σ={norm.sd_bio_age.toFixed(1)} (NHANES + PhenoAge)
                                 </div>
                               </div>
                             </div>
