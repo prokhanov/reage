@@ -193,12 +193,18 @@ function isBiomarkerMissingEducation(content: string): boolean {
     .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/^\s*#{1,6}\s+.*$/gm, " ") // headers
     .trim();
+  // Empty / near-empty block — definitely missing.
   if (stripped.length < 60) return true;
   const valueMatch =
     /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i.exec(
       stripped,
     );
-  if (!valueMatch) return false; // no value sentence — probably custom block, skip
+  if (!valueMatch) {
+    // Нет value-предложения — но может это просто заглушка без обучения.
+    // Если всего <200 символов прозы кириллицы, считаем что описания нет.
+    const cyr = (stripped.match(/[а-яё]/gi) || []).length;
+    return cyr < 200;
+  }
   const prefix = stripped.slice(0, valueMatch.index).trim();
   // Drop the first line (likely the biomarker title) and check what's left
   const withoutTitle = prefix.split(/\n/).slice(1).join(" ").trim();
