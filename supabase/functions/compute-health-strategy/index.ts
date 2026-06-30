@@ -202,6 +202,22 @@ serve(async (req) => {
     const storedAiAdjust = Number(
       (latest.biomarkers_metadata as any)?.bio_age_calc?.ai_adjustment ?? 0,
     );
+    // Re-apply CURRENT bio-age formula (slope 0.25 + asymmetric AI corridor)
+    // so "Пересчитать" reflects latest calibration, not value cached at upload time.
+    const hiForBio = Number(latest.health_index ?? 0);
+    const baseBioForRecalc = chronoAge + (85 - hiForBio) * 0.25;
+    const corridorLower = hiForBio < 70
+      ? baseBioForRecalc + 0.5
+      : hiForBio < 80
+        ? baseBioForRecalc - 2
+        : baseBioForRecalc - 5;
+    const corridorUpper = baseBioForRecalc + 5;
+    const clampedDelta = Math.max(
+      corridorLower - baseBioForRecalc,
+      Math.min(corridorUpper - baseBioForRecalc, storedAiAdjust),
+    );
+    const recalcBio = Math.round((baseBioForRecalc + clampedDelta) * 10) / 10;
+    const currentBio = isFinite(recalcBio) ? recalcBio : storedBio;
 
     // Build biomarker summary + deviation flags
     const byCat: Record<string, Array<{ name: string; code: string; value: number; unit: string; deviated: boolean }>> = {};
