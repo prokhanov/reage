@@ -136,5 +136,3 @@ health_model_settings (key text PK, value jsonb, description text, updated_at)
 | Эффект назначений | Гибрид: `prescriptions.expected_impact` + справочник recovery |
 | Бонус за улучшение | −0.3 года биовозраста за +3 HI |
 | Производные индексы | NLR, TyG, AIP, HOMA-IR*, eGFR, de Ritis, Fib-4 |
-
-## Этапы внедрения
