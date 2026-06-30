@@ -414,6 +414,7 @@ async function generateBiomarkerEducation(
   valueLine: string,
   model: string,
   reportContext: string,
+  generalDescription: string | null,
 ): Promise<string | null> {
   const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
@@ -427,11 +428,26 @@ ${valueLine}
 [Если отклонение — добавь блок «Что это значит для вас» с практическим выводом для конкретного значения.]
 <!-- anchor:biomarker_end -->`;
 
+  const knowledge = generalDescription && generalDescription.trim().length > 40
+    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
+    : "";
+
   const user = `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
 Контекст отчёта (для тонального соответствия, не цитируй):
-${reportContext.slice(0, 2000)}
+${reportContext.slice(0, 2000)}${knowledge}
 
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
+
+  const buildFromKnowledge = (): string | null => {
+    if (!generalDescription || generalDescription.trim().length < 40) return null;
+    return `<!-- anchor:biomarker ${biomarkerCode} -->
+${biomarkerName}
+
+${generalDescription.trim()}
+
+${valueLine}
+<!-- anchor:biomarker_end -->`;
+  };
 
   const resp = await fetchWithTimeout(
     "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -454,11 +470,16 @@ ${reportContext.slice(0, 2000)}
 
   if (!resp.ok) {
     console.error("AI gateway error:", resp.status, await resp.text());
-    return null;
+    return buildFromKnowledge();
   }
   const data = await resp.json();
-  const text: string = data?.choices?.[0]?.message?.content ?? "";
-  return text.trim() || null;
+  const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
+  // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
+  const cyrCount = (text.match(/[а-яё]/gi) || []).length;
+  if (!text || cyrCount < 120) {
+    return buildFromKnowledge() || text || null;
+  }
+  return text;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
