@@ -13,6 +13,7 @@ interface Props {
   healthIndex: number | null;
   previousBioAge?: number | null;
   previousDate?: string | null;
+  trajectoryPoints?: Array<{ month: number; bio_age: number }> | null;
 }
 
 // Brand palette — primary (violet 270) → accent (magenta 320), matches index.css tokens.
