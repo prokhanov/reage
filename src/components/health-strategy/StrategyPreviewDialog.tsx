@@ -50,6 +50,30 @@ interface Explanation {
     rationale: string;
   }>;
   drivers: string[];
+  aging_pace?: {
+    pace_bio_years_per_year: number | null;
+    trend: "improving" | "stable" | "worsening" | "insufficient_data";
+    samples: number;
+    window_months: number | null;
+    note?: string;
+  } | null;
+  trajectory_v2?: {
+    horizons: Array<{
+      months: 3 | 6 | 12;
+      projected_bio_age: number;
+      projected_health_index: number;
+      ba_delta: number;
+      hi_delta: number;
+    }>;
+    assumptions: string[];
+  } | null;
+  explainability?: {
+    systems: Array<{
+      category: string;
+      top_negative: Array<{ code: string; name: string; contribution: number; reason: string }>;
+      top_positive: Array<{ code: string; name: string; contribution: number; reason: string }>;
+    }>;
+  } | null;
 }
 
 interface PreviewPayload {
