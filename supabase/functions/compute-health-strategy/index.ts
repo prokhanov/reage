@@ -49,6 +49,13 @@ function hasLegacyRoadmap(roadmap: any) {
   return /контрольн\S*\s+анализ|повторн\S*\s+анализ|пересда/.test(text);
 }
 
+type RouteSlot = {
+  kind: "start" | "milestone" | "analysis" | "summary";
+  date: string;
+  title: string;
+  analysis_number?: number;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -188,19 +195,19 @@ serve(async (req) => {
     const deviatedCodes = Object.values(byCat).flat().filter((b) => b.deviated).map((b) => b.code);
     const prescTitles = prescriptions.map((p: any) => p.name || p.prescription?.slice(0, 60)).filter(Boolean);
 
-    const startSlots = [
+    const startSlots: RouteSlot[] = [
       { kind: "start", date: toIso(startDate), title: "Стартовая точка", analysis_number: 1 },
       { kind: "milestone", date: toIso(reportReadyDate), title: "Отчёт почти готов" },
       { kind: "milestone", date: toIso(doctorReviewDate), title: "Консультация и старт назначений" },
       { kind: "milestone", date: toIso(firstEffectDate), title: "Первое ожидаемое улучшение" },
     ];
-    const analysisSlots = finalAnalysisDates.map((date, i) => ({
+    const analysisSlots: RouteSlot[] = finalAnalysisDates.map((date, i) => ({
       kind: "analysis",
       date,
       title: "Плановая сдача анализов",
       analysis_number: i + 2,
     }));
-    const correctionSlots = finalAnalysisDates.map((date, i) => ({
+    const correctionSlots: RouteSlot[] = finalAnalysisDates.map((date, i) => ({
       kind: "milestone",
       date: toIso(new Date(new Date(date).getTime() + 16 * 86400000)),
       title: `Коррекция назначений после анализа №${i + 2}`,
@@ -210,7 +217,7 @@ serve(async (req) => {
       ...startSlots,
       ...analysisSlots,
       ...correctionSlots.slice(0, correctionCount),
-      { kind: "summary", date: toIso(addMonths(startDate, 12)), title: "Итоги года" },
+      { kind: "summary", date: toIso(addMonths(startDate, 12)), title: "Итоги года" } as RouteSlot,
     ]
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, milestonesCount);
