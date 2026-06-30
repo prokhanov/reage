@@ -463,7 +463,12 @@ export default function Dashboard() {
               <span className="bg-gradient-primary bg-clip-text text-transparent">{profile?.name}</span>
             </h1>
             <p className="text-sm text-muted-foreground">
-              Паспортный возраст: <span className="text-primary font-medium">{birthDateStr ? calculateAge(birthDateStr) : (chronologicalAge ? Math.floor(chronologicalAge) : "—")} лет</span>
+              Паспортный возраст: <span className="text-primary font-medium">{(() => {
+                const src = birthDateStr;
+                if (!src) return chronologicalAge != null ? chronologicalAge.toFixed(1) : "—";
+                const years = (Date.now() - new Date(src).getTime()) / (365.2425 * 24 * 3600 * 1000);
+                return (Math.round(years * 10) / 10).toFixed(1);
+              })()} лет</span>
             </p>
           </div>
           {canRecalculate && displayAnalysesCount > 0 && (
