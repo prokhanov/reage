@@ -458,6 +458,7 @@ export default function Dashboard() {
             nextCheckupDate={nextBooking?.booking_date || null}
             categories={categories}
             publishing={publishing}
+            mode={previewMode}
             onCancel={() => setPreviewOpen(false)}
             onPublish={publishStrategy}
           />
