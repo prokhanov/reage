@@ -212,40 +212,45 @@ export function StrategyPreviewDialog({
           <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
             <TabsContent value="health" className="mt-0">
               <div className="p-5 space-y-5">
-                {/* Explanation (only when computed) */}
-                {exp && (
-                  <Card className="border-primary/30 bg-primary/[0.04]">
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-sm font-semibold">
-                        <Info className="h-4 w-4 text-primary" /> Что повлияло на расчёт
-                      </div>
-                      <ul className="text-sm space-y-1 text-foreground/85">
-                        {exp.drivers.map((d, i) => <li key={i}>• {d}</li>)}
-                      </ul>
-
-                      {exp.health_index.top_deviations.length > 0 && (
-                        <div className="pt-2">
-                          <div className="text-xs font-semibold text-muted-foreground mb-2">
-                            Топ-{exp.health_index.top_deviations.length} отклонений (из {exp.health_index.total_deviations})
+                {/* Что повлияло на расчёт */}
+                <Card className="border-primary/30 bg-primary/[0.04]">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Info className="h-4 w-4 text-primary" /> Что повлияло на расчёт
+                    </div>
+                    {exp ? (
+                      <>
+                        <ul className="text-sm space-y-1 text-foreground/85">
+                          {exp.drivers.map((d, i) => <li key={i}>• {d}</li>)}
+                        </ul>
+                        {exp.health_index.top_deviations.length > 0 && (
+                          <div className="pt-2">
+                            <div className="text-xs font-semibold text-muted-foreground mb-2">
+                              Топ-{exp.health_index.top_deviations.length} отклонений (из {exp.health_index.total_deviations})
+                            </div>
+                            <div className="space-y-1.5">
+                              {exp.health_index.top_deviations.map((d) => (
+                                <div key={d.code} className="flex items-center justify-between text-xs gap-2 py-1 px-2 rounded bg-background/50">
+                                  <span className="truncate">{d.name} <span className="text-muted-foreground">({d.code})</span></span>
+                                  <span className="flex items-center gap-2 shrink-0">
+                                    <span className="text-foreground/80">{d.value} {d.unit}</span>
+                                    <Badge variant="destructive" className="text-[10px]">
+                                      {d.deviation_pct >= 0 ? "+" : ""}{d.deviation_pct}%
+                                    </Badge>
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <div className="space-y-1.5">
-                            {exp.health_index.top_deviations.map((d) => (
-                              <div key={d.code} className="flex items-center justify-between text-xs gap-2 py-1 px-2 rounded bg-background/50">
-                                <span className="truncate">{d.name} <span className="text-muted-foreground">({d.code})</span></span>
-                                <span className="flex items-center gap-2 shrink-0">
-                                  <span className="text-foreground/80">{d.value} {d.unit}</span>
-                                  <Badge variant="destructive" className="text-[10px]">
-                                    {d.deviation_pct >= 0 ? "+" : ""}{d.deviation_pct}%
-                                  </Badge>
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Расшифровка факторов не сохраняется в БД. Нажмите «Пересчитать», чтобы получить актуальные drivers и топ-отклонения.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
 
                 {/* HI breakdown — show only if it adds info beyond drivers */}
                 {exp && Array.isArray(exp.health_index.breakdown) && exp.health_index.breakdown.length > 0 && (
@@ -286,12 +291,12 @@ export function StrategyPreviewDialog({
                   </CardContent>
                 </Card>
 
-                {/* System ratings — editable */}
-                {systemRatings.length > 0 && (
-                  <Card>
-                    <CardContent className="p-4 space-y-2">
-                      <div className="text-sm font-semibold">Рейтинги систем организма</div>
-                      <div className="text-xs text-muted-foreground">Балл и обоснование можно менять.</div>
+                {/* System ratings — editable, always shown */}
+                <Card>
+                  <CardContent className="p-4 space-y-2">
+                    <div className="text-sm font-semibold">Рейтинги систем организма</div>
+                    <div className="text-xs text-muted-foreground">Балл и обоснование можно менять.</div>
+                    {systemRatings.length > 0 ? (
                       <div className="space-y-2 pt-1">
                         {systemRatings.map((r, i) => (
                           <div key={i} className="grid grid-cols-12 gap-2 items-start py-2 px-2 rounded bg-background/50">
@@ -315,11 +320,16 @@ export function StrategyPreviewDialog({
                           </div>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    ) : (
+                      <p className="text-xs text-muted-foreground pt-1">
+                        Рейтинги систем не сохраняются в снапшоте. Нажмите «Пересчитать», чтобы получить актуальные значения.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
+
 
             <TabsContent value="strategy" className="mt-0">
               <div className="p-5 space-y-5">
