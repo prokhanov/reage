@@ -174,7 +174,7 @@ export default function Recommendations() {
       : null;
     const snapshot = snapshotResult && snapshotResult.ok ? snapshotResult.snapshot : null;
     return [
-      ...(patientData ? [{ id: "patient-data", label: "Данные пациента" }] : []),
+      ...(patientData ? [{ id: "patient-data", label: "Мои данные" }] : []),
       ...(snapshot
         ? snapshot.blocks
             .map((b, i) =>
@@ -237,7 +237,7 @@ export default function Recommendations() {
       );
       const fallbackRecs: any[] = fallbackIndex >= 0 ? groupedByAnalysis[fallbackIndex] : [];
 
-      // Build a dynamic "Данные пациента" block from the logged-in user's profile.
+      // Build a dynamic "Мои данные" block from the logged-in user's profile.
       const profile = demoData.profile || {};
       const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim()
         || profile.name
@@ -700,7 +700,7 @@ export default function Recommendations() {
   };
 
   const getSectionLabel = (type: SectionType) => {
-    if (type === 'patient-data') return 'Данные пациента';
+    if (type === 'patient-data') return 'Мои данные';
     if (type === 'summary') return 'Общее резюме';
     return type;
   };
@@ -805,7 +805,7 @@ export default function Recommendations() {
         ...(patientData ? [{ 
           id: 'patient-data', 
           type: 'patient-data' as SectionType,
-          label: 'Данные пациента', 
+          label: 'Мои данные', 
           content: patientData.text 
         }] : []),
         ...(snapshot
