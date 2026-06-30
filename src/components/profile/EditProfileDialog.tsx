@@ -103,6 +103,9 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
           last_menstrual_date: formData.gender === 'female' && formData.reproductive_status === 'regular' && formData.last_menstrual_date
             ? formData.last_menstrual_date
             : null,
+          pregnancy_start_date: formData.gender === 'female' && formData.reproductive_status === 'pregnant' && formData.pregnancy_start_date
+            ? formData.pregnancy_start_date
+            : null,
         } as any)
         .eq("id", userId)
         .select()
