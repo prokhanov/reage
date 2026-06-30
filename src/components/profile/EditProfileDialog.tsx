@@ -490,7 +490,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         </div>
 
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 px-6 pb-6 pt-2 border-t border-border/50">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
