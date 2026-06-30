@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
@@ -28,6 +28,29 @@ interface Snapshot {
   trajectory?: Array<{ month: number; bio_age: number }> | null;
 }
 
+function sanitizeRationale(text: string | null): string {
+  if (!text) return "";
+  return (
+    text
+      // Common awkward phrasing → natural personal-account wording
+      .replace(/Учитывая текущие биомаркеры и хронологический возраст пациента/gi, "Учитывая ваши текущие биомаркеры и хронологический возраст")
+      .replace(/Учитывая текущие биомаркеры пациента/gi, "Учитывая ваши текущие биомаркеры")
+      .replace(/хронологический возраст пациента/gi, "ваш хронологический возраст")
+      .replace(/биомаркеры пациента/gi, "ваши биомаркеры")
+      .replace(/биомаркеры и хронологический возраст пациента/gi, "ваши биомаркеры и хронологический возраст")
+      .replace(/(?<![а-яё])пациента(?![а-яё])/gi, "вас")
+      .replace(/(?<![а-яё])пациенту(?![а-яё])/gi, "вам")
+      .replace(/(?<![а-яё])пациентом(?![а-яё])/gi, "вами")
+      .replace(/(?<![а-яё])пациенте(?![а-яё])/gi, "вас")
+      .replace(/(?<![а-яё])пациенты(?![а-яё])/gi, "вы")
+      .replace(/(?<![а-яё])пациентов(?![а-яё])/gi, "вас")
+      .replace(/(?<![а-яё])пациент(?![а-яё])/gi, "вы")
+      .replace(/\s{2,}/g, " ")
+      .trim()
+  );
+}
+
+
 export default function HealthStrategy() {
   const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
   const { data: roleData } = useUserRole();
@@ -49,6 +72,11 @@ export default function HealthStrategy() {
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
 
   const canForceRefresh = isSuperAdmin || isViewMode;
+
+  const displayRationale = useMemo(
+    () => sanitizeRationale(snapshot?.rationale ?? null),
+    [snapshot?.rationale]
+  );
 
   useEffect(() => {
     setSnapshot(null);
@@ -236,14 +264,14 @@ export default function HealthStrategy() {
               trajectoryPoints={snapshot.trajectory ?? null}
             />
 
-            {snapshot?.rationale && (
+            {displayRationale && (
               <Card className="border-primary/20 bg-primary/[0.04]">
                 <CardContent className="p-4 md:p-5 flex gap-3">
                   <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <div className="text-sm font-semibold text-foreground">Прогноз по вашей траектории</div>
                     <p className="text-sm text-foreground/85 leading-relaxed">
-                      {snapshot.rationale}
+                      {displayRationale}
                     </p>
                   </div>
                 </CardContent>
