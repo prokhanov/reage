@@ -38,17 +38,18 @@ function sanitizeRationale(text: string | null): string {
       .replace(/хронологический возраст пациента/gi, "ваш хронологический возраст")
       .replace(/биомаркеры пациента/gi, "ваши биомаркеры")
       .replace(/биомаркеры и хронологический возраст пациента/gi, "ваши биомаркеры и хронологический возраст")
-      .replace(/\bпациента\b/gi, "вас")
-      .replace(/\bпациенту\b/gi, "вам")
-      .replace(/\bпациентом\b/gi, "вами")
-      .replace(/\bпациенте\b/gi, "вас")
-      .replace(/\bпациенты\b/gi, "вы")
-      .replace(/\bпациентов\b/gi, "вас")
-      .replace(/\bпациент\b/gi, "вы")
+      .replace(/(?<![а-яё])пациента(?![а-яё])/gi, "вас")
+      .replace(/(?<![а-яё])пациенту(?![а-яё])/gi, "вам")
+      .replace(/(?<![а-яё])пациентом(?![а-яё])/gi, "вами")
+      .replace(/(?<![а-яё])пациенте(?![а-яё])/gi, "вас")
+      .replace(/(?<![а-яё])пациенты(?![а-яё])/gi, "вы")
+      .replace(/(?<![а-яё])пациентов(?![а-яё])/gi, "вас")
+      .replace(/(?<![а-яё])пациент(?![а-яё])/gi, "вы")
       .replace(/\s{2,}/g, " ")
       .trim()
   );
 }
+
 
 export default function HealthStrategy() {
   const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
