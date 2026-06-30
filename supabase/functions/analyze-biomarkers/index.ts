@@ -450,12 +450,39 @@ async function processAnalysis({
 
     // Формируем контекст пациента
     const age = profile?.birth_date ? new Date().getFullYear() - new Date(profile.birth_date).getFullYear() : null;
-    
+
+    // Репродуктивный статус (только для женщин)
+    const reproStatusMap: Record<string, string> = {
+      regular: 'Регулярный менструальный цикл',
+      contraceptives: 'Принимает комбинированные оральные контрацептивы (КОК)',
+      pregnant: 'Беременность',
+      lactating: 'Период грудного вскармливания',
+      perimenopause: 'Пременопауза',
+      menopause: 'Менопауза',
+      hormonal_therapy: 'Заместительная гормональная терапия (ЗГТ)',
+    };
+    let reproductiveContext = '';
+    if (profile?.gender === 'female' && profile?.reproductive_status) {
+      const label = reproStatusMap[profile.reproductive_status] || profile.reproductive_status;
+      reproductiveContext = `\nРепродуктивный статус: ${label}`;
+      if (profile.reproductive_status === 'regular' && profile.last_menstrual_date) {
+        const lmp = new Date(profile.last_menstrual_date);
+        const diffDays = Math.floor((Date.now() - lmp.getTime()) / 86400000);
+        const cycleDay = diffDays >= 0 ? (diffDays % 28) + 1 : null;
+        const phase = cycleDay == null ? '' :
+          cycleDay <= 5 ? 'менструальная фаза' :
+          cycleDay <= 13 ? 'фолликулярная фаза' :
+          cycleDay <= 15 ? 'овуляторная фаза' :
+          'лютеиновая фаза';
+        if (cycleDay) reproductiveContext += `\nДень цикла (приблизительно): ${cycleDay} (${phase})`;
+      }
+    }
+
     const userContext = `
 ДАННЫЕ ПАЦИЕНТА:
 Имя: ${profile?.name || "Не указано"}
 Возраст: ${age || "Не указано"} лет
-Пол: ${profile?.gender || "Не указано"}
+Пол: ${profile?.gender || "Не указано"}${reproductiveContext}
 Рост: ${profile?.height ? `${profile.height} см` : "Не указано"}
 Вес: ${actualWeight ? `${actualWeight} кг` : "Не указано"}
 BMI: ${bmi ? `${bmi} ${Number(bmi) < 18.5 ? "(недостаточный вес)" : Number(bmi) < 25 ? "(норма)" : Number(bmi) < 30 ? "(избыточный вес)" : "(ожирение)"}` : "Не рассчитан"}
