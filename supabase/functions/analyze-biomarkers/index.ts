@@ -2116,6 +2116,22 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         summaryParts.push("Назначения сохранены в текстовом формате");
       }
       const summaryText = summaryParts.join(". ") + ".";
+      const cleanedPrescriptionsText = sanitizeReportTextForPatient(
+        hasMarkdownFallback ? prescriptionsRawContent : summaryText,
+      );
+      const cleanedRawMarkdown = sanitizeReportTextForPatient(prescriptionsRawContent);
+      const cleanedLifestyle = {
+        nutrition: lifestyleFinal.nutrition.map(sanitizeReportTextForPatient).filter(Boolean),
+        activity: lifestyleFinal.activity.map(sanitizeReportTextForPatient).filter(Boolean),
+        sleep: lifestyleFinal.sleep.map(sanitizeReportTextForPatient).filter(Boolean),
+      };
+      const cleanedFollowUps = followUpsFinal
+        .map((item) => ({
+          specialist: sanitizeReportTextForPatient(item.specialist),
+          goal: sanitizeReportTextForPatient(item.goal),
+          trigger: sanitizeReportTextForPatient(item.trigger),
+        }))
+        .filter((item) => item.specialist || item.goal || item.trigger);
 
       const { error: rxRecError } = await supabase
         .from("recommendations")
@@ -2123,11 +2139,11 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           user_id: analysis.user_id,
           analysis_id: analysisId,
           type: "Назначения",
-          text: hasMarkdownFallback ? prescriptionsRawContent : summaryText,
+          text: cleanedPrescriptionsText,
           content_json: {
-            lifestyle: lifestyleFinal,
-            follow_ups: followUpsFinal,
-            ...(hasMarkdownFallback ? { raw_markdown: prescriptionsRawContent } : {}),
+            lifestyle: cleanedLifestyle,
+            follow_ups: cleanedFollowUps,
+            ...(hasMarkdownFallback && cleanedRawMarkdown ? { raw_markdown: cleanedRawMarkdown } : {}),
           },
         });
 
