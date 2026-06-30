@@ -69,7 +69,7 @@ interface PreviewPayload {
   expectations?: any[];
   analyses_per_year?: number | null;
   adherence_pct?: number | null;
-  explanation: Explanation;
+  explanation?: Explanation | null;
 }
 
 interface Props {
@@ -79,6 +79,7 @@ interface Props {
   nextCheckupDate: string | null;
   categories: string[];
   publishing: boolean;
+  mode?: "preview" | "edit";
   onCancel: () => void;
   onPublish: (edited: any) => void;
 }
