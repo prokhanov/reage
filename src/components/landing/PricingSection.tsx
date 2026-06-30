@@ -412,23 +412,26 @@ export function PricingSection() {
 
 
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+        <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-8 max-w-none lg:max-w-5xl mx-auto overflow-x-auto lg:overflow-visible snap-x snap-mandatory lg:snap-none pb-4 lg:pb-0 -mx-4 px-4 lg:mx-auto lg:px-0">
 
           {isLoading ? (
             [0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-[520px] rounded-3xl" />
+              <div key={i} className="flex-shrink-0 w-[85vw] md:w-[45vw] lg:w-auto snap-center lg:snap-none">
+                <Skeleton className="h-[520px] rounded-3xl" />
+              </div>
             ))
           ) : cards.length === 0 ? (
-            <div className="col-span-full text-center text-muted-foreground py-12">
+            <div className="flex-shrink-0 w-full text-center text-muted-foreground py-12">
               Тарифы временно недоступны. Загляните позже.
             </div>
           ) : (
             cards.map((card) => (
-              <PricingCard
-                key={card.id}
-                {...card}
-                onSelect={requestRegister}
-              />
+              <div key={card.id} className="flex-shrink-0 w-[85vw] md:w-[45vw] lg:w-auto snap-center lg:snap-none">
+                <PricingCard
+                  {...card}
+                  onSelect={requestRegister}
+                />
+              </div>
             ))
           )}
         </div>
