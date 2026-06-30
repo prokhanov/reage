@@ -1,11 +1,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, TrendingUp, Heart, Trophy, Calendar, Target } from "lucide-react";
+import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { useUserRole } from "@/hooks/useUserRole";
+import { toast } from "@/hooks/use-toast";
 import { WeightTracker } from "@/components/WeightTracker";
 import { format, differenceInDays } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -18,12 +21,16 @@ import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPreviewDialog";
 import Biomarkers from "@/pages/Biomarkers";
 import Trends from "@/pages/Trends";
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
+  const { data: roleData } = useUserRole();
+  const isSuperAdmin = !!roleData?.isSuperAdmin;
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -32,10 +39,20 @@ export default function Dashboard() {
   const [latestHealthIndex, setLatestHealthIndex] = useState<number | null>(null);
   const [latestBiomarkersMetadata, setLatestBiomarkersMetadata] = useState<any>(null);
   const [ageTrend, setAgeTrend] = useState<string | null>(null);
-  
+
   const [recentAnalyses, setRecentAnalyses] = useState<any[]>([]);
   const [allAnalyses, setAllAnalyses] = useState<any[]>([]);
   const [nextBooking, setNextBooking] = useState<any>(null);
+
+  // Superadmin "recalculate & preview" (only in view-as-patient mode)
+  const [categories, setCategories] = useState<string[]>([]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const canRecalculate = isSuperAdmin && isViewMode;
+
+
   
 
   useEffect(() => {
@@ -186,6 +203,65 @@ export default function Dashboard() {
     }
   };
 
+  // Load category list once (used by strategy preview dialog)
+  useEffect(() => {
+    if (!canRecalculate) return;
+    void supabase
+      .from("biomarker_categories")
+      .select("name, display_order")
+      .order("display_order")
+      .then(({ data }) => setCategories((data || []).map((c: any) => c.name)));
+  }, [canRecalculate]);
+
+  const openStrategyPreview = async () => {
+    try {
+      setPreviewing(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, preview: true },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPreviewData(data);
+      setPreviewOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось пересчитать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  const publishStrategy = async (edited: any) => {
+    try {
+      setPublishing(true);
+      const userId = await getUserId();
+      if (!userId) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("compute-health-strategy", {
+        body: { userId, publish: true, edited },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPreviewOpen(false);
+      setPreviewData(null);
+      toast({ title: "Стратегия опубликована клиенту" });
+      // Refresh dashboard data so updated bio age / HI surface immediately
+      await fetchAnalysesStats();
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Не удалось опубликовать", description: e?.message || "Попробуйте позже", variant: "destructive" });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+
+
   if (loading || demoLoading) {
     return (
       <div className="p-4 md:p-8">
@@ -268,16 +344,39 @@ export default function Dashboard() {
       {!demoMode && <PassportReminderCard />}
 
       {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
-            <span className="text-foreground">Добро пожаловать,</span>
-            <br />
-            <span className="bg-gradient-primary bg-clip-text text-transparent">{profile?.name}</span>
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Паспортный возраст: <span className="text-primary font-medium">{birthDateStr ? calculateAge(birthDateStr) : (chronologicalAge ? Math.floor(chronologicalAge) : "—")} лет</span>
-          </p>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="space-y-1 min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+              <span className="text-foreground">Добро пожаловать,</span>
+              <br />
+              <span className="bg-gradient-primary bg-clip-text text-transparent">{profile?.name}</span>
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Паспортный возраст: <span className="text-primary font-medium">{birthDateStr ? calculateAge(birthDateStr) : (chronologicalAge ? Math.floor(chronologicalAge) : "—")} лет</span>
+            </p>
+          </div>
+          {canRecalculate && displayAnalysesCount > 0 && (
+            <Button onClick={openStrategyPreview} disabled={previewing} variant="outline" size="sm">
+              <RefreshCw className={`mr-2 h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
+              {previewing ? "Считаем..." : "Пересчитать и проверить"}
+            </Button>
+          )}
         </div>
+
+        {canRecalculate && (
+          <StrategyPreviewDialog
+            open={previewOpen}
+            data={previewData}
+            startDate={new Date().toISOString().slice(0, 10)}
+            nextCheckupDate={nextBooking?.booking_date || null}
+            categories={categories}
+            publishing={publishing}
+            onCancel={() => setPreviewOpen(false)}
+            onPublish={publishStrategy}
+          />
+        )}
+
+
 
         {/* Data Status Alerts */}
         {!demoMode && displayAnalysesCount === 0 && (

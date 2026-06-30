@@ -29,6 +29,8 @@ interface Explanation {
     value: number;
     total_deviations: number;
     total_markers: number;
+    optimal_share_pct?: number;
+    breakdown?: string[];
     top_deviations: Array<{
       name: string;
       code: string;
@@ -40,8 +42,16 @@ interface Explanation {
       deviation_pct: number;
     }>;
   };
+  system_ratings?: Array<{
+    category: string;
+    score: number | null;
+    deviated: number;
+    total: number;
+    rationale: string;
+  }>;
   drivers: string[];
 }
+
 
 interface PreviewPayload {
   analysis_id: string;
@@ -192,6 +202,48 @@ export function StrategyPreviewDialog({
                 )}
               </CardContent>
             </Card>
+
+            {/* Health Index breakdown */}
+            {Array.isArray(exp.health_index.breakdown) && exp.health_index.breakdown.length > 0 && (
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-semibold">Индекс здоровья — разбивка</div>
+                    <Badge variant="secondary" className="text-xs">
+                      {exp.health_index.value}/100
+                    </Badge>
+                  </div>
+                  <ul className="text-sm space-y-1 text-foreground/85">
+                    {exp.health_index.breakdown.map((s, i) => <li key={i}>• {s}</li>)}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* System ratings */}
+            {Array.isArray(exp.system_ratings) && exp.system_ratings.length > 0 && (
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                  <div className="text-sm font-semibold">Рейтинги систем организма</div>
+                  <div className="text-xs text-muted-foreground">Оценки приходят из анализа AI; для каждой системы показан балл и краткое обоснование.</div>
+                  <div className="space-y-1.5 pt-1">
+                    {exp.system_ratings.map((r) => (
+                      <div key={r.category} className="flex items-center justify-between gap-2 py-1.5 px-2 rounded bg-background/50 text-sm">
+                        <div className="min-w-0">
+                          <div className="font-medium truncate">{r.category}</div>
+                          <div className="text-xs text-muted-foreground truncate">{r.rationale}</div>
+                        </div>
+                        <Badge variant={r.score == null ? "outline" : r.score >= 70 ? "secondary" : "destructive"} className="shrink-0">
+                          {r.score == null ? "—" : `${r.score}/100`}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+
 
             {/* Editable fields */}
             <Card>
