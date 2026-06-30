@@ -795,7 +795,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
           if (toolCall?.function?.arguments) {
             const aiResult = JSON.parse(toolCall.function.arguments);
             let aiBioAge = aiResult.biological_age;
-            aiBioAge = Math.max(baseBioAge - 3, Math.min(baseBioAge + 3, aiBioAge));
+            aiBioAge = Math.max(baseBioAge - 5, Math.min(baseBioAge + 5, aiBioAge));
             aiBioAge = Math.max(chronologicalAge - 15, Math.min(chronologicalAge + 15, aiBioAge));
             biological_age = Math.round(aiBioAge * 10) / 10;
 
