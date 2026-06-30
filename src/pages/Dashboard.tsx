@@ -57,9 +57,11 @@ export default function Dashboard() {
   const [categories, setCategories] = useState<string[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [previewMode, setPreviewMode] = useState<"preview" | "edit">("preview");
   const [previewing, setPreviewing] = useState(false);
   const [previewStage, setPreviewStage] = useState<number>(0);
   const [publishing, setPublishing] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const canRecalculate = isSuperAdmin && isViewMode;
 
 
