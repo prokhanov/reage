@@ -135,6 +135,18 @@ serve(async (req) => {
       if (pubErr) {
         return new Response(JSON.stringify({ error: pubErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+      // Sync recalculated bio-age + HI back to the source analysis so dashboard/reports match.
+      try {
+        await supabase
+          .from("analyses")
+          .update({
+            biological_age: Number(edited.current_bio_age),
+            health_index: edited.health_index != null ? Math.round(Number(edited.health_index)) : null,
+          })
+          .eq("id", edited.analysis_id);
+      } catch (_e) {
+        // non-fatal — snapshot is the source of truth for strategy page
+      }
       return new Response(JSON.stringify(saved), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
