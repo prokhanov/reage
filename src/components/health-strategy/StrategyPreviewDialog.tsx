@@ -162,8 +162,9 @@ export function StrategyPreviewDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
           <div className="p-5 space-y-5">
+
             {/* Explanation */}
             <Card className="border-primary/30 bg-primary/[0.04]">
               <CardContent className="p-4 space-y-3">
