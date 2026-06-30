@@ -280,6 +280,28 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
                   />
                 </div>
               )}
+
+              {formData.reproductive_status === "pregnant" && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-preg-start">Дата начала беременности (первый день последней менструации перед беременностью)</Label>
+                  <Input
+                    id="edit-preg-start"
+                    type="date"
+                    value={formData.pregnancy_start_date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, pregnancy_start_date: e.target.value })
+                    }
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                  />
+                  {formData.pregnancy_start_date && (() => {
+                    const days = Math.floor((Date.now() - parseLocalDate(formData.pregnancy_start_date).getTime()) / 86400000);
+                    if (days < 0 || days > 320) return null;
+                    const weeks = Math.floor(days / 7);
+                    const tri = weeks < 13 ? 'I триместр' : weeks < 27 ? 'II триместр' : 'III триместр';
+                    return <p className="text-xs text-muted-foreground">Текущий срок: ~{weeks} нед. ({tri})</p>;
+                  })()}
+                </div>
+              )}
             </>
           )}
 
