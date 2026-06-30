@@ -641,6 +641,24 @@ function safeParseSilent(raw: string): any {
   try { return JSON.parse(raw); } catch { return null; }
 }
 
+function paceTrendLabel(t: string): string {
+  switch (t) {
+    case "improving": return "омоложение";
+    case "stable": return "стабильно";
+    case "worsening": return "ускорение старения";
+    default: return "мало данных";
+  }
+}
+
+function paceBadgeVariant(t: string): "default" | "secondary" | "destructive" | "outline" {
+  switch (t) {
+    case "improving": return "default";
+    case "worsening": return "destructive";
+    case "stable": return "secondary";
+    default: return "outline";
+  }
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-background/60 px-2 py-1.5">
