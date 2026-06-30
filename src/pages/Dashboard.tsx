@@ -26,6 +26,15 @@ import Biomarkers from "@/pages/Biomarkers";
 import Trends from "@/pages/Trends";
 
 
+const PREVIEW_STAGES = [
+  "Загружаем анализы пациента",
+  "Считаем индекс здоровья и био-возраст",
+  "Анализируем системы организма",
+  "Строим дорожную карту",
+  "Генерируем ожидания и план действий",
+  "Финализируем стратегию",
+];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
