@@ -25,6 +25,7 @@ import { StrategyPreviewDialog } from "@/components/health-strategy/StrategyPrev
 import { RecomputeOptionsDialog, ALL_SECTIONS, type RecomputeSection } from "@/components/health-strategy/RecomputeOptionsDialog";
 import Biomarkers from "@/pages/Biomarkers";
 import Trends from "@/pages/Trends";
+import { getBioAgePercentile } from "@/lib/bioagePercentile";
 
 
 const PREVIEW_STAGES = [
