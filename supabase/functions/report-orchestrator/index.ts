@@ -47,7 +47,10 @@ type Job = {
 // Любой шаг может упереться в 504 IDLE_TIMEOUT — даём 3 попытки на каждый.
 const MAX_ATTEMPTS = 3;
 // Если у running-джобы updated_at старше этого порога — считаем «протухла» и можно стартовать новую.
-const STALE_RUNNING_THRESHOLD_MS = 90_000;
+// Deep-шаг категории может честно занимать до edge idle timeout (150с) + ретраи,
+// поэтому 90 секунд были слишком агрессивными: повторный старт мог пометить живую
+// генерацию как failed и сбить прогресс в интерфейсе.
+const STALE_RUNNING_THRESHOLD_MS = 10 * 60_000;
 
 function isIdleTimeoutError(err: string | null | undefined): boolean {
   if (!err) return false;
