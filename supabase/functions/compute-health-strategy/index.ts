@@ -160,11 +160,24 @@ serve(async (req) => {
 
     const milestonesCount = analysesPerYear === 2 ? 4 : analysesPerYear === 3 ? 5 : 6;
 
-    const systemPrompt = `Ты — врач превентивной медицины. По данным пациента сформируй:
-1) Реалистичный прогноз биовозраста через 12 мес (target_bio_age, trajectory_points).
-2) Цели по системам (system_goals) и карту действий (action_map) — связь назначений с биомаркерами.
-3) ГОДОВУЮ КАРТУ ПУТИ ПАЦИЕНТА (roadmap) — ровно ${milestonesCount} майлстоунов на 12 месяцев. Майлстоуны типа "analysis" должны быть привязаны к датам плановых анализов: ${finalAnalysisDates.join(", ")}. Первый майлстоун — старт (kind=start, date=${toIso(startDate)}). Последний — итоги года (kind=summary). Промежуточные: первые результаты (kind=milestone, через 2 недели), баланс/коррекция (kind=analysis к датам), стабильность/глубокая оптимизация (kind=milestone или analysis). В bullets КАЖДОГО майлстоуна явно отрази главные жалобы пациента и работу с ними по фазам (например, если жалоба на сон — на этапе 3-4 «работа со сном: кортизол, мелатонин»). Фокус (focus) — короткая мотивирующая фраза до 40 символов.
-4) КЛЮЧЕВЫЕ БИОМАРКЕРЫ (key_biomarkers) — РОВНО 6 систем: energy, sleep, gut, hormones, metabolism, inflammation. Для каждой — 2-4 КОДА биомаркеров (HbA1c, Ferritin, B12, VitD, Cortisol, CRP, Insulin, HOMA-IR, Mg и т.п.) из реальных данных пациента; приоритет — отклонённые маркеры.
+    // Patient biomarker codes (real, for validation)
+    const patientCodes = Object.values(byCat).flat().map((b) => b.code);
+    const deviatedCodes = Object.values(byCat).flat().filter((b) => b.deviated).map((b) => b.code);
+    const prescTitles = prescriptions.map((p: any) => p.name || p.prescription?.slice(0, 60)).filter(Boolean);
+
+    const systemPrompt = `Ты — врач превентивной медицины. Стратегия должна быть ПОЛНОСТЬЮ ПЕРСОНАЛИЗИРОВАННОЙ под этого пациента — никаких общих шаблонных фраз. Каждое утверждение должно опираться на КОНКРЕТНЫЕ биомаркеры (с кодами), КОНКРЕТНЫЕ назначения пациента и его реальные жалобы.
+
+Сформируй:
+1) Реалистичный прогноз биовозраста через 12 мес (target_bio_age, trajectory_points) — основан на тяжести отклонений и доступных назначениях.
+2) system_goals — цели по системам со ссылкой на конкретные коды биомаркеров пациента (target_biomarkers — ТОЛЬКО из списка реальных кодов: ${patientCodes.join(", ") || "—"}).
+3) action_map — связь КАЖДОГО назначения пациента с биомаркерами и системами (prescription_name берётся ТОЛЬКО из списка назначений пациента: ${prescTitles.join("; ") || "(назначений нет — оставь массив пустым)"}).
+4) ГОДОВУЮ КАРТУ ПУТИ (roadmap) — ровно ${milestonesCount} майлстоунов. Даты "analysis": ${finalAnalysisDates.join(", ")}. Первый — старт (kind=start, date=${toIso(startDate)}). Последний — итоги года (kind=summary). В bullets КАЖДОГО майлстоуна обязательно:
+   • называй конкретные коды биомаркеров пациента, над которыми работаем на этом этапе (приоритет — отклонённые: ${deviatedCodes.join(", ") || "—"});
+   • упоминай конкретные назначения по имени (например: «продолжаем Магний цитрат», «оценка эффекта от Витамин D 5000 МЕ»);
+   • привязывай работу к реальным жалобам пациента: ${complaintsText};
+   • избегай общих фраз вроде «улучшение самочувствия», «работа над здоровьем» — пиши конкретно.
+   focus — короткая мотивирующая фраза до 40 символов, тоже персональная (например «снять воспаление (CRP↓)»).
+5) key_biomarkers — РОВНО 6 систем: energy, sleep, gut, hormones, metabolism, inflammation. Для каждой 2-4 КОДА биомаркеров СТРОГО из реального списка пациента (${patientCodes.join(", ") || "—"}); приоритет — отклонённые. Если по системе нет данных у пациента — оставь массив markers пустым.
 
 Допустимый сдвиг биовозраста: -0.3..-2.5 года. Все тексты — естественный русский, без канцелярита.`;
 
@@ -176,13 +189,14 @@ serve(async (req) => {
 - Дата старта: ${toIso(startDate)}
 - Плановые даты анализов: ${finalAnalysisDates.join(", ")}
 
-БИОМАРКЕРЫ:
+БИОМАРКЕРЫ ПАЦИЕНТА (с реальными значениями и пометкой отклонений):
 ${categoriesContext}
 
-АКТИВНЫЕ НАЗНАЧЕНИЯ:
-${prescContext || "(нет)"}
+АКТИВНЫЕ НАЗНАЧЕНИЯ ПАЦИЕНТА:
+${prescContext || "(нет активных назначений — действия должны строиться вокруг наблюдения и образа жизни)"}
 
 СИСТЕМЫ для goals: ${systemNames.join(", ")}`;
+
 
     const tools = [{
       type: "function",
@@ -354,6 +368,22 @@ ${prescContext || "(нет)"}
       last.analysis_number = analysesPerYear;
     }
 
+    // Validate key_biomarkers: only keep codes that actually exist for this patient
+    const patientCodeSet = new Set(patientCodes);
+    const keyBiomarkers = Array.isArray(parsed.key_biomarkers)
+      ? parsed.key_biomarkers.map((kb: any) => ({
+          system_key: kb.system_key,
+          system_label: kb.system_label,
+          markers: (Array.isArray(kb.markers) ? kb.markers : []).filter((c: string) => patientCodeSet.has(c)).slice(0, 4),
+        }))
+      : [];
+
+    // Validate action_map prescriptions: only keep ones referencing real prescriptions
+    const prescNameSet = new Set(prescTitles.map((t: string) => t.toLowerCase()));
+    const actionMap = Array.isArray(parsed.action_map)
+      ? parsed.action_map.filter((a: any) => !a.prescription_name || prescNameSet.has(String(a.prescription_name).toLowerCase()) || prescTitles.some((t: string) => String(a.prescription_name).toLowerCase().includes(t.toLowerCase())))
+      : [];
+
     const { data: snapshot, error: insErr } = await supabase
       .from("health_strategy_snapshots")
       .insert({
@@ -364,13 +394,13 @@ ${prescContext || "(нет)"}
         target_bio_age: target,
         health_index: latest.health_index ? Math.round(latest.health_index) : null,
         system_goals: parsed.system_goals,
-        action_map: parsed.action_map,
+        action_map: actionMap,
         rationale: parsed.rationale,
         cohort_percentile: cohortPct,
         cohort_label: parsed.cohort_label || null,
         trajectory,
         roadmap,
-        key_biomarkers: parsed.key_biomarkers || [],
+        key_biomarkers: keyBiomarkers,
         analyses_per_year: analysesPerYear,
         model: "google/gemini-2.5-flash",
       })
