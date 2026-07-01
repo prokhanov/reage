@@ -224,7 +224,7 @@ export function getNormalizedPhone(value: string): string {
 
 /** Validate phone against its detected country. */
 export function isPhoneValid(value: string): boolean {
-  const digits = value.replace(/\D/g, "");
+  const digits = normalizeRuPhoneDigits(value.replace(/\D/g, ""));
   const c = guessCountry(digits);
   return c ? c.validate(digits) : false;
 }
