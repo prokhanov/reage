@@ -145,6 +145,7 @@ function getShortLabel(raw: string) {
 
 export function ActionMap({ actions, systems }: Props) {
   const { resolvedTheme } = useTheme();
+  const { format: formatMarker } = useBiomarkerNames();
   const isDark = resolvedTheme === "dark";
   const [hovered, setHovered] = useState<string | null>(null);
 
