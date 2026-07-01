@@ -4,6 +4,7 @@ import { Sparkles, FlaskConical, Trophy, Zap, Moon, Wheat, FlaskRound, Activity,
 import { format, isBefore, isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
+import { useBiomarkerNames } from "@/hooks/useBiomarkerNames";
 
 interface Milestone {
   title: string;
