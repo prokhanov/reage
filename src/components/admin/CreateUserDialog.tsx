@@ -337,6 +337,8 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
           </Button>
         </div>
       </form>
+      )}
     </DialogContent>
+
   );
 }
