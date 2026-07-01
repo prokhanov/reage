@@ -7,6 +7,7 @@ import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { DemoBanner } from "@/components/DemoBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { demoMode, toggleDemoMode } = useDemoMode();
   const { isViewMode } = useViewAsUser();
+  const { data: roleData, isLoading: isRoleLoading } = useUserRole();
+
+  const canShowDemoBanner =
+    demoMode &&
+    !isViewMode &&
+    !isRoleLoading &&
+    roleData?.isPatient === true &&
+    roleData?.userRole === "Пациент" &&
+    !roleData?.isSuperAdmin;
 
   
 
@@ -49,7 +59,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <main className={`pt-14 lg:pt-0 min-h-screen transition-all duration-300 min-w-0 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
         <div className="px-4 md:px-8 pt-4 md:pt-8 space-y-4">
-          {demoMode && !isViewMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
+          {canShowDemoBanner && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
           <AnalysisBookingBanner />
         </div>
         {children}
