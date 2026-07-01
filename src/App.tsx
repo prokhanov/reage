@@ -126,14 +126,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/analyses/print"
-              element={
-                <ProtectedRoute>
-                  <AnalysesPrint />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/analyses/print" element={<AnalysesPrint />} />
+
 
             {/* Protected routes with persistent DashboardLayout */}
             <Route

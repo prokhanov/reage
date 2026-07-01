@@ -67,10 +67,24 @@ export default function AnalysesPrint() {
       try {
         let userId = uidParam;
         if (!userId) {
-          const { data: auth } = await supabase.auth.getUser();
-          userId = auth.user?.id || null;
+          // Ждём готовности сессии (localStorage восстанавливается асинхронно в новой вкладке)
+          let session = (await supabase.auth.getSession()).data.session;
+          if (!session) {
+            session = await new Promise((resolve) => {
+              const t = setTimeout(() => resolve(null), 4000);
+              const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+                if (s) {
+                  clearTimeout(t);
+                  sub.subscription.unsubscribe();
+                  resolve(s);
+                }
+              });
+            });
+          }
+          userId = session?.user?.id || null;
         }
-        if (!userId) throw new Error("Не авторизован");
+        if (!userId) throw new Error("Не авторизован. Войдите в аккаунт и повторите.");
+
 
         const { data: prof, error: profErr } = await supabase
           .from("profiles")
