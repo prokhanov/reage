@@ -6,6 +6,7 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
 import { DemoBanner } from "@/components/DemoBanner";
 import { useDemoMode } from "@/hooks/useDemoMode";
+import { useViewAsUser } from "@/hooks/useViewAsUser";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,8 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { demoMode, toggleDemoMode } = useDemoMode();
+  const { isViewMode } = useViewAsUser();
+
   
 
   // Set initial state based on screen size
