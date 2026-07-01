@@ -1857,6 +1857,7 @@ export type Database = {
           menopause_date: string | null
           name: string
           needs_risk_refresh: boolean | null
+          onboarding_completed: boolean
           operations: Json | null
           passport_number: string | null
           passport_series: string | null
@@ -1891,6 +1892,7 @@ export type Database = {
           menopause_date?: string | null
           name: string
           needs_risk_refresh?: boolean | null
+          onboarding_completed?: boolean
           operations?: Json | null
           passport_number?: string | null
           passport_series?: string | null
@@ -1925,6 +1927,7 @@ export type Database = {
           menopause_date?: string | null
           name?: string
           needs_risk_refresh?: boolean | null
+          onboarding_completed?: boolean
           operations?: Json | null
           passport_number?: string | null
           passport_series?: string | null
