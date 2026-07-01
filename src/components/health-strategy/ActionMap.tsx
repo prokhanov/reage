@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { getBiomarkerCategoryIcon } from "@/lib/categoryIcons";
 import { useTheme } from "next-themes";
+import { useBiomarkerNames } from "@/hooks/useBiomarkerNames";
 
 interface ActionMapItem {
   prescription_name: string;
