@@ -15,6 +15,8 @@ interface Props {
   invId?: number | string
   siteName?: string
   dashboardUrl?: string
+  gifted?: boolean
+  giftReason?: string
 }
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
