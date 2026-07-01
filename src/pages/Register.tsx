@@ -226,17 +226,39 @@ export default function Register() {
         return;
       }
 
-
-      // Если токен есть, но невалиден — чистим мусор из localStorage
+      // Если токен есть, но невалиден — ДОЖИДАЕМСЯ очистки, чтобы дальнейшие invoke
+      // не отправили протухший JWT.
       if (userErr) {
         try { await supabase.auth.signOut({ scope: "local" }); } catch {}
       }
 
+      // Ретрай для edge-функций: убирает эффект "холодного старта" и разовые 5xx от прокси.
+      const invokeWithRetry = async <T,>(name: string, body: unknown): Promise<T> => {
+        let lastErr: unknown = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          const { data, error } = await supabase.functions.invoke(name, { body });
+          if (!error) return data as T;
+          lastErr = error;
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 800));
+        }
+        throw lastErr;
+      };
+
       // Проверка телефона
-      const { data: phoneCheck, error: phoneErr } = await supabase.functions.invoke("check-phone-exists", {
-        body: { phone: formData.phone },
-      });
-      if (phoneErr) throw phoneErr;
+      let phoneCheck: { exists?: boolean } | null = null;
+      try {
+        phoneCheck = await invokeWithRetry<{ exists?: boolean }>("check-phone-exists", {
+          phone: formData.phone,
+        });
+      } catch {
+        toast({
+          title: "Не удалось проверить номер",
+          description: "Попробуйте ещё раз через минуту.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
       if (phoneCheck?.exists) {
         toast({
           title: "Номер уже зарегистрирован",
@@ -248,10 +270,13 @@ export default function Register() {
       }
 
       // Проверка email на дубликат (signUp Supabase обфусцирует ответ ради защиты от перебора)
-      const { data: emailCheck, error: emailErr } = await supabase.functions.invoke("check-email-exists", {
-        body: { email: formData.email },
-      });
-      if (emailErr) {
+      let emailCheck: { exists?: boolean; type?: string } | null = null;
+      try {
+        emailCheck = await invokeWithRetry<{ exists?: boolean; type?: string }>(
+          "check-email-exists",
+          { email: formData.email },
+        );
+      } catch {
         toast({
           title: "Не удалось проверить email",
           description: "Попробуйте ещё раз через минуту.",
@@ -272,6 +297,7 @@ export default function Register() {
         setIsSubmitting(false);
         return;
       }
+
 
       // Создаём пользователя с минимумом данных
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
