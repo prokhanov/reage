@@ -270,7 +270,6 @@ export default function Onboarding() {
               formData={formData}
               updateFormData={updateFormData}
               onNext={() => goToStep(2)}
-              requireName
             />
           )}
           {step === 2 && (
@@ -295,20 +294,20 @@ export default function Onboarding() {
                 <p className="text-sm font-medium">Проверьте ФИО</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Фамилия</Label>
-                    <Input
-                      value={formData.lastName}
-                      onChange={(e) => updateFormData({ lastName: e.target.value })}
-                      placeholder="Иванов"
-                      className="h-12 text-base"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Имя</Label>
                     <Input
                       value={formData.firstName}
                       onChange={(e) => updateFormData({ firstName: e.target.value })}
                       placeholder="Иван"
+                      className="h-12 text-base"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Фамилия</Label>
+                    <Input
+                      value={formData.lastName}
+                      onChange={(e) => updateFormData({ lastName: e.target.value })}
+                      placeholder="Иванов"
                       className="h-12 text-base"
                     />
                   </div>
