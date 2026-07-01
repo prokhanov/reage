@@ -289,6 +289,43 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Отправляем письмо об успешной оплате. Ошибки не должны ломать OK для Робокассы.
+  try {
+    const [{ data: profile }, { data: plan }] = await Promise.all([
+      admin.from("profiles").select("email, first_name, name").eq("id", order.user_id).maybeSingle(),
+      order.plan_id
+        ? admin.from("subscription_plans").select("name").eq("id", order.plan_id).maybeSingle()
+        : Promise.resolve({ data: null as { name: string } | null }),
+    ]);
+
+    if (profile?.email) {
+      const siteUrl = Deno.env.get("SITE_URL") || "https://reage.life";
+      await admin.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "subscription-activated",
+          recipientEmail: profile.email,
+          idempotencyKey: `sub-activated-${order.id}`,
+          templateData: {
+            name: profile.first_name || profile.name || null,
+            planName: plan?.name || "Подписка ReAge",
+            planType,
+            amount: Number(order.out_sum),
+            originalAmount: Number(order.original_amount ?? order.out_sum),
+            discountAmount: Number(order.discount_amount ?? 0),
+            promoCode: promoInfo ? undefined : undefined, // код не хранится в order; оставим только сумму скидки
+            startDate,
+            endDate: endDate?.toISOString() ?? null,
+            invId,
+            siteName: "ReAge",
+            dashboardUrl: `${siteUrl.replace(/\/$/, "")}/dashboard`,
+          },
+        },
+      });
+    }
+  } catch (mailErr) {
+    console.error("subscription-activated email failed", mailErr);
+  }
+
   await admin.from("payment_callback_log").insert({
     ...logBase,
     signature_valid: true,
