@@ -876,7 +876,7 @@ export default function UserManagement() {
                                               size="icon"
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteUser(user.id, user.name, "active");
+                                                setPendingDelete({ id: user.id, name: user.name, type: "active" });
                                               }}
                                             >
                                               <Trash2 className="w-4 h-4 text-destructive" />
