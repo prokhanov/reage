@@ -41,6 +41,8 @@ import { RoleManagementCard } from "@/components/admin/RoleManagementCard";
 import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
 import { EditPendingUserDialog } from "@/components/admin/EditPendingUserDialog";
 import { useToast } from "@/hooks/use-toast";
+import { copyToClipboard } from "@/lib/copyToClipboard";
+
 import {
   Select,
   SelectContent,
@@ -315,17 +317,21 @@ export default function UserManagement() {
       if (error) throw error;
       return updated;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const registerUrl = `/register-staff?invite=${data.token}`;
       const fullUrl = `${window.location.origin}${registerUrl}`;
-      navigator.clipboard.writeText(fullUrl);
-      
+      const ok = await copyToClipboard(fullUrl);
+
       toast({
-        title: "Ссылка перегенерирована",
-        description: "Новая пригласительная ссылка скопирована в буфер обмена",
+        title: ok ? "Ссылка перегенерирована" : "Скопируйте ссылку вручную",
+        description: ok
+          ? "Новая пригласительная ссылка скопирована в буфер обмена"
+          : fullUrl,
+        duration: ok ? 4000 : 15000,
       });
-      
+
       refetch();
+
     },
     onError: (error: any) => {
       toast({
@@ -357,43 +363,23 @@ export default function UserManagement() {
     // Токен валиден - копируем
     const registerUrl = `/register-staff?invite=${data.token}`;
     const fullUrl = `${window.location.origin}${registerUrl}`;
-    
-    try {
-      await navigator.clipboard.writeText(fullUrl);
+
+    const ok = await copyToClipboard(fullUrl);
+    if (ok) {
       toast({
         title: "Ссылка скопирована",
         description: "Пригласительная ссылка скопирована в буфер обмена",
       });
-    } catch (clipboardError) {
-      console.error("Clipboard write failed:", clipboardError);
+    } else {
       toast({
-        title: "Ссылка для приглашения",
+        title: "Скопируйте ссылку вручную",
         description: fullUrl,
         duration: 15000,
-        action: (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                navigator.clipboard.writeText(fullUrl).then(() => {
-                  toast({ title: "Скопировано!", duration: 2000 });
-                });
-              }}
-            >
-              Скопировать ещё раз
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => window.open(fullUrl, "_blank")}
-            >
-              Открыть ссылку
-            </Button>
-          </div>
-        ),
       });
     }
+
   };
+
 
   const handleCheckInviteToken = async (token: string) => {
     const { data, error } = await supabase
