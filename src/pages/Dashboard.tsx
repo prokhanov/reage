@@ -16,8 +16,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 
-import { PassportReminderCard } from "@/components/PassportReminderCard";
-import { OnboardingReminderCard } from "@/components/OnboardingReminderCard";
+// Напоминания об онбординге/паспорте отключены — заменены на жёсткий OnboardingGate.
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
