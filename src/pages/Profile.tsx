@@ -93,11 +93,6 @@ export default function Profile() {
       if (!uid) throw new Error("Не авторизован");
       setUserId(uid);
 
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData.user) {
-        setEmail(userData.user.email || "");
-      }
-
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -107,6 +102,16 @@ export default function Profile() {
       if (error) throw error;
       if (data) {
         setProfile(data as unknown as Profile);
+        const profileEmail = (data as any).email as string | null | undefined;
+        if (profileEmail) {
+          setEmail(profileEmail);
+        } else if (!isViewMode) {
+          // Fallback только для собственного профиля (не view-as)
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData.user) setEmail(userData.user.email || "");
+        } else {
+          setEmail("");
+        }
       }
     } catch (error: any) {
       console.error("Error loading profile:", error);
