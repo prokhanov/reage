@@ -220,10 +220,12 @@ export default function Register() {
       // если токен протух или юзер удалён в БД).
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (!userErr && userData.user) {
-        // Уже залогинен — идём дальше
-        goToStep(2);
+        // Уже залогинен — сразу в демо-дашборд, регистрация окончена.
+        clearDraft();
+        navigate("/dashboard", { replace: true });
         return;
       }
+
 
       // Если токен есть, но невалиден — чистим мусор из localStorage
       if (userErr) {
