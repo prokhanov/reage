@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft, Loader2 } from "lucide-react";
-import { BiomarkerScale } from "@/components/BiomarkerScale";
 import { BiomarkerStatusBadge } from "@/components/BiomarkerStatusBadge";
 import {
   calculateAge,
+  getCriticalRangeForAge,
+  getOptimalRangeForAge,
   formatNormalRange,
   getBiomarkerStatus,
   getNormalRangeForAge,
@@ -49,6 +50,128 @@ interface AnalysisValue {
   analysis_id: string;
   value: number;
   biomarkers: Biomarker;
+}
+
+const PRINT_STATUS_COLORS: Record<string, string> = {
+  critical: "hsl(var(--status-critical))",
+  risk: "hsl(var(--status-risk))",
+  acceptable: "hsl(var(--status-acceptable))",
+  optimal: "hsl(var(--status-optimal))",
+};
+
+function getPrintZoneColor(
+  value: number,
+  normalMin: number | null,
+  normalMax: number | null,
+  optimalMin: number | null,
+  optimalMax: number | null,
+  criticalMin: number | null,
+  criticalMax: number | null,
+) {
+  if ((criticalMin !== null && value < criticalMin) || (criticalMax !== null && value > criticalMax)) {
+    return PRINT_STATUS_COLORS.critical;
+  }
+  if ((normalMin !== null && value < normalMin) || (normalMax !== null && value > normalMax)) {
+    return PRINT_STATUS_COLORS.risk;
+  }
+  if (optimalMin !== null || optimalMax !== null) {
+    const inOptimal = (optimalMin === null || value >= optimalMin) && (optimalMax === null || value <= optimalMax);
+    return inOptimal ? PRINT_STATUS_COLORS.optimal : PRINT_STATUS_COLORS.acceptable;
+  }
+  return PRINT_STATUS_COLORS.optimal;
+}
+
+function PrintBiomarkerScale({
+  biomarker,
+  value,
+  age,
+  gender,
+}: {
+  biomarker: Biomarker;
+  value: number;
+  age: number | null;
+  gender: string | null;
+}) {
+  const clipId = useId().replace(/:/g, "");
+  const g: "male" | "female" = gender === "female" ? "female" : "male";
+  const a = age ?? 40;
+  const normal = getNormalRangeForAge(biomarker, a, g);
+  const optimal = getOptimalRangeForAge(biomarker, a, g);
+  const critical = getCriticalRangeForAge(biomarker, a, g);
+
+  if (normal.min === null && normal.max === null) return null;
+
+  const points = [
+    value,
+    normal.min,
+    normal.max,
+    optimal.min,
+    optimal.max,
+    critical.min,
+    critical.max,
+  ].filter((point): point is number => point !== null && point !== undefined);
+  const dataMin = Math.min(...points);
+  const dataMax = Math.max(...points);
+  const range = dataMax - dataMin;
+  const padding = range * 0.15 || 1;
+  const scaleMin = dataMin - padding;
+  const scaleMax = dataMax + padding;
+  const scaleRange = scaleMax - scaleMin;
+  const toX = (point: number) => ((point - scaleMin) / scaleRange) * 240;
+
+  const bounds = new Set<number>([scaleMin, scaleMax]);
+  [critical.min, normal.min, optimal.min, optimal.max, normal.max, critical.max].forEach((point) => {
+    if (point !== null) bounds.add(point);
+  });
+  const sortedBounds = Array.from(bounds).sort((left, right) => left - right);
+  const segments = sortedBounds.slice(0, -1).map((start, index) => {
+    const end = sortedBounds[index + 1];
+    const mid = (start + end) / 2;
+    return {
+      x: toX(start),
+      width: Math.max(0, toX(end) - toX(start)),
+      color: getPrintZoneColor(mid, normal.min, normal.max, optimal.min, optimal.max, critical.min, critical.max),
+    };
+  });
+
+  const markerX = Math.max(3, Math.min(237, toX(value)));
+  const optMin = optimal.min ?? normal.min;
+  const optMax = optimal.max ?? normal.max;
+  const unit = biomarker.unit || "";
+  const optText =
+    optMin !== null && optMax !== null
+      ? `${optMin} – ${optMax} ${unit}`.trim()
+      : optMax !== null
+        ? `≤ ${optMax} ${unit}`.trim()
+        : optMin !== null
+          ? `≥ ${optMin} ${unit}`.trim()
+          : null;
+
+  return (
+    <div className="w-full">
+      <svg className="block w-full text-foreground" height="16" viewBox="0 0 240 16" preserveAspectRatio="none" aria-hidden>
+        <defs>
+          <clipPath id={clipId}>
+            <rect x="0" y="7" width="240" height="6" rx="3" ry="3" />
+          </clipPath>
+        </defs>
+        <path d={`M ${markerX} 6 L ${markerX - 3.5} 1 L ${markerX + 3.5} 1 Z`} fill="currentColor" />
+        <g clipPath={`url(#${clipId})`}>
+          {segments.map((segment, index) => (
+            <rect key={index} x={segment.x} y="7" width={segment.width} height="6" fill={segment.color} />
+          ))}
+        </g>
+      </svg>
+      {optText && (
+        <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap leading-tight">
+          <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden>
+            <circle cx="4" cy="4" r="4" fill={PRINT_STATUS_COLORS.optimal} />
+          </svg>
+          Оптимальный диапазон: <span className="font-mono font-medium text-foreground tabular-nums">{optText}</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function AnalysesPrint() {
@@ -291,7 +414,7 @@ export default function AnalysesPrint() {
                                 <BiomarkerStatusBadge statusInfo={statusInfo} />
                               </div>
                               <div className="col-span-4">
-                                <BiomarkerScale
+                                <PrintBiomarkerScale
                                   biomarker={v.biomarkers}
                                   value={v.value}
                                   age={patientAge}
