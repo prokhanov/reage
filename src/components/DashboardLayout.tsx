@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { demoMode } = useDemoMode();
+  const { demoMode, toggleDemoMode } = useDemoMode();
   
 
   // Set initial state based on screen size
