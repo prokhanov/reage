@@ -138,9 +138,8 @@ Deno.serve(async (req) => {
       console.error("[phone-change-send] sms send failed", sendRes.error);
       return json({
         ok: false,
-        error: sendRes.error
-          ? `Не удалось отправить SMS: ${sendRes.error}`
-          : "Не удалось отправить SMS. Попробуйте позже.",
+        error: sendRes.error || "Не удалось отправить SMS. Попробуйте позже.",
+        fallback: sendRes.fallback === true,
       });
     }
 

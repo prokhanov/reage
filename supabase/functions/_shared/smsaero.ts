@@ -95,8 +95,51 @@ export type SendResult = {
   providerMessageId?: string;
   status?: string;
   error?: string;
+  fallback?: boolean;
   raw?: unknown;
 };
+
+function extractProviderMessage(payload: any, fallback: string): string {
+  if (!payload || typeof payload !== "object") return fallback;
+  const candidates = [
+    payload.message,
+    payload.error,
+    payload?.data?.message,
+    payload?.data?.error,
+    Array.isArray(payload?.data) ? payload.data[0]?.message : undefined,
+    Array.isArray(payload?.data) ? payload.data[0]?.error : undefined,
+  ];
+  const message = candidates.find((value) => typeof value === "string" && value.trim());
+  return message ? String(message).trim() : fallback;
+}
+
+function isTemporarySmsError(status: number, message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    status >= 500 ||
+    normalized.includes("service unavailable") ||
+    normalized.includes("temporarily unavailable") ||
+    normalized.includes("temporary unavailable") ||
+    normalized.includes("временно недоступ") ||
+    normalized.includes("сервис временно") ||
+    normalized.includes("timeout") ||
+    normalized.includes("timed out") ||
+    normalized.includes("bad gateway") ||
+    normalized.includes("gateway timeout")
+  );
+}
+
+function toUserSmsError(status: number, providerMessage: string): { error: string; fallback: boolean } {
+  if (isTemporarySmsError(status, providerMessage)) {
+    return { error: "Сервис SMS временно недоступен. Попробуйте позже.", fallback: true };
+  }
+
+  if (/validation error/i.test(providerMessage)) {
+    return { error: "SMS-сервис не принял номер. Проверьте номер или попробуйте другой.", fallback: false };
+  }
+
+  return { error: providerMessage || "Не удалось отправить SMS. Попробуйте позже.", fallback: false };
+}
 
 export async function sendSms(params: {
   phone: string;
@@ -123,21 +166,41 @@ export async function sendSms(params: {
     body.callbackUrl = `${supabaseUrl}/functions/v1/sms-aero-webhook?token=${encodeURIComponent(webhookSecret)}`;
   }
 
-  const res = await fetch(`${BASE_URL}/sms/send`, {
-    method: "POST",
-    headers: {
-      Authorization: authHeader(email, apiKey),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  const json: any = await res.json().catch(() => ({}));
-  if (!res.ok || json?.success === false) {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}/sms/send`, {
+      method: "POST",
+      headers: {
+        Authorization: authHeader(email, apiKey),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Network error";
     return {
       ok: false,
-      error: json?.message || `HTTP ${res.status}`,
-      raw: json,
+      status: "network_error",
+      error: "Сервис SMS временно недоступен. Попробуйте позже.",
+      fallback: true,
+      raw: { message },
+    };
+  }
+
+  const responseText = await res.text().catch(() => "");
+  const json: any = responseText ? (() => {
+    try { return JSON.parse(responseText); } catch (_) { return {}; }
+  })() : {};
+
+  if (!res.ok || json?.success === false) {
+    const providerMessage = extractProviderMessage(json, responseText || `HTTP ${res.status}`);
+    const normalized = toUserSmsError(res.status, providerMessage);
+    return {
+      ok: false,
+      status: String(res.status),
+      error: normalized.error,
+      fallback: normalized.fallback,
+      raw: json && Object.keys(json).length > 0 ? json : { message: responseText },
     };
   }
   // data is an object (single send) or array
