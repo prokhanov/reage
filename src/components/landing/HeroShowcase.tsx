@@ -97,7 +97,7 @@ const biomarkers = [
   { name: "Инсулин", code: "INS", value: "8.85", unit: "мкМЕ/мл", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "2.5-12 мкМЕ/мл", markerPos: 48 },
   { name: "Фолиевая кислота", code: "B9", value: "3.16", unit: "нг/мл", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "3-17 нг/мл", markerPos: 22 },
   { name: "Альбумин", code: "ALB", value: "36.24", unit: "г/л", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "35-52 г/л", markerPos: 25 },
-  { name: "Коэнзим Q10", code: "CoQ10", value: "0.63", unit: "мкг/мл", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "0.5-2.5 мкг/мл", markerPos: 24 },
+  { name: "Коэнзим Q10", code: "CoQ10", value: "630", unit: "нг/мл", status: "Допустимо", statusColor: "bg-status-warning", textColor: "text-status-warning", range: "500-1700 нг/мл", markerPos: 24 },
   { name: "Индекс инсулинорезистентности", code: "HOMA-IR", value: "0.08", unit: "индекс", status: "Оптимально", statusColor: "bg-status-good", textColor: "text-status-good", range: "0-2.7 индекс", markerPos: 15 },
 ];
 
