@@ -419,7 +419,6 @@ export default function AnalysesPrint() {
                                   value={v.value}
                                   age={patientAge}
                                   gender={patientGender}
-                                  compact
                                 />
                               </div>
                             </div>
