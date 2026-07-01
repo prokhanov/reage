@@ -4,6 +4,7 @@ import { Sparkles, FlaskConical, Trophy, Zap, Moon, Wheat, FlaskRound, Activity,
 import { format, isBefore, isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
+import { useBiomarkerNames } from "@/hooks/useBiomarkerNames";
 
 interface Milestone {
   title: string;
@@ -74,6 +75,7 @@ function buildSmoothPath(points: { x: number; y: number }[]): string {
 }
 
 export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomarkers, analysesPerYear, adherencePct }: Props) {
+  const { format: formatMarker } = useBiomarkerNames();
   const today = new Date();
   const start = new Date(startDate);
 
@@ -354,7 +356,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-foreground leading-tight">{kb.system_label}</div>
                       <div className="text-[11px] text-muted-foreground leading-tight mt-0.5 break-words">
-                        {kb.markers.join(", ")}
+                        {kb.markers.map((c) => formatMarker(c)).join(", ")}
                       </div>
                     </div>
                   </div>

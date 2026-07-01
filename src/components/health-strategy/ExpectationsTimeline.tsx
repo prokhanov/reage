@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { format, differenceInDays, isBefore, isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
+import { useBiomarkerNames } from "@/hooks/useBiomarkerNames";
 
 export type Expectation = {
   day_from_start: number;
@@ -68,6 +69,7 @@ function formatDayLabel(day: number) {
 }
 
 export function ExpectationsTimeline({ startDate, expectations }: Props) {
+  const { format: formatMarker } = useBiomarkerNames();
   const items = useMemo(() => (Array.isArray(expectations) ? expectations : []), [expectations]);
 
   const today = new Date();
@@ -177,7 +179,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                       {e.biomarker_target && (
                         <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/[0.05] px-2.5 py-1.5 text-xs">
                           <Target className="h-3.5 w-3.5 text-primary shrink-0" />
-                          <span className="font-semibold text-foreground">{e.biomarker_target.code}</span>
+                          <span className="font-semibold text-foreground">{formatMarker(e.biomarker_target.code)}</span>
                           <span className="tabular-nums text-muted-foreground">
                             {e.biomarker_target.from} {e.biomarker_target.unit}
                           </span>
