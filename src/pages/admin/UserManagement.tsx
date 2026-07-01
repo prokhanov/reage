@@ -363,35 +363,21 @@ export default function UserManagement() {
     // Токен валиден - копируем
     const registerUrl = `/register-staff?invite=${data.token}`;
     const fullUrl = `${window.location.origin}${registerUrl}`;
-    
-    try {
-      await navigator.clipboard.writeText(fullUrl);
+
+    const ok = await copyToClipboard(fullUrl);
+    if (ok) {
       toast({
         title: "Ссылка скопирована",
         description: "Пригласительная ссылка скопирована в буфер обмена",
       });
-    } catch (clipboardError) {
-      console.error("Clipboard write failed:", clipboardError);
+    } else {
       toast({
-        title: "Ссылка для приглашения",
+        title: "Скопируйте ссылку вручную",
         description: fullUrl,
         duration: 15000,
-        action: (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                navigator.clipboard.writeText(fullUrl).then(() => {
-                  toast({ title: "Скопировано!", duration: 2000 });
-                });
-              }}
-            >
-              Скопировать ещё раз
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => window.open(fullUrl, "_blank")}
+      });
+    }
+
             >
               Открыть ссылку
             </Button>
