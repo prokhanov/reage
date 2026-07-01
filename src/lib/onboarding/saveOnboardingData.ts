@@ -22,13 +22,14 @@ export async function saveOnboardingData(
   },
 ): Promise<void> {
   const fullName = `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim();
-  const profileUpdate: Record<string, any> = {
-    gender: data.gender || null,
-    birth_date: data.birth_date ? format(data.birth_date, "yyyy-MM-dd") : null,
-    weight: data.weight ? Number(data.weight) : null,
-    height: data.height ? Number(data.height) : null,
-    health_note: data.healthNote?.trim() || null,
-  };
+  const profileUpdate: Record<string, any> = {};
+
+  // Заполненные поля обновляем; пустые НЕ трогаем, чтобы не затирать ранее сохранённые значения.
+  if (data.gender) profileUpdate.gender = data.gender;
+  if (data.birth_date) profileUpdate.birth_date = format(data.birth_date, "yyyy-MM-dd");
+  if (data.weight) profileUpdate.weight = Number(data.weight);
+  if (data.height) profileUpdate.height = Number(data.height);
+  if (data.healthNote?.trim()) profileUpdate.health_note = data.healthNote.trim();
 
   if (!opts?.skipComplete) profileUpdate.onboarding_completed = true;
   if (opts?.markSkipped) profileUpdate.onboarding_skipped_at = new Date().toISOString();
