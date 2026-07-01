@@ -9,9 +9,11 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import {
-  Heart, User, Check, Mail, Lock,
+  Heart, User, Check, Mail,
   ArrowLeft,
 } from "lucide-react";
+// Lock — использовался для скрытого шага оплаты
+
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
