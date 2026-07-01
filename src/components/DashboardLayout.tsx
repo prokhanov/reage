@@ -19,13 +19,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isViewMode } = useViewAsUser();
   const { data: roleData, isLoading: isRoleLoading } = useUserRole();
 
-  const canShowDemoBanner =
-    demoMode &&
-    !isViewMode &&
-    !isRoleLoading &&
-    roleData?.isPatient === true &&
-    roleData?.userRole === "Пациент" &&
-    !roleData?.isSuperAdmin;
+  // В режиме "просмотр как пациент" показываем баннер, если у пациента включён демо-режим,
+  // чтобы ЛК выглядел один в один как у клиента.
+  const canShowDemoBanner = isViewMode
+    ? demoMode
+    : demoMode &&
+      !isRoleLoading &&
+      roleData?.isPatient === true &&
+      roleData?.userRole === "Пациент" &&
+      !roleData?.isSuperAdmin;
 
   
 
