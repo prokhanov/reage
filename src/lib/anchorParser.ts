@@ -548,6 +548,11 @@ export function splitTrailingTransition(
     const last = paragraphs[paragraphs.length - 1];
     if (!isTransitionParagraph(last)) break;
     trailingParts.unshift(paragraphs.pop()!);
+  }
+  return {
+    content: paragraphs.join('\n\n').trim(),
+    trailing: trailingParts.join('\n\n').trim(),
+  };
 }
 
 /**
@@ -559,16 +564,9 @@ export function splitTrailingTransition(
 export function splitByExplicitDelimiter(content: string): { card: string; tail: string } {
   if (!content || !content.includes('$$')) return { card: content, tail: '' };
   const parts = content.split('$$');
-  // parts[0] = карточка, всё остальное — хвост (объединяем обратно, вычищая
-  // разделители). Пустые фрагменты между парными `$$` игнорируем.
   const card = parts[0].trim();
   const tail = parts.slice(1).join('').trim();
   return { card, tail };
-}
-  return {
-    content: paragraphs.join('\n\n').trim(),
-    trailing: trailingParts.join('\n\n').trim(),
-  };
 }
 
 // ═══ Validation ═══
