@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizePhone } from "@/lib/phone";
 import type { RegisterFormData } from "@/pages/Register";
@@ -26,9 +26,28 @@ export async function saveOnboardingData(
 
   // Заполненные поля обновляем; пустые НЕ трогаем, чтобы не затирать ранее сохранённые значения.
   if (data.gender) profileUpdate.gender = data.gender;
-  if (data.birth_date) profileUpdate.birth_date = format(data.birth_date, "yyyy-MM-dd");
-  if (data.weight) profileUpdate.weight = Number(data.weight);
-  if (data.height) profileUpdate.height = Number(data.height);
+
+  if (data.birth_date) {
+    const bd = data.birth_date instanceof Date ? data.birth_date : new Date(data.birth_date as any);
+    if (isValid(bd)) {
+      profileUpdate.birth_date = format(bd, "yyyy-MM-dd");
+    } else {
+      console.warn("[onboarding] invalid birth_date skipped:", data.birth_date);
+    }
+  }
+
+  if (data.weight !== undefined && data.weight !== null && String(data.weight).trim() !== "") {
+    const w = Number(String(data.weight).replace(",", "."));
+    if (Number.isFinite(w) && w > 0) profileUpdate.weight = w;
+    else console.warn("[onboarding] invalid weight skipped:", data.weight);
+  }
+
+  if (data.height !== undefined && data.height !== null && String(data.height).trim() !== "") {
+    const h = Number(String(data.height).replace(",", "."));
+    if (Number.isFinite(h) && h > 0) profileUpdate.height = h;
+    else console.warn("[onboarding] invalid height skipped:", data.height);
+  }
+
   if (data.healthNote?.trim()) profileUpdate.health_note = data.healthNote.trim();
 
   if (!opts?.skipComplete) profileUpdate.onboarding_completed = true;
@@ -53,20 +72,35 @@ export async function saveOnboardingData(
     profileUpdate.passport_number = opts.passportNumber.replace(/\D/g, "");
   }
 
-  // Диагностика: логируем только ключи (без значений), чтобы видеть какие поля уходят в update.
   console.info("[onboarding] profile update keys:", Object.keys(profileUpdate));
-  const { error: profileErr } = await supabase
-    .from("profiles")
-    .update(profileUpdate)
-    .eq("id", userId);
-  if (profileErr) {
-    console.error("[onboarding] profile update failed:", profileErr);
-    throw profileErr;
+
+  if (Object.keys(profileUpdate).length > 0) {
+    const { data: updated, error: profileErr } = await supabase
+      .from("profiles")
+      .update(profileUpdate)
+      .eq("id", userId)
+      .select("id, first_name, last_name, birth_date, weight, height, gender, onboarding_completed")
+      .maybeSingle();
+    if (profileErr) {
+      console.error("[onboarding] profile update failed:", profileErr);
+      throw profileErr;
+    }
+    if (!updated) {
+      const msg = "Не удалось сохранить профиль: обновление не затронуло ни одной строки (проверьте авторизацию).";
+      console.error("[onboarding] update returned no rows for user", userId);
+      throw new Error(msg);
+    }
+    console.info("[onboarding] profile saved:", {
+      birth_date: (updated as any).birth_date,
+      weight: (updated as any).weight,
+      height: (updated as any).height,
+      gender: (updated as any).gender,
+    });
   }
 
   // Вес — добавляем запись только если изменился (проверка последней записи).
-  if (data.weight) {
-    const weightNum = Number(data.weight);
+  if (profileUpdate.weight !== undefined) {
+    const weightNum = profileUpdate.weight as number;
     const { data: last } = await supabase
       .from("weight_history")
       .select("weight")
