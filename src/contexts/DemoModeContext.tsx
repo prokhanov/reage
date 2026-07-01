@@ -157,7 +157,7 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
   const [demoData, setDemoData] = useState<DemoData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { getUserId } = useViewAsUser();
+  const { getUserId, viewAsUserId } = useViewAsUser();
 
   const loadDemoData = useCallback(async (userProfile: any) => {
     try {
@@ -200,9 +200,12 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
   }, [getUserId, loadDemoData]);
 
   useEffect(() => {
+    // Пере-запрашиваем статус демо-режима при смене просматриваемого пользователя,
+    // иначе суперадмин со своим demoMode=true видит его в режиме "просмотр как пациент".
+    setLoading(true);
     fetchDemoModeStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [viewAsUserId]);
 
   const toggleDemoMode = useCallback(async (enabled: boolean): Promise<boolean> => {
     try {
