@@ -19,6 +19,25 @@ import {
 // ═══ Biomarker code matching ═══
 
 /**
+ * Build map: biomarker name → code. Includes alias without trailing "(CODE)"
+ * так, чтобы AI-текст «Насыщение трансферрина» находил маркер, чьё имя в БД
+ * «Насыщение трансферрина (TSAT)».
+ */
+function buildNameToCodeMap(biomarkers: PdfBiomarkerData[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const b of biomarkers) {
+    if (!b?.name || !b?.code) continue;
+    map[b.name] = b.code;
+    const stripped = b.name.replace(/\s*\([^()]{1,20}\)\s*$/u, '').trim();
+    if (stripped && stripped !== b.name && !map[stripped]) {
+      map[stripped] = b.code;
+    }
+  }
+  return map;
+}
+
+
+/**
  * Normalize biomarker code for fuzzy matching.
  * AI sometimes writes "TNF-a" (Latin) instead of "TNF-α" (Greek),
  * "HB" instead of "Hb", or omits modifiers like "+" / "-ABS".
@@ -82,8 +101,7 @@ export function renderInterleavedWeb(
   gender: 'male' | 'female',
 ): React.ReactNode {
   const codes = biomarkers.map(b => b.code);
-  const nameToCode: Record<string, string> = {};
-  biomarkers.forEach(b => { nameToCode[b.name] = b.code; });
+  const nameToCode = buildNameToCodeMap(biomarkers);
   const blocks = parseAnchors(reportText, codes, nameToCode);
 
   return (
@@ -173,8 +191,7 @@ export function buildInterleavedPdf(
   gender: 'male' | 'female',
 ): any[] {
   const codes = biomarkers.map(b => b.code);
-  const nameToCode: Record<string, string> = {};
-  biomarkers.forEach(b => { nameToCode[b.name] = b.code; });
+  const nameToCode = buildNameToCodeMap(biomarkers);
   const blocks = parseAnchors(reportText, codes, nameToCode);
   const pdfContent: any[] = [];
 

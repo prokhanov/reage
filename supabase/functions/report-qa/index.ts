@@ -77,10 +77,26 @@ function injectMissingBiomarkerAnchors(
   if (!report || biomarkers.length === 0) {
     return { text: report, injectedCodes: [] };
   }
-  const sorted = biomarkers
-    .filter((e) => e.name && e.code)
-    .sort((a, b) => b.name.length - a.name.length);
+  // Расширяем варианты имён: помимо канонического имени добавляем алиас
+  // без хвостового "(CODE)" — тогда AI-текст «Насыщение трансферрина» будет
+  // мэтчиться маркером, чьё имя в БД «Насыщение трансферрина (TSAT)».
+  const expanded: Array<{ name: string; code: string }> = [];
+  const seenPairs = new Set<string>();
+  for (const b of biomarkers) {
+    if (!b.name || !b.code) continue;
+    const push = (n: string) => {
+      const key = `${n.toLowerCase()}|${b.code}`;
+      if (seenPairs.has(key)) return;
+      seenPairs.add(key);
+      expanded.push({ name: n, code: b.code });
+    };
+    push(b.name);
+    const stripped = b.name.replace(/\s*\([^()]{1,20}\)\s*$/u, '').trim();
+    if (stripped && stripped !== b.name) push(stripped);
+  }
+  const sorted = expanded.sort((a, b) => b.name.length - a.name.length);
   if (sorted.length === 0) return { text: report, injectedCodes: [] };
+
 
   const anchoredCodes = new Set<string>();
   const anchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
@@ -922,6 +938,38 @@ Deno.serve(async (req) => {
             }
           }
         }
+
+        // 7. Cross-section audit: убеждаемся, что КАЖДЫЙ биомаркер из
+        // analysis_values реально отрендерен хотя бы одной карточкой в отчёте.
+        // Иначе — предупреждение с списком пропущенных биомаркеров.
+        try {
+          const { data: recsAfter } = await admin
+            .from("recommendations")
+            .select("text")
+            .eq("analysis_id", analysisId);
+          const combined = ((recsAfter || []) as any[])
+            .map((r) => (typeof r.text === "string" ? r.text : ""))
+            .join("\n\n");
+          const renderedCodes = new Set<string>();
+          const anchorRe = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+          for (const m of combined.matchAll(anchorRe)) {
+            if (m[1]) renderedCodes.add(normalizeBiomarkerCode(m[1]));
+          }
+          const missing = biomarkers.filter(
+            (b) => b.code && !renderedCodes.has(normalizeBiomarkerCode(b.code)),
+          );
+          if (missing.length > 0) {
+            const list = missing
+              .map((b) => `${b.name} (${b.code})`)
+              .join(", ");
+            const msg = `⚠ Биомаркеры без карточки в отчёте (${missing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
+            fixes.push(msg);
+            send({ type: "warn", message: msg });
+          }
+        } catch (auditErr) {
+          console.warn("cross-section audit failed:", auditErr);
+        }
+
 
         send({
           type: "done",
