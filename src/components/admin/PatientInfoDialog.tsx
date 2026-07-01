@@ -32,12 +32,15 @@ import {
   Edit,
   Clock,
   MessageCircle,
+  Gift,
 } from "lucide-react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialog";
 import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
 import { SubscriptionHistoryDialog } from "@/components/admin/SubscriptionHistoryDialog";
+import { GiftSubscriptionDialog } from "@/components/admin/GiftSubscriptionDialog";
+import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
 import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTab";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
@@ -57,6 +60,8 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
   const [isEditSubscriptionOpen, setIsEditSubscriptionOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isGiftOpen, setIsGiftOpen] = useState(false);
+  const { isSuperAdmin } = useSuperAdminCheck();
   const queryClient = useQueryClient();
   
   // Real-time subscription for analysis bookings and subscriptions updates
@@ -410,7 +415,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                           <CreditCard className="w-5 h-5" />
                           Подписка
                         </CardTitle>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -419,6 +424,16 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                             <Clock className="w-4 h-4 mr-2" />
                             История
                           </Button>
+                          {isSuperAdmin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setIsGiftOpen(true)}
+                            >
+                              <Gift className="w-4 h-4 mr-2" />
+                              Подарить
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -633,6 +648,16 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               userId={patientId}
               patientName={patientData?.profile.name || ""}
             />
+            {isSuperAdmin && (
+              <GiftSubscriptionDialog
+                open={isGiftOpen}
+                onClose={() => setIsGiftOpen(false)}
+                patientId={patientId}
+                patientName={patientData?.profile.name || undefined}
+                patientEmail={patientData?.profile.email || undefined}
+                currentSubscription={patientData?.subscription || null}
+              />
+            )}
           </>
         )}
 

@@ -15,6 +15,8 @@ interface Props {
   invId?: number | string
   siteName?: string
   dashboardUrl?: string
+  gifted?: boolean
+  giftReason?: string
 }
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
@@ -54,22 +56,25 @@ const periodLabel = (p?: string) => {
 
 const SubscriptionActivatedEmail = ({
   name, planName, planType, amount, originalAmount, discountAmount, promoCode,
-  startDate, endDate, invId, siteName, dashboardUrl,
+  startDate, endDate, invId, siteName, dashboardUrl, gifted, giftReason,
 }: Props) => {
   const site = siteName || 'ReAge'
   const url = dashboardUrl || 'https://reage.life/dashboard'
   const hasDiscount = Number(discountAmount) > 0
+  const isGift = gifted === true
 
   return (
     <Html lang="ru" dir="ltr">
       <Head />
-      <Preview>Оплата прошла. Подписка {site} активирована.</Preview>
+      <Preview>{isGift ? `Подписка ${site} активирована в подарок.` : `Оплата прошла. Подписка ${site} активирована.`}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={heading}>Оплата прошла. Подписка активирована</Heading>
+          <Heading style={heading}>{isGift ? 'Подписка активирована в подарок' : 'Оплата прошла. Подписка активирована'}</Heading>
           <Text style={text}>{name ? `Здравствуйте, ${name}!` : 'Здравствуйте!'}</Text>
           <Text style={text}>
-            Спасибо за оплату. Ваша подписка в {site} активна — доступ ко всем функциям сервиса открыт.
+            {isGift
+              ? `Администратор ${site} активировал для вас подписку — доступ ко всем функциям сервиса открыт${giftReason ? `. Комментарий: ${giftReason}` : ''}.`
+              : `Спасибо за оплату. Ваша подписка в ${site} активна — доступ ко всем функциям сервиса открыт.`}
           </Text>
 
           <Section style={box}>
@@ -82,10 +87,10 @@ const SubscriptionActivatedEmail = ({
             <Text style={muted}>Действует</Text>
             <Text style={value}>{fmtDate(startDate)} — {fmtDate(endDate)}</Text>
 
-            <Text style={muted}>Сумма</Text>
+            <Text style={muted}>{isGift ? 'Стоимость' : 'Сумма'}</Text>
             <Text style={value}>
-              {fmtMoney(amount)}
-              {hasDiscount && (
+              {isGift ? 'Бесплатно (подарок)' : fmtMoney(amount)}
+              {!isGift && hasDiscount && (
                 <>
                   {' '}<span style={{ color: '#64748b', fontSize: '13px' }}>
                     (скидка {fmtMoney(discountAmount)}{promoCode ? ` по промокоду ${promoCode}` : ''}, без скидки {fmtMoney(originalAmount)})
@@ -94,8 +99,12 @@ const SubscriptionActivatedEmail = ({
               )}
             </Text>
 
-            <Text style={muted}>Номер счёта</Text>
-            <Text style={{ ...value, marginBottom: 0 }}>#{invId ?? '—'}</Text>
+            {!isGift && (
+              <>
+                <Text style={muted}>Номер счёта</Text>
+                <Text style={{ ...value, marginBottom: 0 }}>#{invId ?? '—'}</Text>
+              </>
+            )}
           </Section>
 
           <Heading as="h2" style={{ ...heading, fontSize: '17px', marginBottom: '10px' }}>Что входит в подписку</Heading>
@@ -112,14 +121,16 @@ const SubscriptionActivatedEmail = ({
           </Section>
 
           <Text style={{ ...text, color: '#64748b', fontSize: '14px' }}>
-            Условия подписки: оплата за выбранный период списывается единоразово. Автопродление не подключается — за 7 дней до окончания мы напомним о продлении. Чек об оплате приходит отдельным письмом от платёжного оператора Robokassa.
+            {isGift
+              ? 'Подписка активирована администратором без оплаты. Автопродление не подключено — за 7 дней до окончания мы напомним о продлении.'
+              : 'Условия подписки: оплата за выбранный период списывается единоразово. Автопродление не подключается — за 7 дней до окончания мы напомним о продлении. Чек об оплате приходит отдельным письмом от платёжного оператора Robokassa.'}
           </Text>
           <Text style={{ ...text, color: '#64748b', fontSize: '14px' }}>
             Если возникнут вопросы — напишите на <a href="mailto:team@reage.life" style={{ color: '#3b82f6' }}>team@reage.life</a>.
           </Text>
 
           <Text style={footer}>
-            Это автоматическое уведомление от {site}. Вы получили его, потому что оплатили подписку в личном кабинете.
+            Это автоматическое уведомление от {site}. Вы получили его, потому что {isGift ? 'администратор активировал подписку в вашем личном кабинете' : 'оплатили подписку в личном кабинете'}.
           </Text>
         </Container>
       </Body>
