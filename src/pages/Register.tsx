@@ -543,8 +543,10 @@ export default function Register() {
               />
             </div>
           </div>
+          )}
 
           {/* Steps Content */}
+
           <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s", isolation: "isolate", contain: "paint" as any }}>
             <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
             <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
