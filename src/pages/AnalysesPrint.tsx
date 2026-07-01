@@ -8,7 +8,6 @@ import {
   calculateAge,
   getCriticalRangeForAge,
   getOptimalRangeForAge,
-  formatNormalRange,
   getBiomarkerStatus,
   getNormalRangeForAge,
   type AgeRanges,
