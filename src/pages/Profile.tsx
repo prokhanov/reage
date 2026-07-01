@@ -297,13 +297,22 @@ export default function Profile() {
 
             {/* Desktop: card grid */}
             <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Name */}
+              {/* First name */}
               <div className="p-4 rounded-lg bg-background/50 border border-border/50">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Имя</label>
                 </div>
-                <p className="text-lg font-medium">{profile?.name}</p>
+                <p className="text-lg font-medium">{firstName || "—"}</p>
+              </div>
+
+              {/* Last name */}
+              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <label className="text-sm text-muted-foreground">Фамилия</label>
+                </div>
+                <p className="text-lg font-medium">{lastName || "—"}</p>
               </div>
 
               {/* Email */}
