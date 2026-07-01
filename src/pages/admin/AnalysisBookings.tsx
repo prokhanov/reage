@@ -341,9 +341,10 @@ export default function AnalysisBookings() {
               <SelectItem value="waiting_call">Ожидает звонка</SelectItem>
               <SelectItem value="no_answer">Не дозвонились</SelectItem>
               <SelectItem value="scheduled">Назначен</SelectItem>
-              <SelectItem value="received">Получен</SelectItem>
-              <SelectItem value="collected">Обрабатывается</SelectItem>
-              <SelectItem value="uploaded">Загружен</SelectItem>
+              <SelectItem value="collected">Анализ в работе</SelectItem>
+              <SelectItem value="report_pending">Отчёт в работе</SelectItem>
+              <SelectItem value="report_ready">Отчёт загружен</SelectItem>
+
             </SelectContent>
           </Select>
 
