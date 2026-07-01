@@ -233,7 +233,23 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       const userId = await getUserId();
       if (!userId) return false;
 
+      // Гард по роли: не-пациентам включать демо-режим запрещено.
       if (enabled) {
+        const { data: patientRole } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('user_id', userId)
+          .eq('role', 'patient')
+          .maybeSingle();
+        if (!patientRole) {
+          toast({
+            title: "Демо-режим недоступен",
+            description: "Демо-режим доступен только пациентам.",
+            variant: "destructive"
+          });
+          return false;
+        }
+
         const { count } = await supabase
           .from('analyses')
           .select('*', { count: 'exact', head: true })
