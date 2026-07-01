@@ -94,24 +94,28 @@ export function MedicalAnketaCard({
             ) : (
               <div className="space-y-2 text-sm">
                 {positiveOps.map((op) => (
+                  <div key={op.key}>
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="flex-1">{op.label}</span>
+                      <Badge className="shrink-0 min-w-[44px] justify-center bg-rose-500/15 text-rose-500 border-rose-500/30 hover:bg-rose-500/15">
+                        Да
+                      </Badge>
+                    </div>
+                    {op.key === "surgery_year" && ops.surgery_year_details ? (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {String(ops.surgery_year_details)}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+                {negativeOps.map((op) => (
                   <div key={op.key} className="flex items-start justify-between gap-3">
-                    <span>{op.label}</span>
-                    <Badge className="bg-rose-500/15 text-rose-500 border-rose-500/30 hover:bg-rose-500/15">
-                      Да
+                    <span className="flex-1 text-muted-foreground">{op.label}</span>
+                    <Badge variant="outline" className="shrink-0 min-w-[44px] justify-center text-muted-foreground">
+                      Нет
                     </Badge>
                   </div>
                 ))}
-                {ops.surgery_year === true && ops.surgery_year_details ? (
-                  <p className="text-xs text-muted-foreground pl-1">
-                    {String(ops.surgery_year_details)}
-                  </p>
-                ) : null}
-                {negativeOps.length > 0 && (
-                  <p className="text-xs text-muted-foreground pt-1">
-                    Нет:{" "}
-                    {negativeOps.map((o) => o.label.toLowerCase()).join(", ")}
-                  </p>
-                )}
               </div>
             )}
           </Section>
