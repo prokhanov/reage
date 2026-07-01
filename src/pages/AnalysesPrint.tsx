@@ -399,7 +399,7 @@ export default function AnalysesPrint() {
                                 </span>
                               </div>
                               <div className="col-span-2">
-                                <BiomarkerStatusBadge statusInfo={statusInfo} />
+                                <BiomarkerStatusBadge statusInfo={statusInfo} className="w-[88px] justify-center" />
                               </div>
                               <div className="col-span-5">
                                 <PrintBiomarkerScale
