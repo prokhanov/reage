@@ -75,6 +75,7 @@ function buildSmoothPath(points: { x: number; y: number }[]): string {
 }
 
 export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomarkers, analysesPerYear, adherencePct }: Props) {
+  const { format: formatMarker } = useBiomarkerNames();
   const today = new Date();
   const start = new Date(startDate);
 
