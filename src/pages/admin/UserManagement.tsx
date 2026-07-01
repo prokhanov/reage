@@ -798,7 +798,7 @@ export default function UserManagement() {
                                             size="icon"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              handleDeleteUser(user.id, user.name, "pending", user.invite_token);
+                                              setPendingDelete({ id: user.id, name: user.name, type: "pending", inviteToken: user.invite_token });
                                             }}
                                           >
                                             <Trash2 className="w-4 h-4 text-destructive" />
