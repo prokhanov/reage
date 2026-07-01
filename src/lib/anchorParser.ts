@@ -137,9 +137,23 @@ export function parseAnchors(
         endStart = nextOpen.index;
         endAfter = nextOpen.index; // do NOT consume the next open tag
       }
-      const content = processedText.slice(tagEnd, endStart).trim();
-      blocks.push({ type: 'biomarker', code: data, content: stripLeadingBiomarkerName(content, data, codeToNames[data] || []) });
+      const rawContent = processedText.slice(tagEnd, endStart).trim();
+      const stripped = stripLeadingBiomarkerName(rawContent, data, codeToNames[data] || []);
+      // Cut off trailing "transition" paragraphs (e.g. "Далее мы рассмотрим…",
+      // "Картина Вашей системы…", "Рекомендации по коррекции вы найдёте…"),
+      // which belong to the system-level narrative and must NOT be painted
+      // inside the colored biomarker card.
+      const { content: biomarkerContent, trailing } = splitTrailingTransition(
+        stripped,
+        codeToNames[data] || [],
+        data,
+      );
+      blocks.push({ type: 'biomarker', code: data, content: biomarkerContent });
+      if (trailing) {
+        blocks.push({ type: 'text', content: trailing });
+      }
       lastIndex = endAfter;
+
     } else if (tag.endsWith('_start')) {
       // Legacy section markers (intro/insights/strengths/risks/aging/...)
       // больше не поддерживаются — пропускаем как обычный текст.
