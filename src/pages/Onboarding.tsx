@@ -266,11 +266,12 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-dark flex items-start justify-center p-4 py-8 md:py-12 relative">
       <AuthBackground />
 
       <div className="w-full relative z-10 max-w-2xl">
-        <div className="text-center mb-8 animate-fade-in pt-6">
+        <div className="text-center mb-8 animate-fade-in">
+
           <div className="inline-flex items-center gap-2 mb-2">
             <ThemedLogo eager className="h-24 w-auto" />
           </div>
@@ -392,9 +393,9 @@ export default function Onboarding() {
                   disabled={
                     submitting ||
                     !isPassportValid(passportSeries, passportNumber) ||
-                    !formData.firstName.trim() ||
-                    !formData.lastName.trim()
+                    !formData.firstName.trim()
                   }
+
                   className="flex-1"
                   size="lg"
                 >
