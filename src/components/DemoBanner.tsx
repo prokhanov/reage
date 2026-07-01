@@ -36,36 +36,36 @@ export const DemoBanner = ({ onDismiss, onToggleDemoMode }: DemoBannerProps) => 
 
   return (
     <>
-      <Alert className="mb-4 border-primary/50 bg-background/80 backdrop-blur-md">
-        <Sparkles className="h-4 w-4 text-primary shrink-0" />
-        <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-          <span className="text-xs sm:text-sm leading-snug">
+      <Alert className="mb-4 border-primary/50 bg-background/80 backdrop-blur-md py-3">
+        <div className="flex items-center gap-3">
+          <Sparkles className="h-4 w-4 text-primary shrink-0" />
+          <span className="flex-1 text-xs sm:text-sm leading-snug">
             <strong>Демо-режим:</strong> вы видите примерные данные. Ваш врач добавит реальные анализы после их обработки.
           </span>
-          <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {onToggleDemoMode && (
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 onClick={() => setShowConfirmDialog(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 h-8"
               >
                 <Power className="h-4 w-4" />
-                Отключить
+                <span className="hidden sm:inline">Отключить</span>
               </Button>
             )}
             {onDismiss && (
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="ghost"
                 onClick={handleDismiss}
-                className="flex-shrink-0"
+                className="flex-shrink-0 h-8 w-8 p-0"
               >
                 <X className="h-4 w-4" />
               </Button>
             )}
           </div>
-        </AlertDescription>
+        </div>
       </Alert>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
