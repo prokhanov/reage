@@ -939,6 +939,38 @@ Deno.serve(async (req) => {
           }
         }
 
+        // 7. Cross-section audit: убеждаемся, что КАЖДЫЙ биомаркер из
+        // analysis_values реально отрендерен хотя бы одной карточкой в отчёте.
+        // Иначе — предупреждение с списком пропущенных биомаркеров.
+        try {
+          const { data: recsAfter } = await admin
+            .from("recommendations")
+            .select("text")
+            .eq("analysis_id", analysisId);
+          const combined = ((recsAfter || []) as any[])
+            .map((r) => (typeof r.text === "string" ? r.text : ""))
+            .join("\n\n");
+          const renderedCodes = new Set<string>();
+          const anchorRe = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+          for (const m of combined.matchAll(anchorRe)) {
+            if (m[1]) renderedCodes.add(normalizeBiomarkerCode(m[1]));
+          }
+          const missing = biomarkers.filter(
+            (b) => b.code && !renderedCodes.has(normalizeBiomarkerCode(b.code)),
+          );
+          if (missing.length > 0) {
+            const list = missing
+              .map((b) => `${b.name} (${b.code})`)
+              .join(", ");
+            const msg = `⚠ Биомаркеры без карточки в отчёте (${missing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
+            fixes.push(msg);
+            send({ type: "warn", message: msg });
+          }
+        } catch (auditErr) {
+          console.warn("cross-section audit failed:", auditErr);
+        }
+
+
         send({
           type: "done",
           message:
