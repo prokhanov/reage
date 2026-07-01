@@ -25,6 +25,7 @@ interface Profile {
 
 export function WeightTracker() {
   const { getUserId, isViewMode } = useViewAsUser();
+  const { demoMode, demoData } = useDemoMode();
   const [weight, setWeight] = useState("");
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [history, setHistory] = useState<WeightRecord[]>([]);
@@ -37,7 +38,8 @@ export function WeightTracker() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demoMode, demoData]);
 
   const fetchData = async () => {
     const userId = await getUserId();
@@ -62,14 +64,29 @@ export function WeightTracker() {
       setHistory(weightData);
       setCurrentWeight(weightData[0].weight);
     } else if (profileData?.weight) {
-      // Fallback to profile weight when no history exists
       setCurrentWeight(profileData.weight);
+      setHistory([]);
+    } else if (demoMode && demoData?.profile?.weight) {
+      // Demo fallback: свежий аккаунт без введённого веса — показываем демо-значения.
+      setCurrentWeight(Number(demoData.profile.weight));
+      const demoHistory = (demoData.weight_history || []).map((w: any, idx: number) => ({
+        id: `demo-${idx}`,
+        weight: Number(w.weight),
+        measured_at: w.measured_at || w.created_at || new Date().toISOString(),
+      }));
+      setHistory(demoHistory);
+    } else {
+      setHistory([]);
+      setCurrentWeight(null);
     }
 
     if (profileData?.height) {
       setHeight(profileData.height);
+    } else if (demoMode && demoData?.profile?.height) {
+      setHeight(Number(demoData.profile.height));
     }
   };
+
 
   const handleSaveWeight = async () => {
     const weightValue = parseFloat(weight);
