@@ -9,9 +9,11 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import {
-  Heart, User, Check, Mail, Lock,
+  Heart, User, Check, Mail,
   ArrowLeft,
 } from "lucide-react";
+// Lock — использовался для скрытого шага оплаты
+
 import { RegisterStep1 } from "@/components/register/RegisterStep1";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
@@ -40,8 +42,9 @@ export interface RegisterFormData {
 const steps = [
   { id: 1, slug: "account", title: "Аккаунт", description: "Создайте ваш аккаунт", icon: Mail },
   { id: 2, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
-  { id: 3, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
-  { id: 4, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
+  // Шаг оплаты временно отключён — оставлен в коде для быстрого возврата.
+  // { id: 3, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
+  { id: 3, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
 ] as const;
 
 const SLUG_TO_STEP: Record<string, number> = Object.fromEntries(steps.map(s => [s.slug, s.id]));
@@ -461,7 +464,7 @@ export default function Register() {
         <span>На главную</span>
       </Link>
 
-      <div className={cn("w-full relative z-10", currentStep === 3 ? "max-w-5xl" : "max-w-2xl")}>
+      <div className="w-full relative z-10 max-w-2xl">
         <div className="w-full">
           <div className="text-center mb-8 animate-fade-in pt-6">
             <Link to="/" className="inline-flex items-center gap-2 mb-2">
@@ -561,30 +564,30 @@ export default function Register() {
                 </div>
               )}
 
+              {/* Шаг оплаты временно отключён — оставлен для быстрого возврата.
               {currentStep === 3 && (
                 <div className="animate-fade-in">
                   <RegisterStep5
                     onSubmit={(data: SelectedPlanData) => {
                       setSelectedPlan(data);
-                      // Если skipPayment — сразу идём дальше
                       if (data.skipPayment) {
                         goToStep(4);
                       }
-                      // Если оплата — RegisterStep5 сам редиректит на Робокассу
                     }}
                     onBack={() => goToStep(2)}
                     isSubmitting={false}
                   />
                 </div>
               )}
+              */}
 
-              {currentStep === 4 && (
+              {currentStep === 3 && (
                 <div className="animate-fade-in">
                   <RegisterStep3
                     formData={formData}
                     updateFormData={updateFormData}
                     onNext={handleFinalSubmit}
-                    onBack={() => goToStep(3)}
+                    onBack={() => goToStep(2)}
                   />
                 </div>
               )}
