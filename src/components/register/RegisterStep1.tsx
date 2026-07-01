@@ -35,11 +35,16 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
 
   const isValid = !errors.firstName && !errors.lastName && !errors.email && !errors.phone && !errors.password && !errors.agreed;
 
+  // Пока идёт запрос — не показываем ошибки, чтобы не мигали при ре-рендере после успешного сабмита
+  const displayErrors = showErrors && !loading;
+
   const handleNext = () => {
-    setShowErrors(true);
-    if (isValid) {
-      onNext();
+    if (!isValid) {
+      setShowErrors(true);
+      return;
     }
+    setShowErrors(false);
+    onNext();
   };
 
   return (
