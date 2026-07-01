@@ -356,7 +356,7 @@ export function RoadmapTimeline({ startDate, nextCheckupDate, roadmap, keyBiomar
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-foreground leading-tight">{kb.system_label}</div>
                       <div className="text-[11px] text-muted-foreground leading-tight mt-0.5 break-words">
-                        {kb.markers.join(", ")}
+                        {kb.markers.map((c) => formatMarker(c)).join(", ")}
                       </div>
                     </div>
                   </div>
