@@ -505,9 +505,9 @@ export function ActionMap({ actions, systems }: Props) {
                     {hoveredAction.biomarker_codes.slice(0, 6).map((code) => (
                       <span
                         key={code}
-                        className="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-muted text-foreground/80 border border-border"
+                        className="px-1.5 py-0.5 rounded-md text-[10px] bg-muted text-foreground/80 border border-border"
                       >
-                        {code}
+                        {formatMarker(code)}
                       </span>
                     ))}
                     {hoveredAction.systems.slice(0, 3).map((s) => (
