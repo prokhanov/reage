@@ -468,9 +468,9 @@ export default function Dashboard() {
     <div className="p-4 md:p-8 space-y-6">
       {/* Demo Banner */}
 
-      {/* Passport data reminder (paid users only, until filled) */}
-      {!demoMode && <OnboardingReminderCard />}
-      {!demoMode && <PassportReminderCard />}
+      {/* Напоминания об онбординге удалены: их место занял OnboardingGate,
+          который перенаправляет пациента с активной подпиской и незавершённой
+          анкетой на /onboarding до её заполнения либо пропуска. */}
 
 
 
