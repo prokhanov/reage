@@ -69,6 +69,7 @@ function formatDayLabel(day: number) {
 }
 
 export function ExpectationsTimeline({ startDate, expectations }: Props) {
+  const { format: formatMarker } = useBiomarkerNames();
   const items = useMemo(() => (Array.isArray(expectations) ? expectations : []), [expectations]);
 
   const today = new Date();
