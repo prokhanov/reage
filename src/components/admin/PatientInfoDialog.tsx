@@ -32,6 +32,7 @@ import {
   Edit,
   Clock,
   MessageCircle,
+  Gift,
 } from "lucide-react";
 import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
