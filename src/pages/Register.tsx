@@ -559,46 +559,39 @@ export default function Register() {
                   />
                 </div>
               )}
-
+              {/*
+                Шаги 2 (О вас) и 4 (Здоровье) вынесены в /onboarding/* и запускаются
+                автоматически после успешной оплаты подписки. Шаг 3 (оплата) —
+                отдельный флоу /subscription. Оставлено для быстрого возврата:
 
               {currentStep === 2 && (
-                <div className="animate-fade-in">
-                  <RegisterStep2
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    onNext={() => goToStep(3)}
-                    onBack={hasSession ? undefined : () => goToStep(1)}
-                  />
-                </div>
+                <RegisterStep2
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={() => goToStep(3)}
+                  onBack={hasSession ? undefined : () => goToStep(1)}
+                />
               )}
-
-              {/* Шаг оплаты временно отключён — оставлен для быстрого возврата.
               {currentStep === 3 && (
-                <div className="animate-fade-in">
-                  <RegisterStep5
-                    onSubmit={(data: SelectedPlanData) => {
-                      setSelectedPlan(data);
-                      if (data.skipPayment) {
-                        goToStep(4);
-                      }
-                    }}
-                    onBack={() => goToStep(2)}
-                    isSubmitting={false}
-                  />
-                </div>
+                <RegisterStep5
+                  onSubmit={(data: SelectedPlanData) => {
+                    setSelectedPlan(data);
+                    if (data.skipPayment) goToStep(4);
+                  }}
+                  onBack={() => goToStep(2)}
+                  isSubmitting={false}
+                />
+              )}
+              {currentStep === 4 && (
+                <RegisterStep3
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={handleFinalSubmit}
+                  onBack={() => goToStep(2)}
+                />
               )}
               */}
 
-              {currentStep === 3 && (
-                <div className="animate-fade-in">
-                  <RegisterStep3
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    onNext={handleFinalSubmit}
-                    onBack={() => goToStep(2)}
-                  />
-                </div>
-              )}
             </div>
           </Card>
 
