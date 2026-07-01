@@ -60,6 +60,8 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
   const [isEditSubscriptionOpen, setIsEditSubscriptionOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isGiftOpen, setIsGiftOpen] = useState(false);
+  const { isSuperAdmin } = useSuperAdminCheck();
   const queryClient = useQueryClient();
   
   // Real-time subscription for analysis bookings and subscriptions updates
