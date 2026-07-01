@@ -1,20 +1,17 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { z } from "npm:zod@3.25.76";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const StaffRegistrationSchema = z.object({
-  inviteToken: z.string().uuid("Некорректный токен приглашения"),
-  email: z.string().trim().email("Некорректный email").transform((value) => value.toLowerCase()),
-  password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
-  firstName: z.string().trim().min(1, "Укажите имя").max(100),
-  lastName: z.string().trim().min(1, "Укажите фамилию").max(100),
-});
-
 const enumRoles = new Set(["superadmin", "admin", "doctor", "patient", "user"]);
+const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -29,12 +26,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const parsed = StaffRegistrationSchema.safeParse(await req.json().catch(() => ({})));
-    if (!parsed.success) {
-      return json({ error: Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? 'Проверьте данные формы' }, 400);
-    }
+    const body = await req.json().catch(() => ({}));
+    const inviteToken = asString(body.inviteToken);
+    const email = asString(body.email).toLowerCase();
+    const password = asString(body.password);
+    const firstName = asString(body.firstName);
+    const lastName = asString(body.lastName);
 
-    const { inviteToken, email, password, firstName, lastName } = parsed.data;
+    if (!uuidRe.test(inviteToken)) return json({ error: 'Некорректный токен приглашения' }, 400);
+    if (!emailRe.test(email)) return json({ error: 'Некорректный email' }, 400);
+    if (password.length < 6) return json({ error: 'Пароль должен содержать минимум 6 символов' }, 400);
+    if (!firstName) return json({ error: 'Укажите имя' }, 400);
+    if (firstName.length > 100) return json({ error: 'Имя слишком длинное' }, 400);
+    if (!lastName) return json({ error: 'Укажите фамилию' }, 400);
+    if (lastName.length > 100) return json({ error: 'Фамилия слишком длинная' }, 400);
 
     console.log('Starting staff registration for:', email);
 
