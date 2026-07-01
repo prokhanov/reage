@@ -39,9 +39,10 @@ export interface RegisterFormData {
 
 const steps = [
   { id: 1, slug: "account", title: "Аккаунт", description: "Создайте ваш аккаунт", icon: Mail },
-  { id: 2, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
-  { id: 3, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
-  { id: 4, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
+  { id: 2, slug: "profile", title: "О вас", описание: "Расскажите о себе", icon: User } as unknown as { id: number; slug: string; title: string; description: string; icon: typeof User },
+  // Шаг оплаты временно отключён — оставлен в коде для быстрого возврата.
+  // { id: 3, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
+  { id: 3, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
 ] as const;
 
 const SLUG_TO_STEP: Record<string, number> = Object.fromEntries(steps.map(s => [s.slug, s.id]));
