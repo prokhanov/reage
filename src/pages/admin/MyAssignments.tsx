@@ -250,8 +250,10 @@ export default function MyAssignments() {
             <SelectContent>
               <SelectItem value="all">Все статусы</SelectItem>
               <SelectItem value="scheduled">Назначен</SelectItem>
-              <SelectItem value="collected">Получен</SelectItem>
-              <SelectItem value="uploaded">Загружен</SelectItem>
+              <SelectItem value="collected">Анализ в работе</SelectItem>
+              <SelectItem value="report_pending">Отчёт в работе</SelectItem>
+              <SelectItem value="report_ready">Отчёт загружен</SelectItem>
+
             </SelectContent>
           </Select>
           </div>
