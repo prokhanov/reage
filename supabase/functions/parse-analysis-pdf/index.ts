@@ -81,6 +81,16 @@ const NAME_ALIASES: Record<string, string> = {
   "tnf alpha": "TNF-α",
   "tumor necrosis factor": "TNF-α",
   "tumor necrosis factor alpha": "TNF-α",
+  // Интерлейкин-6 / IL-6
+  "il 6": "IL-6",
+  "il6": "IL-6",
+  "interleukin 6": "IL-6",
+  "interleukin-6": "IL-6",
+  "ил 6": "IL-6",
+  "ил6": "IL-6",
+  "интерлейкин 6": "IL-6",
+  "интерлейкин-6": "IL-6",
+  "интерлейкин 6 il 6": "IL-6",
 };
 
 const UNIT_ALIASES: Record<string, string> = {
@@ -316,6 +326,7 @@ ${catalogText}
 - Включай ВСЕ числовые показатели, найденные в PDF, даже если их кода нет в справочнике (тогда biomarker_code = null).
 - Для biomarker_code ориентируйся на NAME из справочника (русские названия). Если уверенности нет — null.
 - Синонимы: "ФНО", "ФНО-α", "Фактор некроза опухоли (альфа)" = TNF-α (Фактор некроза опухоли альфа).
+- Синонимы: "ИЛ-6", "Интерлейкин 6", "Интерлейкин-6", "IL6", "Interleukin-6" = IL-6 (Интерлейкин-6).
 - Десятичный разделитель в value_raw сохраняй как в PDF.
 - Верни ТОЛЬКО JSON, без markdown-обёртки.`;
 
