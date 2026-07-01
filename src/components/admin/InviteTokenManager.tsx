@@ -171,7 +171,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
       });
       refetch();
       // Auto-copy new link
-      await copyToClipboard(data.token, data.role);
+      await copyToClipboardHandler(data.token, data.role);
     },
     onError: (error) => {
       toast({
@@ -301,7 +301,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => copyToClipboard(token.token, token.role)}
+                              onClick={() => copyToClipboardHandler(token.token, token.role)}
                               disabled={token.used_at !== null || (token.expires_at && new Date(token.expires_at) < new Date())}
                             >
                               {copiedToken === token.token ? (
