@@ -494,7 +494,11 @@ export default function MyState() {
       }))
     : symptoms;
 
-  const canTakeSurveyActual = demoMode ? false : canTakeSurvey;
+  // В демо-режиме опросник тоже доступен — иначе новый аккаунт видит пустой экран
+  // (нет ни истории, ни блока "опрос завершён"), потому что canTakeSurvey=false, а
+  // daysUntilNextSurvey=0 не проходит условие показа завершённого состояния.
+  const canTakeSurveyActual = canTakeSurvey;
+
 
   // Группировка по датам для истории
   const groupedByDate = displaySymptoms.reduce((acc, symptom) => {
