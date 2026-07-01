@@ -82,8 +82,7 @@ export function renderInterleavedWeb(
   gender: 'male' | 'female',
 ): React.ReactNode {
   const codes = biomarkers.map(b => b.code);
-  const nameToCode: Record<string, string> = {};
-  biomarkers.forEach(b => { nameToCode[b.name] = b.code; });
+  const nameToCode = buildNameToCodeMap(biomarkers);
   const blocks = parseAnchors(reportText, codes, nameToCode);
 
   return (
