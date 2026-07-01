@@ -30,6 +30,7 @@ import HealthAssistant from "./pages/HealthAssistant";
 import Subscription from "./pages/Subscription";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionFail from "./pages/SubscriptionFail";
+import Onboarding from "./pages/Onboarding";
 import HealthStrategy from "./pages/HealthStrategy";
 import ExampleReport from "./pages/ExampleReport";
 import AnalysisPrep from "./pages/AnalysisPrep";
