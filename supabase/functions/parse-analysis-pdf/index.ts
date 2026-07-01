@@ -412,6 +412,9 @@ ${catalogText}
       let bm: Biomarker | undefined;
       if (it.biomarker_code) bm = byCode.get(String(it.biomarker_code).toUpperCase());
       if (!bm && printedNorm) bm = byName.get(printedNorm);
+      if (!bm && printedNorm && NAME_ALIASES[printedNorm]) {
+        bm = byCode.get(NAME_ALIASES[printedNorm].toUpperCase());
+      }
 
       const { value: parsedNum } = parseValue(it.value_raw);
       let numericValue = parsedNum;
