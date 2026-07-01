@@ -178,7 +178,16 @@ export function parseAnchors(
     blocks.push({ type: 'text', content: remaining });
   }
 
-  return blocks;
+  // Финальная очистка: разделитель `$$` не должен просачиваться в вывод.
+  // Внутри биомаркеров его уже разрезал splitByExplicitDelimiter; здесь
+  // страхуемся для text/summary блоков (например, если автор поставил `$$`
+  // вне карточки биомаркера).
+  return blocks.map((b) => {
+    if (b.type === 'text' || b.type === 'summary') {
+      return { ...b, content: b.content.replace(/\${2,}/g, '').trim() };
+    }
+    return b;
+  });
 }
 
 // ═══ Auto-inject anchors from ## Name (CODE) headers + section headers ═══
