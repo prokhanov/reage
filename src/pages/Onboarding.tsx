@@ -13,6 +13,8 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { PassportFields, isPassportValid } from "@/components/PassportFields";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { saveOnboardingData } from "@/lib/onboarding/saveOnboardingData";
 import type { RegisterFormData } from "@/pages/Register";
 
