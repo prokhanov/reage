@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { format } from "date-fns";
+import { useNavigate, useParams } from "react-router-dom";
 import confetti from "canvas-confetti";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, User, Heart, Check, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, User, Heart, FileText, Check, ArrowLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,13 +12,14 @@ import { AuthBackground } from "@/components/AuthBackground";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
+import { PassportFields, isPassportValid } from "@/components/PassportFields";
 import { saveOnboardingData } from "@/lib/onboarding/saveOnboardingData";
-import { CHRONIC_CATEGORY } from "@/lib/medicalAnketa";
 import type { RegisterFormData } from "@/pages/Register";
 
 const steps = [
   { id: 1, slug: "personal", title: "О вас", icon: User },
   { id: 2, slug: "health", title: "Здоровье", icon: Heart },
+  { id: 3, slug: "passport", title: "Паспорт", icon: FileText },
 ] as const;
 
 const SLUG_TO_STEP: Record<string, number> = Object.fromEntries(
@@ -48,13 +49,14 @@ export default function Onboarding() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState<RegisterFormData>(EMPTY_FORM);
+  const [passportSeries, setPassportSeries] = useState("");
+  const [passportNumber, setPassportNumber] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const currentStep = stepParam ? SLUG_TO_STEP[stepParam] ?? 1 : 1;
   const progress = (currentStep / steps.length) * 100;
 
-  // Загрузка сессии + предзаполнение из БД
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -67,7 +69,6 @@ export default function Onboarding() {
       const uid = authData.user.id;
       setUserId(uid);
 
-      // Проверка активной подписки — иначе онбординг не нужен
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("status")
@@ -84,7 +85,7 @@ export default function Onboarding() {
       const { data: profile } = await supabase
         .from("profiles")
         .select(
-          "first_name, last_name, phone, gender, birth_date, weight, height, health_note, operations, medications, onboarding_completed",
+          "first_name, last_name, phone, gender, birth_date, weight, height, health_note, operations, medications, passport_series, passport_number, onboarding_completed",
         )
         .eq("id", uid)
         .maybeSingle();
@@ -127,6 +128,8 @@ export default function Onboarding() {
           : [],
         medicalHistory: historyEntries,
       });
+      setPassportSeries((profile as any)?.passport_series || "");
+      setPassportNumber((profile as any)?.passport_number || "");
       setLoading(false);
     })();
     return () => {
@@ -145,11 +148,33 @@ export default function Onboarding() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleFinish = async () => {
+  /** Пропустить текущий шаг: помечаем факт пропуска и идём дальше. */
+  const skipCurrent = async () => {
+    if (!userId) return;
+    try {
+      await supabase
+        .from("profiles")
+        .update({ onboarding_skipped_at: new Date().toISOString() })
+        .eq("id", userId);
+    } catch (e) {
+      console.warn("mark skipped failed", e);
+    }
+    if (currentStep < steps.length) {
+      goToStep(currentStep + 1);
+    } else {
+      await finalize();
+    }
+  };
+
+  /** Финальное сохранение всей анкеты — ставит onboarding_completed=true. */
+  const finalize = async () => {
     if (!userId) return;
     setSubmitting(true);
     try {
-      await saveOnboardingData(userId, formData);
+      await saveOnboardingData(userId, formData, {
+        passportSeries: passportSeries || undefined,
+        passportNumber: passportNumber || undefined,
+      });
       confetti({
         particleCount: 100,
         spread: 70,
@@ -173,7 +198,7 @@ export default function Onboarding() {
     }
   };
 
-  const hydratedStep2 = useMemo(() => currentStep, [currentStep]);
+  const step = useMemo(() => currentStep, [currentStep]);
 
   if (loading) {
     return (
@@ -187,19 +212,11 @@ export default function Onboarding() {
     <div className="min-h-screen bg-gradient-dark flex items-center justify-center p-4 relative overflow-hidden">
       <AuthBackground />
 
-      <Link
-        to="/dashboard"
-        className="absolute top-4 left-4 md:top-8 md:left-8 z-20 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 group p-2 -m-2 sm:p-0 sm:m-0"
-      >
-        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-        <span>В Контрольную панель</span>
-      </Link>
-
       <div className="w-full relative z-10 max-w-2xl">
         <div className="text-center mb-8 animate-fade-in pt-6">
-          <Link to="/" className="inline-flex items-center gap-2 mb-2">
+          <div className="inline-flex items-center gap-2 mb-2">
             <ThemedLogo eager className="h-24 w-auto" />
-          </Link>
+          </div>
           <h1 className="text-3xl font-bold mb-2">Расскажите о себе</h1>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
             Эти данные нужны, чтобы точнее интерпретировать анализы и давать
@@ -209,12 +226,12 @@ export default function Onboarding() {
 
         <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.15s" }}>
           <div className="flex items-center justify-center mb-6 gap-2 sm:gap-4">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = currentStep === step.id;
-              const isCompleted = currentStep > step.id;
+            {steps.map((s, index) => {
+              const Icon = s.icon;
+              const isActive = currentStep === s.id;
+              const isCompleted = currentStep > s.id;
               return (
-                <div key={step.id} className="flex items-center">
+                <div key={s.id} className="flex items-center">
                   <div
                     className={cn(
                       "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-500",
@@ -223,14 +240,10 @@ export default function Onboarding() {
                       !isActive && !isCompleted && "bg-muted text-muted-foreground",
                     )}
                   >
-                    {isCompleted ? (
-                      <Check className="h-5 w-5" />
-                    ) : (
-                      <Icon className="h-5 w-5" />
-                    )}
+                    {isCompleted ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                   </div>
                   {index < steps.length - 1 && (
-                    <div className="h-1 w-12 sm:w-20 mx-2 rounded-full bg-muted overflow-hidden">
+                    <div className="h-1 w-10 sm:w-16 mx-2 rounded-full bg-muted overflow-hidden">
                       <div
                         className={cn(
                           "h-full bg-gradient-primary transition-all duration-700 ease-out",
@@ -250,21 +263,78 @@ export default function Onboarding() {
         </div>
 
         <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl animate-fade-in">
-          {hydratedStep2 === 1 && (
+          {step === 1 && (
             <RegisterStep2
               formData={formData}
               updateFormData={updateFormData}
               onNext={() => goToStep(2)}
+              requireName
             />
           )}
-          {hydratedStep2 === 2 && (
+          {step === 2 && (
             <RegisterStep3
               formData={formData}
               updateFormData={updateFormData}
-              onNext={handleFinish}
+              onNext={() => goToStep(3)}
               onBack={() => goToStep(1)}
             />
           )}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="text-center mb-2">
+                <h2 className="text-2xl font-bold mb-2">Паспортные данные</h2>
+                <p className="text-muted-foreground text-sm">
+                  Нужны для оформления забора анализов в лаборатории. Сохраняются
+                  один раз.
+                </p>
+              </div>
+              <PassportFields
+                series={passportSeries}
+                number={passportNumber}
+                onSeriesChange={setPassportSeries}
+                onNumberChange={setPassportNumber}
+                hideHeader
+                hideHint
+              />
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => goToStep(2)}
+                  className="flex-1"
+                  size="lg"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Назад
+                </Button>
+                <Button
+                  onClick={finalize}
+                  disabled={
+                    submitting || !isPassportValid(passportSeries, passportNumber)
+                  }
+                  className="flex-1"
+                  size="lg"
+                >
+                  Готово
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Пошаговый пропуск — только по одному шагу за раз. На последнем шаге
+              формулировка «Заполнить позже» (паспорт можно донести позднее). */}
+          <div className="mt-6 flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={step === steps.length ? finalize : skipCurrent}
+              disabled={submitting}
+            >
+              {step === steps.length ? "Заполнить позже" : "Пропустить этот шаг"}
+            </Button>
+          </div>
+
           {submitting && (
             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> Сохраняем…

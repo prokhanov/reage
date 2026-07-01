@@ -1,4 +1,4 @@
-import { Weight, Ruler, ArrowRight, ArrowLeft } from "lucide-react";
+import { Weight, Ruler, ArrowRight, ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,10 +13,15 @@ interface RegisterStep2Props {
   updateFormData: (data: Partial<RegisterFormData>) => void;
   onNext: () => void;
   onBack?: () => void;
+  /** Показать и обязательно проверить поля Имя/Фамилия (для онбординга). */
+  requireName?: boolean;
 }
 
-export function RegisterStep2({ formData, updateFormData, onNext, onBack }: RegisterStep2Props) {
-  const isValid = formData.gender && formData.birth_date;
+export function RegisterStep2({ formData, updateFormData, onNext, onBack, requireName }: RegisterStep2Props) {
+  const nameFilled = !requireName || (
+    !!formData.firstName?.trim() && !!formData.lastName?.trim()
+  );
+  const isValid = formData.gender && formData.birth_date && nameFilled;
 
   return (
     <div className="space-y-6">
@@ -28,6 +33,39 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack }: Regi
       </div>
 
       <div className="space-y-6">
+        {requireName && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Имя</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => updateFormData({ firstName: e.target.value })}
+                  placeholder="Ваше имя"
+                  className="pl-10"
+                  autoComplete="given-name"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Фамилия</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => updateFormData({ lastName: e.target.value })}
+                  placeholder="Ваша фамилия"
+                  className="pl-10"
+                  autoComplete="family-name"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Gender */}
         <div className="space-y-3">
           <Label>Пол</Label>

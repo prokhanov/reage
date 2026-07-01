@@ -16,8 +16,7 @@ import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 
-import { PassportReminderCard } from "@/components/PassportReminderCard";
-import { OnboardingReminderCard } from "@/components/OnboardingReminderCard";
+// Напоминания об онбординге/паспорте отключены — заменены на жёсткий OnboardingGate.
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
@@ -468,9 +467,9 @@ export default function Dashboard() {
     <div className="p-4 md:p-8 space-y-6">
       {/* Demo Banner */}
 
-      {/* Passport data reminder (paid users only, until filled) */}
-      {!demoMode && <OnboardingReminderCard />}
-      {!demoMode && <PassportReminderCard />}
+      {/* Напоминания об онбординге удалены: их место занял OnboardingGate,
+          который перенаправляет пациента с активной подпиской и незавершённой
+          анкетой на /onboarding до её заполнения либо пропуска. */}
 
 
 
