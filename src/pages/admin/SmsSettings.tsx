@@ -31,21 +31,22 @@ type SmsTemplate = {
 const TYPE_LABELS: Record<string, string> = {
   otp: "Код подтверждения",
   booking_scheduled: "Запись назначена",
-  booking_received: "Биоматериал получен",
   booking_collected: "Анализ в работе",
-  booking_uploaded: "Отчёт готов",
+  booking_report_pending: "Отчёт в работе",
+  booking_report_ready: "Отчёт загружен",
   custom: "Произвольное",
 };
 
 // Stable ordering inside SMS templates tab — group booking_* together.
 const TYPE_ORDER: Record<string, number> = {
   booking_scheduled: 10,
-  booking_received: 11,
-  booking_collected: 12,
-  booking_uploaded: 13,
+  booking_collected: 11,
+  booking_report_pending: 12,
+  booking_report_ready: 13,
   otp: 20,
   custom: 30,
 };
+
 
 
 function smsSegments(text: string): { length: number; segments: number; isCyrillic: boolean } {

@@ -31,9 +31,9 @@ const TEMPLATE_TABS = [
   { type: "recovery", label: "Восстановление пароля" },
   { type: "invite", label: "Приглашение" },
   { type: "booking_scheduled", label: "Запись назначена" },
-  { type: "booking_received", label: "Биоматериал получен" },
   { type: "booking_collected", label: "Анализ в работе" },
-  { type: "booking_uploaded", label: "Отчёт готов" },
+  { type: "booking_report_pending", label: "Отчёт в работе" },
+  { type: "booking_report_ready", label: "Отчёт загружен" },
 ];
 
 const TEST_NOTES: Record<string, string> = {
@@ -41,10 +41,11 @@ const TEST_NOTES: Record<string, string> = {
   recovery: "Будет отправлен шаблон сброса пароля",
   invite: "Будет отправлен шаблон приглашения",
   booking_scheduled: "Письмо «запись назначена» с примерными датой/временем/адресом",
-  booking_received: "Письмо «биоматериал получен»",
   booking_collected: "Письмо «анализ в работе»",
-  booking_uploaded: "Письмо «отчёт готов» с ссылкой на личный кабинет",
+  booking_report_pending: "Письмо «отчёт в работе» — мы начали формировать персональный отчёт",
+  booking_report_ready: "Письмо «отчёт загружен» со ссылкой на личный кабинет",
 };
+
 
 
 export default function EmailSettings() {

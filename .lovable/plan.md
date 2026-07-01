@@ -1,59 +1,81 @@
-# Кнопка «Подарить подписку» в карточке пациента
 
-Добавим в суперадминке отдельную кнопку для активации подписки без оплаты — с шаблонами длительности, выбором тарифа и автоматической записью в историю.
+## Итоговая цепочка статусов `analysis_bookings.status`
 
-## Где появится
-- Карточка пациента (`PatientProfile` → блок подписки в `PatientInfoDialog`), рядом с кнопкой «Изменить подписку».
-- Кнопка: «🎁 Подарить подписку». Видна только пользователям с ролью `superadmin` (проверка через `has_role`).
+```
+waiting_call     → Ожидает звонка
+no_answer        → Не дозвонились
+not_scheduled    → Не назначен
+scheduled        → Назначен
+collected        → Анализ в работе (биоматериал сдан, лаба обрабатывает)
+report_pending   → Отчёт в работе (лаба вернула результаты, готовим отчёт)  ← НОВЫЙ
+report_ready     → Отчёт загружен (доступен пациенту)                        ← переименован из uploaded
+```
 
-## Диалог `GiftSubscriptionDialog`
+Убираем `received` (сливается в `collected`).
 
-Поля:
-1. **Тариф** — селект из активных `subscription_plans`.
-2. **Период (pricing)** — селект из `subscription_pricing` выбранного тарифа (для отображения условной «стоимости» в истории, сумма списания = 0).
-3. **Длительность** — быстрые шаблоны:
-   - 7 дней (триал)
-   - 1 месяц
-   - 3 месяца
-   - 6 месяцев
-   - 12 месяцев
-   - Свой вариант (число + дни/месяцы)
-4. **Дата начала** — по умолчанию «сейчас», можно указать будущую (отложенный старт).
-5. **Комментарий/причина** — свободный текст (маркетинг, компенсация, партнёр и т. п.) — пишется в `subscription_history.notes`.
-6. **Отправить письмо пациенту** — чекбокс (по умолчанию включён). Использует существующий шаблон `subscription-activated` через `send-transactional-email`, помечая как `gifted: true` (в шаблоне добавим короткую строку «Подписка активирована администратором»).
+---
 
-Превью перед сохранением: тариф, период действия (`start` → `end`), сумма 0 ₽, кто дарит (текущий админ), уйдёт ли письмо.
+## 1. Миграция БД
+- `UPDATE analysis_bookings SET status='collected' WHERE status='received';`
+- `UPDATE analysis_bookings SET status='report_ready' WHERE status='uploaded';`
+- Обновить триггеры:
+  - `disable_demo_mode_on_booking_uploaded` → срабатывать на `report_ready`.
+  - `notify_telegram_booking_status_changed` — расширить `CASE`: убрать `received`, добавить `report_pending`, переименовать `uploaded` → `report_ready` с новыми `template_key` (`booking_report_pending`, `booking_report_ready`).
+  - `create_next_analysis_booking` — оставить триггер на `collected` (сдача биоматериала = начало нового цикла).
+- Перекопировать/переименовать записи в `sms_templates`, `email_templates`:
+  - `booking_received` → удалить (было продублировано `collected`).
+  - `booking_uploaded` → `booking_report_ready` (сохранить текст, поправить смысл на «Ваш персональный отчёт готов»).
+  - `booking_collected` — уточнить текст «Анализ в работе».
+  - Добавить `booking_report_pending` («Мы получили результаты, формируем ваш персональный отчёт»).
+- Аналогично обновить дефолты `telegram_notification_settings.enabled_events` (добавить `booking_report_pending`, переименовать ключ `booking_uploaded`).
 
-## Логика активации (frontend, через существующие таблицы)
+## 2. Единый словарь
+Создать `src/lib/bookingStatusLabels.ts`:
+- `BookingStatus` union
+- `bookingStatusLabels` (RU)
+- `bookingStatusColors`
+Использовать везде вместо локальных карт.
 
-При подтверждении:
-1. Если у пациента уже есть `active` подписка — предложить:
-   - **Продлить** — сдвинуть `end_date = max(current_end_date, now) + duration`.
-   - **Заменить** — текущую пометить `cancelled` (с записью в `subscription_history`), создать новую.
-2. Вставка/обновление в `subscriptions`:
-   - `status = 'active'`
-   - `plan_id`, `pricing_id`, `plan_type` — из формы
-   - `amount = 0`
-   - `payment_method = 'gift'` (новое значение — уже свободнотекстовое поле)
-   - `start_date`, `end_date` — по форме
-3. Запись в `subscription_history`:
-   - `action = 'gifted'`
-   - `amount = 0`
-   - `notes = «Подарочная активация: {reason}. Админ: {admin_email}»`
-4. Опциональная отправка письма через `send-transactional-email` (шаблон `subscription-activated`, дополнительное поле `gifted=true`).
+## 3. Фронтенд
+Пройтись по всем найденным местам:
+- `src/pages/admin/AnalysisBookings.tsx`
+- `src/pages/admin/MyAssignments.tsx`
+- `src/pages/admin/TelegramSettings.tsx`
+- `src/pages/admin/SmsSettings.tsx`
+- `src/pages/admin/EmailSettings.tsx`
+- `src/components/AnalysisBookingBanner.tsx` (терминальный статус → `report_ready`, hasUploaded → hasReportReady)
+- `src/components/admin/PatientBookingsCard.tsx`
+- `src/components/admin/CreateBookingDialog.tsx`
+- `src/components/admin/BookingModeSettings.tsx`
+- `src/pages/Profile.tsx` (фильтр `.eq("status","collected")` оставляем — смысл тот же)
 
-Всё выполняется клиентом через существующие RLS-политики суперадмина + вызов уже задеплоенной edge-функции `send-transactional-email`. Новых миграций и edge-функций не требуется.
+Заменить `received/uploaded` → `collected/report_ready`, добавить в селекты «Отчёт в работе».
 
-## Изменения по файлам
+## 4. Edge-функции
+Обновить маппинги ключей шаблонов:
+- `supabase/functions/send-booking-telegram/index.ts`
+- `supabase/functions/send-booking-sms/index.ts`
+- `supabase/functions/send-analysis-booking-email/index.ts`
 
-- `src/components/admin/patients/GiftSubscriptionDialog.tsx` — новый компонент диалога.
-- `src/components/admin/patients/PatientInfoDialog.tsx` — добавить кнопку и монтирование диалога.
-- `src/components/admin/patients/EditSubscriptionDialog.tsx` — вынести общий хелпер `computeEndDate(start, value, unit)` в `src/lib/subscriptionHelpers.ts` и переиспользовать.
-- `supabase/functions/_shared/transactional-email-templates/subscription-activated.tsx` — добавить условный блок «Подарочная активация» при `gifted=true` (мелкая правка, деплой функции `send-transactional-email`).
+Убрать ветку `received`, добавить `report_pending`, переименовать `uploaded` → `report_ready`.
 
-## Что осознанно не делаем
-- Не трогаем Robokassa (это подарок, платёж не создаётся).
-- Не создаём отдельную таблицу подарков — достаточно `payment_method='gift'` + запись в `subscription_history`.
-- Возвраты/рефанды и кнопка «Продлить на N месяцев» для платных подписок — отдельная задача.
+## 5. Автопереход `collected → report_pending → report_ready`
+- В `report-orchestrator` (или в момент загрузки PDF/старта пайплайна) переводить booking `collected → report_pending`.
+- В `finalize-analysis` по успешному завершению — `report_pending → report_ready`.
 
-Подтвердите — реализую.
+## 6. React Email шаблон `subscription-activated`
+Не затрагивается. Отдельного React-шаблона для booking-статусов сейчас нет — тексты берутся из БД `email_templates`, шаг 1 их обновляет.
+
+## 7. QA-чек
+- Ручной прогон: waiting_call → scheduled → collected → report_pending → report_ready.
+- Проверить бейджи в админке, баннер в ЛК, отправку Telegram/SMS/Email на каждом переходе (тестовый режим).
+- Убедиться, что старые записи в БД корректно отображаются после миграции.
+
+## Порядок
+1. Миграция БД (данные + триггеры + шаблоны).
+2. Словарь `bookingStatusLabels.ts`.
+3. Обновление фронтенда и edge-функций.
+4. Деплой затронутых edge-функций.
+5. Проверка сценариев.
+
+Подтверди — стартую с миграции.

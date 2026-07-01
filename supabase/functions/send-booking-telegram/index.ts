@@ -10,17 +10,18 @@ const corsHeaders = {
 
 const STATUS_TO_TEMPLATE: Record<string, string> = {
   scheduled: "booking_scheduled",
-  received: "booking_received",
   collected: "booking_collected",
-  uploaded: "booking_uploaded",
+  report_pending: "booking_report_pending",
+  report_ready: "booking_report_ready",
 };
 
 const ALLOWED_TEMPLATES = new Set([
   "booking_scheduled",
-  "booking_received",
   "booking_collected",
-  "booking_uploaded",
+  "booking_report_pending",
+  "booking_report_ready",
 ]);
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
