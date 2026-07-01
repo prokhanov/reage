@@ -63,6 +63,9 @@ export default function Profile() {
   const [userId, setUserId] = useState<string | null>(null);
   const [nextAnalysisDate, setNextAnalysisDate] = useState<string | null>(null);
   const [hasAnalyses, setHasAnalyses] = useState(false);
+  // Является ли ПРОСМАТРИВАЕМЫЙ пользователь пациентом.
+  // Пациентские блоки (мед. анкета, паспорт, демо-режим) показываем только пациентам.
+  const [isPatientProfile, setIsPatientProfile] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -71,7 +74,24 @@ export default function Profile() {
     loadMedicalHistory();
     loadNextAnalysisDate();
     checkHasAnalyses();
+    checkIsPatient();
   }, []);
+
+  const checkIsPatient = async () => {
+    try {
+      const uid = await getUserId();
+      if (!uid) return;
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', uid)
+        .eq('role', 'patient')
+        .maybeSingle();
+      setIsPatientProfile(!!data);
+    } catch (error) {
+      console.error('Error checking patient role:', error);
+    }
+  };
 
   const checkHasAnalyses = async () => {
     try {
