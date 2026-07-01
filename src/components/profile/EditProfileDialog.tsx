@@ -60,8 +60,10 @@ interface EditProfileDialogProps {
 }
 
 export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess }: EditProfileDialogProps) {
+  const initialSplit = splitFullName(profile?.name || "");
   const [formData, setFormData] = useState({
-    name: profile?.name || "",
+    first_name: profile?.first_name || initialSplit.first,
+    last_name: profile?.last_name || initialSplit.last,
     gender: profile?.gender || "male",
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
@@ -83,8 +85,10 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   // Update form data when profile changes
   useEffect(() => {
     if (profile) {
+      const split = splitFullName(profile.name || "");
       setFormData({
-        name: profile.name || "",
+        first_name: profile.first_name || split.first,
+        last_name: profile.last_name || split.last,
         gender: profile.gender || "male",
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
