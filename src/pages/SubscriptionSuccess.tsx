@@ -120,12 +120,12 @@ export default function SubscriptionSuccess() {
             Спасибо! Добро пожаловать в ReAge.
           </p>
           <Button asChild>
-            {registerReturnStep ? (
-              <Link to={`/register/${registerReturnStep}`}>Закончить регистрацию</Link>
-            ) : (
-              <Link to="/dashboard">Перейти в Контрольную панель</Link>
-            )}
+            <Link to="/onboarding/personal">Заполнить анкету →</Link>
           </Button>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Займёт пару минут. После этого откроется Контрольная панель.
+          </p>
+
         </>
       )}
       {status === "admin_test" && (
