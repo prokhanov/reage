@@ -292,7 +292,7 @@ export default function Onboarding() {
 
               <div className="space-y-3">
                 <p className="text-sm font-medium">Проверьте ФИО</p>
-                <div class-name="" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Имя</Label>
                     <Input
