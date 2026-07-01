@@ -26,6 +26,8 @@ function parseLocalDate(s: string) {
 
 interface Profile {
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   birth_date: string;
   gender: string;
   height: number | null;
@@ -42,6 +44,13 @@ interface Profile {
   hrt_start_date?: string | null;
 }
 
+function splitFullName(name: string): { first: string; last: string } {
+  const parts = (name || "").trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return { first: "", last: "" };
+  const [first, ...rest] = parts;
+  return { first, last: rest.join(" ") };
+}
+
 interface EditProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,8 +60,10 @@ interface EditProfileDialogProps {
 }
 
 export function EditProfileDialog({ open, onOpenChange, profile, userId, onSuccess }: EditProfileDialogProps) {
+  const initialSplit = splitFullName(profile?.name || "");
   const [formData, setFormData] = useState({
-    name: profile?.name || "",
+    first_name: profile?.first_name || initialSplit.first,
+    last_name: profile?.last_name || initialSplit.last,
     gender: profile?.gender || "male",
     birth_date: profile?.birth_date ? parseLocalDate(profile.birth_date) : undefined,
     height: profile?.height?.toString() || "",
@@ -74,8 +85,10 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   // Update form data when profile changes
   useEffect(() => {
     if (profile) {
+      const split = splitFullName(profile.name || "");
       setFormData({
-        name: profile.name || "",
+        first_name: profile.first_name || split.first,
+        last_name: profile.last_name || split.last,
         gender: profile.gender || "male",
         birth_date: profile.birth_date ? parseLocalDate(profile.birth_date) : undefined,
         height: profile.height?.toString() || "",
@@ -95,7 +108,9 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   }, [profile]);
 
   const handleSave = async () => {
-    if (!formData.name || !formData.birth_date) {
+    const firstName = formData.first_name.trim();
+    const lastName = formData.last_name.trim();
+    if (!firstName || !formData.birth_date) {
       toast({
         title: "Ошибка",
         description: "Заполните все обязательные поля",
@@ -109,11 +124,14 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       if (!userId) throw new Error("Не авторизован");
 
       const weightValue = formData.weight ? parseFloat(formData.weight) : null;
+      const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
       const { error, data } = await supabase
         .from("profiles")
         .update({
-          name: formData.name,
+          name: fullName,
+          first_name: firstName,
+          last_name: lastName || null,
           gender: formData.gender,
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
@@ -199,14 +217,25 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
         <div className="space-y-4 py-4 px-6 overflow-y-auto flex-1 min-h-0">
 
           {/* Name */}
-          <div className="space-y-2">
-            <Label htmlFor="edit-name">Имя *</Label>
-            <Input
-              id="edit-name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ваше имя"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-first-name">Имя *</Label>
+              <Input
+                id="edit-first-name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                placeholder="Иван"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-last-name">Фамилия</Label>
+              <Input
+                id="edit-last-name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                placeholder="Иванов"
+              />
+            </div>
           </div>
 
           {/* Gender */}

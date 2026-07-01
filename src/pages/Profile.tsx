@@ -27,6 +27,8 @@ import { performSafeLogout } from "@/lib/authLogout";
 
 interface Profile {
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   email?: string | null;
   birth_date: string;
   gender: string;
@@ -201,6 +203,12 @@ export default function Profile() {
 
   const age = getAge();
 
+  const nameParts = (profile?.name || "").trim().split(/\s+/).filter(Boolean);
+  const firstName = profile?.first_name || nameParts[0] || "";
+  const lastName = profile?.last_name || nameParts.slice(1).join(" ") || "";
+
+
+
 
   return (
     <div className="container mx-auto px-4 pt-4 pb-8 sm:py-8 max-w-4xl">
@@ -252,7 +260,15 @@ export default function Profile() {
             <div className="sm:hidden divide-y divide-border/40 rounded-lg border border-border/40 bg-background/40">
               <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-muted-foreground flex-shrink-0">Имя</span>
-                <span className="font-medium text-right truncate">{profile?.name}</span>
+                <span className="font-medium text-right truncate">{firstName || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Фамилия</span>
+                <span className="font-medium text-right truncate">{lastName || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="text-muted-foreground flex-shrink-0">Email</span>
+                <span className="font-medium text-right truncate">{email}</span>
               </div>
               <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                 <span className="text-muted-foreground flex-shrink-0">Email</span>
@@ -281,13 +297,22 @@ export default function Profile() {
 
             {/* Desktop: card grid */}
             <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Name */}
+              {/* First name */}
               <div className="p-4 rounded-lg bg-background/50 border border-border/50">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <label className="text-sm text-muted-foreground">Имя</label>
                 </div>
-                <p className="text-lg font-medium">{profile?.name}</p>
+                <p className="text-lg font-medium">{firstName || "—"}</p>
+              </div>
+
+              {/* Last name */}
+              <div className="p-4 rounded-lg bg-background/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <label className="text-sm text-muted-foreground">Фамилия</label>
+                </div>
+                <p className="text-lg font-medium">{lastName || "—"}</p>
               </div>
 
               {/* Email */}
