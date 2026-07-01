@@ -317,7 +317,7 @@ export default function UserManagement() {
       if (error) throw error;
       return updated;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const registerUrl = `/register-staff?invite=${data.token}`;
       const fullUrl = `${window.location.origin}${registerUrl}`;
       const ok = await copyToClipboard(fullUrl);
