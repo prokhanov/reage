@@ -26,14 +26,15 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
 
   const errors = {
     firstName: !formData.firstName?.trim(),
-    lastName: !formData.lastName?.trim(),
+    lastName: false,
     email: !isEmailValid(formData.email),
     phone: !isPhoneValid(formData.phone),
     password: !formData.password || formData.password.length < 6,
     agreed: !agreed,
   };
 
-  const isValid = !errors.firstName && !errors.lastName && !errors.email && !errors.phone && !errors.password && !errors.agreed;
+  const isValid = !errors.firstName && !errors.email && !errors.phone && !errors.password && !errors.agreed;
+
 
   // Пока идёт запрос — не показываем ошибки, чтобы не мигали при ре-рендере после успешного сабмита
   const displayErrors = showErrors && !loading;
