@@ -134,6 +134,12 @@ export default function AnalysesPrint() {
   );
   const patientGender = profile?.gender || null;
 
+  // Скрываем Jivo-виджет на странице печати
+  useEffect(() => {
+    document.body.classList.add("hide-jivo");
+    return () => document.body.classList.remove("hide-jivo");
+  }, []);
+
   // Авто-печать после загрузки
   useEffect(() => {
     if (!loading && !error && auto && analyses.length > 0) {
@@ -229,20 +235,6 @@ export default function AnalysesPrint() {
                 <h2 className="text-lg font-semibold text-primary">
                   Анализ от {formatDate(analysis.date)}
                 </h2>
-                <div className="text-xs text-muted-foreground text-right">
-                  {analysis.lab_name && <div>Лаборатория: {analysis.lab_name}</div>}
-                  {analysis.health_index !== null && (
-                    <div>Индекс здоровья: <span className="font-medium text-foreground">{analysis.health_index}</span></div>
-                  )}
-                  {analysis.biological_age !== null && (
-                    <div>
-                      Био. возраст:{" "}
-                      <span className="font-medium text-foreground">
-                        {(Math.floor(analysis.biological_age * 10) / 10).toFixed(1)} лет
-                      </span>
-                    </div>
-                  )}
-                </div>
               </div>
 
               {values.length === 0 ? (
@@ -271,9 +263,9 @@ export default function AnalysesPrint() {
                           return (
                             <div
                               key={v.id}
-                              className="biomarker-row grid grid-cols-12 gap-3 items-center py-2 px-3 rounded-md border border-border/60 bg-card/40"
+                              className="biomarker-row grid grid-cols-12 gap-2 items-center py-2 px-3 rounded-md border border-border/60 bg-card/40"
                             >
-                              <div className="col-span-4">
+                              <div className="col-span-3">
                                 <div className="font-medium text-sm leading-tight">
                                   {v.biomarkers.name}
                                 </div>
@@ -281,7 +273,7 @@ export default function AnalysesPrint() {
                                   {v.biomarkers.code}
                                 </div>
                               </div>
-                              <div className="col-span-2 text-right">
+                              <div className="col-span-1 text-right">
                                 <div className="font-mono font-semibold text-sm tabular-nums">
                                   {v.value}
                                 </div>
@@ -298,7 +290,7 @@ export default function AnalysesPrint() {
                               <div className="col-span-2">
                                 <BiomarkerStatusBadge statusInfo={statusInfo} />
                               </div>
-                              <div className="col-span-2">
+                              <div className="col-span-4">
                                 <BiomarkerScale
                                   biomarker={v.biomarkers}
                                   value={v.value}
