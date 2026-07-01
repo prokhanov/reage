@@ -184,7 +184,15 @@ export default function Subscription() {
         <p className="text-sm md:text-lg text-muted-foreground max-w-2xl mx-auto px-2">
           Персонализированная медицина нового поколения для вашего здоровья и долголетия
         </p>
+        <p className="text-xs md:text-sm text-muted-foreground max-w-2xl mx-auto px-2 pt-2">
+          Обратите внимание: сразу после оплаты мы попросим вас заполнить короткую
+          анкету о здоровье (пол, возраст, вес, история). Это займёт пару минут и
+          нужно, чтобы рекомендации были персональными.
+        </p>
       </div>
+
+
+
 
       {/* Period Selector */}
       <div className="flex flex-col items-center gap-4 mb-6 md:mb-12">

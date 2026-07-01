@@ -39,13 +39,16 @@ export interface RegisterFormData {
   healthNote: string;
 }
 
+// Регистрация сокращена до одного шага. Заполнение анкеты (шаг 2 и 3) и оплата (шаг 4)
+// теперь вынесены в отдельные флоу: /subscription и /onboarding/*.
+// Старые шаги оставлены в коде закомментированными для быстрого возврата.
 const steps = [
   { id: 1, slug: "account", title: "Аккаунт", description: "Создайте ваш аккаунт", icon: Mail },
-  { id: 2, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
-  // Шаг оплаты временно отключён — оставлен в коде для быстрого возврата.
+  // { id: 2, slug: "profile", title: "О вас", description: "Расскажите о себе", icon: User },
   // { id: 3, slug: "payment", title: "Подписка", description: "Оформление", icon: Lock },
-  { id: 3, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
+  // { id: 4, slug: "health", title: "Здоровье", description: "История болезней", icon: Heart },
 ] as const;
+
 
 const SLUG_TO_STEP: Record<string, number> = Object.fromEntries(steps.map(s => [s.slug, s.id]));
 
@@ -217,10 +220,12 @@ export default function Register() {
       // если токен протух или юзер удалён в БД).
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (!userErr && userData.user) {
-        // Уже залогинен — идём дальше
-        goToStep(2);
+        // Уже залогинен — сразу в демо-дашборд, регистрация окончена.
+        clearDraft();
+        navigate("/dashboard", { replace: true });
         return;
       }
+
 
       // Если токен есть, но невалиден — чистим мусор из localStorage
       if (userErr) {
@@ -273,7 +278,8 @@ export default function Register() {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/register/profile`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -323,10 +329,12 @@ export default function Register() {
 
       toast({
         title: "Аккаунт создан",
-        description: "Теперь расскажите немного о себе.",
+        description: "Добро пожаловать! Ознакомьтесь с демо-панелью.",
       });
 
-      goToStep(2);
+      clearDraft();
+      navigate("/dashboard", { replace: true });
+
 
     } catch (error: any) {
       console.error("SignUp error:", error);
@@ -478,7 +486,9 @@ export default function Register() {
           </div>
 
           {/* Progress */}
+          {steps.length > 1 && (
           <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+
             <div className="flex items-center justify-between mb-6">
               {steps.map((step, index) => {
                 const Icon = step.icon;
@@ -533,8 +543,10 @@ export default function Register() {
               />
             </div>
           </div>
+          )}
 
           {/* Steps Content */}
+
           <Card className="p-6 md:p-8 bg-card md:bg-card/80 md:backdrop-blur-xl border-border/50 shadow-2xl relative overflow-hidden animate-fade-in" style={{ animationDelay: "0.4s", isolation: "isolate", contain: "paint" as any }}>
             <div className="hidden md:block absolute inset-0 bg-gradient-primary opacity-5 rounded-lg" />
             <div className="hidden md:block absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
@@ -551,46 +563,39 @@ export default function Register() {
                   />
                 </div>
               )}
-
+              {/*
+                Шаги 2 (О вас) и 4 (Здоровье) вынесены в /onboarding/* и запускаются
+                автоматически после успешной оплаты подписки. Шаг 3 (оплата) —
+                отдельный флоу /subscription. Оставлено для быстрого возврата:
 
               {currentStep === 2 && (
-                <div className="animate-fade-in">
-                  <RegisterStep2
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    onNext={() => goToStep(3)}
-                    onBack={hasSession ? undefined : () => goToStep(1)}
-                  />
-                </div>
+                <RegisterStep2
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={() => goToStep(3)}
+                  onBack={hasSession ? undefined : () => goToStep(1)}
+                />
               )}
-
-              {/* Шаг оплаты временно отключён — оставлен для быстрого возврата.
               {currentStep === 3 && (
-                <div className="animate-fade-in">
-                  <RegisterStep5
-                    onSubmit={(data: SelectedPlanData) => {
-                      setSelectedPlan(data);
-                      if (data.skipPayment) {
-                        goToStep(4);
-                      }
-                    }}
-                    onBack={() => goToStep(2)}
-                    isSubmitting={false}
-                  />
-                </div>
+                <RegisterStep5
+                  onSubmit={(data: SelectedPlanData) => {
+                    setSelectedPlan(data);
+                    if (data.skipPayment) goToStep(4);
+                  }}
+                  onBack={() => goToStep(2)}
+                  isSubmitting={false}
+                />
+              )}
+              {currentStep === 4 && (
+                <RegisterStep3
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  onNext={handleFinalSubmit}
+                  onBack={() => goToStep(2)}
+                />
               )}
               */}
 
-              {currentStep === 3 && (
-                <div className="animate-fade-in">
-                  <RegisterStep3
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    onNext={handleFinalSubmit}
-                    onBack={() => goToStep(2)}
-                  />
-                </div>
-              )}
             </div>
           </Card>
 

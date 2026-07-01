@@ -64,15 +64,26 @@ export default function SubscriptionSuccess() {
           if (cancelled) return;
           if (sub) {
             setStatus("active");
-            // Если оплата была инициирована из регистрации — возвращаемся в неё
+            // После успешной оплаты — обязательный онбординг, если он ещё не пройден.
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("onboarding_completed")
+              .eq("id", user.id)
+              .maybeSingle();
+            if (cancelled) return;
+            const done = !!(profile as any)?.onboarding_completed;
             const returnTo = registerReturnStepRef.current;
             if (returnTo) {
               window.localStorage.removeItem("reage:register:returnToStep");
               registerReturnStepRef.current = null;
-              setTimeout(() => navigate(`/register/${returnTo}`, { replace: true }), 800);
             }
+            setTimeout(
+              () => navigate(done ? "/dashboard" : "/onboarding/personal", { replace: true }),
+              800,
+            );
             return;
           }
+
         }
       }
 
@@ -109,12 +120,12 @@ export default function SubscriptionSuccess() {
             Спасибо! Добро пожаловать в ReAge.
           </p>
           <Button asChild>
-            {registerReturnStep ? (
-              <Link to={`/register/${registerReturnStep}`}>Закончить регистрацию</Link>
-            ) : (
-              <Link to="/dashboard">Перейти в Контрольную панель</Link>
-            )}
+            <Link to="/onboarding/personal">Заполнить анкету →</Link>
           </Button>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Займёт пару минут. После этого откроется Контрольная панель.
+          </p>
+
         </>
       )}
       {status === "admin_test" && (
