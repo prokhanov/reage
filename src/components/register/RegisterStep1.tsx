@@ -79,7 +79,7 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lastName">Фамилия *</Label>
+            <Label htmlFor="lastName">Фамилия</Label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -88,13 +88,10 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
                 placeholder="Иванов"
                 value={formData.lastName}
                 onChange={(e) => updateFormData({ lastName: e.target.value })}
-                className={cn("pl-10", displayErrors && errors.lastName && "border-destructive focus-visible:ring-destructive")}
-                required
+                className="pl-10"
               />
             </div>
-            {displayErrors && errors.lastName && (
-              <p className="text-xs text-destructive">Введите фамилию</p>
-            )}
+
           </div>
         </div>
 
