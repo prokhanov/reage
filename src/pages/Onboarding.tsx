@@ -350,19 +350,22 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* Пошаговый пропуск — только по одному шагу за раз. На последнем шаге
-              формулировка «Заполнить позже» (паспорт можно донести позднее). */}
-          <div className="mt-6 flex justify-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={step === steps.length ? finalize : skipCurrent}
-              disabled={submitting}
-            >
-              {step === steps.length ? "Заполнить позже" : "Пропустить этот шаг"}
-            </Button>
-          </div>
+          {/* На шагах 1–2 пропуск запрещён (все поля Шага 1 обязательны, Шаг 2
+              можно отправить пустым основной кнопкой). На Шаге 3 — «Заполнить
+              позже», паспорт можно донести. */}
+          {step === steps.length && (
+            <div className="mt-6 flex justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+                onClick={finalize}
+                disabled={submitting}
+              >
+                Заполнить позже
+              </Button>
+            </div>
+          )}
 
           {submitting && (
             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">

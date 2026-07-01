@@ -61,7 +61,7 @@ export function RegisterStep3({ formData, updateFormData, onNext, onBack }: Regi
           Назад
         </Button>
         <Button onClick={onNext} className="flex-1" size="lg">
-          Отправить
+          Далее
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

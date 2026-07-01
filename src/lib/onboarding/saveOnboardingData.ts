@@ -53,11 +53,16 @@ export async function saveOnboardingData(
     profileUpdate.passport_number = opts.passportNumber.replace(/\D/g, "");
   }
 
+  // Диагностика: логируем только ключи (без значений), чтобы видеть какие поля уходят в update.
+  console.info("[onboarding] profile update keys:", Object.keys(profileUpdate));
   const { error: profileErr } = await supabase
     .from("profiles")
     .update(profileUpdate)
     .eq("id", userId);
-  if (profileErr) throw profileErr;
+  if (profileErr) {
+    console.error("[onboarding] profile update failed:", profileErr);
+    throw profileErr;
+  }
 
   // Вес — добавляем запись только если изменился (проверка последней записи).
   if (data.weight) {
