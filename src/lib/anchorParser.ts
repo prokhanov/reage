@@ -139,18 +139,24 @@ export function parseAnchors(
       }
       const rawContent = processedText.slice(tagEnd, endStart).trim();
       const stripped = stripLeadingBiomarkerName(rawContent, data, codeToNames[data] || []);
+      // Явный разделитель `$$` (одиночный или парный) от автора отчёта:
+      // всё, что ПОСЛЕ первого `$$`, вырезается из карточки и выводится
+      // как обычный текст. Это самый надёжный способ разорвать «склейку»,
+      // когда авто-эвристики не срабатывают.
+      const { card: explicitCard, tail: explicitTail } = splitByExplicitDelimiter(stripped);
       // Cut off trailing "transition" paragraphs (e.g. "Далее мы рассмотрим…",
       // "Картина Вашей системы…", "Рекомендации по коррекции вы найдёте…"),
       // which belong to the system-level narrative and must NOT be painted
       // inside the colored biomarker card.
       const { content: biomarkerContent, trailing } = splitTrailingTransition(
-        stripped,
+        explicitCard,
         codeToNames[data] || [],
         data,
       );
       blocks.push({ type: 'biomarker', code: data, content: biomarkerContent });
-      if (trailing) {
-        blocks.push({ type: 'text', content: trailing });
+      const combinedTrailing = [trailing, explicitTail].filter(Boolean).join('\n\n').trim();
+      if (combinedTrailing) {
+        blocks.push({ type: 'text', content: combinedTrailing });
       }
       lastIndex = endAfter;
 
