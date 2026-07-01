@@ -785,35 +785,80 @@ ${globalBiomarkersInstructions}
 
     // === BUILD CRITICAL GUARD — explicit prohibition block for 🔴/🟠 markers ===
     function buildCriticalGuard(analysisValues: any[]): string {
-      const criticalMarkers = analysisValues.map((av: any) => {
+      const criticalMarkers: string[] = [];
+      const acceptableMarkers: string[] = [];
+      const specialistRules: string[] = [];
+
+      for (const av of analysisValues) {
         let nMin = av.biomarkers.normal_min;
         let nMax = av.biomarkers.normal_max;
+        let oMin = av.biomarkers.optimal_min;
+        let oMax = av.biomarkers.optimal_max;
         if (age && patientGenderForSummary && av.biomarkers.range_mode === 'age' && av.biomarkers.age_ranges?.[patientGenderForSummary]) {
           const ar = av.biomarkers.age_ranges[patientGenderForSummary].find((r: any) => age >= r.age_from && age <= r.age_to);
-          if (ar) { nMin = ar.min; nMax = ar.max; }
+          if (ar) {
+            nMin = ar.min; nMax = ar.max;
+            if (ar.optimal_min !== undefined) oMin = ar.optimal_min;
+            if (ar.optimal_max !== undefined) oMax = ar.optimal_max;
+          }
         }
         if ((nMin === null || nMax === null) && patientGenderForSummary === 'male' && av.biomarkers.normal_min_male !== null) { nMin = av.biomarkers.normal_min_male; nMax = av.biomarkers.normal_max_male; }
         else if ((nMin === null || nMax === null) && patientGenderForSummary === 'female' && av.biomarkers.normal_min_female !== null) { nMin = av.biomarkers.normal_min_female; nMax = av.biomarkers.normal_max_female; }
+        if (oMin === null && patientGenderForSummary === 'male' && av.biomarkers.optimal_min_male !== null) { oMin = av.biomarkers.optimal_min_male; oMax = av.biomarkers.optimal_max_male; }
+        else if (oMin === null && patientGenderForSummary === 'female' && av.biomarkers.optimal_min_female !== null) { oMin = av.biomarkers.optimal_min_female; oMax = av.biomarkers.optimal_max_female; }
 
         const isHigh = nMax !== null && av.value > nMax;
         const isLow = nMin !== null && av.value < nMin;
-        if (!isHigh && !isLow) return null;
+        const isOutNorm = isHigh || isLow;
+        const isInOpt = (oMin !== null || oMax !== null)
+          ? (oMin === null || av.value >= oMin) && (oMax === null || av.value <= oMax)
+          : !isOutNorm;
 
-        const direction = isHigh ? 'ВЫСОКАЯ' : 'НИЗКАЯ';
-        const antiDirection = isHigh
-          ? 'НЕ ПИШИ что она снижена, понижена, дефицит, недостаточность'
-          : 'НЕ ПИШИ что она повышена, избыток, превышение';
-        const boundaryStr = isHigh ? `норма до ${nMax}` : `норма от ${nMin}`;
+        // 🟠/🔴 — риск/критично: маркеры вне нормы
+        if (isOutNorm) {
+          const direction = isHigh ? 'ВЫСОКАЯ' : 'НИЗКАЯ';
+          const antiDirection = isHigh
+            ? 'НЕ ПИШИ что она снижена, понижена, дефицит, недостаточность'
+            : 'НЕ ПИШИ что она повышена, избыток, превышение';
+          const boundaryStr = isHigh ? `норма до ${nMax}` : `норма от ${nMin}`;
+          criticalMarkers.push(
+            `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — 🟠/🔴 РИСК/КРИТИЧНО, ${direction} (${boundaryStr}). ${antiDirection}. ЗАПРЕЩЕНО называть «в норме», «в оптимальном диапазоне», «в пределах нормы», «хороший результат».`
+          );
 
-        return `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — КРИТИЧЕСКИ/РИСКОВО ${direction} (${boundaryStr}). ${antiDirection}.`;
-      }).filter(Boolean);
+          // Специалист-ориентированные правила
+          const codeUpper = String(av.biomarkers.code || '').toUpperCase();
+          if ((codeUpper === 'LP(A)' || codeUpper === 'LPA') && isHigh) {
+            specialistRules.push(
+              `- Lp(a) повышен (${av.value} ${av.biomarkers.unit}, норма до ${nMax}). ОБЯЗАТЕЛЬНО в разделе рекомендаций и в назначениях укажи консультацию кардиолога (или липидолога) для оценки сердечно-сосудистого риска и подбора терапии. Не ограничивайся только модификацией образа жизни — Lp(a) генетически детерминирован и требует врачебного контроля.`
+            );
+          }
+        } else if (!isInOpt) {
+          // 🟡 — допустимо: в норме, но вне оптимума
+          const side = (oMax !== null && av.value > oMax) ? `выше оптимума ${oMax}`
+                     : (oMin !== null && av.value < oMin) ? `ниже оптимума ${oMin}`
+                     : 'вне оптимального коридора';
+          acceptableMarkers.push(
+            `- ${av.biomarkers.name} (${av.biomarkers.code}): ${av.value} ${av.biomarkers.unit} — 🟡 ДОПУСТИМО (${side}, норма ${nMin ?? '—'}–${nMax ?? '—'}). ЗАПРЕЩЕНО называть «оптимальным», «в оптимальном диапазоне», «идеальным». Пиши: «в пределах нормы, но вне целевого оптимума» или «допустимо, есть куда стремиться».`
+          );
+        }
+      }
 
-      if (criticalMarkers.length === 0) return '';
-      return `\n⚠️ КРИТИЧЕСКИЕ ФАКТЫ — НЕ ПРОТИВОРЕЧЬ:\n${criticalMarkers.join('\n')}\n`;
+      const parts: string[] = [];
+      if (criticalMarkers.length > 0) {
+        parts.push(`⚠️ КРИТИЧЕСКИЕ ФАКТЫ — НЕ ПРОТИВОРЕЧЬ:\n${criticalMarkers.join('\n')}`);
+      }
+      if (acceptableMarkers.length > 0) {
+        parts.push(`🟡 ЗОНА «ДОПУСТИМО» — СТРОГО СОБЛЮДАЙ ТЕРМИНОЛОГИЮ:\n${acceptableMarkers.join('\n')}`);
+      }
+      if (specialistRules.length > 0) {
+        parts.push(`👨‍⚕️ ОБЯЗАТЕЛЬНЫЕ КОНСУЛЬТАЦИИ СПЕЦИАЛИСТОВ:\n${specialistRules.join('\n')}`);
+      }
+      return parts.length > 0 ? '\n' + parts.join('\n\n') + '\n' : '';
     }
 
     const criticalGuardBlock = buildCriticalGuard(analysis.analysis_values);
-    console.log(`Critical guard: ${criticalGuardBlock ? criticalGuardBlock.split('\n').length - 2 + ' markers' : 'none'}`);
+    console.log(`Critical guard block length: ${criticalGuardBlock.length}`);
+
 
     // === SCAN CONTRADICTIONS — post-generation regex scanner ===
     function scanContradictions(
