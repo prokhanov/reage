@@ -29,10 +29,9 @@ export function ThemedLogo({ className, alt = "ReAge", eager = false }: ThemedLo
       className={cn(className)}
       width={500}
       height={681}
-      decoding="async"
+      decoding={eager ? "sync" : "async"}
       loading={eager ? "eager" : "lazy"}
-      // @ts-ignore — fetchpriority валидный HTML-атрибут
-      fetchpriority={eager ? "high" : "auto"}
+      fetchPriority={eager ? "high" : "auto"}
     />
   );
 }
