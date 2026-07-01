@@ -58,10 +58,30 @@ function normalizeName(s: string): string {
   return s
     .toLowerCase()
     .replace(/[ёе]/g, "е")
+    .replace(/α/g, "a")
+    .replace(/β/g, "b")
     .replace(/[^a-zа-я0-9]+/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
+
+// Соответствие: нормализованное альтернативное имя → CODE биомаркера.
+// Используется, если и AI, и точный матч по имени не сработали.
+const NAME_ALIASES: Record<string, string> = {
+  // ФНО / TNF-α
+  "фно": "TNF-α",
+  "фно a": "TNF-α",
+  "фно альфа": "TNF-α",
+  "фно фактор некроза опухоли": "TNF-α",
+  "фактор некроза опухоли": "TNF-α",
+  "фактор некроза опухоли a": "TNF-α",
+  "фактор некроза опухоли альфа": "TNF-α",
+  "tnf": "TNF-α",
+  "tnf a": "TNF-α",
+  "tnf alpha": "TNF-α",
+  "tumor necrosis factor": "TNF-α",
+  "tumor necrosis factor alpha": "TNF-α",
+};
 
 const UNIT_ALIASES: Record<string, string> = {
   "сек": "с",
