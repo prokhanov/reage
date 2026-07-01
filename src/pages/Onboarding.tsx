@@ -168,30 +168,28 @@ export default function Onboarding() {
     }
   };
 
-  /** Автосохранение на промежуточных шагах — без onboarding_completed. */
-  const saveStep = async (): Promise<boolean> => {
-    if (!userId) return false;
-    setSubmitting(true);
-    try {
-      await saveOnboardingData(userId, formData, { skipComplete: true });
-      return true;
-    } catch (e: any) {
-      console.error("Onboarding step save failed:", e);
+  /** Фоновое сохранение — не блокирует переход к следующему шагу. */
+  const saveStepInBackground = (snapshot: RegisterFormData) => {
+    if (!userId) return;
+    saveOnboardingData(userId, snapshot, { skipComplete: true }).catch((e: any) => {
+      console.error("Onboarding step bg save failed:", e);
       toast({
         title: "Не удалось сохранить шаг",
-        description: e?.message || "Попробуйте ещё раз",
+        description:
+          e?.message || "Вернитесь на предыдущий шаг и попробуйте ещё раз",
         variant: "destructive",
       });
-      return false;
-    } finally {
-      setSubmitting(false);
-    }
+    });
   };
 
-  const handleNext = async (nextStep: number) => {
-    const ok = await saveStep();
-    if (ok) goToStep(nextStep);
+  const handleNext = (nextStep: number) => {
+    // Снимок данных на момент клика — чтобы правки на след. шаге
+    // не переписали фоновую запись предыдущего.
+    const snapshot: RegisterFormData = { ...formData };
+    goToStep(nextStep);
+    saveStepInBackground(snapshot);
   };
+
 
   /** Финальное сохранение всей анкеты — ставит onboarding_completed=true. */
   const finalize = async () => {
