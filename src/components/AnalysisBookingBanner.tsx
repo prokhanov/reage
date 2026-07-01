@@ -190,15 +190,16 @@ export function AnalysisBookingBanner() {
       title: "Ожидайте визита специалиста",
       subtitle: "{date} в {time} • {address}",
     },
-    received: {
-      title: "Ваши анализы получены!",
-      subtitle: "Скоро результаты появятся. Обычно это занимает 5 дней",
-    },
     collected: {
-      title: "Анализы обрабатываются",
-      subtitle: "Результаты скоро появятся в вашем профиле",
+      title: "Анализ в работе",
+      subtitle: "Биоматериал передан в лабораторию — ожидаем результаты",
+    },
+    report_pending: {
+      title: "Формируем ваш персональный отчёт",
+      subtitle: "Обычно подготовка занимает 1–2 рабочих дня",
     },
   };
+
 
   const text = getStatusText(modeSettings, statusKey, fallbackMap[statusKey] ?? fallbackMap.empty);
 
