@@ -217,7 +217,7 @@ export function AnalysisBookingBanner() {
   }
 
   // Decide whether to show action button
-  const terminalStatuses = ["received", "collected", "scheduled"];
+  const terminalStatuses = ["collected", "report_pending", "scheduled"];
   const showButton = !terminalStatuses.includes(statusKey);
   let buttonLabel = "Назначить дату";
   if (mode === "phone") {
