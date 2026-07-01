@@ -224,11 +224,11 @@ export default function UserManagement() {
     return matchesSearch && matchesRole;
   });
 
-  const handleSuspendUser = async (userId: string, userName: string) => {
-    if (!confirm(`Приостановить доступ для ${userName}?`)) return;
-
+  const confirmSuspendUser = async () => {
+    if (!pendingSuspend) return;
+    const { id: userId, name: userName } = pendingSuspend;
+    setSuspendingId(userId);
     try {
-      // Удаляем все роли пользователя (кроме patient)
       const { error } = await supabase
         .from("user_roles")
         .delete()
@@ -242,20 +242,25 @@ export default function UserManagement() {
         description: `Пользователь ${userName} больше не имеет административных прав`,
       });
 
-      refetch();
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setPendingSuspend(null);
     } catch (error: any) {
       toast({
         title: "Ошибка",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setSuspendingId(null);
     }
   };
 
-  const handleDeleteUser = async (userId: string, userName: string, type: "active" | "pending", inviteToken?: string) => {
+  const confirmDeleteUser = async () => {
+    if (!pendingDelete) return;
+    const { id: userId, name: userName, type, inviteToken } = pendingDelete;
+    setDeletingId(userId);
     try {
       if (type === "pending") {
-        // Удалить приглашение
         const { error } = await supabase
           .from("invite_tokens")
           .delete()
@@ -263,31 +268,34 @@ export default function UserManagement() {
 
         if (error) throw error;
       } else {
-        // Для активного пользователя вызываем Edge Function для полного удаления
         const { data, error } = await supabase.functions.invoke('delete-user', {
           body: { userId }
         });
 
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-
-        console.log('User deleted successfully:', data);
       }
 
       toast({
-        title: "Пользователь удален",
-        description: `${userName} был успешно удален из системы`,
+        title: type === "pending" ? "Приглашение удалено" : "Пользователь удалён",
+        description: type === "pending"
+          ? `Приглашение для ${userName} удалено`
+          : `${userName} был успешно удалён из системы`,
       });
 
-      refetch();
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setPendingDelete(null);
     } catch (error: any) {
       console.error('Delete user error:', error);
       toast({
-        title: "Ошибка удаления",
+        title: "Не удалось удалить",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setDeletingId(null);
     }
+
   };
 
   const regenerateInviteTokenMutation = useMutation({
