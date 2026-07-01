@@ -857,7 +857,7 @@ export default function UserManagement() {
                                               size="icon"
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleSuspendUser(user.id, user.name);
+                                                setPendingSuspend({ id: user.id, name: user.name });
                                               }}
                                             >
                                               <Pause className="w-4 h-4 text-orange-500" />
