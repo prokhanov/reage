@@ -378,14 +378,8 @@ export default function UserManagement() {
       });
     }
 
-            >
-              Открыть ссылку
-            </Button>
-          </div>
-        ),
-      });
-    }
   };
+
 
   const handleCheckInviteToken = async (token: string) => {
     const { data, error } = await supabase
