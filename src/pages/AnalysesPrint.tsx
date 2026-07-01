@@ -263,9 +263,9 @@ export default function AnalysesPrint() {
                           return (
                             <div
                               key={v.id}
-                              className="biomarker-row grid grid-cols-12 gap-3 items-center py-2 px-3 rounded-md border border-border/60 bg-card/40"
+                              className="biomarker-row grid grid-cols-12 gap-2 items-center py-2 px-3 rounded-md border border-border/60 bg-card/40"
                             >
-                              <div className="col-span-4">
+                              <div className="col-span-3">
                                 <div className="font-medium text-sm leading-tight">
                                   {v.biomarkers.name}
                                 </div>
@@ -273,7 +273,7 @@ export default function AnalysesPrint() {
                                   {v.biomarkers.code}
                                 </div>
                               </div>
-                              <div className="col-span-2 text-right">
+                              <div className="col-span-1 text-right">
                                 <div className="font-mono font-semibold text-sm tabular-nums">
                                   {v.value}
                                 </div>
@@ -290,7 +290,7 @@ export default function AnalysesPrint() {
                               <div className="col-span-2">
                                 <BiomarkerStatusBadge statusInfo={statusInfo} />
                               </div>
-                              <div className="col-span-2">
+                              <div className="col-span-4">
                                 <BiomarkerScale
                                   biomarker={v.biomarkers}
                                   value={v.value}
