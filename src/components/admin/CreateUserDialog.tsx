@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { BirthDatePicker } from "@/components/BirthDatePicker";
+import { copyToClipboard } from "@/lib/copyToClipboard";
+import { Copy, Check } from "lucide-react";
+
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -20,8 +23,11 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [justCopied, setJustCopied] = useState(false);
+
   const [formData, setFormData] = useState({
+
     email: "",
     password: "",
     firstName: "",
@@ -124,25 +130,20 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
 
       if (inviteError) throw inviteError;
 
-    // Скопировать ссылку в буфер (с fallback для старых браузеров)
-    try {
-      await navigator.clipboard.writeText(fullUrl);
+      // Пытаемся скопировать ссылку, но всегда показываем её в диалоге
+      const copied = await copyToClipboard(fullUrl);
       toast({
         title: "Приглашение создано",
-        description: "Ссылка скопирована в буфер обмена",
+        description: copied
+          ? "Ссылка скопирована в буфер обмена"
+          : "Скопируйте ссылку из окна вручную",
       });
-    } catch (clipboardError) {
-      // Fallback: показать ссылку для ручного копирования
-      toast({
-        title: "Приглашение создано",
-        description: fullUrl,
-        duration: 10000,
-      });
-    }
 
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["invite-tokens"] });
-      onOpenChange(false);
+
+      setGeneratedUrl(fullUrl);
+      setJustCopied(copied);
 
       setFormData({
         email: "",
@@ -153,6 +154,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
         birthDate: undefined,
         selectedRoles: [],
       });
+
     } catch (error: any) {
       console.error("Create invite error:", error);
       toast({
@@ -177,13 +179,72 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   return (
     <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>Добавить пользователя</DialogTitle>
+        <DialogTitle>{generatedUrl ? "Приглашение создано" : "Добавить пользователя"}</DialogTitle>
         <DialogDescription>
-          Введите данные пользователя. Ссылка для регистрации будет скопирована в буфер обмена.
+          {generatedUrl
+            ? "Отправьте эту ссылку сотруднику. Она открывает форму регистрации по приглашению."
+            : "Введите данные пользователя. Ссылка для регистрации будет скопирована в буфер обмена."}
         </DialogDescription>
       </DialogHeader>
 
+      {generatedUrl ? (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="invite-url">Ссылка приглашения</Label>
+            <div className="flex gap-2">
+              <Input
+                id="invite-url"
+                readOnly
+                value={generatedUrl}
+                onFocus={(e) => e.currentTarget.select()}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={async () => {
+                  const ok = await copyToClipboard(generatedUrl);
+                  setJustCopied(ok);
+                  toast({
+                    title: ok ? "Скопировано" : "Скопируйте вручную",
+                    description: ok ? "Ссылка в буфере обмена" : "Выделите поле и нажмите Ctrl/⌘+C",
+                  });
+                }}
+              >
+                {justCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Ссылка одноразовая и действует до её использования.
+            </p>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setGeneratedUrl(null);
+                setJustCopied(false);
+              }}
+            >
+              Создать ещё
+            </Button>
+            <Button
+              type="button"
+              className="flex-1"
+              onClick={() => {
+                setGeneratedUrl(null);
+                setJustCopied(false);
+                onOpenChange(false);
+              }}
+            >
+              Готово
+            </Button>
+          </div>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-4">
+
         <div className="space-y-2">
           <Label htmlFor="email">Email *</Label>
           <Input
@@ -276,6 +337,8 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
           </Button>
         </div>
       </form>
+      )}
     </DialogContent>
+
   );
 }

@@ -3111,6 +3111,14 @@ export type Database = {
         | "analysis_bookings"
         | "my_assignments"
         | "promo_codes"
+        | "subscription_plans"
+        | "payment_gateway"
+        | "email_settings"
+        | "sms_settings"
+        | "telegram_settings"
+        | "lab_locations"
+        | "report_visuals"
+        | "scale_preview"
       analysis_status: "on_review" | "processed"
       app_role: "user" | "admin" | "superadmin" | "doctor" | "patient"
       drip_delay_unit: "minutes" | "hours" | "days"
@@ -3274,6 +3282,14 @@ export const Constants = {
         "analysis_bookings",
         "my_assignments",
         "promo_codes",
+        "subscription_plans",
+        "payment_gateway",
+        "email_settings",
+        "sms_settings",
+        "telegram_settings",
+        "lab_locations",
+        "report_visuals",
+        "scale_preview",
       ],
       analysis_status: ["on_review", "processed"],
       app_role: ["user", "admin", "superadmin", "doctor", "patient"],

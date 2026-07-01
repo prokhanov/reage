@@ -28,14 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const ADMIN_MODULES = [
-  { value: "ai_settings", label: "Настройки AI" },
-  { value: "data_management", label: "Управление данными" },
-  { value: "patients", label: "Пациенты" },
-  { value: "user_management", label: "Управление пользователями" },
-  { value: "analysis_bookings", label: "Записи на анализы" },
-  { value: "my_assignments", label: "Назначены мне" },
-];
+import { ADMIN_MODULES, type AdminModule } from "@/lib/adminModules";
+
 
 interface Role {
   id: string;
@@ -103,7 +97,7 @@ export function RoleManagementCard() {
           .insert(
             formData.permissions.map((module) => ({
               role_id: role.id,
-              module: module as "ai_settings" | "data_management" | "patients" | "user_management",
+              module: module as AdminModule,
               enabled: true,
             }))
           );
@@ -151,7 +145,7 @@ export function RoleManagementCard() {
           .insert(
             formData.permissions.map((module) => ({
               role_id: editingRole.id,
-              module: module as "ai_settings" | "data_management" | "patients" | "user_management",
+              module: module as AdminModule,
               enabled: true,
             }))
           );

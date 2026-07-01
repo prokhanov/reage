@@ -31,7 +31,6 @@ export default function RegisterStaff() {
 
   useEffect(() => {
     const validateInvite = async () => {
-      // Сначала проверяем, залогинен ли пользователь
       setSessionLoading(true);
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = !!sessionData.session;
@@ -39,78 +38,59 @@ export default function RegisterStaff() {
       setSessionLoading(false);
 
       const token = searchParams.get("invite");
-      
       console.info("Invite link opened", token, { hasSession });
-      
+
       if (!token) {
         setInviteError("Отсутствует токен приглашения");
         return;
       }
 
-      // Если пользователь залогинен, не проверяем токен
-      if (hasSession) {
-        return;
-      }
+      if (hasSession) return;
 
-      const { data, error } = await supabase
-        .from("invite_tokens")
-        .select("*")
-        .eq("token", token)
-        .maybeSingle();
-
-      console.log("Token validation:", { token, data, error });
+      // Валидация через edge-функцию с service role — обходит RLS для гостей
+      const { data, error } = await supabase.functions.invoke("validate-invite-token", {
+        body: { token },
+      });
 
       if (error) {
         console.error("Invite validation error:", error);
-        setInviteError("Ошибка проверки приглашения");
+        setInviteError("Не удалось проверить приглашение. Попробуйте позже.");
         return;
       }
 
-      if (!data) {
-        console.warn("Token not found:", token);
-        setInviteError("Недействительное приглашение. Попросите администратора обновить ссылку.");
+      if (!data?.ok) {
+        const map: Record<string, string> = {
+          not_found: "Недействительное приглашение. Попросите администратора обновить ссылку.",
+          used: "Приглашение уже использовано",
+          expired: "Срок действия приглашения истёк",
+          missing_token: "Отсутствует токен приглашения",
+        };
+        setInviteError(map[data?.error] ?? "Не удалось проверить приглашение");
         return;
       }
 
-      if (data.used_by) {
-        console.warn("Token already used:", token);
-        setInviteError("Приглашение уже использовано");
-        return;
-      }
-
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        setInviteError("Срок действия приглашения истек");
-        return;
-      }
-
-      // Получить display_name для роли
-      const { data: roleData } = await supabase
-        .from("custom_roles")
-        .select("display_name")
-        .eq("name", data.role)
-        .maybeSingle();
-
+      const invite = data.invite;
       setInviteToken({
-        ...data,
-        role_display_name: roleData?.display_name || data.role
+        token,
+        role: invite.role,
+        role_display_name: invite.role_display_name,
+        invited_email: invite.invited_email,
+        expires_at: invite.expires_at,
+        metadata: invite.metadata,
       });
-      
-      // Предзаполнить данные из metadata
-      if (data.metadata && typeof data.metadata === 'object') {
-        const metadata = data.metadata as any;
-        setFormData(prev => ({
-          ...prev,
-          firstName: metadata.firstName || "",
-          lastName: metadata.lastName || "",
-          email: data.invited_email || prev.email,
-        }));
-      } else if (data.invited_email) {
-        setFormData(prev => ({ ...prev, email: data.invited_email }));
-      }
+
+      const metadata = invite.metadata && typeof invite.metadata === "object" ? invite.metadata : {};
+      setFormData((prev) => ({
+        ...prev,
+        firstName: metadata.firstName || "",
+        lastName: metadata.lastName || "",
+        email: invite.invited_email || prev.email,
+      }));
     };
 
     validateInvite();
   }, [searchParams]);
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

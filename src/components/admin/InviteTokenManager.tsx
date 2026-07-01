@@ -171,7 +171,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
       });
       refetch();
       // Auto-copy new link
-      await copyToClipboard(data.token, data.role);
+      await copyToClipboardHandler(data.token, data.role);
     },
     onError: (error) => {
       toast({
@@ -182,48 +182,28 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
     },
   });
 
-  const copyToClipboard = async (token: string, role: string) => {
+  const copyToClipboardHandler = async (token: string, role: string) => {
     const registerPath = role === 'patient' ? '/register' : '/register-staff';
     const inviteUrl = `${window.location.origin}${registerPath}?invite=${token}`;
-    
-    try {
-      await navigator.clipboard.writeText(inviteUrl);
+
+    const { copyToClipboard } = await import("@/lib/copyToClipboard");
+    const ok = await copyToClipboard(inviteUrl);
+    if (ok) {
       setCopiedToken(token);
       toast({
         title: "Скопировано",
         description: "Пригласительная ссылка скопирована в буфер обмена",
       });
       setTimeout(() => setCopiedToken(null), 2000);
-    } catch (error) {
-      console.error("Clipboard write failed:", error);
+    } else {
       toast({
-        title: "Ссылка для приглашения",
+        title: "Скопируйте ссылку вручную",
         description: inviteUrl,
         duration: 15000,
-        action: (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                navigator.clipboard.writeText(inviteUrl).then(() => {
-                  toast({ title: "Скопировано!", duration: 2000 });
-                });
-              }}
-            >
-              Скопировать ещё раз
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => window.open(inviteUrl, "_blank")}
-            >
-              Открыть ссылку
-            </Button>
-          </div>
-        ),
       });
     }
   };
+
 
   const getStatusBadge = (token: any) => {
     if (token.used_at) {
@@ -321,7 +301,7 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => copyToClipboard(token.token, token.role)}
+                              onClick={() => copyToClipboardHandler(token.token, token.role)}
                               disabled={token.used_at !== null || (token.expires_at && new Date(token.expires_at) < new Date())}
                             >
                               {copiedToken === token.token ? (

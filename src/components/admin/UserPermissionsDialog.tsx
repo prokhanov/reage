@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ADMIN_MODULES, type AdminModule } from "@/lib/adminModules";
 
 interface UserPermissionsDialogProps {
   userId: string | null;
@@ -28,12 +29,6 @@ interface UserPermissionsDialogProps {
   inviteToken?: string;
 }
 
-const ADMIN_MODULES = [
-  { value: "ai_settings", label: "Настройки AI" },
-  { value: "data_management", label: "Управление данными" },
-  { value: "patients", label: "Пациенты" },
-  { value: "user_management", label: "Управление пользователями" },
-];
 
 export function UserPermissionsDialog({ userId, onClose, onUpdate, isPending = false, inviteToken }: UserPermissionsDialogProps) {
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
@@ -199,11 +194,12 @@ export function UserPermissionsDialog({ userId, onClose, onUpdate, isPending = f
         } else {
           const { error: insertError } = await supabase
             .from("admin_permissions")
-            .insert({ 
-              user_id: userId, 
-              module: module as "ai_settings" | "data_management" | "patients" | "user_management", 
-              enabled: true 
+            .insert({
+              user_id: userId,
+              module: module as AdminModule,
+              enabled: true,
             });
+
           
           if (insertError) throw insertError;
         }
