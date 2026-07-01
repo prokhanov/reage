@@ -26,6 +26,8 @@ function parseLocalDate(s: string) {
 
 interface Profile {
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   birth_date: string;
   gender: string;
   height: number | null;
@@ -40,6 +42,13 @@ interface Profile {
   hrt_type?: string | null;
   hrt_route?: string | null;
   hrt_start_date?: string | null;
+}
+
+function splitFullName(name: string): { first: string; last: string } {
+  const parts = (name || "").trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return { first: "", last: "" };
+  const [first, ...rest] = parts;
+  return { first, last: rest.join(" ") };
 }
 
 interface EditProfileDialogProps {
