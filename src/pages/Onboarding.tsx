@@ -270,7 +270,6 @@ export default function Onboarding() {
               formData={formData}
               updateFormData={updateFormData}
               onNext={() => goToStep(2)}
-              requireName
             />
           )}
           {step === 2 && (
