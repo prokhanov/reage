@@ -35,11 +35,16 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
 
   const isValid = !errors.firstName && !errors.lastName && !errors.email && !errors.phone && !errors.password && !errors.agreed;
 
+  // Пока идёт запрос — не показываем ошибки, чтобы не мигали при ре-рендере после успешного сабмита
+  const displayErrors = showErrors && !loading;
+
   const handleNext = () => {
-    setShowErrors(true);
-    if (isValid) {
-      onNext();
+    if (!isValid) {
+      setShowErrors(true);
+      return;
     }
+    setShowErrors(false);
+    onNext();
   };
 
   return (
@@ -63,11 +68,11 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
                 placeholder="Иван"
                 value={formData.firstName}
                 onChange={(e) => updateFormData({ firstName: e.target.value })}
-                className={cn("pl-10", showErrors && errors.firstName && "border-destructive focus-visible:ring-destructive")}
+                className={cn("pl-10", displayErrors && errors.firstName && "border-destructive focus-visible:ring-destructive")}
                 required
               />
             </div>
-            {showErrors && errors.firstName && (
+            {displayErrors && errors.firstName && (
               <p className="text-xs text-destructive">Введите имя</p>
             )}
           </div>
@@ -82,11 +87,11 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
                 placeholder="Иванов"
                 value={formData.lastName}
                 onChange={(e) => updateFormData({ lastName: e.target.value })}
-                className={cn("pl-10", showErrors && errors.lastName && "border-destructive focus-visible:ring-destructive")}
+                className={cn("pl-10", displayErrors && errors.lastName && "border-destructive focus-visible:ring-destructive")}
                 required
               />
             </div>
-            {showErrors && errors.lastName && (
+            {displayErrors && errors.lastName && (
               <p className="text-xs text-destructive">Введите фамилию</p>
             )}
           </div>
@@ -105,11 +110,11 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
                 placeholder="your@email.com"
                 value={formData.email}
                 onChange={(e) => updateFormData({ email: e.target.value })}
-                className={cn("pl-10", showErrors && errors.email && "border-destructive focus-visible:ring-destructive")}
+                className={cn("pl-10", displayErrors && errors.email && "border-destructive focus-visible:ring-destructive")}
                 required
               />
             </div>
-            {showErrors && errors.email && (
+            {displayErrors && errors.email && (
               <p className="text-xs text-destructive">
                 Введите корректный email
               </p>
@@ -125,10 +130,10 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
                 value={formData.phone}
                 onChange={(v) => updateFormData({ phone: v })}
                 placeholder="+7 (999) 123-45-67"
-                className={cn("pl-10 w-full", showErrors && errors.phone && "border-destructive focus-visible:ring-destructive")}
+                className={cn("pl-10 w-full", displayErrors && errors.phone && "border-destructive focus-visible:ring-destructive")}
               />
             </div>
-            {showErrors && errors.phone && (
+            {displayErrors && errors.phone && (
               <p className="text-xs text-destructive">
                 Введите номер телефона полностью
               </p>
@@ -145,14 +150,14 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
               placeholder="Минимум 6 символов"
               value={formData.password}
               onChange={(e) => updateFormData({ password: e.target.value })}
-              className={cn("pl-10", showErrors && errors.password && "border-destructive focus-visible:ring-destructive")}
+              className={cn("pl-10", displayErrors && errors.password && "border-destructive focus-visible:ring-destructive")}
               required
             />
           </div>
           <p className="text-xs text-muted-foreground">
             Пароль должен содержать минимум 6 символов
           </p>
-          {showErrors && errors.password && (
+          {displayErrors && errors.password && (
             <p className="text-xs text-destructive">Пароль слишком короткий</p>
           )}
         </div>
@@ -160,7 +165,7 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
 
       <div className={cn(
         "flex items-start gap-3 rounded-lg border bg-muted/30 p-4",
-        showErrors && errors.agreed ? "border-destructive" : "border-border/60"
+        displayErrors && errors.agreed ? "border-destructive" : "border-border/60"
       )}>
         <Checkbox
           id="agree"
@@ -188,7 +193,7 @@ export function RegisterStep1({ formData, updateFormData, onNext, loading = fals
           .
         </Label>
       </div>
-      {showErrors && errors.agreed && (
+      {displayErrors && errors.agreed && (
         <p className="text-xs text-destructive -mt-4">Необходимо принять условия</p>
       )}
 
