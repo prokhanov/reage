@@ -114,10 +114,13 @@ serve(async (req) => {
       .from('profiles')
       .insert({
         id: userId,
-        name: `${firstName} ${lastName}`,
+        name: `${firstName} ${lastName}`.trim(),
+        first_name: firstName,
+        last_name: lastName,
         birth_date: birthDate,
         gender: gender,
       });
+
 
     if (profileError) {
       console.error('Error creating profile:', profileError);
