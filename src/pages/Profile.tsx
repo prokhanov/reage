@@ -27,6 +27,7 @@ import { performSafeLogout } from "@/lib/authLogout";
 
 interface Profile {
   name: string;
+  email?: string | null;
   birth_date: string;
   gender: string;
   height: number | null;
