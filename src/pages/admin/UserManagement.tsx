@@ -950,6 +950,52 @@ export default function UserManagement() {
           }}
         />
       )}
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o && !deletingId) setPendingDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDelete?.type === "pending" ? "Удалить приглашение?" : "Удалить пользователя?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.type === "pending"
+                ? `Приглашение для ${pendingDelete?.name} будет удалено, а ссылка перестанет работать.`
+                : `Пользователь ${pendingDelete?.name} и все его данные (роли, разрешения, история) будут удалены безвозвратно. Это действие нельзя отменить.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!deletingId}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeleteUser(); }}
+              disabled={!!deletingId}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingId ? "Удаление…" : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingSuspend} onOpenChange={(o) => { if (!o && !suspendingId) setPendingSuspend(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Приостановить доступ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              У пользователя {pendingSuspend?.name} будут сняты все административные роли. Пациентская роль сохранится.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!suspendingId}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmSuspendUser(); }}
+              disabled={!!suspendingId}
+            >
+              {suspendingId ? "Обработка…" : "Приостановить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
