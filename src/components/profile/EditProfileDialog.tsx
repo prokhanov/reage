@@ -108,7 +108,9 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
   }, [profile]);
 
   const handleSave = async () => {
-    if (!formData.name || !formData.birth_date) {
+    const firstName = formData.first_name.trim();
+    const lastName = formData.last_name.trim();
+    if (!firstName || !formData.birth_date) {
       toast({
         title: "Ошибка",
         description: "Заполните все обязательные поля",
@@ -122,11 +124,14 @@ export function EditProfileDialog({ open, onOpenChange, profile, userId, onSucce
       if (!userId) throw new Error("Не авторизован");
 
       const weightValue = formData.weight ? parseFloat(formData.weight) : null;
+      const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
       const { error, data } = await supabase
         .from("profiles")
         .update({
-          name: formData.name,
+          name: fullName,
+          first_name: firstName,
+          last_name: lastName || null,
           gender: formData.gender,
           birth_date: format(formData.birth_date, 'yyyy-MM-dd'),
           height: formData.height ? parseFloat(formData.height) : null,
