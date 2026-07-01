@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, Check, Trash2, UserPlus, Calendar, RefreshCw } from "lucide-react";
+import { Copy, Check, Trash2, UserPlus, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { copyToClipboard } from "@/lib/copyToClipboard";
 import {
   Select,
   SelectContent,
@@ -164,14 +165,15 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
       if (error) throw error;
       return data;
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
+      const registerPath = data.role === 'patient' ? '/register' : '/register-staff';
+      const inviteUrl = `${window.location.origin}${registerPath}?invite=${data.token}`;
       toast({
         title: "Ссылка перегенерирована",
-        description: "Новая пригласительная ссылка создана",
+        description: inviteUrl,
+        duration: 15000,
       });
       refetch();
-      // Auto-copy new link
-      await copyToClipboardHandler(data.token, data.role);
     },
     onError: (error) => {
       toast({
@@ -186,7 +188,6 @@ export function InviteTokenManager({ onInviteCreated }: InviteTokenManagerProps)
     const registerPath = role === 'patient' ? '/register' : '/register-staff';
     const inviteUrl = `${window.location.origin}${registerPath}?invite=${token}`;
 
-    const { copyToClipboard } = await import("@/lib/copyToClipboard");
     const ok = await copyToClipboard(inviteUrl);
     if (ok) {
       setCopiedToken(token);

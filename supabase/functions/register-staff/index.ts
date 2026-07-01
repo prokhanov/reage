@@ -1,22 +1,48 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+const enumRoles = new Set(["superadmin", "admin", "doctor", "patient", "user"]);
+const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { inviteToken, email, password, firstName, lastName } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const inviteToken = asString(body.inviteToken);
+    const email = asString(body.email).toLowerCase();
+    const password = asString(body.password);
+    const firstName = asString(body.firstName);
+    const lastName = asString(body.lastName);
+
+    if (!uuidRe.test(inviteToken)) return json({ error: 'Некорректный токен приглашения' }, 400);
+    if (!emailRe.test(email)) return json({ error: 'Некорректный email' }, 400);
+    if (password.length < 6) return json({ error: 'Пароль должен содержать минимум 6 символов' }, 400);
+    if (!firstName) return json({ error: 'Укажите имя' }, 400);
+    if (firstName.length > 100) return json({ error: 'Имя слишком длинное' }, 400);
+    if (!lastName) return json({ error: 'Укажите фамилию' }, 400);
+    if (lastName.length > 100) return json({ error: 'Фамилия слишком длинная' }, 400);
 
     console.log('Starting staff registration for:', email);
 
-    // Create Supabase Admin client with service role
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -28,117 +54,129 @@ serve(async (req) => {
       }
     );
 
-    // 1. Validate invite token
     const { data: tokenData, error: tokenError } = await supabaseAdmin
       .from('invite_tokens')
       .select('*')
       .eq('token', inviteToken)
-      .single();
+      .maybeSingle();
 
     if (tokenError || !tokenData) {
       console.error('Invalid invite token:', tokenError);
-      return new Response(
-        JSON.stringify({ error: 'Недействительный токен приглашения' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Недействительный токен приглашения' }, 400);
     }
 
     if (tokenData.used_by) {
       console.error('Token already used');
-      return new Response(
-        JSON.stringify({ error: 'Токен уже использован' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Приглашение уже использовано' }, 400);
     }
 
     if (tokenData.expires_at && new Date(tokenData.expires_at) < new Date()) {
       console.error('Token expired');
-      return new Response(
-        JSON.stringify({ error: 'Срок действия токена истек' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Срок действия приглашения истёк' }, 400);
     }
 
-    // Validate email matches invited_email if specified
-    if (tokenData.invited_email && tokenData.invited_email !== email) {
+    if (tokenData.invited_email && tokenData.invited_email.toLowerCase() !== email) {
       console.error('Email mismatch:', email, 'vs', tokenData.invited_email);
-      return new Response(
-        JSON.stringify({ error: 'Email не совпадает с приглашением' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Email не совпадает с приглашением' }, 400);
     }
 
-    // 2. Check if email already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const emailExists = existingUsers?.users.some(u => u.email === email);
+    const emailExists = existingUsers?.users.some(u => (u.email ?? '').toLowerCase() === email);
     
     if (emailExists) {
       console.error('Email already exists:', email);
-      return new Response(
-        JSON.stringify({ error: 'Пользователь с таким email уже существует' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Пользователь с таким email уже существует' }, 400);
     }
 
-    // 3. Create user via Admin API
+    const metadata = tokenData.metadata && typeof tokenData.metadata === 'object' ? tokenData.metadata : {};
+    const gender = ['male', 'female', 'other'].includes(metadata.gender) ? metadata.gender : 'other';
+    const birthDate = typeof metadata.birth_date === 'string' ? metadata.birth_date : null;
+
+    console.log('Using metadata:', { gender, birthDate });
+
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // Auto-confirm email
+      email_confirm: true,
       user_metadata: {
         first_name: firstName,
         last_name: lastName,
+        birth_date: birthDate,
+        gender,
+        staff_invite: true,
+        is_staff: true,
       }
     });
 
     if (createUserError || !newUser.user) {
       console.error('Error creating user:', createUserError);
-      return new Response(
-        JSON.stringify({ error: 'Ошибка создания пользователя: ' + createUserError?.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: createUserError?.message || 'Не удалось создать пользователя' }, 500);
     }
 
     const userId = newUser.user.id;
     console.log('User created:', userId);
 
-    // 4. Get gender and birth_date from token metadata
-    const metadata = tokenData.metadata || {};
-    const gender = metadata.gender || 'other';
-    const birthDate = metadata.birth_date || '1990-01-01';
+    const profilePayload = {
+      name: `${firstName} ${lastName}`.trim(),
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      birth_date: birthDate,
+      gender,
+      email_verified: true,
+    };
 
-    console.log('Using metadata:', { gender, birthDate });
-
-    // 5. Insert profile
-    const { error: profileError } = await supabaseAdmin
+    // auth.users trigger may have already created profiles row synchronously.
+    // Updating first avoids profiles_pkey duplicate errors even if DB migration
+    // with staff guard has not been applied yet on the target infrastructure.
+    const { data: updatedProfile, error: profileUpdateError } = await supabaseAdmin
       .from('profiles')
-      .insert({
-        id: userId,
-        name: `${firstName} ${lastName}`.trim(),
-        first_name: firstName,
-        last_name: lastName,
-        birth_date: birthDate,
-        gender: gender,
-      });
+      .update(profilePayload)
+      .eq('id', userId)
+      .select('id')
+      .maybeSingle();
 
+    let profileError = profileUpdateError;
 
-    if (profileError) {
-      console.error('Error creating profile:', profileError);
-      // Rollback: delete user
-      await supabaseAdmin.auth.admin.deleteUser(userId);
-      return new Response(
-        JSON.stringify({ error: 'Ошибка создания профиля: ' + profileError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!profileUpdateError && !updatedProfile) {
+      const { error: profileInsertError } = await supabaseAdmin
+        .from('profiles')
+        .insert({ id: userId, ...profilePayload });
+
+      if (profileInsertError?.code === '23505') {
+        const { error: retryUpdateError } = await supabaseAdmin
+          .from('profiles')
+          .update(profilePayload)
+          .eq('id', userId);
+        profileError = retryUpdateError;
+      } else {
+        profileError = profileInsertError;
+      }
     }
 
-    console.log('Profile created');
+    if (profileError) {
+      console.error('Error upserting profile:', profileError);
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      return json({ error: 'Ошибка создания профиля: ' + profileError.message }, 500);
+    }
 
-    // 5. Get custom role IDs from metadata
-    const roles = tokenData.metadata?.roles || [tokenData.role];
+    console.log('Profile upserted');
+
+    const { error: cleanupSubscriptionError } = await supabaseAdmin
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .eq('plan_type', 'none')
+      .eq('amount', 0);
+
+    if (cleanupSubscriptionError) {
+      console.warn('Failed to remove auto pending subscription for staff:', cleanupSubscriptionError);
+    }
+
+    const roles = Array.isArray(metadata.roles) && metadata.roles.length > 0 ? metadata.roles : [tokenData.role];
     console.log('Roles to assign:', roles);
 
-    // 6. Get all custom role IDs at once
     const { data: customRoles, error: rolesError } = await supabaseAdmin
       .from('custom_roles')
       .select('id, name')
@@ -146,28 +184,33 @@ serve(async (req) => {
 
     if (rolesError) {
       console.error('Failed to fetch custom roles:', rolesError);
-      // Rollback: delete user and profile
       await supabaseAdmin.auth.admin.deleteUser(userId);
-      return new Response(
-        JSON.stringify({ error: 'Ошибка получения ролей' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Ошибка получения ролей' }, 500);
     }
 
     if (!customRoles || customRoles.length === 0) {
       console.error('No custom roles found for:', roles);
-      // Rollback: delete user and profile
       await supabaseAdmin.auth.admin.deleteUser(userId);
-      return new Response(
-        JSON.stringify({ error: 'Роли не найдены' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Роли не найдены' }, 500);
     }
 
-    // 7. Upsert user role mapping to avoid duplicate (user_id, role) conflicts
     const primaryRole = customRoles[0];
     if (customRoles.length > 1) {
       console.warn('Multiple custom roles provided. Using the first one:', customRoles.map(r => r.name).join(', '));
+    }
+
+    const baseRole = enumRoles.has(primaryRole.name) ? primaryRole.name : 'user';
+
+    const { error: cleanupPatientRoleError } = await supabaseAdmin
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
+      .eq('role', 'patient');
+
+    if (cleanupPatientRoleError) {
+      console.error('Failed to remove auto patient role:', cleanupPatientRoleError);
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      return json({ error: 'Ошибка настройки роли пользователя' }, 500);
     }
 
     const { error: userRolesError } = await supabaseAdmin
@@ -175,7 +218,7 @@ serve(async (req) => {
       .upsert(
         {
           user_id: userId,
-          role: 'user', // Base enum value; link custom role via role_id
+          role: baseRole,
           role_id: primaryRole.id,
         },
         { onConflict: 'user_id,role' }
@@ -183,17 +226,12 @@ serve(async (req) => {
 
     if (userRolesError) {
       console.error('Failed to assign roles:', userRolesError);
-      // Rollback: delete user and profile
       await supabaseAdmin.auth.admin.deleteUser(userId);
-      return new Response(
-        JSON.stringify({ error: 'Ошибка назначения ролей: ' + userRolesError.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: 'Ошибка назначения ролей: ' + userRolesError.message }, 500);
     }
 
     console.log('Role assigned successfully:', (primaryRole?.name ?? 'unknown'));
 
-    // 8. Update invite token as used
     const { error: updateTokenError } = await supabaseAdmin
       .from('invite_tokens')
       .update({
@@ -208,20 +246,14 @@ serve(async (req) => {
 
     console.log('Staff registration completed successfully');
 
-    return new Response(
-      JSON.stringify({ 
+    return json({ 
         success: true,
         message: 'Регистрация прошла успешно'
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      });
 
   } catch (error) {
     console.error('Unexpected error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
-    return new Response(
-      JSON.stringify({ error: 'Внутренняя ошибка сервера: ' + errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return json({ error: 'Внутренняя ошибка сервера: ' + errorMessage }, 500);
   }
 });
