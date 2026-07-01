@@ -54,7 +54,8 @@ function sanitizeRationale(text: string | null): string {
 
 export default function HealthStrategy() {
   const { getUserId, viewAsUserId } = useViewAsUser();
-  const { demoMode, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
