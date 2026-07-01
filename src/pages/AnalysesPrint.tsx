@@ -235,20 +235,6 @@ export default function AnalysesPrint() {
                 <h2 className="text-lg font-semibold text-primary">
                   Анализ от {formatDate(analysis.date)}
                 </h2>
-                <div className="text-xs text-muted-foreground text-right">
-                  {analysis.lab_name && <div>Лаборатория: {analysis.lab_name}</div>}
-                  {analysis.health_index !== null && (
-                    <div>Индекс здоровья: <span className="font-medium text-foreground">{analysis.health_index}</span></div>
-                  )}
-                  {analysis.biological_age !== null && (
-                    <div>
-                      Био. возраст:{" "}
-                      <span className="font-medium text-foreground">
-                        {(Math.floor(analysis.biological_age * 10) / 10).toFixed(1)} лет
-                      </span>
-                    </div>
-                  )}
-                </div>
               </div>
 
               {values.length === 0 ? (
