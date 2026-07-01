@@ -324,14 +324,14 @@ export default function Onboarding() {
             <RegisterStep2
               formData={formData}
               updateFormData={updateFormData}
-              onNext={() => goToStep(2)}
+              onNext={() => handleNext(2)}
             />
           )}
           {step === 2 && (
             <RegisterStep3
               formData={formData}
               updateFormData={updateFormData}
-              onNext={() => goToStep(3)}
+              onNext={() => handleNext(3)}
               onBack={() => goToStep(1)}
             />
           )}
