@@ -139,18 +139,24 @@ export function parseAnchors(
       }
       const rawContent = processedText.slice(tagEnd, endStart).trim();
       const stripped = stripLeadingBiomarkerName(rawContent, data, codeToNames[data] || []);
+      // Явный разделитель `$$` (одиночный или парный) от автора отчёта:
+      // всё, что ПОСЛЕ первого `$$`, вырезается из карточки и выводится
+      // как обычный текст. Это самый надёжный способ разорвать «склейку»,
+      // когда авто-эвристики не срабатывают.
+      const { card: explicitCard, tail: explicitTail } = splitByExplicitDelimiter(stripped);
       // Cut off trailing "transition" paragraphs (e.g. "Далее мы рассмотрим…",
       // "Картина Вашей системы…", "Рекомендации по коррекции вы найдёте…"),
       // which belong to the system-level narrative and must NOT be painted
       // inside the colored biomarker card.
       const { content: biomarkerContent, trailing } = splitTrailingTransition(
-        stripped,
+        explicitCard,
         codeToNames[data] || [],
         data,
       );
       blocks.push({ type: 'biomarker', code: data, content: biomarkerContent });
-      if (trailing) {
-        blocks.push({ type: 'text', content: trailing });
+      const combinedTrailing = [trailing, explicitTail].filter(Boolean).join('\n\n').trim();
+      if (combinedTrailing) {
+        blocks.push({ type: 'text', content: combinedTrailing });
       }
       lastIndex = endAfter;
 
@@ -172,7 +178,16 @@ export function parseAnchors(
     blocks.push({ type: 'text', content: remaining });
   }
 
-  return blocks;
+  // Финальная очистка: разделитель `$$` не должен просачиваться в вывод.
+  // Внутри биомаркеров его уже разрезал splitByExplicitDelimiter; здесь
+  // страхуемся для text/summary блоков (например, если автор поставил `$$`
+  // вне карточки биомаркера).
+  return blocks.map((b) => {
+    if (b.type === 'text' || b.type === 'summary') {
+      return { ...b, content: b.content.replace(/\${2,}/g, '').trim() };
+    }
+    return b;
+  });
 }
 
 // ═══ Auto-inject anchors from ## Name (CODE) headers + section headers ═══
@@ -547,6 +562,20 @@ export function splitTrailingTransition(
     content: paragraphs.join('\n\n').trim(),
     trailing: trailingParts.join('\n\n').trim(),
   };
+}
+
+/**
+ * Explicit author-controlled delimiter `$$` inside a biomarker block.
+ * Everything AFTER the first `$$` (or wrapped between a pair of `$$…$$`)
+ * is removed from the card body and returned as a plain-text tail.
+ * The `$$` markers themselves are always stripped from the output.
+ */
+export function splitByExplicitDelimiter(content: string): { card: string; tail: string } {
+  if (!content || !content.includes('$$')) return { card: content, tail: '' };
+  const parts = content.split('$$');
+  const card = parts[0].trim();
+  const tail = parts.slice(1).join('').trim();
+  return { card, tail };
 }
 
 // ═══ Validation ═══
