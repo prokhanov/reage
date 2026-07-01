@@ -87,10 +87,10 @@ const SubscriptionActivatedEmail = ({
             <Text style={muted}>Действует</Text>
             <Text style={value}>{fmtDate(startDate)} — {fmtDate(endDate)}</Text>
 
-            <Text style={muted}>Сумма</Text>
+            <Text style={muted}>{isGift ? 'Стоимость' : 'Сумма'}</Text>
             <Text style={value}>
-              {fmtMoney(amount)}
-              {hasDiscount && (
+              {isGift ? 'Бесплатно (подарок)' : fmtMoney(amount)}
+              {!isGift && hasDiscount && (
                 <>
                   {' '}<span style={{ color: '#64748b', fontSize: '13px' }}>
                     (скидка {fmtMoney(discountAmount)}{promoCode ? ` по промокоду ${promoCode}` : ''}, без скидки {fmtMoney(originalAmount)})
@@ -99,8 +99,12 @@ const SubscriptionActivatedEmail = ({
               )}
             </Text>
 
-            <Text style={muted}>Номер счёта</Text>
-            <Text style={{ ...value, marginBottom: 0 }}>#{invId ?? '—'}</Text>
+            {!isGift && (
+              <>
+                <Text style={muted}>Номер счёта</Text>
+                <Text style={{ ...value, marginBottom: 0 }}>#{invId ?? '—'}</Text>
+              </>
+            )}
           </Section>
 
           <Heading as="h2" style={{ ...heading, fontSize: '17px', marginBottom: '10px' }}>Что входит в подписку</Heading>
