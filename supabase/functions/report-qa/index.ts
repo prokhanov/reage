@@ -77,10 +77,26 @@ function injectMissingBiomarkerAnchors(
   if (!report || biomarkers.length === 0) {
     return { text: report, injectedCodes: [] };
   }
-  const sorted = biomarkers
-    .filter((e) => e.name && e.code)
-    .sort((a, b) => b.name.length - a.name.length);
+  // Расширяем варианты имён: помимо канонического имени добавляем алиас
+  // без хвостового "(CODE)" — тогда AI-текст «Насыщение трансферрина» будет
+  // мэтчиться маркером, чьё имя в БД «Насыщение трансферрина (TSAT)».
+  const expanded: Array<{ name: string; code: string }> = [];
+  const seenPairs = new Set<string>();
+  for (const b of biomarkers) {
+    if (!b.name || !b.code) continue;
+    const push = (n: string) => {
+      const key = `${n.toLowerCase()}|${b.code}`;
+      if (seenPairs.has(key)) return;
+      seenPairs.add(key);
+      expanded.push({ name: n, code: b.code });
+    };
+    push(b.name);
+    const stripped = b.name.replace(/\s*\([^()]{1,20}\)\s*$/u, '').trim();
+    if (stripped && stripped !== b.name) push(stripped);
+  }
+  const sorted = expanded.sort((a, b) => b.name.length - a.name.length);
   if (sorted.length === 0) return { text: report, injectedCodes: [] };
+
 
   const anchoredCodes = new Set<string>();
   const anchorRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
