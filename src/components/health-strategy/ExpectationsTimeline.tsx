@@ -179,7 +179,7 @@ export function ExpectationsTimeline({ startDate, expectations }: Props) {
                       {e.biomarker_target && (
                         <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/[0.05] px-2.5 py-1.5 text-xs">
                           <Target className="h-3.5 w-3.5 text-primary shrink-0" />
-                          <span className="font-semibold text-foreground">{e.biomarker_target.code}</span>
+                          <span className="font-semibold text-foreground">{formatMarker(e.biomarker_target.code)}</span>
                           <span className="tabular-nums text-muted-foreground">
                             {e.biomarker_target.from} {e.biomarker_target.unit}
                           </span>
