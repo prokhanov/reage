@@ -168,9 +168,64 @@ export default function Onboarding() {
     }
   };
 
+  /** Автосохранение на промежуточных шагах — без onboarding_completed. */
+  const saveStep = async (): Promise<boolean> => {
+    if (!userId) return false;
+    setSubmitting(true);
+    try {
+      await saveOnboardingData(userId, formData, { skipComplete: true });
+      return true;
+    } catch (e: any) {
+      console.error("Onboarding step save failed:", e);
+      toast({
+        title: "Не удалось сохранить шаг",
+        description: e?.message || "Попробуйте ещё раз",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleNext = async (nextStep: number) => {
+    const ok = await saveStep();
+    if (ok) goToStep(nextStep);
+  };
+
   /** Финальное сохранение всей анкеты — ставит onboarding_completed=true. */
   const finalize = async () => {
     if (!userId) return;
+
+    // Sanity-check: если ключевые поля Шага 1 пусты, дочитываем БД.
+    // Если и там пусто — не даём молча завершить онбординг без данных.
+    const needsCore =
+      !formData.gender ||
+      !formData.birth_date ||
+      !formData.weight ||
+      !formData.height;
+    if (needsCore) {
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("gender, birth_date, weight, height")
+        .eq("id", userId)
+        .maybeSingle();
+      const dbMissing =
+        !(p as any)?.gender ||
+        !(p as any)?.birth_date ||
+        !(p as any)?.weight ||
+        !(p as any)?.height;
+      if (dbMissing) {
+        toast({
+          title: "Заполните основные поля",
+          description: "На Шаге 1 нужны пол, дата рождения, вес и рост.",
+          variant: "destructive",
+        });
+        goToStep(1);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       await saveOnboardingData(userId, formData, {
@@ -269,14 +324,14 @@ export default function Onboarding() {
             <RegisterStep2
               formData={formData}
               updateFormData={updateFormData}
-              onNext={() => goToStep(2)}
+              onNext={() => handleNext(2)}
             />
           )}
           {step === 2 && (
             <RegisterStep3
               formData={formData}
               updateFormData={updateFormData}
-              onNext={() => goToStep(3)}
+              onNext={() => handleNext(3)}
               onBack={() => goToStep(1)}
             />
           )}
