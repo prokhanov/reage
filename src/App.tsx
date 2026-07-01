@@ -9,6 +9,7 @@ import { SuperAdminRoute } from "@/components/SuperAdminRoute";
 import { AdminModuleRoute } from "@/components/AdminModuleRoute";
 import { PatientRoute } from "@/components/PatientRoute";
 import { StaffRoute } from "@/components/StaffRoute";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import Index from "./pages/Index";
 import LandingV2 from "./pages/LandingV2";
@@ -121,25 +122,22 @@ const App = () => (
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/onboarding/:step" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <Onboarding />
-                </ProtectedRoute>
-              }
-            />
             <Route path="/analyses/print" element={<AnalysesPrint />} />
 
 
-            {/* Protected routes with persistent DashboardLayout */}
+            {/* Protected routes with persistent DashboardLayout.
+                OnboardingGate: пациент с активной подпиской и незавершённой
+                анкетой (onboarding_completed=false) редиректится на /onboarding.
+                Пути /onboarding/*, /subscription*, /admin/*, /profile — исключения. */}
             <Route
               element={
                 <ProtectedRoute>
                   <DemoModeProvider>
-                    <DashboardLayout>
-                      <Outlet />
-                    </DashboardLayout>
+                    <OnboardingGate>
+                      <DashboardLayout>
+                        <Outlet />
+                      </DashboardLayout>
+                    </OnboardingGate>
                   </DemoModeProvider>
                 </ProtectedRoute>
               }
