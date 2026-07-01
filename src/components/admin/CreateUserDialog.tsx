@@ -130,20 +130,16 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
 
       if (inviteError) throw inviteError;
 
-      // Пытаемся скопировать ссылку, но всегда показываем её в диалоге
-      const copied = await copyToClipboard(fullUrl);
       toast({
         title: "Приглашение создано",
-        description: copied
-          ? "Ссылка скопирована в буфер обмена"
-          : "Скопируйте ссылку из окна вручную",
+        description: "Ссылка готова — нажмите кнопку копирования рядом с полем",
       });
 
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       queryClient.invalidateQueries({ queryKey: ["invite-tokens"] });
 
       setGeneratedUrl(fullUrl);
-      setJustCopied(copied);
+      setJustCopied(false);
 
       setFormData({
         email: "",
@@ -183,7 +179,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
         <DialogDescription>
           {generatedUrl
             ? "Отправьте эту ссылку сотруднику. Она открывает форму регистрации по приглашению."
-            : "Введите данные пользователя. Ссылка для регистрации будет скопирована в буфер обмена."}
+            : "Введите данные пользователя. После создания появится ссылка для регистрации."}
         </DialogDescription>
       </DialogHeader>
 

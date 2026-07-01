@@ -317,17 +317,14 @@ export default function UserManagement() {
       if (error) throw error;
       return updated;
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       const registerUrl = `/register-staff?invite=${data.token}`;
       const fullUrl = `${window.location.origin}${registerUrl}`;
-      const ok = await copyToClipboard(fullUrl);
 
       toast({
-        title: ok ? "Ссылка перегенерирована" : "Скопируйте ссылку вручную",
-        description: ok
-          ? "Новая пригласительная ссылка скопирована в буфер обмена"
-          : fullUrl,
-        duration: ok ? 4000 : 15000,
+        title: "Ссылка перегенерирована",
+        description: fullUrl,
+        duration: 15000,
       });
 
       refetch();
@@ -343,25 +340,7 @@ export default function UserManagement() {
   });
 
   const handleCopyInviteLink = async (token: string) => {
-    // Проверяем, существует ли токен
-    const { data, error } = await supabase
-      .from("invite_tokens")
-      .select("token")
-      .eq("token", token)
-      .maybeSingle();
-
-    if (!data) {
-      // Токен не найден - автоматически регенерируем
-      toast({
-        title: "Обновление ссылки",
-        description: "Приглашение не найдено, создаю новую ссылку...",
-      });
-      regenerateInviteTokenMutation.mutate(token);
-      return;
-    }
-
-    // Токен валиден - копируем
-    const registerUrl = `/register-staff?invite=${data.token}`;
+    const registerUrl = `/register-staff?invite=${token}`;
     const fullUrl = `${window.location.origin}${registerUrl}`;
 
     const ok = await copyToClipboard(fullUrl);

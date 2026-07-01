@@ -10,13 +10,25 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, User, AlertCircle } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { translateError } from "@/lib/errorMessages";
+
+type EdgeFunctionError = Error & {
+  context?: Response | { json?: () => Promise<unknown>; text?: () => Promise<string> };
+};
 
 export default function RegisterStaff() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const [inviteToken, setInviteToken] = useState<any>(null);
+  const [inviteToken, setInviteToken] = useState<{
+    token: string;
+    role?: string;
+    role_display_name?: string;
+    invited_email?: string | null;
+    expires_at?: string | null;
+    metadata?: Record<string, unknown> | null;
+  } | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -28,6 +40,34 @@ export default function RegisterStaff() {
     email: "",
     password: "",
   });
+
+  const extractFunctionError = async (error: unknown) => {
+    const response = typeof error === "object" && error !== null && "context" in error
+      ? (error as EdgeFunctionError).context
+      : null;
+
+    if (response && typeof response.json === "function") {
+      try {
+        const body = await response.json();
+        if (typeof body === "object" && body !== null && "error" in body && typeof body.error === "string") {
+          return body.error;
+        }
+      } catch {
+        // пробуем text ниже
+      }
+    }
+
+    if (response && typeof response.text === "function") {
+      try {
+        const bodyText = await response.text();
+        if (bodyText.trim()) return translateError(bodyText, "Сервис временно недоступен. Попробуйте ещё раз.");
+      } catch {
+        // ignore and use fallback below
+      }
+    }
+
+    return translateError(error, "Произошла ошибка при регистрации");
+  };
 
   useEffect(() => {
     const validateInvite = async () => {
@@ -125,7 +165,7 @@ export default function RegisterStaff() {
         }
       });
 
-      if (error) throw error;
+      if (error) throw new Error(await extractFunctionError(error));
       if (data?.error) throw new Error(data.error);
 
       // Sign in the user after successful registration
@@ -142,11 +182,11 @@ export default function RegisterStaff() {
       });
 
       navigate("/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
       toast({
         title: "Ошибка регистрации",
-        description: error.message || "Произошла ошибка при регистрации",
+        description: error instanceof Error ? error.message : "Произошла ошибка при регистрации",
         variant: "destructive",
       });
     } finally {
