@@ -20,17 +20,18 @@ const PHONE_STATUSES: { key: string; label: string }[] = [
   { key: "waiting_call", label: "Ожидайте звонка менеджера" },
   { key: "no_answer", label: "Не дозвонились" },
   { key: "scheduled", label: "Назначен визит" },
-  { key: "received", label: "Анализы получены" },
-  { key: "collected", label: "Анализы обрабатываются" },
+  { key: "collected", label: "Анализ в работе" },
+  { key: "report_pending", label: "Отчёт в работе" },
 ];
 
 const ONLINE_STATUSES: { key: string; label: string }[] = [
   { key: "empty", label: "Нет активной записи" },
   { key: "not_scheduled", label: "Не назначен" },
   { key: "scheduled", label: "Назначен визит" },
-  { key: "received", label: "Анализы получены" },
-  { key: "collected", label: "Анализы обрабатываются" },
+  { key: "collected", label: "Анализ в работе" },
+  { key: "report_pending", label: "Отчёт в работе" },
 ];
+
 
 export function BookingModeSettings() {
   const { data, isLoading } = useBookingModeSettings();
