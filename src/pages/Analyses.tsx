@@ -154,6 +154,30 @@ export default function Analyses() {
     }
   };
 
+  const handlePrintAnalyses = async () => {
+    const uid = await getUserId();
+    const url = isViewMode && uid
+      ? `/analyses/print?uid=${encodeURIComponent(uid)}`
+      : "/analyses/print";
+
+    // В Lovable Preview приложение запущено внутри iframe: новая вкладка получает
+    // другой storage-partition и не видит текущую auth-сессию. Поэтому в preview
+    // открываем печатную страницу в текущем окне; на боевом сайте — в новой вкладке.
+    let isEmbeddedPreview = false;
+    try {
+      isEmbeddedPreview = window.self !== window.top;
+    } catch {
+      isEmbeddedPreview = true;
+    }
+
+    if (isEmbeddedPreview) {
+      window.location.assign(url);
+      return;
+    }
+
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
 
   const displayAnalyses = demoMode && demoData
     ? demoData.analyses.map((analysis: any, index: number) => ({
@@ -186,11 +210,7 @@ export default function Analyses() {
           <div className="flex items-center gap-2">
             {displayAnalyses.length > 0 && !demoMode && (
               <Button
-                onClick={async () => {
-                  const uid = await getUserId();
-                  const url = isViewMode && uid ? `/analyses/print?uid=${uid}` : "/analyses/print";
-                  window.open(url, "_blank");
-                }}
+                onClick={handlePrintAnalyses}
                 variant="outline"
                 size="sm"
               >
