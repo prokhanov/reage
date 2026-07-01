@@ -137,8 +137,12 @@ Deno.serve(async (req) => {
     if (!sendRes.ok) {
       console.error("[phone-otp-send] sms send failed", sendRes.error);
       return new Response(
-        JSON.stringify({ error: "Не удалось отправить SMS. Попробуйте позже." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          ok: false,
+          error: sendRes.error || "Не удалось отправить SMS. Попробуйте позже.",
+          fallback: sendRes.fallback === true,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 

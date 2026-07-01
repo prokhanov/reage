@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { sendSms } from "../_shared/smsaero.ts";
+import { sendSms, normalizePhone } from "../_shared/smsaero.ts";
 import { checkBalanceAndNotify } from "../_shared/sms-balance-check.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -47,8 +47,8 @@ Deno.serve(async (req) => {
     const userId = userRes.user.id;
 
     const { phone: rawPhone } = await req.json().catch(() => ({}));
-    const phone = normalizeIntl(String(rawPhone || ""));
-    if (phone.length < 10 || phone.length > 15) {
+    const phone = normalizePhone(String(rawPhone || ""));
+    if (phone.length !== 11 || !phone.startsWith("7")) {
       return json({ ok: false, error: "Некорректный номер телефона" });
     }
 
@@ -138,9 +138,8 @@ Deno.serve(async (req) => {
       console.error("[phone-change-send] sms send failed", sendRes.error);
       return json({
         ok: false,
-        error: sendRes.error
-          ? `Не удалось отправить SMS: ${sendRes.error}`
-          : "Не удалось отправить SMS. Попробуйте позже.",
+        error: sendRes.error || "Не удалось отправить SMS. Попробуйте позже.",
+        fallback: sendRes.fallback === true,
       });
     }
 
