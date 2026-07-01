@@ -1,81 +1,40 @@
 
-## Итоговая цепочка статусов `analysis_bookings.status`
+## 1. Приглашение показывает «Недействительное»
 
-```
-waiting_call     → Ожидает звонка
-no_answer        → Не дозвонились
-not_scheduled    → Не назначен
-scheduled        → Назначен
-collected        → Анализ в работе (биоматериал сдан, лаба обрабатывает)
-report_pending   → Отчёт в работе (лаба вернула результаты, готовим отчёт)  ← НОВЫЙ
-report_ready     → Отчёт загружен (доступен пациенту)                        ← переименован из uploaded
-```
+Причина — не инфраструктура и не nginx (`/register-staff` уже в whitelist). Политики RLS на `invite_tokens` разрешают SELECT только `authenticated`. Гость, открывающий ссылку, получает `data=null` → «Недействительное приглашение».
 
-Убираем `received` (сливается в `collected`).
+Фикс:
+- Новая edge-функция `validate-invite-token` (service role, `verify_jwt=false`): принимает `{ token }`, возвращает `{ ok, invited_email, role_display_name, metadata, expires_at }` либо структурированную ошибку (`not_found | used | expired`).
+- В `src/pages/RegisterStaff.tsx` заменить прямой `supabase.from('invite_tokens').select` на `supabase.functions.invoke('validate-invite-token')`. RLS не трогаем.
+- Задеплоить функцию.
 
----
+## 2. Ссылка приглашения не копируется в буфер
 
-## 1. Миграция БД
-- `UPDATE analysis_bookings SET status='collected' WHERE status='received';`
-- `UPDATE analysis_bookings SET status='report_ready' WHERE status='uploaded';`
-- Обновить триггеры:
-  - `disable_demo_mode_on_booking_uploaded` → срабатывать на `report_ready`.
-  - `notify_telegram_booking_status_changed` — расширить `CASE`: убрать `received`, добавить `report_pending`, переименовать `uploaded` → `report_ready` с новыми `template_key` (`booking_report_pending`, `booking_report_ready`).
-  - `create_next_analysis_booking` — оставить триггер на `collected` (сдача биоматериала = начало нового цикла).
-- Перекопировать/переименовать записи в `sms_templates`, `email_templates`:
-  - `booking_received` → удалить (было продублировано `collected`).
-  - `booking_uploaded` → `booking_report_ready` (сохранить текст, поправить смысл на «Ваш персональный отчёт готов»).
-  - `booking_collected` — уточнить текст «Анализ в работе».
-  - Добавить `booking_report_pending` («Мы получили результаты, формируем ваш персональный отчёт»).
-- Аналогично обновить дефолты `telegram_notification_settings.enabled_events` (добавить `booking_report_pending`, переименовать ключ `booking_uploaded`).
+`navigator.clipboard.writeText` падает в iframe/некоторых браузерах (NotAllowedError, отсутствие secure context у части превью). Fallback `document.execCommand` отсутствует.
 
-## 2. Единый словарь
-Создать `src/lib/bookingStatusLabels.ts`:
-- `BookingStatus` union
-- `bookingStatusLabels` (RU)
-- `bookingStatusColors`
-Использовать везде вместо локальных карт.
+Фикс в `src/components/admin/CreateUserDialog.tsx`:
+- Утилита `copyToClipboard(text)`: сначала `navigator.clipboard`, при ошибке — скрытый `<textarea>` + `execCommand('copy')`.
+- После успешного создания — не закрывать диалог сразу, а показать шаг «Готово» с полем ввода `readOnly`, содержащим ссылку, и кнопкой «Скопировать» (можно скопировать вручную в любом случае). Toast сообщает результат копирования.
 
-## 3. Фронтенд
-Пройтись по всем найденным местам:
-- `src/pages/admin/AnalysisBookings.tsx`
-- `src/pages/admin/MyAssignments.tsx`
-- `src/pages/admin/TelegramSettings.tsx`
-- `src/pages/admin/SmsSettings.tsx`
-- `src/pages/admin/EmailSettings.tsx`
-- `src/components/AnalysisBookingBanner.tsx` (терминальный статус → `report_ready`, hasUploaded → hasReportReady)
-- `src/components/admin/PatientBookingsCard.tsx`
-- `src/components/admin/CreateBookingDialog.tsx`
-- `src/components/admin/BookingModeSettings.tsx`
-- `src/pages/Profile.tsx` (фильтр `.eq("status","collected")` оставляем — смысл тот же)
+## 3. В ролях не все разделы админки
 
-Заменить `received/uploaded` → `collected/report_ready`, добавить в селекты «Отчёт в работе».
+Enum `admin_module` содержит только 7 значений, а страниц админки больше. Плюс `ADMIN_MODULES` захардкожен в двух файлах и рассинхронизирован с enum (нет `promo_codes`).
 
-## 4. Edge-функции
-Обновить маппинги ключей шаблонов:
-- `supabase/functions/send-booking-telegram/index.ts`
-- `supabase/functions/send-booking-sms/index.ts`
-- `supabase/functions/send-analysis-booking-email/index.ts`
+Фикс:
+- Миграция: `ALTER TYPE admin_module ADD VALUE IF NOT EXISTS ...` для недостающих разделов:
+  `subscription_plans`, `payment_gateway`, `email_settings`, `sms_settings`, `telegram_settings`, `lab_locations`, `report_visuals`, `scale_preview`.
+- Новый общий модуль `src/lib/adminModules.ts` — единственный источник правды: массив `{ value, label, path }` для всех разделов сайдбара суперадмина, включая уже существующие. Значения совпадают с enum.
+- `RoleManagementCard.tsx` и `UserPermissionsDialog.tsx` импортируют список из `adminModules.ts` (локальные `ADMIN_MODULES` удаляются, приведение типов заменяется на `AdminModule`).
+- В `AppSidebar`/`AdminModuleRoute` использовать те же `value`/`path`, чтобы новые модули автоматически защищались через `admin_permissions` / `role_permissions`.
 
-Убрать ветку `received`, добавить `report_pending`, переименовать `uploaded` → `report_ready`.
+## Технические детали
 
-## 5. Автопереход `collected → report_pending → report_ready`
-- В `report-orchestrator` (или в момент загрузки PDF/старта пайплайна) переводить booking `collected → report_pending`.
-- В `finalize-analysis` по успешному завершению — `report_pending → report_ready`.
+- Edge Function путь: `supabase/functions/validate-invite-token/index.ts`. CORS через `npm:@supabase/supabase-js@2/cors`. Никаких RLS-изменений, никакого anon-доступа к `invite_tokens`.
+- Nginx менять не нужно — `/register-staff` в whitelist. Прокси `api.reage.life` не затрагивается (используем существующий `supabase` клиент).
+- В код домены не зашиваем.
 
-## 6. React Email шаблон `subscription-activated`
-Не затрагивается. Отдельного React-шаблона для booking-статусов сейчас нет — тексты берутся из БД `email_templates`, шаг 1 их обновляет.
+## Проверка
 
-## 7. QA-чек
-- Ручной прогон: waiting_call → scheduled → collected → report_pending → report_ready.
-- Проверить бейджи в админке, баннер в ЛК, отправку Telegram/SMS/Email на каждом переходе (тестовый режим).
-- Убедиться, что старые записи в БД корректно отображаются после миграции.
-
-## Порядок
-1. Миграция БД (данные + триггеры + шаблоны).
-2. Словарь `bookingStatusLabels.ts`.
-3. Обновление фронтенда и edge-функций.
-4. Деплой затронутых edge-функций.
-5. Проверка сценариев.
-
-Подтверди — стартую с миграции.
+- Открыть invite-ссылку в инкогнито → форма регистрации, без ошибки.
+- «Добавить пользователя» → ссылка копируется или доступна для ручного копирования из диалога.
+- Настройки роли/пользователя показывают все ~15 разделов админки, чекбоксы сохраняются, доступ через `AdminModuleRoute` работает.
