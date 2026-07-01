@@ -648,6 +648,16 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
               userId={patientId}
               patientName={patientData?.profile.name || ""}
             />
+            {isSuperAdmin && (
+              <GiftSubscriptionDialog
+                open={isGiftOpen}
+                onClose={() => setIsGiftOpen(false)}
+                patientId={patientId}
+                patientName={patientData?.profile.name || undefined}
+                patientEmail={patientData?.profile.email || undefined}
+                currentSubscription={patientData?.subscription || null}
+              />
+            )}
           </>
         )}
 
