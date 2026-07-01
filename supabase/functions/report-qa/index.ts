@@ -749,8 +749,19 @@ Deno.serve(async (req) => {
             send({ type: "fix", message: msg });
           }
 
+          // 3b. Отрезаем «переходные» абзацы, прилипшие к концу карточек
+          // биомаркеров (иначе они «закрашиваются» цветом карточки).
+          const trans = stripTrailingTransitions(text);
+          if (trans.touched.length > 0) {
+            text = trans.text;
+            const msg = `[${sectionLabel}] Вынесены переходные абзацы из карточек: ${trans.touched.join(", ")}`;
+            fixes.push(msg);
+            send({ type: "fix", message: msg });
+          }
+
           // 4. Detect orphan codes (anchors that don't match analysis_values)
           const blocks = extractBiomarkerBlocks(text);
+
           const orphans = blocks
             .map((b) => b.code)
             .filter(
