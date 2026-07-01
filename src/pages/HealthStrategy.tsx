@@ -54,7 +54,8 @@ function sanitizeRationale(text: string | null): string {
 
 export default function HealthStrategy() {
   const { getUserId, viewAsUserId } = useViewAsUser();
-  const { demoMode, loading: demoLoading } = useDemoMode();
+  const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+
 
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -83,12 +84,48 @@ export default function HealthStrategy() {
     setLoading(true);
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewAsUserId, demoMode]);
+  }, [viewAsUserId, demoMode, demoData?.health_strategy]);
+
 
   const load = async () => {
     try {
       const userId = await getUserId();
       if (!userId) return;
+
+      // ДЕМО-РЕЖИМ: используем курируемый snapshot из demoTemplate.json,
+      // никаких запросов в health_strategy_snapshots / compute-health-strategy.
+      if (demoMode && demoData?.health_strategy) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
+        const { data: cats } = await supabase
+          .from("biomarker_categories")
+          .select("name, display_order")
+          .order("display_order");
+        setProfile(prof);
+        setCategories((cats || []).map((c) => c.name));
+
+        const demoAnalyses = demoData.analyses || [];
+        const latestDemo = demoAnalyses[demoAnalyses.length - 1] || null;
+        const prevDemo = demoAnalyses[demoAnalyses.length - 2] || null;
+        setAnalysis(latestDemo);
+        setPreviousAnalysis(prevDemo);
+        setHasAnalyses(!!latestDemo);
+        setAllAnalyses(demoAnalyses);
+
+        setSnapshot(demoData.health_strategy as any);
+        setPreviousSnapshot(null);
+        const nextDate = new Date();
+        nextDate.setMonth(nextDate.getMonth() + 3);
+        setNextCheckup(nextDate.toISOString().slice(0, 10));
+        setPrescriptions(demoData.prescriptions || []);
+        setRiskZone(null);
+        return;
+      }
+
+
 
       const [{ data: prof }, { data: cats }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),

@@ -13,7 +13,9 @@ export interface DemoData {
   prescriptions: any[];
   recommendations: any[];
   risk_zones: any;
+  health_strategy: any | null;
 }
+
 
 interface DemoModeContextValue {
   demoMode: boolean;
@@ -97,6 +99,45 @@ const adaptDemoDataToUser = (templateData: any, userProfile: any): DemoData => {
     }
   }
 
+  // Health Strategy: адаптируем bio_age к реальному возрасту (сдвиг относительно шаблонного),
+  // проставляем date_iso для roadmap/expectations относительно "сегодня" и обновляем
+  // chronological_age в snapshot.
+  const templateStrategy = genderData.health_strategy || null;
+  let adaptedStrategy: any = null;
+  if (templateStrategy) {
+    const s = JSON.parse(JSON.stringify(templateStrategy));
+    const bioDelta = userAge ? userAge - templateAge : 0;
+    if (userAge) {
+      s.chronological_age = userAge;
+      s.current_bio_age = Math.round((s.current_bio_age + bioDelta) * 10) / 10;
+      s.target_bio_age = Math.round((s.target_bio_age + bioDelta) * 10) / 10;
+      if (Array.isArray(s.trajectory)) {
+        s.trajectory = s.trajectory.map((p: any) => ({
+          month: p.month,
+          bio_age: Math.round((p.bio_age + bioDelta) * 10) / 10,
+        }));
+      }
+    }
+    const startMs = today.getTime();
+    const toIso = (days: number) =>
+      new Date(startMs + days * 86400000).toISOString().slice(0, 10);
+    if (Array.isArray(s.roadmap)) {
+      s.roadmap = s.roadmap.map((m: any) => ({
+        ...m,
+        date_iso: m.day_from_start != null ? toIso(m.day_from_start) : m.date_iso,
+      }));
+    }
+    if (Array.isArray(s.expectations)) {
+      s.expectations = s.expectations.map((e: any) => ({
+        ...e,
+        date_iso: e.day_from_start != null ? toIso(e.day_from_start) : e.date_iso,
+      }));
+    }
+    s.analysis_id = "demo-strategy";
+    s.created_at = today.toISOString();
+    adaptedStrategy = s;
+  }
+
   return {
     profile: adaptedProfile,
     analyses: adaptedAnalyses,
@@ -105,9 +146,11 @@ const adaptDemoDataToUser = (templateData: any, userProfile: any): DemoData => {
     weight_history: genderData.weight_history || [],
     prescriptions: genderData.prescriptions || [],
     recommendations: genderData.recommendations || [],
-    risk_zones: adaptedRiskZones
+    risk_zones: adaptedRiskZones,
+    health_strategy: adaptedStrategy,
   };
 };
+
 
 export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
   const [demoMode, setDemoMode] = useState<boolean>(false);
