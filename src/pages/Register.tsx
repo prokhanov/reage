@@ -329,10 +329,12 @@ export default function Register() {
 
       toast({
         title: "Аккаунт создан",
-        description: "Теперь расскажите немного о себе.",
+        description: "Добро пожаловать! Ознакомьтесь с демо-панелью.",
       });
 
-      goToStep(2);
+      clearDraft();
+      navigate("/dashboard", { replace: true });
+
 
     } catch (error: any) {
       console.error("SignUp error:", error);
