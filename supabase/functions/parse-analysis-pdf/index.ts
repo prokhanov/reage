@@ -81,6 +81,16 @@ const NAME_ALIASES: Record<string, string> = {
   "tnf alpha": "TNF-α",
   "tumor necrosis factor": "TNF-α",
   "tumor necrosis factor alpha": "TNF-α",
+  // Интерлейкин-6 / IL-6
+  "il 6": "IL-6",
+  "il6": "IL-6",
+  "interleukin 6": "IL-6",
+  "interleukin-6": "IL-6",
+  "ил 6": "IL-6",
+  "ил6": "IL-6",
+  "интерлейкин 6": "IL-6",
+  "интерлейкин-6": "IL-6",
+  "интерлейкин 6 il 6": "IL-6",
 };
 
 const UNIT_ALIASES: Record<string, string> = {
