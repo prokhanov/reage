@@ -390,6 +390,9 @@ export default function Profile() {
             </div>
           </Card>
 
+          {/* Пациентские блоки: паспорт, следующий анализ, мед. анкета, демо-режим.
+              Для сотрудников/врачей/админов не отображаются. */}
+          {isPatientProfile && <>
           {/* Passport Card */}
           <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
             <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
