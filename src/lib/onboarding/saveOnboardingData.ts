@@ -11,6 +11,15 @@ import type { RegisterFormData } from "@/pages/Register";
 export async function saveOnboardingData(
   userId: string,
   data: RegisterFormData,
+  opts?: {
+    /** Не ставить onboarding_completed=true (для пошагового сохранения). */
+    skipComplete?: boolean;
+    /** Пометить факт пропуска шага. */
+    markSkipped?: boolean;
+    /** Паспортные данные. */
+    passportSeries?: string;
+    passportNumber?: string;
+  },
 ): Promise<void> {
   const fullName = `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim();
   const profileUpdate: Record<string, any> = {
@@ -19,8 +28,10 @@ export async function saveOnboardingData(
     weight: data.weight ? Number(data.weight) : null,
     height: data.height ? Number(data.height) : null,
     health_note: data.healthNote?.trim() || null,
-    onboarding_completed: true,
   };
+
+  if (!opts?.skipComplete) profileUpdate.onboarding_completed = true;
+  if (opts?.markSkipped) profileUpdate.onboarding_skipped_at = new Date().toISOString();
 
   if (data.lastName?.trim()) profileUpdate.last_name = data.lastName.trim();
   if (data.firstName?.trim()) {
@@ -33,6 +44,12 @@ export async function saveOnboardingData(
   }
   if (data.medications && data.medications.length > 0) {
     profileUpdate.medications = data.medications;
+  }
+  if (opts?.passportSeries) {
+    profileUpdate.passport_series = opts.passportSeries.replace(/\D/g, "");
+  }
+  if (opts?.passportNumber) {
+    profileUpdate.passport_number = opts.passportNumber.replace(/\D/g, "");
   }
 
   const { error: profileErr } = await supabase
