@@ -132,11 +132,32 @@ function guessCountry(digits: string): Country | undefined {
   return sorted.find((c) => digits.startsWith(c.dial));
 }
 
+/**
+ * Нормализация российских номеров:
+ * - "8xxxxxxxxxx" → "7xxxxxxxxxx" (замена 8 на 7)
+ * - "9xx..." (мобильный без кода страны) → "79xx..." (авто-подстановка +7)
+ */
+export function normalizeRuPhoneDigits(digits: string): string {
+  if (!digits) return digits;
+  // Если уже совпадает с известной страной — не трогаем
+  if (guessCountry(digits)) return digits;
+  // 8 → 7 (частый российский формат)
+  if (digits.startsWith("8") && digits.length >= 10) {
+    return "7" + digits.slice(1);
+  }
+  // Российский мобильный без кода страны: начинается с 9
+  if (digits.startsWith("9")) {
+    return "7" + digits;
+  }
+  return digits;
+}
+
 export function formatPhone(digits: string): string {
   if (!digits) return "";
-  const c = guessCountry(digits);
-  if (!c) return `+${digits}`;
-  return c.format(digits);
+  const normalized = normalizeRuPhoneDigits(digits);
+  const c = guessCountry(normalized);
+  if (!c) return `+${normalized}`;
+  return c.format(normalized);
 }
 
 interface PhoneInputProps {
@@ -162,7 +183,8 @@ export function PhoneInput({
 }: PhoneInputProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    const digits = raw.replace(/\D/g, "").slice(0, 15);
+    const rawDigits = raw.replace(/\D/g, "").slice(0, 15);
+    const digits = normalizeRuPhoneDigits(rawDigits);
     const formatted = formatPhone(digits);
     onChange(formatted);
     if (onValidityChange) {
@@ -202,7 +224,7 @@ export function getNormalizedPhone(value: string): string {
 
 /** Validate phone against its detected country. */
 export function isPhoneValid(value: string): boolean {
-  const digits = value.replace(/\D/g, "");
+  const digits = normalizeRuPhoneDigits(value.replace(/\D/g, ""));
   const c = guessCountry(digits);
   return c ? c.validate(digits) : false;
 }
