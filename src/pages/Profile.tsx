@@ -203,6 +203,12 @@ export default function Profile() {
 
   const age = getAge();
 
+  const nameParts = (profile?.name || "").trim().split(/\s+/).filter(Boolean);
+  const firstName = profile?.first_name || nameParts[0] || "";
+  const lastName = profile?.last_name || nameParts.slice(1).join(" ") || "";
+
+
+
 
   return (
     <div className="container mx-auto px-4 pt-4 pb-8 sm:py-8 max-w-4xl">
