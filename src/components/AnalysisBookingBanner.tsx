@@ -124,12 +124,13 @@ export function AnalysisBookingBanner() {
         return;
       }
 
-      // Terminal status: report uploaded / cycle completed — no reminder needed
-      if (hasUploaded) {
+      // Terminal status: report ready / cycle completed — no reminder needed
+      if (hasCompleted) {
         setShowBanner(false);
         setBookingInfo(null);
         return;
       }
+
 
       setShowBanner(true);
       setBookingInfo(null);
