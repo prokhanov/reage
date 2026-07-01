@@ -132,11 +132,32 @@ function guessCountry(digits: string): Country | undefined {
   return sorted.find((c) => digits.startsWith(c.dial));
 }
 
+/**
+ * Нормализация российских номеров:
+ * - "8xxxxxxxxxx" → "7xxxxxxxxxx" (замена 8 на 7)
+ * - "9xx..." (мобильный без кода страны) → "79xx..." (авто-подстановка +7)
+ */
+export function normalizeRuPhoneDigits(digits: string): string {
+  if (!digits) return digits;
+  // Если уже совпадает с известной страной — не трогаем
+  if (guessCountry(digits)) return digits;
+  // 8 → 7 (частый российский формат)
+  if (digits.startsWith("8") && digits.length >= 10) {
+    return "7" + digits.slice(1);
+  }
+  // Российский мобильный без кода страны: начинается с 9
+  if (digits.startsWith("9")) {
+    return "7" + digits;
+  }
+  return digits;
+}
+
 export function formatPhone(digits: string): string {
   if (!digits) return "";
-  const c = guessCountry(digits);
-  if (!c) return `+${digits}`;
-  return c.format(digits);
+  const normalized = normalizeRuPhoneDigits(digits);
+  const c = guessCountry(normalized);
+  if (!c) return `+${normalized}`;
+  return c.format(normalized);
 }
 
 interface PhoneInputProps {
