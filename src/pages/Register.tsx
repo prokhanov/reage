@@ -278,7 +278,8 @@ export default function Register() {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/register/profile`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
