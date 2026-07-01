@@ -21,7 +21,12 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack, requir
   const nameFilled = !requireName || (
     !!formData.firstName?.trim() && !!formData.lastName?.trim()
   );
-  const isValid = formData.gender && formData.birth_date && nameFilled;
+  const isValid =
+    formData.gender &&
+    formData.birth_date &&
+    !!formData.weight &&
+    !!formData.height &&
+    nameFilled;
 
   return (
     <div className="space-y-6">
