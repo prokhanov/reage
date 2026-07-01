@@ -111,18 +111,43 @@ Deno.serve(async (req) => {
     const userId = newUser.user.id;
     console.log('User created:', userId);
 
-    const { error: profileError } = await supabaseAdmin
+    const profilePayload = {
+      name: `${firstName} ${lastName}`.trim(),
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      birth_date: birthDate,
+      gender,
+      email_verified: true,
+    };
+
+    // auth.users trigger may have already created profiles row synchronously.
+    // Updating first avoids profiles_pkey duplicate errors even if DB migration
+    // with staff guard has not been applied yet on the target infrastructure.
+    const { data: updatedProfile, error: profileUpdateError } = await supabaseAdmin
       .from('profiles')
-      .upsert({
-        id: userId,
-        name: `${firstName} ${lastName}`.trim(),
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        birth_date: birthDate,
-        gender,
-        email_verified: true,
-      }, { onConflict: 'id' });
+      .update(profilePayload)
+      .eq('id', userId)
+      .select('id')
+      .maybeSingle();
+
+    let profileError = profileUpdateError;
+
+    if (!profileUpdateError && !updatedProfile) {
+      const { error: profileInsertError } = await supabaseAdmin
+        .from('profiles')
+        .insert({ id: userId, ...profilePayload });
+
+      if (profileInsertError?.code === '23505') {
+        const { error: retryUpdateError } = await supabaseAdmin
+          .from('profiles')
+          .update(profilePayload)
+          .eq('id', userId);
+        profileError = retryUpdateError;
+      } else {
+        profileError = profileInsertError;
+      }
+    }
 
     if (profileError) {
       console.error('Error upserting profile:', profileError);
