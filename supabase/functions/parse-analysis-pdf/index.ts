@@ -58,10 +58,30 @@ function normalizeName(s: string): string {
   return s
     .toLowerCase()
     .replace(/[ёе]/g, "е")
+    .replace(/α/g, "a")
+    .replace(/β/g, "b")
     .replace(/[^a-zа-я0-9]+/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
+
+// Соответствие: нормализованное альтернативное имя → CODE биомаркера.
+// Используется, если и AI, и точный матч по имени не сработали.
+const NAME_ALIASES: Record<string, string> = {
+  // ФНО / TNF-α
+  "фно": "TNF-α",
+  "фно a": "TNF-α",
+  "фно альфа": "TNF-α",
+  "фно фактор некроза опухоли": "TNF-α",
+  "фактор некроза опухоли": "TNF-α",
+  "фактор некроза опухоли a": "TNF-α",
+  "фактор некроза опухоли альфа": "TNF-α",
+  "tnf": "TNF-α",
+  "tnf a": "TNF-α",
+  "tnf alpha": "TNF-α",
+  "tumor necrosis factor": "TNF-α",
+  "tumor necrosis factor alpha": "TNF-α",
+};
 
 const UNIT_ALIASES: Record<string, string> = {
   "сек": "с",
@@ -295,6 +315,7 @@ ${catalogText}
 - НЕ выдумывай значения. Если показателя в PDF нет — не включай его.
 - Включай ВСЕ числовые показатели, найденные в PDF, даже если их кода нет в справочнике (тогда biomarker_code = null).
 - Для biomarker_code ориентируйся на NAME из справочника (русские названия). Если уверенности нет — null.
+- Синонимы: "ФНО", "ФНО-α", "Фактор некроза опухоли (альфа)" = TNF-α (Фактор некроза опухоли альфа).
 - Десятичный разделитель в value_raw сохраняй как в PDF.
 - Верни ТОЛЬКО JSON, без markdown-обёртки.`;
 
@@ -392,6 +413,9 @@ ${catalogText}
       let bm: Biomarker | undefined;
       if (it.biomarker_code) bm = byCode.get(String(it.biomarker_code).toUpperCase());
       if (!bm && printedNorm) bm = byName.get(printedNorm);
+      if (!bm && printedNorm && NAME_ALIASES[printedNorm]) {
+        bm = byCode.get(NAME_ALIASES[printedNorm].toUpperCase());
+      }
 
       const { value: parsedNum } = parseValue(it.value_raw);
       let numericValue = parsedNum;
