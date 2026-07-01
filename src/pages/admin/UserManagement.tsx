@@ -41,6 +41,8 @@ import { RoleManagementCard } from "@/components/admin/RoleManagementCard";
 import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
 import { EditPendingUserDialog } from "@/components/admin/EditPendingUserDialog";
 import { useToast } from "@/hooks/use-toast";
+import { copyToClipboard } from "@/lib/copyToClipboard";
+
 import {
   Select,
   SelectContent,
