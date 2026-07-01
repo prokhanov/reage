@@ -41,25 +41,26 @@ type BookingStatus =
   | "no_answer"
   | "scheduled"
   | "collected"
-  | "uploaded"
-  | "received"
+  | "report_pending"
+  | "report_ready"
   | "not_scheduled";
 
 const statusOptions: { value: BookingStatus; label: string }[] = [
   { value: "scheduled", label: "Назначен" },
   { value: "waiting_call", label: "Ожидает звонка" },
   { value: "no_answer", label: "Не дозвонились" },
-  { value: "received", label: "Получен" },
-  { value: "collected", label: "Обрабатывается" },
-  { value: "uploaded", label: "Загружен" },
+  { value: "collected", label: "Анализ в работе" },
+  { value: "report_pending", label: "Отчёт в работе" },
+  { value: "report_ready", label: "Отчёт загружен" },
 ];
 
 const ACTIVE_STATUSES: BookingStatus[] = [
   "scheduled",
-  "received",
+  "collected",
   "waiting_call",
   "no_answer",
 ];
+
 
 interface CreateBookingDialogProps {
   open: boolean;
