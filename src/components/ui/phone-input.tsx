@@ -183,7 +183,8 @@ export function PhoneInput({
 }: PhoneInputProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    const digits = raw.replace(/\D/g, "").slice(0, 15);
+    const rawDigits = raw.replace(/\D/g, "").slice(0, 15);
+    const digits = normalizeRuPhoneDigits(rawDigits);
     const formatted = formatPhone(digits);
     onChange(formatted);
     if (onValidityChange) {
