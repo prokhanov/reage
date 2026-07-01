@@ -415,7 +415,7 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                           <CreditCard className="w-5 h-5" />
                           Подписка
                         </CardTitle>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -424,6 +424,16 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
                             <Clock className="w-4 h-4 mr-2" />
                             История
                           </Button>
+                          {isSuperAdmin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setIsGiftOpen(true)}
+                            >
+                              <Gift className="w-4 h-4 mr-2" />
+                              Подарить
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
