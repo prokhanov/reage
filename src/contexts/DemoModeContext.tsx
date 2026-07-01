@@ -157,7 +157,7 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
   const [demoData, setDemoData] = useState<DemoData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { getUserId } = useViewAsUser();
+  const { getUserId, viewAsUserId } = useViewAsUser();
 
   const loadDemoData = useCallback(async (userProfile: any) => {
     try {
