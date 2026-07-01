@@ -494,3 +494,104 @@ function findEndTagPos(text: string, endTagName: string, afterPos: number): { st
   // No end tag found — use rest of text
   return { start: text.length, end: text.length };
 }
+
+// ═══ Trailing transition detection ═══
+
+/**
+ * Regex-паттерны абзацев, которые точно НЕ относятся к карточке биомаркера —
+ * это переходы к следующему показателю, обзор всей системы, отсылки к другим
+ * разделам отчёта или общие резюмирующие фразы. Если такой абзац оказался в
+ * конце блока биомаркера, он «закрашивается» фоном карточки — а этого быть не
+ * должно.
+ */
+const TRANSITION_PARAGRAPH_PATTERNS: RegExp[] = [
+  /^\s*Далее\s+(?:мы\s+)?(?:рассмотрим|перейд[её]м|разбер[её]м|обсудим)/i,
+  /^\s*(?:Теперь|Ниже)\s+(?:мы\s+)?(?:рассмотрим|перейд[её]м|разбер[её]м|обсудим|поговорим)/i,
+  /^\s*Перейд[её]м\s+к\b/i,
+  /^\s*В\s+следующ(?:ем|их)\s+(?:раздел|блок|показател|части)/i,
+  /^\s*Картина\s+Ваш(?:ей|их|его)\b/i,
+  /^\s*Общ(?:ая|ий)\s+(?:картина|вывод|итог)\b/i,
+  /^\s*Рекомендации\s+по\s+коррекции\s+вы\s+найд[её]те\b/i,
+  /^\s*(?:Подробные\s+)?Назначения\s+(?:и\s+рекомендации\s+)?(?:вы\s+)?(?:найд[её]те|описаны|представлены)\b/i,
+  /^\s*(?:Итак|Таким\s+образом|В\s+целом|Подводя\s+итог)\b[^а-яё]*[,.:]/i,
+  /^\s*Прежде\s+чем\s+перейти\b/i,
+];
+
+function isTransitionParagraph(paragraph: string): boolean {
+  const trimmed = paragraph.trim();
+  if (!trimmed) return false;
+  return TRANSITION_PARAGRAPH_PATTERNS.some((re) => re.test(trimmed));
+}
+
+/**
+ * Разделить контент биомаркера на «тело карточки» и «хвостовые переходные
+ * абзацы». Идём по абзацам с конца: пока последний абзац похож на переход к
+ * следующей теме/системе — переносим его в trailing. Останавливаемся, как
+ * только встретили обычный абзац карточки, чтобы случайно не выкусить
+ * заключение по самому биомаркеру.
+ */
+export function splitTrailingTransition(
+  content: string,
+  _biomarkerNames: string[] = [],
+  _biomarkerCode = '',
+): { content: string; trailing: string } {
+  if (!content) return { content, trailing: '' };
+  const paragraphs = content.split(/\n{2,}/);
+  const trailingParts: string[] = [];
+  while (paragraphs.length > 1) {
+    const last = paragraphs[paragraphs.length - 1];
+    if (!isTransitionParagraph(last)) break;
+    trailingParts.unshift(paragraphs.pop()!);
+  }
+  return {
+    content: paragraphs.join('\n\n').trim(),
+    trailing: trailingParts.join('\n\n').trim(),
+  };
+}
+
+// ═══ Validation ═══
+
+export interface AnchorValidationIssue {
+  code: string; // biomarker code (or '' for global)
+  kind: 'trailing_transition' | 'embedded_biomarker_heading' | 'oversized_block';
+  message: string;
+}
+
+/**
+ * Проверить блоки на «косяки склейки»: переходные абзацы всё ещё внутри карточки,
+ * заголовок другого биомаркера/системы застрял в теле, аномально длинный блок.
+ * Возвращает пустой массив, если всё чисто.
+ */
+export function validateAnchorBlocks(blocks: AnchorBlock[]): AnchorValidationIssue[] {
+  const issues: AnchorValidationIssue[] = [];
+  for (const b of blocks) {
+    if (b.type !== 'biomarker') continue;
+    const paragraphs = b.content.split(/\n{2,}/);
+    const last = paragraphs[paragraphs.length - 1] || '';
+    if (isTransitionParagraph(last)) {
+      issues.push({
+        code: b.code,
+        kind: 'trailing_transition',
+        message: `Карточка «${b.code}» заканчивается переходным абзацем: «${last.slice(0, 80)}…»`,
+      });
+    }
+    // Заголовок другого биомаркера внутри тела карточки — верный признак склейки.
+    if (/^\s*#{2,4}\s+[^\n(]+\([A-Za-zА-Яа-я0-9\-+]+\)\s*$/m.test(b.content)) {
+      issues.push({
+        code: b.code,
+        kind: 'embedded_biomarker_heading',
+        message: `В теле «${b.code}» найден заголовок другого биомаркера — вероятная склейка блоков.`,
+      });
+    }
+    // Слишком длинный блок (>2500 символов) — как правило, поглотил соседа.
+    if (b.content.length > 2500) {
+      issues.push({
+        code: b.code,
+        kind: 'oversized_block',
+        message: `Карточка «${b.code}» аномально большая (${b.content.length} симв.) — возможна склейка.`,
+      });
+    }
+  }
+  return issues;
+}
+
