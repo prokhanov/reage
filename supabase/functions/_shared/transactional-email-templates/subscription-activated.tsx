@@ -56,22 +56,25 @@ const periodLabel = (p?: string) => {
 
 const SubscriptionActivatedEmail = ({
   name, planName, planType, amount, originalAmount, discountAmount, promoCode,
-  startDate, endDate, invId, siteName, dashboardUrl,
+  startDate, endDate, invId, siteName, dashboardUrl, gifted, giftReason,
 }: Props) => {
   const site = siteName || 'ReAge'
   const url = dashboardUrl || 'https://reage.life/dashboard'
   const hasDiscount = Number(discountAmount) > 0
+  const isGift = gifted === true
 
   return (
     <Html lang="ru" dir="ltr">
       <Head />
-      <Preview>Оплата прошла. Подписка {site} активирована.</Preview>
+      <Preview>{isGift ? `Подписка ${site} активирована в подарок.` : `Оплата прошла. Подписка ${site} активирована.`}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={heading}>Оплата прошла. Подписка активирована</Heading>
+          <Heading style={heading}>{isGift ? 'Подписка активирована в подарок' : 'Оплата прошла. Подписка активирована'}</Heading>
           <Text style={text}>{name ? `Здравствуйте, ${name}!` : 'Здравствуйте!'}</Text>
           <Text style={text}>
-            Спасибо за оплату. Ваша подписка в {site} активна — доступ ко всем функциям сервиса открыт.
+            {isGift
+              ? `Администратор ${site} активировал для вас подписку — доступ ко всем функциям сервиса открыт${giftReason ? `. Комментарий: ${giftReason}` : ''}.`
+              : `Спасибо за оплату. Ваша подписка в ${site} активна — доступ ко всем функциям сервиса открыт.`}
           </Text>
 
           <Section style={box}>
