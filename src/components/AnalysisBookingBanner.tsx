@@ -87,14 +87,14 @@ export function AnalysisBookingBanner() {
         return;
       }
 
-      // If the cycle was completed (any booking has status "uploaded"),
+      // If the cycle was completed (any booking has terminal status "report_ready"),
       // ignore the auto-created "not_scheduled" placeholder for the next cycle —
       // it should not nag the user immediately after their report is ready.
-      const hasUploaded = bookings.some((b) => b.status === "uploaded");
-      const lastUploadedAt = hasUploaded
+      const hasCompleted = bookings.some((b) => b.status === "report_ready");
+      const lastCompletedAt = hasCompleted
         ? Math.max(
             ...bookings
-              .filter((b) => b.status === "uploaded")
+              .filter((b) => b.status === "report_ready")
               .map((b) => new Date(b.created_at).getTime())
           )
         : 0;
@@ -105,17 +105,18 @@ export function AnalysisBookingBanner() {
           (b) =>
             b.status === status &&
             (!requireFuture || !isBookingExpired(b)) &&
-            // skip the next-cycle "not_scheduled" placeholder created right after upload
-            !(status === "not_scheduled" && hasUploaded && new Date(b.created_at).getTime() >= lastUploadedAt)
+            // skip the next-cycle "not_scheduled" placeholder created right after the report was ready
+            !(status === "not_scheduled" && hasCompleted && new Date(b.created_at).getTime() >= lastCompletedAt)
         );
 
       const active =
+        find("report_pending") ||
         find("collected") ||
-        find("received") ||
         find("scheduled", true) ||
         find("no_answer") ||
         find("waiting_call") ||
         find("not_scheduled");
+
 
       if (active) {
         setShowBanner(true);
