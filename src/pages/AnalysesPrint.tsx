@@ -390,18 +390,18 @@ export default function AnalysesPrint() {
                                   {v.biomarkers.code}
                                 </div>
                               </div>
-                              <div className="col-span-1 text-right">
-                                <div className="font-mono font-semibold text-sm tabular-nums">
+                              <div className="col-span-2 text-right whitespace-nowrap">
+                                <span className="font-mono font-semibold text-sm tabular-nums">
                                   {v.value}
-                                </div>
-                                <div className="text-[11px] text-muted-foreground">
+                                </span>
+                                <span className="text-[11px] text-muted-foreground ml-1">
                                   {v.biomarkers.unit || ""}
-                                </div>
+                                </span>
                               </div>
                               <div className="col-span-2">
                                 <BiomarkerStatusBadge statusInfo={statusInfo} />
                               </div>
-                              <div className="col-span-6">
+                              <div className="col-span-5">
                                 <PrintBiomarkerScale
                                   biomarker={v.biomarkers}
                                   value={v.value}
