@@ -36,7 +36,16 @@ import { AdminCenterLoader } from "@/components/admin/AdminCenterLoader";
 import { PatientInfoDialog } from "@/components/admin/PatientInfoDialog";
 import { EditBookingDialog } from "@/components/admin/EditBookingDialog";
 
-type BookingStatus = "scheduled" | "collected" | "uploaded";
+import {
+  bookingStatusLabels,
+  bookingStatusColors,
+  type BookingStatus as AllBookingStatus,
+} from "@/lib/bookingStatusLabels";
+
+type BookingStatus = Extract<
+  AllBookingStatus,
+  "scheduled" | "collected" | "report_pending" | "report_ready"
+>;
 
 interface BookingData {
   id: string;
@@ -55,16 +64,19 @@ interface BookingData {
 }
 
 const statusLabels: Record<BookingStatus, string> = {
-  scheduled: "Назначен",
-  collected: "Получен",
-  uploaded: "Загружен",
+  scheduled: bookingStatusLabels.scheduled,
+  collected: bookingStatusLabels.collected,
+  report_pending: bookingStatusLabels.report_pending,
+  report_ready: bookingStatusLabels.report_ready,
 };
 
 const statusColors: Record<BookingStatus, string> = {
-  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
-  collected: "bg-green-100 text-green-700 border-green-200",
-  uploaded: "bg-emerald-600 text-white border-emerald-600",
+  scheduled: bookingStatusColors.scheduled,
+  collected: bookingStatusColors.collected,
+  report_pending: bookingStatusColors.report_pending,
+  report_ready: bookingStatusColors.report_ready,
 };
+
 
 export default function MyAssignments() {
   const [searchQuery, setSearchQuery] = useState("");
