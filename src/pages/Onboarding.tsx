@@ -393,9 +393,9 @@ export default function Onboarding() {
                   disabled={
                     submitting ||
                     !isPassportValid(passportSeries, passportNumber) ||
-                    !formData.firstName.trim() ||
-                    !formData.lastName.trim()
+                    !formData.firstName.trim()
                   }
+
                   className="flex-1"
                   size="lg"
                 >
