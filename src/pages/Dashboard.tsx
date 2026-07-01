@@ -17,6 +17,7 @@ import { useDemoMode, getLatestDemoAnalysis } from "@/hooks/useDemoMode";
 import { BiologicalAgeCircle } from "@/components/BiologicalAgeCircle";
 
 import { PassportReminderCard } from "@/components/PassportReminderCard";
+import { OnboardingReminderCard } from "@/components/OnboardingReminderCard";
 import { BioAgeTrendChart } from "@/components/dashboard/BioAgeTrendChart";
 import { HealthIndexTrendChart } from "@/components/dashboard/HealthIndexTrendChart";
 import { SystemRatingsCard } from "@/components/dashboard/SystemRatingsCard";
