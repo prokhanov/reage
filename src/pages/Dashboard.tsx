@@ -469,7 +469,10 @@ export default function Dashboard() {
       {/* Demo Banner */}
 
       {/* Passport data reminder (paid users only, until filled) */}
+      {!demoMode && <OnboardingReminderCard />}
       {!demoMode && <PassportReminderCard />}
+
+
 
       {/* Header */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
