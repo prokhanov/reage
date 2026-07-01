@@ -13,6 +13,8 @@ import { ThemedLogo } from "@/components/ThemedLogo";
 import { RegisterStep2 } from "@/components/register/RegisterStep2";
 import { RegisterStep3 } from "@/components/register/RegisterStep3";
 import { PassportFields, isPassportValid } from "@/components/PassportFields";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { saveOnboardingData } from "@/lib/onboarding/saveOnboardingData";
 import type { RegisterFormData } from "@/pages/Register";
 
@@ -288,6 +290,31 @@ export default function Onboarding() {
                   один раз.
                 </p>
               </div>
+
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Проверьте ФИО</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Фамилия</Label>
+                    <Input
+                      value={formData.lastName}
+                      onChange={(e) => updateFormData({ lastName: e.target.value })}
+                      placeholder="Иванов"
+                      className="h-12 text-base"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Имя</Label>
+                    <Input
+                      value={formData.firstName}
+                      onChange={(e) => updateFormData({ firstName: e.target.value })}
+                      placeholder="Иван"
+                      className="h-12 text-base"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <PassportFields
                 series={passportSeries}
                 number={passportNumber}
@@ -309,7 +336,10 @@ export default function Onboarding() {
                 <Button
                   onClick={finalize}
                   disabled={
-                    submitting || !isPassportValid(passportSeries, passportNumber)
+                    submitting ||
+                    !isPassportValid(passportSeries, passportNumber) ||
+                    !formData.firstName.trim() ||
+                    !formData.lastName.trim()
                   }
                   className="flex-1"
                   size="lg"
