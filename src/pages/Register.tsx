@@ -486,7 +486,9 @@ export default function Register() {
           </div>
 
           {/* Progress */}
+          {steps.length > 1 && (
           <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+
             <div className="flex items-center justify-between mb-6">
               {steps.map((step, index) => {
                 const Icon = step.icon;
