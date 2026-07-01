@@ -97,7 +97,9 @@ Deno.serve(async (req) => {
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true,
+      // НЕ ставим email_confirm=true — верификация должна проходить через нашу ссылку
+      // (send-verification-email). Логин при этом не блокируется.
+      email_confirm: false,
       user_metadata: {
         first_name: firstName,
         last_name: lastName,
@@ -123,7 +125,9 @@ Deno.serve(async (req) => {
       email,
       birth_date: birthDate,
       gender,
-      email_verified: true,
+      // email_verified оставляем false — подтверждается только кликом
+      // по ссылке из письма send-verification-email.
+      email_verified: false,
     };
 
     // auth.users trigger may have already created profiles row synchronously.
@@ -246,7 +250,18 @@ Deno.serve(async (req) => {
 
     console.log('Staff registration completed successfully');
 
-    return json({ 
+    // Отправляем письмо-подтверждение (общий шаблон, как для пациентов).
+    // Ошибку глушим, чтобы не ломать успешную регистрацию.
+    try {
+      const { error: sendErr } = await supabaseAdmin.functions.invoke('send-verification-email', {
+        body: { user_id: userId, email },
+      });
+      if (sendErr) console.warn('send-verification-email failed:', sendErr);
+    } catch (e) {
+      console.warn('send-verification-email invoke threw:', e);
+    }
+
+    return json({
         success: true,
         message: 'Регистрация прошла успешно'
       });
