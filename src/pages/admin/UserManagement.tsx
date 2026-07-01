@@ -320,14 +320,18 @@ export default function UserManagement() {
     onSuccess: (data) => {
       const registerUrl = `/register-staff?invite=${data.token}`;
       const fullUrl = `${window.location.origin}${registerUrl}`;
-      navigator.clipboard.writeText(fullUrl);
-      
+      const ok = await copyToClipboard(fullUrl);
+
       toast({
-        title: "Ссылка перегенерирована",
-        description: "Новая пригласительная ссылка скопирована в буфер обмена",
+        title: ok ? "Ссылка перегенерирована" : "Скопируйте ссылку вручную",
+        description: ok
+          ? "Новая пригласительная ссылка скопирована в буфер обмена"
+          : fullUrl,
+        duration: ok ? 4000 : 15000,
       });
-      
+
       refetch();
+
     },
     onError: (error: any) => {
       toast({
