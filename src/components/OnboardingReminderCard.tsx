@@ -11,13 +11,13 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
  * Не показывается в режиме "просмотр как пациент" (админ).
  */
 export function OnboardingReminderCard() {
-  const { getUserId, isViewingAsPatient } = useViewAsUser();
+  const { getUserId, isViewMode } = useViewAsUser();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      if (isViewingAsPatient) {
+      if (isViewMode) {
         setShow(false);
         return;
       }
@@ -50,7 +50,7 @@ export function OnboardingReminderCard() {
     return () => {
       mounted = false;
     };
-  }, [getUserId, isViewingAsPatient]);
+  }, [getUserId, isViewMode]);
 
   if (!show) return null;
 
