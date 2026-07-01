@@ -84,7 +84,8 @@ export default function HealthStrategy() {
     setLoading(true);
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewAsUserId, demoMode]);
+  }, [viewAsUserId, demoMode, demoData?.health_strategy]);
+
 
   const load = async () => {
     try {
