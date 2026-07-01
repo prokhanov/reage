@@ -28,14 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const ADMIN_MODULES = [
-  { value: "ai_settings", label: "Настройки AI" },
-  { value: "data_management", label: "Управление данными" },
-  { value: "patients", label: "Пациенты" },
-  { value: "user_management", label: "Управление пользователями" },
-  { value: "analysis_bookings", label: "Записи на анализы" },
-  { value: "my_assignments", label: "Назначены мне" },
-];
+import { ADMIN_MODULES, type AdminModule } from "@/lib/adminModules";
+
 
 interface Role {
   id: string;
