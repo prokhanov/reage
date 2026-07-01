@@ -433,7 +433,7 @@ export function RoleManagementCard() {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="px-6 pb-6 pt-4 border-t">
               <Button
                 type="button"
                 variant="outline"
