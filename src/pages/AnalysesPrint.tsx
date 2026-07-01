@@ -8,7 +8,6 @@ import {
   calculateAge,
   getCriticalRangeForAge,
   getOptimalRangeForAge,
-  formatNormalRange,
   getBiomarkerStatus,
   getNormalRangeForAge,
   type AgeRanges,
@@ -378,11 +377,6 @@ export default function AnalysesPrint() {
                             patientAge,
                             (patientGender as "male" | "female" | null) || null
                           );
-                          const normal = getNormalRangeForAge(
-                            v.biomarkers,
-                            patientAge ?? 40,
-                            patientGender === "female" ? "female" : "male"
-                          );
                           return (
                             <div
                               key={v.id}
@@ -404,16 +398,10 @@ export default function AnalysesPrint() {
                                   {v.biomarkers.unit || ""}
                                 </div>
                               </div>
-                              <div className="col-span-2 text-xs text-muted-foreground">
-                                Норма:{" "}
-                                <span className="font-mono text-foreground">
-                                  {formatNormalRange(normal.min, normal.max)}
-                                </span>
-                              </div>
                               <div className="col-span-2">
                                 <BiomarkerStatusBadge statusInfo={statusInfo} />
                               </div>
-                              <div className="col-span-4">
+                              <div className="col-span-6">
                                 <PrintBiomarkerScale
                                   biomarker={v.biomarkers}
                                   value={v.value}
