@@ -211,6 +211,74 @@ function isBiomarkerMissingEducation(content: string): boolean {
   return withoutTitle.length < 60;
 }
 
+// ──────────────────── Trailing transition detection ────────────────────
+
+/**
+ * Абзацы-«переходы», которые часто прилипают к концу карточки биомаркера и
+ * визуально закрашиваются её фоном. Ловим их отдельной проверкой и авто-режем
+ * от блока — заодно предупреждаем в UI.
+ */
+const TRANSITION_PARAGRAPH_PATTERNS: RegExp[] = [
+  /^\s*Далее\s+(?:мы\s+)?(?:рассмотрим|перейд[её]м|разбер[её]м|обсудим)/i,
+  /^\s*(?:Теперь|Ниже)\s+(?:мы\s+)?(?:рассмотрим|перейд[её]м|разбер[её]м|обсудим|поговорим)/i,
+  /^\s*Перейд[её]м\s+к\b/i,
+  /^\s*В\s+следующ(?:ем|их)\s+(?:раздел|блок|показател|части)/i,
+  /^\s*Картина\s+Ваш(?:ей|их|его)\b/i,
+  /^\s*Общ(?:ая|ий)\s+(?:картина|вывод|итог)\b/i,
+  /^\s*Рекомендации\s+по\s+коррекции\s+вы\s+найд[её]те\b/i,
+  /^\s*(?:Подробные\s+)?Назначения\s+(?:и\s+рекомендации\s+)?(?:вы\s+)?(?:найд[её]те|описаны|представлены)\b/i,
+  /^\s*(?:Итак|Таким\s+образом|В\s+целом|Подводя\s+итог)\b[^а-яё]*[,.:]/i,
+  /^\s*Прежде\s+чем\s+перейти\b/i,
+];
+
+function isTransitionParagraph(p: string): boolean {
+  const t = p.trim();
+  if (!t) return false;
+  return TRANSITION_PARAGRAPH_PATTERNS.some((re) => re.test(t));
+}
+
+/**
+ * Найти биомаркер-блоки, у которых последний абзац — переходный, и вынести
+ * такие абзацы наружу (в plain-текст между карточками). Возвращает
+ * исправленный текст и список code, где было исправление.
+ */
+function stripTrailingTransitions(
+  report: string,
+): { text: string; touched: string[] } {
+  const blocks = extractBiomarkerBlocks(report);
+  const touched: string[] = [];
+  // Обходим с конца, чтобы индексы оставались валидными.
+  let result = report;
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const b = blocks[i];
+    const paragraphs = b.content.split(/\n{2,}/);
+    const trailing: string[] = [];
+    while (paragraphs.length > 1) {
+      const last = paragraphs[paragraphs.length - 1];
+      if (!isTransitionParagraph(last)) break;
+      trailing.unshift(paragraphs.pop()!);
+    }
+    if (trailing.length === 0) continue;
+    touched.push(b.code);
+    const kept = paragraphs.join("\n\n").trim();
+    const tail = trailing.join("\n\n").trim();
+    // Заменяем содержимое блока: оставляем `kept`, затем закрывающий тег
+    // (если его не было — добавляем), затем `tail` уже вне карточки.
+    const openMatch = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+    openMatch.lastIndex = b.start;
+    const open = openMatch.exec(result);
+    if (!open) continue;
+    const contentStart = open.index + open[0].length;
+    const before = result.slice(0, contentStart);
+    const after = result.slice(b.end);
+    // Если после блока НЕТ явного biomarker_end — добавим, иначе просто
+    // вставим tail перед закрывающим тегом/следующим блоком.
+    result = `${before}\n${kept}\n<!-- anchor:biomarker_end -->\n\n${tail}\n${after}`;
+  }
+  return { text: result, touched };
+}
+
+
 // ──────────────────── English artifact detection ────────────────────
 
 /**
@@ -681,8 +749,19 @@ Deno.serve(async (req) => {
             send({ type: "fix", message: msg });
           }
 
+          // 3b. Отрезаем «переходные» абзацы, прилипшие к концу карточек
+          // биомаркеров (иначе они «закрашиваются» цветом карточки).
+          const trans = stripTrailingTransitions(text);
+          if (trans.touched.length > 0) {
+            text = trans.text;
+            const msg = `[${sectionLabel}] Вынесены переходные абзацы из карточек: ${trans.touched.join(", ")}`;
+            fixes.push(msg);
+            send({ type: "fix", message: msg });
+          }
+
           // 4. Detect orphan codes (anchors that don't match analysis_values)
           const blocks = extractBiomarkerBlocks(text);
+
           const orphans = blocks
             .map((b) => b.code)
             .filter(
