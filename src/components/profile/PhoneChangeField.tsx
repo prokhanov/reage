@@ -111,7 +111,7 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
           {currentPhone ? (
             <>
               <span className="font-medium break-all">{formatDisplay(currentPhone)}</span>
-              <div className="flex items-center justify-between gap-2 sm:justify-end">
+              <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
                 {isVerified ? (
                   <Badge variant="secondary" className="gap-1 bg-emerald-500/15 text-emerald-500 border-emerald-500/30 whitespace-nowrap">
                     <ShieldCheck className="h-3 w-3" />
@@ -121,6 +121,19 @@ export function PhoneChangeField({ currentPhone, isVerified, onUpdated }: PhoneC
                   <Badge variant="outline" className="text-muted-foreground whitespace-nowrap">
                     Не подтверждён
                   </Badge>
+                )}
+                {!isVerified && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="default"
+                    disabled={sending}
+                    onClick={handleSend}
+                    className="gap-1.5 h-8"
+                  >
+                    {sending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                    Подтвердить
+                  </Button>
                 )}
                 <Button type="button" size="sm" variant="ghost" onClick={() => setStage("edit")} className="gap-1.5 -mr-2">
                   <Pencil className="h-3.5 w-3.5" />
