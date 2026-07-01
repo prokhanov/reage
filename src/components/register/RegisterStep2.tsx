@@ -85,7 +85,7 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack, requir
                 htmlFor="male"
                 className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
               >
-                <img src={genderMale} alt="Мужчина" className="w-20 h-20 mb-2 object-contain" />
+                <img src={genderMale} alt="Мужчина" width={80} height={80} loading="eager" decoding="sync" fetchPriority="high" className="w-20 h-20 mb-2 object-contain" />
                 <span className="font-medium">Мужчина</span>
               </Label>
             </div>
@@ -95,7 +95,7 @@ export function RegisterStep2({ formData, updateFormData, onNext, onBack, requir
                 htmlFor="female"
                 className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
               >
-                <img src={genderFemale} alt="Женщина" className="w-20 h-20 mb-2 object-contain" />
+                <img src={genderFemale} alt="Женщина" width={80} height={80} loading="eager" decoding="sync" fetchPriority="high" className="w-20 h-20 mb-2 object-contain" />
                 <span className="font-medium">Женщина</span>
               </Label>
             </div>
