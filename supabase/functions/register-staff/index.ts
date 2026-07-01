@@ -250,7 +250,18 @@ Deno.serve(async (req) => {
 
     console.log('Staff registration completed successfully');
 
-    return json({ 
+    // Отправляем письмо-подтверждение (общий шаблон, как для пациентов).
+    // Ошибку глушим, чтобы не ломать успешную регистрацию.
+    try {
+      const { error: sendErr } = await supabaseAdmin.functions.invoke('send-verification-email', {
+        body: { user_id: userId, email },
+      });
+      if (sendErr) console.warn('send-verification-email failed:', sendErr);
+    } catch (e) {
+      console.warn('send-verification-email invoke threw:', e);
+    }
+
+    return json({
         success: true,
         message: 'Регистрация прошла успешно'
       });
