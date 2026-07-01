@@ -2,12 +2,23 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Shield, Settings, UserPlus, Copy, Check, Plus, Pause, Trash2, RefreshCw, CheckCircle, Eye, Mail } from "lucide-react";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { ChangeUserEmailDialog } from "@/components/admin/ChangeUserEmailDialog";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 import {
   Tooltip,
   TooltipContent,
@@ -54,7 +65,13 @@ export default function UserManagement() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editPendingDialogOpen, setEditPendingDialogOpen] = useState(false);
   const [emailChangeUser, setEmailChangeUser] = useState<{ id: string; name: string; email: string | null } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string; type: "active" | "pending"; inviteToken?: string } | null>(null);
+  const [pendingSuspend, setPendingSuspend] = useState<{ id: string; name: string } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [suspendingId, setSuspendingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
 
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ["admin-users"],
@@ -207,11 +224,11 @@ export default function UserManagement() {
     return matchesSearch && matchesRole;
   });
 
-  const handleSuspendUser = async (userId: string, userName: string) => {
-    if (!confirm(`Приостановить доступ для ${userName}?`)) return;
-
+  const confirmSuspendUser = async () => {
+    if (!pendingSuspend) return;
+    const { id: userId, name: userName } = pendingSuspend;
+    setSuspendingId(userId);
     try {
-      // Удаляем все роли пользователя (кроме patient)
       const { error } = await supabase
         .from("user_roles")
         .delete()
@@ -225,20 +242,25 @@ export default function UserManagement() {
         description: `Пользователь ${userName} больше не имеет административных прав`,
       });
 
-      refetch();
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setPendingSuspend(null);
     } catch (error: any) {
       toast({
         title: "Ошибка",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setSuspendingId(null);
     }
   };
 
-  const handleDeleteUser = async (userId: string, userName: string, type: "active" | "pending", inviteToken?: string) => {
+  const confirmDeleteUser = async () => {
+    if (!pendingDelete) return;
+    const { id: userId, name: userName, type, inviteToken } = pendingDelete;
+    setDeletingId(userId);
     try {
       if (type === "pending") {
-        // Удалить приглашение
         const { error } = await supabase
           .from("invite_tokens")
           .delete()
@@ -246,31 +268,34 @@ export default function UserManagement() {
 
         if (error) throw error;
       } else {
-        // Для активного пользователя вызываем Edge Function для полного удаления
         const { data, error } = await supabase.functions.invoke('delete-user', {
           body: { userId }
         });
 
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
-
-        console.log('User deleted successfully:', data);
       }
 
       toast({
-        title: "Пользователь удален",
-        description: `${userName} был успешно удален из системы`,
+        title: type === "pending" ? "Приглашение удалено" : "Пользователь удалён",
+        description: type === "pending"
+          ? `Приглашение для ${userName} удалено`
+          : `${userName} был успешно удалён из системы`,
       });
 
-      refetch();
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setPendingDelete(null);
     } catch (error: any) {
       console.error('Delete user error:', error);
       toast({
-        title: "Ошибка удаления",
+        title: "Не удалось удалить",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setDeletingId(null);
     }
+
   };
 
   const regenerateInviteTokenMutation = useMutation({
@@ -773,7 +798,7 @@ export default function UserManagement() {
                                             size="icon"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              handleDeleteUser(user.id, user.name, "pending", user.invite_token);
+                                              setPendingDelete({ id: user.id, name: user.name, type: "pending", inviteToken: user.invite_token });
                                             }}
                                           >
                                             <Trash2 className="w-4 h-4 text-destructive" />
@@ -832,7 +857,7 @@ export default function UserManagement() {
                                               size="icon"
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleSuspendUser(user.id, user.name);
+                                                setPendingSuspend({ id: user.id, name: user.name });
                                               }}
                                             >
                                               <Pause className="w-4 h-4 text-orange-500" />
@@ -851,7 +876,7 @@ export default function UserManagement() {
                                               size="icon"
                                               onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteUser(user.id, user.name, "active");
+                                                setPendingDelete({ id: user.id, name: user.name, type: "active" });
                                               }}
                                             >
                                               <Trash2 className="w-4 h-4 text-destructive" />
@@ -925,6 +950,52 @@ export default function UserManagement() {
           }}
         />
       )}
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o && !deletingId) setPendingDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDelete?.type === "pending" ? "Удалить приглашение?" : "Удалить пользователя?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.type === "pending"
+                ? `Приглашение для ${pendingDelete?.name} будет удалено, а ссылка перестанет работать.`
+                : `Пользователь ${pendingDelete?.name} и все его данные (роли, разрешения, история) будут удалены безвозвратно. Это действие нельзя отменить.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!deletingId}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDeleteUser(); }}
+              disabled={!!deletingId}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingId ? "Удаление…" : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingSuspend} onOpenChange={(o) => { if (!o && !suspendingId) setPendingSuspend(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Приостановить доступ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              У пользователя {pendingSuspend?.name} будут сняты все административные роли. Пациентская роль сохранится.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!suspendingId}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmSuspendUser(); }}
+              disabled={!!suspendingId}
+            >
+              {suspendingId ? "Обработка…" : "Приостановить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
