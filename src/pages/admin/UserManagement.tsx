@@ -65,7 +65,13 @@ export default function UserManagement() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editPendingDialogOpen, setEditPendingDialogOpen] = useState(false);
   const [emailChangeUser, setEmailChangeUser] = useState<{ id: string; name: string; email: string | null } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string; type: "active" | "pending"; inviteToken?: string } | null>(null);
+  const [pendingSuspend, setPendingSuspend] = useState<{ id: string; name: string } | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [suspendingId, setSuspendingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
 
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ["admin-users"],
