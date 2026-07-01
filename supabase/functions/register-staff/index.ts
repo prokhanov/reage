@@ -125,7 +125,9 @@ Deno.serve(async (req) => {
       email,
       birth_date: birthDate,
       gender,
-      email_verified: true,
+      // email_verified оставляем false — подтверждается только кликом
+      // по ссылке из письма send-verification-email.
+      email_verified: false,
     };
 
     // auth.users trigger may have already created profiles row synchronously.
