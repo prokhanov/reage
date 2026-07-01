@@ -561,6 +561,7 @@ export default function Profile() {
               )}
             </div>
           </Card>
+          </>}
 
           {/* Security Card */}
           <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
