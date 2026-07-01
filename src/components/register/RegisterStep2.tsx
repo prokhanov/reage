@@ -1,4 +1,4 @@
-import { Weight, Ruler, ArrowRight, ArrowLeft } from "lucide-react";
+import { Weight, Ruler, ArrowRight, ArrowLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,10 +13,15 @@ interface RegisterStep2Props {
   updateFormData: (data: Partial<RegisterFormData>) => void;
   onNext: () => void;
   onBack?: () => void;
+  /** Показать и обязательно проверить поля Имя/Фамилия (для онбординга). */
+  requireName?: boolean;
 }
 
-export function RegisterStep2({ formData, updateFormData, onNext, onBack }: RegisterStep2Props) {
-  const isValid = formData.gender && formData.birth_date;
+export function RegisterStep2({ formData, updateFormData, onNext, onBack, requireName }: RegisterStep2Props) {
+  const nameFilled = !requireName || (
+    !!formData.firstName?.trim() && !!formData.lastName?.trim()
+  );
+  const isValid = formData.gender && formData.birth_date && nameFilled;
 
   return (
     <div className="space-y-6">
