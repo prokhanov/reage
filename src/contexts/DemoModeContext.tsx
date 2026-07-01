@@ -13,7 +13,9 @@ export interface DemoData {
   prescriptions: any[];
   recommendations: any[];
   risk_zones: any;
+  health_strategy: any | null;
 }
+
 
 interface DemoModeContextValue {
   demoMode: boolean;
