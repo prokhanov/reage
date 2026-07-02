@@ -61,6 +61,7 @@ async function readResponseBody(response: Response) {
 export default function ReportVisualsTest() {
   const [minting, setMinting] = useState(false);
   const [rendering, setRendering] = useState(false);
+  const [paginated, setPaginated] = useState(true);
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
 
   const appendPdfLog = useCallback(
