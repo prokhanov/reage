@@ -67,8 +67,7 @@ export function ReportOverview({ report }: Props) {
   );
 }
 
-  );
-}
+
 
 function extractSummaryText(
   contentJson: unknown,
