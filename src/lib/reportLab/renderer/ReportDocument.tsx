@@ -58,7 +58,7 @@ export function ReportDocument({ report, signalReady }: Props) {
     fontsReady
       .then(() => {
         log("fonts_ready");
-        setTimeout(mark, 150);
+        mark();
         requestAnimationFrame(() => setTimeout(mark, 50));
       })
       .catch((e) => log("fonts_error", { message: e instanceof Error ? e.message : String(e) }));
