@@ -284,12 +284,12 @@ ${symptomsText}
         headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           model: aiProfile.model,
-          ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
+          ...(aiProfile.reasoning ? { reasoning: { effort: "low" as const } } : {}),
           messages: [
             { role: "system", content: summarySystemPrompt },
             { role: "user", content: summaryPrompt },
           ],
-          max_completion_tokens: Math.round(16000 * aiProfile.tokenMultiplier),
+          max_completion_tokens: Math.round(24000 * aiProfile.tokenMultiplier),
         }),
       });
 
