@@ -886,21 +886,43 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
             aiBioAge = Math.max(chronologicalAge - 15, Math.min(chronologicalAge + 15, aiBioAge));
             biological_age = Math.round(aiBioAge * 10) / 10;
 
-            // Защитный «пол» для оценок систем: разрыв между AI-score и HI ограничен,
-            // чтобы единичные отклонения не обрушали систему до 20-40 баллов.
-            if (aiResult.category_scores && typeof aiResult.category_scores === "object") {
-              for (const catName of Object.keys(aiResult.category_scores)) {
-                const cat = aiResult.category_scores[catName];
-                if (cat && typeof cat.score === "number") {
-                  const impact = cat.impact || "moderate";
-                  const maxGap = impact === "high" ? 30 : impact === "moderate" ? 20 : 12;
-                  const floor = Math.max(0, health_index - maxGap);
-                  if (cat.score < floor) cat.score = floor;
-                  // также не выше HI+10, чтобы не было «зелёных» систем при низком HI
-                  const ceiling = Math.min(100, health_index + 12);
-                  if (cat.score > ceiling) cat.score = ceiling;
+            // Unified source (Variant A): рейтинги систем берём из M3, а НЕ у AI.
+            // Так HI (M4) и category_scores строятся из одних system_scores и не могут
+            // расходиться. AI поля (impact / key_markers) сохраняем как qualitative-контекст.
+            const SYSTEM_TO_CATEGORY_RU: Record<string, string> = {
+              cardiovascular: "Сердечно-сосудистая система",
+              metabolism: "Метаболизм и Детоксикация",
+              inflammation: "Воспалительная и иммунная система",
+              endocrine: "Эндокринная и стрессовая система",
+              energy: "Энергия и восстановление",
+            };
+            if (Array.isArray(systemScores)) {
+              const aiCat = (aiResult.category_scores && typeof aiResult.category_scores === "object")
+                ? aiResult.category_scores
+                : {};
+              const unifiedCat: Record<string, any> = {};
+              for (const s of systemScores) {
+                const catName = SYSTEM_TO_CATEGORY_RU[s.system];
+                if (!catName) continue;
+                const aiEntry = aiCat[catName] || {};
+                if (s.insufficient || s.score == null) {
+                  // Недостаточно данных → падаем на AI-скор (если есть)
+                  if (aiEntry && typeof aiEntry.score === "number") {
+                    unifiedCat[catName] = { ...aiEntry, source: "ai_fallback" };
+                  }
+                  continue;
                 }
+                unifiedCat[catName] = {
+                  score: Math.round(s.score),
+                  impact: aiEntry.impact || "moderate",
+                  key_markers: aiEntry.key_markers || [],
+                  markers_used: s.markers_used,
+                  markers_total: s.markers_total,
+                  coverage: Math.round((s.coverage || 0) * 100),
+                  source: "m3",
+                };
               }
+              aiResult.category_scores = unifiedCat;
             }
 
             biomarkers_metadata = {
