@@ -132,6 +132,8 @@ html, body {
     margin: 0 !important;
     box-shadow: none !important;
     min-height: 0;
+    padding-top: 18mm;
+    padding-bottom: 12mm;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -140,6 +142,7 @@ html, body {
        колонтитулы. Если оставить 297mm, обложка уезжает на вторую страницу. */
     min-height: 261mm !important;
     height: 261mm !important;
+    padding: 0 !important;
   }
 }
 
