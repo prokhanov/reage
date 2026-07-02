@@ -26,12 +26,11 @@ cd deploy/report-renderer
 AUTH_TOKEN=$(openssl rand -hex 32)
 
 # 2. Выложить секреты на Fly-сторону.
-#    REPORT_PREVIEW_HMAC_SECRET должен быть точно таким же, как secret
-#    REPORT_PREVIEW_HMAC_SECRET в Lovable (иначе preview-токены не пройдут
-#    проверку и /render будет отвечать 401 preview_token_invalid).
+#    REPORT_PREVIEW_HMAC_SECRET должен совпадать с одноимённым секретом в
+#    Lovable (иначе preview-токены не пройдут проверку → 401 preview_token_invalid).
 fly secrets set \
   AUTH_TOKEN="$AUTH_TOKEN" \
-  REPORT_PREVIEW_HMAC_SECRET="$(fly ssh console -a reage-report-renderer -C 'printenv REPORT_PREVIEW_HMAC_SECRET' 2>/dev/null || echo REPLACE_ME)" \
+  REPORT_PREVIEW_HMAC_SECRET="<тот_же_секрет_что_в_Lovable>" \
   -a reage-report-renderer
 
 # 3. Задеплоить
