@@ -8,6 +8,7 @@ interface Props {
   category: ParsedCategory;
   biomarkerByCode: Map<string, ReportBiomarker>;
   gender: "male" | "female" | "other" | null;
+  recommendationId?: string;
 }
 
 export function ReportSection({
@@ -15,7 +16,9 @@ export function ReportSection({
   category,
   biomarkerByCode,
   gender,
+  recommendationId,
 }: Props) {
+  let proseIndex = 0;
   return (
     <section className="rl-page">
       <header className="rl-section-header">
@@ -26,7 +29,13 @@ export function ReportSection({
 
       {category.blocks.map((b, i) => {
         if (b.kind === "prose") {
-          return <ProseMarkdown key={i} markdown={b.markdown} />;
+          const editableId = recommendationId
+            ? `rec:${recommendationId}#prose:${proseIndex}`
+            : undefined;
+          proseIndex += 1;
+          return (
+            <ProseMarkdown key={i} markdown={b.markdown} editableId={editableId} />
+          );
         }
         const bio = biomarkerByCode.get(normalizeCode(b.code));
         if (!bio) {
@@ -40,12 +49,16 @@ export function ReportSection({
             </div>
           );
         }
+        const editableId = recommendationId
+          ? `rec:${recommendationId}#bio:${b.code}`
+          : undefined;
         return (
           <BiomarkerCard
             key={i}
             biomarker={bio}
             commentary={b.commentary}
             gender={gender}
+            editableId={editableId}
           />
         );
       })}

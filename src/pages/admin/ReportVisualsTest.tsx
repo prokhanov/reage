@@ -6,10 +6,11 @@ import { Download, ExternalLink, Loader2 } from "lucide-react";
 import { notify as toast } from "@/lib/toast";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
+import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
-const REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
+const INITIAL_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 
 type PdfLogLevel = "info" | "success" | "error";
 type PdfLogEntry = {
@@ -71,6 +72,7 @@ export default function ReportVisualsTest() {
   const [paginated, setPaginated] = useState(true);
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
   const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
+  const [report, setReport] = useState<ProkhanovReport>(INITIAL_REPORT);
   const readyPdfUrlRef = useRef<string | null>(null);
 
   const appendPdfLog = useCallback(
@@ -91,10 +93,10 @@ export default function ReportVisualsTest() {
 
   const patientLabel = useMemo(
     () =>
-      [REPORT.patient.first_name, REPORT.patient.last_name]
+      [report.patient.first_name, report.patient.last_name]
         .filter(Boolean)
-        .join(" ") + " · " + REPORT.analysis.date,
-    [],
+        .join(" ") + " · " + report.analysis.date,
+    [report],
   );
 
   const replaceReadyPdf = useCallback((next: ReadyPdf | null) => {
@@ -135,7 +137,7 @@ export default function ReportVisualsTest() {
         await navigator.share({
           files: [readyPdf.file],
           title: "ReAge · Персональный отчёт",
-          text: `Отчёт от ${REPORT.analysis.date}`,
+          text: `Отчёт от ${report.analysis.date}`,
         });
         appendPdfLog("success", "Файл передан в системный share-sheet");
         toast.success("PDF передан", "Выберите «Сохранить в Файлы» или нужное приложение.");
@@ -250,7 +252,7 @@ export default function ReportVisualsTest() {
       const blob = await response.blob();
       appendPdfLog("success", "PDF получен", `${Math.round(blob.size / 1024)} KB`);
 
-      const filename = `reage-report-prokhanov-${REPORT.analysis.date}.pdf`;
+      const filename = `reage-report-prokhanov-${report.analysis.date}.pdf`;
       const file = new File([blob], filename, { type: "application/pdf" });
       const ua = navigator.userAgent || "";
       const isIOS = /iP(hone|ad|od)/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
@@ -424,11 +426,18 @@ export default function ReportVisualsTest() {
           </Card>
         )}
 
-        {paginated ? (
-          <PagedReportPreview report={REPORT} />
-        ) : (
-          <ReportDocument report={REPORT} />
-        )}
+        <ReportEditorShell report={report} onReportUpdate={setReport}>
+          {({ mode }) => {
+            // В edit-режиме показываем непагинированный поток — paged.js
+            // клонирует DOM и ломает editable-инстансы Tiptap.
+            if (mode === "edit") return <ReportDocument report={report} />;
+            return paginated ? (
+              <PagedReportPreview report={report} />
+            ) : (
+              <ReportDocument report={report} />
+            );
+          }}
+        </ReportEditorShell>
       </div>
     </div>
   );

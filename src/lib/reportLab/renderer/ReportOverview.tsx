@@ -57,10 +57,13 @@ export function ReportOverview({ report }: Props) {
         </div>
       </div>
 
-      {summaryText && (
+      {(summaryText || summaryRow) && (
         <div className="rl-callout">
           <div className="rl-eyebrow">Ключевой вывод</div>
-          <ProseMarkdown markdown={summaryText} />
+          <ProseMarkdown
+            markdown={summaryText}
+            editableId={summaryRow ? `rec:${summaryRow.id}#body` : undefined}
+          />
         </div>
       )}
     </section>
