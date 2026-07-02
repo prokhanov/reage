@@ -333,11 +333,26 @@ export default function Prescriptions() {
   // Локальный wrapper над общим AdvisorySections, чтобы пробросить данные.
   const AdvisorySectionsWrapper = () => {
     if (!advisory) return null;
+    const canEditAdvisory = hasPatientAccess && !demoMode && !!userId;
     return (
-      <AdvisorySections
-        lifestyle={advisory.lifestyle}
-        followUps={advisory.followUps}
-      />
+      <div className="space-y-3">
+        {canEditAdvisory && (
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditAdvisoryOpen(true)}
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Редактировать образ жизни и консультации
+            </Button>
+          </div>
+        )}
+        <AdvisorySections
+          lifestyle={advisory.lifestyle}
+          followUps={advisory.followUps}
+        />
+      </div>
     );
   };
 
