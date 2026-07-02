@@ -441,6 +441,8 @@ export default function ReportVisualsTest() {
   );
 }
 
+const EMPTY_DRAFTS: Record<string, string> = Object.freeze({}) as Record<string, string>;
+
 function EditablePagedPreview({
   report,
   paginated,
@@ -456,7 +458,7 @@ function EditablePagedPreview({
     <PagedReportPreview
       report={report}
       editable={editable}
-      drafts={ctx?.drafts ?? {}}
+      drafts={ctx?.drafts ?? EMPTY_DRAFTS}
       onEditBlur={(id, md) => ctx?.setDraft(id, md)}
     />
   );
