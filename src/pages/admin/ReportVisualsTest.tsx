@@ -167,10 +167,57 @@ export default function ReportVisualsTest() {
       const blob = await response.blob();
       appendPdfLog("success", "PDF получен", `${Math.round(blob.size / 1024)} KB`);
 
+      const filename = `reage-report-prokhanov-${REPORT.analysis.date}.pdf`;
+      const file = new File([blob], filename, { type: "application/pdf" });
+      const ua = navigator.userAgent || "";
+      const isIOS = /iP(hone|ad|od)/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
+
+      // 1) iOS 15+ / любой браузер с Web Share Files — системный share-sheet
+      const canShareFile =
+        typeof navigator.canShare === "function" &&
+        typeof navigator.share === "function" &&
+        navigator.canShare({ files: [file] });
+
+      if (canShareFile) {
+        appendPdfLog("info", "Открываю системный share-sheet (Web Share API)");
+        try {
+          await navigator.share({
+            files: [file],
+            title: "ReAge · Персональный отчёт",
+            text: `Отчёт от ${REPORT.analysis.date}`,
+          });
+          appendPdfLog("success", "Файл передан в системный share-sheet");
+        } catch (shareErr) {
+          if (shareErr instanceof Error && shareErr.name === "AbortError") {
+            appendPdfLog("info", "Пользователь закрыл share-sheet");
+          } else {
+            throw shareErr;
+          }
+        }
+        return;
+      }
+
       const url = URL.createObjectURL(blob);
+
+      // 2) iOS без share files — открыть во вьюере, показать подсказку
+      if (isIOS) {
+        appendPdfLog(
+          "info",
+          "iOS-фолбэк: открываю PDF во вкладке — download-атрибут WebKit игнорирует",
+        );
+        toast.info(
+          "Как сохранить PDF",
+          "Safari откроет отчёт во вкладке. Нажмите ↗ Поделиться → «Сохранить в Файлы».",
+        );
+        window.location.href = url;
+        // URL не отзываем сразу — вкладке он ещё нужен
+        return;
+      }
+
+      // 3) Desktop / Android — обычное скачивание
       const a = document.createElement("a");
       a.href = url;
-      a.download = `prokhanov-report-${REPORT.analysis.date}.pdf`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -235,10 +282,18 @@ export default function ReportVisualsTest() {
 
       <div className="mx-auto max-w-[1100px] px-6 py-6">
         <Card className="mb-6 border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
-          Это изолированная песочница нового рендерера отчётов. Источник — один
-          JSON-снапшот последнего отчёта Антона Проханова, лежащий в репозитории.
-          Боевой кабинет пациента и legacy-PDF не затрагиваются. Итерации по
-          вёрстке — прямо здесь.
+          <div>
+            Это изолированная песочница нового рендерера отчётов. Источник — один
+            JSON-снапшот последнего отчёта Антона Проханова, лежащий в репозитории.
+            Боевой кабинет пациента и legacy-PDF не затрагиваются.
+          </div>
+          <div className="mt-2 text-xs">
+            На iPhone Safari откроет PDF во вкладке (WebKit игнорирует
+            <code className="mx-1 rounded bg-muted px-1">download</code>) — нажмите ↗
+            «Поделиться» → «Сохранить в Файлы». Тёмный фон вокруг листов — это
+            встроенный PDF-вьюер Safari в тёмной теме iOS, не сам файл. На маке скачается
+            обычным файлом.
+          </div>
         </Card>
 
         {pdfLogs.length > 0 && (
