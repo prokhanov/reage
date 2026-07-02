@@ -63,9 +63,10 @@ export function ReportOverview({ report }: Props) {
           <ProseMarkdown markdown={summaryText} />
         </div>
       )}
-
-      <PageFooter title="Резюме исследования" />
     </section>
+  );
+}
+
   );
 }
 
