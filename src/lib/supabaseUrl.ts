@@ -2,21 +2,31 @@
  * Централизованный helper для построения URL к Supabase / reverse-proxy.
  *
  * VITE_SUPABASE_URL может быть:
- *   - прямой URL Supabase:  https://ilxgodhosirhhkffqryw.supabase.co
- *   - URL обратного прокси: https://test.reage.life/supabase
+ *   - URL обратного прокси: https://api.reage.life
+ *   - URL тестового обратного прокси: https://api-test.reage.life
  *
  * Trailing slash нормализуется, чтобы оба варианта (с "/" и без) работали одинаково.
  */
 
-// Дефолт — прямой URL Supabase. Используется на Lovable hosting (test.reage.life)
-// и в preview, где VITE_SUPABASE_URL не задан. На Coolify (бой) переменная
-// устанавливается в https://api.reage.life и трафик идёт через Fly-прокси.
-const DEFAULT_SUPABASE_URL = "https://ilxgodhosirhhkffqryw.supabase.co";
+// Дефолт — reverse-proxy для обхода сетевых блокировок на стороне браузера.
+const DEFAULT_SUPABASE_URL = "https://api.reage.life";
 
 const RAW_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const RAW_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
-export const SUPABASE_BASE_URL = ((RAW_URL && RAW_URL.length > 0 ? RAW_URL : DEFAULT_SUPABASE_URL)).replace(/\/+$/, "");
+function normalizeSupabaseUrl(url?: string) {
+  const clean = (url && url.length > 0 ? url : DEFAULT_SUPABASE_URL).replace(/\/+$/, "");
+
+  // В браузере не используем прямой backend-host: у части пользователей он
+  // блокируется провайдерами и `fetch()` падает как Load failed без HTTP-статуса.
+  if (/\.supabase\.co$/i.test(new URL(clean).hostname)) {
+    return DEFAULT_SUPABASE_URL;
+  }
+
+  return clean;
+}
+
+export const SUPABASE_BASE_URL = normalizeSupabaseUrl(RAW_URL);
 export const SUPABASE_ANON_KEY = (RAW_KEY ?? "") as string;
 
 if (!SUPABASE_ANON_KEY) {
