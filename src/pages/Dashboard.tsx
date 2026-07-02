@@ -7,7 +7,7 @@ import { Activity, TrendingUp, Heart, Trophy, Calendar, Target, RefreshCw, Penci
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole, canAccessModule } from "@/hooks/useUserRole";
 import { toast } from "@/hooks/use-toast";
 import { WeightTracker } from "@/components/WeightTracker";
 import { format, differenceInDays } from "date-fns";
@@ -42,6 +42,9 @@ export default function Dashboard() {
   const { getUserId, isViewMode, viewAsUserId } = useViewAsUser();
   const { data: roleData } = useUserRole();
   const isSuperAdmin = !!roleData?.isSuperAdmin;
+  // Пересчёт стратегии/био-возраста в режиме просмотра доступен любому сотруднику
+  // с доступом к модулю "Пациенты" (не только суперадмину).
+  const hasPatientsAccess = canAccessModule(roleData, "patients");
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -66,7 +69,7 @@ export default function Dashboard() {
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [bioPercentile, setBioPercentile] = useState<{ topPercent: number; percentileBetter: number; norm: { mean_bio_age: number; sd_bio_age: number; source: string } } | null>(null);
-  const canRecalculate = isSuperAdmin && isViewMode;
+  const canRecalculate = hasPatientsAccess && isViewMode;
 
 
   
