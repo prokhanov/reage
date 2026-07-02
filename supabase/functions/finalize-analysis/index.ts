@@ -730,8 +730,8 @@ ${symptomsText}
         if (age != null) {
           // Фолбэк — HI-based оценка (как раньше) на случай нехватки маркеров.
           const fallbackBA = age + (82 - Math.round(newHi)) * 0.18;
-          bioAgeBreakdown = computeBioAge(markerInputs, age, { fallback: fallbackBA });
-          console.log(`[new-model] BA=${bioAgeBreakdown.bio_age} pheno=${bioAgeBreakdown.phenoage} kdm=${bioAgeBreakdown.kdm} clamped=${bioAgeBreakdown.clamped} fallback=${bioAgeBreakdown.fallback_used}`);
+          bioAgeBreakdown = computeBioAge(markerInputs, age, { fallback: fallbackBA, hi: newHi });
+          console.log(`[new-model] BA=${bioAgeBreakdown.bio_age} pheno=${bioAgeBreakdown.phenoage} kdm=${bioAgeBreakdown.kdm} hi_floor=${bioAgeBreakdown.hi_floor} floor_applied=${bioAgeBreakdown.hi_floor_applied} clamped=${bioAgeBreakdown.clamped} fallback=${bioAgeBreakdown.fallback_used}`);
         }
 
         newModelBreakdown = {
