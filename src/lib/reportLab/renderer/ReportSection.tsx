@@ -18,7 +18,6 @@ export function ReportSection({
 }: Props) {
   return (
     <section className="rl-page">
-      <PageHeader label="Системный анализ" />
       <header className="rl-section-header">
         <div className="num">{String(index).padStart(2, "0")}</div>
         <div className="title">{category.title}</div>
@@ -50,26 +49,7 @@ export function ReportSection({
           />
         );
       })}
-
-      <PageFooter title={category.title} />
     </section>
   );
 }
 
-export function PageHeader({ label }: { label: string }) {
-  return (
-    <div className="rl-header">
-      <span>ReAge · Личный отчёт</span>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-export function PageFooter({ title }: { title: string }) {
-  return (
-    <div className="rl-footer">
-      <span>ReAge Longevity</span>
-      <span>{title}</span>
-    </div>
-  );
-}
