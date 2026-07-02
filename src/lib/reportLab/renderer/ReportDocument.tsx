@@ -44,8 +44,10 @@ export function ReportDocument({ report, signalReady }: Props) {
       console.log(`[report-preview] ${step}`, extra ?? "");
     };
     log("document_mounted", { categories: categoryRecords.length });
+    let readyMarked = false;
     const mark = () => {
-      if (cancelled) return;
+      if (cancelled || readyMarked) return;
+      readyMarked = true;
       w.__reportReady = true;
       log("report_ready");
     };
@@ -56,6 +58,7 @@ export function ReportDocument({ report, signalReady }: Props) {
     fontsReady
       .then(() => {
         log("fonts_ready");
+        setTimeout(mark, 150);
         requestAnimationFrame(() => setTimeout(mark, 50));
       })
       .catch((e) => log("fonts_error", { message: e instanceof Error ? e.message : String(e) }));
