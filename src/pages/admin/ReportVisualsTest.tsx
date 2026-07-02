@@ -131,7 +131,7 @@ export default function ReportVisualsTest() {
 
       const endpoint = edgeFunctionUrl("render-report-pdf");
       const requestId = crypto.randomUUID();
-      appendPdfLog("info", "POST render-report-pdf", `requestId=${requestId}\nurl=${endpoint}`);
+      appendPdfLog("info", "POST render-report-pdf", `requestId=${requestId}`);
 
       const response = await fetch(endpoint, {
         method: "POST",
