@@ -34,25 +34,20 @@ const pagedCss = `
   @bottom-left { content: none !important; }
   @bottom-right { content: none !important; }
 }
-.pagedjs_pages { display: block; }
+.pagedjs_pages {
+  display: block;
+  background: #e6e7ea;
+  padding: 24px 0;
+}
 .pagedjs_page {
   background: #ffffff;
   margin: 0 auto !important;
   outline: none;
-  box-shadow: none;
+  box-shadow: 0 8px 24px -12px rgba(20, 36, 56, 0.35), 0 2px 4px rgba(0, 0, 0, 0.06);
   position: relative;
 }
 .pagedjs_page + .pagedjs_page {
-  margin-top: 32px !important;
-}
-.pagedjs_page + .pagedjs_page::before {
-  content: "";
-  position: absolute;
-  top: -16px;
-  left: 0;
-  right: 0;
-  border-top: 1px dashed #c8c8c8;
-  pointer-events: none;
+  margin-top: 24px !important;
 }
 .pagedjs_pagebox,
 .pagedjs_margin-top,
