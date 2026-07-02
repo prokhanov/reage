@@ -54,8 +54,11 @@ function sanitizeRationale(text: string | null): string {
 
 
 export default function HealthStrategy() {
-  const { getUserId, viewAsUserId } = useViewAsUser();
+  const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
   const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { data: roleData } = useUserRole();
+  // Пересчёт стратегии в режиме просмотра — доступен любому сотруднику с модулем "Пациенты".
+  const canRecalculate = isViewMode && canAccessModule(roleData, "patients");
 
 
   const [loading, setLoading] = useState(true);
@@ -275,6 +278,18 @@ export default function HealthStrategy() {
               Персональный план управления биологическим возрастом
             </p>
           </div>
+          {canRecalculate && hasAnalyses && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void generate(true)}
+              disabled={generating}
+              className="shrink-0"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${generating ? "animate-spin" : ""}`} />
+              {generating ? "Пересчитываем…" : "Пересчитать стратегию"}
+            </Button>
+          )}
         </div>
 
 
