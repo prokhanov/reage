@@ -484,3 +484,22 @@ html, body {
   font-weight: 600;
   color: var(--ink);
 }
+
+/* ─── Inline editor (Tiptap) ─────────────────────────────────────────────── */
+.reportlab .rl-editable-wrap .ProseMirror {
+  outline: 1.5px dashed rgba(20, 36, 56, 0.25);
+  outline-offset: 4px;
+  border-radius: 2px;
+  min-height: 1.5em;
+  padding: 2mm 2mm;
+  transition: outline-color 0.15s ease;
+}
+.reportlab .rl-editable-wrap .ProseMirror:focus {
+  outline: 2px solid var(--gold);
+  background: rgba(181, 138, 68, 0.05);
+}
+.reportlab .rl-editable-wrap .ProseMirror p:first-child,
+.reportlab .rl-editable-wrap .ProseMirror h2:first-child,
+.reportlab .rl-editable-wrap .ProseMirror h3:first-child {
+  margin-top: 0;
+}
