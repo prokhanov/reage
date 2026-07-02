@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,6 +18,13 @@ type PdfLogEntry = {
   level: PdfLogLevel;
   message: string;
   details?: string;
+};
+
+type ReadyPdf = {
+  url: string;
+  file: File;
+  filename: string;
+  sizeKb: number;
 };
 
 function nowLabel() {
@@ -63,6 +70,8 @@ export default function ReportVisualsTest() {
   const [rendering, setRendering] = useState(false);
   const [paginated, setPaginated] = useState(true);
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
+  const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
+  const readyPdfUrlRef = useRef<string | null>(null);
 
   const appendPdfLog = useCallback(
     (level: PdfLogLevel, message: string, details?: string) => {
@@ -87,6 +96,71 @@ export default function ReportVisualsTest() {
         .join(" ") + " · " + REPORT.analysis.date,
     [],
   );
+
+  const replaceReadyPdf = useCallback((next: ReadyPdf | null) => {
+    if (readyPdfUrlRef.current && readyPdfUrlRef.current !== next?.url) {
+      URL.revokeObjectURL(readyPdfUrlRef.current);
+    }
+    readyPdfUrlRef.current = next?.url ?? null;
+    setReadyPdf(next);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (readyPdfUrlRef.current) URL.revokeObjectURL(readyPdfUrlRef.current);
+    };
+  }, []);
+
+  const openReadyPdf = useCallback(() => {
+    if (!readyPdf) return;
+    appendPdfLog("info", "Открываю готовый PDF в отдельной вкладке");
+    const opened = window.open(readyPdf.url, "_blank", "noopener");
+    if (!opened) {
+      appendPdfLog("info", "Popup заблокирован — открываю PDF в текущей вкладке");
+      window.location.href = readyPdf.url;
+    }
+  }, [appendPdfLog, readyPdf]);
+
+  const saveReadyPdf = useCallback(async () => {
+    if (!readyPdf) return;
+
+    const canShareFile =
+      typeof navigator.canShare === "function" &&
+      typeof navigator.share === "function" &&
+      navigator.canShare({ files: [readyPdf.file] });
+
+    if (canShareFile) {
+      appendPdfLog("info", "Открываю share-sheet по отдельному тапу");
+      try {
+        await navigator.share({
+          files: [readyPdf.file],
+          title: "ReAge · Персональный отчёт",
+          text: `Отчёт от ${REPORT.analysis.date}`,
+        });
+        appendPdfLog("success", "Файл передан в системный share-sheet");
+        toast.success("PDF передан", "Выберите «Сохранить в Файлы» или нужное приложение.");
+        return;
+      } catch (shareErr) {
+        if (shareErr instanceof Error && shareErr.name === "AbortError") {
+          appendPdfLog("info", "Пользователь закрыл share-sheet");
+          return;
+        }
+        appendPdfLog("error", "Share-sheet недоступен", formatError(shareErr));
+        toast.info(
+          "Откройте PDF",
+          "Если системное сохранение заблокировано, нажмите «Открыть PDF» и сохраните через ↗.",
+        );
+      }
+    }
+
+    const a = document.createElement("a");
+    a.href = readyPdf.url;
+    a.download = readyPdf.filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    appendPdfLog("success", "Скачивание готового PDF передано браузеру");
+  }, [appendPdfLog, readyPdf]);
 
   async function openCleanPreview() {
     setMinting(true);
@@ -113,8 +187,9 @@ export default function ReportVisualsTest() {
   async function downloadPdf() {
     setRendering(true);
     setPdfLogs([]);
+    replaceReadyPdf(null);
     const startedAt = performance.now();
-    appendPdfLog("info", "Старт скачивания PDF", "Первый запуск рендерера может занять до 2 минут");
+    appendPdfLog("info", "Старт подготовки PDF", "Первый запуск рендерера может занять до 2 минут");
 
     const progressTimer = window.setInterval(() => {
       const seconds = Math.round((performance.now() - startedAt) / 1000);
@@ -179,57 +254,33 @@ export default function ReportVisualsTest() {
       const file = new File([blob], filename, { type: "application/pdf" });
       const ua = navigator.userAgent || "";
       const isIOS = /iP(hone|ad|od)/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
-
-      // 1) iOS 15+ / любой браузер с Web Share Files — системный share-sheet
-      const canShareFile =
-        typeof navigator.canShare === "function" &&
-        typeof navigator.share === "function" &&
-        navigator.canShare({ files: [file] });
-
-      if (canShareFile) {
-        appendPdfLog("info", "Открываю системный share-sheet (Web Share API)");
-        try {
-          await navigator.share({
-            files: [file],
-            title: "ReAge · Персональный отчёт",
-            text: `Отчёт от ${REPORT.analysis.date}`,
-          });
-          appendPdfLog("success", "Файл передан в системный share-sheet");
-        } catch (shareErr) {
-          if (shareErr instanceof Error && shareErr.name === "AbortError") {
-            appendPdfLog("info", "Пользователь закрыл share-sheet");
-          } else {
-            throw shareErr;
-          }
-        }
-        return;
-      }
-
       const url = URL.createObjectURL(blob);
+      replaceReadyPdf({
+        url,
+        file,
+        filename,
+        sizeKb: Math.round(blob.size / 1024),
+      });
 
-      // 2) iOS без share files — открыть во вьюере, показать подсказку
       if (isIOS) {
         appendPdfLog(
           "info",
-          "iOS-фолбэк: открываю PDF во вкладке — download-атрибут WebKit игнорирует",
+          "PDF готов: на iPhone нужен второй тап по кнопке «Сохранить PDF»",
+          "Web Share API требует прямой пользовательский жест; после долгого рендера Safari блокирует автозапуск share-sheet.",
         );
-        toast.info(
-          "Как сохранить PDF",
-          "Safari откроет отчёт во вкладке. Нажмите ↗ Поделиться → «Сохранить в Файлы».",
+        toast.success(
+          "PDF готов",
+          "Нажмите «Сохранить PDF» в блоке диагностики — откроется системное меню iPhone.",
         );
-        window.location.href = url;
-        // URL не отзываем сразу — вкладке он ещё нужен
         return;
       }
 
-      // 3) Desktop / Android — обычное скачивание
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
       appendPdfLog("success", "Скачивание передано браузеру");
     } catch (e) {
       console.error(e);
@@ -247,14 +298,14 @@ export default function ReportVisualsTest() {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex max-w-[1100px] flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <div className="text-xs uppercase tracking-widest text-muted-foreground">
               Report Lab · Sandbox
             </div>
             <div className="text-sm font-medium">{patientLabel}</div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
             <Button
               variant={paginated ? "default" : "outline"}
               size="sm"
@@ -284,6 +335,12 @@ export default function ReportVisualsTest() {
               )}
               Скачать PDF
             </Button>
+            {readyPdf && !rendering && (
+              <Button size="sm" variant="secondary" onClick={saveReadyPdf}>
+                <Download className="mr-2 h-4 w-4" />
+                Сохранить готовый
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -317,6 +374,24 @@ export default function ReportVisualsTest() {
                 Очистить
               </Button>
             </div>
+            {readyPdf && (
+              <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
+                <div className="font-medium">PDF готов · {readyPdf.sizeKb} KB</div>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <Button size="sm" onClick={saveReadyPdf}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Сохранить PDF
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={openReadyPdf}>
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Открыть PDF
+                  </Button>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  На iPhone сохранение должно запускаться отдельным тапом после готовности файла.
+                </div>
+              </div>
+            )}
             <div className="space-y-2 font-mono text-xs">
               {pdfLogs.map((log) => (
                 <div
