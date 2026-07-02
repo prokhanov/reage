@@ -286,7 +286,11 @@ export default function ReportVisualsTest() {
           </Card>
         )}
 
-        <ReportDocument report={REPORT} />
+        {paginated ? (
+          <PaginatedReportPreview report={REPORT} />
+        ) : (
+          <ReportDocument report={REPORT} />
+        )}
       </div>
     </div>
   );
