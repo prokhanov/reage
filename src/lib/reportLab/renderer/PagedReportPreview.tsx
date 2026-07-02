@@ -6,6 +6,47 @@ import type { ProkhanovReport } from "../types";
 // eslint-disable-next-line import/no-unresolved
 import themeCss from "../theme.css?raw";
 
+const pagedCss = `
+.reportlab { padding: 0 !important; background: transparent !important; min-height: 0 !important; }
+.reportlab .rl-page {
+  width: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  break-before: page;
+  page-break-before: always;
+}
+.reportlab .rl-page:first-child {
+  break-before: auto;
+  page-break-before: auto;
+}
+.reportlab .rl-page.rl-cover {
+  min-height: 261mm !important;
+  height: 261mm !important;
+  padding: 0 !important;
+}
+.pagedjs_pages { display: block; }
+.pagedjs_page {
+  background: var(--paper, #fbfaf7);
+  margin: 0 auto 24px !important;
+  box-shadow: 0 20px 45px -25px rgba(20, 36, 56, 0.35), 0 1px 0 rgba(0, 0, 0, 0.03);
+}
+.pagedjs_pagebox,
+.pagedjs_margin-top,
+.pagedjs_margin-bottom,
+.pagedjs_margin-left,
+.pagedjs_margin-right,
+.pagedjs_margin-top-left-corner-holder,
+.pagedjs_margin-top-right-corner-holder,
+.pagedjs_margin-bottom-left-corner-holder,
+.pagedjs_margin-bottom-right-corner-holder {
+  background: #ffffff;
+}
+@media print {
+  .pagedjs_page { margin: 0 !important; box-shadow: none !important; }
+}
+`;
+
 interface Props {
   report: ProkhanovReport;
   height?: number | string;
@@ -58,7 +99,7 @@ export function PagedReportPreview({
         const previewer = new Previewer({});
         const flow = await previewer.preview(
           content.content,
-          [{ "reportLab.css": themeCss }],
+          [{ "reportLab.css": `${themeCss}\n${pagedCss}` }],
           output,
         );
         if (cancelled) return;
