@@ -85,7 +85,7 @@ export function AnalysisBookingBanner() {
           .from("analyses")
           .select("id,created_at,status")
           .eq("user_id", userId)
-          .in("status", ["processed", "on_review", "report_ready"])
+          .in("status", ["processed", "on_review"])
           .order("created_at", { ascending: false })
           .limit(1),
       ]);
