@@ -427,18 +427,36 @@ export default function ReportVisualsTest() {
         )}
 
         <ReportEditorShell report={report} onReportUpdate={setReport}>
-          {({ mode }) => {
-            // В edit-режиме показываем непагинированный поток — paged.js
-            // клонирует DOM и ломает editable-инстансы Tiptap.
-            if (mode === "edit") return <ReportDocument report={report} />;
-            return paginated ? (
-              <PagedReportPreview report={report} />
-            ) : (
-              <ReportDocument report={report} />
-            );
-          }}
+          {({ mode }) => (
+            <EditablePagedPreview
+              report={report}
+              paginated={paginated}
+              editable={mode === "edit"}
+            />
+          )}
         </ReportEditorShell>
       </div>
     </div>
+  );
+}
+
+function EditablePagedPreview({
+  report,
+  paginated,
+  editable,
+}: {
+  report: ProkhanovReport;
+  paginated: boolean;
+  editable: boolean;
+}) {
+  const ctx = useReportEditor();
+  if (!paginated) return <ReportDocument report={report} />;
+  return (
+    <PagedReportPreview
+      report={report}
+      editable={editable}
+      drafts={ctx?.drafts ?? {}}
+      onEditBlur={(id, md) => ctx?.setDraft(id, md)}
+    />
   );
 }
