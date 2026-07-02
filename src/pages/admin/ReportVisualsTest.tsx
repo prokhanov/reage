@@ -72,6 +72,7 @@ export default function ReportVisualsTest() {
   const [paginated, setPaginated] = useState(true);
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
   const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
+  const [report, setReport] = useState<ProkhanovReport>(INITIAL_REPORT);
   const readyPdfUrlRef = useRef<string | null>(null);
 
   const appendPdfLog = useCallback(
@@ -95,7 +96,7 @@ export default function ReportVisualsTest() {
       [report.patient.first_name, report.patient.last_name]
         .filter(Boolean)
         .join(" ") + " · " + report.analysis.date,
-    [],
+    [report],
   );
 
   const replaceReadyPdf = useCallback((next: ReadyPdf | null) => {
