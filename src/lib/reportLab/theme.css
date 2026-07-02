@@ -144,7 +144,6 @@ html, body {
 }
 
 @media print {
-  body > *:not(#root),
   body jdiv,
   body jivoiframe,
   body [class*="jivo"] {
