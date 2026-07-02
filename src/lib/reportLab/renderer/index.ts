@@ -1,4 +1,5 @@
 export { ReportDocument } from "./ReportDocument";
+export { PaginatedReportPreview } from "./PaginatedReportPreview";
 export { ReportCover } from "./ReportCover";
 export { ReportOverview } from "./ReportOverview";
 export { ReportSection } from "./ReportSection";

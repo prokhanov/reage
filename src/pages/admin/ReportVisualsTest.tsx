@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Download, ExternalLink, Loader2 } from "lucide-react";
 import { notify as toast } from "@/lib/toast";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
-import { ReportDocument } from "@/lib/reportLab/renderer";
+import { ReportDocument, PaginatedReportPreview } from "@/lib/reportLab/renderer";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
@@ -61,6 +61,7 @@ async function readResponseBody(response: Response) {
 export default function ReportVisualsTest() {
   const [minting, setMinting] = useState(false);
   const [rendering, setRendering] = useState(false);
+  const [paginated, setPaginated] = useState(true);
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
 
   const appendPdfLog = useCallback(
@@ -200,6 +201,14 @@ export default function ReportVisualsTest() {
           </div>
           <div className="flex items-center gap-2">
             <Button
+              variant={paginated ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPaginated((v) => !v)}
+              title="Переключить между постраничным (как в PDF) и потоковым превью"
+            >
+              {paginated ? "Постранично" : "Потоком"}
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={openCleanPreview}
@@ -277,7 +286,11 @@ export default function ReportVisualsTest() {
           </Card>
         )}
 
-        <ReportDocument report={REPORT} />
+        {paginated ? (
+          <PaginatedReportPreview report={REPORT} />
+        ) : (
+          <ReportDocument report={REPORT} />
+        )}
       </div>
     </div>
   );
