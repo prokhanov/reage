@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ReportDocument } from "@/lib/reportLab/renderer";
+import { PagedReportPreview } from "@/lib/reportLab/renderer";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
@@ -74,11 +74,6 @@ export default function ReportPreview() {
     setState("allowed");
   }, [token]);
 
-  const document = useMemo(
-    () => <ReportDocument report={REPORT} signalReady />,
-    [],
-  );
-
   if (state === "checking") {
     return (
       <div
@@ -122,7 +117,7 @@ export default function ReportPreview() {
 
   return (
     <div data-report-state="allowed" id="report-root">
-      {document}
+      <PagedReportPreview report={REPORT} signalReady chrome="plain" />
     </div>
   );
 }
