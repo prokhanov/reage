@@ -40,7 +40,7 @@ import { EditNextAnalysisDialog } from "@/components/admin/EditNextAnalysisDialo
 import { EditSubscriptionDialog } from "@/components/admin/EditSubscriptionDialog";
 import { SubscriptionHistoryDialog } from "@/components/admin/SubscriptionHistoryDialog";
 import { GiftSubscriptionDialog } from "@/components/admin/GiftSubscriptionDialog";
-import { useSuperAdminCheck } from "@/hooks/useSuperAdminCheck";
+import { useUserRole, canAccessModule } from "@/hooks/useUserRole";
 import { PatientInteractionsTab } from "@/components/admin/PatientInteractionsTab";
 import { EmailConfirmationBadge } from "@/components/admin/EmailConfirmationBadge";
 import { PhoneConfirmationBadge } from "@/components/admin/PhoneConfirmationBadge";
@@ -61,7 +61,9 @@ export function PatientInfoDialog({ patientId, onClose, onOpenView }: PatientInf
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isGiftOpen, setIsGiftOpen] = useState(false);
-  const { isSuperAdmin } = useSuperAdminCheck();
+  const { data: roleData } = useUserRole();
+  // Любой сотрудник с доступом к модулю "Пациенты" видит то же, что суперадмин.
+  const isSuperAdmin = canAccessModule(roleData, "patients");
   const queryClient = useQueryClient();
   
   // Real-time subscription for analysis bookings and subscriptions updates
