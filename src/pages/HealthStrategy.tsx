@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Sparkles } from "lucide-react";
+import { AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole, canAccessModule } from "@/hooks/useUserRole";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
@@ -11,6 +11,7 @@ import { RejuvenationTrajectory } from "@/components/health-strategy/Rejuvenatio
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
 import { ExpectationsTimeline } from "@/components/health-strategy/ExpectationsTimeline";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 
 
@@ -53,8 +54,11 @@ function sanitizeRationale(text: string | null): string {
 
 
 export default function HealthStrategy() {
-  const { getUserId, viewAsUserId } = useViewAsUser();
+  const { getUserId, viewAsUserId, isViewMode } = useViewAsUser();
   const { demoMode, demoData, loading: demoLoading } = useDemoMode();
+  const { data: roleData } = useUserRole();
+  // Пересчёт стратегии в режиме просмотра — доступен любому сотруднику с модулем "Пациенты".
+  const canRecalculate = isViewMode && canAccessModule(roleData, "patients");
 
 
   const [loading, setLoading] = useState(true);
@@ -274,6 +278,18 @@ export default function HealthStrategy() {
               Персональный план управления биологическим возрастом
             </p>
           </div>
+          {canRecalculate && hasAnalyses && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void generate(true)}
+              disabled={generating}
+              className="shrink-0"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${generating ? "animate-spin" : ""}`} />
+              {generating ? "Пересчитываем…" : "Пересчитать стратегию"}
+            </Button>
+          )}
         </div>
 
 
