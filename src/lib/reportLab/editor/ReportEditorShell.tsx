@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ import { collectDirtyRecommendations } from "./assemble";
 interface Props {
   report: ProkhanovReport;
   onReportUpdate: (next: ProkhanovReport) => void;
-  children: ReactNode;
+  children: (state: { mode: "view" | "edit" }) => React.ReactNode;
   /** Persist changes to Supabase.recommendations. Если false — только локально. */
   persist?: boolean;
 }
@@ -125,14 +125,21 @@ export function useIsEditMode(): boolean {
   return ctx?.mode === "edit";
 }
 
-export function ReportEditorShell({
+function ShellInner({
   report,
   onReportUpdate,
   children,
-  persist = true,
-}: Props) {
+  persist,
+}: {
+  report: ProkhanovReport;
+  onReportUpdate: (next: ProkhanovReport) => void;
+  children: (state: { mode: "view" | "edit" }) => React.ReactNode;
+  persist: boolean;
+}) {
+  const ctx = useReportEditor();
+  const mode = ctx?.mode ?? "view";
   return (
-    <ReportEditorProvider>
+    <>
       <div className="mb-3 flex items-center justify-end gap-2">
         <Toolbar
           report={report}
@@ -141,7 +148,26 @@ export function ReportEditorShell({
         />
       </div>
       <ModeBanner />
-      {children}
+      {children({ mode })}
+    </>
+  );
+}
+
+export function ReportEditorShell({
+  report,
+  onReportUpdate,
+  children,
+  persist = true,
+}: Props) {
+  return (
+    <ReportEditorProvider>
+      <ShellInner
+        report={report}
+        onReportUpdate={onReportUpdate}
+        persist={persist}
+      >
+        {children}
+      </ShellInner>
     </ReportEditorProvider>
   );
 }
