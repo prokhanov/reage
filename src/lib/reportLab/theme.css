@@ -144,6 +144,12 @@ html, body {
 }
 
 @media print {
+  body > *:not(#root),
+  body jdiv,
+  body jivoiframe,
+  body [class*="jivo"] {
+    display: none !important;
+  }
   html, body {
     background: #ffffff !important;
     margin: 0 !important;
