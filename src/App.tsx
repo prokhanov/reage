@@ -124,6 +124,11 @@ const App = () => (
             <Route path="/onboarding/:step" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
             <Route path="/analyses/print" element={<AnalysesPrint />} />
+            {/* Internal report preview для Playwright; защищён HMAC-токеном
+                внутри самой страницы, никаких сессий/хедеров/сайдбара. */}
+            <Route path="/internal/report-preview" element={<ReportPreview />} />
+
+
 
 
             {/* Protected routes with persistent DashboardLayout.
