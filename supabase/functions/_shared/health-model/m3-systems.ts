@@ -2,8 +2,10 @@
 //
 // Алгоритм:
 //   system_score = 100 · Σ(wᵢ · sᵢ) / Σ(wᵢ)
+//                − weighted_penalty(markers outside optimal)
+//                − bad_share_penalty(risk/critical density)
 //                · coverage_factor (штраф при низком покрытии)
-//                · imbalance_bonus (бонус если нет красных)
+//                + all_green_bonus (если нет жёлтых/красных)
 //
 //   Отсутствующие маркеры НЕ штрафуют — веса перераспределяются.
 //   Минимум маркеров для расчёта — settings.penalties.min_markers_per_system.
@@ -50,6 +52,21 @@ export function computeSystemScores(
     const sumW = inSystem.reduce((a, m) => a + m.weight_effective, 0);
     const sumWS = inSystem.reduce((a, m) => a + m.weight_effective * m.score, 0);
     let raw = sumW > 0 ? (100 * sumWS) / sumW : 0;
+
+    // Один только средневзвешенный score слишком оптимистичен на больших
+    // панелях — десятки «зелёных» маркеров размывают 7–13 отклонений.
+    // Поэтому M3 дополнительно учитывает сам факт выхода за optimal/normal
+    // через явные штрафы M1 и долю risk/critical внутри системы.
+    const weightedPenalty = sumW > 0
+      ? inSystem.reduce((a, m) => a + m.weight_effective * m.penalty, 0) / sumW
+      : 0;
+    const badShare = sumW > 0
+      ? inSystem
+        .filter((m) => m.zone === "risk" || m.zone === "critical")
+        .reduce((a, m) => a + m.weight_effective, 0) / sumW
+      : 0;
+    raw -= weightedPenalty * settings.penalties.system_marker_penalty_scale;
+    raw -= badShare * settings.penalties.system_bad_share_penalty;
 
     // Coverage penalty — линейно урезаем при coverage < covT
     if (coverage < covT && covT > 0) {

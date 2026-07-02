@@ -252,11 +252,64 @@ serve(async (req) => {
       const _hi = computeHealthIndex(_systems, _settings, null);
       if (_hi && isFinite(_hi.hi)) {
         recomputedHi = Math.round(_hi.hi);
-        // Persist so дашборд/PDF/последующие запросы видят согласованное число.
-        if (recomputedHi !== Number(latest.health_index)) {
-          await supabase.from("analyses").update({ health_index: recomputedHi }).eq("id", latest.id);
-          latest.health_index = recomputedHi;
+        const existingMetadata = latest.biomarkers_metadata && typeof latest.biomarkers_metadata === "object"
+          ? latest.biomarkers_metadata as any
+          : {};
+        const existingAiAnalysis = existingMetadata.ai_analysis && typeof existingMetadata.ai_analysis === "object"
+          ? existingMetadata.ai_analysis
+          : {};
+        const existingCategoryScores = existingAiAnalysis.category_scores && typeof existingAiAnalysis.category_scores === "object"
+          ? existingAiAnalysis.category_scores
+          : {};
+        const m3CategoryScores: Record<string, any> = {};
+        for (const s of _systems) {
+          const catName = SYSTEM_TO_CATEGORY[s.system];
+          if (!catName || s.insufficient || typeof s.score !== "number") continue;
+          const prev = existingCategoryScores[catName] && typeof existingCategoryScores[catName] === "object"
+            ? existingCategoryScores[catName]
+            : {};
+          m3CategoryScores[catName] = {
+            ...prev,
+            score: Math.round(s.score),
+            markers_used: s.markers_used,
+            markers_total: s.markers_total,
+            coverage: Math.round((s.coverage || 0) * 100),
+            source: "m3",
+          };
         }
+        const nextMetadata = {
+          ...existingMetadata,
+          new_model: {
+            ...(existingMetadata.new_model || {}),
+            hi: Math.round(_hi.hi * 10) / 10,
+            hi_raw: Math.round(_hi.hi_raw * 10) / 10,
+            dispersion_penalty: Math.round(_hi.dispersion_penalty * 10) / 10,
+            improvement_bonus: Math.round(_hi.improvement_bonus * 10) / 10,
+            systems: _systems.map((s) => ({
+              system: s.system,
+              score: s.score == null ? null : Math.round(s.score * 10) / 10,
+              markers_used: s.markers_used,
+              markers_total: s.markers_total,
+              coverage: Math.round((s.coverage || 0) * 100) / 100,
+              insufficient: s.insufficient,
+            })),
+            settings_version: "v2_m3_penalties",
+          },
+          ai_analysis: {
+            ...existingAiAnalysis,
+            category_scores: {
+              ...existingCategoryScores,
+              ...m3CategoryScores,
+            },
+          },
+        };
+        // Persist so дашборд/PDF/последующие запросы видят согласованное число.
+        await supabase
+          .from("analyses")
+          .update({ health_index: recomputedHi, biomarkers_metadata: nextMetadata })
+          .eq("id", latest.id);
+        latest.health_index = recomputedHi;
+        latest.biomarkers_metadata = nextMetadata;
       }
     } catch (e: any) {
       console.error("[HI recompute M3/M4] failed:", e?.message);
