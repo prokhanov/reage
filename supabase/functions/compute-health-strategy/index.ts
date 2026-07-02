@@ -2,10 +2,21 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.79.0";
 import { loadHealthModelSettings } from "../_shared/health-model/settings.ts";
 import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
-import { toMarkerInputs } from "../_shared/health-model/adapter.ts";
+import { toMarkerInputs, computeTotalsPerSystem, categoryToSystem } from "../_shared/health-model/adapter.ts";
+import { computeSystemScores } from "../_shared/health-model/m3-systems.ts";
+import { computeHealthIndex } from "../_shared/health-model/m4-health-index.ts";
 import { computeAgingPace } from "../_shared/health-model/m6-aging-pace.ts";
 import { computeTrajectory } from "../_shared/health-model/m7-trajectory.ts";
 import { computeExplainability } from "../_shared/health-model/m8-explainability.ts";
+
+// Обратная карта SystemKey → русское имя категории (для матчинга с biomarker_categories)
+const SYSTEM_TO_CATEGORY: Record<string, string> = {
+  cardiovascular: "Сердечно-сосудистая система",
+  metabolism: "Метаболизм и Детоксикация",
+  inflammation: "Воспалительная и иммунная система",
+  endocrine: "Эндокринная и стрессовая система",
+  energy: "Энергия и восстановление",
+};
 
 
 const corsHeaders = {
