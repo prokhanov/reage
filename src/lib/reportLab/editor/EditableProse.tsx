@@ -50,7 +50,7 @@ export function EditableProse({ editableId, initialMarkdown }: Props) {
 
   return (
     <div className="rl-editable-wrap">
-      <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }}>
+      <BubbleMenu editor={editor}>
         <div className="flex gap-1 rounded-md border bg-background p-1 shadow-md">
           <button
             type="button"
