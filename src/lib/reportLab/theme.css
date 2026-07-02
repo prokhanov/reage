@@ -50,7 +50,51 @@
 
 @page {
   size: A4;
-  margin: 0;
+  margin: 20mm 0 16mm;
+
+  @top-left {
+    content: "ReAge · Персональный отчёт";
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #7a7f8f;
+    padding-left: 18mm;
+    vertical-align: middle;
+  }
+
+  @top-right {
+    content: "reage.life";
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #7a7f8f;
+    padding-right: 18mm;
+    vertical-align: middle;
+  }
+
+  @bottom-left {
+    content: "Longevity clinic";
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #7a7f8f;
+    padding-left: 18mm;
+    vertical-align: middle;
+  }
+
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #7a7f8f;
+    padding-right: 18mm;
+    vertical-align: middle;
+  }
 }
 
 .reportlab .rl-page {
