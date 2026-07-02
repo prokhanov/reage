@@ -263,7 +263,7 @@ ${symptomsText}
       // подразделы, идущие в конце большой категории (напр. «Метаболизм и Детоксикация»
       // может быть >25к симв.), просто не попадают в резюме и AI их игнорирует.
       const allReportsText = Object.entries(categoryReports)
-        .map(([cat, report]) => `=== ${cat} ===\n${sanitizeReportTextForPatient(String(report)).substring(0, 30000)}`)
+        .map(([cat, report]) => `=== ${cat} ===\n${sanitizeReportTextForPatient(String(report)).substring(0, 15000)}`)
         .join("\n\n");
 
       const summaryUserPromptTemplate = prompts["summary_user"];
