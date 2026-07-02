@@ -14,6 +14,8 @@ interface Props {
 export function ProseMarkdown({ markdown, className = "" }: Props) {
   const clean = markdown
     .replace(/\r\n/g, "\n")
+    // Убираем любые HTML-комментарии-якоря (в т.ч. незакрытые типа `<!-- anchor:summary_start →`)
+    .replace(/<!--[\s\S]*?(?:-->|→|\n)/g, "")
     .replace(/\$\$/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
