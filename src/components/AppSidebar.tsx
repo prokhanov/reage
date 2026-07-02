@@ -33,21 +33,23 @@ const navItems = [
   { to: "/health-strategy", label: "Стратегия здоровья", icon: Target },
 ];
 
-const adminNavItems = [
-  { to: "/admin/patients", label: "Пациенты", icon: Users },
-  { to: "/admin/analysis-bookings", label: "Записи на анализы", icon: Calendar },
-  { to: "/admin/my-assignments", label: "Назначены мне", icon: ClipboardList },
-  { to: "/admin/user-management", label: "Пользователи", icon: Briefcase },
-  { to: "/admin/subscription-plans", label: "Тарифы", icon: CreditCard, requiresSuperAdmin: true },
-  { to: "/admin/payment-gateway", label: "Платёжный шлюз", icon: CreditCard, requiresSuperAdmin: true },
-  { to: "/admin/promo-codes", label: "Промокоды", icon: Ticket, requiresSuperAdmin: true },
-  { to: "/admin/report-visuals", label: "Тест отчета", icon: Eye, requiresSuperAdmin: true },
-  { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings },
-  { to: "/admin/email-settings", label: "Email", icon: Mail, requiresSuperAdmin: true },
-  { to: "/admin/sms-settings", label: "SMS", icon: MessageSquare, requiresSuperAdmin: true },
-  { to: "/admin/telegram-settings", label: "Telegram", icon: Send, requiresSuperAdmin: true },
-  { to: "/admin/labs", label: "Лаборатории", icon: MapPin, requiresSuperAdmin: true },
-  { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical },
+import type { AdminModule } from "@/lib/adminModules";
+
+const adminNavItems: Array<{ to: string; label: string; icon: any; module: AdminModule }> = [
+  { to: "/admin/patients", label: "Пациенты", icon: Users, module: "patients" },
+  { to: "/admin/analysis-bookings", label: "Записи на анализы", icon: Calendar, module: "analysis_bookings" },
+  { to: "/admin/my-assignments", label: "Назначены мне", icon: ClipboardList, module: "my_assignments" },
+  { to: "/admin/user-management", label: "Пользователи", icon: Briefcase, module: "user_management" },
+  { to: "/admin/subscription-plans", label: "Тарифы", icon: CreditCard, module: "subscription_plans" },
+  { to: "/admin/payment-gateway", label: "Платёжный шлюз", icon: CreditCard, module: "payment_gateway" },
+  { to: "/admin/promo-codes", label: "Промокоды", icon: Ticket, module: "promo_codes" },
+  { to: "/admin/report-visuals", label: "Тест отчета", icon: Eye, module: "report_visuals" },
+  { to: "/admin/ai-settings", label: "Настройки AI", icon: Settings, module: "ai_settings" },
+  { to: "/admin/email-settings", label: "Email", icon: Mail, module: "email_settings" },
+  { to: "/admin/sms-settings", label: "SMS", icon: MessageSquare, module: "sms_settings" },
+  { to: "/admin/telegram-settings", label: "Telegram", icon: Send, module: "telegram_settings" },
+  { to: "/admin/labs", label: "Лаборатории", icon: MapPin, module: "lab_locations" },
+  { to: "/admin/data-management", label: "Управление данными", icon: FlaskConical, module: "data_management" },
 ];
 
 export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
@@ -318,9 +320,10 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
               );
             })}
 
-                {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем админские разделы */}
+                {/* Для сотрудников (НЕ пациентов и НЕ в режиме просмотра) - показываем разделы,
+                    к которым выдан доступ (или всё — если суперадмин). */}
                 {!isPatient && !viewAsUserId && (isSuperAdmin || hasAdminAccess) && adminNavItems
-                  .filter(item => !item.requiresSuperAdmin || isSuperAdmin)
+                  .filter(item => isSuperAdmin || (roleData?.allowedModules ?? []).includes(item.module))
                   .map((item) => {
                   const isBookingsPage = item.to === "/admin/analysis-bookings";
                   const isMyAssignmentsPage = item.to === "/admin/my-assignments";
