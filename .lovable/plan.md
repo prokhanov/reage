@@ -1,56 +1,54 @@
-# Скачивание PDF на iPhone + разъяснение «тёмных полей»
+## Ускорение PDF — этап 1 (без Fly always-on)
 
-## Что произошло на самом деле
+Делаем пункты 2 и 3: убираем `verify_token` (−15 сек) и Google Fonts (−10–12 сек). Fly always-on откладываем.
 
-Вы нажали «Скачать PDF» на `/admin/report-visuals`. Дальше:
+### 1. HMAC-проверка переносится на Fly
 
-1. Наш код делает `fetch → blob → <a download="…"> → click`. На **iOS Safari атрибут `download` игнорируется** (это давнее ограничение WebKit). Вместо сохранения файла Safari открывает blob-URL прямо во вкладке — поэтому в адресной строке вы видите `reage.life`, и кажется, что «это страница, а не PDF».
-2. То, что вы видите **— это настоящий PDF**, только показанный встроенным вьюером iOS Safari.
-3. «3 из 66» сверху — счётчик страниц самого вьюера Safari.
-4. Тёмные полосы вокруг листов — фон PDF-вьюера Safari **в тёмной теме iOS**. Это системный UI, мы им не управляем: в iOS 15+ вьюер PDF всегда красит фон под системную тему. У других PDF, которые «открываются без них», Safari берёт светлый фон, если системная тема светлая, или если PDF был открыт не во вкладке, а в приложении Файлы/Books.
+**`deploy/report-renderer/server.js`**:
+- В начале `/render`: распарсить `token` из query параметров переданного `url`.
+- Верифицировать HMAC (`crypto.createHmac('sha256', REPORT_PREVIEW_HMAC_SECRET)`) — та же схема, что в `sign-preview-token` (payload.signature, base64url).
+- Проверить `exp` не истёк.
+- При невалидности — 401.
+- Env: `REPORT_PREVIEW_HMAC_SECRET` через `fly secrets set REPORT_PREVIEW_HMAC_SECRET=... -a reage-report-renderer` (тот же секрет, что уже есть в Supabase).
 
-Проверка: если открыть тот же PDF на маке (Preview/Chrome) — фон белый и колонтитулы на месте. То есть **файл здоровый, проблема только в способе доставки на iPhone**.
+**`src/pages/internal/ReportPreview.tsx`**:
+- Убрать `supabase.functions.invoke("mint-preview-token", {action:"verify"})`.
+- Если `token` присутствует — сразу переходить в `allowed` (Fly уже верифицирует до `goto`).
+- Если токена нет — `denied` (защита от ручного открытия).
 
-## План правок
+Edge-функция `mint-preview-token` остаётся для action=`sign` (её дёргает админка при генерации PDF).
 
-### A. `src/pages/admin/ReportVisualsTest.tsx` — починить сценарий на iOS
+### 2. Self-hosted шрифты
 
-Логика в `downloadPdf()` после получения blob:
-
+**Установка**:
 ```
-if (Web Share API умеет делиться файлами):        # iOS 15+
-  await navigator.share({ files: [pdfFile], title, text })
-elif iOS/iPadOS (по userAgent):                    # старые iOS без share files
-  window.location.href = blobUrl                   # откроет во вьюере,
-  toast("Сохранение", "Тапните ↗ → Сохранить в Файлы")
-else:                                              # desktop / Android
-  a.download = filename; a.click()                 # текущий путь
+bun add @fontsource-variable/fraunces @fontsource-variable/inter @fontsource/jetbrains-mono
 ```
 
-Детали:
-- Детект `canShareFile`: `typeof navigator.canShare === "function" && navigator.canShare({ files: [pdfFile] })`.
-- `File` конструируем из blob: `new File([blob], "reage-report-...pdf", { type: "application/pdf" })`.
-- Для iOS-фолбэка (без Share) — открывать `blobUrl` через `window.open(blobUrl, "_self")`, показывать toast с подсказкой «В Safari нажмите **↗ Поделиться → Сохранить в Файлы**».
-- Всё в один `try/catch`: если пользователь отменяет системный share-sheet (`AbortError`), не показывать ошибку.
+**`src/main.tsx`** — импорты:
+```ts
+import "@fontsource-variable/inter";
+import "@fontsource-variable/fraunces";
+import "@fontsource/jetbrains-mono/500.css";
+```
 
-Плюс — добавить в лог `pdfLogs` строку про выбранный путь доставки (`share_files` / `ios_inline_open` / `blob_download`), чтобы в следующий раз сразу видеть, что сработало.
+**`src/lib/reportLab/theme.css`**:
+- Удалить строку `@import url("https://fonts.googleapis.com/css2?...")`.
 
-### B. `PaginatedReportPreview` / `ReportVisualsTest` — визуальная адаптация под мобилку (опционально, если раздражает)
+### 3. Ожидаемый эффект
 
-Проблема тёмных полос **в PDF-вьюере Safari** — не наша, править нельзя. Но у нас есть **HTML-превью на той же странице** (`PaginatedReportPreview` в iframe с paged.js) — там мы полностью контролируем фон. Ничего чинить не надо, он и так `#d9d5cd` (светло-серый) — просто уточню это в тексте песочницы, чтобы не путать превью с PDF.
+| Этап                    | Было   | Станет |
+|-------------------------|--------|--------|
+| Холодный старт Fly      | 5–10 c | 5–10 c (без изменений) |
+| verify_token            | 15 c   | 0 c |
+| fonts_wait              | 12 c   | ~1 c |
+| goto + render + pdf     | 5–8 c  | 5–8 c |
+| **Итого (тёплая машина)** | ~40 c | ~7–10 c |
+| **Итого (холодная)**    | ~40 c  | ~12–18 c |
 
-Также добавлю прямо на песочнице короткую подпись рядом с кнопкой «Скачать PDF»:
-> На iPhone Safari откроет PDF во вкладке — нажмите ↗ → «Сохранить в Файлы». На маке скачается сразу.
+### 4. Порядок деплоя
 
-### C. Что НЕ входит в план
+1. Frontend (`ReportPreview.tsx`, `theme.css`, `main.tsx`, `package.json`) → Coolify.
+2. Fly (`server.js` + `fly secrets set REPORT_PREVIEW_HMAC_SECRET=...` + `fly deploy`).
 
-- Не пытаться «убрать чехол Safari». Это системный UI iOS, изменить его из веба нельзя.
-- Не менять сам PDF (файл здоровый). Все правки — про доставку и объяснение.
-
-## Проверка
-
-1. С iPhone Safari (тёмная тема) на `/admin/report-visuals` → «Скачать PDF»:
-   - iOS 15+: появляется системный share-sheet → «Сохранить в Файлы» → PDF в Файлах.
-   - Старее / без share files: открывается вьюер + toast с подсказкой.
-2. С Mac Chrome → PDF скачивается как файл, как раньше.
-3. Открыть скачанный PDF в Preview/Adobe — убедиться, что там белый фон, колонтитулы, страница 2 не пустая (это уже проверяется отдельно после деплоя правок из прошлого плана).
+**Важно**: сначала выкатить Fly (он умеет и старые запросы обрабатывать), потом фронт — иначе несколько минут между деплоями превью будет открываться без проверки.
