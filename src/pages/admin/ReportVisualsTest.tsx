@@ -7,6 +7,7 @@ import { notify as toast } from "@/lib/toast";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
 import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
+import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
