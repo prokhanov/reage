@@ -263,7 +263,7 @@ ${symptomsText}
       // подразделы, идущие в конце большой категории (напр. «Метаболизм и Детоксикация»
       // может быть >25к симв.), просто не попадают в резюме и AI их игнорирует.
       const allReportsText = Object.entries(categoryReports)
-        .map(([cat, report]) => `=== ${cat} ===\n${sanitizeReportTextForPatient(String(report)).substring(0, 15000)}`)
+        .map(([cat, report]) => `=== ${cat} ===\n${sanitizeReportTextForPatient(String(report)).substring(0, 25000)}`)
         .join("\n\n");
 
       const summaryUserPromptTemplate = prompts["summary_user"];
@@ -284,14 +284,15 @@ ${symptomsText}
         headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           model: aiProfile.model,
-          ...(aiProfile.reasoning ? { reasoning: { effort: "low" as const } } : {}),
+          ...(aiProfile.reasoning ? { reasoning: { effort: "high" as const } } : {}),
           messages: [
             { role: "system", content: summarySystemPrompt },
             { role: "user", content: summaryPrompt },
           ],
-          max_completion_tokens: Math.round(24000 * aiProfile.tokenMultiplier),
+          max_completion_tokens: Math.round(64000 * aiProfile.tokenMultiplier),
         }),
       });
+
 
       if (summaryResponse.ok) {
         const summaryData = await summaryResponse.json();
