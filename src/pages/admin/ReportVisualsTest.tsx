@@ -404,14 +404,20 @@ export default function ReportVisualsTest() {
           <Card className="mb-6 border bg-background p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="text-sm font-semibold">Диагностика PDF</div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setPdfLogs([])}
-                disabled={rendering}
-              >
-                Очистить
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={copyLogs}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPdfLogs([])}
+                  disabled={rendering}
+                >
+                  Очистить
+                </Button>
+              </div>
             </div>
             {readyPdf && (
               <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
