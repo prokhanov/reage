@@ -29,7 +29,7 @@ export function ReportPatientData({ report }: Props) {
     <section className="rl-page">
       <div className="rl-eyebrow">Пациент</div>
       <h1 className="rl-h1">Данные пациента</h1>
-      <ProseMarkdown markdown={text} />
+      <ProseMarkdown markdown={text} editableId={`rec:${row.id}#body`} />
     </section>
   );
 }
