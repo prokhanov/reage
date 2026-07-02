@@ -38,6 +38,28 @@ export default function ReportPreview() {
   const token = params.get("token");
   const [state, setState] = useState<VerifyState>("checking");
 
+  // Форсируем светлую тему для рендера PDF — иначе тёмный фон приложения
+  // просачивается в поля страницы и колонтитулы (тёмные полосы вокруг листа).
+  useEffect(() => {
+    const html = window.document.documentElement;
+    const body = window.document.body;
+    const prevHtmlClass = html.className;
+    const prevBodyBg = body.style.background;
+    const prevHtmlBg = html.style.background;
+    const prevScheme = html.style.colorScheme;
+    html.classList.remove("dark");
+    html.classList.add("light");
+    html.style.background = "#ffffff";
+    html.style.colorScheme = "light";
+    body.style.background = "#ffffff";
+    return () => {
+      html.className = prevHtmlClass;
+      html.style.background = prevHtmlBg;
+      html.style.colorScheme = prevScheme;
+      body.style.background = prevBodyBg;
+    };
+  }, []);
+
   useEffect(() => {
     reportLog("preview_mount", { hasToken: Boolean(token), href: window.location.href });
     let cancelled = false;
