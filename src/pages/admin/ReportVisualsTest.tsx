@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download, ExternalLink, Loader2 } from "lucide-react";
+import { Copy, Download, ExternalLink, Loader2 } from "lucide-react";
 import { notify as toast } from "@/lib/toast";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
@@ -192,25 +192,45 @@ export default function ReportVisualsTest() {
     setPdfLogs([]);
     replaceReadyPdf(null);
     const startedAt = performance.now();
-    appendPdfLog("info", "Старт подготовки PDF", "Первый запуск рендерера может занять до 2 минут");
+    let lastStageAt = startedAt;
+
+    const stage = (
+      level: PdfLogLevel,
+      label: string,
+      details?: string,
+    ) => {
+      const now = performance.now();
+      const dStage = Math.round(now - lastStageAt);
+      const dTotal = Math.round(now - startedAt);
+      lastStageAt = now;
+      const fmt = (ms: number) =>
+        ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${ms}ms`;
+      appendPdfLog(
+        level,
+        `[+${fmt(dStage)} · Σ${fmt(dTotal)}] ${label}`,
+        details,
+      );
+    };
+
+    stage("info", "Старт подготовки PDF", "Первый запуск рендерера может занять до 2 минут");
 
     const progressTimer = window.setInterval(() => {
       const seconds = Math.round((performance.now() - startedAt) / 1000);
-      appendPdfLog("info", `Ожидание ответа от backend/Fly: ${seconds} сек`);
+      appendPdfLog("info", `⏱ Ожидание ответа: ${seconds} сек`);
     }, 15000);
 
     try {
-      appendPdfLog("info", "Проверяю текущую авторизацию");
+      stage("info", "1/6 Проверка авторизации");
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
-      appendPdfLog(
+      stage(
         token ? "success" : "error",
-        token ? "JWT найден, отправляю запрос в edge-функцию" : "JWT не найден — запрос уйдёт без авторизации",
+        token ? "2/6 JWT получен" : "2/6 JWT не найден — запрос уйдёт без авторизации",
       );
 
       const endpoint = edgeFunctionUrl("render-report-pdf");
       const requestId = crypto.randomUUID();
-      appendPdfLog("info", "POST render-report-pdf", `requestId=${requestId}`);
+      stage("info", "3/6 POST render-report-pdf", `requestId=${requestId}\nendpoint=${endpoint}`);
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -222,16 +242,32 @@ export default function ReportVisualsTest() {
         body: JSON.stringify({ reportId: "prokhanov", clientRequestId: requestId }),
       });
 
-      const elapsedMs = Math.round(performance.now() - startedAt);
-      appendPdfLog(
+      // Серверные тайминги, если edge/рендерер их проставили в заголовки.
+      const serverTimings: string[] = [];
+      const knownTimingHeaders = [
+        "server-timing",
+        "x-render-ms",
+        "x-fly-render-ms",
+        "x-edge-ms",
+        "x-cold-start",
+      ];
+      for (const h of knownTimingHeaders) {
+        const v = response.headers.get(h);
+        if (v) serverTimings.push(`${h}: ${v}`);
+      }
+
+      stage(
         response.ok ? "success" : "error",
-        `Ответ edge-функции: HTTP ${response.status} за ${elapsedMs} мс`,
-        `content-type=${response.headers.get("content-type") || "—"}`,
+        `4/6 Ответ backend: HTTP ${response.status}`,
+        [
+          `content-type=${response.headers.get("content-type") || "—"}`,
+          ...serverTimings,
+        ].join("\n"),
       );
 
       if (!response.ok) {
         const body = await readResponseBody(response);
-        appendPdfLog("error", "Тело ошибки от edge-функции", body || "Пустое тело ответа");
+        stage("error", "Тело ошибки от edge-функции", body || "Пустое тело ответа");
         if (response.status === 504 && body.includes("renderer_timeout")) {
           appendPdfLog(
             "info",
@@ -246,12 +282,12 @@ export default function ReportVisualsTest() {
       const contentType = response.headers.get("content-type") || "";
       if (!contentType.includes("application/pdf")) {
         const body = await readResponseBody(response);
-        appendPdfLog("error", "Ожидался PDF, но пришёл другой content-type", body || contentType);
+        stage("error", "Ожидался PDF, но пришёл другой content-type", body || contentType);
         throw new Error(`Ожидался application/pdf, пришёл ${contentType || "unknown"}`);
       }
 
       const blob = await response.blob();
-      appendPdfLog("success", "PDF получен", `${Math.round(blob.size / 1024)} KB`);
+      stage("success", `5/6 PDF-blob скачан`, `${Math.round(blob.size / 1024)} KB`);
 
       const filename = `reage-report-prokhanov-${report.analysis.date}.pdf`;
       const file = new File([blob], filename, { type: "application/pdf" });
@@ -266,9 +302,9 @@ export default function ReportVisualsTest() {
       });
 
       if (isIOS) {
-        appendPdfLog(
+        stage(
           "info",
-          "PDF готов: на iPhone нужен второй тап по кнопке «Сохранить PDF»",
+          "6/6 PDF готов · нужен второй тап (iOS)",
           "Web Share API требует прямой пользовательский жест; после долгого рендера Safari блокирует автозапуск share-sheet.",
         );
         toast.success(
@@ -284,19 +320,33 @@ export default function ReportVisualsTest() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      appendPdfLog("success", "Скачивание передано браузеру");
+      stage("success", "6/6 Скачивание передано браузеру");
     } catch (e) {
       console.error(e);
-      appendPdfLog("error", "Скачивание PDF упало", formatError(e));
-      toast.error(
-          "PDF не скачался",
-        formatError(e),
-      );
+      stage("error", "Скачивание PDF упало", formatError(e));
+      toast.error("PDF не скачался", formatError(e));
     } finally {
       window.clearInterval(progressTimer);
       setRendering(false);
     }
   }
+
+  const copyLogs = useCallback(async () => {
+    if (!pdfLogs.length) return;
+    const text = pdfLogs
+      .map((l) => {
+        const head = `[${l.time}] ${l.level.toUpperCase()} ${l.message}`;
+        return l.details ? `${head}\n${l.details}` : head;
+      })
+      .join("\n\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Логи скопированы", `${pdfLogs.length} записей в буфере обмена`);
+    } catch (e) {
+      toast.error("Не удалось скопировать", formatError(e));
+    }
+  }, [pdfLogs]);
+
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -354,14 +404,20 @@ export default function ReportVisualsTest() {
           <Card className="mb-6 border bg-background p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="text-sm font-semibold">Диагностика PDF</div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setPdfLogs([])}
-                disabled={rendering}
-              >
-                Очистить
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={copyLogs}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPdfLogs([])}
+                  disabled={rendering}
+                >
+                  Очистить
+                </Button>
+              </div>
             </div>
             {readyPdf && (
               <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
