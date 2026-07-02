@@ -56,6 +56,7 @@ import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
 import VerifyEmail from "./pages/VerifyEmail";
+import ReportPreview from "./pages/internal/ReportPreview";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 import { RegisterGuardProvider } from "@/components/RegisterGuard";
@@ -123,6 +124,11 @@ const App = () => (
             <Route path="/onboarding/:step" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
             <Route path="/analyses/print" element={<AnalysesPrint />} />
+            {/* Internal report preview для Playwright; защищён HMAC-токеном
+                внутри самой страницы, никаких сессий/хедеров/сайдбара. */}
+            <Route path="/internal/report-preview" element={<ReportPreview />} />
+
+
 
 
             {/* Protected routes with persistent DashboardLayout.

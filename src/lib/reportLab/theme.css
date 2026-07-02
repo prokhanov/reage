@@ -1,0 +1,531 @@
+/*
+ * Report Lab — токены дизайна отчёта.
+ *
+ * ИЗОЛИРОВАНО от глобального index.css. Здесь живёт только вёрстка PDF-отчёта,
+ * чтобы менять её без риска задеть остальное приложение.
+ *
+ * Подключается один раз в компоненте <ReportDocument /> через import "./theme.css".
+ */
+
+/* ─── Шрифты ─────────────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap");
+
+/* ─── Токены ─────────────────────────────────────────────────────────────── */
+.reportlab {
+  /* Bagatelle: цвет "бумаги" — тёплый почти-белый, как у премиум-типографии. */
+  --paper: #fbfaf7;
+  --ink: #16181d;
+  --ink-soft: #45495a;
+  --ink-muted: #7a7f8f;
+  --hairline: #e4e2dc;
+  --hairline-strong: #cbc7bd;
+
+  /* Акцент — глубокий графитовый синий, спокойный, «банковский». */
+  --accent: #142438;
+  --accent-soft: #2a3d5a;
+  --accent-tint: #eaf0f8;
+  --gold: #b58a44;
+  --gold-soft: #d9c396;
+
+  /* Статусы биомаркеров — приглушённые, medical-grade. */
+  --status-critical: #a53a2a;
+  --status-warning: #c67432;
+  --status-suboptimal: #d0a437;
+  --status-optimal: #4a7c59;
+  --status-critical-bg: #f6e5e1;
+  --status-warning-bg: #faede1;
+  --status-suboptimal-bg: #faf3d9;
+  --status-optimal-bg: #e6efe4;
+
+  /* Типографика */
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Ритм */
+  --page-pad-x: 20mm;
+  --page-pad-top: 24mm;
+  --page-pad-bottom: 22mm;
+
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 10.5pt;
+  line-height: 1.55;
+  font-feature-settings: "ss01", "cv11", "kern", "liga";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* ─── Страница A4 ────────────────────────────────────────────────────────── */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.reportlab .rl-page {
+  width: 210mm;
+  min-height: 297mm;
+  padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-bottom);
+  background: var(--paper);
+  position: relative;
+  box-sizing: border-box;
+  break-after: page;
+  page-break-after: always;
+}
+
+.reportlab .rl-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+/* Экранный превью — рисуем «лист» с тенью и центрируем */
+@media screen {
+  .reportlab {
+    padding: 40px 0;
+    background: #d9d5cd;
+    min-height: 100vh;
+  }
+  .reportlab .rl-page {
+    margin: 0 auto 24px;
+    box-shadow: 0 20px 45px -25px rgba(20, 36, 56, 0.35),
+      0 1px 0 rgba(0, 0, 0, 0.03);
+  }
+}
+
+@media print {
+  .reportlab {
+    padding: 0;
+    background: transparent;
+  }
+  .reportlab .rl-page {
+    margin: 0;
+    box-shadow: none;
+  }
+}
+
+/* ─── Обложка ────────────────────────────────────────────────────────────── */
+.reportlab .rl-cover {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 297mm;
+  background:
+    radial-gradient(120% 65% at 50% 0%, #1c2f47 0%, #0f1b2d 55%, #0a1220 100%);
+  color: #f6f0e0;
+  overflow: hidden;
+}
+
+.reportlab .rl-cover-top {
+  padding: 22mm 20mm 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-family: var(--font-sans);
+  font-size: 9pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(246, 240, 224, 0.6);
+}
+
+.reportlab .rl-cover-brand {
+  font-family: var(--font-serif);
+  font-size: 20pt;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--gold-soft);
+}
+
+.reportlab .rl-cover-center {
+  padding: 0 20mm;
+  text-align: left;
+}
+.reportlab .rl-cover-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 9.5pt;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: 10mm;
+}
+.reportlab .rl-cover-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 46pt;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0 0 8mm;
+  color: #f8f2e2;
+}
+.reportlab .rl-cover-title em {
+  font-style: italic;
+  color: var(--gold-soft);
+}
+.reportlab .rl-cover-subtitle {
+  font-family: var(--font-sans);
+  font-size: 12pt;
+  line-height: 1.55;
+  max-width: 130mm;
+  color: rgba(246, 240, 224, 0.78);
+}
+
+.reportlab .rl-cover-meta {
+  padding: 0 20mm 22mm;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10mm;
+  border-top: 1px solid rgba(217, 195, 150, 0.2);
+  padding-top: 10mm;
+}
+.reportlab .rl-cover-meta-item .label {
+  font-size: 8.5pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(246, 240, 224, 0.55);
+  margin-bottom: 2mm;
+}
+.reportlab .rl-cover-meta-item .value {
+  font-family: var(--font-serif);
+  font-size: 16pt;
+  color: #f8f2e2;
+  letter-spacing: -0.01em;
+}
+
+/* ─── Общие заголовки ────────────────────────────────────────────────────── */
+.reportlab .rl-eyebrow {
+  font-size: 8.5pt;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0 0 6px;
+  font-weight: 500;
+}
+.reportlab .rl-h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 28pt;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin: 0 0 12mm;
+  color: var(--ink);
+}
+.reportlab .rl-h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 20pt;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 6mm;
+}
+.reportlab .rl-h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 11pt;
+  letter-spacing: 0.02em;
+  margin: 8mm 0 3mm;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.reportlab .rl-lead {
+  font-family: var(--font-serif);
+  font-size: 13pt;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 8mm;
+  max-width: 155mm;
+}
+
+/* ─── Раздел ─────────────────────────────────────────────────────────────── */
+.reportlab .rl-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12mm;
+  padding-bottom: 4mm;
+  border-bottom: 1px solid var(--hairline-strong);
+  margin-bottom: 10mm;
+}
+.reportlab .rl-section-header .num {
+  font-family: var(--font-serif);
+  font-size: 44pt;
+  line-height: 1;
+  color: var(--gold);
+  font-weight: 400;
+}
+.reportlab .rl-section-header .title {
+  flex: 1;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 26pt;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.reportlab .rl-section-header .kicker {
+  font-size: 8.5pt;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  align-self: flex-start;
+  padding-top: 6mm;
+}
+
+/* ─── Проза (Markdown) ───────────────────────────────────────────────────── */
+.reportlab .rl-prose p {
+  margin: 0 0 4mm;
+  font-size: 10.5pt;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  hyphens: auto;
+}
+.reportlab .rl-prose p strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.reportlab .rl-prose h2 {
+  font-family: var(--font-serif);
+  font-size: 16pt;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 8mm 0 3mm;
+  letter-spacing: -0.01em;
+}
+.reportlab .rl-prose h3 {
+  font-family: var(--font-sans);
+  font-size: 10.5pt;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 6mm 0 2mm;
+}
+.reportlab .rl-prose ul,
+.reportlab .rl-prose ol {
+  margin: 0 0 4mm 6mm;
+  padding: 0;
+}
+.reportlab .rl-prose li {
+  margin: 0 0 1.5mm;
+  color: var(--ink-soft);
+}
+.reportlab .rl-prose li::marker {
+  color: var(--gold);
+}
+.reportlab .rl-prose blockquote {
+  border-left: 2px solid var(--gold);
+  padding-left: 5mm;
+  margin: 5mm 0;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* ─── Callout: общее резюме, назначения ──────────────────────────────────── */
+.reportlab .rl-callout {
+  background: #faf7ef;
+  border: 1px solid var(--hairline-strong);
+  border-left: 3px solid var(--gold);
+  padding: 8mm 9mm;
+  margin: 0 0 8mm;
+}
+.reportlab .rl-callout .rl-eyebrow {
+  color: var(--gold);
+}
+.reportlab .rl-callout p {
+  font-family: var(--font-serif);
+  font-size: 12pt;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0 0 3mm;
+}
+.reportlab .rl-callout p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Карточка биомаркера ────────────────────────────────────────────────── */
+.reportlab .rl-biomarker {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  border: 1px solid var(--hairline-strong);
+  background: #fefdfa;
+  padding: 6mm 7mm 6.5mm;
+  margin: 0 0 6mm;
+}
+
+.reportlab .rl-bio-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8mm;
+  margin-bottom: 4mm;
+}
+.reportlab .rl-bio-title {
+  flex: 1;
+}
+.reportlab .rl-bio-name {
+  font-family: var(--font-serif);
+  font-size: 15pt;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0 0 1mm;
+  letter-spacing: -0.01em;
+}
+.reportlab .rl-bio-code {
+  font-family: var(--font-mono);
+  font-size: 8.5pt;
+  color: var(--ink-muted);
+  letter-spacing: 0.05em;
+}
+.reportlab .rl-bio-value {
+  text-align: right;
+}
+.reportlab .rl-bio-value .num {
+  font-family: var(--font-serif);
+  font-size: 22pt;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.reportlab .rl-bio-value .unit {
+  font-family: var(--font-sans);
+  font-size: 9pt;
+  color: var(--ink-muted);
+  margin-left: 1mm;
+}
+
+.reportlab .rl-bio-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 2mm;
+  padding: 1mm 3mm;
+  border-radius: 100px;
+  font-size: 8.5pt;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 1.5mm;
+}
+.reportlab .rl-bio-status .dot {
+  width: 2mm;
+  height: 2mm;
+  border-radius: 50%;
+  background: currentColor;
+}
+.reportlab .rl-bio-status.critical {
+  background: var(--status-critical-bg);
+  color: var(--status-critical);
+}
+.reportlab .rl-bio-status.warning {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+}
+.reportlab .rl-bio-status.suboptimal {
+  background: var(--status-suboptimal-bg);
+  color: var(--status-suboptimal);
+}
+.reportlab .rl-bio-status.optimal {
+  background: var(--status-optimal-bg);
+  color: var(--status-optimal);
+}
+
+.reportlab .rl-bio-scale {
+  margin: 4mm 0 5mm;
+}
+
+.reportlab .rl-bio-body p {
+  font-size: 10pt;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 2.5mm;
+}
+.reportlab .rl-bio-body p:last-child { margin-bottom: 0; }
+
+/* ─── Стат-полоска ───────────────────────────────────────────────────────── */
+.reportlab .rl-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6mm;
+  padding: 6mm 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  margin: 0 0 10mm;
+}
+.reportlab .rl-stat .label {
+  font-size: 8.5pt;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 1.5mm;
+}
+.reportlab .rl-stat .value {
+  font-family: var(--font-serif);
+  font-size: 22pt;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.reportlab .rl-stat .caption {
+  font-size: 9pt;
+  color: var(--ink-muted);
+  margin-top: 1mm;
+}
+
+/* ─── Служебные ──────────────────────────────────────────────────────────── */
+.reportlab .rl-footer {
+  position: absolute;
+  bottom: 12mm;
+  left: var(--page-pad-x);
+  right: var(--page-pad-x);
+  display: flex;
+  justify-content: space-between;
+  font-size: 8pt;
+  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--hairline);
+  padding-top: 4mm;
+}
+
+.reportlab .rl-header {
+  position: absolute;
+  top: 10mm;
+  left: var(--page-pad-x);
+  right: var(--page-pad-x);
+  display: flex;
+  justify-content: space-between;
+  font-size: 8pt;
+  color: var(--ink-muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ─── Список назначений ─────────────────────────────────────────────────── */
+.reportlab .rl-rx {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  border: 1px solid var(--hairline-strong);
+  padding: 5mm 6mm;
+  margin: 0 0 4mm;
+  background: #fefdfa;
+}
+.reportlab .rl-rx-title {
+  font-family: var(--font-serif);
+  font-size: 12pt;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 1mm;
+}
+.reportlab .rl-rx-meta {
+  font-size: 9pt;
+  color: var(--ink-muted);
+  margin: 0 0 2mm;
+}
+.reportlab .rl-rx-desc p {
+  font-size: 10pt;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 2mm;
+}
