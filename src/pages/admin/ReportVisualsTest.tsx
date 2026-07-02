@@ -282,10 +282,18 @@ export default function ReportVisualsTest() {
 
       <div className="mx-auto max-w-[1100px] px-6 py-6">
         <Card className="mb-6 border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
-          Это изолированная песочница нового рендерера отчётов. Источник — один
-          JSON-снапшот последнего отчёта Антона Проханова, лежащий в репозитории.
-          Боевой кабинет пациента и legacy-PDF не затрагиваются. Итерации по
-          вёрстке — прямо здесь.
+          <div>
+            Это изолированная песочница нового рендерера отчётов. Источник — один
+            JSON-снапшот последнего отчёта Антона Проханова, лежащий в репозитории.
+            Боевой кабинет пациента и legacy-PDF не затрагиваются.
+          </div>
+          <div className="mt-2 text-xs">
+            На iPhone Safari откроет PDF во вкладке (WebKit игнорирует
+            <code className="mx-1 rounded bg-muted px-1">download</code>) — нажмите ↗
+            «Поделиться» → «Сохранить в Файлы». Тёмный фон вокруг листов — это
+            встроенный PDF-вьюер Safari в тёмной теме iOS, не сам файл. На маке скачается
+            обычным файлом.
+          </div>
         </Card>
 
         {pdfLogs.length > 0 && (
