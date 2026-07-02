@@ -157,13 +157,29 @@ app.post("/render", async (req, reply) => {
     }
     log("wait_report_ready_done", { elapsedMs: Date.now() - startedAt, state: readyState.state });
 
+    // Нативные колонтитулы Chromium — репитятся на каждой физической странице.
+    // Заказчик формирует patientLabel на клиенте, но тут он не критичен —
+    // достаточно бренда и номера страницы.
+    const headerHtml = `
+      <div style="width:100%;padding:0 18mm;font-family:-apple-system,'Inter',Segoe UI,sans-serif;font-size:8pt;color:#7a7f8f;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;">
+        <span>ReAge · Персональный отчёт</span>
+        <span>reage.life</span>
+      </div>`;
+    const footerHtml = `
+      <div style="width:100%;padding:0 18mm;font-family:-apple-system,'Inter',Segoe UI,sans-serif;font-size:8pt;color:#7a7f8f;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;">
+        <span>Longevity clinic</span>
+        <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
+      </div>`;
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
+      displayHeaderFooter: true,
+      headerTemplate: headerHtml,
+      footerTemplate: footerHtml,
+      margin: { top: "20mm", right: "0mm", bottom: "16mm", left: "0mm" },
       timeout: PDF_TIMEOUT_MS,
     });
+
     log("pdf_done", { bytes: pdf.length, elapsedMs: Date.now() - startedAt });
     reply.header("Content-Type", "application/pdf");
     reply.header("Content-Length", pdf.length);

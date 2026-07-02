@@ -1,7 +1,7 @@
 import type { ProkhanovReport } from "../types";
 import { getPrescriptionsRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
-import { PageHeader, PageFooter } from "./ReportSection";
+
 
 interface Props {
   report: ProkhanovReport;
@@ -40,8 +40,8 @@ export function ReportPrescriptions({ report }: Props) {
 
   return (
     <section className="rl-page">
-      <PageHeader label="Персональные назначения" />
       <div className="rl-eyebrow">Клинический план</div>
+
       <h1 className="rl-h1">Персональные назначения</h1>
       <p className="rl-lead">
         Практические шаги в трёх сферах — питание, движение, восстановление —
@@ -79,7 +79,7 @@ export function ReportPrescriptions({ report }: Props) {
         </>
       )}
 
-      <PageFooter title="Назначения" />
     </section>
+
   );
 }

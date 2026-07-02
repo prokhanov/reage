@@ -58,25 +58,36 @@
 }
 
 /* ─── Страница A4 ────────────────────────────────────────────────────────── */
+/*
+ * Внимание: margin у @page НЕ задаём — печатью управляет Playwright
+ * (см. deploy/report-renderer/server.js), там прописаны верхний/нижний margin
+ * под нативные колонтитулы `displayHeaderFooter`.
+ */
 @page {
   size: A4;
-  margin: 0;
 }
 
 .reportlab .rl-page {
   width: 210mm;
-  min-height: 297mm;
-  padding: var(--page-pad-top) var(--page-pad-x) var(--page-pad-bottom);
+  /* min-height убран специально: пусть контент льётся естественно,
+     иначе на коротких секциях получаем пустой «хвост» до 297mm. */
+  padding: 10mm var(--page-pad-x) 10mm;
   background: var(--paper);
   position: relative;
   box-sizing: border-box;
-  break-after: page;
-  page-break-after: always;
+  break-before: page;
+  page-break-before: always;
 }
 
-.reportlab .rl-page:last-child {
-  break-after: auto;
-  page-break-after: auto;
+.reportlab .rl-page:first-child {
+  break-before: auto;
+  page-break-before: auto;
+}
+
+/* Обложка — единственная страница с фиксированной высотой (для градиента). */
+.reportlab .rl-page.rl-cover {
+  min-height: 297mm;
+  padding: 0;
 }
 
 /* Экранный превью — рисуем «лист» с тенью и центрируем */
@@ -88,21 +99,49 @@
   }
   .reportlab .rl-page {
     margin: 0 auto 24px;
+    min-height: 297mm;
     box-shadow: 0 20px 45px -25px rgba(20, 36, 56, 0.35),
       0 1px 0 rgba(0, 0, 0, 0.03);
   }
 }
 
 @media print {
+  html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
   .reportlab {
-    padding: 0;
-    background: transparent;
+    padding: 0 !important;
+    background: #ffffff !important;
+    min-height: 0 !important;
   }
   .reportlab .rl-page {
-    margin: 0;
-    box-shadow: none;
+    margin: 0 !important;
+    box-shadow: none !important;
+    min-height: 0;
   }
 }
+
+/* ─── Правила разрывов страниц ──────────────────────────────────────────── */
+.reportlab .rl-prose p {
+  orphans: 3;
+  widows: 3;
+}
+.reportlab .rl-prose h2,
+.reportlab .rl-prose h3,
+.reportlab .rl-section-header,
+.reportlab .rl-callout,
+.reportlab .rl-stats,
+.reportlab .rl-h1,
+.reportlab .rl-h2,
+.reportlab .rl-h3 {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
 
 /* ─── Обложка ────────────────────────────────────────────────────────────── */
 .reportlab .rl-cover {

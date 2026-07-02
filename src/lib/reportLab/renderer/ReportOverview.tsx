@@ -1,7 +1,7 @@
 import type { ProkhanovReport } from "../types";
 import { calcAge, getSummaryRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
-import { PageHeader, PageFooter } from "./ReportSection";
+
 
 interface Props {
   report: ProkhanovReport;
@@ -21,8 +21,8 @@ export function ReportOverview({ report }: Props) {
 
   return (
     <section className="rl-page">
-      <PageHeader label="Резюме исследования" />
       <div className="rl-eyebrow">Общее заключение</div>
+
       <h1 className="rl-h1">
         Обзор биологического состояния <br />
         <span style={{ color: "var(--ink-muted)" }}>для {fullName}</span>
@@ -63,11 +63,11 @@ export function ReportOverview({ report }: Props) {
           <ProseMarkdown markdown={summaryText} />
         </div>
       )}
-
-      <PageFooter title="Резюме исследования" />
     </section>
   );
 }
+
+
 
 function extractSummaryText(
   contentJson: unknown,
