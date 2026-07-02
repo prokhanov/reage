@@ -56,7 +56,6 @@
   font-feature-settings: "ss01", "cv11", "kern", "liga";
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
-  page: reportlab;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
@@ -80,6 +79,7 @@
   background: var(--paper);
   position: relative;
   box-sizing: border-box;
+  page: reportlab;
   break-before: page;
   page-break-before: always;
 }
