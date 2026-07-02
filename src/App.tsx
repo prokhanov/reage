@@ -56,6 +56,7 @@ import RegisterStaff from "./pages/RegisterStaff";
 import ResetPassword from "./pages/ResetPassword";
 import Unsubscribe from "./pages/Unsubscribe";
 import VerifyEmail from "./pages/VerifyEmail";
+import ReportPreview from "./pages/internal/ReportPreview";
 import NotFound from "./pages/NotFound";
 import { RouteMeta } from "@/components/RouteMeta";
 import { RegisterGuardProvider } from "@/components/RegisterGuard";
