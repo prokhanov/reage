@@ -68,6 +68,7 @@ export default function Prescriptions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editPrescription, setEditPrescription] = useState<Prescription | null>(null);
+  const [editAdvisoryOpen, setEditAdvisoryOpen] = useState(false);
   const { demoMode, demoData, loading: demoLoading, toggleDemoMode } = useDemoMode();
   const { toast } = useToast();
   const queryClient = useQueryClient();
