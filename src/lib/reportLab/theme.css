@@ -56,6 +56,9 @@
   font-feature-settings: "ss01", "cv11", "kern", "liga";
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
+  page: reportlab;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 
 /* ─── Страница A4 ────────────────────────────────────────────────────────── */
@@ -64,8 +67,9 @@
  * (см. deploy/report-renderer/server.js), там прописаны верхний/нижний margin
  * под нативные колонтитулы `displayHeaderFooter`.
  */
-@page {
+@page reportlab {
   size: A4;
+  margin: 0;
 }
 
 .reportlab .rl-page {
@@ -129,6 +133,8 @@ html, body {
     margin: 0 !important;
     box-shadow: none !important;
     min-height: 0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }
 
