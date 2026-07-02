@@ -7,6 +7,7 @@ interface Props {
   biomarker: ReportBiomarker;
   commentary: string;
   gender: "male" | "female" | "other" | null;
+  editableId?: string;
 }
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
@@ -19,7 +20,7 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   "critical-high": { label: "Критически высокий", cls: "critical" },
 };
 
-export function BiomarkerCard({ biomarker, commentary, gender }: Props) {
+export function BiomarkerCard({ biomarker, commentary, gender, editableId }: Props) {
   const status = resolveStatus(biomarker, gender);
   const s = STATUS_LABEL[status];
   const unit = biomarker.unit_override || biomarker.unit || "";
@@ -42,9 +43,9 @@ export function BiomarkerCard({ biomarker, commentary, gender }: Props) {
         </div>
       </div>
       <BiomarkerScale biomarker={biomarker} gender={gender} />
-      {commentary && (
+      {(commentary || editableId) && (
         <div className="rl-bio-body">
-          <ProseMarkdown markdown={commentary} />
+          <ProseMarkdown markdown={commentary} editableId={editableId} />
         </div>
       )}
     </div>
