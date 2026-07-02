@@ -6,10 +6,11 @@ import { Download, ExternalLink, Loader2 } from "lucide-react";
 import { notify as toast } from "@/lib/toast";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
+import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
-const REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
+const INITIAL_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 
 type PdfLogLevel = "info" | "success" | "error";
 type PdfLogEntry = {
