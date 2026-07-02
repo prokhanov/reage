@@ -132,6 +132,7 @@ app.post("/render", async (req, reply) => {
 
   try {
     log("goto_start");
+    await page.emulateMedia({ media: "print", colorScheme: "light" });
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
     log("goto_done", { elapsedMs: Date.now() - startedAt, pageUrl: page.url() });
 
