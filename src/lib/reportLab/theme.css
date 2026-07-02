@@ -378,7 +378,7 @@ html, body {
 
 /* ─── Карточки ───────────────────────────────────────────────────────────── */
 .reportlab .rl-callout {
-  background: #faf7ef;
+  background: #f7f7f7;
   border: 1px solid var(--hairline-strong);
   border-left: 3px solid var(--gold);
   padding: 8mm 9mm;
@@ -386,7 +386,7 @@ html, body {
 }
 .reportlab .rl-biomarker {
   border: 1px solid var(--hairline-strong);
-  background: #fefdfa;
+  background: #ffffff;
   padding: 6mm 7mm 6.5mm;
   margin: 0 0 6mm;
 }
@@ -461,7 +461,7 @@ html, body {
   border: 1px solid var(--hairline-strong);
   padding: 5mm 6mm;
   margin: 0 0 4mm;
-  background: #fefdfa;
+  background: #ffffff;
 }
 .reportlab .rl-rx-title {
   font-family: var(--font-serif);
