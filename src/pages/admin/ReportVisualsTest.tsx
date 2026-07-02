@@ -76,11 +76,10 @@ export default function ReportVisualsTest() {
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error(e);
-      toast({
-        title: "PDF ещё недоступен",
-        description:
-          "Fly-рендерер не задеплоен или недоступен. См. deploy/report-renderer/README.md",
-      });
+      toast.error(
+        "PDF ещё недоступен",
+        "Fly-рендерер не задеплоен или недоступен. См. deploy/report-renderer/README.md",
+      );
     } finally {
       setRendering(false);
     }
