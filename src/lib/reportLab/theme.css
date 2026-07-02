@@ -149,10 +149,11 @@ html, body {
     margin: 0 auto;
     min-height: 297mm;
     box-shadow: none;
-    outline: 1px dashed #d4d4d4;
+    outline: none;
   }
   .reportlab .rl-page + .rl-page {
-    margin-top: 12px;
+    margin-top: 0;
+    border-top: 1px dashed #c8c8c8;
   }
 }
 
