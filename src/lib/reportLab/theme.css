@@ -7,12 +7,12 @@
 
 /* ─── Токены ─────────────────────────────────────────────────────────────── */
 .reportlab {
-  --paper: #fbfaf7;
+  --paper: #ffffff;
   --ink: #16181d;
   --ink-soft: #45495a;
   --ink-muted: #7a7f8f;
-  --hairline: #e4e2dc;
-  --hairline-strong: #cbc7bd;
+  --hairline: #ececec;
+  --hairline-strong: #d4d4d4;
 
   --accent: #142438;
   --accent-soft: #2a3d5a;
