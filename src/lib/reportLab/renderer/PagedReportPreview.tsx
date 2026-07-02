@@ -81,6 +81,14 @@ const pagedCss = `
   background: #ffffff;
 }
 
+/* Paged.js держит последующие страницы как CSS-columns. Во время live-редактирования
+   браузер может на мгновение показать соседнюю колонку справа; скрываем overflow,
+   чтобы текст не «прыгал» в середину/за край листа до перепагинации. */
+.pagedjs_area,
+.pagedjs_page_content {
+  overflow: hidden !important;
+}
+
 /* Inline editor markers */
 .reportlab [data-editable-id] {
   border-radius: 2px;
@@ -89,11 +97,10 @@ const pagedCss = `
 .reportlab [data-editable-id][contenteditable="true"] {
   outline: 1.5px dashed rgba(20, 36, 56, 0.28);
   outline-offset: 4px;
-  /* Не даём Paged.js резать редактируемый блок между страницами:
-     иначе continuation попадает в другой layout-контекст (grid/flex-колонку)
-     и текст «уезжает» вправо/влево. Лучше перенести блок целиком. */
-  break-inside: avoid;
-  page-break-inside: avoid;
+  /* В режиме редактирования блок должен свободно дробиться между страницами:
+     иначе Enter переносит весь блок целиком и создаёт видимый скачок. */
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 .reportlab [data-editable-id][contenteditable="true"]:hover {
   outline-color: rgba(181, 138, 68, 0.55);
@@ -482,14 +489,16 @@ function installEditableOverlay(
     el.setAttribute("spellcheck", "true");
 
     let inputTimer: number | null = null;
-    el.addEventListener("input", () => {
+    el.addEventListener("input", (event) => {
       const id = el.getAttribute("data-editable-id");
       if (!id) return;
       if (inputTimer !== null) window.clearTimeout(inputTimer);
+      const inputType = (event as InputEvent).inputType;
+      const delay = inputType === "insertParagraph" || inputType === "insertLineBreak" ? 0 : 150;
       inputTimer = window.setTimeout(() => {
         inputTimer = null;
         onChange(id, collectMarkdown(id));
-      }, 250);
+      }, delay);
     });
 
 

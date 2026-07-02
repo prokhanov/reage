@@ -2,6 +2,8 @@
 // Поддерживаем только то, что доступно в тулбаре Tiptap:
 //   параграф, ##/### заголовки, - / 1. списки, **bold**, *italic*.
 
+const EMPTY_BLOCK_MARKER = "\u200B";
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -157,21 +159,25 @@ export function htmlToMarkdown(html: string): string {
         break;
       case "ul": {
         const items = Array.from(el.querySelectorAll(":scope > li"));
-        out.push(items.map((li) => `- ${nodeToMd(li).trim()}`).join("\n"));
+        out.push(
+          items
+            .map((li) => `- ${nodeToMd(li).trim() || EMPTY_BLOCK_MARKER}`)
+            .join("\n"),
+        );
         break;
       }
       case "ol": {
         const items = Array.from(el.querySelectorAll(":scope > li"));
         out.push(
           items
-            .map((li, idx) => `${idx + 1}. ${nodeToMd(li).trim()}`)
+            .map((li, idx) => `${idx + 1}. ${nodeToMd(li).trim() || EMPTY_BLOCK_MARKER}`)
             .join("\n"),
         );
         break;
       }
       case "p":
       default:
-        out.push(nodeToMd(el).trim());
+        out.push(nodeToMd(el).trim() || EMPTY_BLOCK_MARKER);
     }
   });
 
