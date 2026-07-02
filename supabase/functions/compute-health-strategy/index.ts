@@ -180,7 +180,7 @@ serve(async (req) => {
 
     const { data: latestAnalysisRow } = await supabase
       .from("analyses")
-      .select("id")
+      .select("id, health_index, biological_age, biomarkers_metadata")
       .eq("user_id", targetUserId)
       .eq("status", "processed")
       .order("date", { ascending: false })
@@ -196,7 +196,10 @@ serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (cached && cached.roadmap && cached.key_biomarkers && Array.isArray(cached.expectations) && cached.expectations.length > 0 && !hasLegacyRoadmap(cached.roadmap)) {
+      const cachedHi = cached?.health_index == null ? null : Math.round(Number(cached.health_index));
+      const latestHi = (latestAnalysisRow as any)?.health_index == null ? null : Math.round(Number((latestAnalysisRow as any).health_index));
+      const cacheMatchesLatestHealthModel = latestHi == null || cachedHi === latestHi;
+      if (cached && cacheMatchesLatestHealthModel && cached.roadmap && cached.key_biomarkers && Array.isArray(cached.expectations) && cached.expectations.length > 0 && !hasLegacyRoadmap(cached.roadmap)) {
         return new Response(JSON.stringify(cached), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
@@ -328,6 +331,17 @@ serve(async (req) => {
     );
     const recalcBio = Math.round((baseBioForRecalc + clampedDelta) * 10) / 10;
     const currentBio = isFinite(recalcBio) ? recalcBio : storedBio;
+
+    // Финальная синхронизация чисел анализа после пересчёта: HI считается выше,
+    // био-возраст зависит от уже обновлённого HI, поэтому сохраняем его здесь.
+    if (recomputedHi !== null) {
+      await supabase
+        .from("analyses")
+        .update({ health_index: recomputedHi, biological_age: currentBio })
+        .eq("id", latest.id);
+      latest.health_index = recomputedHi;
+      latest.biological_age = currentBio;
+    }
 
     // Build biomarker summary + deviation flags
     const byCat: Record<string, Array<{ name: string; code: string; value: number; unit: string; deviated: boolean }>> = {};
