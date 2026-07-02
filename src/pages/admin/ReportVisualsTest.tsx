@@ -46,11 +46,10 @@ export default function ReportVisualsTest() {
       window.open(payload.url, "_blank", "noopener");
     } catch (e) {
       console.error(e);
-      toast({
-        title: "Не удалось открыть preview",
-        description:
-          e instanceof Error ? e.message : "Проверьте, что edge-функция задеплоена",
-      });
+      toast.error(
+        "Не удалось открыть preview",
+        e instanceof Error ? e.message : "Проверьте, что edge-функция задеплоена",
+      );
     } finally {
       setMinting(false);
     }
