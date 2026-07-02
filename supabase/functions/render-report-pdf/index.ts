@@ -24,6 +24,7 @@ const corsHeaders = {
 };
 
 const TOKEN_TTL_SEC = 15 * 60;
+const RENDERER_TIMEOUT_MS = 75_000;
 const encoder = new TextEncoder();
 
 Deno.serve(async (req) => {
@@ -113,6 +114,8 @@ Deno.serve(async (req) => {
   });
 
   let flyRes: Response;
+  const rendererController = new AbortController();
+  const rendererTimeout = setTimeout(() => rendererController.abort(), RENDERER_TIMEOUT_MS);
   try {
     flyRes = await fetch(`${rendererUrl}/render`, {
       method: "POST",
@@ -122,11 +125,25 @@ Deno.serve(async (req) => {
         "X-Debug-Request-Id": requestId,
       },
       body: JSON.stringify({ url: previewUrl, requestId }),
+      signal: rendererController.signal,
     });
   } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      logError("renderer_timeout", { timeoutMs: RENDERER_TIMEOUT_MS });
+      return json(
+        {
+          error: "renderer_timeout",
+          requestId,
+          details: `Fly renderer did not respond within ${RENDERER_TIMEOUT_MS}ms`,
+        },
+        504,
+      );
+    }
     const message = e instanceof Error ? e.message : String(e);
     logError("renderer_fetch_failed", message);
     return json({ error: "renderer_fetch_failed", requestId, details: message }, 502);
+  } finally {
+    clearTimeout(rendererTimeout);
   }
 
   log("renderer_response", {
