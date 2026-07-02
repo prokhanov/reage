@@ -89,6 +89,11 @@ const pagedCss = `
 .reportlab [data-editable-id][contenteditable="true"] {
   outline: 1.5px dashed rgba(20, 36, 56, 0.28);
   outline-offset: 4px;
+  /* Не даём Paged.js резать редактируемый блок между страницами:
+     иначе continuation попадает в другой layout-контекст (grid/flex-колонку)
+     и текст «уезжает» вправо/влево. Лучше перенести блок целиком. */
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 .reportlab [data-editable-id][contenteditable="true"]:hover {
   outline-color: rgba(181, 138, 68, 0.55);
