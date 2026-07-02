@@ -90,11 +90,19 @@
   padding: 0;
 }
 
-/* Экранный превью — рисуем «лист» с тенью и центрируем */
+/* Фон вокруг страниц — всегда белый (и в экране, и в печати).
+   Тёмный фон остаётся только у обложки (.rl-cover) через собственный градиент. */
+html, body {
+  background: #ffffff;
+}
+.reportlab {
+  background: #ffffff;
+}
+
+/* Экранный превью — центрируем «лист» и даём мягкую тень */
 @media screen {
   .reportlab {
     padding: 40px 0;
-    background: #d9d5cd;
     min-height: 100vh;
   }
   .reportlab .rl-page {
