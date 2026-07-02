@@ -454,14 +454,29 @@ html, body {
 
 /* ─── Статистика ─────────────────────────────────────────────────────────── */
 .reportlab .rl-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6mm;
+  /* table-layout вместо grid: Chromium print-engine стабильно уважает
+     break-inside: avoid на таблицах, а на grid-контейнерах — нет
+     (одна из колонок уезжала на следующую страницу). */
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
   padding: 6mm 0;
   border-top: 1px solid var(--hairline);
   border-bottom: 1px solid var(--hairline);
   margin: 0 0 10mm;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
 }
+.reportlab .rl-stat {
+  display: table-cell;
+  vertical-align: top;
+  padding: 0 3mm;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+.reportlab .rl-stat:first-child { padding-left: 0; }
+.reportlab .rl-stat:last-child { padding-right: 0; }
 .reportlab .rl-stat .label {
   font-size: 8.5pt;
   letter-spacing: 0.18em;
