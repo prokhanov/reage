@@ -1,6 +1,5 @@
 import ReactMarkdown from "react-markdown";
 import { useReportEditor } from "../editor/ReportEditorContext";
-import { EditableProse } from "../editor/EditableProse";
 
 interface Props {
   markdown: string;
@@ -12,36 +11,49 @@ interface Props {
  * Локальный, изолированный рендерер Markdown для отчёта.
  * Не использует глобальные prose-классы Tailwind — стили приходят из
  * reportLab/theme.css (класс `.rl-prose`).
- * Если передан `editableId` и контекст редактора в edit-режиме — рендерим Tiptap.
+ *
+ * Если передан `editableId` и контекст в режиме `edit` — оборачивает блок
+ * в `<div data-editable-id>` и рендерит из драфта, если он есть. Сам блок
+ * НЕ становится contentEditable здесь: это делает PagedReportPreview после
+ * того, как paged.js завершит вёрстку страниц (иначе клонирование ломает
+ * интерактив).
  */
 export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
   const ctx = useReportEditor();
-  const clean = markdown
+  const source =
+    (editableId && ctx?.getDraft(editableId)) ?? markdown ?? "";
+  const clean = source
     .replace(/\r\n/g, "\n")
     .replace(/<!--[\s\S]*?(?:-->|→|\n)/g, "")
     .replace(/\$\$/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-  if (ctx?.mode === "edit" && editableId) {
-    return (
-      <div className={`rl-prose ${className}`}>
-        <EditableProse editableId={editableId} initialMarkdown={clean} />
-      </div>
-    );
-  }
+  const editing = ctx?.mode === "edit" && !!editableId;
 
-  if (!clean) return null;
+  if (!clean && !editing) return null;
+
+  const wrapperProps = editableId
+    ? { "data-editable-id": editableId }
+    : {};
 
   return (
-    <div className={`rl-prose ${className}`}>
-      <ReactMarkdown
-        components={{
-          h1: ({ children }) => <h2>{children}</h2>,
-        }}
-      >
-        {clean}
-      </ReactMarkdown>
+    <div
+      className={`rl-prose${editing ? " rl-prose-editable" : ""} ${className}`}
+      {...wrapperProps}
+    >
+      {clean ? (
+        <ReactMarkdown
+          components={{
+            h1: ({ children }) => <h2>{children}</h2>,
+          }}
+        >
+          {clean}
+        </ReactMarkdown>
+      ) : (
+        // пустой параграф, чтобы редактор мог получить фокус
+        <p>&nbsp;</p>
+      )}
     </div>
   );
 }
