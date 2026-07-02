@@ -240,7 +240,28 @@ serve(async (req) => {
     );
     // Re-apply CURRENT bio-age formula (slope 0.25 + asymmetric AI corridor)
     // so "Пересчитать" reflects latest calibration, not value cached at upload time.
-    const hiForBio = Number(latest.health_index ?? 0);
+    // ===== M3/M4: пересчитываем HI детерминированно, чтобы «Пересчитать» реально
+    // обновлял индекс здоровья, а не показывал старое значение из finalize-analysis.
+    let recomputedHi: number | null = null;
+    try {
+      const _settings = await loadHealthModelSettings(supabase as any);
+      const _inputs = toMarkerInputs(latest.analysis_values || [], chronoAge, profile.gender || null);
+      const _scored = _inputs.map((m) => normalizeMarker(m, _settings));
+      const _totals = computeTotalsPerSystem(null, _inputs);
+      const _systems = computeSystemScores(_scored, _totals, _settings);
+      const _hi = computeHealthIndex(_systems, _settings, null);
+      if (_hi && isFinite(_hi.hi)) {
+        recomputedHi = Math.round(_hi.hi);
+        // Persist so дашборд/PDF/последующие запросы видят согласованное число.
+        if (recomputedHi !== Number(latest.health_index)) {
+          await supabase.from("analyses").update({ health_index: recomputedHi }).eq("id", latest.id);
+          latest.health_index = recomputedHi;
+        }
+      }
+    } catch (e: any) {
+      console.error("[HI recompute M3/M4] failed:", e?.message);
+    }
+    const hiForBio = Number(latest.health_index ?? recomputedHi ?? 0);
     const baseBioForRecalc = chronoAge + (85 - hiForBio) * 0.25;
     const corridorLower = hiForBio < 70
       ? baseBioForRecalc + 0.5
