@@ -1,0 +1,1 @@
+UPDATE public.biomarkers SET optimal_min = 0, optimal_max = 10, normal_min = 0, normal_max = 50, critical_min = 0, critical_max = 100, updated_at = now() WHERE code = 'BACT-U';
