@@ -9,12 +9,24 @@ import { htmlToMarkdown } from "../editor/markdown";
 import themeCss from "../theme.css?raw";
 
 const pagedCss = `
+/* Google-Docs-style серый холст вокруг листов */
+.rl-paged-shell,
+.rl-paged-output,
+.pagedjs_pages {
+  background: #e6e7ea !important;
+}
+.rl-paged-output {
+  padding: 32px 0;
+}
+
 .reportlab { padding: 0 !important; background: transparent !important; min-height: 0 !important; }
 .reportlab .rl-page {
   width: auto !important;
   min-height: 0 !important;
   margin: 0 !important;
   box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
   break-before: page;
   page-break-before: always;
 }
@@ -34,20 +46,15 @@ const pagedCss = `
   @bottom-left { content: none !important; }
   @bottom-right { content: none !important; }
 }
-.pagedjs_pages {
-  display: block;
-  background: #e6e7ea;
-  padding: 24px 0;
-}
+.pagedjs_pages { display: block; }
 .pagedjs_page {
-  background: #ffffff;
-  margin: 0 auto !important;
-  outline: none;
-  box-shadow: 0 8px 24px -12px rgba(20, 36, 56, 0.35), 0 2px 4px rgba(0, 0, 0, 0.06);
+  background: #ffffff !important;
+  margin: 24px auto !important;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    0 12px 32px -12px rgba(20, 36, 56, 0.35);
   position: relative;
-}
-.pagedjs_page + .pagedjs_page {
-  margin-top: 24px !important;
 }
 .pagedjs_pagebox,
 .pagedjs_margin-top,
@@ -63,7 +70,8 @@ const pagedCss = `
 @media print {
   html, body { margin: 0 !important; padding: 0 !important; background: #ffffff !important; }
   body.report-pdf-printing .pagedjs_pages { display: block !important; }
-  .pagedjs_page { margin: 0 !important; box-shadow: none !important; outline: none !important; }
+  .rl-paged-shell, .rl-paged-output, .pagedjs_pages { background: #ffffff !important; padding: 0 !important; }
+  .pagedjs_page { margin: 0 !important; box-shadow: none !important; border: none !important; }
 }
 
 /* Inline editor markers */
