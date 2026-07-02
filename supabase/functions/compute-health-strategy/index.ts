@@ -5,6 +5,7 @@ import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
 import { toMarkerInputs, computeTotalsPerSystem, categoryToSystem } from "../_shared/health-model/adapter.ts";
 import { computeSystemScores } from "../_shared/health-model/m3-systems.ts";
 import { computeHealthIndex } from "../_shared/health-model/m4-health-index.ts";
+import { computeBioAge } from "../_shared/health-model/m5-bioage.ts";
 import { computeAgingPace } from "../_shared/health-model/m6-aging-pace.ts";
 import { computeTrajectory } from "../_shared/health-model/m7-trajectory.ts";
 import { computeExplainability } from "../_shared/health-model/m8-explainability.ts";
@@ -318,18 +319,20 @@ serve(async (req) => {
       console.error("[HI recompute M3/M4] failed:", e?.message);
     }
     const hiForBio = Number(latest.health_index ?? recomputedHi ?? 0);
-    const baseBioForRecalc = chronoAge + (85 - hiForBio) * 0.25;
-    const corridorLower = hiForBio < 70
-      ? baseBioForRecalc + 0.5
-      : hiForBio < 80
-        ? baseBioForRecalc - 2
-        : baseBioForRecalc - 5;
-    const corridorUpper = baseBioForRecalc + 5;
-    const clampedDelta = Math.max(
-      corridorLower - baseBioForRecalc,
-      Math.min(corridorUpper - baseBioForRecalc, storedAiAdjust),
-    );
-    const recalcBio = Math.round((baseBioForRecalc + clampedDelta) * 10) / 10;
+    // BioAge через M5 (PhenoAge + KDM, коридор ±15). Согласовано с finalize-analysis.
+    // Не используем legacy HI-формулу chrono+(85−HI)·0.25 — она давала завышение
+    // на 15+ лет при плохих субъективных категориях, даже когда PhenoAge был отличным.
+    let recalcBio: number = storedBio;
+    try {
+      const _inputsBA = toMarkerInputs(latest.analysis_values || [], chronoAge, profile.gender || null);
+      const fallbackBA = chronoAge + (82 - hiForBio) * 0.18;
+      const ba = computeBioAge(_inputsBA, chronoAge, { fallback: fallbackBA });
+      if (ba && Number.isFinite(ba.bio_age)) {
+        recalcBio = Math.round(ba.bio_age * 10) / 10;
+      }
+    } catch (e: any) {
+      console.error("[BioAge M5 recompute] failed:", e?.message);
+    }
     const currentBio = isFinite(recalcBio) ? recalcBio : storedBio;
 
     // Финальная синхронизация чисел анализа после пересчёта: HI считается выше,
@@ -342,6 +345,7 @@ serve(async (req) => {
       latest.health_index = recomputedHi;
       latest.biological_age = currentBio;
     }
+
 
     // Build biomarker summary + deviation flags
     const byCat: Record<string, Array<{ name: string; code: string; value: number; unit: string; deviated: boolean }>> = {};
