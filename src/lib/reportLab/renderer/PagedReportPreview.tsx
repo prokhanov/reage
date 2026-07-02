@@ -251,12 +251,8 @@ export function PagedReportPreview({
     const source = sourceRef.current;
     if (!output || !source) return;
     const token = { cancelled: false };
-    const prev = runQueueRef.current;
 
     const build = async () => {
-      // Ждём завершения предыдущего ребилда: параллельный Previewer.preview
-      // роняет Paged.js. Ошибки предыдущего проглатываем.
-      try { await prev; } catch { /* ignore */ }
       if (token.cancelled) return;
 
       // Сохраняем caret/scroll ДО перепагинации.
@@ -281,7 +277,13 @@ export function PagedReportPreview({
           [{ "reportLab.css": `${themeCss}\n${pagedCss}` }],
           output,
         );
-        if (token.cancelled) return;
+        if (token.cancelled) {
+          // Rollback: удалим то, что этот build добавил, чтобы не копилось.
+          Array.from(output.querySelectorAll(".pagedjs_pages"))
+            .filter((el) => !oldPages.includes(el))
+            .forEach((el) => el.remove());
+          return;
+        }
 
         oldPages.forEach((el) => el.remove());
         output.dataset.paged = "ready";
@@ -313,8 +315,10 @@ export function PagedReportPreview({
       }
     };
 
-    const p = build();
-    runQueueRef.current = p;
+    // Сериализация через .then-цепочку: следующий build стартует только
+    // ПОСЛЕ того как предыдущий завершил свой Previewer.preview.
+    runQueueRef.current = runQueueRef.current.then(build, build);
+
 
 
     return () => {
