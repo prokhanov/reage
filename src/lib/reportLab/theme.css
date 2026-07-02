@@ -56,6 +56,8 @@
   font-feature-settings: "ss01", "cv11", "kern", "liga";
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 
 /* ─── Страница A4 ────────────────────────────────────────────────────────── */
@@ -66,6 +68,7 @@
  */
 @page {
   size: A4;
+  margin: 0;
 }
 
 .reportlab .rl-page {
@@ -129,6 +132,17 @@ html, body {
     margin: 0 !important;
     box-shadow: none !important;
     min-height: 0;
+    padding-top: 18mm;
+    padding-bottom: 12mm;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .reportlab .rl-page.rl-cover {
+    /* Playwright резервирует 20mm сверху и 16mm снизу под нативные
+       колонтитулы. Если оставить 297mm, обложка уезжает на вторую страницу. */
+    min-height: 261mm !important;
+    height: 261mm !important;
+    padding: 0 !important;
   }
 }
 

@@ -202,13 +202,16 @@ All colors MUST be HSL.
 
 /* Print styles for legal document PDF export */
 @media print {
-  @page {
+  @page legal-document {
     size: A4;
     margin: 18mm 16mm;
   }
   html, body {
     background: #ffffff !important;
     color: #111111 !important;
+  }
+  .print-root {
+    page: legal-document;
   }
   .print-root,
   .print-root * {
