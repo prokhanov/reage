@@ -47,8 +47,8 @@ body { padding: 24px 0; }
               0 1px 0 rgba(0, 0, 0, 0.03);
 }
 .pagedjs_page.pagedjs_cover_page { background: transparent; }
-@page { margin: 20mm 20mm 16mm; }
-@page :first { margin: 0; }
+@page { margin: 20mm 0 16mm; }
+@page :first { margin: 20mm 0 16mm; }
 /* Индикатор загрузки, пока paged.js ещё не отработал */
 #paged-status {
   position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
