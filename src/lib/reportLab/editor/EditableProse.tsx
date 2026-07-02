@@ -44,14 +44,16 @@ export function EditableProse({ editableId, initialMarkdown }: Props) {
   if (!editor) return null;
 
   const btnCls = (active: boolean) =>
-    `px-2 py-1 text-xs rounded ${
-      active ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"
+    `px-2 py-1 text-xs rounded min-w-[28px] font-medium transition-colors ${
+      active
+        ? "bg-primary text-primary-foreground"
+        : "bg-popover text-popover-foreground hover:bg-muted hover:text-foreground"
     }`;
 
   return (
     <div className="rl-editable-wrap">
       <BubbleMenu editor={editor}>
-        <div className="flex gap-1 rounded-md border bg-background p-1 shadow-md">
+        <div className="flex gap-1 rounded-md border border-border bg-popover text-popover-foreground p-1 shadow-lg">
           <button
             type="button"
             className={btnCls(editor.isActive("bold"))}
