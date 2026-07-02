@@ -426,11 +426,18 @@ export default function ReportVisualsTest() {
           </Card>
         )}
 
-        {paginated ? (
-          <PagedReportPreview report={report} />
-        ) : (
-          <ReportDocument report={report} />
-        )}
+        <ReportEditorShell report={report} onReportUpdate={setReport}>
+          {({ mode }) => {
+            // В edit-режиме показываем непагинированный поток — paged.js
+            // клонирует DOM и ломает editable-инстансы Tiptap.
+            if (mode === "edit") return <ReportDocument report={report} />;
+            return paginated ? (
+              <PagedReportPreview report={report} />
+            ) : (
+              <ReportDocument report={report} />
+            );
+          }}
+        </ReportEditorShell>
       </div>
     </div>
   );
