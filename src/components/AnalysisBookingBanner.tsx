@@ -75,11 +75,20 @@ export function AnalysisBookingBanner() {
       const userId = await getUserId();
       if (!userId) return;
 
-      const { data: bookings } = await supabase
-        .from("analysis_bookings")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+      const [{ data: bookings }, { data: analyses }] = await Promise.all([
+        supabase
+          .from("analysis_bookings")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("analyses")
+          .select("id,created_at,status")
+          .eq("user_id", userId)
+          .in("status", ["processed", "on_review", "report_ready"])
+          .order("created_at", { ascending: false })
+          .limit(1),
+      ]);
 
       if (!bookings || bookings.length === 0) {
         setShowBanner(true);
@@ -87,24 +96,35 @@ export function AnalysisBookingBanner() {
         return;
       }
 
+      // Если после брони появился готовый анализ — цикл завершён,
+      // даже если статус брони не был проставлен вручную.
+      const latestAnalysisAt = analyses && analyses[0]
+        ? new Date(analyses[0].created_at).getTime()
+        : 0;
+
       // If the cycle was completed (any booking has terminal status "report_ready"),
       // ignore the auto-created "not_scheduled" placeholder for the next cycle —
       // it should not nag the user immediately after their report is ready.
-      const hasCompleted = bookings.some((b) => b.status === "report_ready");
+      const hasCompleted =
+        bookings.some((b) => b.status === "report_ready") || latestAnalysisAt > 0;
       const lastCompletedAt = hasCompleted
         ? Math.max(
+            latestAnalysisAt,
             ...bookings
               .filter((b) => b.status === "report_ready")
               .map((b) => new Date(b.created_at).getTime())
           )
         : 0;
 
-      // Priority order: active statuses that need user attention
+      // Priority order: active statuses that need user attention.
+      // Дополнительно отсекаем брони, созданные ДО завершения последнего цикла —
+      // они уже неактуальны, даже если статус в БД не обновили вручную.
       const find = (status: string, requireFuture = false) =>
         bookings.find(
           (b) =>
             b.status === status &&
             (!requireFuture || !isBookingExpired(b)) &&
+            !(hasCompleted && new Date(b.created_at).getTime() <= lastCompletedAt) &&
             // skip the next-cycle "not_scheduled" placeholder created right after the report was ready
             !(status === "not_scheduled" && hasCompleted && new Date(b.created_at).getTime() >= lastCompletedAt)
         );
