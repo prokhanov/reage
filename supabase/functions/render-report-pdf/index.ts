@@ -24,7 +24,11 @@ const corsHeaders = {
 };
 
 const TOKEN_TTL_SEC = 15 * 60;
-const RENDERER_TIMEOUT_MS = 75_000;
+// Первый запуск Fly-машины + Chromium может занять заметно дольше обычного
+// рендера. Держим лимит ниже типичного верхнего лимита edge-runtime, но не
+// обрываем тяжёлый отчёт на 75-й секунде.
+const RENDERER_TIMEOUT_MS = 135_000;
+const RENDERER_WARMUP_TIMEOUT_MS = 10_000;
 const encoder = new TextEncoder();
 
 Deno.serve(async (req) => {
@@ -113,6 +117,18 @@ Deno.serve(async (req) => {
     previewBase,
     previewPath: "/internal/report-preview",
   });
+
+  // Будим Fly-машину перед тяжёлым POST /render. Если warmup не успел — всё
+  // равно продолжаем: основной render сам вернёт диагностируемую ошибку.
+  try {
+    const warmupController = new AbortController();
+    const warmupTimeout = setTimeout(() => warmupController.abort(), RENDERER_WARMUP_TIMEOUT_MS);
+    const warmupRes = await fetch(`${rendererUrl}/healthz`, { signal: warmupController.signal });
+    clearTimeout(warmupTimeout);
+    log("renderer_warmup", { status: warmupRes.status, elapsedMs: Date.now() - startedAt });
+  } catch (e) {
+    logError("renderer_warmup_failed", e instanceof Error ? e.message : String(e));
+  }
 
   let flyRes: Response;
   const rendererController = new AbortController();
