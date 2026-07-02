@@ -41,8 +41,8 @@ export default function ReportPreview() {
   // Форсируем светлую тему для рендера PDF — иначе тёмный фон приложения
   // просачивается в поля страницы и колонтитулы (тёмные полосы вокруг листа).
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
+    const html = window.document.documentElement;
+    const body = window.document.body;
     const prevHtmlClass = html.className;
     const prevBodyBg = body.style.background;
     const prevHtmlBg = html.style.background;
