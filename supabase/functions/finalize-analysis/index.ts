@@ -745,7 +745,7 @@ ${symptomsText}
             insufficient: s.insufficient,
           })),
           bioage: bioAgeBreakdown,
-          settings_version: "v1",
+          settings_version: "v2_m3_penalties",
         };
         // Switch primary HI to new model
         health_index = Math.round(newHi);

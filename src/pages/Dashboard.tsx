@@ -264,10 +264,14 @@ export default function Dashboard() {
       if (lastSnap && skip.length > 0) {
         for (const key of skip) {
           if (key === "ages") {
-            merged.current_bio_age = Number(lastSnap.current_bio_age);
-            merged.chronological_age = Number(lastSnap.chronological_age);
-            merged.target_bio_age = Number(lastSnap.target_bio_age);
-            merged.health_index = lastSnap.health_index;
+            // Не подменяем свежий Health Index старым значением из последнего
+            // снапшота. HI пересчитывается детерминированно вместе с M3/M4 и
+            // должен оставаться источником истины даже при частичном обновлении
+            // стратегии; иначе пользователь видит прежние 81 после пересчёта.
+            merged.current_bio_age = data.current_bio_age ?? Number(lastSnap.current_bio_age);
+            merged.chronological_age = data.chronological_age ?? Number(lastSnap.chronological_age);
+            merged.target_bio_age = data.target_bio_age ?? Number(lastSnap.target_bio_age);
+            merged.health_index = data.health_index ?? lastSnap.health_index;
           } else if (key === "system_ratings") {
             merged.rationale = {
               ...(merged.rationale || {}),
@@ -288,6 +292,8 @@ export default function Dashboard() {
       }
 
       setPreviewData(merged);
+      if (typeof merged.health_index === "number") setLatestHealthIndex(merged.health_index);
+      if (typeof merged.current_bio_age === "number") setLatestBioAge(merged.current_bio_age);
       setPreviewMode("preview");
       setOptionsOpen(false);
       setPreviewOpen(true);

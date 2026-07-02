@@ -76,6 +76,10 @@ export interface HealthModelSettings {
     critical_marker: number;
     risk_marker: number;
     acceptable_marker: number;
+    /** Дополнительный множитель явного штрафа за маркеры вне оптимума внутри M3. */
+    system_marker_penalty_scale: number;
+    /** Штраф за долю маркеров в risk/critical внутри системы. */
+    system_bad_share_penalty: number;
     dispersion_k: number;
     coverage_threshold: number;
     min_markers_per_system: number;
@@ -108,6 +112,8 @@ export const DEFAULT_HEALTH_MODEL_SETTINGS: HealthModelSettings = {
     critical_marker: 25,
     risk_marker: 8,
     acceptable_marker: 3,
+    system_marker_penalty_scale: 2,
+    system_bad_share_penalty: 15,
     dispersion_k: 0.5,
     coverage_threshold: 0.4,
     min_markers_per_system: 3,
