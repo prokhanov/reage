@@ -201,6 +201,14 @@ export default function ReportVisualsTest() {
           </div>
           <div className="flex items-center gap-2">
             <Button
+              variant={paginated ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPaginated((v) => !v)}
+              title="Переключить между постраничным (как в PDF) и потоковым превью"
+            >
+              {paginated ? "Постранично" : "Потоком"}
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={openCleanPreview}
