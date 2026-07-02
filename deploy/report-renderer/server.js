@@ -10,6 +10,7 @@
 
 import Fastify from "fastify";
 import { chromium } from "playwright";
+import { randomUUID } from "node:crypto";
 
 const PORT = Number(process.env.PORT || 8080);
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
@@ -41,7 +42,7 @@ async function getBrowser() {
 app.get("/healthz", async () => ({ ok: true, ts: Date.now() }));
 
 app.post("/render", async (req, reply) => {
-  const requestId = req.headers["x-debug-request-id"] || req.body?.requestId || crypto.randomUUID();
+  const requestId = req.headers["x-debug-request-id"] || req.body?.requestId || randomUUID();
   const startedAt = Date.now();
   const log = (message, extra = {}) => req.log.info({ requestId, ...extra }, message);
   const logError = (message, extra = {}) => req.log.error({ requestId, ...extra }, message);
