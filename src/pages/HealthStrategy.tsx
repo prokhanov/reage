@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Sparkles } from "lucide-react";
+import { AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useUserRole, canAccessModule } from "@/hooks/useUserRole";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 import { calculateAge } from "@/lib/biomarkerNorms";
@@ -11,6 +11,7 @@ import { RejuvenationTrajectory } from "@/components/health-strategy/Rejuvenatio
 import { RoadmapTimeline } from "@/components/health-strategy/RoadmapTimeline";
 import { ExpectationsTimeline } from "@/components/health-strategy/ExpectationsTimeline";
 import { ActionMap } from "@/components/health-strategy/ActionMap";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 
 
