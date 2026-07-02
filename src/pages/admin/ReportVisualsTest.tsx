@@ -257,7 +257,7 @@ export default function ReportVisualsTest() {
                     <span
                       className={
                         log.level === "success"
-                          ? "text-emerald-500"
+                          ? "text-primary"
                           : log.level === "error"
                             ? "text-destructive"
                             : "text-muted-foreground"
