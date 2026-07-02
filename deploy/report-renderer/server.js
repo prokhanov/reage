@@ -15,6 +15,7 @@ import { randomUUID } from "node:crypto";
 const PORT = Number(process.env.PORT || 8080);
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
 const NAV_TIMEOUT_MS = Number(process.env.NAV_TIMEOUT_MS || 60_000);
+const REPORT_READY_TIMEOUT_MS = Number(process.env.REPORT_READY_TIMEOUT_MS || 40_000);
 const PDF_TIMEOUT_MS = Number(process.env.PDF_TIMEOUT_MS || 60_000);
 
 if (!AUTH_TOKEN) {
@@ -138,7 +139,7 @@ app.post("/render", async (req, reply) => {
     log("wait_report_ready_start");
     await page.waitForFunction(
       () => (window).__reportReady === true || Boolean((window).__reportError),
-      { timeout: NAV_TIMEOUT_MS, polling: 250 },
+      { timeout: REPORT_READY_TIMEOUT_MS, polling: 250 },
     );
     const readyState = await page.evaluate(() => ({
       ready: (window).__reportReady === true,
