@@ -136,6 +136,12 @@ html, body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+  .reportlab .rl-page.rl-cover {
+    /* Playwright резервирует 20mm сверху и 16mm снизу под нативные
+       колонтитулы. Если оставить 297mm, обложка уезжает на вторую страницу. */
+    min-height: 261mm;
+    height: 261mm;
+  }
 }
 
 /* ─── Правила разрывов страниц ──────────────────────────────────────────── */
