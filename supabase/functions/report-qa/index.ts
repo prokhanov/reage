@@ -45,6 +45,15 @@ function normalizeBiomarkerCode(code: string): string {
   return String(code)
     .toLowerCase()
     .trim()
+    .replace(/\balpha\b/g, "a")
+    .replace(/\bbeta\b/g, "b")
+    .replace(/\bgamma\b/g, "g")
+    .replace(/\bdelta\b/g, "d")
+    .replace(/\bmu\b/g, "u")
+    .replace(/\bальфа\b/g, "a")
+    .replace(/\bбета\b/g, "b")
+    .replace(/\bгамма\b/g, "g")
+    .replace(/\bдельта\b/g, "d")
     .replace(/α/g, "a")
     .replace(/β/g, "b")
     .replace(/γ/g, "g")
@@ -773,6 +782,35 @@ Deno.serve(async (req) => {
             const msg = `[${sectionLabel}] Вынесены переходные абзацы из карточек: ${trans.touched.join(", ")}`;
             fixes.push(msg);
             send({ type: "fix", message: msg });
+          }
+
+          // 3c. Канонизация кодов в anchor-тегах: если нормализованный код
+          // anchor совпадает с нормализованным кодом биомаркера из БД —
+          // переписываем anchor на каноничный код. Это лечит частые случаи
+          // «TNF-alpha» ↔ «TNF-α», где карточка не привязывалась к значению.
+          {
+            const canonByNorm = new Map<string, string>();
+            for (const b of biomarkers) {
+              if (b.code) canonByNorm.set(normalizeBiomarkerCode(b.code), b.code);
+            }
+            const canonicalized: string[] = [];
+            text = text.replace(
+              /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g,
+              (full, raw) => {
+                const rawTrim = String(raw).trim();
+                const canonical = canonByNorm.get(normalizeBiomarkerCode(rawTrim));
+                if (canonical && canonical !== rawTrim) {
+                  canonicalized.push(`${rawTrim} → ${canonical}`);
+                  return `<!-- anchor:biomarker ${canonical} -->`;
+                }
+                return full;
+              },
+            );
+            if (canonicalized.length > 0) {
+              const msg = `[${sectionLabel}] Канонизированы коды в anchor-тегах: ${canonicalized.join(", ")}`;
+              fixes.push(msg);
+              send({ type: "fix", message: msg });
+            }
           }
 
           // 4. Detect orphan codes (anchors that don't match analysis_values)
