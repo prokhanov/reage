@@ -40,8 +40,8 @@ export function ReportPrescriptions({ report }: Props) {
 
   return (
     <section className="rl-page">
-      <PageHeader label="Персональные назначения" />
       <div className="rl-eyebrow">Клинический план</div>
+
       <h1 className="rl-h1">Персональные назначения</h1>
       <p className="rl-lead">
         Практические шаги в трёх сферах — питание, движение, восстановление —
