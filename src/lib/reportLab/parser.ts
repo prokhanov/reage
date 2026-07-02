@@ -22,8 +22,8 @@ import type {
   ResolvedRange,
 } from "./types";
 
-const ANCHOR_RE = /<!--\s*anchor:([^\n>]+?)\s*-->/g;
-const HTML_COMMENT_RE = /<!--[\s\S]*?-->/g;
+const ANCHOR_RE = /<!--\s*anchor:([^\n>→]+?)\s*(?:-->|→)/g;
+const HTML_COMMENT_RE = /<!--[\s\S]*?(?:-->|→|\n)/g;
 
 export interface CategoryOrder {
   order: number;

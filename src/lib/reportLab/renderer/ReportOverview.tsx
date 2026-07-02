@@ -87,6 +87,6 @@ function extractSummaryText(
   }
   return (fallback || "")
     .replace(/^Общее резюме\s*/i, "")
-    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<!--[\s\S]*?(?:-->|→|\n)/g, "")
     .trim();
 }
