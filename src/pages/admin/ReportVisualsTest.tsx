@@ -139,9 +139,8 @@ export default function ReportVisualsTest() {
           "Content-Type": "application/json",
           apikey: SUPABASE_ANON_KEY,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          "X-Debug-Request-Id": requestId,
         },
-        body: JSON.stringify({ reportId: "prokhanov" }),
+        body: JSON.stringify({ reportId: "prokhanov", clientRequestId: requestId }),
       });
 
       const elapsedMs = Math.round(performance.now() - startedAt);

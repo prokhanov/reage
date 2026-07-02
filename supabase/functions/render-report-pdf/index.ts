@@ -30,7 +30,14 @@ const encoder = new TextEncoder();
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const requestId = req.headers.get("X-Debug-Request-Id") || crypto.randomUUID();
+  let body: { reportId?: string; clientRequestId?: string } = {};
+  try {
+    body = await req.json();
+  } catch {
+    // empty body — используем default
+  }
+
+  const requestId = req.headers.get("X-Debug-Request-Id") || body.clientRequestId || crypto.randomUUID();
   const startedAt = Date.now();
   const log = (...args: unknown[]) => console.log(`[render-report-pdf ${requestId}]`, ...args);
   const logError = (...args: unknown[]) => console.error(`[render-report-pdf ${requestId}]`, ...args);
@@ -96,12 +103,6 @@ Deno.serve(async (req) => {
     return json({ error: "forbidden", requestId, roles: (roles || []).map((r: any) => r.role) }, 403);
   }
 
-  let body: { reportId?: string } = {};
-  try {
-    body = await req.json();
-  } catch {
-    // empty body — используем default
-  }
   const reportId = (body.reportId || "prokhanov").trim();
   const exp = Math.floor(Date.now() / 1000) + TOKEN_TTL_SEC;
   const token = await signToken({ reportId, exp }, secret);
