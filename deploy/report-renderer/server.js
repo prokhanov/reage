@@ -213,32 +213,23 @@ app.post("/render", async (req, reply) => {
     }
     log("wait_report_ready_done", { elapsedMs: Date.now() - startedAt, state: readyState.state });
 
-    // Нативные колонтитулы Chromium — репитятся на каждой физической странице.
-    // ВАЖНО (грабли Chromium):
-    //   - font-size ТОЛЬКО в px (pt/em игнорируются, текст становится ~0.5px и не виден);
-    //   - раскладка через <table>, а не flex (flex в темплейтах у Chrome ненадёжен);
-    //   - явный print-color-adjust: exact на цвет текста, иначе gray обесцвечивается.
-    const headerHtml = `
-      <div style="width:100%;height:20mm;box-sizing:border-box;padding:6mm 18mm 0;background:#ffffff;font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:8px;color:#7a7f8f;letter-spacing:1.2px;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-        <table style="width:100%;border-collapse:collapse;background:#ffffff;"><tr>
-          <td style="text-align:left;color:#7a7f8f;">ReAge · Персональный отчёт</td>
-          <td style="text-align:right;color:#7a7f8f;">reage.life</td>
-        </tr></table>
-      </div>`;
-    const footerHtml = `
-      <div style="width:100%;height:16mm;box-sizing:border-box;padding:5mm 18mm 0;background:#ffffff;font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:8px;color:#7a7f8f;letter-spacing:1.2px;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-        <table style="width:100%;border-collapse:collapse;background:#ffffff;"><tr>
-          <td style="text-align:left;color:#7a7f8f;">Longevity clinic</td>
-          <td style="text-align:right;color:#7a7f8f;"><span class="pageNumber"></span> / <span class="totalPages"></span></td>
-        </tr></table>
-      </div>`;
+    await page.evaluate(() => {
+      const pages = document.querySelector(".pagedjs_pages");
+      if (!pages) return;
+      document.body.classList.add("report-pdf-printing");
+      document.body.innerHTML = "";
+      document.body.appendChild(pages);
+    });
+
+    // Колонтитулы и разрывы теперь рисует paged.js из того же CSS, что видит
+    // постраничный preview. Не включаем нативные header/footer Chromium, иначе
+    // preview и итоговый PDF снова будут расходиться.
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
-      displayHeaderFooter: true,
-      headerTemplate: headerHtml,
-      footerTemplate: footerHtml,
-      margin: { top: "20mm", right: "0mm", bottom: "16mm", left: "0mm" },
+      displayHeaderFooter: false,
+      preferCSSPageSize: true,
+      margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
       timeout: PDF_TIMEOUT_MS,
     });
 
