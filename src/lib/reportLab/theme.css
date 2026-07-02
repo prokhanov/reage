@@ -141,14 +141,18 @@ html, body {
 
 @media screen {
   .reportlab {
-    padding: 40px 0;
-    min-height: 100vh;
-    background: #ececec;
+    padding: 0;
+    min-height: 0;
+    background: #ffffff;
   }
   .reportlab .rl-page {
-    margin: 0 auto 24px;
+    margin: 0 auto;
     min-height: 297mm;
-    box-shadow: 0 20px 45px -25px rgba(20, 36, 56, 0.35), 0 1px 0 rgba(0, 0, 0, 0.03);
+    box-shadow: none;
+    outline: 1px dashed #d4d4d4;
+  }
+  .reportlab .rl-page + .rl-page {
+    margin-top: 12px;
   }
 }
 

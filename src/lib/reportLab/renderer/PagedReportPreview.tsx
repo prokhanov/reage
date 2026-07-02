@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
 import type { ProkhanovReport } from "../types";
+import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
+import { htmlToMarkdown } from "../editor/markdown";
 // eslint-disable-next-line import/no-unresolved
 import themeCss from "../theme.css?raw";
 
@@ -34,9 +36,14 @@ const pagedCss = `
 }
 .pagedjs_pages { display: block; }
 .pagedjs_page {
-  background: var(--paper, #fbfaf7);
-  margin: 0 auto 24px !important;
-  box-shadow: 0 20px 45px -25px rgba(20, 36, 56, 0.35), 0 1px 0 rgba(0, 0, 0, 0.03);
+  background: #ffffff;
+  margin: 0 auto !important;
+  outline: 1px dashed #d4d4d4;
+  outline-offset: 0;
+  box-shadow: none;
+}
+.pagedjs_page + .pagedjs_page {
+  margin-top: 12px !important;
 }
 .pagedjs_pagebox,
 .pagedjs_margin-top,
@@ -52,7 +59,24 @@ const pagedCss = `
 @media print {
   html, body { margin: 0 !important; padding: 0 !important; background: #ffffff !important; }
   body.report-pdf-printing .pagedjs_pages { display: block !important; }
-  .pagedjs_page { margin: 0 !important; box-shadow: none !important; }
+  .pagedjs_page { margin: 0 !important; box-shadow: none !important; outline: none !important; }
+}
+
+/* Inline editor markers */
+.reportlab [data-editable-id] {
+  border-radius: 2px;
+  transition: outline-color 0.15s ease, background-color 0.15s ease;
+}
+.reportlab [data-editable-id][contenteditable="true"] {
+  outline: 1.5px dashed rgba(20, 36, 56, 0.28);
+  outline-offset: 4px;
+}
+.reportlab [data-editable-id][contenteditable="true"]:hover {
+  outline-color: rgba(181, 138, 68, 0.55);
+}
+.reportlab [data-editable-id][contenteditable="true"]:focus {
+  outline: 2px solid #b58a44;
+  background: rgba(181, 138, 68, 0.06);
 }
 `;
 
@@ -61,6 +85,9 @@ interface Props {
   height?: number | string;
   signalReady?: boolean;
   chrome?: "framed" | "plain";
+  editable?: boolean;
+  drafts?: Record<string, string>;
+  onEditBlur?: (editableId: string, markdown: string) => void;
 }
 
 function emitReady(extra?: Record<string, unknown>) {
@@ -77,18 +104,112 @@ function emitReady(extra?: Record<string, unknown>) {
   console.log("[report-preview] paged_ready", extra ?? "");
 }
 
+/* ─── Плавающий toolbar редактирования (contentEditable + execCommand) ─── */
+function ensureToolbar(container: HTMLElement): HTMLDivElement {
+  let bar = container.querySelector<HTMLDivElement>(".rl-paged-toolbar");
+  if (bar) return bar;
+  bar = document.createElement("div");
+  bar.className = "rl-paged-toolbar";
+  bar.setAttribute("data-rl-toolbar", "1");
+  bar.style.cssText = [
+    "position:absolute",
+    "z-index:50",
+    "display:none",
+    "gap:4px",
+    "padding:4px",
+    "border-radius:6px",
+    "background:hsl(var(--popover, 0 0% 100%))",
+    "color:hsl(var(--popover-foreground, 222 47% 11%))",
+    "border:1px solid hsl(var(--border, 214 32% 91%))",
+    "box-shadow:0 8px 24px -8px rgba(0,0,0,0.25)",
+    "font-family:Inter, system-ui, sans-serif",
+    "font-size:12px",
+  ].join(";");
+
+  const mkBtn = (label: string, title: string, action: () => void) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.title = title;
+    b.innerHTML = label;
+    b.style.cssText = [
+      "min-width:28px",
+      "padding:4px 8px",
+      "border-radius:4px",
+      "border:none",
+      "background:transparent",
+      "color:inherit",
+      "cursor:pointer",
+      "font:inherit",
+    ].join(";");
+    b.addEventListener("mousedown", (e) => {
+      // не терять выделение
+      e.preventDefault();
+    });
+    b.addEventListener("click", (e) => {
+      e.preventDefault();
+      action();
+    });
+    b.addEventListener("mouseenter", () => (b.style.background = "hsl(var(--muted, 210 40% 96%))"));
+    b.addEventListener("mouseleave", () => (b.style.background = "transparent"));
+    return b;
+  };
+
+  const exec = (cmd: string, val?: string) => {
+    document.execCommand(cmd, false, val);
+  };
+  bar.append(
+    mkBtn("<b>B</b>", "Полужирный", () => exec("bold")),
+    mkBtn("<i>I</i>", "Курсив", () => exec("italic")),
+    mkBtn("H2", "Заголовок H2", () => exec("formatBlock", "H2")),
+    mkBtn("H3", "Заголовок H3", () => exec("formatBlock", "H3")),
+    mkBtn("¶", "Обычный текст", () => exec("formatBlock", "P")),
+    mkBtn("•", "Маркированный список", () => exec("insertUnorderedList")),
+    mkBtn("1.", "Нумерованный список", () => exec("insertOrderedList")),
+  );
+  container.appendChild(bar);
+  return bar;
+}
+
+function updateToolbarPosition(
+  bar: HTMLDivElement,
+  container: HTMLElement,
+  targetRect: DOMRect,
+) {
+  const cRect = container.getBoundingClientRect();
+  const top = targetRect.top - cRect.top + container.scrollTop - bar.offsetHeight - 8;
+  const left =
+    targetRect.left - cRect.left + container.scrollLeft + targetRect.width / 2 - bar.offsetWidth / 2;
+  bar.style.top = `${Math.max(4, top)}px`;
+  bar.style.left = `${Math.max(4, left)}px`;
+  bar.style.display = "flex";
+}
+
 export function PagedReportPreview({
   report,
   height = "85vh",
   signalReady,
   chrome = "framed",
+  editable = false,
+  drafts,
+  onEditBlur,
 }: Props) {
   const sourceRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const onEditBlurRef = useRef(onEditBlur);
+  onEditBlurRef.current = onEditBlur;
 
+  const draftsSnapshot = drafts ?? {};
   const html = useMemo(
-    () => renderToStaticMarkup(<ReportDocument report={report} />),
-    [report],
+    () =>
+      renderToStaticMarkup(
+        <StaticReportEditorProvider
+          drafts={draftsSnapshot}
+          mode={editable ? "edit" : "view"}
+        >
+          <ReportDocument report={report} />
+        </StaticReportEditorProvider>,
+      ),
+    [report, draftsSnapshot, editable],
   );
 
   useEffect(() => {
@@ -113,6 +234,13 @@ export function PagedReportPreview({
         );
         if (cancelled) return;
         output.dataset.paged = "ready";
+
+        if (editable) {
+          installEditableOverlay(output, (id, mdParts) => {
+            onEditBlurRef.current?.(id, mdParts);
+          });
+        }
+
         if (signalReady) {
           requestAnimationFrame(() => emitReady({ pages: flow.pages?.length ?? flow.total ?? null }));
         }
@@ -132,7 +260,7 @@ export function PagedReportPreview({
       cancelled = true;
       output.innerHTML = "";
     };
-  }, [html, signalReady]);
+  }, [html, signalReady, editable]);
 
   return (
     <div
@@ -144,7 +272,104 @@ export function PagedReportPreview({
       }
     >
       <div ref={sourceRef} className="sr-only" aria-hidden="true" />
-      <div ref={outputRef} className="rl-paged-output" />
+      <div
+        ref={outputRef}
+        className="rl-paged-output"
+        style={{ position: "relative" }}
+      />
     </div>
   );
+}
+
+/**
+ * После того как paged.js отрисовал страницы, ищем блоки `[data-editable-id]`
+ * и превращаем их в contentEditable. paged.js может расщепить один блок на две
+ * страницы — тогда мы соединяем HTML всех фрагментов при blur.
+ */
+function installEditableOverlay(
+  output: HTMLElement,
+  onBlur: (id: string, markdown: string) => void,
+) {
+  const toolbar = ensureToolbar(output);
+
+  const editables = Array.from(
+    output.querySelectorAll<HTMLElement>("[data-editable-id]"),
+  );
+  editables.forEach((el) => {
+    el.setAttribute("contenteditable", "true");
+    el.setAttribute("spellcheck", "true");
+
+    el.addEventListener("blur", () => {
+      const id = el.getAttribute("data-editable-id");
+      if (!id) return;
+      // собираем все фрагменты этого блока (paged.js мог разделить на 2 страницы)
+      const parts = Array.from(
+        output.querySelectorAll<HTMLElement>(`[data-editable-id="${id}"]`),
+      );
+      const combined = parts.map((p) => p.innerHTML).join("");
+      const md = htmlToMarkdown(combined);
+      onBlur(id, md);
+      // прячем toolbar
+      setTimeout(() => {
+        if (!output.contains(document.activeElement)) {
+          toolbar.style.display = "none";
+        }
+      }, 100);
+    });
+  });
+
+  const showToolbar = () => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      // при курсоре без выделения — показать над активным элементом
+      const active = document.activeElement as HTMLElement | null;
+      if (active && active.hasAttribute("data-editable-id")) {
+        const rect = active.getBoundingClientRect();
+        updateToolbarPosition(toolbar, output, rect);
+        return;
+      }
+      toolbar.style.display = "none";
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const container = range.commonAncestorContainer as Node;
+    const el =
+      container.nodeType === Node.ELEMENT_NODE
+        ? (container as HTMLElement)
+        : (container.parentElement as HTMLElement | null);
+    const editable = el?.closest("[data-editable-id]") as HTMLElement | null;
+    if (!editable || !output.contains(editable)) {
+      toolbar.style.display = "none";
+      return;
+    }
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+      toolbar.style.display = "none";
+      return;
+    }
+    updateToolbarPosition(toolbar, output, rect);
+  };
+
+  const onSelectionChange = () => {
+    // throttle через rAF
+    requestAnimationFrame(showToolbar);
+  };
+  document.addEventListener("selectionchange", onSelectionChange);
+  // при клике вне зоны — прячем
+  const onFocusIn = () => showToolbar();
+  output.addEventListener("focusin", onFocusIn);
+
+  // cleanup вешаем на сам output — при следующем ре-рендере innerHTML очистится
+  // и слушатель на document перевесится заново
+  const cleanup = () => {
+    document.removeEventListener("selectionchange", onSelectionChange);
+    output.removeEventListener("focusin", onFocusIn);
+  };
+  const mo = new MutationObserver(() => {
+    if (!output.querySelector(".pagedjs_pages")) {
+      cleanup();
+      mo.disconnect();
+    }
+  });
+  mo.observe(output, { childList: true });
 }
