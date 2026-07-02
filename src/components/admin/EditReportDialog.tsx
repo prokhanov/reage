@@ -578,7 +578,7 @@ export function EditReportDialog({
                         if (prescriptions.length > 0) parts.push(`нутрицевтики: ${prescriptions.length}`);
                         if (lifestyleCount > 0) parts.push(`образ жизни: ${lifestyleCount}`);
                         if (followUpsCount > 0) parts.push(`консультации: ${followUpsCount}`);
-                        const label = parts.length > 0 ? `Назначения (${parts.join(" · ")})` : "Назначения";
+                        const label = parts.length > 0 ? `Рекомендации (${parts.join(" · ")})` : "Рекомендации";
                         return (
                           <SelectItem value="prescriptions">
                             {label}
