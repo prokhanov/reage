@@ -90,16 +90,73 @@ app.post("/render", async (req, reply) => {
     }
   });
 
+  // Собираем диагностику браузера для отдачи наружу, если что-то пойдёт не так.
+  const consoleTail = [];
+  const pageErrors = [];
+  const badResponses = [];
+  page.on("console", (msg) => {
+    const entry = { type: msg.type(), text: msg.text().slice(0, 500) };
+    consoleTail.push(entry);
+    if (consoleTail.length > 80) consoleTail.shift();
+  });
+  page.on("pageerror", (err) => {
+    pageErrors.push({ message: err.message, stack: err.stack?.slice(0, 800) });
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      badResponses.push({ url: response.url().slice(0, 300), status: response.status() });
+    }
+  });
+
+  const dumpDiagnostics = async (reason) => {
+    const diag = { reason };
+    try { diag.pageUrl = page.url(); } catch {}
+    try { diag.pageTitle = await page.title(); } catch {}
+    try {
+      diag.reportState = await page.evaluate(() => ({
+        state: (window).__reportState || null,
+        ready: (window).__reportReady === true,
+        error: (window).__reportError || null,
+        log: (window).__reportLog || [],
+        bodyText: (document.body?.innerText || "").slice(0, 400),
+      }));
+    } catch (e) {
+      diag.reportStateError = e instanceof Error ? e.message : String(e);
+    }
+    diag.consoleTail = consoleTail.slice(-40);
+    diag.pageErrors = pageErrors.slice(-10);
+    diag.badResponses = badResponses.slice(-10);
+    return diag;
+  };
+
   try {
     log("goto_start");
-    await page.goto(url, { waitUntil: "networkidle", timeout: NAV_TIMEOUT_MS });
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
     log("goto_done", { elapsedMs: Date.now() - startedAt, pageUrl: page.url() });
-    // Ждём сигнал от ReportDocument: шрифты + rAF + 50ms задержка.
+
+    // Ждём сигнал от ReportDocument (шрифты + rAF + 50ms) ИЛИ явную ошибку из превью.
     log("wait_report_ready_start");
-    await page.waitForFunction(() => window.__reportReady === true, {
-      timeout: NAV_TIMEOUT_MS,
-    });
-    log("wait_report_ready_done", { elapsedMs: Date.now() - startedAt });
+    await page.waitForFunction(
+      () => (window).__reportReady === true || Boolean((window).__reportError),
+      { timeout: NAV_TIMEOUT_MS, polling: 250 },
+    );
+    const readyState = await page.evaluate(() => ({
+      ready: (window).__reportReady === true,
+      error: (window).__reportError || null,
+      state: (window).__reportState || null,
+    }));
+    if (!readyState.ready) {
+      const diag = await dumpDiagnostics("report_error_signaled");
+      logError("report_error_signaled", diag);
+      return reply.code(500).send({
+        error: "report_error_signaled",
+        requestId,
+        message: `preview reported error: ${readyState.error?.step || "unknown"}`,
+        diagnostics: diag,
+      });
+    }
+    log("wait_report_ready_done", { elapsedMs: Date.now() - startedAt, state: readyState.state });
+
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -112,16 +169,18 @@ app.post("/render", async (req, reply) => {
     reply.header("Content-Length", pdf.length);
     return reply.send(pdf);
   } catch (err) {
+    const diag = await dumpDiagnostics("exception");
     logError("render_failed", {
       message: err instanceof Error ? err.message : String(err),
-      stack: err instanceof Error ? err.stack?.slice(0, 4000) : undefined,
+      stack: err instanceof Error ? err.stack?.slice(0, 2000) : undefined,
       elapsedMs: Date.now() - startedAt,
-      pageUrl: page.url(),
+      ...diag,
     });
     return reply.code(500).send({
       error: "render_failed",
       requestId,
       message: err instanceof Error ? err.message : String(err),
+      diagnostics: diag,
     });
   } finally {
     await page.close().catch(() => {});

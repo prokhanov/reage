@@ -31,17 +31,38 @@ export function ReportDocument({ report, signalReady }: Props) {
   useEffect(() => {
     if (!signalReady) return;
     let cancelled = false;
+    const w = window as unknown as {
+      __reportReady?: boolean;
+      __reportLog?: Array<{ t: number; step: string; extra?: unknown }>;
+      __reportState?: string;
+    };
+    const log = (step: string, extra?: Record<string, unknown>) => {
+      if (!w.__reportLog) w.__reportLog = [];
+      w.__reportLog.push({ t: Date.now(), step, extra });
+      w.__reportState = step;
+      // eslint-disable-next-line no-console
+      console.log(`[report-preview] ${step}`, extra ?? "");
+    };
+    log("document_mounted", { categories: categoryRecords.length });
     const mark = () => {
       if (cancelled) return;
-      (window as unknown as { __reportReady?: boolean }).__reportReady = true;
+      w.__reportReady = true;
+      log("report_ready");
     };
     const fontsReady =
       (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts
         ?.ready ?? Promise.resolve();
-    fontsReady.then(() => requestAnimationFrame(() => setTimeout(mark, 50)));
+    log("fonts_wait_start");
+    fontsReady
+      .then(() => {
+        log("fonts_ready");
+        requestAnimationFrame(() => setTimeout(mark, 50));
+      })
+      .catch((e) => log("fonts_error", { message: e instanceof Error ? e.message : String(e) }));
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signalReady]);
 
   return (
