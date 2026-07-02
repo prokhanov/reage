@@ -5,6 +5,7 @@ import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
 import { toMarkerInputs, computeTotalsPerSystem, categoryToSystem } from "../_shared/health-model/adapter.ts";
 import { computeSystemScores } from "../_shared/health-model/m3-systems.ts";
 import { computeHealthIndex } from "../_shared/health-model/m4-health-index.ts";
+import { computeBioAge } from "../_shared/health-model/m5-bioage.ts";
 import { computeAgingPace } from "../_shared/health-model/m6-aging-pace.ts";
 import { computeTrajectory } from "../_shared/health-model/m7-trajectory.ts";
 import { computeExplainability } from "../_shared/health-model/m8-explainability.ts";
