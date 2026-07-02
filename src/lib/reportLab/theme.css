@@ -97,6 +97,15 @@
   }
 }
 
+/* На первой странице (обложка) убираем поля и колонтитулы, чтобы фон обложки шёл встык */
+@page :first {
+  margin: 0;
+  @top-left { content: none; }
+  @top-right { content: none; }
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
 .reportlab .rl-page {
   width: 210mm;
   padding: var(--page-pad-y) var(--page-pad-x);
@@ -112,10 +121,10 @@
   page-break-before: auto;
 }
 
-/* Обложка: Высота 261mm = 297mm (A4) - 20mm (top margin) - 16mm (bottom margin) */
+/* Обложка: занимает всю страницу A4 (297mm), т.к. @page :first убирает поля */
 .reportlab .rl-page.rl-cover {
-  min-height: 261mm !important;
-  height: 261mm !important;
+  min-height: 297mm !important;
+  height: 297mm !important;
   padding: 0 !important;
   display: flex;
   flex-direction: column;
@@ -134,7 +143,7 @@ html, body {
   .reportlab {
     padding: 40px 0;
     min-height: 100vh;
-    background: #d9d5cd;
+    background: #ececec;
   }
   .reportlab .rl-page {
     margin: 0 auto 24px;
