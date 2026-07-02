@@ -21,9 +21,16 @@ const pagedCss = `
   page-break-before: auto;
 }
 .reportlab .rl-page.rl-cover {
-  min-height: 261mm !important;
-  height: 261mm !important;
+  min-height: 297mm !important;
+  height: 297mm !important;
   padding: 0 !important;
+}
+@page :first {
+  margin: 0 !important;
+  @top-left { content: none !important; }
+  @top-right { content: none !important; }
+  @bottom-left { content: none !important; }
+  @bottom-right { content: none !important; }
 }
 .pagedjs_pages { display: block; }
 .pagedjs_page {
