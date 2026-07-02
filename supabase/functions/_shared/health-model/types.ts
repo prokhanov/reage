@@ -78,8 +78,12 @@ export interface HealthModelSettings {
     acceptable_marker: number;
     /** Дополнительный множитель явного штрафа за маркеры вне оптимума внутри M3. */
     system_marker_penalty_scale: number;
-    /** Штраф за долю маркеров в risk/critical внутри системы. */
+    /** [DEPRECATED] Прежний штраф за долю risk/critical (доля от весов). Сохранён для совместимости, не используется. */
     system_bad_share_penalty: number;
+    /** Абсолютный штраф к скору системы за каждый risk-маркер (не зависит от размера панели). */
+    system_risk_marker_penalty: number;
+    /** Абсолютный штраф к скору системы за каждый critical-маркер. */
+    system_critical_marker_penalty: number;
     dispersion_k: number;
     coverage_threshold: number;
     min_markers_per_system: number;
