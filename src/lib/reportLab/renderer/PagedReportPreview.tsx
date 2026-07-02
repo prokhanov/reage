@@ -106,8 +106,17 @@ interface Props {
   chrome?: "framed" | "plain";
   editable?: boolean;
   drafts?: Record<string, string>;
+  /**
+   * Реалтайм-коллбэк: срабатывает и во время ввода (debounced),
+   * и на blur — родитель должен положить markdown в drafts, что
+   * триггерит перепагинацию.
+   */
+  onEditChange?: (editableId: string, markdown: string) => void;
+  /** @deprecated используйте onEditChange — вызывается для совместимости на blur. */
   onEditBlur?: (editableId: string, markdown: string) => void;
 }
+
+type CaretSnapshot = { editableId: string; offset: number } | null;
 
 function emitReady(extra?: Record<string, unknown>) {
   const w = window as unknown as {
@@ -210,12 +219,18 @@ export function PagedReportPreview({
   chrome = "framed",
   editable = false,
   drafts,
+  onEditChange,
   onEditBlur,
 }: Props) {
   const sourceRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const onEditChangeRef = useRef(onEditChange);
+  onEditChangeRef.current = onEditChange;
   const onEditBlurRef = useRef(onEditBlur);
   onEditBlurRef.current = onEditBlur;
+  // Сериализация ребилдов: один Previewer одновременно, иначе Paged.js падает
+  // на getBoundingClientRect.
+  const runQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const draftsSnapshot = drafts ?? {};
   const html = useMemo(
@@ -232,32 +247,56 @@ export function PagedReportPreview({
   );
 
   useEffect(() => {
-    let cancelled = false;
     const output = outputRef.current;
     const source = sourceRef.current;
     if (!output || !source) return;
+    const token = { cancelled: false };
+    const prev = runQueueRef.current;
 
-    output.innerHTML = "";
-    const content = document.createElement("template");
-    content.innerHTML = html;
+    const build = async () => {
+      // Ждём завершения предыдущего ребилда: параллельный Previewer.preview
+      // роняет Paged.js. Ошибки предыдущего проглатываем.
+      try { await prev; } catch { /* ignore */ }
+      if (token.cancelled) return;
 
-    const run = async () => {
+      // Сохраняем caret/scroll ДО перепагинации.
+      const hasExisting = !!output.querySelector(".pagedjs_pages");
+      const caret: CaretSnapshot = hasExisting && editable ? saveCaret(output) : null;
+      const scrollContainer = getScrollContainer(output);
+      const scrollTop = scrollContainer?.scrollTop ?? 0;
+
+      const content = document.createElement("template");
+      content.innerHTML = html;
+
+      // Запоминаем существующие страницы: их удалим ПОСЛЕ того, как
+      // Paged.js допишет новые — никакого пустого промежутка на экране.
+      const oldPages = Array.from(output.querySelectorAll(".pagedjs_pages"));
+
       try {
         await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready;
-        if (cancelled) return;
+        if (token.cancelled) return;
         const previewer = new Previewer({});
         const flow = await previewer.preview(
           content.content,
           [{ "reportLab.css": `${themeCss}\n${pagedCss}` }],
           output,
         );
-        if (cancelled) return;
+        if (token.cancelled) return;
+
+        oldPages.forEach((el) => el.remove());
         output.dataset.paged = "ready";
 
         if (editable) {
-          installEditableOverlay(output, (id, mdParts) => {
-            onEditBlurRef.current?.(id, mdParts);
-          });
+          installEditableOverlay(
+            output,
+            (id, md) => onEditChangeRef.current?.(id, md),
+            (id, md) => {
+              onEditBlurRef.current?.(id, md);
+              onEditChangeRef.current?.(id, md);
+            },
+          );
+          if (caret) restoreCaret(output, caret);
+          if (scrollContainer) scrollContainer.scrollTop = scrollTop;
         }
 
         if (signalReady) {
@@ -273,13 +312,18 @@ export function PagedReportPreview({
         console.error("[report-preview] paged_render_failed", e);
       }
     };
-    void run();
+
+    const p = build();
+    runQueueRef.current = p;
+
 
     return () => {
-      cancelled = true;
-      output.innerHTML = "";
+      token.cancelled = true;
+      // output НЕ чистим — swap следующего успешного билда его обновит.
     };
   }, [html, signalReady, editable]);
+
+
 
   return (
     <div
@@ -300,16 +344,126 @@ export function PagedReportPreview({
   );
 }
 
+// ─── Caret helpers ───────────────────────────────────────────────────────────
+
+function getScrollContainer(el: HTMLElement): HTMLElement | null {
+  let p: HTMLElement | null = el.parentElement;
+  while (p) {
+    const s = getComputedStyle(p);
+    if (/(auto|scroll)/.test(s.overflowY)) return p;
+    p = p.parentElement;
+  }
+  return null;
+}
+
+function saveCaret(output: HTMLElement): CaretSnapshot {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  const range = sel.getRangeAt(0);
+  const anchor =
+    range.startContainer.nodeType === Node.ELEMENT_NODE
+      ? (range.startContainer as Element)
+      : range.startContainer.parentElement;
+  const el = anchor?.closest("[data-editable-id]") as HTMLElement | null;
+  if (!el || !output.contains(el)) return null;
+  const id = el.getAttribute("data-editable-id");
+  if (!id) return null;
+
+  // Считаем offset в plain-text по всем фрагментам этого id, в порядке DOM.
+  const fragments = Array.from(
+    output.querySelectorAll<HTMLElement>(`[data-editable-id="${id}"]`),
+  );
+  let offset = 0;
+  for (const frag of fragments) {
+    if (frag.contains(range.startContainer) || frag === range.startContainer) {
+      const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
+      let n: Node | null;
+      while ((n = walker.nextNode())) {
+        if (n === range.startContainer) {
+          offset += range.startOffset;
+          return { editableId: id, offset };
+        }
+        offset += (n.textContent || "").length;
+      }
+      // startContainer сам является фрагментом (нет текстовых потомков)
+      return { editableId: id, offset: offset + range.startOffset };
+    }
+    offset += (frag.textContent || "").length;
+  }
+  return { editableId: id, offset };
+}
+
+function restoreCaret(output: HTMLElement, caret: NonNullable<CaretSnapshot>) {
+  const fragments = Array.from(
+    output.querySelectorAll<HTMLElement>(
+      `[data-editable-id="${caret.editableId}"]`,
+    ),
+  );
+  if (!fragments.length) return;
+
+  let remaining = caret.offset;
+  for (const frag of fragments) {
+    const total = (frag.textContent || "").length;
+    if (remaining > total) {
+      remaining -= total;
+      continue;
+    }
+    const walker = document.createTreeWalker(frag, NodeFilter.SHOW_TEXT);
+    let n: Node | null;
+    while ((n = walker.nextNode())) {
+      const len = (n.textContent || "").length;
+      if (remaining <= len) {
+        try {
+          const range = document.createRange();
+          range.setStart(n, Math.max(0, Math.min(remaining, len)));
+          range.collapse(true);
+          const sel = window.getSelection();
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+          frag.focus({ preventScroll: true });
+        } catch {
+          /* ignore */
+        }
+        return;
+      }
+      remaining -= len;
+    }
+    // fragment без текстовых узлов
+    try {
+      frag.focus({ preventScroll: true });
+    } catch {
+      /* ignore */
+    }
+    return;
+  }
+  // fallback — фокус в конец последнего фрагмента
+  fragments[fragments.length - 1].focus({ preventScroll: true });
+}
+
 /**
  * После того как paged.js отрисовал страницы, ищем блоки `[data-editable-id]`
  * и превращаем их в contentEditable. paged.js может расщепить один блок на две
- * страницы — тогда мы соединяем HTML всех фрагментов при blur.
+ * страницы — тогда мы соединяем HTML всех фрагментов.
+ *
+ * onChange вызывается на каждом input (debounced ~150ms) — родитель кладёт
+ * markdown в drafts → React перерендеривает превью → Paged.js пересобирает
+ * страницы, и весь текст ниже съезжает в реальном времени, как в Google Docs.
+ * onBlur вызывается при потере фокуса (используем для финального сохранения).
  */
 function installEditableOverlay(
   output: HTMLElement,
+  onChange: (id: string, markdown: string) => void,
   onBlur: (id: string, markdown: string) => void,
 ) {
   const toolbar = ensureToolbar(output);
+
+  const collectMarkdown = (id: string): string => {
+    const parts = Array.from(
+      output.querySelectorAll<HTMLElement>(`[data-editable-id="${id}"]`),
+    );
+    const combined = parts.map((p) => p.innerHTML).join("");
+    return htmlToMarkdown(combined);
+  };
 
   const editables = Array.from(
     output.querySelectorAll<HTMLElement>("[data-editable-id]"),
@@ -318,17 +472,26 @@ function installEditableOverlay(
     el.setAttribute("contenteditable", "true");
     el.setAttribute("spellcheck", "true");
 
+    let inputTimer: number | null = null;
+    el.addEventListener("input", () => {
+      const id = el.getAttribute("data-editable-id");
+      if (!id) return;
+      if (inputTimer !== null) window.clearTimeout(inputTimer);
+      inputTimer = window.setTimeout(() => {
+        inputTimer = null;
+        onChange(id, collectMarkdown(id));
+      }, 250);
+    });
+
+
     el.addEventListener("blur", () => {
       const id = el.getAttribute("data-editable-id");
       if (!id) return;
-      // собираем все фрагменты этого блока (paged.js мог разделить на 2 страницы)
-      const parts = Array.from(
-        output.querySelectorAll<HTMLElement>(`[data-editable-id="${id}"]`),
-      );
-      const combined = parts.map((p) => p.innerHTML).join("");
-      const md = htmlToMarkdown(combined);
-      onBlur(id, md);
-      // прячем toolbar
+      if (inputTimer !== null) {
+        window.clearTimeout(inputTimer);
+        inputTimer = null;
+      }
+      onBlur(id, collectMarkdown(id));
       setTimeout(() => {
         if (!output.contains(document.activeElement)) {
           toolbar.style.display = "none";
@@ -336,6 +499,7 @@ function installEditableOverlay(
       }, 100);
     });
   });
+
 
   const showToolbar = () => {
     const sel = window.getSelection();

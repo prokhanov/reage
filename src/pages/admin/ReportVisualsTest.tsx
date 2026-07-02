@@ -459,7 +459,7 @@ function EditablePagedPreview({
       report={report}
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}
-      onEditBlur={(id, md) => ctx?.setDraft(id, md)}
+      onEditChange={(id, md) => ctx?.setDraft(id, md)}
     />
   );
 }
