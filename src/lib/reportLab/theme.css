@@ -128,9 +128,7 @@
   orphans: 3;
   widows: 3;
 }
-.reportlab .rl-prose h2,
-.reportlab .rl-prose h3,
-.reportlab .rl-section-header,
+/* break-inside: не рвём внутри «атомарных» блоков */
 .reportlab .rl-callout,
 .reportlab .rl-stats,
 .reportlab .rl-h1,
@@ -138,6 +136,15 @@
 .reportlab .rl-h3 {
   break-inside: avoid;
   page-break-inside: avoid;
+}
+/* break-after: avoid только там, где действительно нужно
+   (заголовок раздела и подзаголовки прозы не должны отрываться от следующего абзаца).
+   На .rl-h1/h2/h3 этого НЕ ставим — иначе цепочка avoid оставляет
+   .rl-eyebrow сиротой на пустой странице (баг «пустой стр. 2»). */
+.reportlab .rl-section-header,
+.reportlab .rl-prose h2,
+.reportlab .rl-prose h3,
+.reportlab .rl-eyebrow {
   break-after: avoid;
   page-break-after: avoid;
 }

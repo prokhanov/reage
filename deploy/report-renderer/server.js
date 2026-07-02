@@ -158,17 +158,23 @@ app.post("/render", async (req, reply) => {
     log("wait_report_ready_done", { elapsedMs: Date.now() - startedAt, state: readyState.state });
 
     // Нативные колонтитулы Chromium — репитятся на каждой физической странице.
-    // Заказчик формирует patientLabel на клиенте, но тут он не критичен —
-    // достаточно бренда и номера страницы.
+    // ВАЖНО (грабли Chromium):
+    //   - font-size ТОЛЬКО в px (pt/em игнорируются, текст становится ~0.5px и не виден);
+    //   - раскладка через <table>, а не flex (flex в темплейтах у Chrome ненадёжен);
+    //   - явный print-color-adjust: exact на цвет текста, иначе gray обесцвечивается.
     const headerHtml = `
-      <div style="width:100%;padding:0 18mm;font-family:-apple-system,'Inter',Segoe UI,sans-serif;font-size:8pt;color:#7a7f8f;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;">
-        <span>ReAge · Персональный отчёт</span>
-        <span>reage.life</span>
+      <div style="width:100%;box-sizing:border-box;padding:0 18mm;font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:8px;color:#7a7f8f;letter-spacing:1.2px;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        <table style="width:100%;border-collapse:collapse;"><tr>
+          <td style="text-align:left;color:#7a7f8f;">ReAge · Персональный отчёт</td>
+          <td style="text-align:right;color:#7a7f8f;">reage.life</td>
+        </tr></table>
       </div>`;
     const footerHtml = `
-      <div style="width:100%;padding:0 18mm;font-family:-apple-system,'Inter',Segoe UI,sans-serif;font-size:8pt;color:#7a7f8f;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;-webkit-print-color-adjust:exact;">
-        <span>Longevity clinic</span>
-        <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
+      <div style="width:100%;box-sizing:border-box;padding:0 18mm;font-family:-apple-system,'Inter','Segoe UI',sans-serif;font-size:8px;color:#7a7f8f;letter-spacing:1.2px;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        <table style="width:100%;border-collapse:collapse;"><tr>
+          <td style="text-align:left;color:#7a7f8f;">Longevity clinic</td>
+          <td style="text-align:right;color:#7a7f8f;"><span class="pageNumber"></span> / <span class="totalPages"></span></td>
+        </tr></table>
       </div>`;
     const pdf = await page.pdf({
       format: "A4",
