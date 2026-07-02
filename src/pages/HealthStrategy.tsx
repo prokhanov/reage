@@ -192,7 +192,14 @@ export default function HealthStrategy() {
         .order("created_at", { ascending: false })
         .limit(5);
 
-      const matched = (snaps || []).find((s: any) => latest && s.analysis_id === latest.id);
+      const matched = (snaps || []).find((s: any) => {
+        if (!latest || s.analysis_id !== latest.id) return false;
+        const snapHi = s.health_index == null ? null : Math.round(Number(s.health_index));
+        const latestHi = latest.health_index == null ? null : Math.round(Number(latest.health_index));
+        // Если числовая модель анализа уже пересчитана, не показываем старый
+        // снапшот стратегии с прежним Health Index (например 81 вместо 74).
+        return latestHi == null || snapHi === latestHi;
+      });
       const previous = (snaps || []).find((s: any) => prev && s.analysis_id === prev.id);
 
       if (matched) {
