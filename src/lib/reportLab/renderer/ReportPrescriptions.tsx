@@ -43,11 +43,6 @@ export function ReportPrescriptions({ report }: Props) {
       <div className="rl-eyebrow">Клинический план</div>
 
       <h1 className="rl-h1">Персональные назначения</h1>
-      <p className="rl-lead">
-        Практические шаги в трёх сферах — питание, движение, восстановление —
-        составлены с учётом ваших актуальных биомаркеров. Дополнительные
-        консультации помогут уточнить причины отклонений.
-      </p>
 
       {sections.map((s) => (
         <div key={s.title} style={{ marginBottom: "8mm" }}>

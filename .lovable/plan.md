@@ -1,54 +1,44 @@
-## Ускорение PDF — этап 1 (без Fly always-on)
+## Проблема
 
-Делаем пункты 2 и 3: убираем `verify_token` (−15 сек) и Google Fonts (−10–12 сек). Fly always-on откладываем.
+В отчёте появляются тексты, которых нет в данных Прохановского отчёта — они захардкожены в компонентах. И полностью отсутствует блок «Данные пациента», хотя в `report.recommendations` он есть (`type === "Данные пациента"`, `getPatientDataRecord` уже реализован, но не рендерится нигде).
 
-### 1. HMAC-проверка переносится на Fly
+## Что откуда берётся
 
-**`deploy/report-renderer/server.js`**:
-- В начале `/render`: распарсить `token` из query параметров переданного `url`.
-- Верифицировать HMAC (`crypto.createHmac('sha256', REPORT_PREVIEW_HMAC_SECRET)`) — та же схема, что в `sign-preview-token` (payload.signature, base64url).
-- Проверить `exp` не истёк.
-- При невалидности — 401.
-- Env: `REPORT_PREVIEW_HMAC_SECRET` через `fly secrets set REPORT_PREVIEW_HMAC_SECRET=... -a reage-report-renderer` (тот же секрет, что уже есть в Supabase).
+1. **Обложка** (`src/lib/reportLab/renderer/ReportCover.tsx`):
+   - Строка «Личный отчёт о состоянии здоровья» — оставить (это заголовок бренда, допустимо на обложке).
+   - Абзац «Всеобъемлющий разбор N биомаркеров по пяти ключевым системам организма. Составлен клинической командой ReAge…» — **выдумка**, удалить.
+   - «Индивидуальный анализ» eyebrow — тоже подпись, можно оставить как чисто оформительский элемент обложки.
 
-**`src/pages/internal/ReportPreview.tsx`**:
-- Убрать `supabase.functions.invoke("mint-preview-token", {action:"verify"})`.
-- Если `token` присутствует — сразу переходить в `allowed` (Fly уже верифицирует до `goto`).
-- Если токена нет — `denied` (защита от ручного открытия).
+2. **Обзор** (`src/lib/reportLab/renderer/ReportOverview.tsx`):
+   - Заголовок «Обзор биологического состояния для {ФИО}» — оставить (структурный).
+   - Callout «Ключевой вывод» + текст берётся из `summary` — это данные, не трогаем.
 
-Edge-функция `mint-preview-token` остаётся для action=`sign` (её дёргает админка при генерации PDF).
+3. **Назначения** (`src/lib/reportLab/renderer/ReportPrescriptions.tsx`):
+   - Абзац «Практические шаги в трёх сферах — питание, движение, восстановление — составлены с учётом ваших актуальных биомаркеров. Дополнительные консультации помогут уточнить причины отклонений.» — **выдумка**, удалить.
+   - Оставить только заголовок и данные из `content_json` (lifestyle + follow_ups).
 
-### 2. Self-hosted шрифты
+## Раздел «Данные пациента»
 
-**Установка**:
-```
-bun add @fontsource-variable/fraunces @fontsource-variable/inter @fontsource/jetbrains-mono
-```
+Записи типа `"Данные пациента"` сейчас отфильтровываются `NON_CATEGORY_TYPES` и никуда не выводятся. Добавить отдельный компонент `ReportPatientData.tsx`, который:
 
-**`src/main.tsx`** — импорты:
-```ts
-import "@fontsource-variable/inter";
-import "@fontsource-variable/fraunces";
-import "@fontsource/jetbrains-mono/500.css";
-```
+- берёт `getPatientDataRecord(report)`;
+- если запись есть — рендерит `<section className="rl-page">` с заголовком «Данные пациента» и содержимым:
+  - если `content_json` содержит структурированные поля — вывести их парами label/value в `rl-stats`-подобной сетке;
+  - иначе — отрендерить `text` через `ProseMarkdown` (как это делают категории), предварительно почистив от `<!-- anchor -->` и повторяющегося заголовка (переиспользовать `stripLeadingCategoryHeader` / `cleanProse` из parser.ts, вынести в экспорт при необходимости).
 
-**`src/lib/reportLab/theme.css`**:
-- Удалить строку `@import url("https://fonts.googleapis.com/css2?...")`.
+Разместить страницу между `ReportCover` и `ReportOverview` в `ReportDocument.tsx`, чтобы получилось: Обложка → Данные пациента → Общее резюме → 5 категорий → Назначения.
 
-### 3. Ожидаемый эффект
+## Файлы, которые изменятся
 
-| Этап                    | Было   | Станет |
-|-------------------------|--------|--------|
-| Холодный старт Fly      | 5–10 c | 5–10 c (без изменений) |
-| verify_token            | 15 c   | 0 c |
-| fonts_wait              | 12 c   | ~1 c |
-| goto + render + pdf     | 5–8 c  | 5–8 c |
-| **Итого (тёплая машина)** | ~40 c | ~7–10 c |
-| **Итого (холодная)**    | ~40 c  | ~12–18 c |
+- `src/lib/reportLab/renderer/ReportCover.tsx` — удалить абзац `rl-cover-subtitle`.
+- `src/lib/reportLab/renderer/ReportPrescriptions.tsx` — удалить `<p className="rl-lead">…</p>`.
+- `src/lib/reportLab/renderer/ReportPatientData.tsx` — новый компонент.
+- `src/lib/reportLab/renderer/ReportDocument.tsx` — подключить новый компонент вторым по счёту.
+- `src/lib/reportLab/parser.ts` — при необходимости экспортировать хелперы `cleanProse` / `stripLeadingCategoryHeader` для переиспользования.
 
-### 4. Порядок деплоя
+## Проверка
 
-1. Frontend (`ReportPreview.tsx`, `theme.css`, `main.tsx`, `package.json`) → Coolify.
-2. Fly (`server.js` + `fly secrets set REPORT_PREVIEW_HMAC_SECRET=...` + `fly deploy`).
-
-**Важно**: сначала выкатить Fly (он умеет и старые запросы обрабатывать), потом фронт — иначе несколько минут между деплоями превью будет открываться без проверки.
+После правок собрать превью на тестовой странице отчёта (`ReportVisualsTest` / `ReportPreview`), убедиться что:
+- на обложке нет фразы про «Всеобъемлющий разбор…»;
+- появилась страница «Данные пациента» сразу после обложки с реальным содержимым из БД;
+- на странице назначений исчез вводный абзац, остались только заголовок и списки из данных.

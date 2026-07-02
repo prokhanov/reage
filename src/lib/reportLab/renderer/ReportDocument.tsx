@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { ProkhanovReport } from "../types";
 import { buildBiomarkerIndex, getCategoryRecords, parseCategory } from "../parser";
 import { ReportCover } from "./ReportCover";
+import { ReportPatientData } from "./ReportPatientData";
 import { ReportOverview } from "./ReportOverview";
 import { ReportSection } from "./ReportSection";
 import { ReportPrescriptions } from "./ReportPrescriptions";
@@ -71,6 +72,7 @@ export function ReportDocument({ report, signalReady }: Props) {
   return (
     <div className="reportlab">
       <ReportCover report={report} />
+      <ReportPatientData report={report} />
       <ReportOverview report={report} />
       {categoryRecords.map((rec, i) => {
         const parsed = parseCategory(rec.type, rec.text || "");

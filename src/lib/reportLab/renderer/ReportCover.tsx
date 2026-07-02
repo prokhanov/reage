@@ -32,11 +32,6 @@ export function ReportCover({ report }: Props) {
           <br />
           <em>биологический профиль</em>
         </h1>
-        <p className="rl-cover-subtitle">
-          Всеобъемлющий разбор {report.biomarkers.length} биомаркеров по пяти
-          ключевым системам организма. Составлен клинической командой ReAge на
-          основе лабораторных данных от {formatRuDate(analysis.date)}.
-        </p>
       </div>
 
       <div className="rl-cover-meta">
