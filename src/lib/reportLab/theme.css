@@ -461,17 +461,6 @@ html, body {
   border-top: 1px solid var(--hairline);
   border-bottom: 1px solid var(--hairline);
   margin: 0 0 10mm;
-  /* Chromium в headless-PDF плохо соблюдает avoid-page на grid-контейнере
-     и уносит последнюю колонку на следующую страницу. Дублируем правило
-     на самих ячейках и просим движок держать грид как единый фрагмент. */
-  break-inside: avoid-page;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-}
-.reportlab .rl-stat {
-  break-inside: avoid-page;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
 }
 .reportlab .rl-stat .label {
   font-size: 8.5pt;
