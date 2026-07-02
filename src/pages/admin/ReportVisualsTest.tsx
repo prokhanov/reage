@@ -114,7 +114,7 @@ export default function ReportVisualsTest() {
     setRendering(true);
     setPdfLogs([]);
     const startedAt = performance.now();
-    appendPdfLog("info", "Старт скачивания PDF", `reportId=prokhanov`);
+    appendPdfLog("info", "Старт скачивания PDF", "Первый запуск рендерера может занять до 2 минут");
 
     const progressTimer = window.setInterval(() => {
       const seconds = Math.round((performance.now() - startedAt) / 1000);
@@ -154,6 +154,14 @@ export default function ReportVisualsTest() {
       if (!response.ok) {
         const body = await readResponseBody(response);
         appendPdfLog("error", "Тело ошибки от edge-функции", body || "Пустое тело ответа");
+        if (response.status === 504 && body.includes("renderer_timeout")) {
+          appendPdfLog(
+            "info",
+            "Рендерер не успел ответить",
+            "Я увеличил серверный лимит ожидания; если Fly только просыпался, повторное нажатие обычно проходит быстрее.",
+          );
+          throw new Error("Рендерер не успел собрать PDF. Нажмите «Скачать PDF» ещё раз.");
+        }
         throw new Error(`render-report-pdf вернула HTTP ${response.status}`);
       }
 
@@ -227,7 +235,7 @@ export default function ReportVisualsTest() {
       console.error(e);
       appendPdfLog("error", "Скачивание PDF упало", formatError(e));
       toast.error(
-        "PDF ещё недоступен",
+          "PDF не скачался",
         formatError(e),
       );
     } finally {
