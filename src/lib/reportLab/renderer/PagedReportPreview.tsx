@@ -38,12 +38,21 @@ const pagedCss = `
 .pagedjs_page {
   background: #ffffff;
   margin: 0 auto !important;
-  outline: 1px dashed #d4d4d4;
-  outline-offset: 0;
+  outline: none;
   box-shadow: none;
+  position: relative;
 }
 .pagedjs_page + .pagedjs_page {
-  margin-top: 12px !important;
+  margin-top: 32px !important;
+}
+.pagedjs_page + .pagedjs_page::before {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed #c8c8c8;
+  pointer-events: none;
 }
 .pagedjs_pagebox,
 .pagedjs_margin-top,
