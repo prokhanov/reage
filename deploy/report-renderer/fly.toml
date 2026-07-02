@@ -16,6 +16,7 @@ primary_region = "fra"
 
 [env]
   PORT = "8080"
+  REPORT_READY_TIMEOUT_MS = "40000"
   # NAV_TIMEOUT_MS = "60000"   # опциональный override, если долго грузится
   # PDF_TIMEOUT_MS = "60000"
 
