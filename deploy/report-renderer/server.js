@@ -10,16 +10,51 @@
 
 import Fastify from "fastify";
 import { chromium } from "playwright";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHmac, timingSafeEqual } from "node:crypto";
 
 const PORT = Number(process.env.PORT || 8080);
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
+const PREVIEW_HMAC_SECRET = process.env.REPORT_PREVIEW_HMAC_SECRET || "";
 const NAV_TIMEOUT_MS = Number(process.env.NAV_TIMEOUT_MS || 60_000);
 const REPORT_READY_TIMEOUT_MS = Number(process.env.REPORT_READY_TIMEOUT_MS || 40_000);
 const PDF_TIMEOUT_MS = Number(process.env.PDF_TIMEOUT_MS || 60_000);
 
 if (!AUTH_TOKEN) {
   console.warn("[boot] AUTH_TOKEN is empty — /render will refuse all requests");
+}
+if (!PREVIEW_HMAC_SECRET) {
+  console.warn("[boot] REPORT_PREVIEW_HMAC_SECRET is empty — preview tokens will not be verified");
+}
+
+// ─── HMAC-верификация preview-токенов ────────────────────────────────────
+// Формат токена: `${payloadB64url}.${sigB64url}`, где payload — JSON
+// { reportId, exp }, sig — HMAC-SHA256(payload) по PREVIEW_HMAC_SECRET.
+// Схема совпадает с supabase/functions/mint-preview-token/index.ts.
+function b64urlToBuffer(s) {
+  const norm = s.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = norm.length % 4 ? "=".repeat(4 - (norm.length % 4)) : "";
+  return Buffer.from(norm + pad, "base64");
+}
+function verifyPreviewToken(token) {
+  if (!PREVIEW_HMAC_SECRET) return { ok: false, reason: "secret_missing" };
+  if (!token || typeof token !== "string") return { ok: false, reason: "token_missing" };
+  const [payload, sig] = token.split(".");
+  if (!payload || !sig) return { ok: false, reason: "token_malformed" };
+  const expected = createHmac("sha256", PREVIEW_HMAC_SECRET).update(payload).digest();
+  const given = b64urlToBuffer(sig);
+  if (expected.length !== given.length || !timingSafeEqual(expected, given)) {
+    return { ok: false, reason: "bad_signature" };
+  }
+  let claims;
+  try {
+    claims = JSON.parse(b64urlToBuffer(payload).toString("utf8"));
+  } catch {
+    return { ok: false, reason: "bad_payload" };
+  }
+  if (!claims?.exp || Date.now() / 1000 > claims.exp) {
+    return { ok: false, reason: "expired" };
+  }
+  return { ok: true, claims };
 }
 
 const app = Fastify({
@@ -60,7 +95,26 @@ app.post("/render", async (req, reply) => {
     return reply.code(400).send({ error: "invalid_url" });
   }
 
-  log("render_start", { targetOrigin: new URL(url).origin, targetPath: new URL(url).pathname });
+  // Верифицируем HMAC preview-токена прямо здесь — раньше это делала
+  // edge-функция mint-preview-token из ReportPreview, что добавляло ~15 сек
+  // на холодный старт функции + сеть. Теперь preview открывается сразу.
+  let previewToken = "";
+  try {
+    previewToken = new URL(url).searchParams.get("token") || "";
+  } catch {
+    // fallthrough — verifyPreviewToken отдаст token_missing
+  }
+  const tokenCheck = verifyPreviewToken(previewToken);
+  if (!tokenCheck.ok) {
+    logError("preview_token_invalid", { reason: tokenCheck.reason });
+    return reply.code(401).send({ error: "preview_token_invalid", reason: tokenCheck.reason });
+  }
+
+  log("render_start", {
+    targetOrigin: new URL(url).origin,
+    targetPath: new URL(url).pathname,
+    reportId: tokenCheck.claims?.reportId,
+  });
 
   const browser = await getBrowser();
   const context = await browser.newContext({

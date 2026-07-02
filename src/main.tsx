@@ -2,6 +2,11 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 // Импорт ради side-effect: валидирует VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY на старте.
 import "./lib/supabaseUrl";
+// Self-hosted шрифты для отчёта (и всего приложения). Без этого рендер PDF
+// блокируется на ~12 сек ожидая fonts.googleapis.com.
+import "@fontsource-variable/inter/index.css";
+import "@fontsource-variable/fraunces/index.css";
+import "@fontsource/jetbrains-mono/500.css";
 import App from "./App.tsx";
 import "./index.css";
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { ReportDocument } from "@/lib/reportLab/renderer";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
@@ -62,44 +61,17 @@ export default function ReportPreview() {
 
   useEffect(() => {
     reportLog("preview_mount", { hasToken: Boolean(token), href: window.location.href });
-    let cancelled = false;
-    async function run() {
-      if (!token) {
-        if (!cancelled) {
-          reportError("token_missing");
-          setState("denied");
-        }
-        return;
-      }
-      try {
-        reportLog("verify_token_start");
-        const { data, error } = await supabase.functions.invoke(
-          "mint-preview-token",
-          { body: { action: "verify", token } },
-        );
-        if (cancelled) return;
-        if (error) {
-          reportError("verify_token_error", { message: error.message });
-          setState("denied");
-          return;
-        }
-        const payload = data as { valid?: boolean } | null;
-        reportLog("verify_token_done", { valid: payload?.valid });
-        setState(payload?.valid ? "allowed" : "denied");
-        if (!payload?.valid) reportError("token_invalid");
-      } catch (e) {
-        if (!cancelled) {
-          reportError("verify_token_throw", {
-            message: e instanceof Error ? e.message : String(e),
-          });
-          setState("denied");
-        }
-      }
+    // Проверку HMAC-токена выполняет Fly-рендерер до `page.goto()`. Раньше
+    // здесь был вызов edge-функции `mint-preview-token` (action=verify) —
+    // он добавлял ~15 сек к каждой генерации PDF из-за холодного старта
+    // функции. Теперь просто требуем наличие токена: если открыли URL
+    // руками без него — 404, иначе рендерим сразу.
+    if (!token) {
+      reportError("token_missing");
+      setState("denied");
+      return;
     }
-    void run();
-    return () => {
-      cancelled = true;
-    };
+    setState("allowed");
   }, [token]);
 
   const document = useMemo(
