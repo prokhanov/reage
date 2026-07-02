@@ -54,19 +54,20 @@ export function computeSystemScores(
     let raw = sumW > 0 ? (100 * sumWS) / sumW : 0;
 
     // Один только средневзвешенный score слишком оптимистичен на больших
-    // панелях — десятки «зелёных» маркеров размывают 7–13 отклонений.
-    // Поэтому M3 дополнительно учитывает сам факт выхода за optimal/normal
-    // через явные штрафы M1 и долю risk/critical внутри системы.
+    // панелях — десятки «зелёных» размывают отдельные отклонения. Поэтому
+    // добавляем: (а) явный штраф M1 (в среднем, чтобы не зависеть от N) и
+    // (б) абсолютный штраф за каждый risk / critical маркер, не зависящий
+    // от размера панели — клинически 2 «красных» = серьёзная проблема,
+    // независимо от того, сколько ещё зелёных вокруг.
     const weightedPenalty = sumW > 0
       ? inSystem.reduce((a, m) => a + m.weight_effective * m.penalty, 0) / sumW
       : 0;
-    const badShare = sumW > 0
-      ? inSystem
-        .filter((m) => m.zone === "risk" || m.zone === "critical")
-        .reduce((a, m) => a + m.weight_effective, 0) / sumW
-      : 0;
+    const riskCount = inSystem.filter((m) => m.zone === "risk").length;
+    const criticalCount = inSystem.filter((m) => m.zone === "critical").length;
     raw -= weightedPenalty * settings.penalties.system_marker_penalty_scale;
-    raw -= badShare * settings.penalties.system_bad_share_penalty;
+    raw -= riskCount * settings.penalties.system_risk_marker_penalty;
+    raw -= criticalCount * settings.penalties.system_critical_marker_penalty;
+
 
     // Coverage penalty — линейно урезаем при coverage < covT
     if (coverage < covT && covT > 0) {
