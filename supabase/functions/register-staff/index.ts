@@ -97,9 +97,13 @@ Deno.serve(async (req) => {
     const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      // НЕ ставим email_confirm=true — верификация должна проходить через нашу ссылку
-      // (send-verification-email). Логин при этом не блокируется.
-      email_confirm: false,
+      // Supabase-флаг email_confirm=true нужен ТОЛЬКО чтобы не блокировать логин
+      // (иначе signInWithPassword вернёт "Email not confirmed").
+      // Наш собственный флаг profiles.email_verified остаётся false и
+      // подтверждается только кликом по ссылке из send-verification-email —
+      // так же, как в обычной регистрации пациента.
+      email_confirm: true,
+
       user_metadata: {
         first_name: firstName,
         last_name: lastName,
