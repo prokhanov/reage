@@ -95,7 +95,26 @@ app.post("/render", async (req, reply) => {
     return reply.code(400).send({ error: "invalid_url" });
   }
 
-  log("render_start", { targetOrigin: new URL(url).origin, targetPath: new URL(url).pathname });
+  // Верифицируем HMAC preview-токена прямо здесь — раньше это делала
+  // edge-функция mint-preview-token из ReportPreview, что добавляло ~15 сек
+  // на холодный старт функции + сеть. Теперь preview открывается сразу.
+  let previewToken = "";
+  try {
+    previewToken = new URL(url).searchParams.get("token") || "";
+  } catch {
+    // fallthrough — verifyPreviewToken отдаст token_missing
+  }
+  const tokenCheck = verifyPreviewToken(previewToken);
+  if (!tokenCheck.ok) {
+    logError("preview_token_invalid", { reason: tokenCheck.reason });
+    return reply.code(401).send({ error: "preview_token_invalid", reason: tokenCheck.reason });
+  }
+
+  log("render_start", {
+    targetOrigin: new URL(url).origin,
+    targetPath: new URL(url).pathname,
+    reportId: tokenCheck.claims?.reportId,
+  });
 
   const browser = await getBrowser();
   const context = await browser.newContext({
