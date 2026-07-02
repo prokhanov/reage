@@ -92,24 +92,6 @@ const pagedCss = `
 }
 `;
 
-/* Inline editor markers */
-.reportlab [data-editable-id] {
-  border-radius: 2px;
-  transition: outline-color 0.15s ease, background-color 0.15s ease;
-}
-.reportlab [data-editable-id][contenteditable="true"] {
-  outline: 1.5px dashed rgba(20, 36, 56, 0.28);
-  outline-offset: 4px;
-}
-.reportlab [data-editable-id][contenteditable="true"]:hover {
-  outline-color: rgba(181, 138, 68, 0.55);
-}
-.reportlab [data-editable-id][contenteditable="true"]:focus {
-  outline: 2px solid #b58a44;
-  background: rgba(181, 138, 68, 0.06);
-}
-`;
-
 interface Props {
   report: ProkhanovReport;
   height?: number | string;
