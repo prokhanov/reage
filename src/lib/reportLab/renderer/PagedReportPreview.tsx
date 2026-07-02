@@ -81,17 +81,11 @@ const pagedCss = `
   background: #ffffff;
 }
 
-/* Paged.js держит последующие страницы как CSS-columns. Во время live-редактирования
-   браузер может на мгновение показать соседнюю колонку справа/в середине листа;
-   жёстко клипаем всё дерево страницы, чтобы переполнение не «вылезало» до
-   перепагинации. */
-.pagedjs_page,
-.pagedjs_pagebox,
-.pagedjs_area,
-.pagedjs_page_content,
-.pagedjs_page_content > div {
-  overflow: hidden !important;
-}
+/* Клипаем только внешний контейнер страницы (не area/pagebox/content — они
+   используются паджером как fragmentainer для разбиения). Так живой overflow
+   contentEditable во время редактирования не «улетает» в середину следующего
+   листа, а сам чанкер продолжает корректно считать разбиение страниц. */
+.pagedjs_page { overflow: hidden !important; }
 
 /* Inline editor markers */
 .reportlab [data-editable-id] {
