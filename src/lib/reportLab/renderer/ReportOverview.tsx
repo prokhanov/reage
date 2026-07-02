@@ -1,7 +1,7 @@
 import type { ProkhanovReport } from "../types";
 import { calcAge, getSummaryRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
-import { PageHeader, PageFooter } from "./ReportSection";
+
 
 interface Props {
   report: ProkhanovReport;
