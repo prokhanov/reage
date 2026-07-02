@@ -166,6 +166,8 @@ export interface BioAgeBreakdown {
   blend: { phenoage: number; kdm: number };
   clamped: boolean;
   fallback_used: boolean;
+  hi_floor?: number | null;
+  hi_floor_applied?: boolean;
 }
 
 export interface BioAgeOptions {
@@ -173,7 +175,18 @@ export interface BioAgeOptions {
   corridor?: { years_below: number; years_above: number };
   /** Если PhenoAge/KDM недоступны — фолбэк к этой оценке (например HI-based). */
   fallback?: number | null;
+  /**
+   * Health Index (0..100) — «пол» биовозраста.
+   * PhenoAge/KDM видят только 9 маркеров, а HI считается по всей панели.
+   * Если HI низкий, биовозраст не может быть ниже chrono + штраф от HI —
+   * иначе получаем разрыв: «системы просажены, а bio_age моложе на 10 лет».
+   * floor = chrono + (HI_REF − HI) · SLOPE, применяется только при HI < HI_REF.
+   */
+  hi?: number | null;
 }
+
+const HI_FLOOR_REF = 72;    // При HI ≥ 72 «пол» не активен: PhenoAge может молодить.
+const HI_FLOOR_SLOPE = 0.22; // Каждый −1 к HI поднимает минимальный bio_age на 0.22 года.
 
 export function computeBioAge(
   markers: MarkerInput[],
@@ -197,8 +210,6 @@ export function computeBioAge(
   } else if (pheno != null) {
     raw = pheno;
   } else if (opts.fallback != null && Number.isFinite(opts.fallback)) {
-    // PhenoAge недоступен — пользуемся фолбэком, а не одиноким KDM
-    // (он слишком шумный в одиночку).
     raw = opts.fallback;
     fallback_used = true;
   } else if (kdm != null) {
@@ -206,6 +217,18 @@ export function computeBioAge(
   } else {
     raw = chronoAge;
     fallback_used = true;
+  }
+
+  // HI-floor: страхует случаи, когда PhenoAge/KDM молодят, а системная
+  // физиология (маркеры вне их 9-панели) на самом деле просажена.
+  let hi_floor: number | null = null;
+  let hi_floor_applied = false;
+  if (opts.hi != null && Number.isFinite(opts.hi) && Number(opts.hi) < HI_FLOOR_REF) {
+    hi_floor = chronoAge + (HI_FLOOR_REF - Number(opts.hi)) * HI_FLOOR_SLOPE;
+    if (raw < hi_floor) {
+      raw = hi_floor;
+      hi_floor_applied = true;
+    }
   }
 
   const lo = chronoAge - corridor.years_below;
@@ -221,5 +244,7 @@ export function computeBioAge(
     blend,
     clamped,
     fallback_used,
+    hi_floor: hi_floor != null ? Number(hi_floor.toFixed(1)) : null,
+    hi_floor_applied,
   };
 }

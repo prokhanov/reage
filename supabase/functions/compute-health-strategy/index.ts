@@ -326,7 +326,7 @@ serve(async (req) => {
     try {
       const _inputsBA = toMarkerInputs(latest.analysis_values || [], chronoAge, profile.gender || null);
       const fallbackBA = chronoAge + (82 - hiForBio) * 0.18;
-      const ba = computeBioAge(_inputsBA, chronoAge, { fallback: fallbackBA });
+      const ba = computeBioAge(_inputsBA, chronoAge, { fallback: fallbackBA, hi: hiForBio });
       if (ba && Number.isFinite(ba.bio_age)) {
         recalcBio = Math.round(ba.bio_age * 10) / 10;
       }
