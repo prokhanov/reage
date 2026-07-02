@@ -14,6 +14,7 @@ import { usePatientModuleAccess } from "@/hooks/usePatientModuleAccess";
 import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { CreatePrescriptionDialog } from "@/components/admin/CreatePrescriptionDialog";
 import { EditPrescriptionDialog } from "@/components/admin/EditPrescriptionDialog";
+import { EditAdvisoryDialog } from "@/components/admin/EditAdvisoryDialog";
 import { PrescriptionListSkeleton } from "@/components/skeletons/PrescriptionListSkeleton";
 import { PrescriptionCard } from "@/components/prescriptions/PrescriptionCard";
 import { AdvisorySections } from "@/components/prescriptions/AdvisorySections";
