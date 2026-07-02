@@ -213,6 +213,14 @@ app.post("/render", async (req, reply) => {
     }
     log("wait_report_ready_done", { elapsedMs: Date.now() - startedAt, state: readyState.state });
 
+    await page.evaluate(() => {
+      const pages = document.querySelector(".pagedjs_pages");
+      if (!pages) return;
+      document.body.classList.add("report-pdf-printing");
+      document.body.innerHTML = "";
+      document.body.appendChild(pages);
+    });
+
     // Колонтитулы и разрывы теперь рисует paged.js из того же CSS, что видит
     // постраничный preview. Не включаем нативные header/footer Chromium, иначе
     // preview и итоговый PDF снова будут расходиться.

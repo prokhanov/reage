@@ -43,6 +43,8 @@ const pagedCss = `
   background: #ffffff;
 }
 @media print {
+  html, body { margin: 0 !important; padding: 0 !important; background: #ffffff !important; }
+  body.report-pdf-printing .pagedjs_pages { display: block !important; }
   .pagedjs_page { margin: 0 !important; box-shadow: none !important; }
 }
 `;
