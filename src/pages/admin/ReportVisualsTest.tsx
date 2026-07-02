@@ -92,9 +92,9 @@ export default function ReportVisualsTest() {
 
   const patientLabel = useMemo(
     () =>
-      [REPORT.patient.first_name, REPORT.patient.last_name]
+      [report.patient.first_name, report.patient.last_name]
         .filter(Boolean)
-        .join(" ") + " · " + REPORT.analysis.date,
+        .join(" ") + " · " + report.analysis.date,
     [],
   );
 
@@ -136,7 +136,7 @@ export default function ReportVisualsTest() {
         await navigator.share({
           files: [readyPdf.file],
           title: "ReAge · Персональный отчёт",
-          text: `Отчёт от ${REPORT.analysis.date}`,
+          text: `Отчёт от ${report.analysis.date}`,
         });
         appendPdfLog("success", "Файл передан в системный share-sheet");
         toast.success("PDF передан", "Выберите «Сохранить в Файлы» или нужное приложение.");
@@ -251,7 +251,7 @@ export default function ReportVisualsTest() {
       const blob = await response.blob();
       appendPdfLog("success", "PDF получен", `${Math.round(blob.size / 1024)} KB`);
 
-      const filename = `reage-report-prokhanov-${REPORT.analysis.date}.pdf`;
+      const filename = `reage-report-prokhanov-${report.analysis.date}.pdf`;
       const file = new File([blob], filename, { type: "application/pdf" });
       const ua = navigator.userAgent || "";
       const isIOS = /iP(hone|ad|od)/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
@@ -426,9 +426,9 @@ export default function ReportVisualsTest() {
         )}
 
         {paginated ? (
-          <PagedReportPreview report={REPORT} />
+          <PagedReportPreview report={report} />
         ) : (
-          <ReportDocument report={REPORT} />
+          <ReportDocument report={report} />
         )}
       </div>
     </div>
