@@ -1,0 +1,2 @@
+UPDATE public.analyses SET biological_age = 29.1 WHERE id = 'f86ba4c7-6818-4083-941e-0204e1465bbd';
+UPDATE public.health_strategy_snapshots SET current_bio_age = 29.1 WHERE analysis_id = 'f86ba4c7-6818-4083-941e-0204e1465bbd';
