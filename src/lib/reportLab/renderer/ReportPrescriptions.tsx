@@ -79,7 +79,7 @@ export function ReportPrescriptions({ report }: Props) {
         </>
       )}
 
-      <PageFooter title="Назначения" />
     </section>
+
   );
 }
