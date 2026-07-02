@@ -480,6 +480,18 @@ export default function Prescriptions() {
         onOpenChange={(open) => !open && setEditPrescription(null)}
         prescription={editPrescription}
       />
+
+      {userId && hasPatientAccess && (
+        <EditAdvisoryDialog
+          open={editAdvisoryOpen}
+          onOpenChange={setEditAdvisoryOpen}
+          userId={userId}
+          preferredAnalysisId={activeAnalysisId}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ["recommendations-advisory"] });
+          }}
+        />
+      )}
   </>
   );
 }
