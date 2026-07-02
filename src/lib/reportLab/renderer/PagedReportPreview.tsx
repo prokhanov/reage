@@ -9,16 +9,6 @@ import { htmlToMarkdown } from "../editor/markdown";
 import themeCss from "../theme.css?raw";
 
 const pagedCss = `
-/* Google-Docs-style серый холст вокруг листов */
-.rl-paged-shell,
-.rl-paged-output,
-.pagedjs_pages {
-  background: #e6e7ea !important;
-}
-.rl-paged-output {
-  padding: 32px 0;
-}
-
 .reportlab { padding: 0 !important; background: transparent !important; min-height: 0 !important; }
 .reportlab .rl-page {
   width: auto !important;
@@ -46,15 +36,38 @@ const pagedCss = `
   @bottom-left { content: none !important; }
   @bottom-right { content: none !important; }
 }
-.pagedjs_pages { display: block; }
+
+/* База для PDF/чистого рендера: листы идут встык, без экранных зазоров. */
+.pagedjs_pages { display: block; background: #ffffff !important; }
 .pagedjs_page {
   background: #ffffff !important;
-  margin: 24px auto !important;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  margin: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  position: relative;
+}
+
+/* Экранный режим в админке: как Google Docs — серый холст и отдельные листы. */
+.rl-paged-shell-framed {
+  background: #e6e7ea !important;
+  overflow: auto;
+}
+.rl-paged-shell-framed .rl-paged-output,
+.rl-paged-shell-framed .pagedjs_pages {
+  background: #e6e7ea !important;
+}
+.rl-paged-shell-framed .rl-paged-output {
+  padding: 32px 0 !important;
+}
+.rl-paged-shell-framed .pagedjs_page {
+  margin: 0 auto 48px !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.08),
-    0 12px 32px -12px rgba(20, 36, 56, 0.35);
-  position: relative;
+    0 16px 36px -14px rgba(20, 36, 56, 0.38) !important;
+}
+.rl-paged-shell-framed .pagedjs_page:last-child {
+  margin-bottom: 0 !important;
 }
 .pagedjs_pagebox,
 .pagedjs_margin-top,
@@ -66,12 +79,6 @@ const pagedCss = `
 .pagedjs_margin-bottom-left-corner-holder,
 .pagedjs_margin-bottom-right-corner-holder {
   background: #ffffff;
-}
-@media print {
-  html, body { margin: 0 !important; padding: 0 !important; background: #ffffff !important; }
-  body.report-pdf-printing .pagedjs_pages { display: block !important; }
-  .rl-paged-shell, .rl-paged-output, .pagedjs_pages { background: #ffffff !important; padding: 0 !important; }
-  .pagedjs_page { margin: 0 !important; box-shadow: none !important; border: none !important; }
 }
 
 /* Inline editor markers */
