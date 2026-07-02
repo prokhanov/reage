@@ -10,6 +10,7 @@
 
 import Fastify from "fastify";
 import { chromium } from "playwright";
+import { randomUUID } from "node:crypto";
 
 const PORT = Number(process.env.PORT || 8080);
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
@@ -41,15 +42,24 @@ async function getBrowser() {
 app.get("/healthz", async () => ({ ok: true, ts: Date.now() }));
 
 app.post("/render", async (req, reply) => {
+  const requestId = req.headers["x-debug-request-id"] || req.body?.requestId || randomUUID();
+  const startedAt = Date.now();
+  const log = (message, extra = {}) => req.log.info({ requestId, ...extra }, message);
+  const logError = (message, extra = {}) => req.log.error({ requestId, ...extra }, message);
+
   const authHeader = req.headers["x-render-auth"];
   if (!AUTH_TOKEN || authHeader !== AUTH_TOKEN) {
+    logError("unauthorized_render_request", { hasAuthToken: Boolean(AUTH_TOKEN), hasHeader: Boolean(authHeader) });
     return reply.code(401).send({ error: "unauthorized" });
   }
   const body = req.body || {};
   const url = typeof body.url === "string" ? body.url : "";
   if (!/^https?:\/\//i.test(url)) {
+    logError("invalid_url", { urlType: typeof body.url });
     return reply.code(400).send({ error: "invalid_url" });
   }
+
+  log("render_start", { targetOrigin: new URL(url).origin, targetPath: new URL(url).pathname });
 
   const browser = await getBrowser();
   const context = await browser.newContext({
@@ -58,12 +68,38 @@ app.post("/render", async (req, reply) => {
   });
   const page = await context.newPage();
 
+  page.on("console", (msg) => {
+    log("browser_console", { type: msg.type(), text: msg.text().slice(0, 1000) });
+  });
+  page.on("pageerror", (err) => {
+    logError("browser_pageerror", { message: err.message, stack: err.stack?.slice(0, 2000) });
+  });
+  page.on("requestfailed", (request) => {
+    logError("browser_request_failed", {
+      url: request.url().slice(0, 1000),
+      method: request.method(),
+      failure: request.failure()?.errorText,
+    });
+  });
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      logError("browser_bad_response", {
+        url: response.url().slice(0, 1000),
+        status: response.status(),
+      });
+    }
+  });
+
   try {
+    log("goto_start");
     await page.goto(url, { waitUntil: "networkidle", timeout: NAV_TIMEOUT_MS });
+    log("goto_done", { elapsedMs: Date.now() - startedAt, pageUrl: page.url() });
     // Ждём сигнал от ReportDocument: шрифты + rAF + 50ms задержка.
+    log("wait_report_ready_start");
     await page.waitForFunction(() => window.__reportReady === true, {
       timeout: NAV_TIMEOUT_MS,
     });
+    log("wait_report_ready_done", { elapsedMs: Date.now() - startedAt });
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -71,13 +107,20 @@ app.post("/render", async (req, reply) => {
       margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
       timeout: PDF_TIMEOUT_MS,
     });
+    log("pdf_done", { bytes: pdf.length, elapsedMs: Date.now() - startedAt });
     reply.header("Content-Type", "application/pdf");
     reply.header("Content-Length", pdf.length);
     return reply.send(pdf);
   } catch (err) {
-    req.log.error({ err: String(err) }, "render_failed");
+    logError("render_failed", {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.slice(0, 4000) : undefined,
+      elapsedMs: Date.now() - startedAt,
+      pageUrl: page.url(),
+    });
     return reply.code(500).send({
       error: "render_failed",
+      requestId,
       message: err instanceof Error ? err.message : String(err),
     });
   } finally {

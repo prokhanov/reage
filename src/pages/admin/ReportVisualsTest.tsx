@@ -1,14 +1,51 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Download, ExternalLink, Loader2 } from "lucide-react";
 import { notify as toast } from "@/lib/toast";
+import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument } from "@/lib/reportLab/renderer";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
 const REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
+
+type PdfLogLevel = "info" | "success" | "error";
+type PdfLogEntry = {
+  id: string;
+  time: string;
+  level: PdfLogLevel;
+  message: string;
+  details?: string;
+};
+
+function nowLabel() {
+  return new Date().toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatError(e: unknown) {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  try {
+    return JSON.stringify(e, null, 2);
+  } catch {
+    return String(e);
+  }
+}
+
+async function readResponseBody(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const json = await response.json().catch(() => null);
+    return JSON.stringify(json, null, 2);
+  }
+  return (await response.text().catch(() => "")).slice(0, 2000);
+}
 
 /**
  * /admin/report-visuals — песочница нового поколения PDF-отчёта.
@@ -24,6 +61,23 @@ const REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 export default function ReportVisualsTest() {
   const [minting, setMinting] = useState(false);
   const [rendering, setRendering] = useState(false);
+  const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
+
+  const appendPdfLog = useCallback(
+    (level: PdfLogLevel, message: string, details?: string) => {
+      setPdfLogs((prev) => [
+        ...prev.slice(-39),
+        {
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          time: nowLabel(),
+          level,
+          message,
+          details,
+        },
+      ]);
+    },
+    [],
+  );
 
   const patientLabel = useMemo(
     () =>
@@ -57,15 +111,62 @@ export default function ReportVisualsTest() {
 
   async function downloadPdf() {
     setRendering(true);
+    setPdfLogs([]);
+    const startedAt = performance.now();
+    appendPdfLog("info", "Старт скачивания PDF", `reportId=prokhanov`);
+
+    const progressTimer = window.setInterval(() => {
+      const seconds = Math.round((performance.now() - startedAt) / 1000);
+      appendPdfLog("info", `Ожидание ответа от backend/Fly: ${seconds} сек`);
+    }, 15000);
+
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "render-report-pdf",
-        { body: { reportId: "prokhanov" } },
+      appendPdfLog("info", "Проверяю текущую авторизацию");
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      appendPdfLog(
+        token ? "success" : "error",
+        token ? "JWT найден, отправляю запрос в edge-функцию" : "JWT не найден — запрос уйдёт без авторизации",
       );
-      if (error) throw error;
-      const blob = data instanceof Blob ? data : new Blob([data as BlobPart], {
-        type: "application/pdf",
+
+      const endpoint = edgeFunctionUrl("render-report-pdf");
+      const requestId = crypto.randomUUID();
+      appendPdfLog("info", "POST render-report-pdf", `requestId=${requestId}`);
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "X-Debug-Request-Id": requestId,
+        },
+        body: JSON.stringify({ reportId: "prokhanov" }),
       });
+
+      const elapsedMs = Math.round(performance.now() - startedAt);
+      appendPdfLog(
+        response.ok ? "success" : "error",
+        `Ответ edge-функции: HTTP ${response.status} за ${elapsedMs} мс`,
+        `content-type=${response.headers.get("content-type") || "—"}`,
+      );
+
+      if (!response.ok) {
+        const body = await readResponseBody(response);
+        appendPdfLog("error", "Тело ошибки от edge-функции", body || "Пустое тело ответа");
+        throw new Error(`render-report-pdf вернула HTTP ${response.status}`);
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/pdf")) {
+        const body = await readResponseBody(response);
+        appendPdfLog("error", "Ожидался PDF, но пришёл другой content-type", body || contentType);
+        throw new Error(`Ожидался application/pdf, пришёл ${contentType || "unknown"}`);
+      }
+
+      const blob = await response.blob();
+      appendPdfLog("success", "PDF получен", `${Math.round(blob.size / 1024)} KB`);
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -74,13 +175,16 @@ export default function ReportVisualsTest() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      appendPdfLog("success", "Скачивание передано браузеру");
     } catch (e) {
       console.error(e);
+      appendPdfLog("error", "Скачивание PDF упало", formatError(e));
       toast.error(
         "PDF ещё недоступен",
-        "Fly-рендерер не задеплоен или недоступен. См. deploy/report-renderer/README.md",
+        formatError(e),
       );
     } finally {
+      window.clearInterval(progressTimer);
       setRendering(false);
     }
   }
@@ -128,6 +232,51 @@ export default function ReportVisualsTest() {
           Боевой кабинет пациента и legacy-PDF не затрагиваются. Итерации по
           вёрстке — прямо здесь.
         </Card>
+
+        {pdfLogs.length > 0 && (
+          <Card className="mb-6 border bg-background p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold">Диагностика PDF</div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPdfLogs([])}
+                disabled={rendering}
+              >
+                Очистить
+              </Button>
+            </div>
+            <div className="space-y-2 font-mono text-xs">
+              {pdfLogs.map((log) => (
+                <div
+                  key={log.id}
+                  className="rounded-md border bg-muted/30 p-3"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-muted-foreground">{log.time}</span>
+                    <span
+                      className={
+                        log.level === "success"
+                          ? "text-primary"
+                          : log.level === "error"
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      }
+                    >
+                      {log.level.toUpperCase()}
+                    </span>
+                    <span>{log.message}</span>
+                  </div>
+                  {log.details && (
+                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-muted/50 p-2 text-muted-foreground">
+                      {log.details}
+                    </pre>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         <ReportDocument report={REPORT} />
       </div>
