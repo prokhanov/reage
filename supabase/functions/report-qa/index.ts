@@ -79,6 +79,86 @@ function repairTruncatedAnchors(text: string): { text: string; fixed: number } {
   return { text: result, fixed };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// normalizeStructuralHeadings — страховка для случаев, когда модель забыла
+// поставить Markdown-префиксы (##/###/####) для канонических подзаголовков
+// разделов отчёта. Работает построчно и идемпотентно: строки, уже начинающиеся
+// с '#', пропускаются. Точный whitelist — без эвристик по длине.
+// ─────────────────────────────────────────────────────────────────────────────
+function normalizeStructuralHeadings(text: string): {
+  text: string;
+  changed: string[];
+} {
+  if (!text) return { text, changed: [] };
+
+  const normalize = (s: string): string =>
+    s
+      .trim()
+      .toLowerCase()
+      .replace(/[«»""'']/g, '"')
+      .replace(/\s+/g, " ");
+
+  // Точные строки → уровень заголовка
+  const H2_EXACT = new Set(
+    [
+      "Интерпретация биомаркеров",
+      "Разбор показателей",
+      "Разбор биомаркеров",
+      "Ключевые показатели",
+      "Ключевые биомаркеры",
+    ].map(normalize),
+  );
+
+  const H3_EXACT = new Set(
+    ["Сильные стороны организма", "Дефициты и дисфункции"].map(normalize),
+  );
+
+  // H2 по префиксу: "Общая оценка системы организма ..." (название категории
+  // варьируется по кавычкам и падежам).
+  const H2_PREFIX = normalize("Общая оценка системы организма");
+
+  // H4: "Что это значит для вас" — с двоеточием и без.
+  const H4_BASE = normalize("Что это значит для вас");
+
+  const lines = text.split("\n");
+  const changed: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const stripped = raw.trim();
+    if (!stripped) continue;
+    // Идемпотентность — строка уже заголовок.
+    if (/^#{1,6}\s/.test(stripped)) continue;
+
+    const key = normalize(stripped);
+
+    if (H2_EXACT.has(key)) {
+      lines[i] = `## ${stripped}`;
+      changed.push(stripped);
+      continue;
+    }
+    if (H3_EXACT.has(key)) {
+      lines[i] = `### ${stripped}`;
+      changed.push(stripped);
+      continue;
+    }
+    if (key.startsWith(H2_PREFIX)) {
+      lines[i] = `## ${stripped}`;
+      changed.push(stripped);
+      continue;
+    }
+    if (key === H4_BASE || key === H4_BASE + ":") {
+      // Приводим к каноническому виду с двоеточием.
+      const withColon = stripped.endsWith(":") ? stripped : `${stripped}:`;
+      lines[i] = `#### ${withColon}`;
+      changed.push(withColon);
+      continue;
+    }
+  }
+
+  return { text: lines.join("\n"), changed };
+}
+
 function injectMissingBiomarkerAnchors(
   report: string,
   biomarkers: Array<{ name: string; code: string }>,
