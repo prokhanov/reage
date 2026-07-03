@@ -2,7 +2,7 @@ import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Edit, Search, Bot, TrendingUp, FlaskConical, Map as MapIcon, Dna, Target, Pill, ClipboardList, BarChart3, Languages, BookOpen, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Edit, Search, Bot, TrendingUp, FlaskConical, Map as MapIcon, Dna, Target, Pill, ClipboardList, BarChart3, type LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -104,29 +104,6 @@ const reportSections = [
   }
 ];
 
-// Конфигурация секции QA-валидатора отчёта
-const qaStandaloneSections = [
-  {
-    id: 'qa_translate_english',
-    name: 'QA · Перевод английских фрагментов',
-    icon: Languages as LucideIcon,
-    description: 'Перевод случайных английских слов, попавших в русский отчёт (медицинские термины/бренды/коды не трогаются)',
-    promptKey: 'qa_translate_english',
-  },
-];
-
-const qaPairedSections = [
-  {
-    id: 'qa_biomarker_education',
-    name: 'QA · Догенерация описания биомаркера',
-    icon: BookOpen as LucideIcon,
-    description: 'Если у биомаркера в отчёте нет описательного блока — валидатор просит AI сгенерировать его по этому шаблону',
-    systemKey: 'qa_biomarker_education',
-    userKey: 'qa_biomarker_education_user',
-    placeholders: '{{biomarker_name}}, {{biomarker_code}}, {{value_line}}, {{report_context}}, {{knowledge_block}}',
-  },
-];
-
 export default function AISettings() {
   const { toast } = useToast();
   const { data: settings, isLoading } = useAISettings();
@@ -192,30 +169,6 @@ export default function AISettings() {
     systemPrompt: settings?.find(s => s.key === section.systemKey),
     userPrompt: settings?.find(s => s.key === section.userKey)
   }));
-
-  // Маппинг QA-промптов
-  const qaStandalonePrompts = qaStandaloneSections.map(section => ({
-    section,
-    prompt: settings?.find(s => s.key === section.promptKey),
-  }));
-  const qaPairedPrompts = qaPairedSections.map(section => ({
-    section,
-    systemPrompt: settings?.find(s => s.key === section.systemKey),
-    userPrompt: settings?.find(s => s.key === section.userKey),
-  }));
-  const filteredQaStandalonePrompts = searchQuery
-    ? qaStandalonePrompts.filter(sp =>
-        sp.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sp.prompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : qaStandalonePrompts;
-  const filteredQaPairedPrompts = searchQuery
-    ? qaPairedPrompts.filter(pp =>
-        pp.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pp.systemPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pp.userPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : qaPairedPrompts;
 
   // Фильтруем стратегию по поисковому запросу
   const filteredRiskZonePrompts = searchQuery
@@ -811,141 +764,7 @@ export default function AISettings() {
           </div>
         )}
 
-        {/* Раздел: Валидатор отчёта (QA) */}
-        {(filteredQaStandalonePrompts.length > 0 || filteredQaPairedPrompts.length > 0) && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold">Валидатор отчёта (QA)</h2>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              Промпты, которые использует функция «Проверить отчёт» (edge function <span className="font-mono">report-qa</span>): перевод случайных английских фрагментов и догенерация недостающих описаний биомаркеров.
-            </p>
-            <Accordion type="multiple" className="space-y-4">
-              {filteredQaStandalonePrompts.map((sp) => (
-                <AccordionItem key={sp.section.id} value={sp.section.id} className="border rounded-lg">
-                  <AccordionTrigger className="px-6 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><sp.section.icon className="h-5 w-5 text-primary" /></div>
-                      <div className="text-left">
-                        <div className="font-semibold">{sp.section.name}</div>
-                        <div className="text-sm text-muted-foreground">{sp.section.description}</div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6">
-                    <div className="space-y-4 mt-4">
-                      {sp.prompt ? (
-                        <Card>
-                          <CardHeader>
-                            <div className="flex items-start justify-between gap-2">
-                              <Badge variant="secondary" className="text-xs">System Prompt</Badge>
-                              <Badge variant="outline" className="text-xs font-mono">{sp.prompt.key}</Badge>
-                            </div>
-                            <CardTitle className="text-base">{sp.prompt.description || sp.section.name}</CardTitle>
-                            <CardDescription className="text-xs">
-                              {sp.prompt.updated_at && <>Обновлено: {format(new Date(sp.prompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
-                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{sp.prompt.prompt_text}</p>
-                            </div>
-                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(sp.prompt)}>
-                              <Edit className="w-3 h-3 mr-2" />Редактировать
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
-                          Промпт не найден в базе данных (ключ: {sp.section.promptKey})
-                        </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-
-              {filteredQaPairedPrompts.map((pp) => (
-                <AccordionItem key={pp.section.id} value={pp.section.id} className="border rounded-lg">
-                  <AccordionTrigger className="px-6 hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><pp.section.icon className="h-5 w-5 text-primary" /></div>
-                      <div className="text-left">
-                        <div className="font-semibold">{pp.section.name}</div>
-                        <div className="text-sm text-muted-foreground">{pp.section.description}</div>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-6">
-                    <div className="space-y-4 mt-4">
-                      {pp.section.placeholders && (
-                        <div className="text-xs text-muted-foreground p-3 border border-dashed rounded-md">
-                          Доступные плейсхолдеры: <span className="font-mono">{pp.section.placeholders}</span>
-                        </div>
-                      )}
-                      {pp.systemPrompt ? (
-                        <Card>
-                          <CardHeader>
-                            <div className="flex items-start justify-between gap-2">
-                              <Badge variant="secondary" className="text-xs">System Prompt</Badge>
-                              <Badge variant="outline" className="text-xs font-mono">{pp.systemPrompt.key}</Badge>
-                            </div>
-                            <CardTitle className="text-base">{pp.systemPrompt.description || "System промпт"}</CardTitle>
-                            <CardDescription className="text-xs">
-                              {pp.systemPrompt.updated_at && <>Обновлено: {format(new Date(pp.systemPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
-                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{pp.systemPrompt.prompt_text}</p>
-                            </div>
-                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(pp.systemPrompt)}>
-                              <Edit className="w-3 h-3 mr-2" />Редактировать
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
-                          System промпт не найден (ключ: {pp.section.systemKey})
-                        </div>
-                      )}
-                      {pp.userPrompt ? (
-                        <Card>
-                          <CardHeader>
-                            <div className="flex items-start justify-between gap-2">
-                              <Badge variant="secondary" className="text-xs">User Prompt</Badge>
-                              <Badge variant="outline" className="text-xs font-mono">{pp.userPrompt.key}</Badge>
-                            </div>
-                            <CardTitle className="text-base">{pp.userPrompt.description || "User промпт"}</CardTitle>
-                            <CardDescription className="text-xs">
-                              {pp.userPrompt.updated_at && <>Обновлено: {format(new Date(pp.userPrompt.updated_at), "d MMMM yyyy, HH:mm", { locale: ru })}</>}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="bg-muted p-3 rounded-md mb-3 max-h-32 overflow-y-auto">
-                              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{pp.userPrompt.prompt_text}</p>
-                            </div>
-                            <Button variant="outline" size="sm" className="w-full" onClick={() => handleEdit(pp.userPrompt)}>
-                              <Edit className="w-3 h-3 mr-2" />Редактировать
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        <div className="text-sm text-muted-foreground p-4 bg-muted rounded-lg">
-                          User промпт не найден (ключ: {pp.section.userKey})
-                        </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        )}
-
       </div>
-
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

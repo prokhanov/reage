@@ -434,13 +434,10 @@ function detectEnglishArtifacts(
 async function translateEnglishFragments(
   fragments: Array<{ match: string; context: string }>,
   model: string,
-  systemPromptOverride?: string | null,
 ): Promise<Record<string, string>> {
   if (fragments.length === 0) return {};
 
-  const system = (systemPromptOverride && systemPromptOverride.trim().length > 20)
-    ? systemPromptOverride
-    : `Ты медицинский редактор-переводчик. На вход получаешь JSON-массив объектов {match, context}, где match — английский фрагмент, попавший в русский медицинский отчёт по ошибке, context — окружающий русский текст.
+  const system = `Ты медицинский редактор-переводчик. На вход получаешь JSON-массив объектов {match, context}, где match — английский фрагмент, попавший в русский медицинский отчёт по ошибке, context — окружающий русский текст.
 
 Твоя задача: для каждого match вернуть точный русский перевод, сохраняющий медицинский смысл и стилистику окружающего контекста.
 
@@ -458,7 +455,6 @@ async function translateEnglishFragments(
 - Сохраняй регистр и пунктуацию по контексту.
 
 Верни ТОЛЬКО валидный JSON в формате: {"translations": [{"match": "...", "russian": "..."}, ...]}. Без обёрток, без комментариев.`;
-
 
   const user = JSON.stringify({ fragments }, null, 2);
 
@@ -512,28 +508,8 @@ async function generateBiomarkerEducation(
   model: string,
   reportContext: string,
   generalDescription: string | null,
-  systemPromptTemplate?: string | null,
-  userPromptTemplate?: string | null,
 ): Promise<string | null> {
-  const applyVars = (tpl: string, vars: Record<string, string>) =>
-    tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => (k in vars ? vars[k] : ""));
-
-  const knowledge = generalDescription && generalDescription.trim().length > 40
-    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
-    : "";
-  const trimmedContext = reportContext.slice(0, 2000);
-
-  const vars = {
-    biomarker_name: biomarkerName,
-    biomarker_code: biomarkerCode,
-    value_line: valueLine,
-    report_context: trimmedContext,
-    knowledge_block: knowledge,
-  };
-
-  const system = (systemPromptTemplate && systemPromptTemplate.trim().length > 20)
-    ? applyVars(systemPromptTemplate, vars)
-    : `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
+  const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
 <!-- anchor:biomarker ${biomarkerCode} -->
 ${biomarkerName}
@@ -545,14 +521,15 @@ ${valueLine}
 [Если отклонение — добавь блок «Что это значит для вас» с практическим выводом для конкретного значения.]
 <!-- anchor:biomarker_end -->`;
 
-  const user = (userPromptTemplate && userPromptTemplate.trim().length > 20)
-    ? applyVars(userPromptTemplate, vars)
-    : `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
+  const knowledge = generalDescription && generalDescription.trim().length > 40
+    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
+    : "";
+
+  const user = `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
 Контекст отчёта (для тонального соответствия, не цитируй):
-${trimmedContext}${knowledge}
+${reportContext.slice(0, 2000)}${knowledge}
 
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
-
 
   const buildFromKnowledge = (): string | null => {
     if (!generalDescription || generalDescription.trim().length < 40) return null;
@@ -743,20 +720,7 @@ Deno.serve(async (req) => {
           (analysis as any)?.biomarkers_metadata?.ai_model ||
           "google/gemini-2.5-pro";
 
-        // Загружаем QA-промпты из ai_prompt_settings (с fallback на встроенные)
-        const { data: qaPromptRows } = await admin
-          .from("ai_prompt_settings")
-          .select("key, prompt_text")
-          .in("key", ["qa_translate_english", "qa_biomarker_education", "qa_biomarker_education_user"]);
-        const qaPrompts: Record<string, string> = {};
-        for (const row of (qaPromptRows || []) as any[]) {
-          if (row?.key && typeof row.prompt_text === "string") {
-            qaPrompts[row.key] = row.prompt_text;
-          }
-        }
-
         send({ type: "status", message: "Загружаю секции рекомендаций…" });
-
         const { data: recs, error: rErr } = await admin
           .from("recommendations")
           .select("id, type, text")
@@ -914,8 +878,6 @@ Deno.serve(async (req) => {
                 aiModel,
                 reportContext,
                 generalDesc,
-                qaPrompts["qa_biomarker_education"],
-                qaPrompts["qa_biomarker_education_user"],
               );
               aiRepairsDone++;
               if (generated) {
@@ -960,7 +922,7 @@ Deno.serve(async (req) => {
                 type: "status",
                 message: `[${sectionLabel}] Найдены английские артефакты (${unique.length} уник.). Перевожу…`,
               });
-              translations = await translateEnglishFragments(unique, aiModel, qaPrompts["qa_translate_english"]);
+              translations = await translateEnglishFragments(unique, aiModel);
               aiRepairsDone++;
             } else {
               const msg = `[${sectionLabel}] Английские фрагменты найдены, но перевод пропущен по лимиту времени.`;
