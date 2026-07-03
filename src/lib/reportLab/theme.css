@@ -600,6 +600,38 @@ html, body {
   color: var(--ink);
 }
 
+/* Нутрицевтики — карточка в стиле приложения, адаптированная под печать */
+.reportlab .rl-nutri {
+  padding: 6mm 7mm;
+  margin: 0 0 4mm;
+}
+.reportlab .rl-nutri-title {
+  font-family: var(--font-serif);
+  font-size: 12pt;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 2.5mm;
+}
+.reportlab .rl-nutri-row {
+  font-size: 10pt;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0.8mm 0;
+}
+.reportlab .rl-nutri-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+.reportlab .rl-nutri-reason {
+  font-size: 10pt;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 2.5mm 0 1.5mm;
+  padding: 3mm 4mm;
+  background: rgba(181, 138, 68, 0.08);
+  border-left: 2px solid var(--gold);
+}
+
 /* ─── Inline editor (Tiptap) ─────────────────────────────────────────────── */
 .reportlab .rl-editable-wrap .ProseMirror {
   outline: 1.5px dashed rgba(20, 36, 56, 0.25);
