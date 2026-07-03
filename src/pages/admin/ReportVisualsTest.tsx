@@ -53,26 +53,9 @@ export default function ReportVisualsTest() {
   const [minting, setMinting] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [paginated, setPaginated] = useState(true);
-  const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
   const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
   const [report, setReport] = useState<ProkhanovReport>(INITIAL_REPORT);
   const readyPdfUrlRef = useRef<string | null>(null);
-
-  const appendPdfLog = useCallback(
-    (level: PdfLogLevel, message: string, details?: string) => {
-      setPdfLogs((prev) => [
-        ...prev.slice(-39),
-        {
-          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          time: nowLabel(),
-          level,
-          message,
-          details,
-        },
-      ]);
-    },
-    [],
-  );
 
   const patientLabel = useMemo(
     () =>
