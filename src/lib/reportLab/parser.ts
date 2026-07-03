@@ -164,8 +164,9 @@ export function parseCategory(
 export function resolveStatus(
   biomarker: ReportBiomarker,
   gender: "male" | "female" | "other" | null,
+  age: number | null = null,
 ): BiomarkerStatus {
-  const range = resolveRange(biomarker, gender);
+  const range = resolveRange(biomarker, gender, age);
   const v = biomarker.value;
 
   if (range.criticalMin !== null && v < range.criticalMin) return "critical-low";
@@ -183,9 +184,36 @@ export function resolveStatus(
   return "optimal";
 }
 
+interface AgeRangeRow {
+  age_from?: number | null;
+  age_to?: number | null;
+  min?: number | null;
+  max?: number | null;
+  optimal_min?: number | null;
+  optimal_max?: number | null;
+  critical_min?: number | null;
+  critical_max?: number | null;
+}
+
+function pickAgeRow(
+  rows: AgeRangeRow[] | null | undefined,
+  age: number | null,
+): AgeRangeRow | null {
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  const a = age ?? 30;
+  for (const r of rows) {
+    const from = r.age_from ?? 0;
+    const to = r.age_to ?? 200;
+    if (a >= from && a <= to) return r;
+  }
+  // fallback: ближайший по возрасту
+  return rows[0];
+}
+
 export function resolveRange(
   b: ReportBiomarker,
   gender: "male" | "female" | "other" | null,
+  age: number | null = null,
 ): ResolvedRange {
   const pick = (
     common: number | null,
@@ -196,15 +224,49 @@ export function resolveRange(
     if (gender === "female" && female !== null) return female;
     return common;
   };
+
+  // Стартовые значения из плоских колонок (fallback).
+  let warningMin = pick(b.normal_min, b.normal_min_male, b.normal_min_female);
+  let warningMax = pick(b.normal_max, b.normal_max_male, b.normal_max_female);
+  let optimalMin = pick(b.optimal_min, b.optimal_min_male, b.optimal_min_female);
+  let optimalMax = pick(b.optimal_max, b.optimal_max_male, b.optimal_max_female);
+  let criticalMin = pick(b.critical_min, b.critical_min_male, b.critical_min_female);
+  let criticalMax = pick(b.critical_max, b.critical_max_male, b.critical_max_female);
+
+  // Если биомаркер использует возрастную шкалу — приоритет её данных.
+  const ageRanges = (b as unknown as {
+    age_ranges?: { male?: AgeRangeRow[]; female?: AgeRangeRow[] } | null;
+  }).age_ranges;
+  const rangeMode = (b as unknown as { range_mode?: string | null }).range_mode;
+  if (rangeMode === "age" && ageRanges) {
+    const genderRows =
+      gender === "female" ? ageRanges.female : ageRanges.male;
+    const row = pickAgeRow(genderRows ?? null, age);
+    if (row) {
+      if (row.min != null) warningMin = row.min;
+      if (row.max != null) warningMax = row.max;
+      if (row.optimal_min != null) optimalMin = row.optimal_min;
+      if (row.optimal_max != null) optimalMax = row.optimal_max;
+      if (row.critical_min != null) criticalMin = row.critical_min;
+      if (row.critical_max != null) criticalMax = row.critical_max;
+    }
+  }
+
+  // Гарантируем, что зелёный «оптимум» всегда есть, если задан warning-диапазон:
+  // если optimal_min/max не заполнены — считаем, что оптимум совпадает с warning.
+  if (optimalMin === null && warningMin !== null) optimalMin = warningMin;
+  if (optimalMax === null && warningMax !== null) optimalMax = warningMax;
+
   return {
-    criticalMin: pick(b.critical_min, b.critical_min_male, b.critical_min_female),
-    warningMin: pick(b.normal_min, b.normal_min_male, b.normal_min_female),
-    optimalMin: pick(b.optimal_min, b.optimal_min_male, b.optimal_min_female),
-    optimalMax: pick(b.optimal_max, b.optimal_max_male, b.optimal_max_female),
-    warningMax: pick(b.normal_max, b.normal_max_male, b.normal_max_female),
-    criticalMax: pick(b.critical_max, b.critical_max_male, b.critical_max_female),
+    criticalMin,
+    warningMin,
+    optimalMin,
+    optimalMax,
+    warningMax,
+    criticalMax,
   };
 }
+
 
 // ─── Утилиты ───────────────────────────────────────────────────────────────
 
