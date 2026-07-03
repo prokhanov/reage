@@ -26,8 +26,9 @@ const AI_CALL_TIMEOUT_MS = 90_000;
 // Для QA-починок (перевод фрагментов, догенерация описания биомаркера)
 // используем быструю модель — pro слишком медленный и упирается в таймаут.
 const QA_REPAIR_MODEL = "google/gemini-2.5-flash";
-const QA_TIME_BUDGET_MS = 125_000;
-const MAX_AI_REPAIRS_PER_RUN = 8;
+const QA_TIME_BUDGET_MS = 300_000;
+const MAX_AI_REPAIRS_PER_RUN = 80;
+const QA_PARALLEL_BATCH = 6;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
