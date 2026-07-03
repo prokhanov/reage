@@ -6,7 +6,6 @@ import { ReportPatientData } from "./ReportPatientData";
 import { ReportOverview } from "./ReportOverview";
 import { ReportSection } from "./ReportSection";
 import { ReportPrescriptions } from "./ReportPrescriptions";
-import type { CoverTemplate } from "../coverTemplate";
 import "../theme.css";
 
 interface Props {
@@ -16,7 +15,6 @@ interface Props {
    * как шрифты и все страницы отрисованы. Используется Playwright'ом.
    */
   signalReady?: boolean;
-  coverTemplate?: CoverTemplate;
 }
 
 /**
