@@ -74,9 +74,6 @@ export default function ReportVisualsTest() {
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
   const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
   const [report, setReport] = useState<ProkhanovReport>(INITIAL_REPORT);
-  const [coverTemplate, setCoverTemplate] = useState<CoverTemplate>(
-    DEFAULT_COVER_TEMPLATE,
-  );
   const readyPdfUrlRef = useRef<string | null>(null);
 
   const appendPdfLog = useCallback(
