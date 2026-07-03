@@ -1,5 +1,5 @@
 import type { ReportBiomarker } from "../types";
-import { resolveStatus } from "../parser";
+import { resolveStatusBucket, type BiomarkerBucket } from "../parser";
 import { BiomarkerScale } from "./BiomarkerScale";
 import { ProseMarkdown } from "./ProseMarkdown";
 
@@ -11,36 +11,34 @@ interface Props {
   editableId?: string;
 }
 
-const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
-  "critical-low": { label: "Критически низкий", cls: "critical" },
-  "warning-low": { label: "Понижен", cls: "warning" },
-  "sub-optimal-low": { label: "Ниже оптимума", cls: "suboptimal" },
-  "optimal": { label: "Оптимум", cls: "optimal" },
-  "sub-optimal-high": { label: "Выше оптимума", cls: "suboptimal" },
-  "warning-high": { label: "Повышен", cls: "warning" },
-  "critical-high": { label: "Критически высокий", cls: "critical" },
+/**
+ * 4-бакетная модель статуса — согласована с UI приложения
+ * (Оптимально / Допустимо / Риск / Критично). Никаких «выше оптимума»,
+ * «критически низкий» и т.п. в подписях.
+ */
+const BUCKET_LABEL: Record<BiomarkerBucket, string> = {
+  optimal: "Оптимально",
+  acceptable: "Допустимо",
+  risk: "Риск",
+  critical: "Критично",
 };
 
 export function BiomarkerCard({ biomarker, commentary, gender, age = null, editableId }: Props) {
-  const status = resolveStatus(biomarker, gender, age);
-  const s = STATUS_LABEL[status];
-  const unit = biomarker.unit_override || biomarker.unit || "";
-  const value = formatValue(biomarker.value);
+  const bucket = resolveStatusBucket(biomarker, gender, age);
+  const label = BUCKET_LABEL[bucket];
 
   return (
     <div className="rl-biomarker">
       <div className="rl-bio-head">
         <div className="rl-bio-title">
-          <h3 className="rl-bio-name">{biomarker.name}</h3>
-          <div className="rl-bio-code">{biomarker.code.toUpperCase()}</div>
-          <div className={`rl-bio-status ${s.cls}`}>
-            <span className="dot" />
-            {s.label}
-          </div>
+          <h3 className="rl-bio-name">
+            {biomarker.name}
+            <span className="rl-bio-code">({biomarker.code.toUpperCase()})</span>
+          </h3>
         </div>
-        <div className="rl-bio-value">
-          <span className="num">{value}</span>
-          <span className="unit">{unit}</span>
+        <div className={`rl-bio-status ${bucket}`}>
+          <span className="dot" />
+          {label}
         </div>
       </div>
       <BiomarkerScale biomarker={biomarker} gender={gender} age={age} />
@@ -51,13 +49,4 @@ export function BiomarkerCard({ biomarker, commentary, gender, age = null, edita
       )}
     </div>
   );
-}
-
-function formatValue(n: number): string {
-  if (Number.isInteger(n)) return n.toString();
-  const abs = Math.abs(n);
-  const digits = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
-  return n
-    .toFixed(digits)
-    .replace(/\.?0+$/, (m) => (m.startsWith(".") ? "" : m));
 }
