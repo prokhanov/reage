@@ -242,6 +242,11 @@ html, body {
   font-style: italic;
   color: var(--gold-soft);
 }
+.reportlab .rl-cover-title[data-cover-el="title-subtitle"] {
+  font-size: 30pt;
+  line-height: 1.1;
+}
+
 .reportlab .rl-cover-subtitle {
   font-size: 12pt;
   line-height: 1.55;
