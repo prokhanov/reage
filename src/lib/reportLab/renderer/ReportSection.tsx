@@ -23,7 +23,9 @@ export function ReportSection({
     <section className="rl-page">
       <header className="rl-section-header">
         <div className="num">{String(index).padStart(2, "0")}</div>
-        <div className="title">{category.title}</div>
+        <div className="title" data-section-title={category.title}>
+          {category.title}
+        </div>
         <div className="kicker">Раздел {index} из 5</div>
       </header>
 

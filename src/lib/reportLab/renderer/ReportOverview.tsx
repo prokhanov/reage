@@ -23,7 +23,7 @@ export function ReportOverview({ report }: Props) {
     <section className="rl-page">
       <div className="rl-eyebrow">Общее заключение</div>
 
-      <h1 className="rl-h1">
+      <h1 className="rl-h1" data-section-title="Обзор биологического состояния">
         Обзор биологического состояния <br />
         <span style={{ color: "var(--ink-muted)" }}>для {fullName}</span>
       </h1>
@@ -58,7 +58,7 @@ export function ReportOverview({ report }: Props) {
       </div>
 
       {(summaryText || summaryRow) && (
-        <div className="rl-callout">
+        <div className="rl-conclusion">
           <div className="rl-eyebrow">Ключевой вывод</div>
           <ProseMarkdown
             markdown={summaryText}
