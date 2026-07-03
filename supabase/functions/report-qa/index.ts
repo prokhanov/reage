@@ -1079,6 +1079,18 @@ Deno.serve(async (req) => {
           }
 
 
+
+          // 7. Нормализация структурных подзаголовков (страховка на случай,
+          // если модель забыла Markdown-префиксы ##/###/####).
+          const norm = normalizeStructuralHeadings(text);
+          if (norm.changed.length > 0) {
+            text = norm.text;
+            const uniq = Array.from(new Set(norm.changed));
+            const msg = `[${sectionLabel}] Нормализованы структурные подзаголовки (${uniq.length}): ${uniq.slice(0, 5).join(" | ")}${uniq.length > 5 ? "…" : ""}`;
+            fixes.push(msg);
+            send({ type: "fix", message: msg });
+          }
+
           if (text !== sec.text) {
             const { error: upErr } = await admin
               .from("recommendations")
