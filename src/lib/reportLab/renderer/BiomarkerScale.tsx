@@ -4,6 +4,7 @@ import { resolveRange, resolveStatus } from "../parser";
 interface Props {
   biomarker: ReportBiomarker;
   gender: "male" | "female" | "other" | null;
+  age?: number | null;
 }
 
 /**
@@ -11,9 +12,9 @@ interface Props {
  * Отрисовывает 5 сегментов (крит-низ, суб-низ, оптимум, суб-верх, крит-верх)
  * с чёрной риской текущего значения.
  */
-export function BiomarkerScale({ biomarker, gender }: Props) {
-  const range = resolveRange(biomarker, gender);
-  const status = resolveStatus(biomarker, gender);
+export function BiomarkerScale({ biomarker, gender, age = null }: Props) {
+  const range = resolveRange(biomarker, gender, age);
+  const status = resolveStatus(biomarker, gender, age);
 
   // Нужно получить домен: минимальную/максимальную точки шкалы.
   const stops: number[] = [];
@@ -57,16 +58,41 @@ export function BiomarkerScale({ biomarker, gender }: Props) {
     if (to <= from) return;
     segs.push({ from, to, color });
   };
-  push(domainMin, range.criticalMin, "#a53a2a");
-  push(range.criticalMin ?? range.warningMin, range.warningMin, "#c67432");
+
+  // Критическая нижняя зона: от края шкалы до criticalMin. Если criticalMin
+  // не задан, но задан warningMin — считаем всё, что ниже warning'а, красным.
+  const critLowStart = domainMin;
+  const critLowEnd = range.criticalMin ?? range.warningMin;
+  push(critLowStart, critLowEnd, "#a53a2a");
+
+  // Оранжевая нижняя зона: между criticalMin и warningMin.
+  push(range.criticalMin, range.warningMin, "#c67432");
+
+  // Жёлтая нижняя зона: между warningMin и optimalMin.
   push(range.warningMin, range.optimalMin, "#d0a437");
+
+  // Зелёный оптимум.
   push(range.optimalMin, range.optimalMax, "#4a7c59");
+
+  // Жёлтая верхняя.
   push(range.optimalMax, range.warningMax, "#d0a437");
+
+  // Оранжевая верхняя.
   push(range.warningMax, range.criticalMax, "#c67432");
-  push(range.criticalMax, domainMax, "#a53a2a");
+
+  // Критическая верхняя.
+  const critHighStart = range.criticalMax ?? range.warningMax;
+  push(critHighStart, domainMax, "#a53a2a");
 
   const valueX = toX(biomarker.value);
   const unit = biomarker.unit_override || biomarker.unit || "";
+
+  // Подписи слева/справа — по «настоящим» медицинским границам, а не по
+  // padded-домену. Так пользователь видит реальные критические/warning-точки.
+  const leftLabel =
+    range.criticalMin ?? range.warningMin ?? range.optimalMin ?? domainMin;
+  const rightLabel =
+    range.criticalMax ?? range.warningMax ?? range.optimalMax ?? domainMax;
 
   const fmt = (n: number | null) => {
     if (n === null) return "";
@@ -74,6 +100,7 @@ export function BiomarkerScale({ biomarker, gender }: Props) {
     if (Math.abs(n) >= 10) return n.toFixed(1);
     return n.toFixed(2).replace(/\.?0+$/, "");
   };
+
 
   return (
     <svg
@@ -131,9 +158,9 @@ export function BiomarkerScale({ biomarker, gender }: Props) {
           fill="#16181d"
         />
       </g>
-      {/* Подписи диапазона */}
+      {/* Подписи диапазона — по «настоящим» медицинским границам. */}
       <text x={0} y={height - 2} fontSize="8" fill="#7a7f8f" fontFamily="Inter">
-        {fmt(range.optimalMin ?? domainMin)} {unit}
+        {fmt(leftLabel)} {unit}
       </text>
       <text
         x={width}
@@ -143,7 +170,7 @@ export function BiomarkerScale({ biomarker, gender }: Props) {
         fontFamily="Inter"
         textAnchor="end"
       >
-        {fmt(range.optimalMax ?? domainMax)} {unit}
+        {fmt(rightLabel)} {unit}
       </text>
       {/* Подпись значения */}
       <text

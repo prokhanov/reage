@@ -8,6 +8,7 @@ interface Props {
   category: ParsedCategory;
   biomarkerByCode: Map<string, ReportBiomarker>;
   gender: "male" | "female" | "other" | null;
+  age?: number | null;
   recommendationId?: string;
 }
 
@@ -16,6 +17,7 @@ export function ReportSection({
   category,
   biomarkerByCode,
   gender,
+  age = null,
   recommendationId,
 }: Props) {
   let proseIndex = 0;
@@ -60,6 +62,7 @@ export function ReportSection({
             biomarker={bio}
             commentary={b.commentary}
             gender={gender}
+            age={age}
             editableId={editableId}
           />
         );

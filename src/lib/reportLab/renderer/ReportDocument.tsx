@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import type { ProkhanovReport } from "../types";
-import { buildBiomarkerIndex, getCategoryRecords, parseCategory } from "../parser";
+import {
+  buildBiomarkerIndex,
+  calcAge,
+  getCategoryRecords,
+  parseCategory,
+} from "../parser";
 import { ReportCover } from "./ReportCover";
 import { ReportPatientData } from "./ReportPatientData";
 import { ReportOverview } from "./ReportOverview";
@@ -28,6 +33,7 @@ export function ReportDocument({ report, signalReady }: Props) {
   const biomarkerByCode = buildBiomarkerIndex(report);
   const categoryRecords = getCategoryRecords(report);
   const gender = report.patient.gender;
+  const age = calcAge(report.patient.birth_date, report.analysis.date);
 
   useEffect(() => {
     if (!signalReady) return;
@@ -83,6 +89,7 @@ export function ReportDocument({ report, signalReady }: Props) {
             category={parsed}
             biomarkerByCode={biomarkerByCode}
             gender={gender}
+            age={age}
             recommendationId={rec.id}
           />
         );
