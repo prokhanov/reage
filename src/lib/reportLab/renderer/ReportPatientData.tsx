@@ -28,7 +28,7 @@ export function ReportPatientData({ report }: Props) {
   return (
     <section className="rl-page">
       <div className="rl-eyebrow">Пациент</div>
-      <h1 className="rl-h1" data-section-title="Данные пациента">Данные пациента</h1>
+      <h1 className="rl-h1">Данные пациента</h1>
       <ProseMarkdown markdown={text} editableId={`rec:${row.id}#body`} />
     </section>
   );
