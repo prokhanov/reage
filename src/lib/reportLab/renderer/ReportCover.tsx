@@ -18,7 +18,6 @@ export function ReportCover({ report }: Props) {
   const ctx = useReportEditor();
   const isEdit = ctx?.mode === "edit";
   const { patient, analysis } = report;
-  const age = calcAge(patient.birth_date, analysis.date);
   const fullName = [patient.first_name, patient.last_name]
     .filter(Boolean)
     .join(" ");
@@ -91,6 +90,3 @@ export function ReportCover({ report }: Props) {
   );
 }
 
-function shortId(id: string): string {
-  return id.replace(/-/g, "").slice(0, 6).toUpperCase();
-}
