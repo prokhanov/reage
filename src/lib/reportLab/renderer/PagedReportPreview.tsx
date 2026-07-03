@@ -642,9 +642,12 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgLabel.textContent = "Фон";
   bgLabel.style.opacity = "0.8";
 
+  // Значение по умолчанию — доминирующий цвет из градиента обложки, чтобы
+  // color-picker не показывал белый (иначе кажется, что фон белый).
+  const DEFAULT_COVER_BG = "#0f1b2d";
   const bgInput = document.createElement("input");
   bgInput.type = "color";
-  bgInput.value = "#ffffff";
+  bgInput.value = DEFAULT_COVER_BG;
   bgInput.style.cssText =
     "width:28px;height:22px;border:none;background:transparent;cursor:pointer;padding:0";
   bgInput.addEventListener("input", () => {
@@ -667,7 +670,7 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgReset.addEventListener("mousedown", (e) => e.preventDefault());
   bgReset.addEventListener("click", () => {
     cover.style.background = "";
-    bgInput.value = "#ffffff";
+    bgInput.value = DEFAULT_COVER_BG;
     els.forEach((e) => {
       e.style.transform = "";
       e.style.fontSize = "";
@@ -711,14 +714,10 @@ function installCoverInlineEditor(output: HTMLElement) {
   row1.style.cssText = rowStyle;
   const row2 = document.createElement("div");
   row2.style.cssText = rowStyle;
-  const row3 = document.createElement("div");
-  row3.style.cssText = rowStyle + ";border-top:1px solid rgba(255,255,255,0.12);padding-top:4px;margin-top:2px";
-  const row3Label = document.createElement("span");
-  row3Label.textContent = "Вставить переменную:";
-  row3Label.style.cssText = "opacity:0.7;margin-right:4px;font-size:11px";
-  row3.appendChild(row3Label);
 
-  panel.append(row1, row2, row3);
+  panel.append(row1, row2);
+
+
 
   let selected: HTMLElement | null = null;
 
