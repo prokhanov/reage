@@ -79,6 +79,19 @@ export interface ProkhanovReport {
   analysis: ReportAnalysis;
   recommendations: ReportRecommendationRow[];
   biomarkers: ReportBiomarker[];
+  prescriptions?: ReportPrescription[];
+}
+
+export interface ReportPrescription {
+  id: string;
+  name: string;
+  form: string | null;
+  dosage: string | null;
+  how_to_take: string | null;
+  duration: string | null;
+  reason: string | null;
+  category: string | null;
+  effect: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
