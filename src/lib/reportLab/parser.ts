@@ -84,12 +84,19 @@ export function buildBiomarkerIndex(
 export function parseCategory(
   title: string,
   rawText: string,
+  biomarkerIndex?: Map<string, ReportBiomarker>,
 ): ParsedCategory {
   const blocks: ReportBlock[] = [];
   if (!rawText || !rawText.trim()) return { title, blocks };
 
   // Первую строку с названием категории вырезаем — заголовок мы рисуем сами.
   let text = stripLeadingCategoryHeader(rawText, title);
+
+  // Страховка: если модель вернула биомаркеры без HTML anchor-комментариев
+  // (просто `Название (CODE)` отдельной строкой), всё равно превращаем такие
+  // блоки в карточки со шкалой. Инжектируем только для кодов, реально
+  // присутствующих в снапшоте.
+  text = injectHeadingBiomarkerAnchors(text, biomarkerIndex);
 
   const matches = [...text.matchAll(ANCHOR_RE)];
   if (matches.length === 0) {
@@ -305,6 +312,70 @@ function stripLeadingBiomarkerName(text: string): string {
   }
   return trimmed;
 }
+
+/**
+ * Ищет строки вида `Название (CODE)` (опционально с ведущими `#`) и оборачивает
+ * блок между таким «заголовком» и следующим либо служебной секцией
+ * («Общая оценка…», «Сильные стороны», «Дефициты…», «Заключение», «Резюме»)
+ * в HTML-anchor маркеры, чтобы парсер отрисовал карточку биомаркера со шкалой.
+ *
+ * Инжектируется ТОЛЬКО если код найден в переданном индексе биомаркеров —
+ * чтобы не превращать случайные скобки в тексте в «карточки».
+ */
+function injectHeadingBiomarkerAnchors(
+  text: string,
+  biomarkerIndex?: Map<string, ReportBiomarker>,
+): string {
+  if (!text) return text;
+  const existingAnchor = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/i;
+  if (existingAnchor.test(text)) return text;
+  if (!biomarkerIndex || biomarkerIndex.size === 0) return text;
+
+  // Захватываем строку целиком: опциональные `#`, любой текст, затем в конце
+  // строки код в скобках. Скобки могут быть вложены (например `Lp(a)`).
+  const headingRegex =
+    /^[ \t]*(?:#{1,6}[ \t]+)?[^\n(]{1,140}\(([A-Za-z0-9αβγδμ+_.\-/() ]{1,40})\)[ \t]*$/gm;
+
+  interface Hit { start: number; end: number; code: string }
+  const hits: Hit[] = [];
+  for (const m of text.matchAll(headingRegex)) {
+    const rawCode = (m[1] || "").trim();
+    const normalized = normalizeCode(rawCode);
+    if (!normalized) continue;
+    if (!biomarkerIndex.has(normalized)) continue;
+    hits.push({
+      start: m.index ?? 0,
+      end: (m.index ?? 0) + m[0].length,
+      code: rawCode,
+    });
+  }
+  if (hits.length === 0) return text;
+
+  const boundaryRegex =
+    /^[ \t]*(?:#{1,6}[ \t]+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)[^\n]*$/gim;
+  const findSectionBoundary = (from: number): number => {
+    boundaryRegex.lastIndex = from;
+    const m = boundaryRegex.exec(text);
+    return m ? m.index ?? text.length : text.length;
+  };
+
+  let result = text;
+  for (let i = hits.length - 1; i >= 0; i--) {
+    const cur = hits[i];
+    const next = hits[i + 1];
+    const blockEnd = next ? next.start : findSectionBoundary(cur.end);
+    result =
+      result.slice(0, blockEnd) +
+      `\n<!-- anchor:biomarker_end -->\n` +
+      result.slice(blockEnd);
+    result =
+      result.slice(0, cur.start) +
+      `<!-- anchor:biomarker ${cur.code} -->\n` +
+      result.slice(cur.start);
+  }
+  return result;
+}
+
 
 function cleanProse(chunk: string): string {
   return chunk

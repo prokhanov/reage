@@ -81,7 +81,7 @@ export function ReportDocument({ report, signalReady }: Props) {
       <ReportPatientData report={report} />
       <ReportOverview report={report} />
       {categoryRecords.map((rec, i) => {
-        const parsed = parseCategory(rec.type, rec.text || "");
+        const parsed = parseCategory(rec.type, rec.text || "", biomarkerByCode);
         return (
           <ReportSection
             key={rec.id}
