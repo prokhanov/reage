@@ -253,10 +253,10 @@ export function PagedReportPreview({
           drafts={draftsSnapshot}
           mode={editable ? "edit" : "view"}
         >
-          <ReportDocument report={report} coverTemplate={coverTemplate} />
+          <ReportDocument report={report} />
         </StaticReportEditorProvider>,
       ),
-    [report, draftsSnapshot, editable, coverTemplate],
+    [report, draftsSnapshot, editable],
   );
 
   useEffect(() => {
