@@ -60,11 +60,17 @@ export function ReportCover({ report }: Props) {
         <div className="rl-cover-eyebrow" data-cover-el="eyebrow">
           Индивидуальный анализ
         </div>
-        <h1 className="rl-cover-title" data-cover-el="title">
+        <h1 className="rl-cover-title" data-cover-el="title-name">
           {V("patientName", fullName)}
-          <br />
+        </h1>
+        <h1
+          className="rl-cover-title"
+          data-cover-el="title-subtitle"
+          style={{ margin: 0 }}
+        >
           <em>биологический профиль</em>
         </h1>
+
       </div>
 
       <div className="rl-cover-meta">
