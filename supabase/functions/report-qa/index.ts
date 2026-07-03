@@ -545,38 +545,48 @@ ${valueLine}
 <!-- anchor:biomarker_end -->`;
   };
 
-  const resp = await fetchWithTimeout(
-    "https://ai.gateway.lovable.dev/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+  try {
+    const resp = await fetchWithTimeout(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-    },
-    AI_CALL_TIMEOUT_MS,
-  );
+      AI_CALL_TIMEOUT_MS,
+    );
 
-  if (!resp.ok) {
-    console.error("AI gateway error:", resp.status, await resp.text());
+    if (!resp.ok) {
+      console.error("AI gateway error:", resp.status, await resp.text());
+      return buildFromKnowledge();
+    }
+    const data = await resp.json();
+    const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
+    // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
+    const cyrCount = (text.match(/[а-яё]/gi) || []).length;
+    if (!text || cyrCount < 120) {
+      return buildFromKnowledge() || text || null;
+    }
+    return text;
+  } catch (err) {
+    // Timeout / network error — не валим весь QA-прогон, откатываемся
+    // на готовое описание из БД (если оно есть) либо возвращаем null,
+    // тогда карточка просто останется как была.
+    console.error("generateBiomarkerEducation failed:", err);
     return buildFromKnowledge();
   }
-  const data = await resp.json();
-  const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
-  // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
-  const cyrCount = (text.match(/[а-яё]/gi) || []).length;
-  if (!text || cyrCount < 120) {
-    return buildFromKnowledge() || text || null;
-  }
-  return text;
 }
+
+
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
   const ctrl = new AbortController();
