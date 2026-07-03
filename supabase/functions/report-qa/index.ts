@@ -1073,8 +1073,12 @@ Deno.serve(async (req) => {
     headers: {
       ...corsHeaders,
       "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
+      "Cache-Control": "no-cache, no-transform",
       "Connection": "keep-alive",
+      // Отключает буферизацию у nginx / fly-proxy (иначе клиент не получает
+      // промежуточные события и рвёт соединение по idle-таймауту).
+      "X-Accel-Buffering": "no",
     },
   });
+
 });
