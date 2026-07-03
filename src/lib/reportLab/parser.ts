@@ -331,22 +331,49 @@ function injectHeadingBiomarkerAnchors(
   if (existingAnchor.test(text)) return text;
   if (!biomarkerIndex || biomarkerIndex.size === 0) return text;
 
-  // Захватываем строку целиком: опциональные `#`, любой текст, затем в конце
-  // строки код в скобках. Скобки могут быть вложены (например `Lp(a)`).
+  // Индекс по нормализованному имени (для строк без явного `(CODE)`).
+  const nameIndex = new Map<string, string>();
+  for (const bio of biomarkerIndex.values()) {
+    const key = normalizeName(bio.name);
+    if (key && !nameIndex.has(key)) nameIndex.set(key, bio.code);
+  }
+
+  // Строка-заголовок: опциональные `#`, любой короткий текст на своей строке.
+  // Захватываем строку целиком, чтобы позже проверить наличие `(CODE)` в конце
+  // либо совпадение всего текста с известным именем биомаркера.
   const headingRegex =
-    /^[ \t]*(?:#{1,6}[ \t]+)?[^\n(]{1,140}\(([A-Za-z0-9αβγδμ+_.\-/() ]{1,40})\)[ \t]*$/gm;
+    /^[ \t]*(?:#{1,6}[ \t]+)?([^\n]{1,140}?)[ \t]*$/gm;
+  const codeInParensRegex = /\(([A-Za-z0-9αβγδμ+_.\-/() ]{1,40})\)[ \t]*$/;
 
   interface Hit { start: number; end: number; code: string }
   const hits: Hit[] = [];
   for (const m of text.matchAll(headingRegex)) {
-    const rawCode = (m[1] || "").trim();
-    const normalized = normalizeCode(rawCode);
-    if (!normalized) continue;
-    if (!biomarkerIndex.has(normalized)) continue;
+    const line = (m[1] || "").trim();
+    if (!line || line.length < 2) continue;
+    // Пропускаем «списковые» и служебные строки.
+    if (/^[-*•>]/.test(line)) continue;
+    if (/^\d+[.)]\s/.test(line)) continue;
+    if (line.endsWith(":") || line.endsWith("：")) continue;
+    if (line.includes(". ") || line.includes(", ")) continue;
+
+    let code: string | null = null;
+    const cm = codeInParensRegex.exec(line);
+    if (cm) {
+      const normalized = normalizeCode(cm[1]);
+      if (normalized && biomarkerIndex.has(normalized)) code = cm[1].trim();
+    }
+    if (!code) {
+      // Совпадение по имени биомаркера целиком (без круглых скобок).
+      const nameKey = normalizeName(line);
+      const byName = nameIndex.get(nameKey);
+      if (byName) code = byName;
+    }
+    if (!code) continue;
+
     hits.push({
       start: m.index ?? 0,
       end: (m.index ?? 0) + m[0].length,
-      code: rawCode,
+      code,
     });
   }
   if (hits.length === 0) return text;
@@ -375,6 +402,17 @@ function injectHeadingBiomarkerAnchors(
   }
   return result;
 }
+
+function normalizeName(name: string): string {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .replace(/ё/g, "е")
+    .replace(/[«»"'`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 
 
 function cleanProse(chunk: string): string {
