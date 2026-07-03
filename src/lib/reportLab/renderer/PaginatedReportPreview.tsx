@@ -113,8 +113,8 @@ body { padding: 24px 0; }
 </div>
 <div id="footer-poly">
   <div class="poly-foot">
-    <span>Longevity clinic</span>
-    <span><span class="pagedjs_page_number"></span> / <span class="pagedjs_total_pages"></span></span>
+    <span>Отчёт <span class="pagedjs_page_number"></span> / <span class="pagedjs_total_pages"></span></span>
+    <span>Биомаркеров 104 • Систем организма 5 • Врач Наталья Чезганова</span>
   </div>
 </div>
 
