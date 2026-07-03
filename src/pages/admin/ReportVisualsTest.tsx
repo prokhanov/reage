@@ -479,11 +479,20 @@ export default function ReportVisualsTest() {
 
         <ReportEditorShell report={report} onReportUpdate={setReport}>
           {({ mode }) => (
-            <EditablePagedPreview
-              report={report}
-              paginated={paginated}
-              editable={mode === "edit"}
-            />
+            <>
+              {mode === "edit" && (
+                <CoverEditor
+                  template={coverTemplate}
+                  onChange={setCoverTemplate}
+                />
+              )}
+              <EditablePagedPreview
+                report={report}
+                paginated={paginated}
+                editable={mode === "edit"}
+                coverTemplate={coverTemplate}
+              />
+            </>
           )}
         </ReportEditorShell>
       </div>
@@ -497,18 +506,22 @@ function EditablePagedPreview({
   report,
   paginated,
   editable,
+  coverTemplate,
 }: {
   report: ProkhanovReport;
   paginated: boolean;
   editable: boolean;
+  coverTemplate: CoverTemplate;
 }) {
   const ctx = useReportEditor();
-  if (!paginated) return <ReportDocument report={report} />;
+  if (!paginated)
+    return <ReportDocument report={report} coverTemplate={coverTemplate} />;
   return (
     <PagedReportPreview
       report={report}
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}
+      coverTemplate={coverTemplate}
       onEditChange={(id, md) => ctx?.setDraft(id, md)}
     />
   );
