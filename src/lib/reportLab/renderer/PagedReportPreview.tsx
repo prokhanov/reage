@@ -581,21 +581,14 @@ function installEditableOverlay(
  * Прямое редактирование обложки:
  *  - клик — выделение, drag — перемещение блока, dblclick — правка текста,
  *  - плавающая панель: B / I / цвет текста / выравнивание / A±/ стрелки / ↺,
- *  - палитра переменных: вставляет `{{var}}` в caret,
  *  - постоянная панель обложки (сверху справа): фон обложки, сброс всего.
  *
  * Живёт целиком в DOM, без React state и без ре-пагинации.
- * Доступные переменные:
- *   patientName, age, date, bioAge, healthIndex, issueNumber.
+ * Переменные ({{patientName}}, {{age}}, {{date}}, {{bioAge}},
+ * {{healthIndex}}, {{issueNumber}}) в edit-режиме рендерятся как raw-токены
+ * прямо в ReportCover, а в view-режиме — заменяются реальными значениями.
  */
-const COVER_VARIABLES: Array<{ name: string; label: string }> = [
-  { name: "patientName", label: "Имя пациента" },
-  { name: "age", label: "Возраст" },
-  { name: "date", label: "Дата" },
-  { name: "bioAge", label: "Био-возраст" },
-  { name: "healthIndex", label: "Индекс здоровья" },
-  { name: "issueNumber", label: "Номер выпуска" },
-];
+
 
 function installCoverInlineEditor(output: HTMLElement) {
   const cover = output.querySelector<HTMLElement>("[data-cover-root]");
