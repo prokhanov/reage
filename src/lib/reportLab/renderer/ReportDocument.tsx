@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import type { ProkhanovReport } from "../types";
-import { buildBiomarkerIndex, getCategoryRecords, parseCategory } from "../parser";
+import {
+  buildBiomarkerIndex,
+  calcAge,
+  getCategoryRecords,
+  parseCategory,
+} from "../parser";
 import { ReportCover } from "./ReportCover";
 import { ReportPatientData } from "./ReportPatientData";
 import { ReportOverview } from "./ReportOverview";
