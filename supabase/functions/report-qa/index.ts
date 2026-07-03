@@ -888,7 +888,7 @@ Deno.serve(async (req) => {
                 bm.name,
                 bm.code,
                 valueLine,
-                aiModel,
+                REPAIR_MODEL,
                 reportContext,
                 generalDesc,
               );
