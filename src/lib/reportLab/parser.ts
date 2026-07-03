@@ -362,7 +362,7 @@ function injectHeadingBiomarkerAnchors(
   // либо совпадение всего текста с известным именем биомаркера.
   const headingRegex =
     /^[ \t]*(?:#{1,6}[ \t]+)?([^\n]{1,140}?)[ \t]*$/gm;
-  const codeInParensRegex = /\(([A-Za-z0-9αβγδμ+_.\-/() ]{1,40})\)[ \t]*$/;
+  const codeInParensRegex = /\(([A-Za-zА-Яа-яЁё0-9αβγδμ+_.\-/() ]{1,40})\)[ \t]*$/;
 
   interface Hit { start: number; end: number; code: string }
   const hits: Hit[] = [];
@@ -389,6 +389,14 @@ function injectHeadingBiomarkerAnchors(
       const nameKey = normalizeName(line);
       const byName = nameIndex.get(nameKey);
       if (byName) code = byName;
+    }
+    if (!code) {
+      // Фолбэк: имя без хвостовых скобок «Название (КОД)» → «название».
+      const stripped = line.replace(/\s*\([^)]*\)\s*$/, "").trim();
+      if (stripped && stripped !== line) {
+        const byName2 = nameIndex.get(normalizeName(stripped));
+        if (byName2) code = byName2;
+      }
     }
     if (!code) continue;
 
