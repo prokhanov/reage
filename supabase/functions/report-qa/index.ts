@@ -434,10 +434,13 @@ function detectEnglishArtifacts(
 async function translateEnglishFragments(
   fragments: Array<{ match: string; context: string }>,
   model: string,
+  systemPromptOverride?: string | null,
 ): Promise<Record<string, string>> {
   if (fragments.length === 0) return {};
 
-  const system = `Ты медицинский редактор-переводчик. На вход получаешь JSON-массив объектов {match, context}, где match — английский фрагмент, попавший в русский медицинский отчёт по ошибке, context — окружающий русский текст.
+  const system = (systemPromptOverride && systemPromptOverride.trim().length > 20)
+    ? systemPromptOverride
+    : `Ты медицинский редактор-переводчик. На вход получаешь JSON-массив объектов {match, context}, где match — английский фрагмент, попавший в русский медицинский отчёт по ошибке, context — окружающий русский текст.
 
 Твоя задача: для каждого match вернуть точный русский перевод, сохраняющий медицинский смысл и стилистику окружающего контекста.
 
@@ -455,6 +458,7 @@ async function translateEnglishFragments(
 - Сохраняй регистр и пунктуацию по контексту.
 
 Верни ТОЛЬКО валидный JSON в формате: {"translations": [{"match": "...", "russian": "..."}, ...]}. Без обёрток, без комментариев.`;
+
 
   const user = JSON.stringify({ fragments }, null, 2);
 
