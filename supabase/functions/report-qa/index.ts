@@ -695,6 +695,20 @@ ${valueLine}
 <!-- anchor:biomarker_end -->`;
 }
 
+function formatAnalysisValue(value: unknown): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "";
+  return Number.isInteger(value)
+    ? String(value)
+    : String(Number(value.toFixed(3))).replace(/\.0+$/, "");
+}
+
+function buildBiomarkerValueLine(bm: any): string {
+  const formatted = formatAnalysisValue(bm?.value);
+  const unit = String(bm?.unit_override || bm?.unit || "").trim();
+  if (!formatted) return `Ваш показатель ${bm?.name || "биомаркера"} указан в анализе.`;
+  return `Ваш показатель ${bm.name}: ${formatted}${unit ? ` ${unit}` : ""}.`;
+}
+
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -796,7 +810,7 @@ Deno.serve(async (req) => {
 
         const { data: avRows, error: avErr } = await admin
           .from("analysis_values")
-          .select("biomarker_id, biomarkers!inner(code, name, general_description)")
+          .select("biomarker_id, value, unit_override, biomarkers!inner(code, name, general_description, unit, category)")
           .eq("analysis_id", analysisId);
         if (avErr) throw avErr;
 
@@ -804,6 +818,10 @@ Deno.serve(async (req) => {
           code: r.biomarkers?.code,
           name: r.biomarkers?.name,
           general_description: r.biomarkers?.general_description ?? null,
+          category: r.biomarkers?.category ?? null,
+          unit: r.biomarkers?.unit ?? null,
+          unit_override: r.unit_override ?? null,
+          value: r.value ?? null,
         }));
         const knownCodesNorm = new Set(
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
@@ -1067,12 +1085,19 @@ Deno.serve(async (req) => {
             for (const { blk, generated, bm } of applied) {
               if (!bm) continue;
               if (generated) {
+                const openRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+                openRegex.lastIndex = Math.max(0, blk.start - 1);
+                const openMatch = openRegex.exec(text);
+                const contentStart = openMatch ? openMatch.index + openMatch[0].length : blk.start;
+                const nextOpenRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+                nextOpenRegex.lastIndex = contentStart;
+                const nextOpen = nextOpenRegex.exec(text);
                 const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
-                endRegex.lastIndex = blk.end;
+                endRegex.lastIndex = contentStart;
                 const endMatch = endRegex.exec(text);
-                const replaceEnd = endMatch
+                const replaceEnd = endMatch && (!nextOpen || endMatch.index < nextOpen.index)
                   ? endMatch.index + endMatch[0].length
-                  : blk.end;
+                  : (nextOpen ? nextOpen.index : blk.end);
                 text =
                   text.slice(0, blk.start) +
                   generated +
