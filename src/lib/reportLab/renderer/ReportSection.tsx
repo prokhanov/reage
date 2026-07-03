@@ -62,6 +62,7 @@ export function ReportSection({
             biomarker={bio}
             commentary={b.commentary}
             gender={gender}
+            age={age}
             editableId={editableId}
           />
         );
