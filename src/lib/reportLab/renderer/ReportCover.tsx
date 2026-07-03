@@ -91,6 +91,7 @@ export function ReportCover({ report }: Props) {
           <div className="value">Наталья Чезганова</div>
         </div>
       </div>
+    </div>
   );
 }
 
