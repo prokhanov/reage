@@ -60,27 +60,47 @@ export function ReportPrescriptions({ report }: Props) {
 
       {prescriptions.length > 0 && (
         <div style={{ marginBottom: "8mm" }}>
-          <h3 className="rl-h3">Нутрицевтики</h3>
-          {prescriptions.map((p) => (
-            <div key={p.id} className="rl-rx">
-              <div className="rl-rx-title">
-                {p.name}
-                {p.form ? ` — ${p.form}` : ""}
+          <h3 className="rl-h3">Нутрицевтики ({prescriptions.length})</h3>
+          {prescriptions.map((p, idx) => {
+            const reason = (p.reason || "").replace(/^[\s📊📈📉]+/u, "").trim();
+            return (
+              <div key={p.id} className="rl-rx rl-nutri">
+                <div className="rl-nutri-title">
+                  {idx + 1}. {p.name}
+                </div>
+                {p.form && (
+                  <div className="rl-nutri-row">
+                    <span className="rl-nutri-label">Форма:</span> {p.form}
+                  </div>
+                )}
+                {p.dosage && (
+                  <div className="rl-nutri-row">
+                    <span className="rl-nutri-label">Дозировка:</span> {p.dosage}
+                  </div>
+                )}
+                {p.how_to_take && (
+                  <div className="rl-nutri-row">
+                    <span className="rl-nutri-label">Как принимать:</span> {p.how_to_take}
+                  </div>
+                )}
+                {p.duration && (
+                  <div className="rl-nutri-row">
+                    <span className="rl-nutri-label">Длительность:</span> {p.duration}
+                  </div>
+                )}
+                {reason && (
+                  <div className="rl-nutri-reason">
+                    <span className="rl-nutri-label">Причина:</span> {reason}
+                  </div>
+                )}
+                {p.effect && (
+                  <div className="rl-nutri-row">
+                    <span className="rl-nutri-label">На что это влияет:</span> {p.effect}
+                  </div>
+                )}
               </div>
-              {(p.dosage || p.how_to_take || p.duration) && (
-                <div className="rl-rx-meta">
-                  {[p.dosage, p.how_to_take, p.duration]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </div>
-              )}
-              {p.reason && (
-                <div className="rl-rx-desc">
-                  <ProseMarkdown markdown={p.reason} />
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
