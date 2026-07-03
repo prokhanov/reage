@@ -52,43 +52,36 @@ body { padding: 24px 0; }
 
 /* Эмуляция нативных колонтитулов Chromium через paged.js */
 @page {
-  @top-center {
-    content: element(headerPoly);
-    width: 100%;
+  @top-left {
+    content: string(section-title, first);
+    font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+    font-size: 8px;
+    color: #7a7f8f;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding-left: 18mm;
+    vertical-align: middle;
   }
-  @bottom-center {
-    content: element(footerPoly);
-    width: 100%;
+  @top-right {
+    content: "ReAge · reage.life";
+    font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+    font-size: 8px;
+    color: #7a7f8f;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding-right: 18mm;
+    vertical-align: middle;
   }
-}
-
-#header-poly { position: running(headerPoly); width: 100%; }
-#footer-poly { position: running(footerPoly); width: 100%; }
-
-.poly-head {
-  width: 100%;
-  padding: 6mm 18mm 0;
-  box-sizing: border-box;
-  font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
-  font-size: 8px;
-  color: #7a7f8f;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  display: flex;
-  justify-content: space-between;
-}
-
-.poly-foot {
-  width: 100%;
-  padding: 5mm 18mm 0;
-  box-sizing: border-box;
-  font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
-  font-size: 8px;
-  color: #7a7f8f;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  display: flex;
-  justify-content: space-between;
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+    font-size: 8px;
+    color: #7a7f8f;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding-right: 18mm;
+    vertical-align: middle;
+  }
 }
 
 #paged-status {
@@ -104,19 +97,6 @@ body { padding: 24px 0; }
 </head><body>
 <div id="paged-status">Разметка страниц…</div>
 
-<!-- Элементы для paged.js running content -->
-<div id="header-poly">
-  <div class="poly-head">
-    <span>ReAge · Персональный отчёт</span>
-    <span>reage.life</span>
-  </div>
-</div>
-<div id="footer-poly">
-  <div class="poly-foot">
-    <span>Longevity clinic</span>
-    <span><span class="pagedjs_page_number"></span> / <span class="pagedjs_total_pages"></span></span>
-  </div>
-</div>
 
 ${html}
 <script>

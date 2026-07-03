@@ -42,7 +42,7 @@ export function ReportPrescriptions({ report }: Props) {
     <section className="rl-page">
       <div className="rl-eyebrow">Клинический план</div>
 
-      <h1 className="rl-h1">Персональные назначения</h1>
+      <h1 className="rl-h1" data-section-title="Персональные назначения">Персональные назначения</h1>
 
       {sections.map((s) => (
         <div key={s.title} style={{ marginBottom: "8mm" }}>
