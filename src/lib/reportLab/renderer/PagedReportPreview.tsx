@@ -826,61 +826,8 @@ function installCoverInlineEditor(output: HTMLElement) {
     mkBtn("↺", "Сбросить блок", resetEl),
   );
 
-  // Row 3: variable chips
-  const insertVarAtCaret = (name: string) => {
-    if (!selected) return;
-    // если блок ещё не в режиме правки — включим
-    if (selected.contentEditable !== "true") {
-      selected.contentEditable = "true";
-      selected.focus();
-    }
-    const sel = window.getSelection();
-    let range: Range | null = null;
-    if (sel && sel.rangeCount && selected.contains(sel.anchorNode)) {
-      range = sel.getRangeAt(0);
-    } else {
-      range = document.createRange();
-      range.selectNodeContents(selected);
-      range.collapse(false);
-    }
-    range.deleteContents();
-    const span = document.createElement("span");
-    span.setAttribute("data-var", name);
-    span.title = `Переменная: {{${name}}}`;
-    span.textContent = `{{${name}}}`;
-    span.style.background = "rgba(217,195,150,0.22)";
-    span.style.borderBottom = "1px dashed rgba(181,138,68,0.55)";
-    span.style.padding = "0 2px";
-    span.style.borderRadius = "2px";
-    range.insertNode(span);
-    range.setStartAfter(span);
-    range.collapse(true);
-    sel?.removeAllRanges();
-    sel?.addRange(range);
-  };
+  // Чипы переменных перенесены в верхний баннер (ModeBanner) — здесь их нет.
 
-  COVER_VARIABLES.forEach((v) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.textContent = `{{${v.name}}}`;
-    chip.title = v.label;
-    chip.style.cssText = [
-      "background:rgba(217,195,150,0.18)",
-      "color:#f5e7cf",
-      "border:1px solid rgba(217,195,150,0.35)",
-      "border-radius:4px",
-      "padding:3px 6px",
-      "cursor:pointer",
-      "font:11px/1 ui-monospace, SFMono-Regular, Menlo, monospace",
-    ].join(";");
-    chip.addEventListener("mousedown", (e) => e.preventDefault());
-    chip.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      insertVarAtCaret(v.name);
-    });
-    row3.appendChild(chip);
-  });
 
   // ─── Selection / position / drag ───────────────────────────────────────
   const positionPanel = () => {
