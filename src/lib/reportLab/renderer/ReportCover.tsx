@@ -68,7 +68,7 @@ export function ReportCover({ report }: Props) {
           data-cover-el="title-subtitle"
           style={{ margin: 0 }}
         >
-          <em>ЛИЧНЫЙ ОТЧЁТ О СОСТОЯНИИ ЗДОРОВЬЯ</em>
+          <em>Личный отчёт о состоянии здоровья</em>
         </h1>
 
       </div>
