@@ -51,7 +51,6 @@ export function BiomarkerScale({ biomarker, gender, age = null }: Props) {
 
   // Границы сегментов: края шкалы + все опорные точки.
   const bounds = new Set<number>([scaleMin, scaleMax]);
-  push(range.criticalMin) && null;
   [
     range.criticalMin,
     range.warningMin,
