@@ -1,4 +1,4 @@
-import type { ProkhanovReport } from "../types";
+import type { ProkhanovReport, ReportPrescription } from "../types";
 import { getPrescriptionsRecord } from "../parser";
 import { ProseMarkdown } from "./ProseMarkdown";
 
@@ -24,6 +24,7 @@ export function ReportPrescriptions({ report }: Props) {
   const contentJson = (row?.content_json ?? {}) as Record<string, unknown>;
   const lifestyle = (contentJson.lifestyle ?? {}) as LifestyleData;
   const followUps = (contentJson.follow_ups ?? []) as FollowUp[];
+  const prescriptions = (report.prescriptions ?? []) as ReportPrescription[];
 
   const sections: Array<{ title: string; items: string[] }> = [];
   const push = (title: string, items?: string[]) => {
@@ -42,7 +43,7 @@ export function ReportPrescriptions({ report }: Props) {
     <section className="rl-page">
       <div className="rl-eyebrow">Клинический план</div>
 
-      <h1 className="rl-h1" data-section-title="Персональные назначения">Персональные назначения</h1>
+      <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
 
       {sections.map((s) => (
         <div key={s.title} style={{ marginBottom: "8mm" }}>
@@ -56,6 +57,32 @@ export function ReportPrescriptions({ report }: Props) {
           ))}
         </div>
       ))}
+
+      {prescriptions.length > 0 && (
+        <div style={{ marginBottom: "8mm" }}>
+          <h3 className="rl-h3">Нутрицевтики</h3>
+          {prescriptions.map((p) => (
+            <div key={p.id} className="rl-rx">
+              <div className="rl-rx-title">
+                {p.name}
+                {p.form ? ` — ${p.form}` : ""}
+              </div>
+              {(p.dosage || p.how_to_take || p.duration) && (
+                <div className="rl-rx-meta">
+                  {[p.dosage, p.how_to_take, p.duration]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </div>
+              )}
+              {p.reason && (
+                <div className="rl-rx-desc">
+                  <ProseMarkdown markdown={p.reason} />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {followUps.length > 0 && (
         <>
@@ -78,3 +105,4 @@ export function ReportPrescriptions({ report }: Props) {
 
   );
 }
+
