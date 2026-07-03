@@ -26,9 +26,9 @@ const AI_CALL_TIMEOUT_MS = 90_000;
 // Для QA-починок (перевод фрагментов, догенерация описания биомаркера)
 // используем быструю модель — pro слишком медленный и упирается в таймаут.
 const QA_REPAIR_MODEL = "google/gemini-2.5-flash";
-const QA_TIME_BUDGET_MS = 300_000;
-const MAX_AI_REPAIRS_PER_RUN = 80;
-const QA_PARALLEL_BATCH = 6;
+const QA_TIME_BUDGET_MS = 8 * 60_000;
+const MAX_AI_REPAIRS_PER_RUN = 200;
+const QA_PARALLEL_BATCH = 12;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
@@ -638,16 +638,13 @@ ${trimmedContext}${knowledge}
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
 
 
-  const buildFromKnowledge = (): string | null => {
-    if (!generalDescription || generalDescription.trim().length < 40) return null;
-    return `<!-- anchor:biomarker ${biomarkerCode} -->
-${biomarkerName}
-
-${generalDescription.trim()}
-
-${valueLine}
-<!-- anchor:biomarker_end -->`;
-  };
+  const buildFromKnowledge = () =>
+    buildBiomarkerEducationFromKnowledge(
+      biomarkerName,
+      biomarkerCode,
+      valueLine,
+      generalDescription,
+    );
 
   const resp = await fetchWithTimeout(
     "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -680,6 +677,22 @@ ${valueLine}
     return buildFromKnowledge() || text || null;
   }
   return text;
+}
+
+function buildBiomarkerEducationFromKnowledge(
+  biomarkerName: string,
+  biomarkerCode: string,
+  valueLine: string,
+  generalDescription: string | null,
+): string | null {
+  if (!generalDescription || generalDescription.trim().length < 40) return null;
+  return `<!-- anchor:biomarker ${biomarkerCode} -->
+${biomarkerName}
+
+${generalDescription.trim()}
+
+${valueLine}
+<!-- anchor:biomarker_end -->`;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
@@ -961,18 +974,53 @@ Deno.serve(async (req) => {
               type: "status",
               message: `[${sectionLabel}] Догенерация описаний для ${blocksToFix.length} биомаркеров…`,
             });
-            // Параллельная догенерация батчами: за один запуск чиним все блоки,
-            // а не по одному последовательно (иначе упираемся в лимит времени).
+            // Сначала чиним блоки локально из готового описания биомаркера в БД.
+            // Это быстро, стабильно и не должно упираться в лимиты AI за один прогон.
             type Repair = { blk: typeof blocksToFix[number]; generated: string | null; bm: any };
             const repairs: Repair[] = [];
-            let stoppedByBudget = false;
+            const aiBlocks: typeof blocksToFix = [];
 
-            for (let i = 0; i < blocksToFix.length; i += QA_PARALLEL_BATCH) {
-              if (isTimeBudgetLow() || aiRepairsDone >= MAX_AI_REPAIRS_PER_RUN) {
-                stoppedByBudget = true;
-                break;
+            for (const blk of blocksToFix) {
+              const bm = biomarkers.find(
+                (b) =>
+                  normalizeBiomarkerCode(b.code) ===
+                  normalizeBiomarkerCode(blk.code),
+              );
+              if (!bm) {
+                repairs.push({ blk, generated: null, bm: null });
+                continue;
               }
-              const batch = blocksToFix.slice(i, i + QA_PARALLEL_BATCH);
+              const valueMatch =
+                /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
+              const valueLine = valueMatch
+                ? valueMatch[0].trim()
+                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              const generalDesc =
+                (bm as any).general_description ??
+                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
+                null;
+              const generated = buildBiomarkerEducationFromKnowledge(
+                bm.name,
+                bm.code,
+                valueLine,
+                generalDesc,
+              );
+              if (generated) {
+                repairs.push({ blk, generated, bm } as Repair);
+              } else {
+                aiBlocks.push(blk);
+              }
+            }
+
+            if (aiBlocks.length > 0) {
+              send({
+                type: "status",
+                message: `[${sectionLabel}] Для ${aiBlocks.length} биомаркеров нет готового описания в БД — подключаю AI-догенерацию…`,
+              });
+            }
+
+            for (let i = 0; i < aiBlocks.length; i += QA_PARALLEL_BATCH) {
+              const batch = aiBlocks.slice(i, i + QA_PARALLEL_BATCH);
               const results = await Promise.all(
                 batch.map(async (blk) => {
                   const bm = biomarkers.find(
@@ -1040,11 +1088,6 @@ Deno.serve(async (req) => {
               }
             }
 
-            if (stoppedByBudget) {
-              const msg = `[${sectionLabel}] Часть AI-догенерации пропущена, чтобы проверка не зависла. Запустите проверку ещё раз после сохранения текущих правок.`;
-              fixes.push(msg);
-              send({ type: "warn", message: msg });
-            }
           }
           }
 
