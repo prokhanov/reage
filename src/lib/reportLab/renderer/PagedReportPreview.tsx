@@ -635,21 +635,81 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgLabel.textContent = "Фон";
   bgLabel.style.opacity = "0.8";
 
-  // Значение по умолчанию — доминирующий цвет из градиента обложки, чтобы
-  // color-picker не показывал белый (иначе кажется, что фон белый).
-  const DEFAULT_COVER_BG = "#0f1b2d";
-  const bgInput = document.createElement("input");
-  bgInput.type = "color";
-  bgInput.value = DEFAULT_COVER_BG;
-  bgInput.style.cssText =
-    "width:28px;height:22px;border:none;background:transparent;cursor:pointer;padding:0";
-  bgInput.addEventListener("input", () => {
-    cover.style.background = bgInput.value;
+  // Дефолтные значения градиента — соответствуют theme.css (rl-cover).
+  const DEFAULT_C1 = "#1c2f47";
+  const DEFAULT_C2 = "#0f1b2d";
+  const DEFAULT_C3 = "#0a1220";
+  const DEFAULT_ANGLE = 160;
+
+  const state = {
+    mode: "gradient" as "solid" | "gradient",
+    c1: DEFAULT_C1,
+    c2: DEFAULT_C2,
+    c3: DEFAULT_C3,
+    angle: DEFAULT_ANGLE,
+    solid: DEFAULT_C2,
+  };
+
+  const applyBg = () => {
+    if (state.mode === "solid") {
+      cover.style.background = state.solid;
+    } else {
+      cover.style.background = `linear-gradient(${state.angle}deg, ${state.c1} 0%, ${state.c2} 55%, ${state.c3} 100%)`;
+    }
+  };
+
+  const mkColor = (val: string, onChange: (v: string) => void) => {
+    const i = document.createElement("input");
+    i.type = "color";
+    i.value = val;
+    i.style.cssText =
+      "width:24px;height:22px;border:none;background:transparent;cursor:pointer;padding:0";
+    i.addEventListener("input", () => {
+      onChange(i.value);
+      applyBg();
+    });
+    return i;
+  };
+
+  const modeSel = document.createElement("select");
+  modeSel.style.cssText =
+    "background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:2px 4px;font:inherit;cursor:pointer";
+  modeSel.innerHTML =
+    '<option value="gradient">Градиент</option><option value="solid">Однотонный</option>';
+  const solidWrap = document.createElement("span");
+  const gradWrap = document.createElement("span");
+  gradWrap.style.cssText = "display:flex;gap:4px;align-items:center";
+  solidWrap.style.cssText = "display:none;gap:4px;align-items:center";
+
+  const c1 = mkColor(state.c1, (v) => (state.c1 = v));
+  const c2 = mkColor(state.c2, (v) => (state.c2 = v));
+  const c3 = mkColor(state.c3, (v) => (state.c3 = v));
+  const angle = document.createElement("input");
+  angle.type = "range";
+  angle.min = "0";
+  angle.max = "360";
+  angle.value = String(state.angle);
+  angle.title = "Угол градиента";
+  angle.style.cssText = "width:70px;accent-color:#d9c396";
+  angle.addEventListener("input", () => {
+    state.angle = parseInt(angle.value, 10);
+    applyBg();
+  });
+  gradWrap.append(c1, c2, c3, angle);
+
+  const solidC = mkColor(state.solid, (v) => (state.solid = v));
+  solidWrap.append(solidC);
+
+  modeSel.addEventListener("change", () => {
+    state.mode = modeSel.value as "solid" | "gradient";
+    gradWrap.style.display = state.mode === "gradient" ? "flex" : "none";
+    solidWrap.style.display = state.mode === "solid" ? "flex" : "none";
+    applyBg();
   });
 
   const bgReset = document.createElement("button");
   bgReset.type = "button";
-  bgReset.textContent = "Сброс обложки";
+  bgReset.textContent = "Сброс";
   bgReset.title = "Сбросить фон и все правки блоков";
   bgReset.style.cssText = [
     "background:transparent",
@@ -663,7 +723,20 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgReset.addEventListener("mousedown", (e) => e.preventDefault());
   bgReset.addEventListener("click", () => {
     cover.style.background = "";
-    bgInput.value = DEFAULT_COVER_BG;
+    state.mode = "gradient";
+    state.c1 = DEFAULT_C1;
+    state.c2 = DEFAULT_C2;
+    state.c3 = DEFAULT_C3;
+    state.angle = DEFAULT_ANGLE;
+    state.solid = DEFAULT_C2;
+    modeSel.value = "gradient";
+    c1.value = DEFAULT_C1;
+    c2.value = DEFAULT_C2;
+    c3.value = DEFAULT_C3;
+    angle.value = String(DEFAULT_ANGLE);
+    solidC.value = DEFAULT_C2;
+    gradWrap.style.display = "flex";
+    solidWrap.style.display = "none";
     els.forEach((e) => {
       e.style.transform = "";
       e.style.fontSize = "";
@@ -674,7 +747,7 @@ function installCoverInlineEditor(output: HTMLElement) {
     });
   });
 
-  bgBar.append(bgLabel, bgInput, bgReset);
+  bgBar.append(bgLabel, modeSel, gradWrap, solidWrap, bgReset);
   cover.appendChild(bgBar);
 
   // ─── Плавающая панель форматирования выбранного блока ──────────────────
