@@ -223,22 +223,12 @@ html, body {
 .reportlab .rl-cover-center {
   padding: 0 20mm;
 }
-.reportlab .rl-cover-kicker {
-  font-size: 10pt;
-  letter-spacing: 0.18em;
+.reportlab .rl-cover-eyebrow {
+  font-size: 9.5pt;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--gold-soft);
-  margin-bottom: 8mm;
-}
-.reportlab .rl-cover-headline {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 28pt;
-  line-height: 1.05;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin: 0 0 10mm;
-  color: #f8f2e2;
+  margin-bottom: 10mm;
 }
 .reportlab .rl-cover-title {
   font-family: var(--font-serif);
@@ -246,13 +236,17 @@ html, body {
   font-size: 46pt;
   line-height: 1.02;
   letter-spacing: -0.02em;
-  margin: 0 0 6mm;
+  margin: 0 0 8mm;
   color: #f8f2e2;
+}
+.reportlab .rl-cover-title em {
+  font-style: italic;
+  color: var(--gold-soft);
 }
 .reportlab .rl-cover-subtitle {
   font-size: 12pt;
   line-height: 1.55;
-  max-width: 140mm;
+  max-width: 130mm;
   color: rgba(246, 240, 224, 0.78);
 }
 .reportlab .rl-cover-meta {
@@ -263,18 +257,18 @@ html, body {
   border-top: 1px solid rgba(217, 195, 150, 0.2);
   padding-top: 10mm;
 }
-.reportlab .rl-cover-meta-item .value {
-  font-family: var(--font-serif);
-  font-size: 22pt;
-  color: #f8f2e2;
-  letter-spacing: -0.01em;
-  margin-bottom: 1.5mm;
-}
 .reportlab .rl-cover-meta-item .label {
   font-size: 8.5pt;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(246, 240, 224, 0.55);
+  margin-bottom: 2mm;
+}
+.reportlab .rl-cover-meta-item .value {
+  font-family: var(--font-serif);
+  font-size: 16pt;
+  color: #f8f2e2;
+  letter-spacing: -0.01em;
 }
 
 /* ─── Заголовки ──────────────────────────────────────────────────────────── */
