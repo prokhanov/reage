@@ -1197,7 +1197,7 @@ Deno.serve(async (req) => {
         try {
           const { data: recsAfter } = await admin
             .from("recommendations")
-            .select("text")
+            .select("id, type, text")
             .eq("analysis_id", analysisId);
           const combined = ((recsAfter || []) as any[])
             .map((r) => (typeof r.text === "string" ? r.text : ""))
@@ -1211,12 +1211,63 @@ Deno.serve(async (req) => {
             (b) => b.code && !renderedCodes.has(normalizeBiomarkerCode(b.code)),
           );
           if (missing.length > 0) {
-            const list = missing
-              .map((b) => `${b.name} (${b.code})`)
-              .join(", ");
-            const msg = `⚠ Биомаркеры без карточки в отчёте (${missing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
-            fixes.push(msg);
-            send({ type: "warn", message: msg });
+            const byType = new Map<string, any[]>();
+            for (const bm of missing) {
+              const type = String(bm.category || "").trim();
+              if (!type) continue;
+              if (!byType.has(type)) byType.set(type, []);
+              byType.get(type)!.push(bm);
+            }
+
+            let inserted = 0;
+            const stillMissing: any[] = [];
+            for (const bm of missing) {
+              if (!bm.category) stillMissing.push(bm);
+            }
+
+            for (const [type, list] of byType.entries()) {
+              const rec = ((recsAfter || []) as any[]).find((r) => r.type === type);
+              if (!rec || typeof rec.text !== "string") {
+                stillMissing.push(...list);
+                continue;
+              }
+              const additions = list
+                .map((bm) =>
+                  buildBiomarkerEducationFromKnowledge(
+                    bm.name,
+                    bm.code,
+                    buildBiomarkerValueLine(bm),
+                    bm.general_description,
+                  ),
+                )
+                .filter(Boolean)
+                .join("\n\n");
+              if (!additions) {
+                stillMissing.push(...list);
+                continue;
+              }
+              const nextText = `${rec.text.trim()}\n\n## Дополненные карточки биомаркеров\n\n${additions}\n`;
+              const { error: appendErr } = await admin
+                .from("recommendations")
+                .update({ text: nextText })
+                .eq("id", rec.id);
+              if (appendErr) throw appendErr;
+              inserted += list.length;
+            }
+
+            if (inserted > 0) {
+              const msg = `✓ Добавлены недостающие карточки биомаркеров: ${inserted}.`;
+              fixes.push(msg);
+              send({ type: "fix", message: msg });
+            }
+            if (stillMissing.length > 0) {
+              const list = stillMissing
+                .map((b) => `${b.name} (${b.code})`)
+                .join(", ");
+              const msg = `⚠ Биомаркеры без карточки в отчёте (${stillMissing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
+              fixes.push(msg);
+              send({ type: "warn", message: msg });
+            }
           }
         } catch (auditErr) {
           console.warn("cross-section audit failed:", auditErr);
