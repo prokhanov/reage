@@ -43,7 +43,7 @@ export function ReportCover({ report }: Props) {
             style={{ width: "34mm", height: "auto", display: "block" }}
           />
           <div style={{ marginTop: "3mm" }} data-cover-el="tagline">
-            Личный отчёт о состоянии здоровья
+            Конфиденциально
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
@@ -58,7 +58,7 @@ export function ReportCover({ report }: Props) {
 
       <div className="rl-cover-center">
         <div className="rl-cover-eyebrow" data-cover-el="eyebrow">
-          Индивидуальный анализ
+          Полная оценка состояния организма
         </div>
         <h1 className="rl-cover-title" data-cover-el="title-name">
           {V("patientName", fullName)}
@@ -68,7 +68,7 @@ export function ReportCover({ report }: Props) {
           data-cover-el="title-subtitle"
           style={{ margin: 0 }}
         >
-          <em>биологический профиль</em>
+          <em>ЛИЧНЫЙ ОТЧЁТ О СОСТОЯНИИ ЗДОРОВЬЯ</em>
         </h1>
 
       </div>
