@@ -22,9 +22,12 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const AI_CALL_TIMEOUT_MS = 45_000;
-const QA_TIME_BUDGET_MS = 125_000;
+const AI_CALL_TIMEOUT_MS = 60_000;
+const QA_TIME_BUDGET_MS = 140_000;
 const MAX_AI_REPAIRS_PER_RUN = 8;
+// Для догенерации коротких образовательных абзацев не нужен pro:
+// flash отвечает в 3–5 раз быстрее и стабильнее не упирается в таймаут.
+const REPAIR_MODEL = "google/gemini-2.5-flash";
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
