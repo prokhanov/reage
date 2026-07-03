@@ -960,7 +960,7 @@ Deno.serve(async (req) => {
                 type: "status",
                 message: `[${sectionLabel}] Найдены английские артефакты (${unique.length} уник.). Перевожу…`,
               });
-              translations = await translateEnglishFragments(unique, aiModel);
+              translations = await translateEnglishFragments(unique, aiModel, qaPrompts["qa_translate_english"]);
               aiRepairsDone++;
             } else {
               const msg = `[${sectionLabel}] Английские фрагменты найдены, но перевод пропущен по лимиту времени.`;
