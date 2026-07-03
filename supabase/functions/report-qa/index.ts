@@ -113,18 +113,44 @@ function injectMissingBiomarkerAnchors(
     if (m[1]) anchoredCodes.add(normalizeBiomarkerCode(m[1]));
   }
 
+  const canonicalCodeByNorm = new Map<string, string>();
+  for (const b of biomarkers) {
+    if (b.code) canonicalCodeByNorm.set(normalizeBiomarkerCode(b.code), b.code);
+  }
+
   const interpretationMatch =
-    /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
+    /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров(?=\s|$)/im.exec(report);
   if (!interpretationMatch) return { text: report, injectedCodes: [] };
   const interpretationStart =
     interpretationMatch.index! + interpretationMatch[0].length;
-  const summaryMatch =
-    /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im
-      .exec(report);
+  const summaryRegex =
+    /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/gim;
+  summaryRegex.lastIndex = interpretationStart;
+  const summaryMatch = summaryRegex.exec(report);
   const summaryStart = summaryMatch ? summaryMatch.index! : report.length;
 
   type Hit = { start: number; end: number; code: string; nameLen: number };
   const hits: Hit[] = [];
+
+  // Новый разрешённый формат промптов: Markdown-заголовок биомаркера
+  // `### Название (CODE)`. Без явных anchor-комментариев рендерер видит это
+  // как обычный текст, поэтому валидатор должен восстановить границы карточек.
+  const headingRegex = /^\s*#{2,4}\s+[^\n]*?\(([^()\n]{1,40})\)\s*$/gm;
+  headingRegex.lastIndex = interpretationStart;
+  let hm: RegExpExecArray | null;
+  while ((hm = headingRegex.exec(report)) !== null) {
+    if (hm.index! >= summaryStart) break;
+    const canonical = canonicalCodeByNorm.get(normalizeBiomarkerCode(hm[1] || ""));
+    if (!canonical || anchoredCodes.has(normalizeBiomarkerCode(canonical))) continue;
+    hits.push({
+      start: hm.index!,
+      end: hm.index! + hm[0].length,
+      code: canonical,
+      nameLen: 999,
+    });
+    if (hm[0].length === 0) headingRegex.lastIndex++;
+  }
+
   for (const { name, code } of sorted) {
     if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
     const re = new RegExp(

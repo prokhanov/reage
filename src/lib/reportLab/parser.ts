@@ -91,6 +91,12 @@ export function parseCategory(
   // Первую строку с названием категории вырезаем — заголовок мы рисуем сами.
   let text = stripLeadingCategoryHeader(rawText, title);
 
+  // Страховка для свежего формата отчётов: если модель вернула биомаркеры как
+  // Markdown-заголовки `### Название (CODE)`, но без HTML anchor-комментариев,
+  // всё равно превращаем такие блоки в карточки. Основной фикс остаётся в QA,
+  // но превью/PDF не должны показывать «голый текст» до ручного запуска проверки.
+  text = injectHeadingBiomarkerAnchors(text);
+
   const matches = [...text.matchAll(ANCHOR_RE)];
   if (matches.length === 0) {
     const clean = cleanProse(text);
@@ -231,6 +237,15 @@ function stripLeadingBiomarkerName(text: string): string {
   // короче 120 символов и не начинается с "-" или "1." (это уже проза/списки).
   const nlIdx = trimmed.indexOf("\n\n");
   const head = nlIdx === -1 ? trimmed : trimmed.slice(0, nlIdx);
+  const markdownHeading = /^#{1,6}\s+(.+?)\s*$/.exec(head);
+  if (
+    markdownHeading &&
+    markdownHeading[1].length < 120 &&
+    /[А-Яа-яЁёA-Za-z]/.test(markdownHeading[1]) &&
+    !markdownHeading[1].includes(":")
+  ) {
+    return nlIdx === -1 ? "" : trimmed.slice(nlIdx + 2);
+  }
   if (
     head.length < 120 &&
     !/^[-*•]/.test(head) &&
@@ -242,6 +257,55 @@ function stripLeadingBiomarkerName(text: string): string {
     return nlIdx === -1 ? "" : trimmed.slice(nlIdx + 2);
   }
   return trimmed;
+}
+
+function injectHeadingBiomarkerAnchors(text: string): string {
+  const existingAnchor = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/i;
+  if (!text || existingAnchor.test(text)) return text;
+
+  const headingRegex = /^\s*#{2,4}\s+[^\n]*?\(([^()\n]{1,40})\)\s*$/gm;
+  const hits = [...text.matchAll(headingRegex)]
+    .map((m) => ({
+      start: m.index ?? 0,
+      end: (m.index ?? 0) + m[0].length,
+      code: (m[1] || "").trim(),
+    }))
+    .filter((h) => isLikelyBiomarkerCode(h.code));
+
+  if (hits.length === 0) return text;
+
+  const findSectionBoundary = (from: number): number => {
+    const boundaryRegex = /^\s*#{1,3}\s+(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)(?=\s|$)/gim;
+    boundaryRegex.lastIndex = from;
+    const m = boundaryRegex.exec(text);
+    return m ? m.index ?? text.length : text.length;
+  };
+
+  let result = text;
+  for (let i = hits.length - 1; i >= 0; i--) {
+    const cur = hits[i];
+    const next = hits[i + 1];
+    const blockEnd = next ? next.start : findSectionBoundary(cur.end);
+    result =
+      result.slice(0, blockEnd) +
+      `\n<!-- anchor:biomarker_end -->\n` +
+      result.slice(blockEnd);
+    result =
+      result.slice(0, cur.start) +
+      `<!-- anchor:biomarker ${cur.code} -->\n` +
+      result.slice(cur.start);
+  }
+
+  return result;
+}
+
+function isLikelyBiomarkerCode(code: string): boolean {
+  const trimmed = code.trim();
+  if (!trimmed || trimmed.length > 40) return false;
+  if (!/[A-Za-z0-9αβγδμ]/.test(trimmed)) return false;
+  // Не превращаем русские пояснения в скобках в карточки.
+  if (/[А-Яа-яЁё]/.test(trimmed)) return false;
+  return /^[A-Za-z0-9αβγδμ+_.\-/\s]+$/.test(trimmed);
 }
 
 function cleanProse(chunk: string): string {
