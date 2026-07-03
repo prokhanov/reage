@@ -193,6 +193,30 @@ export default function AISettings() {
     userPrompt: settings?.find(s => s.key === section.userKey)
   }));
 
+  // Маппинг QA-промптов
+  const qaStandalonePrompts = qaStandaloneSections.map(section => ({
+    section,
+    prompt: settings?.find(s => s.key === section.promptKey),
+  }));
+  const qaPairedPrompts = qaPairedSections.map(section => ({
+    section,
+    systemPrompt: settings?.find(s => s.key === section.systemKey),
+    userPrompt: settings?.find(s => s.key === section.userKey),
+  }));
+  const filteredQaStandalonePrompts = searchQuery
+    ? qaStandalonePrompts.filter(sp =>
+        sp.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sp.prompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : qaStandalonePrompts;
+  const filteredQaPairedPrompts = searchQuery
+    ? qaPairedPrompts.filter(pp =>
+        pp.section.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pp.systemPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pp.userPrompt?.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : qaPairedPrompts;
+
   // Фильтруем стратегию по поисковому запросу
   const filteredRiskZonePrompts = searchQuery
     ? riskZonePrompts.filter(rz =>
