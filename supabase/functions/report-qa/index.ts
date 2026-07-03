@@ -1087,8 +1087,6 @@ Deno.serve(async (req) => {
                 send({ type: "warn", message: msg });
               }
             }
-
-          }
           }
 
           // 6. Detect & translate stray English fragments (artifacts)
