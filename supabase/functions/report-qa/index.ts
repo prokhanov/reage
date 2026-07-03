@@ -22,9 +22,9 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const AI_CALL_TIMEOUT_MS = 25_000;
-const QA_TIME_BUDGET_MS = 80_000;
-const MAX_AI_REPAIRS_PER_RUN = 3;
+const AI_CALL_TIMEOUT_MS = 45_000;
+const QA_TIME_BUDGET_MS = 125_000;
+const MAX_AI_REPAIRS_PER_RUN = 8;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
@@ -113,44 +113,18 @@ function injectMissingBiomarkerAnchors(
     if (m[1]) anchoredCodes.add(normalizeBiomarkerCode(m[1]));
   }
 
-  const canonicalCodeByNorm = new Map<string, string>();
-  for (const b of biomarkers) {
-    if (b.code) canonicalCodeByNorm.set(normalizeBiomarkerCode(b.code), b.code);
-  }
-
   const interpretationMatch =
-    /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров(?=\s|$)/im.exec(report);
+    /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
   if (!interpretationMatch) return { text: report, injectedCodes: [] };
   const interpretationStart =
     interpretationMatch.index! + interpretationMatch[0].length;
-  const summaryRegex =
-    /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/gim;
-  summaryRegex.lastIndex = interpretationStart;
-  const summaryMatch = summaryRegex.exec(report);
+  const summaryMatch =
+    /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im
+      .exec(report);
   const summaryStart = summaryMatch ? summaryMatch.index! : report.length;
 
   type Hit = { start: number; end: number; code: string; nameLen: number };
   const hits: Hit[] = [];
-
-  // Новый разрешённый формат промптов: Markdown-заголовок биомаркера
-  // `### Название (CODE)`. Без явных anchor-комментариев рендерер видит это
-  // как обычный текст, поэтому валидатор должен восстановить границы карточек.
-  const headingRegex = /^\s*#{2,4}\s+[^\n]*?\(([^()\n]{1,40})\)\s*$/gm;
-  headingRegex.lastIndex = interpretationStart;
-  let hm: RegExpExecArray | null;
-  while ((hm = headingRegex.exec(report)) !== null) {
-    if (hm.index! >= summaryStart) break;
-    const canonical = canonicalCodeByNorm.get(normalizeBiomarkerCode(hm[1] || ""));
-    if (!canonical || anchoredCodes.has(normalizeBiomarkerCode(canonical))) continue;
-    hits.push({
-      start: hm.index!,
-      end: hm.index! + hm[0].length,
-      code: canonical,
-      nameLen: 999,
-    });
-    if (hm[0].length === 0) headingRegex.lastIndex++;
-  }
-
   for (const { name, code } of sorted) {
     if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
     const re = new RegExp(
@@ -240,45 +214,26 @@ function extractBiomarkerBlocks(
  */
 function isBiomarkerMissingEducation(content: string): boolean {
   if (!content) return true;
-  // Убираем только якорные комментарии; заголовки НЕ удаляем регэкспом,
-  // потому что регэксп оставляет пустые строки и ломает логику «первой строки».
-  const noAnchors = content.replace(/<!--[\s\S]*?-->/g, " ").trim();
-  if (noAnchors.length < 60) return true;
-
-  // Разбиваем на непустые строки и отбрасываем ведущие «титульные» строки:
-  //   — Markdown-заголовки (### Название)
-  //   — короткие plain-text строки без точки (просто «Общий белок»),
-  //     не содержащие ключевых слов value-предложения.
-  const valueKeyword = /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i;
-  const lines = noAnchors
-    .split(/\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
-  let i = 0;
-  while (i < lines.length) {
-    const l = lines[i];
-    const isHeading = /^#{1,6}\s+/.test(l);
-    const looksLikeTitle =
-      l.length <= 80 && !/[.!?:]/.test(l) && !valueKeyword.test(l);
-    if (isHeading || looksLikeTitle) {
-      i++;
-      continue;
-    }
-    break;
-  }
-  const body = lines.slice(i).join("\n").trim();
-  if (body.length < 60) return true;
-
-  const valueMatch = valueKeyword.exec(body);
+  const stripped = content
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/^\s*#{1,6}\s+.*$/gm, " ") // headers
+    .trim();
+  // Empty / near-empty block — definitely missing.
+  if (stripped.length < 60) return true;
+  const valueMatch =
+    /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i.exec(
+      stripped,
+    );
   if (!valueMatch) {
-    // Нет value-предложения — оцениваем всю оставшуюся прозу.
-    const cyr = (body.match(/[а-яё]/gi) || []).length;
+    // Нет value-предложения — но может это просто заглушка без обучения.
+    // Если всего <200 символов прозы кириллицы, считаем что описания нет.
+    const cyr = (stripped.match(/[а-яё]/gi) || []).length;
     return cyr < 200;
   }
-  const prefix = body.slice(0, valueMatch.index).trim();
-  const cyr = (prefix.match(/[а-яё]/gi) || []).length;
-  return cyr < 60;
+  const prefix = stripped.slice(0, valueMatch.index).trim();
+  // Drop the first line (likely the biomarker title) and check what's left
+  const withoutTitle = prefix.split(/\n/).slice(1).join(" ").trim();
+  return withoutTitle.length < 60;
 }
 
 // ──────────────────── Trailing transition detection ────────────────────
@@ -507,43 +462,31 @@ async function translateEnglishFragments(
 
   const user = JSON.stringify({ fragments }, null, 2);
 
-  let resp: Response;
-  try {
-    resp = await fetchWithTimeout(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          response_format: { type: "json_object" },
-        }),
+  const resp = await fetchWithTimeout(
+    "https://ai.gateway.lovable.dev/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
       },
-      AI_CALL_TIMEOUT_MS,
-    );
-  } catch (err) {
-    console.error("AI translate fetch error:", err);
-    return {};
-  }
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    },
+    AI_CALL_TIMEOUT_MS,
+  );
 
   if (!resp.ok) {
     console.error("AI translate error:", resp.status, await resp.text());
     return {};
   }
-  let data: any;
-  try {
-    data = await resp.json();
-  } catch (err) {
-    console.error("AI translate response parse failed:", err);
-    return {};
-  }
+  const data = await resp.json();
   const raw: string = data?.choices?.[0]?.message?.content ?? "";
   try {
     const parsed = JSON.parse(raw);
@@ -562,24 +505,97 @@ async function translateEnglishFragments(
 
 // ──────────────────── AI helper ────────────────────
 
-function generateBiomarkerEducation(
+async function generateBiomarkerEducation(
   biomarkerName: string,
   biomarkerCode: string,
   valueLine: string,
-  _model: string,
-  _reportContext: string,
+  model: string,
+  reportContext: string,
   generalDescription: string | null,
-  _systemPromptTemplate?: string | null,
-  _userPromptTemplate?: string | null,
-): string | null {
-  if (!generalDescription || generalDescription.trim().length < 40) return null;
-  return `<!-- anchor:biomarker ${biomarkerCode} -->
+  systemPromptTemplate?: string | null,
+  userPromptTemplate?: string | null,
+): Promise<string | null> {
+  const applyVars = (tpl: string, vars: Record<string, string>) =>
+    tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => (k in vars ? vars[k] : ""));
+
+  const knowledge = generalDescription && generalDescription.trim().length > 40
+    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
+    : "";
+  const trimmedContext = reportContext.slice(0, 2000);
+
+  const vars = {
+    biomarker_name: biomarkerName,
+    biomarker_code: biomarkerCode,
+    value_line: valueLine,
+    report_context: trimmedContext,
+    knowledge_block: knowledge,
+  };
+
+  const system = (systemPromptTemplate && systemPromptTemplate.trim().length > 20)
+    ? applyVars(systemPromptTemplate, vars)
+    : `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
+
+<!-- anchor:biomarker ${biomarkerCode} -->
+${biomarkerName}
+
+[1–2 коротких абзаца простым языком: что это за показатель и за что он отвечает в организме. Без чисел и без оценок пациента.]
+
+${valueLine}
+
+[Если отклонение — добавь блок «Что это значит для вас» с практическим выводом для конкретного значения.]
+<!-- anchor:biomarker_end -->`;
+
+  const user = (userPromptTemplate && userPromptTemplate.trim().length > 20)
+    ? applyVars(userPromptTemplate, vars)
+    : `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
+Контекст отчёта (для тонального соответствия, не цитируй):
+${trimmedContext}${knowledge}
+
+Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
+
+
+  const buildFromKnowledge = (): string | null => {
+    if (!generalDescription || generalDescription.trim().length < 40) return null;
+    return `<!-- anchor:biomarker ${biomarkerCode} -->
 ${biomarkerName}
 
 ${generalDescription.trim()}
 
 ${valueLine}
 <!-- anchor:biomarker_end -->`;
+  };
+
+  const resp = await fetchWithTimeout(
+    "https://ai.gateway.lovable.dev/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+    },
+    AI_CALL_TIMEOUT_MS,
+  );
+
+  if (!resp.ok) {
+    console.error("AI gateway error:", resp.status, await resp.text());
+    return buildFromKnowledge();
+  }
+  const data = await resp.json();
+  const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
+  // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
+  const cyrCount = (text.match(/[а-яё]/gi) || []).length;
+  if (!text || cyrCount < 120) {
+    return buildFromKnowledge() || text || null;
+  }
+  return text;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
@@ -660,11 +676,7 @@ Deno.serve(async (req) => {
       let closed = false;
       const send = (event: Record<string, unknown>) => {
         if (closed) return;
-        try {
-          controller.enqueue(enc.encode(`data: ${JSON.stringify(event)}\n\n`));
-        } catch {
-          closed = true;
-        }
+        controller.enqueue(enc.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
       const fixes: string[] = [];
       const startedAt = Date.now();
@@ -860,21 +872,6 @@ Deno.serve(async (req) => {
               knownCodesNorm.has(normalizeBiomarkerCode(b.code)) &&
               isBiomarkerMissingEducation(b.content),
           );
-          const repairBlockByAnchor = (source: string, block: { code: string; start: number; end: number }, replacement: string): string => {
-            const nextOpenRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
-            nextOpenRegex.lastIndex = block.start + 1;
-            const nextOpen = nextOpenRegex.exec(source);
-            const maxEnd = nextOpen ? nextOpen.index : source.length;
-
-            const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
-            endRegex.lastIndex = block.start;
-            const endMatch = endRegex.exec(source);
-            const replaceEnd = endMatch && endMatch.index < maxEnd
-              ? endMatch.index + endMatch[0].length
-              : block.end;
-
-            return source.slice(0, block.start) + replacement + "\n" + source.slice(replaceEnd);
-          };
           if (blocksToFix.length > 0) {
             send({
               type: "status",
@@ -895,48 +892,50 @@ Deno.serve(async (req) => {
                   normalizeBiomarkerCode(blk.code),
               );
               if (!bm) continue;
-              try {
-                // Extract value sentence from existing content (if present)
-                const valueMatch =
-                  /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-                const valueLine = valueMatch
-                  ? valueMatch[0].trim()
-                  : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              // Extract value sentence from existing content (if present)
+              const valueMatch =
+                /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
+              const valueLine = valueMatch
+                ? valueMatch[0].trim()
+                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
 
-                send({
-                  type: "status",
-                  message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
-                });
-                const generalDesc =
-                  (bm as any).general_description ??
-                  generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
-                  null;
-                const generated = await generateBiomarkerEducation(
-                  bm.name,
-                  bm.code,
-                  valueLine,
-                  aiModel,
-                  reportContext,
-                  generalDesc,
-                  qaPrompts["qa_biomarker_education"],
-                  qaPrompts["qa_biomarker_education_user"],
-                );
-                aiRepairsDone++;
-                if (generated) {
-                  text = repairBlockByAnchor(text, blk, generated);
-                  const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${bm.name} (${bm.code})`;
-                  fixes.push(msg);
-                  send({ type: "fix", message: msg });
-                } else {
-                  const msg = `[${sectionLabel}] ✗ Не удалось догенерировать: ${bm.name} (${bm.code})`;
-                  fixes.push(msg);
-                  send({ type: "warn", message: msg });
-                }
-              } catch (bmErr) {
-                aiRepairsDone++;
-                const detail = bmErr instanceof Error ? bmErr.message : String(bmErr);
-                const msg = `[${sectionLabel}] ✗ Пропуск биомаркера ${bm.name} (${bm.code}): ${detail}`;
-                console.error("biomarker regen failed:", bm.code, detail);
+              send({
+                type: "status",
+                message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
+              });
+              const generalDesc =
+                (bm as any).general_description ??
+                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
+                null;
+              const generated = await generateBiomarkerEducation(
+                bm.name,
+                bm.code,
+                valueLine,
+                aiModel,
+                reportContext,
+                generalDesc,
+                qaPrompts["qa_biomarker_education"],
+                qaPrompts["qa_biomarker_education_user"],
+              );
+              aiRepairsDone++;
+              if (generated) {
+                // Find end-of-block (anchor:biomarker_end) — replace whole block
+                const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
+                endRegex.lastIndex = blk.end;
+                const endMatch = endRegex.exec(text);
+                const replaceEnd = endMatch
+                  ? endMatch.index + endMatch[0].length
+                  : blk.end;
+                text =
+                  text.slice(0, blk.start) +
+                  generated +
+                  "\n" +
+                  text.slice(replaceEnd);
+                const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${bm.name} (${bm.code})`;
+                fixes.push(msg);
+                send({ type: "fix", message: msg });
+              } else {
+                const msg = `[${sectionLabel}] ✗ Не удалось догенерировать: ${bm.name} (${bm.code})`;
                 fixes.push(msg);
                 send({ type: "warn", message: msg });
               }
@@ -1065,11 +1064,7 @@ Deno.serve(async (req) => {
       } finally {
         clearInterval(heartbeat);
         closed = true;
-        try {
-          controller.close();
-        } catch {
-          // Клиент мог уже закрыть SSE-соединение.
-        }
+        controller.close();
       }
     },
   });
