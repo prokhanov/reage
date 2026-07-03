@@ -18,8 +18,8 @@ export function ReportOverview({ report }: Props) {
 
   return (
     <section className="rl-page">
-      <h1 className="rl-h1" data-section-title="Обзор биологического состояния">
-        Обзор биологического состояния
+      <h1 className="rl-h1" data-section-title="Общее резюме">
+        Общее резюме
       </h1>
 
       <div className="rl-stats">
