@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Copy, Download, ExternalLink, Loader2 } from "lucide-react";
+import { Download, ExternalLink, Loader2 } from "lucide-react";
 import { notify as toast } from "@/lib/toast";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
@@ -13,29 +12,12 @@ import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
 const INITIAL_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 
-type PdfLogLevel = "info" | "success" | "error";
-type PdfLogEntry = {
-  id: string;
-  time: string;
-  level: PdfLogLevel;
-  message: string;
-  details?: string;
-};
-
 type ReadyPdf = {
   url: string;
   file: File;
   filename: string;
   sizeKb: number;
 };
-
-function nowLabel() {
-  return new Date().toLocaleTimeString("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
 
 function formatError(e: unknown) {
   if (e instanceof Error) return e.message;
