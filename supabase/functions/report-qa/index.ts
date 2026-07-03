@@ -119,7 +119,7 @@ function injectMissingBiomarkerAnchors(
   }
 
   const interpretationMatch =
-    /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
+    /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров(?=\s|$)/im.exec(report);
   if (!interpretationMatch) return { text: report, injectedCodes: [] };
   const interpretationStart =
     interpretationMatch.index! + interpretationMatch[0].length;

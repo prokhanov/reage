@@ -275,7 +275,7 @@ function injectHeadingBiomarkerAnchors(text: string): string {
   if (hits.length === 0) return text;
 
   const findSectionBoundary = (from: number): number => {
-    const boundaryRegex = /^\s*#{1,3}\s+(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)\b/gim;
+    const boundaryRegex = /^\s*#{1,3}\s+(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)(?=\s|$)/gim;
     boundaryRegex.lastIndex = from;
     const m = boundaryRegex.exec(text);
     return m ? m.index ?? text.length : text.length;
