@@ -2,7 +2,7 @@ import { ButtonSpinner } from "@/components/admin/ButtonSpinner";
 import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Edit, Search, Bot, TrendingUp, FlaskConical, Map as MapIcon, Dna, Target, Pill, ClipboardList, BarChart3, type LucideIcon } from "lucide-react";
+import { Edit, Search, Bot, TrendingUp, FlaskConical, Map as MapIcon, Dna, Target, Pill, ClipboardList, BarChart3, Languages, BookOpen, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
