@@ -581,21 +581,14 @@ function installEditableOverlay(
  * Прямое редактирование обложки:
  *  - клик — выделение, drag — перемещение блока, dblclick — правка текста,
  *  - плавающая панель: B / I / цвет текста / выравнивание / A±/ стрелки / ↺,
- *  - палитра переменных: вставляет `{{var}}` в caret,
  *  - постоянная панель обложки (сверху справа): фон обложки, сброс всего.
  *
  * Живёт целиком в DOM, без React state и без ре-пагинации.
- * Доступные переменные:
- *   patientName, age, date, bioAge, healthIndex, issueNumber.
+ * Переменные ({{patientName}}, {{age}}, {{date}}, {{bioAge}},
+ * {{healthIndex}}, {{issueNumber}}) в edit-режиме рендерятся как raw-токены
+ * прямо в ReportCover, а в view-режиме — заменяются реальными значениями.
  */
-const COVER_VARIABLES: Array<{ name: string; label: string }> = [
-  { name: "patientName", label: "Имя пациента" },
-  { name: "age", label: "Возраст" },
-  { name: "date", label: "Дата" },
-  { name: "bioAge", label: "Био-возраст" },
-  { name: "healthIndex", label: "Индекс здоровья" },
-  { name: "issueNumber", label: "Номер выпуска" },
-];
+
 
 function installCoverInlineEditor(output: HTMLElement) {
   const cover = output.querySelector<HTMLElement>("[data-cover-root]");
@@ -642,9 +635,12 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgLabel.textContent = "Фон";
   bgLabel.style.opacity = "0.8";
 
+  // Значение по умолчанию — доминирующий цвет из градиента обложки, чтобы
+  // color-picker не показывал белый (иначе кажется, что фон белый).
+  const DEFAULT_COVER_BG = "#0f1b2d";
   const bgInput = document.createElement("input");
   bgInput.type = "color";
-  bgInput.value = "#ffffff";
+  bgInput.value = DEFAULT_COVER_BG;
   bgInput.style.cssText =
     "width:28px;height:22px;border:none;background:transparent;cursor:pointer;padding:0";
   bgInput.addEventListener("input", () => {
@@ -667,7 +663,7 @@ function installCoverInlineEditor(output: HTMLElement) {
   bgReset.addEventListener("mousedown", (e) => e.preventDefault());
   bgReset.addEventListener("click", () => {
     cover.style.background = "";
-    bgInput.value = "#ffffff";
+    bgInput.value = DEFAULT_COVER_BG;
     els.forEach((e) => {
       e.style.transform = "";
       e.style.fontSize = "";
@@ -711,14 +707,10 @@ function installCoverInlineEditor(output: HTMLElement) {
   row1.style.cssText = rowStyle;
   const row2 = document.createElement("div");
   row2.style.cssText = rowStyle;
-  const row3 = document.createElement("div");
-  row3.style.cssText = rowStyle + ";border-top:1px solid rgba(255,255,255,0.12);padding-top:4px;margin-top:2px";
-  const row3Label = document.createElement("span");
-  row3Label.textContent = "Вставить переменную:";
-  row3Label.style.cssText = "opacity:0.7;margin-right:4px;font-size:11px";
-  row3.appendChild(row3Label);
 
-  panel.append(row1, row2, row3);
+  panel.append(row1, row2);
+
+
 
   let selected: HTMLElement | null = null;
 
@@ -827,61 +819,8 @@ function installCoverInlineEditor(output: HTMLElement) {
     mkBtn("↺", "Сбросить блок", resetEl),
   );
 
-  // Row 3: variable chips
-  const insertVarAtCaret = (name: string) => {
-    if (!selected) return;
-    // если блок ещё не в режиме правки — включим
-    if (selected.contentEditable !== "true") {
-      selected.contentEditable = "true";
-      selected.focus();
-    }
-    const sel = window.getSelection();
-    let range: Range | null = null;
-    if (sel && sel.rangeCount && selected.contains(sel.anchorNode)) {
-      range = sel.getRangeAt(0);
-    } else {
-      range = document.createRange();
-      range.selectNodeContents(selected);
-      range.collapse(false);
-    }
-    range.deleteContents();
-    const span = document.createElement("span");
-    span.setAttribute("data-var", name);
-    span.title = `Переменная: {{${name}}}`;
-    span.textContent = `{{${name}}}`;
-    span.style.background = "rgba(217,195,150,0.22)";
-    span.style.borderBottom = "1px dashed rgba(181,138,68,0.55)";
-    span.style.padding = "0 2px";
-    span.style.borderRadius = "2px";
-    range.insertNode(span);
-    range.setStartAfter(span);
-    range.collapse(true);
-    sel?.removeAllRanges();
-    sel?.addRange(range);
-  };
+  // Чипы переменных перенесены в верхний баннер (ModeBanner) — здесь их нет.
 
-  COVER_VARIABLES.forEach((v) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.textContent = `{{${v.name}}}`;
-    chip.title = v.label;
-    chip.style.cssText = [
-      "background:rgba(217,195,150,0.18)",
-      "color:#f5e7cf",
-      "border:1px solid rgba(217,195,150,0.35)",
-      "border-radius:4px",
-      "padding:3px 6px",
-      "cursor:pointer",
-      "font:11px/1 ui-monospace, SFMono-Regular, Menlo, monospace",
-    ].join(";");
-    chip.addEventListener("mousedown", (e) => e.preventDefault());
-    chip.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      insertVarAtCaret(v.name);
-    });
-    row3.appendChild(chip);
-  });
 
   // ─── Selection / position / drag ───────────────────────────────────────
   const positionPanel = () => {
