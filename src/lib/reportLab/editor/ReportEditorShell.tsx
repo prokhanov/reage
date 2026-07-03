@@ -112,13 +112,26 @@ function ModeBanner() {
   const ctx = useReportEditor();
   if (!ctx || ctx.mode !== "edit") return null;
   return (
-    <div className="mb-4 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary">
-      Режим редактирования: кликните по тексту, выделите фрагмент — появится
-      панель форматирования. После потери фокуса разметка пересчитается и текст
-      сдвинется по страницам.
+    <div className="mb-4 space-y-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary">
+      <div>
+        Режим редактирования: кликните по тексту, выделите фрагмент — появится
+        панель форматирования (жирный/курсив, выравнивание, цвет, размер).
+        После потери фокуса разметка пересчитается и текст сдвинется по
+        страницам.
+      </div>
+      <div className="text-[11px] opacity-90">
+        Переменные обложки (в тексте — как <code>{"{{имя}}"}</code>):{" "}
+        <code>{"{{patientName}}"}</code> — имя пациента,{" "}
+        <code>{"{{age}}"}</code> — возраст,{" "}
+        <code>{"{{date}}"}</code> — дата,{" "}
+        <code>{"{{bioAge}}"}</code> — био-возраст,{" "}
+        <code>{"{{healthIndex}}"}</code> — индекс здоровья,{" "}
+        <code>{"{{issueNumber}}"}</code> — номер выпуска.
+      </div>
     </div>
   );
 }
+
 
 /** Возвращает true, если сейчас включён edit-режим — для условного рендера превью. */
 export function useIsEditMode(): boolean {
