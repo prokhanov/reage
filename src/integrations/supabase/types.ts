@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _prompt_import_staging: {
+        Row: {
+          chunk: string
+          chunk_idx: number
+          key: string
+        }
+        Insert: {
+          chunk: string
+          chunk_idx: number
+          key: string
+        }
+        Update: {
+          chunk?: string
+          chunk_idx?: number
+          key?: string
+        }
+        Relationships: []
+      }
       admin_permissions: {
         Row: {
           created_at: string
