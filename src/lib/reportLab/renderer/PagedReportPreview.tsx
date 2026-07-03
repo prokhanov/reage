@@ -310,6 +310,7 @@ export function PagedReportPreview({
               onEditChangeRef.current?.(id, md);
             },
           );
+          installCoverInlineEditor(output);
           if (caret) restoreCaret(output, caret);
           if (scrollContainer) scrollContainer.scrollTop = scrollTop;
         }
