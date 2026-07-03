@@ -22,13 +22,9 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const AI_CALL_TIMEOUT_MS = 90_000;
-// Для QA-починок (перевод фрагментов, догенерация описания биомаркера)
-// используем быструю модель — pro слишком медленный и упирается в таймаут.
-const QA_REPAIR_MODEL = "google/gemini-2.5-flash";
-const QA_TIME_BUDGET_MS = 8 * 60_000;
-const MAX_AI_REPAIRS_PER_RUN = 200;
-const QA_PARALLEL_BATCH = 12;
+const AI_CALL_TIMEOUT_MS = 45_000;
+const QA_TIME_BUDGET_MS = 125_000;
+const MAX_AI_REPAIRS_PER_RUN = 8;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
@@ -66,14 +62,6 @@ function normalizeBiomarkerCode(code: string): string {
     .replace(/[\s\-_+()]/g, "");
 }
 
-function getBiomarkerCodeAliases(code: string): string[] {
-  const norm = normalizeBiomarkerCode(code);
-  if (norm === "25ohd" || norm === "25hydroxyvitamind") {
-    return ["VITD", "Vitamin D", "VitaminD", "25-OH Vitamin D"];
-  }
-  return [];
-}
-
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -89,86 +77,6 @@ function repairTruncatedAnchors(text: string): { text: string; fixed: number } {
     return ""; // strip the broken comment
   });
   return { text: result, fixed };
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// normalizeStructuralHeadings — страховка для случаев, когда модель забыла
-// поставить Markdown-префиксы (##/###/####) для канонических подзаголовков
-// разделов отчёта. Работает построчно и идемпотентно: строки, уже начинающиеся
-// с '#', пропускаются. Точный whitelist — без эвристик по длине.
-// ─────────────────────────────────────────────────────────────────────────────
-function normalizeStructuralHeadings(text: string): {
-  text: string;
-  changed: string[];
-} {
-  if (!text) return { text, changed: [] };
-
-  const normalize = (s: string): string =>
-    s
-      .trim()
-      .toLowerCase()
-      .replace(/[«»""'']/g, '"')
-      .replace(/\s+/g, " ");
-
-  // Точные строки → уровень заголовка
-  const H2_EXACT = new Set(
-    [
-      "Интерпретация биомаркеров",
-      "Разбор показателей",
-      "Разбор биомаркеров",
-      "Ключевые показатели",
-      "Ключевые биомаркеры",
-    ].map(normalize),
-  );
-
-  const H3_EXACT = new Set(
-    ["Сильные стороны организма", "Дефициты и дисфункции"].map(normalize),
-  );
-
-  // H2 по префиксу: "Общая оценка системы организма ..." (название категории
-  // варьируется по кавычкам и падежам).
-  const H2_PREFIX = normalize("Общая оценка системы организма");
-
-  // H4: "Что это значит для вас" — с двоеточием и без.
-  const H4_BASE = normalize("Что это значит для вас");
-
-  const lines = text.split("\n");
-  const changed: string[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i];
-    const stripped = raw.trim();
-    if (!stripped) continue;
-    // Идемпотентность — строка уже заголовок.
-    if (/^#{1,6}\s/.test(stripped)) continue;
-
-    const key = normalize(stripped);
-
-    if (H2_EXACT.has(key)) {
-      lines[i] = `## ${stripped}`;
-      changed.push(stripped);
-      continue;
-    }
-    if (H3_EXACT.has(key)) {
-      lines[i] = `### ${stripped}`;
-      changed.push(stripped);
-      continue;
-    }
-    if (key.startsWith(H2_PREFIX)) {
-      lines[i] = `## ${stripped}`;
-      changed.push(stripped);
-      continue;
-    }
-    if (key === H4_BASE || key === H4_BASE + ":") {
-      // Приводим к каноническому виду с двоеточием.
-      const withColon = stripped.endsWith(":") ? stripped : `${stripped}:`;
-      lines[i] = `#### ${withColon}`;
-      changed.push(withColon);
-      continue;
-    }
-  }
-
-  return { text: lines.join("\n"), changed };
 }
 
 function injectMissingBiomarkerAnchors(
@@ -646,13 +554,16 @@ ${trimmedContext}${knowledge}
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
 
 
-  const buildFromKnowledge = () =>
-    buildBiomarkerEducationFromKnowledge(
-      biomarkerName,
-      biomarkerCode,
-      valueLine,
-      generalDescription,
-    );
+  const buildFromKnowledge = (): string | null => {
+    if (!generalDescription || generalDescription.trim().length < 40) return null;
+    return `<!-- anchor:biomarker ${biomarkerCode} -->
+${biomarkerName}
+
+${generalDescription.trim()}
+
+${valueLine}
+<!-- anchor:biomarker_end -->`;
+  };
 
   const resp = await fetchWithTimeout(
     "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -685,36 +596,6 @@ ${trimmedContext}${knowledge}
     return buildFromKnowledge() || text || null;
   }
   return text;
-}
-
-function buildBiomarkerEducationFromKnowledge(
-  biomarkerName: string,
-  biomarkerCode: string,
-  valueLine: string,
-  generalDescription: string | null,
-): string | null {
-  if (!generalDescription || generalDescription.trim().length < 40) return null;
-  return `<!-- anchor:biomarker ${biomarkerCode} -->
-${biomarkerName}
-
-${generalDescription.trim()}
-
-${valueLine}
-<!-- anchor:biomarker_end -->`;
-}
-
-function formatAnalysisValue(value: unknown): string {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "";
-  return Number.isInteger(value)
-    ? String(value)
-    : String(Number(value.toFixed(3))).replace(/\.0+$/, "");
-}
-
-function buildBiomarkerValueLine(bm: any): string {
-  const formatted = formatAnalysisValue(bm?.value);
-  const unit = String(bm?.unit_override || bm?.unit || "").trim();
-  if (!formatted) return `Ваш показатель ${bm?.name || "биомаркера"} указан в анализе.`;
-  return `Ваш показатель ${bm.name}: ${formatted}${unit ? ` ${unit}` : ""}.`;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
@@ -818,7 +699,7 @@ Deno.serve(async (req) => {
 
         const { data: avRows, error: avErr } = await admin
           .from("analysis_values")
-          .select("biomarker_id, value, unit_override, biomarkers!inner(code, name, general_description, unit, category)")
+          .select("biomarker_id, biomarkers!inner(code, name, general_description)")
           .eq("analysis_id", analysisId);
         if (avErr) throw avErr;
 
@@ -826,10 +707,6 @@ Deno.serve(async (req) => {
           code: r.biomarkers?.code,
           name: r.biomarkers?.name,
           general_description: r.biomarkers?.general_description ?? null,
-          category: r.biomarkers?.category ?? null,
-          unit: r.biomarkers?.unit ?? null,
-          unit_override: r.unit_override ?? null,
-          value: r.value ?? null,
         }));
         const knownCodesNorm = new Set(
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
@@ -862,9 +739,9 @@ Deno.serve(async (req) => {
         }
 
 
-        // Для QA-починок всегда используем быструю модель,
-        // независимо от того, каким pro/deep генерировался исходный отчёт.
-        const aiModel: string = QA_REPAIR_MODEL;
+        const aiModel: string =
+          (analysis as any)?.biomarkers_metadata?.ai_model ||
+          "google/gemini-2.5-pro";
 
         // Загружаем QA-промпты из ai_prompt_settings (с fallback на встроенные)
         const { data: qaPromptRows } = await admin
@@ -950,12 +827,7 @@ Deno.serve(async (req) => {
           {
             const canonByNorm = new Map<string, string>();
             for (const b of biomarkers) {
-              if (b.code) {
-                canonByNorm.set(normalizeBiomarkerCode(b.code), b.code);
-                for (const alias of getBiomarkerCodeAliases(b.code)) {
-                  canonByNorm.set(normalizeBiomarkerCode(alias), b.code);
-                }
-              }
+              if (b.code) canonByNorm.set(normalizeBiomarkerCode(b.code), b.code);
             }
             const canonicalized: string[] = [];
             text = text.replace(
@@ -1005,104 +877,55 @@ Deno.serve(async (req) => {
               type: "status",
               message: `[${sectionLabel}] Догенерация описаний для ${blocksToFix.length} биомаркеров…`,
             });
-            // Сначала чиним блоки локально из готового описания биомаркера в БД.
-            // Это быстро, стабильно и не должно упираться в лимиты AI за один прогон.
-            type Repair = { blk: typeof blocksToFix[number]; generated: string | null; bm: any };
-            const repairs: Repair[] = [];
-            const aiBlocks: typeof blocksToFix = [];
-
-            for (const blk of blocksToFix) {
+            // process from last to first to keep indices stable on `text`
+            for (let i = blocksToFix.length - 1; i >= 0; i--) {
+              if (isTimeBudgetLow() || aiRepairsDone >= MAX_AI_REPAIRS_PER_RUN) {
+                const msg = `[${sectionLabel}] Часть AI-догенерации пропущена, чтобы проверка не зависла. Запустите проверку ещё раз после сохранения текущих правок.`;
+                fixes.push(msg);
+                send({ type: "warn", message: msg });
+                break;
+              }
+              const blk = blocksToFix[i];
               const bm = biomarkers.find(
                 (b) =>
                   normalizeBiomarkerCode(b.code) ===
                   normalizeBiomarkerCode(blk.code),
               );
-              if (!bm) {
-                repairs.push({ blk, generated: null, bm: null });
-                continue;
-              }
-              const valueLine = buildBiomarkerValueLine(bm);
+              if (!bm) continue;
+              // Extract value sentence from existing content (if present)
+              const valueMatch =
+                /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
+              const valueLine = valueMatch
+                ? valueMatch[0].trim()
+                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+
+              send({
+                type: "status",
+                message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
+              });
               const generalDesc =
                 (bm as any).general_description ??
                 generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
                 null;
-              const generated = buildBiomarkerEducationFromKnowledge(
+              const generated = await generateBiomarkerEducation(
                 bm.name,
                 bm.code,
                 valueLine,
+                aiModel,
+                reportContext,
                 generalDesc,
+                qaPrompts["qa_biomarker_education"],
+                qaPrompts["qa_biomarker_education_user"],
               );
+              aiRepairsDone++;
               if (generated) {
-                repairs.push({ blk, generated, bm } as Repair);
-              } else {
-                aiBlocks.push(blk);
-              }
-            }
-
-            if (aiBlocks.length > 0) {
-              send({
-                type: "status",
-                message: `[${sectionLabel}] Для ${aiBlocks.length} биомаркеров нет готового описания в БД — подключаю AI-догенерацию…`,
-              });
-            }
-
-            for (let i = 0; i < aiBlocks.length; i += QA_PARALLEL_BATCH) {
-              const batch = aiBlocks.slice(i, i + QA_PARALLEL_BATCH);
-              const results = await Promise.all(
-                batch.map(async (blk) => {
-                  const bm = biomarkers.find(
-                    (b) =>
-                      normalizeBiomarkerCode(b.code) ===
-                      normalizeBiomarkerCode(blk.code),
-                  );
-                  if (!bm) return { blk, generated: null, bm: null } as Repair;
-                  const valueLine = buildBiomarkerValueLine(bm);
-                  send({
-                    type: "status",
-                    message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
-                  });
-                  const generalDesc =
-                    (bm as any).general_description ??
-                    generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
-                    null;
-                  const generated = await generateBiomarkerEducation(
-                    bm.name,
-                    bm.code,
-                    valueLine,
-                    aiModel,
-                    reportContext,
-                    generalDesc,
-                    qaPrompts["qa_biomarker_education"],
-                    qaPrompts["qa_biomarker_education_user"],
-                  ).catch((e) => {
-                    console.error(`generateBiomarkerEducation failed for ${bm.code}:`, e);
-                    return null;
-                  });
-                  aiRepairsDone++;
-                  return { blk, generated, bm } as Repair;
-                }),
-              );
-              repairs.push(...results);
-            }
-
-            // Применяем правки от последней к первой, чтобы индексы не съезжали
-            const applied = [...repairs].sort((a, b) => b.blk.start - a.blk.start);
-            for (const { blk, generated, bm } of applied) {
-              if (!bm) continue;
-              if (generated) {
-                const openRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
-                openRegex.lastIndex = Math.max(0, blk.start - 1);
-                const openMatch = openRegex.exec(text);
-                const contentStart = openMatch ? openMatch.index + openMatch[0].length : blk.start;
-                const nextOpenRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
-                nextOpenRegex.lastIndex = contentStart;
-                const nextOpen = nextOpenRegex.exec(text);
+                // Find end-of-block (anchor:biomarker_end) — replace whole block
                 const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
-                endRegex.lastIndex = contentStart;
+                endRegex.lastIndex = blk.end;
                 const endMatch = endRegex.exec(text);
-                const replaceEnd = endMatch && (!nextOpen || endMatch.index < nextOpen.index)
+                const replaceEnd = endMatch
                   ? endMatch.index + endMatch[0].length
-                  : (nextOpen ? nextOpen.index : blk.end);
+                  : blk.end;
                 text =
                   text.slice(0, blk.start) +
                   generated +
@@ -1176,18 +999,6 @@ Deno.serve(async (req) => {
           }
 
 
-
-          // 7. Нормализация структурных подзаголовков (страховка на случай,
-          // если модель забыла Markdown-префиксы ##/###/####).
-          const norm = normalizeStructuralHeadings(text);
-          if (norm.changed.length > 0) {
-            text = norm.text;
-            const uniq = Array.from(new Set(norm.changed));
-            const msg = `[${sectionLabel}] Нормализованы структурные подзаголовки (${uniq.length}): ${uniq.slice(0, 5).join(" | ")}${uniq.length > 5 ? "…" : ""}`;
-            fixes.push(msg);
-            send({ type: "fix", message: msg });
-          }
-
           if (text !== sec.text) {
             const { error: upErr } = await admin
               .from("recommendations")
@@ -1210,7 +1021,7 @@ Deno.serve(async (req) => {
         try {
           const { data: recsAfter } = await admin
             .from("recommendations")
-            .select("id, type, text")
+            .select("text")
             .eq("analysis_id", analysisId);
           const combined = ((recsAfter || []) as any[])
             .map((r) => (typeof r.text === "string" ? r.text : ""))
@@ -1224,63 +1035,12 @@ Deno.serve(async (req) => {
             (b) => b.code && !renderedCodes.has(normalizeBiomarkerCode(b.code)),
           );
           if (missing.length > 0) {
-            const byType = new Map<string, any[]>();
-            for (const bm of missing) {
-              const type = String(bm.category || "").trim();
-              if (!type) continue;
-              if (!byType.has(type)) byType.set(type, []);
-              byType.get(type)!.push(bm);
-            }
-
-            let inserted = 0;
-            const stillMissing: any[] = [];
-            for (const bm of missing) {
-              if (!bm.category) stillMissing.push(bm);
-            }
-
-            for (const [type, list] of byType.entries()) {
-              const rec = ((recsAfter || []) as any[]).find((r) => r.type === type);
-              if (!rec || typeof rec.text !== "string") {
-                stillMissing.push(...list);
-                continue;
-              }
-              const additions = list
-                .map((bm) =>
-                  buildBiomarkerEducationFromKnowledge(
-                    bm.name,
-                    bm.code,
-                    buildBiomarkerValueLine(bm),
-                    bm.general_description,
-                  ),
-                )
-                .filter(Boolean)
-                .join("\n\n");
-              if (!additions) {
-                stillMissing.push(...list);
-                continue;
-              }
-              const nextText = `${rec.text.trim()}\n\n## Дополненные карточки биомаркеров\n\n${additions}\n`;
-              const { error: appendErr } = await admin
-                .from("recommendations")
-                .update({ text: nextText })
-                .eq("id", rec.id);
-              if (appendErr) throw appendErr;
-              inserted += list.length;
-            }
-
-            if (inserted > 0) {
-              const msg = `✓ Добавлены недостающие карточки биомаркеров: ${inserted}.`;
-              fixes.push(msg);
-              send({ type: "fix", message: msg });
-            }
-            if (stillMissing.length > 0) {
-              const list = stillMissing
-                .map((b) => `${b.name} (${b.code})`)
-                .join(", ");
-              const msg = `⚠ Биомаркеры без карточки в отчёте (${stillMissing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
-              fixes.push(msg);
-              send({ type: "warn", message: msg });
-            }
+            const list = missing
+              .map((b) => `${b.name} (${b.code})`)
+              .join(", ");
+            const msg = `⚠ Биомаркеры без карточки в отчёте (${missing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
+            fixes.push(msg);
+            send({ type: "warn", message: msg });
           }
         } catch (auditErr) {
           console.warn("cross-section audit failed:", auditErr);
