@@ -84,12 +84,19 @@ export function buildBiomarkerIndex(
 export function parseCategory(
   title: string,
   rawText: string,
+  biomarkerIndex?: Map<string, ReportBiomarker>,
 ): ParsedCategory {
   const blocks: ReportBlock[] = [];
   if (!rawText || !rawText.trim()) return { title, blocks };
 
   // Первую строку с названием категории вырезаем — заголовок мы рисуем сами.
   let text = stripLeadingCategoryHeader(rawText, title);
+
+  // Страховка: если модель вернула биомаркеры без HTML anchor-комментариев
+  // (просто `Название (CODE)` отдельной строкой), всё равно превращаем такие
+  // блоки в карточки со шкалой. Инжектируем только для кодов, реально
+  // присутствующих в снапшоте.
+  text = injectHeadingBiomarkerAnchors(text, biomarkerIndex);
 
   const matches = [...text.matchAll(ANCHOR_RE)];
   if (matches.length === 0) {
