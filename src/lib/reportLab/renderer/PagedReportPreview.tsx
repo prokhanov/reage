@@ -578,14 +578,27 @@ function installEditableOverlay(
 }
 
 /**
- * Прямое редактирование обложки: клик — выделение, перетаскивание — движение,
- * A+/A- — размер шрифта, двойной клик — правка текста. Живёт целиком в DOM,
- * без React state и без ре-пагинации.
+ * Прямое редактирование обложки:
+ *  - клик — выделение, drag — перемещение блока, dblclick — правка текста,
+ *  - плавающая панель: B / I / цвет текста / выравнивание / A±/ стрелки / ↺,
+ *  - палитра переменных: вставляет `{{var}}` в caret,
+ *  - постоянная панель обложки (сверху справа): фон обложки, сброс всего.
+ *
+ * Живёт целиком в DOM, без React state и без ре-пагинации.
+ * Доступные переменные:
+ *   patientName, age, date, bioAge, healthIndex, issueNumber.
  */
+const COVER_VARIABLES: Array<{ name: string; label: string }> = [
+  { name: "patientName", label: "Имя пациента" },
+  { name: "age", label: "Возраст" },
+  { name: "date", label: "Дата" },
+  { name: "bioAge", label: "Био-возраст" },
+  { name: "healthIndex", label: "Индекс здоровья" },
+  { name: "issueNumber", label: "Номер выпуска" },
+];
+
 function installCoverInlineEditor(output: HTMLElement) {
-  const cover = output.querySelector<HTMLElement>(
-    "[data-cover-root]",
-  );
+  const cover = output.querySelector<HTMLElement>("[data-cover-root]");
   if (!cover) return;
 
   const els = Array.from(
@@ -593,42 +606,131 @@ function installCoverInlineEditor(output: HTMLElement) {
   );
   if (!els.length) return;
 
-  // Панель управления
-  let panel = cover.querySelector<HTMLDivElement>(".rl-cover-panel");
-  if (!panel) {
-    panel = document.createElement("div");
-    panel.className = "rl-cover-panel";
-    panel.contentEditable = "false";
-    panel.style.cssText = [
-      "position:absolute",
-      "z-index:60",
-      "display:none",
-      "gap:4px",
-      "padding:4px 6px",
-      "border-radius:8px",
-      "background:rgba(20,24,32,0.92)",
-      "color:#fff",
-      "border:1px solid rgba(255,255,255,0.15)",
-      "box-shadow:0 8px 24px -8px rgba(0,0,0,0.5)",
-      "font:12px/1 Inter, system-ui, sans-serif",
-      "backdrop-filter:blur(6px)",
-      "user-select:none",
-    ].join(";");
-    cover.style.position = "relative";
-    cover.appendChild(panel);
-  }
+  cover.style.position = "relative";
+
+  // Подсветить существующие переменные в обложке — как «чипы-подсказки».
+  cover.querySelectorAll<HTMLElement>("[data-var]").forEach((v) => {
+    v.style.background = "rgba(217,195,150,0.22)";
+    v.style.borderBottom = "1px dashed rgba(181,138,68,0.55)";
+    v.style.padding = "0 2px";
+    v.style.borderRadius = "2px";
+  });
+
+  // ─── Постоянная панель обложки (фон / сброс всего) ─────────────────────
+  const bgBar = document.createElement("div");
+  bgBar.className = "rl-cover-bgbar";
+  bgBar.contentEditable = "false";
+  bgBar.style.cssText = [
+    "position:absolute",
+    "top:8px",
+    "right:8px",
+    "z-index:55",
+    "display:flex",
+    "gap:6px",
+    "align-items:center",
+    "padding:6px 8px",
+    "border-radius:8px",
+    "background:rgba(20,24,32,0.85)",
+    "color:#fff",
+    "border:1px solid rgba(255,255,255,0.15)",
+    "box-shadow:0 8px 24px -8px rgba(0,0,0,0.5)",
+    "font:12px/1 Inter, system-ui, sans-serif",
+    "user-select:none",
+  ].join(";");
+
+  const bgLabel = document.createElement("span");
+  bgLabel.textContent = "Фон";
+  bgLabel.style.opacity = "0.8";
+
+  const bgInput = document.createElement("input");
+  bgInput.type = "color";
+  bgInput.value = "#ffffff";
+  bgInput.style.cssText =
+    "width:28px;height:22px;border:none;background:transparent;cursor:pointer;padding:0";
+  bgInput.addEventListener("input", () => {
+    cover.style.background = bgInput.value;
+  });
+
+  const bgReset = document.createElement("button");
+  bgReset.type = "button";
+  bgReset.textContent = "Сброс обложки";
+  bgReset.title = "Сбросить фон и все правки блоков";
+  bgReset.style.cssText = [
+    "background:transparent",
+    "color:#fff",
+    "border:1px solid rgba(255,255,255,0.25)",
+    "border-radius:5px",
+    "padding:3px 8px",
+    "cursor:pointer",
+    "font:inherit",
+  ].join(";");
+  bgReset.addEventListener("mousedown", (e) => e.preventDefault());
+  bgReset.addEventListener("click", () => {
+    cover.style.background = "";
+    bgInput.value = "#ffffff";
+    els.forEach((e) => {
+      e.style.transform = "";
+      e.style.fontSize = "";
+      e.style.color = "";
+      e.style.textAlign = "";
+      e.style.fontWeight = "";
+      e.style.fontStyle = "";
+    });
+  });
+
+  bgBar.append(bgLabel, bgInput, bgReset);
+  cover.appendChild(bgBar);
+
+  // ─── Плавающая панель форматирования выбранного блока ──────────────────
+  const panel = document.createElement("div");
+  panel.className = "rl-cover-panel";
+  panel.contentEditable = "false";
+  panel.style.cssText = [
+    "position:absolute",
+    "z-index:60",
+    "display:none",
+    "flex-direction:column",
+    "gap:4px",
+    "padding:6px",
+    "border-radius:8px",
+    "background:rgba(20,24,32,0.94)",
+    "color:#fff",
+    "border:1px solid rgba(255,255,255,0.15)",
+    "box-shadow:0 10px 28px -8px rgba(0,0,0,0.55)",
+    "font:12px/1 Inter, system-ui, sans-serif",
+    "backdrop-filter:blur(6px)",
+    "user-select:none",
+    "min-width:280px",
+  ].join(";");
+  cover.appendChild(panel);
+
+  const rowStyle =
+    "display:flex;gap:2px;align-items:center;flex-wrap:wrap";
+
+  const row1 = document.createElement("div");
+  row1.style.cssText = rowStyle;
+  const row2 = document.createElement("div");
+  row2.style.cssText = rowStyle;
+  const row3 = document.createElement("div");
+  row3.style.cssText = rowStyle + ";border-top:1px solid rgba(255,255,255,0.12);padding-top:4px;margin-top:2px";
+  const row3Label = document.createElement("span");
+  row3Label.textContent = "Вставить переменную:";
+  row3Label.style.cssText = "opacity:0.7;margin-right:4px;font-size:11px";
+  row3.appendChild(row3Label);
+
+  panel.append(row1, row2, row3);
 
   let selected: HTMLElement | null = null;
 
-  const btn = (label: string, title: string, fn: () => void) => {
+  const mkBtn = (label: string, title: string, fn: () => void) => {
     const b = document.createElement("button");
     b.type = "button";
     b.title = title;
-    b.textContent = label;
+    b.innerHTML = label;
     b.style.cssText = [
       "min-width:26px",
       "height:26px",
-      "padding:0 8px",
+      "padding:0 7px",
       "border-radius:5px",
       "border:none",
       "background:transparent",
@@ -647,13 +749,12 @@ function installCoverInlineEditor(output: HTMLElement) {
     return b;
   };
 
-  const currentPx = (el: HTMLElement, prop: "fontSize") =>
-    parseFloat(getComputedStyle(el)[prop] || "0") || 16;
+  const currentPx = (el: HTMLElement) =>
+    parseFloat(getComputedStyle(el).fontSize || "0") || 16;
 
   const setFontSize = (delta: number) => {
     if (!selected) return;
-    const cur = currentPx(selected, "fontSize");
-    const next = Math.max(6, cur + delta);
+    const next = Math.max(6, currentPx(selected) + delta);
     selected.style.fontSize = `${next}px`;
     positionPanel();
   };
@@ -672,33 +773,140 @@ function installCoverInlineEditor(output: HTMLElement) {
     if (!selected) return;
     selected.style.transform = "";
     selected.style.fontSize = "";
+    selected.style.color = "";
+    selected.style.textAlign = "";
+    selected.style.fontWeight = "";
+    selected.style.fontStyle = "";
     positionPanel();
   };
 
-  panel.append(
-    btn("A−", "Уменьшить шрифт", () => setFontSize(-1)),
-    btn("A+", "Увеличить шрифт", () => setFontSize(1)),
-    btn("←", "Влево", () => nudge(-4, 0)),
-    btn("→", "Вправо", () => nudge(4, 0)),
-    btn("↑", "Вверх", () => nudge(0, -4)),
-    btn("↓", "Вниз", () => nudge(0, 4)),
-    btn("✎", "Редактировать текст", () => {
+  const toggleStyle = (prop: "fontWeight" | "fontStyle" | "textAlign", on: string, off: string) => {
+    if (!selected) return;
+    const cur = selected.style[prop];
+    selected.style[prop] = cur === on ? off : on;
+    positionPanel();
+  };
+
+  // Row 1: text formatting
+  row1.append(
+    mkBtn("<b>B</b>", "Полужирный", () => toggleStyle("fontWeight", "700", "")),
+    mkBtn("<i>I</i>", "Курсив", () => toggleStyle("fontStyle", "italic", "")),
+    mkBtn("⇤", "По левому краю", () => toggleStyle("textAlign", "left", "")),
+    mkBtn("≡", "По центру", () => toggleStyle("textAlign", "center", "")),
+    mkBtn("⇥", "По правому краю", () => toggleStyle("textAlign", "right", "")),
+  );
+
+  const colorLabel = document.createElement("span");
+  colorLabel.textContent = "Цвет";
+  colorLabel.style.cssText = "opacity:0.7;margin-left:4px;font-size:11px";
+  const colorInput = document.createElement("input");
+  colorInput.type = "color";
+  colorInput.value = "#16181d";
+  colorInput.style.cssText =
+    "width:26px;height:22px;border:none;background:transparent;cursor:pointer;padding:0";
+  colorInput.addEventListener("mousedown", (e) => e.stopPropagation());
+  colorInput.addEventListener("input", () => {
+    if (!selected) return;
+    selected.style.color = colorInput.value;
+  });
+  row1.append(colorLabel, colorInput);
+
+  // Row 2: size / position / text edit / reset
+  row2.append(
+    mkBtn("A−", "Уменьшить шрифт", () => setFontSize(-1)),
+    mkBtn("A+", "Увеличить шрифт", () => setFontSize(1)),
+    mkBtn("←", "Влево", () => nudge(-4, 0)),
+    mkBtn("→", "Вправо", () => nudge(4, 0)),
+    mkBtn("↑", "Вверх", () => nudge(0, -4)),
+    mkBtn("↓", "Вниз", () => nudge(0, 4)),
+    mkBtn("✎", "Редактировать текст (двойной клик)", () => {
       if (!selected) return;
       selected.contentEditable = "true";
       selected.focus();
     }),
-    btn("↺", "Сбросить блок", resetEl),
+    mkBtn("↺", "Сбросить блок", resetEl),
   );
 
+  // Row 3: variable chips
+  const insertVarAtCaret = (name: string) => {
+    if (!selected) return;
+    // если блок ещё не в режиме правки — включим
+    if (selected.contentEditable !== "true") {
+      selected.contentEditable = "true";
+      selected.focus();
+    }
+    const sel = window.getSelection();
+    let range: Range | null = null;
+    if (sel && sel.rangeCount && selected.contains(sel.anchorNode)) {
+      range = sel.getRangeAt(0);
+    } else {
+      range = document.createRange();
+      range.selectNodeContents(selected);
+      range.collapse(false);
+    }
+    range.deleteContents();
+    const span = document.createElement("span");
+    span.setAttribute("data-var", name);
+    span.title = `Переменная: {{${name}}}`;
+    span.textContent = `{{${name}}}`;
+    span.style.background = "rgba(217,195,150,0.22)";
+    span.style.borderBottom = "1px dashed rgba(181,138,68,0.55)";
+    span.style.padding = "0 2px";
+    span.style.borderRadius = "2px";
+    range.insertNode(span);
+    range.setStartAfter(span);
+    range.collapse(true);
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  };
+
+  COVER_VARIABLES.forEach((v) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.textContent = `{{${v.name}}}`;
+    chip.title = v.label;
+    chip.style.cssText = [
+      "background:rgba(217,195,150,0.18)",
+      "color:#f5e7cf",
+      "border:1px solid rgba(217,195,150,0.35)",
+      "border-radius:4px",
+      "padding:3px 6px",
+      "cursor:pointer",
+      "font:11px/1 ui-monospace, SFMono-Regular, Menlo, monospace",
+    ].join(";");
+    chip.addEventListener("mousedown", (e) => e.preventDefault());
+    chip.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      insertVarAtCaret(v.name);
+    });
+    row3.appendChild(chip);
+  });
+
+  // ─── Selection / position / drag ───────────────────────────────────────
   const positionPanel = () => {
-    if (!selected || !panel) return;
+    if (!selected) return;
     const cr = cover.getBoundingClientRect();
     const er = selected.getBoundingClientRect();
-    const top = er.top - cr.top - 34;
-    const left = er.left - cr.left;
+    const panelH = panel.offsetHeight || 96;
+    let top = er.top - cr.top - panelH - 8;
+    if (top < 4) top = er.bottom - cr.top + 8;
+    let left = er.left - cr.left;
+    const maxLeft = cover.clientWidth - panel.offsetWidth - 8;
+    if (left > maxLeft) left = maxLeft;
     panel.style.top = `${Math.max(4, top)}px`;
     panel.style.left = `${Math.max(4, left)}px`;
     panel.style.display = "flex";
+  };
+
+  const syncColorInput = () => {
+    if (!selected) return;
+    const c = getComputedStyle(selected).color;
+    const m = /rgb\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
+    if (m) {
+      const hex = "#" + [1, 2, 3].map((i) => Number(m[i]).toString(16).padStart(2, "0")).join("");
+      colorInput.value = hex;
+    }
   };
 
   const clearSel = () => {
@@ -708,7 +916,7 @@ function installCoverInlineEditor(output: HTMLElement) {
       if (selected.contentEditable === "true") selected.contentEditable = "false";
     }
     selected = null;
-    if (panel) panel.style.display = "none";
+    panel.style.display = "none";
   };
 
   const select = (el: HTMLElement) => {
@@ -717,10 +925,10 @@ function installCoverInlineEditor(output: HTMLElement) {
     selected = el;
     el.style.outline = "1.5px dashed rgba(217,195,150,0.9)";
     el.style.outlineOffset = "3px";
+    syncColorInput();
     positionPanel();
   };
 
-  // drag
   let dragging = false;
   let startX = 0;
   let startY = 0;
@@ -770,6 +978,7 @@ function installCoverInlineEditor(output: HTMLElement) {
   const onCoverClick = (e: MouseEvent) => {
     const t = e.target as HTMLElement;
     if (t.closest(".rl-cover-panel")) return;
+    if (t.closest(".rl-cover-bgbar")) return;
     if (t.closest("[data-cover-el]")) return;
     clearSel();
   };
