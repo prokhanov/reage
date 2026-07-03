@@ -512,8 +512,28 @@ async function generateBiomarkerEducation(
   model: string,
   reportContext: string,
   generalDescription: string | null,
+  systemPromptTemplate?: string | null,
+  userPromptTemplate?: string | null,
 ): Promise<string | null> {
-  const system = `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
+  const applyVars = (tpl: string, vars: Record<string, string>) =>
+    tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => (k in vars ? vars[k] : ""));
+
+  const knowledge = generalDescription && generalDescription.trim().length > 40
+    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
+    : "";
+  const trimmedContext = reportContext.slice(0, 2000);
+
+  const vars = {
+    biomarker_name: biomarkerName,
+    biomarker_code: biomarkerCode,
+    value_line: valueLine,
+    report_context: trimmedContext,
+    knowledge_block: knowledge,
+  };
+
+  const system = (systemPromptTemplate && systemPromptTemplate.trim().length > 20)
+    ? applyVars(systemPromptTemplate, vars)
+    : `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
 
 <!-- anchor:biomarker ${biomarkerCode} -->
 ${biomarkerName}
@@ -525,15 +545,14 @@ ${valueLine}
 [Если отклонение — добавь блок «Что это значит для вас» с практическим выводом для конкретного значения.]
 <!-- anchor:biomarker_end -->`;
 
-  const knowledge = generalDescription && generalDescription.trim().length > 40
-    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
-    : "";
-
-  const user = `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
+  const user = (userPromptTemplate && userPromptTemplate.trim().length > 20)
+    ? applyVars(userPromptTemplate, vars)
+    : `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
 Контекст отчёта (для тонального соответствия, не цитируй):
-${reportContext.slice(0, 2000)}${knowledge}
+${trimmedContext}${knowledge}
 
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
+
 
   const buildFromKnowledge = (): string | null => {
     if (!generalDescription || generalDescription.trim().length < 40) return null;
