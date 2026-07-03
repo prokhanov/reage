@@ -743,7 +743,20 @@ Deno.serve(async (req) => {
           (analysis as any)?.biomarkers_metadata?.ai_model ||
           "google/gemini-2.5-pro";
 
+        // Загружаем QA-промпты из ai_prompt_settings (с fallback на встроенные)
+        const { data: qaPromptRows } = await admin
+          .from("ai_prompt_settings")
+          .select("key, prompt_text")
+          .in("key", ["qa_translate_english", "qa_biomarker_education", "qa_biomarker_education_user"]);
+        const qaPrompts: Record<string, string> = {};
+        for (const row of (qaPromptRows || []) as any[]) {
+          if (row?.key && typeof row.prompt_text === "string") {
+            qaPrompts[row.key] = row.prompt_text;
+          }
+        }
+
         send({ type: "status", message: "Загружаю секции рекомендаций…" });
+
         const { data: recs, error: rErr } = await admin
           .from("recommendations")
           .select("id, type, text")
