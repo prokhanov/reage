@@ -584,30 +584,44 @@ ${valueLine}
 <!-- anchor:biomarker_end -->`;
   };
 
-  const resp = await fetchWithTimeout(
-    "https://ai.gateway.lovable.dev/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+  let resp: Response;
+  try {
+    resp = await fetchWithTimeout(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-    },
-    AI_CALL_TIMEOUT_MS,
-  );
+      AI_CALL_TIMEOUT_MS,
+    );
+  } catch (err) {
+    // Таймаут / сетевая ошибка AI gateway — не валим весь QA-раннер,
+    // отдаём fallback из БД (или null, если её нет).
+    console.error("generateBiomarkerEducation fetch error:", err);
+    return buildFromKnowledge();
+  }
 
   if (!resp.ok) {
     console.error("AI gateway error:", resp.status, await resp.text());
     return buildFromKnowledge();
   }
-  const data = await resp.json();
+  let data: any;
+  try {
+    data = await resp.json();
+  } catch (err) {
+    console.error("generateBiomarkerEducation parse error:", err);
+    return buildFromKnowledge();
+  }
   const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
   // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
   const cyrCount = (text.match(/[а-яё]/gi) || []).length;
@@ -911,50 +925,58 @@ Deno.serve(async (req) => {
                   normalizeBiomarkerCode(blk.code),
               );
               if (!bm) continue;
-              // Extract value sentence from existing content (if present)
-              const valueMatch =
-                /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-              const valueLine = valueMatch
-                ? valueMatch[0].trim()
-                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              try {
+                // Extract value sentence from existing content (if present)
+                const valueMatch =
+                  /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
+                const valueLine = valueMatch
+                  ? valueMatch[0].trim()
+                  : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
 
-              send({
-                type: "status",
-                message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
-              });
-              const generalDesc =
-                (bm as any).general_description ??
-                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
-                null;
-              const generated = await generateBiomarkerEducation(
-                bm.name,
-                bm.code,
-                valueLine,
-                aiModel,
-                reportContext,
-                generalDesc,
-                qaPrompts["qa_biomarker_education"],
-                qaPrompts["qa_biomarker_education_user"],
-              );
-              aiRepairsDone++;
-              if (generated) {
-                // Find end-of-block (anchor:biomarker_end) — replace whole block
-                const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
-                endRegex.lastIndex = blk.end;
-                const endMatch = endRegex.exec(text);
-                const replaceEnd = endMatch
-                  ? endMatch.index + endMatch[0].length
-                  : blk.end;
-                text =
-                  text.slice(0, blk.start) +
-                  generated +
-                  "\n" +
-                  text.slice(replaceEnd);
-                const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${bm.name} (${bm.code})`;
-                fixes.push(msg);
-                send({ type: "fix", message: msg });
-              } else {
-                const msg = `[${sectionLabel}] ✗ Не удалось догенерировать: ${bm.name} (${bm.code})`;
+                send({
+                  type: "status",
+                  message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
+                });
+                const generalDesc =
+                  (bm as any).general_description ??
+                  generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
+                  null;
+                const generated = await generateBiomarkerEducation(
+                  bm.name,
+                  bm.code,
+                  valueLine,
+                  aiModel,
+                  reportContext,
+                  generalDesc,
+                  qaPrompts["qa_biomarker_education"],
+                  qaPrompts["qa_biomarker_education_user"],
+                );
+                aiRepairsDone++;
+                if (generated) {
+                  const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
+                  endRegex.lastIndex = blk.end;
+                  const endMatch = endRegex.exec(text);
+                  const replaceEnd = endMatch
+                    ? endMatch.index + endMatch[0].length
+                    : blk.end;
+                  text =
+                    text.slice(0, blk.start) +
+                    generated +
+                    "\n" +
+                    text.slice(replaceEnd);
+                  const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${bm.name} (${bm.code})`;
+                  fixes.push(msg);
+                  send({ type: "fix", message: msg });
+                } else {
+                  const msg = `[${sectionLabel}] ✗ Не удалось догенерировать: ${bm.name} (${bm.code})`;
+                  fixes.push(msg);
+                  send({ type: "warn", message: msg });
+                }
+              } catch (bmErr) {
+                aiRepairsDone++;
+                const detail = bmErr instanceof Error ? bmErr.message : String(bmErr);
+                const msg = `[${sectionLabel}] ✗ Пропуск биомаркера ${bm.name} (${bm.code}): ${detail}`;
+                console.error("biomarker regen failed:", bm.code, detail);
                 fixes.push(msg);
                 send({ type: "warn", message: msg });
               }
