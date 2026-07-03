@@ -65,19 +65,33 @@ export const performSafeLogout = async (
   console.info("[auth-debug] logout started");
   markLogoutInStorage();
 
+  // scope: "global" — отзываем refresh_token на сервере, иначе после
+  // очистки localStorage клиент может авто-восстановить сессию из
+  // остаточных ключей (другая вкладка, bfcache, chunked storage).
   try {
-    const { error } = await supabase.auth.signOut({ scope: "local" });
+    const { error } = await supabase.auth.signOut({ scope: "global" });
     if (error && !/session|missing|not found/i.test(error.message)) {
-      console.warn("[auth-debug] logout signOut returned error", {
+      console.warn("[auth-debug] logout signOut(global) returned error", {
         message: error.message,
         name: error.name,
         status: error.status,
       });
+      // Фолбэк на local, если global не прошёл (например истёк access token).
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch (fallbackError) {
+        console.warn("[auth-debug] logout signOut(local) fallback threw", fallbackError);
+      }
     } else {
-      console.info("[auth-debug] logout signOut completed", { hadIgnoredError: !!error });
+      console.info("[auth-debug] logout signOut(global) completed", { hadIgnoredError: !!error });
     }
   } catch (error) {
-    console.warn("[auth-debug] logout signOut threw", error);
+    console.warn("[auth-debug] logout signOut(global) threw", error);
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (fallbackError) {
+      console.warn("[auth-debug] logout signOut(local) fallback threw", fallbackError);
+    }
   }
 
   if (typeof window !== "undefined") {
