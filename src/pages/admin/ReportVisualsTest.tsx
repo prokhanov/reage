@@ -10,6 +10,11 @@ import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
+import { CoverEditor } from "@/components/admin/CoverEditor";
+import {
+  DEFAULT_COVER_TEMPLATE,
+  type CoverTemplate,
+} from "@/lib/reportLab/coverTemplate";
 
 const INITIAL_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 
