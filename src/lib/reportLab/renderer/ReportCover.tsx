@@ -1,101 +1,72 @@
 import type { ProkhanovReport } from "../types";
-import {
-  buildCoverVars,
-  DEFAULT_COVER_TEMPLATE,
-  renderTemplateVars,
-  type CoverBlock,
-  type CoverTemplate,
-} from "../coverTemplate";
+import { calcAge, formatRuDate } from "../parser";
 import logoLight from "@/assets/reage-logo-light.png";
 
 interface Props {
   report: ProkhanovReport;
-  template?: CoverTemplate;
 }
 
-function blockStyle(
-  block: CoverBlock,
-  defaults: { textColor: string },
-): React.CSSProperties {
-  return {
-    marginTop: `${block.marginTopMm}mm`,
-    fontSize: `${block.fontSizePt}pt`,
-    fontWeight: block.fontWeight,
-    textAlign: block.align,
-    fontStyle: block.italic ? "italic" : "normal",
-    color: block.color || defaults.textColor,
-    fontFamily:
-      block.fontFamily === "serif"
-        ? "var(--font-serif)"
-        : "var(--font-sans)",
-    textTransform: block.eyebrow ? "uppercase" : "none",
-    letterSpacing: block.eyebrow ? "0.22em" : "normal",
-    lineHeight: 1.15,
-    padding: "0 20mm",
-    whiteSpace: "pre-wrap",
-  };
-}
-
-function renderBlock(
-  block: CoverBlock,
-  vars: Record<string, string>,
-  defaults: { textColor: string },
-) {
-  const text = renderTemplateVars(block.text, vars).trim();
-  if (!text) return null;
-  return <div style={blockStyle(block, defaults)}>{text}</div>;
-}
-
-export function ReportCover({ report, template = DEFAULT_COVER_TEMPLATE }: Props) {
-  const vars = buildCoverVars(report);
-  const defaults = { textColor: template.textColor };
-
-  const bg = template.bgGradient
-    ? `${template.bgGradient}, ${template.bgColor}`
-    : template.bgColor;
+export function ReportCover({ report }: Props) {
+  const { patient, analysis } = report;
+  const age = calcAge(patient.birth_date, analysis.date);
+  const fullName = [patient.first_name, patient.last_name]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div
-      className="rl-page rl-cover"
-      style={{
-        background: bg,
-        color: template.textColor,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-      }}
-    >
-      {template.logoEnabled && (
-        <div
-          style={{
-            marginTop: `${template.logoMarginTopMm}mm`,
-            textAlign: "center",
-          }}
-        >
+    <div className="rl-page rl-cover">
+      <div className="rl-cover-top">
+        <div>
           <img
             src={logoLight}
             alt="ReAge"
-            style={{
-              width: `${template.logoWidthMm}mm`,
-              height: "auto",
-              display: "inline-block",
-            }}
+            style={{ width: "34mm", height: "auto", display: "block" }}
           />
+          <div style={{ marginTop: "3mm" }}>Личный отчёт о состоянии здоровья</div>
         </div>
-      )}
+        <div style={{ textAlign: "right" }}>
+          <div>Выпуск №{shortId(analysis.id)}</div>
+          <div style={{ marginTop: "2mm" }}>{formatRuDate(analysis.date)}</div>
+        </div>
+      </div>
 
-      {renderBlock(template.eyebrow, vars, defaults)}
-      {renderBlock(template.title, vars, defaults)}
-      {renderBlock(template.subtitle, vars, defaults)}
-      {renderBlock(template.patient, vars, defaults)}
-      {renderBlock(template.date, vars, defaults)}
-      {renderBlock(template.metaLine, vars, defaults)}
+      <div className="rl-cover-center">
+        <div className="rl-cover-eyebrow">Индивидуальный анализ</div>
+        <h1 className="rl-cover-title">
+          {fullName}
+          <br />
+          <em>биологический профиль</em>
+        </h1>
+      </div>
 
-      <div style={{ flex: 1 }} />
-
-      <div style={{ paddingBottom: "18mm" }}>
-        {renderBlock(template.footer, vars, defaults)}
+      <div className="rl-cover-meta">
+        <div className="rl-cover-meta-item">
+          <div className="label">Пациент</div>
+          <div className="value">{fullName}</div>
+        </div>
+        <div className="rl-cover-meta-item">
+          <div className="label">Возраст</div>
+          <div className="value">{age ? `${age} лет` : "—"}</div>
+        </div>
+        <div className="rl-cover-meta-item">
+          <div className="label">Био-возраст</div>
+          <div className="value">
+            {analysis.biological_age !== null
+              ? `${analysis.biological_age.toFixed(1)}`
+              : "—"}
+          </div>
+        </div>
+        <div className="rl-cover-meta-item">
+          <div className="label">Индекс здоровья</div>
+          <div className="value">
+            {analysis.health_index !== null ? `${analysis.health_index}` : "—"}
+          </div>
+        </div>
       </div>
     </div>
   );
+}
+
+function shortId(id: string): string {
+  return id.replace(/-/g, "").slice(0, 6).toUpperCase();
 }

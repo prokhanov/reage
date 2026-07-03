@@ -6,7 +6,6 @@ import { ReportPatientData } from "./ReportPatientData";
 import { ReportOverview } from "./ReportOverview";
 import { ReportSection } from "./ReportSection";
 import { ReportPrescriptions } from "./ReportPrescriptions";
-import type { CoverTemplate } from "../coverTemplate";
 import "../theme.css";
 
 interface Props {
@@ -16,7 +15,6 @@ interface Props {
    * как шрифты и все страницы отрисованы. Используется Playwright'ом.
    */
   signalReady?: boolean;
-  coverTemplate?: CoverTemplate;
 }
 
 /**
@@ -26,7 +24,7 @@ interface Props {
  *   - сборку последовательности страниц (обложка → резюме → 5 категорий → назначения);
  *   - сигнал готовности для Playwright.
  */
-export function ReportDocument({ report, signalReady, coverTemplate }: Props) {
+export function ReportDocument({ report, signalReady }: Props) {
   const biomarkerByCode = buildBiomarkerIndex(report);
   const categoryRecords = getCategoryRecords(report);
   const gender = report.patient.gender;
@@ -73,7 +71,7 @@ export function ReportDocument({ report, signalReady, coverTemplate }: Props) {
 
   return (
     <div className="reportlab">
-      <ReportCover report={report} template={coverTemplate} />
+      <ReportCover report={report} />
       <ReportPatientData report={report} />
       <ReportOverview report={report} />
       {categoryRecords.map((rec, i) => {

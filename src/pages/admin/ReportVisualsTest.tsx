@@ -10,11 +10,6 @@ import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
-import { CoverEditor } from "@/components/admin/CoverEditor";
-import {
-  DEFAULT_COVER_TEMPLATE,
-  type CoverTemplate,
-} from "@/lib/reportLab/coverTemplate";
 
 const INITIAL_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 
@@ -79,9 +74,6 @@ export default function ReportVisualsTest() {
   const [pdfLogs, setPdfLogs] = useState<PdfLogEntry[]>([]);
   const [readyPdf, setReadyPdf] = useState<ReadyPdf | null>(null);
   const [report, setReport] = useState<ProkhanovReport>(INITIAL_REPORT);
-  const [coverTemplate, setCoverTemplate] = useState<CoverTemplate>(
-    DEFAULT_COVER_TEMPLATE,
-  );
   const readyPdfUrlRef = useRef<string | null>(null);
 
   const appendPdfLog = useCallback(
@@ -479,20 +471,11 @@ export default function ReportVisualsTest() {
 
         <ReportEditorShell report={report} onReportUpdate={setReport}>
           {({ mode }) => (
-            <>
-              {mode === "edit" && (
-                <CoverEditor
-                  template={coverTemplate}
-                  onChange={setCoverTemplate}
-                />
-              )}
-              <EditablePagedPreview
-                report={report}
-                paginated={paginated}
-                editable={mode === "edit"}
-                coverTemplate={coverTemplate}
-              />
-            </>
+            <EditablePagedPreview
+              report={report}
+              paginated={paginated}
+              editable={mode === "edit"}
+            />
           )}
         </ReportEditorShell>
       </div>
@@ -506,22 +489,18 @@ function EditablePagedPreview({
   report,
   paginated,
   editable,
-  coverTemplate,
 }: {
   report: ProkhanovReport;
   paginated: boolean;
   editable: boolean;
-  coverTemplate: CoverTemplate;
 }) {
   const ctx = useReportEditor();
-  if (!paginated)
-    return <ReportDocument report={report} coverTemplate={coverTemplate} />;
+  if (!paginated) return <ReportDocument report={report} />;
   return (
     <PagedReportPreview
       report={report}
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}
-      coverTemplate={coverTemplate}
       onEditChange={(id, md) => ctx?.setDraft(id, md)}
     />
   );

@@ -3,7 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
 import type { ProkhanovReport } from "../types";
-import type { CoverTemplate } from "../coverTemplate";
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
 import { htmlToMarkdown } from "../editor/markdown";
 // eslint-disable-next-line import/no-unresolved
@@ -117,7 +116,6 @@ interface Props {
   chrome?: "framed" | "plain";
   editable?: boolean;
   drafts?: Record<string, string>;
-  coverTemplate?: CoverTemplate;
   /**
    * Реалтайм-коллбэк: срабатывает и во время ввода (debounced),
    * и на blur — родитель должен положить markdown в drafts, что
@@ -231,7 +229,6 @@ export function PagedReportPreview({
   chrome = "framed",
   editable = false,
   drafts,
-  coverTemplate,
   onEditChange,
   onEditBlur,
 }: Props) {
@@ -253,10 +250,10 @@ export function PagedReportPreview({
           drafts={draftsSnapshot}
           mode={editable ? "edit" : "view"}
         >
-          <ReportDocument report={report} coverTemplate={coverTemplate} />
+          <ReportDocument report={report} />
         </StaticReportEditorProvider>,
       ),
-    [report, draftsSnapshot, editable, coverTemplate],
+    [report, draftsSnapshot, editable],
   );
 
   useEffect(() => {
