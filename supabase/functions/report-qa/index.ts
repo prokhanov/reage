@@ -622,7 +622,11 @@ Deno.serve(async (req) => {
       let closed = false;
       const send = (event: Record<string, unknown>) => {
         if (closed) return;
-        controller.enqueue(enc.encode(`data: ${JSON.stringify(event)}\n\n`));
+        try {
+          controller.enqueue(enc.encode(`data: ${JSON.stringify(event)}\n\n`));
+        } catch {
+          closed = true;
+        }
       };
       const fixes: string[] = [];
       const startedAt = Date.now();
