@@ -125,26 +125,8 @@ app.all('/*', async (req, reply) => {
       if (HOP_BY_HOP.has(k.toLowerCase())) continue;
       reply.header(k, v);
     }
-
-    // Для SSE / chunked-ответов критично не буферизовать: иначе клиент не
-    // получает промежуточные события (heartbeat, progress) и рвёт соединение
-    // по idle-таймауту. Стримим апстрим напрямую в ответ.
-    const ct = String(upstream.headers['content-type'] || '');
-    const isStream =
-      ct.includes('text/event-stream') ||
-      String(upstream.headers['transfer-encoding'] || '').includes('chunked') ||
-      String(upstream.headers['x-accel-buffering'] || '').toLowerCase() === 'no';
-
-    if (isStream) {
-      // Отключаем буферизацию upstream/nginx-подобных прокси перед нами
-      reply.header('x-accel-buffering', 'no');
-      reply.header('cache-control', upstream.headers['cache-control'] || 'no-cache, no-transform');
-      return reply.send(upstream.body);
-    }
-
     const buf = Buffer.from(await upstream.body.arrayBuffer());
     return reply.send(buf);
-
   } catch (e) {
     const aborted = ac.signal.aborted;
     req.log.error({ err: e, url, method }, 'upstream_error');
