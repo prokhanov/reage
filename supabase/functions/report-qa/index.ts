@@ -481,31 +481,43 @@ async function translateEnglishFragments(
 
   const user = JSON.stringify({ fragments }, null, 2);
 
-  const resp = await fetchWithTimeout(
-    "https://ai.gateway.lovable.dev/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+  let resp: Response;
+  try {
+    resp = await fetchWithTimeout(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+          response_format: { type: "json_object" },
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    },
-    AI_CALL_TIMEOUT_MS,
-  );
+      AI_CALL_TIMEOUT_MS,
+    );
+  } catch (err) {
+    console.error("AI translate fetch error:", err);
+    return {};
+  }
 
   if (!resp.ok) {
     console.error("AI translate error:", resp.status, await resp.text());
     return {};
   }
-  const data = await resp.json();
+  let data: any;
+  try {
+    data = await resp.json();
+  } catch (err) {
+    console.error("AI translate response parse failed:", err);
+    return {};
+  }
   const raw: string = data?.choices?.[0]?.message?.content ?? "";
   try {
     const parsed = JSON.parse(raw);
