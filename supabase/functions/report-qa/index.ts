@@ -1039,7 +1039,11 @@ Deno.serve(async (req) => {
       } finally {
         clearInterval(heartbeat);
         closed = true;
-        controller.close();
+        try {
+          controller.close();
+        } catch {
+          // Клиент мог уже закрыть SSE-соединение.
+        }
       }
     },
   });
