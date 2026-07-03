@@ -524,116 +524,24 @@ async function translateEnglishFragments(
 
 // ──────────────────── AI helper ────────────────────
 
-async function generateBiomarkerEducation(
+function generateBiomarkerEducation(
   biomarkerName: string,
   biomarkerCode: string,
   valueLine: string,
-  model: string,
-  reportContext: string,
+  _model: string,
+  _reportContext: string,
   generalDescription: string | null,
-  systemPromptTemplate?: string | null,
-  userPromptTemplate?: string | null,
-): Promise<string | null> {
-  const applyVars = (tpl: string, vars: Record<string, string>) =>
-    tpl.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => (k in vars ? vars[k] : ""));
-
-  const knowledge = generalDescription && generalDescription.trim().length > 40
-    ? `\n\nГотовое базовое описание этого биомаркера (используй его как первоисточник, можешь слегка адаптировать стиль, но не сокращай по смыслу и не выдумывай заново):\n"""\n${generalDescription.trim()}\n"""\n`
-    : "";
-  const trimmedContext = reportContext.slice(0, 2000);
-
-  const vars = {
-    biomarker_name: biomarkerName,
-    biomarker_code: biomarkerCode,
-    value_line: valueLine,
-    report_context: trimmedContext,
-    knowledge_block: knowledge,
-  };
-
-  const system = (systemPromptTemplate && systemPromptTemplate.trim().length > 20)
-    ? applyVars(systemPromptTemplate, vars)
-    : `Ты медицинский редактор. Верни ТОЛЬКО Markdown-блок одного биомаркера в формате (без обёрток, без поясняющих фраз):
-
-<!-- anchor:biomarker ${biomarkerCode} -->
-${biomarkerName}
-
-[1–2 коротких абзаца простым языком: что это за показатель и за что он отвечает в организме. Без чисел и без оценок пациента.]
-
-${valueLine}
-
-[Если отклонение — добавь блок «Что это значит для вас» с практическим выводом для конкретного значения.]
-<!-- anchor:biomarker_end -->`;
-
-  const user = (userPromptTemplate && userPromptTemplate.trim().length > 20)
-    ? applyVars(userPromptTemplate, vars)
-    : `Биомаркер: ${biomarkerName} (код ${biomarkerCode}).
-Контекст отчёта (для тонального соответствия, не цитируй):
-${trimmedContext}${knowledge}
-
-Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
-
-
-  const buildFromKnowledge = (): string | null => {
-    if (!generalDescription || generalDescription.trim().length < 40) return null;
-    return `<!-- anchor:biomarker ${biomarkerCode} -->
+  _systemPromptTemplate?: string | null,
+  _userPromptTemplate?: string | null,
+): string | null {
+  if (!generalDescription || generalDescription.trim().length < 40) return null;
+  return `<!-- anchor:biomarker ${biomarkerCode} -->
 ${biomarkerName}
 
 ${generalDescription.trim()}
 
 ${valueLine}
 <!-- anchor:biomarker_end -->`;
-  };
-
-  const knowledgeFallback = buildFromKnowledge();
-  // Валидатор не должен зависеть от долгих AI-вызовов, когда в справочнике уже
-  // есть готовое описание биомаркера: для QA-ремонта этого достаточно и быстро.
-  if (knowledgeFallback) return knowledgeFallback;
-
-  let resp: Response;
-  try {
-    resp = await fetchWithTimeout(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-        }),
-      },
-      AI_CALL_TIMEOUT_MS,
-    );
-  } catch (err) {
-    // Таймаут / сетевая ошибка AI gateway — не валим весь QA-раннер,
-    // отдаём fallback из БД (или null, если её нет).
-    console.error("generateBiomarkerEducation fetch error:", err);
-    return null;
-  }
-
-  if (!resp.ok) {
-    console.error("AI gateway error:", resp.status, await resp.text());
-    return null;
-  }
-  let data: any;
-  try {
-    data = await resp.json();
-  } catch (err) {
-    console.error("generateBiomarkerEducation parse error:", err);
-    return null;
-  }
-  const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
-  // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
-  const cyrCount = (text.match(/[а-яё]/gi) || []).length;
-  if (!text || cyrCount < 120) {
-    return text || null;
-  }
-  return text;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
