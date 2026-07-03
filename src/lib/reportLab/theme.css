@@ -20,14 +20,20 @@
   --gold: #b58a44;
   --gold-soft: #d9c396;
 
-  --status-critical: #a53a2a;
-  --status-warning: #c67432;
-  --status-suboptimal: #d0a437;
-  --status-optimal: #4a7c59;
-  --status-critical-bg: #f6e5e1;
-  --status-warning-bg: #faede1;
-  --status-suboptimal-bg: #faf3d9;
-  --status-optimal-bg: #e6efe4;
+  /* 4 семантических цвета — синхронизированы с UI приложения. */
+  --status-optimal: #2ea25a;
+  --status-acceptable: #d4b23a;
+  --status-risk: #e08a2e;
+  --status-critical: #d3462f;
+  --status-optimal-bg: #e6f2ec;
+  --status-acceptable-bg: #faf3d9;
+  --status-risk-bg: #fbe8d6;
+  --status-critical-bg: #f8e0dc;
+  /* Легаси-алиасы, чтобы старый CSS не ломался. */
+  --status-warning: var(--status-risk);
+  --status-suboptimal: var(--status-acceptable);
+  --status-warning-bg: var(--status-risk-bg);
+  --status-suboptimal-bg: var(--status-acceptable-bg);
 
   --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
   --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
