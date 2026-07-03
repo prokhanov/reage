@@ -158,9 +158,9 @@ export function BiomarkerScale({ biomarker, gender, age = null }: Props) {
           fill="#16181d"
         />
       </g>
-      {/* Подписи диапазона */}
+      {/* Подписи диапазона — по «настоящим» медицинским границам. */}
       <text x={0} y={height - 2} fontSize="8" fill="#7a7f8f" fontFamily="Inter">
-        {fmt(range.optimalMin ?? domainMin)} {unit}
+        {fmt(leftLabel)} {unit}
       </text>
       <text
         x={width}
@@ -170,7 +170,7 @@ export function BiomarkerScale({ biomarker, gender, age = null }: Props) {
         fontFamily="Inter"
         textAnchor="end"
       >
-        {fmt(range.optimalMax ?? domainMax)} {unit}
+        {fmt(rightLabel)} {unit}
       </text>
       {/* Подпись значения */}
       <text
