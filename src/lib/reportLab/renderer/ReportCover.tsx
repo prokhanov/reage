@@ -74,35 +74,21 @@ export function ReportCover({ report }: Props) {
       </div>
 
       <div className="rl-cover-meta">
-        <div className="rl-cover-meta-item" data-cover-el="meta-name">
-          <div className="label">Пациент</div>
-          <div className="value">{V("patientName", fullName)}</div>
+        <div className="rl-cover-meta-item" data-cover-el="meta-report">
+          <div className="label">Отчёт</div>
+          <div className="value">1/4</div>
         </div>
-        <div className="rl-cover-meta-item" data-cover-el="meta-age">
-          <div className="label">Возраст</div>
-          <div className="value">
-            {V("age", age ? `${age} лет` : "—")}
-          </div>
+        <div className="rl-cover-meta-item" data-cover-el="meta-biomarkers">
+          <div className="label">Биомаркеров</div>
+          <div className="value">104</div>
         </div>
-        <div className="rl-cover-meta-item" data-cover-el="meta-bioage">
-          <div className="label">Био-возраст</div>
-          <div className="value">
-            {V(
-              "bioAge",
-              analysis.biological_age !== null
-                ? `${analysis.biological_age.toFixed(1)}`
-                : "—",
-            )}
-          </div>
+        <div className="rl-cover-meta-item" data-cover-el="meta-systems">
+          <div className="label">Систем организма</div>
+          <div className="value">5</div>
         </div>
-        <div className="rl-cover-meta-item" data-cover-el="meta-hi">
-          <div className="label">Индекс здоровья</div>
-          <div className="value">
-            {V(
-              "healthIndex",
-              analysis.health_index !== null ? `${analysis.health_index}` : "—",
-            )}
-          </div>
+        <div className="rl-cover-meta-item" data-cover-el="meta-doctor">
+          <div className="label">Врач</div>
+          <div className="value">Наталья Чезганова</div>
         </div>
       </div>
     </div>
