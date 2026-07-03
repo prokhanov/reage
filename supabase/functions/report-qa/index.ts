@@ -584,30 +584,44 @@ ${valueLine}
 <!-- anchor:biomarker_end -->`;
   };
 
-  const resp = await fetchWithTimeout(
-    "https://ai.gateway.lovable.dev/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+  let resp: Response;
+  try {
+    resp = await fetchWithTimeout(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      }),
-    },
-    AI_CALL_TIMEOUT_MS,
-  );
+      AI_CALL_TIMEOUT_MS,
+    );
+  } catch (err) {
+    // Таймаут / сетевая ошибка AI gateway — не валим весь QA-раннер,
+    // отдаём fallback из БД (или null, если её нет).
+    console.error("generateBiomarkerEducation fetch error:", err);
+    return buildFromKnowledge();
+  }
 
   if (!resp.ok) {
     console.error("AI gateway error:", resp.status, await resp.text());
     return buildFromKnowledge();
   }
-  const data = await resp.json();
+  let data: any;
+  try {
+    data = await resp.json();
+  } catch (err) {
+    console.error("generateBiomarkerEducation parse error:", err);
+    return buildFromKnowledge();
+  }
   const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
   // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
   const cyrCount = (text.match(/[а-яё]/gi) || []).length;
