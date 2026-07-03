@@ -191,6 +191,25 @@ export function resolveStatus(
   return "optimal";
 }
 
+/**
+ * Схлопывает 7-сегментный статус до 4 бакетов, которые используются в
+ * основном приложении: `optimal` | `acceptable` | `risk` | `critical`.
+ * Единый источник правды для цветовой палитры и подписей.
+ */
+export type BiomarkerBucket = "optimal" | "acceptable" | "risk" | "critical";
+
+export function resolveStatusBucket(
+  biomarker: ReportBiomarker,
+  gender: "male" | "female" | "other" | null,
+  age: number | null = null,
+): BiomarkerBucket {
+  const s = resolveStatus(biomarker, gender, age);
+  if (s === "critical-low" || s === "critical-high") return "critical";
+  if (s === "warning-low" || s === "warning-high") return "risk";
+  if (s === "sub-optimal-low" || s === "sub-optimal-high") return "acceptable";
+  return "optimal";
+}
+
 interface AgeRangeRow {
   age_from?: number | null;
   age_to?: number | null;

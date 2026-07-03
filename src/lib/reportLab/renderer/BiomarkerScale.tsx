@@ -1,5 +1,5 @@
 import type { ReportBiomarker } from "../types";
-import { resolveRange, resolveStatus } from "../parser";
+import { resolveRange } from "../parser";
 
 interface Props {
   biomarker: ReportBiomarker;
@@ -8,188 +8,159 @@ interface Props {
 }
 
 /**
- * SVG-шкала биомаркера. Векторная, print-friendly, без внешних библиотек.
- * Отрисовывает 5 сегментов (крит-низ, суб-низ, оптимум, суб-верх, крит-верх)
- * с чёрной риской текущего значения.
+ * Шкала биомаркера в стиле основного приложения:
+ * — pill-скруглённая полоса с 4 полутонами (оптимально / допустимо / риск /
+ *   критично), симметрично разложенными по 7 сегментам,
+ * — стрелка-указатель на текущее значение,
+ * — «Ваш показатель — X unit» сверху и «● Оптимальный диапазон: A – B unit»
+ *   снизу.
+ *
+ * Реализована через HTML+CSS (не SVG), чтобы полностью совпадать с версткой
+ * приложения и корректно печататься paged.js.
  */
 export function BiomarkerScale({ biomarker, gender, age = null }: Props) {
   const range = resolveRange(biomarker, gender, age);
-  const status = resolveStatus(biomarker, gender, age);
+  const value = biomarker.value;
+  const unit = biomarker.unit_override || biomarker.unit || "";
 
-  // Нужно получить домен: минимальную/максимальную точки шкалы.
-  const stops: number[] = [];
-  if (range.criticalMin !== null) stops.push(range.criticalMin);
-  if (range.warningMin !== null) stops.push(range.warningMin);
-  if (range.optimalMin !== null) stops.push(range.optimalMin);
-  if (range.optimalMax !== null) stops.push(range.optimalMax);
-  if (range.warningMax !== null) stops.push(range.warningMax);
-  if (range.criticalMax !== null) stops.push(range.criticalMax);
-  stops.push(biomarker.value);
+  // Собираем все опорные точки — по ним определяем домен шкалы.
+  const stops: number[] = [value];
+  const push = (n: number | null) => {
+    if (n !== null && n !== undefined) stops.push(n);
+  };
+  push(range.criticalMin);
+  push(range.warningMin);
+  push(range.optimalMin);
+  push(range.optimalMax);
+  push(range.warningMax);
+  push(range.criticalMax);
 
   if (stops.length < 2) {
     return (
-      <div style={{ fontSize: "9pt", color: "var(--ink-muted)" }}>
-        Референсные значения не заданы
-      </div>
+      <div className="rl-bio-scale-empty">Референсные значения не заданы</div>
     );
   }
 
-  const rawMin = Math.min(...stops);
-  const rawMax = Math.max(...stops);
-  const pad = (rawMax - rawMin) * 0.08 || Math.abs(rawMax) * 0.1 || 1;
-  const domainMin = rawMin - pad;
-  const domainMax = rawMax + pad;
-  const span = domainMax - domainMin || 1;
+  const dataMin = Math.min(...stops);
+  const dataMax = Math.max(...stops);
+  const pad = (dataMax - dataMin) * 0.15 || 1;
+  const scaleMin = dataMin - pad;
+  const scaleMax = dataMax + pad;
+  const scaleRange = scaleMax - scaleMin || 1;
+  const toPct = (v: number) => ((v - scaleMin) / scaleRange) * 100;
 
-  const width = 480;
-  const height = 44;
-  const barY = 16;
-  const barH = 10;
+  // Границы сегментов: края шкалы + все опорные точки.
+  const bounds = new Set<number>([scaleMin, scaleMax]);
+  [
+    range.criticalMin,
+    range.warningMin,
+    range.optimalMin,
+    range.optimalMax,
+    range.warningMax,
+    range.criticalMax,
+  ].forEach((v) => {
+    if (v !== null && v !== undefined) bounds.add(v);
+  });
+  const sortedBounds = Array.from(bounds).sort((a, b) => a - b);
 
-  const toX = (v: number) =>
-    ((v - domainMin) / span) * width;
-
-  // Сегменты: снизу вверх (критический-низ, предупреждение-низ, суб-опт-низ,
-  // оптимум, суб-опт-верх, предупреждение-верх, критический-верх).
-  interface Seg { from: number; to: number; color: string }
-  const segs: Seg[] = [];
-  const push = (from: number | null, to: number | null, color: string) => {
-    if (from === null || to === null) return;
-    if (to <= from) return;
-    segs.push({ from, to, color });
+  const zoneColor = (v: number): string => {
+    const {
+      criticalMin,
+      warningMin,
+      optimalMin,
+      optimalMax,
+      warningMax,
+      criticalMax,
+    } = range;
+    if (
+      (criticalMin !== null && v < criticalMin) ||
+      (criticalMax !== null && v > criticalMax)
+    )
+      return "var(--status-critical)";
+    if (
+      (warningMin !== null && v < warningMin) ||
+      (warningMax !== null && v > warningMax)
+    )
+      return "var(--status-risk)";
+    if (optimalMin !== null || optimalMax !== null) {
+      const inOpt =
+        (optimalMin === null || v >= optimalMin) &&
+        (optimalMax === null || v <= optimalMax);
+      return inOpt
+        ? "var(--status-optimal)"
+        : "var(--status-acceptable)";
+    }
+    return "var(--status-optimal)";
   };
 
-  // Критическая нижняя зона: от края шкалы до criticalMin. Если criticalMin
-  // не задан, но задан warningMin — считаем всё, что ниже warning'а, красным.
-  const critLowStart = domainMin;
-  const critLowEnd = range.criticalMin ?? range.warningMin;
-  push(critLowStart, critLowEnd, "#a53a2a");
+  const segments: { width: number; color: string }[] = [];
+  for (let i = 0; i < sortedBounds.length - 1; i++) {
+    const from = sortedBounds[i];
+    const to = sortedBounds[i + 1];
+    const mid = (from + to) / 2;
+    const width = toPct(to) - toPct(from);
+    if (width > 0.05) segments.push({ width, color: zoneColor(mid) });
+  }
 
-  // Оранжевая нижняя зона: между criticalMin и warningMin.
-  push(range.criticalMin, range.warningMin, "#c67432");
+  const markerPos = Math.max(1, Math.min(99, toPct(value)));
 
-  // Жёлтая нижняя зона: между warningMin и optimalMin.
-  push(range.warningMin, range.optimalMin, "#d0a437");
-
-  // Зелёный оптимум. Для односторонних биомаркеров (задан только один край
-  // оптимума) растягиваем зелёную зону до края шкалы.
-  const greenFrom =
-    range.optimalMin ?? (range.optimalMax !== null ? domainMin : null);
-  const greenTo =
-    range.optimalMax ?? (range.optimalMin !== null ? domainMax : null);
-  push(greenFrom, greenTo, "#4a7c59");
-
-  // Жёлтая верхняя.
-  push(range.optimalMax, range.warningMax, "#d0a437");
-
-  // Оранжевая верхняя.
-  push(range.warningMax, range.criticalMax, "#c67432");
-
-  // Критическая верхняя.
-  const critHighStart = range.criticalMax ?? range.warningMax;
-  push(critHighStart, domainMax, "#a53a2a");
-
-  const valueX = toX(biomarker.value);
-  const unit = biomarker.unit_override || biomarker.unit || "";
-
-  // Подписи слева/справа — по «настоящим» медицинским границам, а не по
-  // padded-домену. Так пользователь видит реальные критические/warning-точки.
-  const leftLabel =
-    range.criticalMin ?? range.warningMin ?? range.optimalMin ?? domainMin;
-  const rightLabel =
-    range.criticalMax ?? range.warningMax ?? range.optimalMax ?? domainMax;
-
-  const fmt = (n: number | null) => {
-    if (n === null) return "";
-    if (Math.abs(n) >= 100) return n.toFixed(0);
-    if (Math.abs(n) >= 10) return n.toFixed(1);
-    return n.toFixed(2).replace(/\.?0+$/, "");
-  };
-
+  // Текст оптимального диапазона.
+  const optMin = range.optimalMin ?? range.warningMin;
+  const optMax = range.optimalMax ?? range.warningMax;
+  let optText: string | null = null;
+  if (optMin !== null && optMax !== null) {
+    optText = `${fmt(optMin)} – ${fmt(optMax)} ${unit}`.trim();
+  } else if (optMax !== null) {
+    optText = `≤ ${fmt(optMax)} ${unit}`.trim();
+  } else if (optMin !== null) {
+    optText = `≥ ${fmt(optMin)} ${unit}`.trim();
+  }
 
   return (
-    <svg
-      className="rl-bio-scale"
-      viewBox={`0 0 ${width} ${height}`}
-      xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="none"
-      style={{ width: "100%", height: "44px", display: "block" }}
-    >
-      {/* Фон-шкала (нейтральный) */}
-      <rect x={0} y={barY} width={width} height={barH} rx={2} fill="#efece5" />
-      {/* Сегменты */}
-      {segs.map((s, i) => {
-        const x = toX(s.from);
-        const w = toX(s.to) - x;
-        return (
-          <rect
+    <div className="rl-bio-scale">
+      <div className="rl-bio-scale-header">
+        <span className="rl-bio-scale-label">Ваш показатель —</span>
+        <span className="rl-bio-scale-value">{fmt(value)}</span>
+        <span className="rl-bio-scale-unit">{unit}</span>
+      </div>
+
+      <div className="rl-bio-scale-arrow-row">
+        <div
+          className="rl-bio-scale-arrow"
+          style={{ left: `${markerPos}%` }}
+          aria-hidden
+        />
+      </div>
+
+      <div className="rl-bio-scale-bar">
+        {segments.map((s, i) => (
+          <div
             key={i}
-            x={x}
-            y={barY}
-            width={Math.max(0, w)}
-            height={barH}
-            fill={s.color}
-            opacity={0.85}
-          />
-        );
-      })}
-      {/* Тики нормы */}
-      {[range.optimalMin, range.optimalMax]
-        .filter((v): v is number => v !== null)
-        .map((v, i) => (
-          <line
-            key={`opt-${i}`}
-            x1={toX(v)}
-            x2={toX(v)}
-            y1={barY - 2}
-            y2={barY + barH + 2}
-            stroke="#16181d"
-            strokeWidth={0.5}
-            opacity={0.4}
+            className="rl-bio-scale-seg"
+            style={{ width: `${s.width}%`, background: s.color }}
           />
         ))}
-      {/* Метка текущего значения */}
-      <g>
-        <line
-          x1={valueX}
-          x2={valueX}
-          y1={barY - 6}
-          y2={barY + barH + 6}
-          stroke="#16181d"
-          strokeWidth={2}
-        />
-        <polygon
-          points={`${valueX - 4},${barY - 6} ${valueX + 4},${barY - 6} ${valueX},${barY - 1}`}
-          fill="#16181d"
-        />
-      </g>
-      {/* Подписи диапазона — по «настоящим» медицинским границам. */}
-      <text x={0} y={height - 2} fontSize="8" fill="#7a7f8f" fontFamily="Inter">
-        {fmt(leftLabel)} {unit}
-      </text>
-      <text
-        x={width}
-        y={height - 2}
-        fontSize="8"
-        fill="#7a7f8f"
-        fontFamily="Inter"
-        textAnchor="end"
-      >
-        {fmt(rightLabel)} {unit}
-      </text>
-      {/* Подпись значения */}
-      <text
-        x={valueX}
-        y={barY - 8}
-        fontSize="9"
-        fontWeight="600"
-        fill="#16181d"
-        fontFamily="Inter"
-        textAnchor="middle"
-      >
-        {fmt(biomarker.value)}
-      </text>
-      <title>{`${biomarker.name}: ${status}`}</title>
-    </svg>
+      </div>
+
+      {optText && (
+        <div className="rl-bio-scale-footer">
+          <span
+            className="rl-bio-scale-dot"
+            style={{ background: "var(--status-optimal)" }}
+          />
+          <span>Оптимальный диапазон:</span>
+          <span className="rl-bio-scale-optrange">{optText}</span>
+        </div>
+      )}
+    </div>
   );
+}
+
+function fmt(n: number): string {
+  if (Number.isInteger(n)) return n.toString();
+  const abs = Math.abs(n);
+  const digits = abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
+  return n
+    .toFixed(digits)
+    .replace(/\.?0+$/, (m) => (m.startsWith(".") ? "" : m));
 }

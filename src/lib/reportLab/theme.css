@@ -20,14 +20,20 @@
   --gold: #b58a44;
   --gold-soft: #d9c396;
 
-  --status-critical: #a53a2a;
-  --status-warning: #c67432;
-  --status-suboptimal: #d0a437;
-  --status-optimal: #4a7c59;
-  --status-critical-bg: #f6e5e1;
-  --status-warning-bg: #faede1;
-  --status-suboptimal-bg: #faf3d9;
-  --status-optimal-bg: #e6efe4;
+  /* 4 семантических цвета — синхронизированы с UI приложения. */
+  --status-optimal: #2ea25a;
+  --status-acceptable: #d4b23a;
+  --status-risk: #e08a2e;
+  --status-critical: #d3462f;
+  --status-optimal-bg: #e6f2ec;
+  --status-acceptable-bg: #faf3d9;
+  --status-risk-bg: #fbe8d6;
+  --status-critical-bg: #f8e0dc;
+  /* Легаси-алиасы, чтобы старый CSS не ломался. */
+  --status-warning: var(--status-risk);
+  --status-suboptimal: var(--status-acceptable);
+  --status-warning-bg: var(--status-risk-bg);
+  --status-suboptimal-bg: var(--status-acceptable-bg);
 
   --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
   --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -423,43 +429,123 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 4mm;
+  gap: 4mm;
+  margin-bottom: 3mm;
 }
+.reportlab .rl-bio-title { min-width: 0; }
 .reportlab .rl-bio-name {
   font-family: var(--font-serif);
-  font-size: 15pt;
+  font-size: 14pt;
   font-weight: 500;
   color: var(--ink);
-  margin: 0 0 1mm;
+  margin: 0;
+  line-height: 1.2;
 }
-.reportlab .rl-bio-value .num {
-  font-family: var(--font-serif);
-  font-size: 22pt;
-  font-weight: 600;
+.reportlab .rl-bio-name .rl-bio-code {
+  font-family: var(--font-mono);
+  font-size: 9pt;
+  font-weight: 500;
+  color: var(--ink-muted);
+  margin-left: 2mm;
+  letter-spacing: 0.04em;
 }
 .reportlab .rl-bio-status {
   display: inline-flex;
   align-items: center;
-  gap: 2mm;
-  padding: 1mm 3mm;
+  gap: 1.5mm;
+  padding: 0.8mm 2.8mm;
   border-radius: 100px;
-  font-size: 8.5pt;
+  font-size: 8pt;
   font-weight: 600;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .reportlab .rl-bio-status .dot {
-  width: 2mm;
-  height: 2mm;
+  width: 1.6mm;
+  height: 1.6mm;
   border-radius: 50%;
   background: currentColor;
 }
 .reportlab .rl-bio-status.critical { background: var(--status-critical-bg); color: var(--status-critical); }
-.reportlab .rl-bio-status.warning { background: var(--status-warning-bg); color: var(--status-warning); }
-.reportlab .rl-bio-status.suboptimal { background: var(--status-suboptimal-bg); color: var(--status-suboptimal); }
+.reportlab .rl-bio-status.risk { background: var(--status-risk-bg); color: var(--status-risk); }
+.reportlab .rl-bio-status.acceptable { background: var(--status-acceptable-bg); color: var(--status-acceptable); }
 .reportlab .rl-bio-status.optimal { background: var(--status-optimal-bg); color: var(--status-optimal); }
 
+/* ─── Шкала биомаркера (в стиле приложения) ────────────────────────────── */
 .reportlab .rl-bio-scale {
-  margin: 4mm 0 5mm;
+  margin: 3mm 0 4mm;
+}
+.reportlab .rl-bio-scale-empty {
+  font-size: 9pt;
+  color: var(--ink-muted);
+  font-style: italic;
+  padding: 3mm 0;
+}
+.reportlab .rl-bio-scale-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1.2mm;
+  margin-bottom: 2.5mm;
+  font-size: 9pt;
+  color: var(--ink-muted);
+}
+.reportlab .rl-bio-scale-value {
+  font-family: var(--font-mono);
+  font-size: 10.5pt;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.reportlab .rl-bio-scale-unit {
+  font-size: 8.5pt;
+  color: var(--ink-muted);
+}
+.reportlab .rl-bio-scale-arrow-row {
+  position: relative;
+  height: 2mm;
+}
+.reportlab .rl-bio-scale-arrow {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 1.4mm solid transparent;
+  border-right: 1.4mm solid transparent;
+  border-top: 1.6mm solid var(--ink);
+  transform: translateX(-50%);
+}
+.reportlab .rl-bio-scale-bar {
+  display: flex;
+  width: 100%;
+  height: 3mm;
+  border-radius: 100px;
+  overflow: hidden;
+  background: var(--hairline);
+}
+.reportlab .rl-bio-scale-seg {
+  height: 100%;
+}
+.reportlab .rl-bio-scale-footer {
+  display: flex;
+  align-items: center;
+  gap: 1.5mm;
+  margin-top: 2.5mm;
+  font-size: 8.5pt;
+  color: var(--ink-muted);
+  flex-wrap: wrap;
+}
+.reportlab .rl-bio-scale-dot {
+  display: inline-block;
+  width: 1.8mm;
+  height: 1.8mm;
+  border-radius: 50%;
+}
+.reportlab .rl-bio-scale-optrange {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── Статистика ─────────────────────────────────────────────────────────── */
