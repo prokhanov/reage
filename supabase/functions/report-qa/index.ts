@@ -66,6 +66,14 @@ function normalizeBiomarkerCode(code: string): string {
     .replace(/[\s\-_+()]/g, "");
 }
 
+function getBiomarkerCodeAliases(code: string): string[] {
+  const norm = normalizeBiomarkerCode(code);
+  if (norm === "25ohd" || norm === "25hydroxyvitamind") {
+    return ["VITD", "Vitamin D", "VitaminD", "25-OH Vitamin D"];
+  }
+  return [];
+}
+
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -942,7 +950,12 @@ Deno.serve(async (req) => {
           {
             const canonByNorm = new Map<string, string>();
             for (const b of biomarkers) {
-              if (b.code) canonByNorm.set(normalizeBiomarkerCode(b.code), b.code);
+              if (b.code) {
+                canonByNorm.set(normalizeBiomarkerCode(b.code), b.code);
+                for (const alias of getBiomarkerCodeAliases(b.code)) {
+                  canonByNorm.set(normalizeBiomarkerCode(alias), b.code);
+                }
+              }
             }
             const canonicalized: string[] = [];
             text = text.replace(
