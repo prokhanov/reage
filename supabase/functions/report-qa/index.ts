@@ -910,6 +910,21 @@ Deno.serve(async (req) => {
               knownCodesNorm.has(normalizeBiomarkerCode(b.code)) &&
               isBiomarkerMissingEducation(b.content),
           );
+          const repairBlockByAnchor = (source: string, block: { code: string; start: number; end: number }, replacement: string): string => {
+            const nextOpenRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+            nextOpenRegex.lastIndex = block.start + 1;
+            const nextOpen = nextOpenRegex.exec(source);
+            const maxEnd = nextOpen ? nextOpen.index : source.length;
+
+            const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
+            endRegex.lastIndex = block.start;
+            const endMatch = endRegex.exec(source);
+            const replaceEnd = endMatch && endMatch.index < maxEnd
+              ? endMatch.index + endMatch[0].length
+              : block.end;
+
+            return source.slice(0, block.start) + replacement + "\n" + source.slice(replaceEnd);
+          };
           if (blocksToFix.length > 0) {
             send({
               type: "status",
@@ -958,17 +973,7 @@ Deno.serve(async (req) => {
                 );
                 aiRepairsDone++;
                 if (generated) {
-                  const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
-                  endRegex.lastIndex = blk.end;
-                  const endMatch = endRegex.exec(text);
-                  const replaceEnd = endMatch
-                    ? endMatch.index + endMatch[0].length
-                    : blk.end;
-                  text =
-                    text.slice(0, blk.start) +
-                    generated +
-                    "\n" +
-                    text.slice(replaceEnd);
+                  text = repairBlockByAnchor(text, blk, generated);
                   const msg = `[${sectionLabel}] ✓ Догенерирован описательный блок: ${bm.name} (${bm.code})`;
                   fixes.push(msg);
                   send({ type: "fix", message: msg });
