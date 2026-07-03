@@ -7,6 +7,14 @@ interface Props {
   report: ProkhanovReport;
 }
 
+function formatRuMonthYear(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const month = d.toLocaleDateString("ru-RU", { month: "long" });
+  return `${month[0].toUpperCase()}${month.slice(1)} ${d.getFullYear()}`;
+}
+
 /**
  * Обложка отчёта. В режиме просмотра переменные подставляются реальными
  * значениями пациента, в режиме редактирования показываются как `{{var}}`
@@ -31,7 +39,6 @@ export function ReportCover({ report }: Props) {
       <span data-var={name}>{value}</span>
     );
 
-
   return (
     <div className="rl-page rl-cover" data-cover-root="1">
       <div className="rl-cover-top">
@@ -40,52 +47,40 @@ export function ReportCover({ report }: Props) {
             src={logoLight}
             alt="ReAge"
             data-cover-el="logo"
-            style={{ width: "34mm", height: "auto", display: "block" }}
+            style={{ width: "28mm", height: "auto", display: "block" }}
           />
-          <div style={{ marginTop: "3mm" }} data-cover-el="tagline">
-            Личный отчёт о состоянии здоровья
-          </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div data-cover-el="issue">
-            Выпуск №{V("issueNumber", shortId(analysis.id))}
+          <div data-cover-el="confidential" style={{ fontWeight: 500, color: "var(--gold-soft)" }}>
+            КОНФИДЕНЦИАЛЬНО
           </div>
-          <div style={{ marginTop: "2mm" }} data-cover-el="date">
-            {V("date", formatRuDate(analysis.date))}
+          <div style={{ marginTop: "2mm" }} data-cover-el="issue">
+            Выпуск №{V("issueNumber", shortId(analysis.id))}
           </div>
         </div>
       </div>
 
       <div className="rl-cover-center">
-        <div className="rl-cover-eyebrow" data-cover-el="eyebrow">
-          Индивидуальный анализ
+        <div className="rl-cover-kicker" data-cover-el="kicker">
+          {V("date", formatRuMonthYear(analysis.date))}
         </div>
+        <h1 className="rl-cover-headline" data-cover-el="headline">
+          ЛИЧНЫЙ ОТЧЁТ<br />О СОСТОЯНИИ ЗДОРОВЬЯ
+        </h1>
         <h1 className="rl-cover-title" data-cover-el="title-name">
           {V("patientName", fullName)}
         </h1>
-        <h1
-          className="rl-cover-title"
-          data-cover-el="title-subtitle"
-          style={{ margin: 0 }}
-        >
-          <em>биологический профиль</em>
-        </h1>
-
+        <p className="rl-cover-subtitle" data-cover-el="subtitle">
+          Полная оценка состояния организма и рекомендации по улучшению здоровья.
+        </p>
       </div>
 
       <div className="rl-cover-meta">
-        <div className="rl-cover-meta-item" data-cover-el="meta-name">
-          <div className="label">Пациент</div>
-          <div className="value">{V("patientName", fullName)}</div>
-        </div>
-        <div className="rl-cover-meta-item" data-cover-el="meta-age">
-          <div className="label">Возраст</div>
-          <div className="value">
-            {V("age", age ? `${age} лет` : "—")}
-          </div>
+        <div className="rl-cover-meta-item" data-cover-el="meta-biomarkers">
+          <div className="value">104</div>
+          <div className="label">биомаркера</div>
         </div>
         <div className="rl-cover-meta-item" data-cover-el="meta-bioage">
-          <div className="label">Био-возраст</div>
           <div className="value">
             {V(
               "bioAge",
@@ -94,15 +89,20 @@ export function ReportCover({ report }: Props) {
                 : "—",
             )}
           </div>
+          <div className="label">Биологический возраст</div>
         </div>
         <div className="rl-cover-meta-item" data-cover-el="meta-hi">
-          <div className="label">Индекс здоровья</div>
           <div className="value">
             {V(
               "healthIndex",
               analysis.health_index !== null ? `${analysis.health_index}` : "—",
             )}
           </div>
+          <div className="label">Индекс здоровья</div>
+        </div>
+        <div className="rl-cover-meta-item" data-cover-el="meta-plan">
+          <div className="value">План</div>
+          <div className="label">действий</div>
         </div>
       </div>
     </div>
