@@ -231,7 +231,7 @@ export function PagedReportPreview({
   chrome = "framed",
   editable = false,
   drafts,
-  coverTemplate,
+  
   onEditChange,
   onEditBlur,
 }: Props) {
