@@ -73,7 +73,7 @@ export function ReportDocument({ report, signalReady, coverTemplate }: Props) {
 
   return (
     <div className="reportlab">
-      <ReportCover report={report} />
+      <ReportCover report={report} template={coverTemplate} />
       <ReportPatientData report={report} />
       <ReportOverview report={report} />
       {categoryRecords.map((rec, i) => {
