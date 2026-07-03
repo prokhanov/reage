@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     if (mode === 'apply') {
       const password: string = (body?.password || '').toString()
       if (!password || password.length < 6 || password.length > 72) {
-        return json({ ok: false, error: 'invalid_password' }, 400)
+        return json({ ok: false, error: 'invalid_password' })
       }
       const { supabaseAdmin, user_id } = result as any
       const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(user_id, { password })
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
           /weak|easy to guess|pwned/i.test(message) ||
           (Array.isArray(reasons) && reasons.includes('pwned'))
         ) {
-          return json({ ok: false, error: 'weak_password', reasons }, 422)
+          return json({ ok: false, error: 'weak_password', reasons })
         }
         return json({ ok: false, error: 'update_failed' }, 500)
       }
