@@ -15,17 +15,11 @@ export function ReportOverview({ report }: Props) {
   const summaryRow = getSummaryRecord(report);
   const summaryText = extractSummaryText(summaryRow?.content_json, summaryRow?.text);
   const age = calcAge(patient.birth_date, analysis.date);
-  const fullName = [patient.first_name, patient.last_name]
-    .filter(Boolean)
-    .join(" ");
 
   return (
     <section className="rl-page">
-      <div className="rl-eyebrow">Общее заключение</div>
-
       <h1 className="rl-h1" data-section-title="Обзор биологического состояния">
-        Обзор биологического состояния <br />
-        <span style={{ color: "var(--ink-muted)" }}>для {fullName}</span>
+        Обзор биологического состояния
       </h1>
 
       <div className="rl-stats">
@@ -59,7 +53,6 @@ export function ReportOverview({ report }: Props) {
 
       {(summaryText || summaryRow) && (
         <div className="rl-conclusion">
-          <div className="rl-eyebrow">Ключевой вывод</div>
           <ProseMarkdown
             markdown={summaryText}
             editableId={summaryRow ? `rec:${summaryRow.id}#body` : undefined}
