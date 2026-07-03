@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Copy, Download, ExternalLink, Loader2 } from "lucide-react";
+import { Download, ExternalLink, Loader2 } from "lucide-react";
 import { notify as toast } from "@/lib/toast";
 import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
@@ -13,29 +12,12 @@ import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
 const INITIAL_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 
-type PdfLogLevel = "info" | "success" | "error";
-type PdfLogEntry = {
-  id: string;
-  time: string;
-  level: PdfLogLevel;
-  message: string;
-  details?: string;
-};
-
 type ReadyPdf = {
   url: string;
   file: File;
   filename: string;
   sizeKb: number;
 };
-
-function nowLabel() {
-  return new Date().toLocaleTimeString("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
 
 function formatError(e: unknown) {
   if (e instanceof Error) return e.message;
@@ -400,74 +382,6 @@ export default function ReportVisualsTest() {
 
       <div className="mx-auto max-w-[1100px] px-6 py-6">
 
-        {pdfLogs.length > 0 && (
-          <Card className="mb-6 border bg-background p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold">Диагностика PDF</div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm" onClick={copyLogs}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setPdfLogs([])}
-                  disabled={rendering}
-                >
-                  Очистить
-                </Button>
-              </div>
-            </div>
-            {readyPdf && (
-              <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
-                <div className="font-medium">PDF готов · {readyPdf.sizeKb} KB</div>
-                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  <Button size="sm" onClick={saveReadyPdf}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Сохранить PDF
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={openReadyPdf}>
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Открыть PDF
-                  </Button>
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  На iPhone сохранение должно запускаться отдельным тапом после готовности файла.
-                </div>
-              </div>
-            )}
-            <div className="space-y-2 font-mono text-xs">
-              {pdfLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="rounded-md border bg-muted/30 p-3"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-muted-foreground">{log.time}</span>
-                    <span
-                      className={
-                        log.level === "success"
-                          ? "text-primary"
-                          : log.level === "error"
-                            ? "text-destructive"
-                            : "text-muted-foreground"
-                      }
-                    >
-                      {log.level.toUpperCase()}
-                    </span>
-                    <span>{log.message}</span>
-                  </div>
-                  {log.details && (
-                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-muted/50 p-2 text-muted-foreground">
-                      {log.details}
-                    </pre>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
 
         <ReportEditorShell report={report} onReportUpdate={setReport}>
           {({ mode }) => (
