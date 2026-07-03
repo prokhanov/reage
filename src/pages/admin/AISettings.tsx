@@ -104,6 +104,29 @@ const reportSections = [
   }
 ];
 
+// Конфигурация секции QA-валидатора отчёта
+const qaStandaloneSections = [
+  {
+    id: 'qa_translate_english',
+    name: 'QA · Перевод английских фрагментов',
+    icon: Languages as LucideIcon,
+    description: 'Перевод случайных английских слов, попавших в русский отчёт (медицинские термины/бренды/коды не трогаются)',
+    promptKey: 'qa_translate_english',
+  },
+];
+
+const qaPairedSections = [
+  {
+    id: 'qa_biomarker_education',
+    name: 'QA · Догенерация описания биомаркера',
+    icon: BookOpen as LucideIcon,
+    description: 'Если у биомаркера в отчёте нет описательного блока — валидатор просит AI сгенерировать его по этому шаблону',
+    systemKey: 'qa_biomarker_education',
+    userKey: 'qa_biomarker_education_user',
+    placeholders: '{{biomarker_name}}, {{biomarker_code}}, {{value_line}}, {{report_context}}, {{knowledge_block}}',
+  },
+];
+
 export default function AISettings() {
   const { toast } = useToast();
   const { data: settings, isLoading } = useAISettings();
