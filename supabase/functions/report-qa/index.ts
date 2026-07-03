@@ -22,7 +22,10 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const AI_CALL_TIMEOUT_MS = 45_000;
+const AI_CALL_TIMEOUT_MS = 90_000;
+// Для QA-починок (перевод фрагментов, догенерация описания биомаркера)
+// используем быструю модель — pro слишком медленный и упирается в таймаут.
+const QA_REPAIR_MODEL = "google/gemini-2.5-flash";
 const QA_TIME_BUDGET_MS = 125_000;
 const MAX_AI_REPAIRS_PER_RUN = 8;
 
@@ -819,9 +822,9 @@ Deno.serve(async (req) => {
         }
 
 
-        const aiModel: string =
-          (analysis as any)?.biomarkers_metadata?.ai_model ||
-          "google/gemini-2.5-pro";
+        // Для QA-починок всегда используем быструю модель,
+        // независимо от того, каким pro/deep генерировался исходный отчёт.
+        const aiModel: string = QA_REPAIR_MODEL;
 
         // Загружаем QA-промпты из ai_prompt_settings (с fallback на встроенные)
         const { data: qaPromptRows } = await admin
