@@ -33,6 +33,7 @@ export function ReportDocument({ report, signalReady }: Props) {
   const biomarkerByCode = buildBiomarkerIndex(report);
   const categoryRecords = getCategoryRecords(report);
   const gender = report.patient.gender;
+  const age = calcAge(report.patient.birth_date, report.analysis.date);
 
   useEffect(() => {
     if (!signalReady) return;
