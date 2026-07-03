@@ -71,8 +71,13 @@ export function BiomarkerScale({ biomarker, gender, age = null }: Props) {
   // Жёлтая нижняя зона: между warningMin и optimalMin.
   push(range.warningMin, range.optimalMin, "#d0a437");
 
-  // Зелёный оптимум.
-  push(range.optimalMin, range.optimalMax, "#4a7c59");
+  // Зелёный оптимум. Для односторонних биомаркеров (задан только один край
+  // оптимума) растягиваем зелёную зону до края шкалы.
+  const greenFrom =
+    range.optimalMin ?? (range.optimalMax !== null ? domainMin : null);
+  const greenTo =
+    range.optimalMax ?? (range.optimalMin !== null ? domainMax : null);
+  push(greenFrom, greenTo, "#4a7c59");
 
   // Жёлтая верхняя.
   push(range.optimalMax, range.warningMax, "#d0a437");
