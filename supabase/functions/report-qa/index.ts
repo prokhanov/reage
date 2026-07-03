@@ -22,9 +22,9 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
-const AI_CALL_TIMEOUT_MS = 45_000;
-const QA_TIME_BUDGET_MS = 125_000;
-const MAX_AI_REPAIRS_PER_RUN = 8;
+const AI_CALL_TIMEOUT_MS = 25_000;
+const QA_TIME_BUDGET_MS = 80_000;
+const MAX_AI_REPAIRS_PER_RUN = 3;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
@@ -584,6 +584,11 @@ ${valueLine}
 <!-- anchor:biomarker_end -->`;
   };
 
+  const knowledgeFallback = buildFromKnowledge();
+  // Валидатор не должен зависеть от долгих AI-вызовов, когда в справочнике уже
+  // есть готовое описание биомаркера: для QA-ремонта этого достаточно и быстро.
+  if (knowledgeFallback) return knowledgeFallback;
+
   let resp: Response;
   try {
     resp = await fetchWithTimeout(
@@ -608,25 +613,25 @@ ${valueLine}
     // Таймаут / сетевая ошибка AI gateway — не валим весь QA-раннер,
     // отдаём fallback из БД (или null, если её нет).
     console.error("generateBiomarkerEducation fetch error:", err);
-    return buildFromKnowledge();
+    return null;
   }
 
   if (!resp.ok) {
     console.error("AI gateway error:", resp.status, await resp.text());
-    return buildFromKnowledge();
+    return null;
   }
   let data: any;
   try {
     data = await resp.json();
   } catch (err) {
     console.error("generateBiomarkerEducation parse error:", err);
-    return buildFromKnowledge();
+    return null;
   }
   const text: string = (data?.choices?.[0]?.message?.content ?? "").trim();
   // Если AI вернул слишком короткий ответ — используем готовое описание из БД.
   const cyrCount = (text.match(/[а-яё]/gi) || []).length;
   if (!text || cyrCount < 120) {
-    return buildFromKnowledge() || text || null;
+    return text || null;
   }
   return text;
 }
