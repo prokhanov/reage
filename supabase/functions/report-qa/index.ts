@@ -214,26 +214,45 @@ function extractBiomarkerBlocks(
  */
 function isBiomarkerMissingEducation(content: string): boolean {
   if (!content) return true;
-  const stripped = content
-    .replace(/<!--[\s\S]*?-->/g, " ")
-    .replace(/^\s*#{1,6}\s+.*$/gm, " ") // headers
-    .trim();
-  // Empty / near-empty block — definitely missing.
-  if (stripped.length < 60) return true;
-  const valueMatch =
-    /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i.exec(
-      stripped,
-    );
+  // Убираем только якорные комментарии; заголовки НЕ удаляем регэкспом,
+  // потому что регэксп оставляет пустые строки и ломает логику «первой строки».
+  const noAnchors = content.replace(/<!--[\s\S]*?-->/g, " ").trim();
+  if (noAnchors.length < 60) return true;
+
+  // Разбиваем на непустые строки и отбрасываем ведущие «титульные» строки:
+  //   — Markdown-заголовки (### Название)
+  //   — короткие plain-text строки без точки (просто «Общий белок»),
+  //     не содержащие ключевых слов value-предложения.
+  const valueKeyword = /Ваш(?:а|е|и)?\s+(?:показатель|уровень|значение|индекс|результат)/i;
+  const lines = noAnchors
+    .split(/\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  let i = 0;
+  while (i < lines.length) {
+    const l = lines[i];
+    const isHeading = /^#{1,6}\s+/.test(l);
+    const looksLikeTitle =
+      l.length <= 80 && !/[.!?:]/.test(l) && !valueKeyword.test(l);
+    if (isHeading || looksLikeTitle) {
+      i++;
+      continue;
+    }
+    break;
+  }
+  const body = lines.slice(i).join("\n").trim();
+  if (body.length < 60) return true;
+
+  const valueMatch = valueKeyword.exec(body);
   if (!valueMatch) {
-    // Нет value-предложения — но может это просто заглушка без обучения.
-    // Если всего <200 символов прозы кириллицы, считаем что описания нет.
-    const cyr = (stripped.match(/[а-яё]/gi) || []).length;
+    // Нет value-предложения — оцениваем всю оставшуюся прозу.
+    const cyr = (body.match(/[а-яё]/gi) || []).length;
     return cyr < 200;
   }
-  const prefix = stripped.slice(0, valueMatch.index).trim();
-  // Drop the first line (likely the biomarker title) and check what's left
-  const withoutTitle = prefix.split(/\n/).slice(1).join(" ").trim();
-  return withoutTitle.length < 60;
+  const prefix = body.slice(0, valueMatch.index).trim();
+  const cyr = (prefix.match(/[а-яё]/gi) || []).length;
+  return cyr < 60;
 }
 
 // ──────────────────── Trailing transition detection ────────────────────
