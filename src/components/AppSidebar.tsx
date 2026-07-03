@@ -174,7 +174,9 @@ export function AppSidebar({ isOpen, setIsOpen }: AppSidebarProps) {
             {isOpen ? (
               <>
                 <div className="flex items-start justify-between mb-3">
-                  <ThemedLogo className="h-12 w-auto animate-hue-shift" />
+                  <NavLink to="/" onClick={closeSidebarOnMobile}>
+                    <ThemedLogo className="h-12 w-auto animate-hue-shift" />
+                  </NavLink>
                   <button
                     onClick={() => setIsOpen(false)}
                     className="p-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
