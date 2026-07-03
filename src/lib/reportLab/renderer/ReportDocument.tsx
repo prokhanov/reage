@@ -26,7 +26,7 @@ interface Props {
  *   - сборку последовательности страниц (обложка → резюме → 5 категорий → назначения);
  *   - сигнал готовности для Playwright.
  */
-export function ReportDocument({ report, signalReady }: Props) {
+export function ReportDocument({ report, signalReady, coverTemplate }: Props) {
   const biomarkerByCode = buildBiomarkerIndex(report);
   const categoryRecords = getCategoryRecords(report);
   const gender = report.patient.gender;
