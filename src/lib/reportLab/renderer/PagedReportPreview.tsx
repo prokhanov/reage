@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
 import type { ProkhanovReport } from "../types";
-import type { CoverTemplate } from "../coverTemplate";
+
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
 import { htmlToMarkdown } from "../editor/markdown";
 // eslint-disable-next-line import/no-unresolved
@@ -117,7 +117,7 @@ interface Props {
   chrome?: "framed" | "plain";
   editable?: boolean;
   drafts?: Record<string, string>;
-  coverTemplate?: CoverTemplate;
+  
   /**
    * Реалтайм-коллбэк: срабатывает и во время ввода (debounced),
    * и на blur — родитель должен положить markdown в drafts, что
@@ -231,7 +231,7 @@ export function PagedReportPreview({
   chrome = "framed",
   editable = false,
   drafts,
-  coverTemplate,
+  
   onEditChange,
   onEditBlur,
 }: Props) {
@@ -253,10 +253,10 @@ export function PagedReportPreview({
           drafts={draftsSnapshot}
           mode={editable ? "edit" : "view"}
         >
-          <ReportDocument report={report} coverTemplate={coverTemplate} />
+          <ReportDocument report={report} />
         </StaticReportEditorProvider>,
       ),
-    [report, draftsSnapshot, editable, coverTemplate],
+    [report, draftsSnapshot, editable],
   );
 
   useEffect(() => {
@@ -310,6 +310,7 @@ export function PagedReportPreview({
               onEditChangeRef.current?.(id, md);
             },
           );
+          installCoverInlineEditor(output);
           if (caret) restoreCaret(output, caret);
           if (scrollContainer) scrollContainer.scrollTop = scrollTop;
         }
@@ -574,4 +575,212 @@ function installEditableOverlay(
     }
   });
   mo.observe(output, { childList: true });
+}
+
+/**
+ * Прямое редактирование обложки: клик — выделение, перетаскивание — движение,
+ * A+/A- — размер шрифта, двойной клик — правка текста. Живёт целиком в DOM,
+ * без React state и без ре-пагинации.
+ */
+function installCoverInlineEditor(output: HTMLElement) {
+  const cover = output.querySelector<HTMLElement>(
+    "[data-cover-root]",
+  );
+  if (!cover) return;
+
+  const els = Array.from(
+    cover.querySelectorAll<HTMLElement>("[data-cover-el]"),
+  );
+  if (!els.length) return;
+
+  // Панель управления
+  let panel = cover.querySelector<HTMLDivElement>(".rl-cover-panel");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.className = "rl-cover-panel";
+    panel.contentEditable = "false";
+    panel.style.cssText = [
+      "position:absolute",
+      "z-index:60",
+      "display:none",
+      "gap:4px",
+      "padding:4px 6px",
+      "border-radius:8px",
+      "background:rgba(20,24,32,0.92)",
+      "color:#fff",
+      "border:1px solid rgba(255,255,255,0.15)",
+      "box-shadow:0 8px 24px -8px rgba(0,0,0,0.5)",
+      "font:12px/1 Inter, system-ui, sans-serif",
+      "backdrop-filter:blur(6px)",
+      "user-select:none",
+    ].join(";");
+    cover.style.position = "relative";
+    cover.appendChild(panel);
+  }
+
+  let selected: HTMLElement | null = null;
+
+  const btn = (label: string, title: string, fn: () => void) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.title = title;
+    b.textContent = label;
+    b.style.cssText = [
+      "min-width:26px",
+      "height:26px",
+      "padding:0 8px",
+      "border-radius:5px",
+      "border:none",
+      "background:transparent",
+      "color:inherit",
+      "cursor:pointer",
+      "font:inherit",
+    ].join(";");
+    b.addEventListener("mousedown", (e) => e.preventDefault());
+    b.addEventListener("mouseenter", () => (b.style.background = "rgba(255,255,255,0.12)"));
+    b.addEventListener("mouseleave", () => (b.style.background = "transparent"));
+    b.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fn();
+    });
+    return b;
+  };
+
+  const currentPx = (el: HTMLElement, prop: "fontSize") =>
+    parseFloat(getComputedStyle(el)[prop] || "0") || 16;
+
+  const setFontSize = (delta: number) => {
+    if (!selected) return;
+    const cur = currentPx(selected, "fontSize");
+    const next = Math.max(6, cur + delta);
+    selected.style.fontSize = `${next}px`;
+    positionPanel();
+  };
+
+  const nudge = (dx: number, dy: number) => {
+    if (!selected) return;
+    const t = selected.style.transform || "";
+    const m = /translate\((-?\d+(?:\.\d+)?)px,\s*(-?\d+(?:\.\d+)?)px\)/.exec(t);
+    const x = (m ? parseFloat(m[1]) : 0) + dx;
+    const y = (m ? parseFloat(m[2]) : 0) + dy;
+    selected.style.transform = `translate(${x}px, ${y}px)`;
+    positionPanel();
+  };
+
+  const resetEl = () => {
+    if (!selected) return;
+    selected.style.transform = "";
+    selected.style.fontSize = "";
+    positionPanel();
+  };
+
+  panel.append(
+    btn("A−", "Уменьшить шрифт", () => setFontSize(-1)),
+    btn("A+", "Увеличить шрифт", () => setFontSize(1)),
+    btn("←", "Влево", () => nudge(-4, 0)),
+    btn("→", "Вправо", () => nudge(4, 0)),
+    btn("↑", "Вверх", () => nudge(0, -4)),
+    btn("↓", "Вниз", () => nudge(0, 4)),
+    btn("✎", "Редактировать текст", () => {
+      if (!selected) return;
+      selected.contentEditable = "true";
+      selected.focus();
+    }),
+    btn("↺", "Сбросить блок", resetEl),
+  );
+
+  const positionPanel = () => {
+    if (!selected || !panel) return;
+    const cr = cover.getBoundingClientRect();
+    const er = selected.getBoundingClientRect();
+    const top = er.top - cr.top - 34;
+    const left = er.left - cr.left;
+    panel.style.top = `${Math.max(4, top)}px`;
+    panel.style.left = `${Math.max(4, left)}px`;
+    panel.style.display = "flex";
+  };
+
+  const clearSel = () => {
+    if (selected) {
+      selected.style.outline = "";
+      selected.style.outlineOffset = "";
+      if (selected.contentEditable === "true") selected.contentEditable = "false";
+    }
+    selected = null;
+    if (panel) panel.style.display = "none";
+  };
+
+  const select = (el: HTMLElement) => {
+    if (selected === el) return;
+    clearSel();
+    selected = el;
+    el.style.outline = "1.5px dashed rgba(217,195,150,0.9)";
+    el.style.outlineOffset = "3px";
+    positionPanel();
+  };
+
+  // drag
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+  let startTX = 0;
+  let startTY = 0;
+
+  els.forEach((el) => {
+    el.style.cursor = "move";
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      select(el);
+    });
+    el.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      if (selected !== el) select(el);
+      el.contentEditable = "true";
+      el.focus();
+    });
+    el.addEventListener("mousedown", (e) => {
+      if ((e.target as HTMLElement).isContentEditable) return;
+      if (el.contentEditable === "true") return;
+      e.preventDefault();
+      select(el);
+      dragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const t = el.style.transform || "";
+      const m = /translate\((-?\d+(?:\.\d+)?)px,\s*(-?\d+(?:\.\d+)?)px\)/.exec(t);
+      startTX = m ? parseFloat(m[1]) : 0;
+      startTY = m ? parseFloat(m[2]) : 0;
+    });
+  });
+
+  const onMove = (e: MouseEvent) => {
+    if (!dragging || !selected) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    selected.style.transform = `translate(${startTX + dx}px, ${startTY + dy}px)`;
+    positionPanel();
+  };
+  const onUp = () => {
+    dragging = false;
+  };
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onUp);
+
+  const onCoverClick = (e: MouseEvent) => {
+    const t = e.target as HTMLElement;
+    if (t.closest(".rl-cover-panel")) return;
+    if (t.closest("[data-cover-el]")) return;
+    clearSel();
+  };
+  cover.addEventListener("click", onCoverClick);
+
+  const mo = new MutationObserver(() => {
+    if (!output.contains(cover)) {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      mo.disconnect();
+    }
+  });
+  mo.observe(output, { childList: true, subtree: true });
 }
