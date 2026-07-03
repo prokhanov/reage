@@ -26,9 +26,9 @@ const AI_CALL_TIMEOUT_MS = 90_000;
 // Для QA-починок (перевод фрагментов, догенерация описания биомаркера)
 // используем быструю модель — pro слишком медленный и упирается в таймаут.
 const QA_REPAIR_MODEL = "google/gemini-2.5-flash";
-const QA_TIME_BUDGET_MS = 300_000;
-const MAX_AI_REPAIRS_PER_RUN = 80;
-const QA_PARALLEL_BATCH = 6;
+const QA_TIME_BUDGET_MS = 8 * 60_000;
+const MAX_AI_REPAIRS_PER_RUN = 200;
+const QA_PARALLEL_BATCH = 12;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
@@ -64,6 +64,14 @@ function normalizeBiomarkerCode(code: string): string {
     .replace(/δ/g, "d")
     .replace(/μ/g, "u")
     .replace(/[\s\-_+()]/g, "");
+}
+
+function getBiomarkerCodeAliases(code: string): string[] {
+  const norm = normalizeBiomarkerCode(code);
+  if (norm === "25ohd" || norm === "25hydroxyvitamind") {
+    return ["VITD", "Vitamin D", "VitaminD", "25-OH Vitamin D"];
+  }
+  return [];
 }
 
 function escapeRegex(value: string): string {
@@ -638,16 +646,13 @@ ${trimmedContext}${knowledge}
 Сгенерируй блок биомаркера по шаблону выше. Не используй списки, не используй заголовки кроме первой строки с названием биомаркера. Только проза.`;
 
 
-  const buildFromKnowledge = (): string | null => {
-    if (!generalDescription || generalDescription.trim().length < 40) return null;
-    return `<!-- anchor:biomarker ${biomarkerCode} -->
-${biomarkerName}
-
-${generalDescription.trim()}
-
-${valueLine}
-<!-- anchor:biomarker_end -->`;
-  };
+  const buildFromKnowledge = () =>
+    buildBiomarkerEducationFromKnowledge(
+      biomarkerName,
+      biomarkerCode,
+      valueLine,
+      generalDescription,
+    );
 
   const resp = await fetchWithTimeout(
     "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -680,6 +685,36 @@ ${valueLine}
     return buildFromKnowledge() || text || null;
   }
   return text;
+}
+
+function buildBiomarkerEducationFromKnowledge(
+  biomarkerName: string,
+  biomarkerCode: string,
+  valueLine: string,
+  generalDescription: string | null,
+): string | null {
+  if (!generalDescription || generalDescription.trim().length < 40) return null;
+  return `<!-- anchor:biomarker ${biomarkerCode} -->
+${biomarkerName}
+
+${generalDescription.trim()}
+
+${valueLine}
+<!-- anchor:biomarker_end -->`;
+}
+
+function formatAnalysisValue(value: unknown): string {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "";
+  return Number.isInteger(value)
+    ? String(value)
+    : String(Number(value.toFixed(3))).replace(/\.0+$/, "");
+}
+
+function buildBiomarkerValueLine(bm: any): string {
+  const formatted = formatAnalysisValue(bm?.value);
+  const unit = String(bm?.unit_override || bm?.unit || "").trim();
+  if (!formatted) return `Ваш показатель ${bm?.name || "биомаркера"} указан в анализе.`;
+  return `Ваш показатель ${bm.name}: ${formatted}${unit ? ` ${unit}` : ""}.`;
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
@@ -783,7 +818,7 @@ Deno.serve(async (req) => {
 
         const { data: avRows, error: avErr } = await admin
           .from("analysis_values")
-          .select("biomarker_id, biomarkers!inner(code, name, general_description)")
+          .select("biomarker_id, value, unit_override, biomarkers!inner(code, name, general_description, unit, category)")
           .eq("analysis_id", analysisId);
         if (avErr) throw avErr;
 
@@ -791,6 +826,10 @@ Deno.serve(async (req) => {
           code: r.biomarkers?.code,
           name: r.biomarkers?.name,
           general_description: r.biomarkers?.general_description ?? null,
+          category: r.biomarkers?.category ?? null,
+          unit: r.biomarkers?.unit ?? null,
+          unit_override: r.unit_override ?? null,
+          value: r.value ?? null,
         }));
         const knownCodesNorm = new Set(
           biomarkers.map((b) => normalizeBiomarkerCode(b.code)),
@@ -911,7 +950,12 @@ Deno.serve(async (req) => {
           {
             const canonByNorm = new Map<string, string>();
             for (const b of biomarkers) {
-              if (b.code) canonByNorm.set(normalizeBiomarkerCode(b.code), b.code);
+              if (b.code) {
+                canonByNorm.set(normalizeBiomarkerCode(b.code), b.code);
+                for (const alias of getBiomarkerCodeAliases(b.code)) {
+                  canonByNorm.set(normalizeBiomarkerCode(alias), b.code);
+                }
+              }
             }
             const canonicalized: string[] = [];
             text = text.replace(
@@ -961,18 +1005,49 @@ Deno.serve(async (req) => {
               type: "status",
               message: `[${sectionLabel}] Догенерация описаний для ${blocksToFix.length} биомаркеров…`,
             });
-            // Параллельная догенерация батчами: за один запуск чиним все блоки,
-            // а не по одному последовательно (иначе упираемся в лимит времени).
+            // Сначала чиним блоки локально из готового описания биомаркера в БД.
+            // Это быстро, стабильно и не должно упираться в лимиты AI за один прогон.
             type Repair = { blk: typeof blocksToFix[number]; generated: string | null; bm: any };
             const repairs: Repair[] = [];
-            let stoppedByBudget = false;
+            const aiBlocks: typeof blocksToFix = [];
 
-            for (let i = 0; i < blocksToFix.length; i += QA_PARALLEL_BATCH) {
-              if (isTimeBudgetLow() || aiRepairsDone >= MAX_AI_REPAIRS_PER_RUN) {
-                stoppedByBudget = true;
-                break;
+            for (const blk of blocksToFix) {
+              const bm = biomarkers.find(
+                (b) =>
+                  normalizeBiomarkerCode(b.code) ===
+                  normalizeBiomarkerCode(blk.code),
+              );
+              if (!bm) {
+                repairs.push({ blk, generated: null, bm: null });
+                continue;
               }
-              const batch = blocksToFix.slice(i, i + QA_PARALLEL_BATCH);
+              const valueLine = buildBiomarkerValueLine(bm);
+              const generalDesc =
+                (bm as any).general_description ??
+                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
+                null;
+              const generated = buildBiomarkerEducationFromKnowledge(
+                bm.name,
+                bm.code,
+                valueLine,
+                generalDesc,
+              );
+              if (generated) {
+                repairs.push({ blk, generated, bm } as Repair);
+              } else {
+                aiBlocks.push(blk);
+              }
+            }
+
+            if (aiBlocks.length > 0) {
+              send({
+                type: "status",
+                message: `[${sectionLabel}] Для ${aiBlocks.length} биомаркеров нет готового описания в БД — подключаю AI-догенерацию…`,
+              });
+            }
+
+            for (let i = 0; i < aiBlocks.length; i += QA_PARALLEL_BATCH) {
+              const batch = aiBlocks.slice(i, i + QA_PARALLEL_BATCH);
               const results = await Promise.all(
                 batch.map(async (blk) => {
                   const bm = biomarkers.find(
@@ -981,11 +1056,7 @@ Deno.serve(async (req) => {
                       normalizeBiomarkerCode(blk.code),
                   );
                   if (!bm) return { blk, generated: null, bm: null } as Repair;
-                  const valueMatch =
-                    /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-                  const valueLine = valueMatch
-                    ? valueMatch[0].trim()
-                    : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+                  const valueLine = buildBiomarkerValueLine(bm);
                   send({
                     type: "status",
                     message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
@@ -1019,12 +1090,19 @@ Deno.serve(async (req) => {
             for (const { blk, generated, bm } of applied) {
               if (!bm) continue;
               if (generated) {
+                const openRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+                openRegex.lastIndex = Math.max(0, blk.start - 1);
+                const openMatch = openRegex.exec(text);
+                const contentStart = openMatch ? openMatch.index + openMatch[0].length : blk.start;
+                const nextOpenRegex = /<!--\s*anchor:biomarker\s+([^\n>]+?)\s*-->/g;
+                nextOpenRegex.lastIndex = contentStart;
+                const nextOpen = nextOpenRegex.exec(text);
                 const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
-                endRegex.lastIndex = blk.end;
+                endRegex.lastIndex = contentStart;
                 const endMatch = endRegex.exec(text);
-                const replaceEnd = endMatch
+                const replaceEnd = endMatch && (!nextOpen || endMatch.index < nextOpen.index)
                   ? endMatch.index + endMatch[0].length
-                  : blk.end;
+                  : (nextOpen ? nextOpen.index : blk.end);
                 text =
                   text.slice(0, blk.start) +
                   generated +
@@ -1039,13 +1117,6 @@ Deno.serve(async (req) => {
                 send({ type: "warn", message: msg });
               }
             }
-
-            if (stoppedByBudget) {
-              const msg = `[${sectionLabel}] Часть AI-догенерации пропущена, чтобы проверка не зависла. Запустите проверку ещё раз после сохранения текущих правок.`;
-              fixes.push(msg);
-              send({ type: "warn", message: msg });
-            }
-          }
           }
 
           // 6. Detect & translate stray English fragments (artifacts)
@@ -1139,7 +1210,7 @@ Deno.serve(async (req) => {
         try {
           const { data: recsAfter } = await admin
             .from("recommendations")
-            .select("text")
+            .select("id, type, text")
             .eq("analysis_id", analysisId);
           const combined = ((recsAfter || []) as any[])
             .map((r) => (typeof r.text === "string" ? r.text : ""))
@@ -1153,12 +1224,63 @@ Deno.serve(async (req) => {
             (b) => b.code && !renderedCodes.has(normalizeBiomarkerCode(b.code)),
           );
           if (missing.length > 0) {
-            const list = missing
-              .map((b) => `${b.name} (${b.code})`)
-              .join(", ");
-            const msg = `⚠ Биомаркеры без карточки в отчёте (${missing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
-            fixes.push(msg);
-            send({ type: "warn", message: msg });
+            const byType = new Map<string, any[]>();
+            for (const bm of missing) {
+              const type = String(bm.category || "").trim();
+              if (!type) continue;
+              if (!byType.has(type)) byType.set(type, []);
+              byType.get(type)!.push(bm);
+            }
+
+            let inserted = 0;
+            const stillMissing: any[] = [];
+            for (const bm of missing) {
+              if (!bm.category) stillMissing.push(bm);
+            }
+
+            for (const [type, list] of byType.entries()) {
+              const rec = ((recsAfter || []) as any[]).find((r) => r.type === type);
+              if (!rec || typeof rec.text !== "string") {
+                stillMissing.push(...list);
+                continue;
+              }
+              const additions = list
+                .map((bm) =>
+                  buildBiomarkerEducationFromKnowledge(
+                    bm.name,
+                    bm.code,
+                    buildBiomarkerValueLine(bm),
+                    bm.general_description,
+                  ),
+                )
+                .filter(Boolean)
+                .join("\n\n");
+              if (!additions) {
+                stillMissing.push(...list);
+                continue;
+              }
+              const nextText = `${rec.text.trim()}\n\n## Дополненные карточки биомаркеров\n\n${additions}\n`;
+              const { error: appendErr } = await admin
+                .from("recommendations")
+                .update({ text: nextText })
+                .eq("id", rec.id);
+              if (appendErr) throw appendErr;
+              inserted += list.length;
+            }
+
+            if (inserted > 0) {
+              const msg = `✓ Добавлены недостающие карточки биомаркеров: ${inserted}.`;
+              fixes.push(msg);
+              send({ type: "fix", message: msg });
+            }
+            if (stillMissing.length > 0) {
+              const list = stillMissing
+                .map((b) => `${b.name} (${b.code})`)
+                .join(", ");
+              const msg = `⚠ Биомаркеры без карточки в отчёте (${stillMissing.length}): ${list}. Рекомендуется перегенерировать отчёт.`;
+              fixes.push(msg);
+              send({ type: "warn", message: msg });
+            }
           }
         } catch (auditErr) {
           console.warn("cross-section audit failed:", auditErr);
