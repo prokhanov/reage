@@ -914,6 +914,8 @@ Deno.serve(async (req) => {
                 aiModel,
                 reportContext,
                 generalDesc,
+                qaPrompts["qa_biomarker_education"],
+                qaPrompts["qa_biomarker_education_user"],
               );
               aiRepairsDone++;
               if (generated) {
