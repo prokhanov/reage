@@ -354,7 +354,10 @@ function injectHeadingBiomarkerAnchors(
     if (/^[-*•>]/.test(line)) continue;
     if (/^\d+[.)]\s/.test(line)) continue;
     if (line.endsWith(":") || line.endsWith("：")) continue;
-    if (line.includes(". ") || line.includes(", ")) continue;
+    // Заголовок биомаркера — короткая строка без конца-точки/восклицания/вопроса
+    // и без «сборной» пунктуации внутри предложения.
+    if (/[.!?…]$/.test(line)) continue;
+    if (/\s—\s|\s–\s/.test(line)) continue;
 
     let code: string | null = null;
     const cm = codeInParensRegex.exec(line);
