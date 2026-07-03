@@ -1,5 +1,6 @@
 import type { ProkhanovReport } from "../types";
 import { calcAge, formatRuDate } from "../parser";
+import { useReportEditor } from "../editor/ReportEditorContext";
 import logoLight from "@/assets/reage-logo-light.png";
 
 interface Props {
@@ -7,25 +8,29 @@ interface Props {
 }
 
 /**
- * Обложка отчёта. Значения из данных пациента размечены как
- * `<span data-var="...">value</span>`, чтобы редактор обложки мог:
- *  - подсвечивать их как переменные,
- *  - показывать хинт с именем переменной,
- *  - вставлять новые переменные в текст через палитру.
+ * Обложка отчёта. В режиме просмотра переменные подставляются реальными
+ * значениями пациента, в режиме редактирования показываются как `{{var}}`
+ * чипы-подсказки — их можно двигать/форматировать в редакторе.
  *
- * Синтаксис в тексте: {{patientName}}, {{age}}, {{date}}, {{bioAge}},
- * {{healthIndex}}, {{issueNumber}}.
+ * Доступные переменные: patientName, age, date, bioAge, healthIndex,
+ * issueNumber.
  */
 export function ReportCover({ report }: Props) {
+  const ctx = useReportEditor();
+  const isEdit = ctx?.mode === "edit";
   const { patient, analysis } = report;
   const age = calcAge(patient.birth_date, analysis.date);
   const fullName = [patient.first_name, patient.last_name]
     .filter(Boolean)
     .join(" ");
 
-  const V = (name: string, value: string) => (
-    <span data-var={name} title={`Переменная: {{${name}}}`}>{value}</span>
-  );
+  const V = (name: string, value: string) =>
+    isEdit ? (
+      <span data-var={name} title={`Переменная: {{${name}}}`}>{`{{${name}}}`}</span>
+    ) : (
+      <span data-var={name}>{value}</span>
+    );
+
 
   return (
     <div className="rl-page rl-cover" data-cover-root="1">
