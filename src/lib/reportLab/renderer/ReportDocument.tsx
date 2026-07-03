@@ -89,6 +89,7 @@ export function ReportDocument({ report, signalReady }: Props) {
             category={parsed}
             biomarkerByCode={biomarkerByCode}
             gender={gender}
+            age={age}
             recommendationId={rec.id}
           />
         );
