@@ -822,9 +822,9 @@ Deno.serve(async (req) => {
         }
 
 
-        const aiModel: string =
-          (analysis as any)?.biomarkers_metadata?.ai_model ||
-          "google/gemini-2.5-pro";
+        // Для QA-починок всегда используем быструю модель,
+        // независимо от того, каким pro/deep генерировался исходный отчёт.
+        const aiModel: string = QA_REPAIR_MODEL;
 
         // Загружаем QA-промпты из ai_prompt_settings (с fallback на встроенные)
         const { data: qaPromptRows } = await admin
