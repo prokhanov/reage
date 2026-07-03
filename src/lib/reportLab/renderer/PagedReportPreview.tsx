@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
 import type { ProkhanovReport } from "../types";
+import type { CoverTemplate } from "../coverTemplate";
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
 import { htmlToMarkdown } from "../editor/markdown";
 // eslint-disable-next-line import/no-unresolved
