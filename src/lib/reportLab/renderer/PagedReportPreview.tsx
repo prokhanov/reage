@@ -116,7 +116,6 @@ interface Props {
   chrome?: "framed" | "plain";
   editable?: boolean;
   drafts?: Record<string, string>;
-  coverTemplate?: CoverTemplate;
   /**
    * Реалтайм-коллбэк: срабатывает и во время ввода (debounced),
    * и на blur — родитель должен положить markdown в drafts, что
