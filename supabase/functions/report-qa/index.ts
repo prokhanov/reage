@@ -1008,11 +1008,7 @@ Deno.serve(async (req) => {
                 repairs.push({ blk, generated: null, bm: null });
                 continue;
               }
-              const valueMatch =
-                /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-              const valueLine = valueMatch
-                ? valueMatch[0].trim()
-                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              const valueLine = buildBiomarkerValueLine(bm);
               const generalDesc =
                 (bm as any).general_description ??
                 generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
@@ -1047,11 +1043,7 @@ Deno.serve(async (req) => {
                       normalizeBiomarkerCode(blk.code),
                   );
                   if (!bm) return { blk, generated: null, bm: null } as Repair;
-                  const valueMatch =
-                    /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-                  const valueLine = valueMatch
-                    ? valueMatch[0].trim()
-                    : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+                  const valueLine = buildBiomarkerValueLine(bm);
                   send({
                     type: "status",
                     message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
