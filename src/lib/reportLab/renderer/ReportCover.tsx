@@ -12,8 +12,7 @@ interface Props {
  * значениями пациента, в режиме редактирования показываются как `{{var}}`
  * чипы-подсказки — их можно двигать/форматировать в редакторе.
  *
- * Доступные переменные: patientName, age, date, bioAge, healthIndex,
- * issueNumber.
+ * Доступные переменные: patientName, age, date, bioAge, healthIndex.
  */
 export function ReportCover({ report }: Props) {
   const ctx = useReportEditor();
@@ -47,9 +46,6 @@ export function ReportCover({ report }: Props) {
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div data-cover-el="issue">
-            Выпуск №{V("issueNumber", shortId(analysis.id))}
-          </div>
           <div style={{ marginTop: "2mm" }} data-cover-el="date">
             {V("date", formatRuDate(analysis.date))}
           </div>
@@ -68,7 +64,7 @@ export function ReportCover({ report }: Props) {
           data-cover-el="title-subtitle"
           style={{ margin: 0 }}
         >
-          <em>Личный отчёт о состоянии здоровья</em>
+          <em>Отчёт о состоянии здоровья</em>
         </h1>
 
       </div>
