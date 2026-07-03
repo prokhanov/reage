@@ -26,8 +26,9 @@ const AI_CALL_TIMEOUT_MS = 90_000;
 // Для QA-починок (перевод фрагментов, догенерация описания биомаркера)
 // используем быструю модель — pro слишком медленный и упирается в таймаут.
 const QA_REPAIR_MODEL = "google/gemini-2.5-flash";
-const QA_TIME_BUDGET_MS = 125_000;
-const MAX_AI_REPAIRS_PER_RUN = 8;
+const QA_TIME_BUDGET_MS = 300_000;
+const MAX_AI_REPAIRS_PER_RUN = 80;
+const QA_PARALLEL_BATCH = 6;
 
 // ───────────────────── helpers (mirror analyze-biomarkers) ─────────────────────
 
@@ -960,49 +961,64 @@ Deno.serve(async (req) => {
               type: "status",
               message: `[${sectionLabel}] Догенерация описаний для ${blocksToFix.length} биомаркеров…`,
             });
-            // process from last to first to keep indices stable on `text`
-            for (let i = blocksToFix.length - 1; i >= 0; i--) {
+            // Параллельная догенерация батчами: за один запуск чиним все блоки,
+            // а не по одному последовательно (иначе упираемся в лимит времени).
+            type Repair = { blk: typeof blocksToFix[number]; generated: string | null; bm: any };
+            const repairs: Repair[] = [];
+            let stoppedByBudget = false;
+
+            for (let i = 0; i < blocksToFix.length; i += QA_PARALLEL_BATCH) {
               if (isTimeBudgetLow() || aiRepairsDone >= MAX_AI_REPAIRS_PER_RUN) {
-                const msg = `[${sectionLabel}] Часть AI-догенерации пропущена, чтобы проверка не зависла. Запустите проверку ещё раз после сохранения текущих правок.`;
-                fixes.push(msg);
-                send({ type: "warn", message: msg });
+                stoppedByBudget = true;
                 break;
               }
-              const blk = blocksToFix[i];
-              const bm = biomarkers.find(
-                (b) =>
-                  normalizeBiomarkerCode(b.code) ===
-                  normalizeBiomarkerCode(blk.code),
+              const batch = blocksToFix.slice(i, i + QA_PARALLEL_BATCH);
+              const results = await Promise.all(
+                batch.map(async (blk) => {
+                  const bm = biomarkers.find(
+                    (b) =>
+                      normalizeBiomarkerCode(b.code) ===
+                      normalizeBiomarkerCode(blk.code),
+                  );
+                  if (!bm) return { blk, generated: null, bm: null } as Repair;
+                  const valueMatch =
+                    /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
+                  const valueLine = valueMatch
+                    ? valueMatch[0].trim()
+                    : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+                  send({
+                    type: "status",
+                    message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
+                  });
+                  const generalDesc =
+                    (bm as any).general_description ??
+                    generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
+                    null;
+                  const generated = await generateBiomarkerEducation(
+                    bm.name,
+                    bm.code,
+                    valueLine,
+                    aiModel,
+                    reportContext,
+                    generalDesc,
+                    qaPrompts["qa_biomarker_education"],
+                    qaPrompts["qa_biomarker_education_user"],
+                  ).catch((e) => {
+                    console.error(`generateBiomarkerEducation failed for ${bm.code}:`, e);
+                    return null;
+                  });
+                  aiRepairsDone++;
+                  return { blk, generated, bm } as Repair;
+                }),
               );
-              if (!bm) continue;
-              // Extract value sentence from existing content (if present)
-              const valueMatch =
-                /Ваш(?:а|е|и)?\s+[^.\n]{0,200}\.[^.\n]{0,200}/i.exec(blk.content);
-              const valueLine = valueMatch
-                ? valueMatch[0].trim()
-                : `Ваш показатель ${bm.name} находится в указанном диапазоне.`;
+              repairs.push(...results);
+            }
 
-              send({
-                type: "status",
-                message: `→ AI догенерирует описание: ${bm.name} (${bm.code})`,
-              });
-              const generalDesc =
-                (bm as any).general_description ??
-                generalDescByCode.get(normalizeBiomarkerCode(bm.code)) ??
-                null;
-              const generated = await generateBiomarkerEducation(
-                bm.name,
-                bm.code,
-                valueLine,
-                aiModel,
-                reportContext,
-                generalDesc,
-                qaPrompts["qa_biomarker_education"],
-                qaPrompts["qa_biomarker_education_user"],
-              );
-              aiRepairsDone++;
+            // Применяем правки от последней к первой, чтобы индексы не съезжали
+            const applied = [...repairs].sort((a, b) => b.blk.start - a.blk.start);
+            for (const { blk, generated, bm } of applied) {
+              if (!bm) continue;
               if (generated) {
-                // Find end-of-block (anchor:biomarker_end) — replace whole block
                 const endRegex = /<!--\s*anchor:biomarker_end\s*-->/g;
                 endRegex.lastIndex = blk.end;
                 const endMatch = endRegex.exec(text);
@@ -1023,6 +1039,13 @@ Deno.serve(async (req) => {
                 send({ type: "warn", message: msg });
               }
             }
+
+            if (stoppedByBudget) {
+              const msg = `[${sectionLabel}] Часть AI-догенерации пропущена, чтобы проверка не зависла. Запустите проверку ещё раз после сохранения текущих правок.`;
+              fixes.push(msg);
+              send({ type: "warn", message: msg });
+            }
+          }
           }
 
           // 6. Detect & translate stray English fragments (artifacts)
