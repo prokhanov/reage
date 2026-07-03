@@ -1,5 +1,5 @@
 import type { ProkhanovReport } from "../types";
-import { calcAge, formatRuDate } from "../parser";
+import { formatRuDate } from "../parser";
 import { useReportEditor } from "../editor/ReportEditorContext";
 import logoLight from "@/assets/reage-logo-light.png";
 
