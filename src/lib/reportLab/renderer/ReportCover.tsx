@@ -1,5 +1,5 @@
 import type { ProkhanovReport } from "../types";
-import { calcAge, formatRuDate } from "../parser";
+import { formatRuDate } from "../parser";
 import { useReportEditor } from "../editor/ReportEditorContext";
 import logoLight from "@/assets/reage-logo-light.png";
 
@@ -12,14 +12,12 @@ interface Props {
  * значениями пациента, в режиме редактирования показываются как `{{var}}`
  * чипы-подсказки — их можно двигать/форматировать в редакторе.
  *
- * Доступные переменные: patientName, age, date, bioAge, healthIndex,
- * issueNumber.
+ * Доступные переменные: patientName, age, date, bioAge, healthIndex.
  */
 export function ReportCover({ report }: Props) {
   const ctx = useReportEditor();
   const isEdit = ctx?.mode === "edit";
   const { patient, analysis } = report;
-  const age = calcAge(patient.birth_date, analysis.date);
   const fullName = [patient.first_name, patient.last_name]
     .filter(Boolean)
     .join(" ");
@@ -47,9 +45,6 @@ export function ReportCover({ report }: Props) {
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div data-cover-el="issue">
-            Выпуск №{V("issueNumber", shortId(analysis.id))}
-          </div>
           <div style={{ marginTop: "2mm" }} data-cover-el="date">
             {V("date", formatRuDate(analysis.date))}
           </div>
@@ -68,7 +63,7 @@ export function ReportCover({ report }: Props) {
           data-cover-el="title-subtitle"
           style={{ margin: 0 }}
         >
-          <em>Личный отчёт о состоянии здоровья</em>
+          <em>Отчёт о состоянии здоровья</em>
         </h1>
 
       </div>
@@ -95,6 +90,3 @@ export function ReportCover({ report }: Props) {
   );
 }
 
-function shortId(id: string): string {
-  return id.replace(/-/g, "").slice(0, 6).toUpperCase();
-}
