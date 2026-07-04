@@ -483,6 +483,24 @@ function installEditableOverlay(
     return htmlToMarkdown(combined);
   };
 
+  const collectAllMarkdown = (): Record<string, string> => {
+    const ids = new Set(
+      Array.from(output.querySelectorAll<HTMLElement>("[data-editable-id]"))
+        .map((el) => el.getAttribute("data-editable-id"))
+        .filter((id): id is string => Boolean(id)),
+    );
+    const next: Record<string, string> = {};
+    ids.forEach((id) => {
+      next[id] = collectMarkdown(id);
+    });
+    return next;
+  };
+
+  const w = window as typeof window & {
+    __reportLabCollectDrafts?: () => Record<string, string>;
+  };
+  w.__reportLabCollectDrafts = collectAllMarkdown;
+
   const editables = Array.from(
     output.querySelectorAll<HTMLElement>("[data-editable-id]"),
   );
@@ -567,6 +585,12 @@ function installEditableOverlay(
   const cleanup = () => {
     document.removeEventListener("selectionchange", onSelectionChange);
     output.removeEventListener("focusin", onFocusIn);
+    const ww = window as typeof window & {
+      __reportLabCollectDrafts?: () => Record<string, string>;
+    };
+    if (ww.__reportLabCollectDrafts === collectAllMarkdown) {
+      delete ww.__reportLabCollectDrafts;
+    }
   };
   const mo = new MutationObserver(() => {
     if (!output.querySelector(".pagedjs_pages")) {
