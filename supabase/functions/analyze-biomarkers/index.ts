@@ -1913,36 +1913,39 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .replace('{allBiomarkers}', globalBiomarkersSummary)
           .replace('{categoryRecommendations}', categoryRecommendations || 'Нет извлечённых рекомендаций');
 
-        console.log("Starting prescriptions AI call...");
+        console.log("Starting prescriptions AI call (with validation + reasoning-degradation retry)...");
 
-        const prescriptionsResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: aiProfile.model,
-            ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
-            messages: [
-              { 
-                role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text
-              },
-              { 
-                role: "user", 
-                content: finalPrescriptionsPrompt 
-              }
-            ]
-          }),
+        // Назначения — самый уязвимый шаг: раньше не имел ни max_completion_tokens, ни retry.
+        // Сейчас: 32k токенов на выход + auto-retry high→medium при пустом ответе.
+        const prescriptionsCall = await callAiWithReasoningRetry({
+          apiKey: lovableApiKey,
+          model: aiProfile.model,
+          messages: [
+            { role: "system", content: prescriptionsSystemPrompt.prompt_text },
+            { role: "user", content: finalPrescriptionsPrompt },
+          ],
+          maxCompletionTokens: Math.round(32000 * aiProfile.tokenMultiplier),
+          initialReasoning: aiProfile.reasoning ? "high" : undefined,
+          minContentLength: 200,
+          rateLimitRetries: 2,
+          label: "prescriptions",
         });
 
-        if (prescriptionsResponse.ok) {
-          const prescriptionsData = await prescriptionsResponse.json();
-          const content = prescriptionsData.choices?.[0]?.message?.content || "";
+        if (prescriptionsCall.status === 402) {
+          prescriptionsStatus = "error";
+          throw new Error("Недостаточно AI-кредитов для генерации назначений");
+        }
+
+        if (prescriptionsCall.content && prescriptionsCall.content.length > 0) {
+          const content = prescriptionsCall.content;
           prescriptionsRawContent = content;
-          
+          totalTokens += prescriptionsCall.totalTokens;
+          console.log(
+            `[prescriptions] attempts=${prescriptionsCall.attempts}, reasoning=${prescriptionsCall.reasoningUsed}, ` +
+            `len=${content.length}, tokens=${prescriptionsCall.totalTokens}`,
+          );
           console.log(`Got prescriptions content snippet: ${content.substring(0, 200)}...`);
+
 
           // ===== MARKDOWN-FIRST PARSER =====
           // Промпт `prescriptions_system` — Markdown. Парсим его в первую очередь.
