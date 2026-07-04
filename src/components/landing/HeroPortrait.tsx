@@ -32,115 +32,49 @@ function useIsMobile() {
   return m;
 }
 
-/* ===================== WIDGETS ===================== */
-
-function CompactSystemsWidget() {
-  const systems = [
-    { label: "Сердце", value: 92, icon: Heart, token: "--status-optimal" },
-    { label: "Метаболизм", value: 78, icon: Activity, token: "--status-acceptable" },
-    { label: "Иммунитет", value: 84, icon: ShieldCheck, token: "--status-optimal" },
-    { label: "Печень и почки", value: 71, icon: Droplets, token: "--status-acceptable" },
-    { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
-  ];
-  const isMobile = useIsMobile();
-  const overall = Math.round(systems.reduce((a, s) => a + s.value, 0) / systems.length);
-
+function InterpretationWidget() {
   return (
-    <div className={`${glass} p-2.5 sm:p-3`}>
-      <div className="flex items-center justify-between mb-2">
+    <div className={`${glass} p-3.5 sm:p-4`}>
+      <div className="mb-2.5">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          {isMobile ? "СИСТЕМЫ" : "Системы организма"}
+          Интерпретация показателей
         </span>
-        <span className="text-[11px] font-semibold text-primary">{overall}%</span>
       </div>
-      <div className="space-y-1.5">
-        {systems.map((s) => {
-          const Icon = s.icon;
-          const color = `hsl(var(${s.token}))`;
-          return (
-            <div key={s.label} className="flex items-start gap-0.5 sm:gap-2">
-              <Icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color }} />
-              <span className="text-[10px] sm:text-[11px] text-foreground/90 flex-1 min-w-0 leading-tight">
-                {s.label}
-              </span>
-              <div className="flex items-center gap-1 sm:gap-1.5 w-14 sm:w-20 lg:w-24 mt-0.5">
-                <span className="text-[10px] font-semibold tabular-nums text-foreground w-5 text-left">
-                  {s.value}%
-                </span>
-                <div className="flex-1 h-1 sm:h-1.5 bg-muted/60 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${s.value}%`, backgroundColor: color }}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="space-y-2">
+        <p className="text-xs sm:text-sm text-foreground/90 leading-snug">
+          Все системы в допустимом диапазоне. Отмечается лёгкое смещение метаболизма и уровня витамина D.
+        </p>
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="inline-block w-2 h-2 rounded-full bg-status-optimal" />
+          3 показателя в оптимуме
+        </div>
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="inline-block w-2 h-2 rounded-full bg-status-acceptable" />
+          2 требуют внимания
+        </div>
       </div>
     </div>
   );
 }
 
-function CompactBiomarkersWidget() {
+function DoctorRecommendationsWidget() {
   const items = [
-    { name: "Витамин D", value: "62", unit: "нг/мл", status: "Оптимум", token: "--status-optimal" },
-    { name: "Ферритин", value: "38", unit: "мкг/л", status: "Допустимо", token: "--status-acceptable" },
-    { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
+    "Коррекция витамина D3 под контролем лаборатории",
+    "Омега-3 (EPA/DHA) 2 г/сут в течение 12 недель",
+    "Повторный контроль ферритина и HbA1c через 3 мес",
   ];
-  const isMobile = useIsMobile();
   return (
-    <div className={`${glass} p-3`}>
-      <div className="flex items-center justify-between mb-2">
+    <div className={`${glass} p-3.5 sm:p-4`}>
+      <div className="mb-2.5">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          {isMobile ? "БИОМАРКЕРЫ" : "Ключевые биомаркеры"}
+          Рекомендации врача
         </span>
       </div>
-      <div className="divide-y divide-border/40">
-        {items.map((b) => (
-          <div key={b.name} className="py-1 first:pt-0 last:pb-0">
-            <div className="text-[11px] text-foreground/90 leading-tight">{b.name}</div>
-            <div className="flex items-center justify-between mt-0.5">
-              <span className="text-xs font-semibold tabular-nums text-foreground">
-                {b.value}
-                <span className="ml-1 text-[10px] font-normal text-muted-foreground">{b.unit}</span>
-              </span>
-              <span
-                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
-                style={{
-                  color: `hsl(var(${b.token}))`,
-                  backgroundColor: `hsl(var(${b.token}) / 0.12)`,
-                }}
-              >
-                {b.status}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RecommendationsWidget() {
-  const items = [
-    "Витамин D3 5000 МЕ — утром с жирной пищей",
-    "Омега-3 (EPA/DHA) 2 г/сут — 12 недель",
-    "Контроль ферритина и HbA1c через 3 мес",
-  ];
-  const isMobile = useIsMobile();
-  return (
-    <div className={`${glass} p-3`}>
-      <div className="mb-2">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          {isMobile ? "НАЗНАЧЕНИЯ" : "Персональные назначения"}
-        </span>
-      </div>
-      <ul className="space-y-1">
+      <ul className="space-y-1.5">
         {items.map((t, i) => (
           <li
             key={i}
-            className="flex items-start gap-2 text-[11px] text-foreground/85 leading-snug"
+            className="flex items-start gap-2 text-[11px] sm:text-xs text-foreground/85 leading-snug"
           >
             <span className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
             <span>{t}</span>
@@ -151,31 +85,6 @@ function RecommendationsWidget() {
   );
 }
 
-function CompactBioAgeWidget() {
-  const isMobile = useIsMobile();
-  return (
-    <div className="rounded-2xl border border-border/50 bg-card/75 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] p-3.5">
-      <div className="flex items-center justify-between gap-3 mb-2.5">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
-          {isMobile ? "БИО. ВОЗРАСТ" : "Биологический возраст"}
-        </span>
-        <span className="inline-flex items-center text-[10px] font-semibold text-[hsl(var(--status-optimal))] bg-[hsl(var(--status-optimal)/0.12)] px-2 py-0.5 rounded-full">
-          −3.8
-        </span>
-      </div>
-      <div className="flex items-end gap-2">
-        <span className="text-4xl sm:text-[2.65rem] font-bold tracking-tight text-foreground leading-none">
-          34.2
-        </span>
-        <span className="text-xs text-muted-foreground pb-1">года</span>
-      </div>
-      <div className="mt-2.5 pt-2.5 border-t border-border/40 flex items-center justify-between">
-        <span className="text-[10px] text-muted-foreground">Реальный</span>
-        <span className="text-[10px] font-medium text-foreground">38 лет</span>
-      </div>
-    </div>
-  );
-}
 
 function StatRow() {
   const stats = [
