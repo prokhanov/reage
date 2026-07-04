@@ -41,8 +41,6 @@ export function ReportPrescriptions({ report }: Props) {
 
   return (
     <section className="rl-page">
-      <div className="rl-eyebrow">Клинический план</div>
-
       <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
 
       {prescriptions.length > 0 && (
