@@ -167,27 +167,33 @@ const ARTBOARDS: Record<
 
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    interpretation:      { top: 160, left: -15, width: 175, rotate: -2 },
-    doctorRecommendations: { top: 160, left: 180, width: 175, rotate: 2 },
+    bioAge:                { top: 150, left: -10, width: 150, rotate: -2 },
+    interpretation:        { top: 150, left: 185, width: 155, rotate: 2 },
+    doctorRecommendations: { top: 275, left: 165, width: 175, rotate: -1 },
   },
   tablet: {
-    interpretation:      { top: 200, left: 30,  width: 230, rotate: -2 },
-    doctorRecommendations: { top: 200, left: 300, width: 230, rotate: 2 },
+    bioAge:                { top: 170, left: 15,  width: 170, rotate: -2 },
+    interpretation:        { top: 170, left: 350, width: 185, rotate: 2 },
+    doctorRecommendations: { top: 330, left: 310, width: 225, rotate: -1 },
   },
   desktop: {
-    interpretation:      { top: 309, left: 32,  width: 244, rotate: -2 },
-    doctorRecommendations: { top: 309, left: 306, width: 244, rotate: 2 },
+    bioAge:                { top: 280, left: 25,  width: 185, rotate: -2 },
+    interpretation:        { top: 280, left: 340, width: 200, rotate: 2 },
+    doctorRecommendations: { top: 435, left: 300, width: 240, rotate: -1 },
   },
 };
 
 function renderWidget(id: WidgetId) {
   switch (id) {
+    case "bioAge":
+      return <CompactBioAgeWidget />;
     case "interpretation":
       return <InterpretationWidget />;
     case "doctorRecommendations":
       return <DoctorRecommendationsWidget />;
   }
 }
+
 
 
 function useBreakpoint(): Breakpoint {
