@@ -219,12 +219,7 @@ function HealthDynamicsWidget() {
   );
 }
 
-          ))}
-        </svg>
-      </div>
-    </div>
-  );
-}
+
 
 
 function StatRow() {
