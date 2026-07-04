@@ -86,10 +86,10 @@ export function ComparisonSection() {
     },
     {
       feature: "Комплексная оценка организма",
-      reage: { text: "5 систем" },
-      checkup: { text: "Частично" },
-      labs: { text: "Частично" },
-      genetics: { text: "Риски" },
+      reage: { icon: "yes" },
+      checkup: { icon: "yes" },
+      labs: { icon: "no" },
+      genetics: { icon: "no" },
     },
     {
       feature: "Персональный план",
