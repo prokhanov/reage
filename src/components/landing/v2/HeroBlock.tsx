@@ -238,9 +238,9 @@ export function HeroBlock() {
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="block text-foreground">Ваше здоровье в цифрах,</span>
+              <span className="block text-foreground">Обретите энергию, бодрость и контроль</span>
               <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
-                динамике и рекомендациях
+                над здоровьем
               </span>
             </h1>
 
