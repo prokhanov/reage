@@ -80,11 +80,6 @@ function HealthDynamicsWidget() {
           className="w-full h-auto overflow-visible"
         >
           <defs>
-            <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="hsl(0 78% 62%)" />
-              <stop offset="45%" stopColor="hsl(38 92% 58%)" />
-              <stop offset="100%" stopColor="hsl(142 68% 48%)" />
-            </linearGradient>
             <linearGradient id="hpArea" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.28" />
               <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
@@ -127,14 +122,30 @@ function HealthDynamicsWidget() {
             />
           ))}
 
-          {/* Заливка под кривой */}
+          {/* Заливка под линией */}
           <path d={areaPath} fill="url(#hpArea)" />
 
-          {/* Кривая */}
+          {/* Прямые отрезки: первый красный, остальные зелёные */}
           <path
-            d={smoothPath}
+            d={linePath(0, 1)}
             fill="none"
-            stroke="url(#hpLine)"
+            stroke="hsl(0 78% 62%)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={linePath(1, 2)}
+            fill="none"
+            stroke="hsl(142 68% 48%)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={linePath(2, 3)}
+            fill="none"
+            stroke="hsl(142 68% 48%)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
