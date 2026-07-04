@@ -14,27 +14,24 @@ const glass =
 function InterpretationWidget() {
   return (
     <div className={`${glass} p-3.5 sm:p-4`}>
-      <div className="mb-2.5">
+      <div className="mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Интерпретация показателей
+          Интерпретация
         </span>
       </div>
-      <div className="space-y-2">
-        <p className="text-xs sm:text-sm text-foreground/90 leading-snug">
-          Все системы в допустимом диапазоне. Отмечается лёгкое смещение метаболизма и уровня витамина D.
-        </p>
+      <div className="space-y-1.5">
+        <span className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
+          Стабильно
+        </span>
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span className="inline-block w-2 h-2 rounded-full bg-status-optimal" />
-          3 показателя в оптимуме
-        </div>
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span className="inline-block w-2 h-2 rounded-full bg-status-acceptable" />
-          2 требуют внимания
+          3 показателя в норме
         </div>
       </div>
     </div>
   );
 }
+
 
 function DoctorRecommendationsWidget() {
   const items = [
@@ -64,9 +61,30 @@ function DoctorRecommendationsWidget() {
   );
 }
 
+function CompactBioAgeWidget() {
+  return (
+    <div className={`${glass} p-3.5 sm:p-4`}>
+      <div className="mb-2">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
+          Биологический возраст
+        </span>
+      </div>
+      <div className="flex items-end gap-1.5">
+        <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-none">
+          34.2
+        </span>
+        <span className="text-xs text-muted-foreground pb-1">года</span>
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-border/40">
+        <span className="text-[10px] text-muted-foreground">Ниже фактического на 3.8 лет</span>
+      </div>
+    </div>
+  );
+}
 
 function StatRow() {
   const stats = [
+
     { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "100+" },
     { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
@@ -101,10 +119,11 @@ function StatRow() {
 
 /* ===================== LAYOUT DATA ===================== */
 
-type WidgetId = "interpretation" | "doctorRecommendations";
+type WidgetId = "bioAge" | "interpretation" | "doctorRecommendations";
 type WidgetPos = { top: number; left: number; width: number; rotate: number };
 type Layout = Record<WidgetId, WidgetPos>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
+
 
 
 const ARTBOARDS: Record<
@@ -145,27 +164,34 @@ const ARTBOARDS: Record<
 
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    interpretation:      { top: 160, left: -15, width: 175, rotate: -2 },
-    doctorRecommendations: { top: 160, left: 180, width: 175, rotate: 2 },
+    bioAge:                { top: 150, left: -10, width: 158, rotate: -2 },
+    interpretation:        { top: 150, left: 190, width: 150, rotate: 2 },
+    doctorRecommendations: { top: 270, left: 165, width: 175, rotate: -1 },
   },
   tablet: {
-    interpretation:      { top: 200, left: 30,  width: 230, rotate: -2 },
-    doctorRecommendations: { top: 200, left: 300, width: 230, rotate: 2 },
+    bioAge:                { top: 170, left: 15,  width: 188, rotate: -2 },
+    interpretation:        { top: 170, left: 360, width: 175, rotate: 2 },
+    doctorRecommendations: { top: 330, left: 310, width: 225, rotate: -1 },
   },
   desktop: {
-    interpretation:      { top: 309, left: 32,  width: 244, rotate: -2 },
-    doctorRecommendations: { top: 309, left: 306, width: 244, rotate: 2 },
+    bioAge:                { top: 280, left: 25,  width: 205, rotate: -2 },
+    interpretation:        { top: 280, left: 355, width: 185, rotate: 2 },
+    doctorRecommendations: { top: 435, left: 315, width: 240, rotate: -1 },
   },
 };
 
+
 function renderWidget(id: WidgetId) {
   switch (id) {
+    case "bioAge":
+      return <CompactBioAgeWidget />;
     case "interpretation":
       return <InterpretationWidget />;
     case "doctorRecommendations":
       return <DoctorRecommendationsWidget />;
   }
 }
+
 
 
 function useBreakpoint(): Breakpoint {
@@ -194,13 +220,16 @@ function Artboard({ bp }: { bp: Breakpoint }) {
   const layout = LAYOUTS[bp];
 
   const zMap: Record<WidgetId, number> = {
+    bioAge: 30,
     interpretation: 30,
     doctorRecommendations: 30,
   };
   const delayMap: Record<WidgetId, string> = {
-    interpretation: "0.5s",
-    doctorRecommendations: "0.7s",
+    bioAge: "0.35s",
+    interpretation: "0.55s",
+    doctorRecommendations: "0.75s",
   };
+
 
 
   return (
