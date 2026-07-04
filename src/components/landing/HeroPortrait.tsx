@@ -20,10 +20,10 @@ function HealthDynamicsWidget() {
   ];
 
   const points = [20, 45, 38, 52, 48, 68, 62, 78];
-  const width = 180;
-  const height = 60;
+  const width = 200;
+  const height = 52;
   const padX = 8;
-  const padY = 8;
+  const padY = 6;
   const chartW = width - padX * 2;
   const chartH = height - padY * 2;
   const max = Math.max(...points);
@@ -40,13 +40,13 @@ function HealthDynamicsWidget() {
   const area = `${path} L ${x(points.length - 1)} ${height} L ${padX} ${height} Z`;
 
   return (
-    <div className={`${glass} p-4 sm:p-5`}>
-      <h3 className="text-sm sm:text-base font-semibold text-foreground leading-snug mb-3">
+    <div className={`${glass} p-3 sm:p-4`}>
+      <h3 className="text-sm sm:text-base font-semibold text-foreground leading-snug mb-2">
         Ваше здоровье
         <br />
         в динамике
       </h3>
-      <ul className="space-y-2 mb-4">
+      <ul className="space-y-1.5 mb-3">
         {items.map((item, i) => (
           <li key={i} className="flex items-start gap-2">
             <span className="mt-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 shrink-0">
@@ -58,7 +58,7 @@ function HealthDynamicsWidget() {
           </li>
         ))}
       </ul>
-      <div className="w-full h-[60px] sm:h-[70px]">
+      <div className="w-full h-[52px] sm:h-[60px]">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full overflow-visible"
