@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, Moon, Sun, Check, Link, HeartPulse, ScanLine } from "lucide-react";
+import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroMan from "@/assets/landing-v2/hero-couple-v4.png";
@@ -91,6 +91,40 @@ function HealthDynamicsWidget() {
           ))}
         </svg>
       </div>
+    </div>
+  );
+}
+
+function StatRow() {
+  const stats = [
+    { icon: ShieldCheck, label: "систем организма", value: "5" },
+    { icon: Activity, label: "биомаркеров", value: "100+" },
+    { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
+  ];
+  return (
+    <div className="flex justify-between gap-2 sm:gap-6 lg:gap-8 w-full max-w-xl lg:max-w-none">
+      {stats.map((s) => {
+        const Icon = s.icon;
+        return (
+          <div
+            key={s.label}
+            className="flex flex-col items-center lg:items-start gap-1 flex-shrink-0"
+          >
+            <Icon className="w-3 h-3 text-primary shrink-0 lg:hidden mb-0.5" />
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
+                {s.value}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Icon className="w-3 h-3 text-primary shrink-0 hidden lg:block" />
+              <span className="text-[11px] sm:text-xs leading-tight whitespace-nowrap">
+                {s.label}
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -328,58 +362,32 @@ export function HeroPortrait() {
 
       <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-16 lg:pb-10">
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
-          <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-4 max-w-2xl w-full text-center lg:text-left">
+          <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full text-center lg:text-left">
             <ThemedLogo className="h-12 sm:h-16 lg:h-32 w-auto animate-hue-shift mx-auto lg:mx-0" />
             <h1
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-[2.75rem] font-bold leading-tight tracking-tight animate-fade-in text-center lg:text-left"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.1] tracking-tight animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="block text-foreground">Управляйте здоровьем.</span>
-              <span className="block bg-gradient-hero bg-clip-text text-transparent">
-                Управляйте своей жизнью.
+              <span className="text-foreground">Ваше здоровье</span>
+              <br />
+              <span className="bg-gradient-hero bg-clip-text text-transparent">
+                в цифрах, динамике и рекомендациях
               </span>
             </h1>
             <p
-              className="text-sm sm:text-base md:text-lg lg:text-lg leading-relaxed text-muted-foreground animate-fade-in text-center lg:text-left"
+              className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.2s" }}
             >
-              Регулярно берём анализы и составляем отчёт по состоянию вашего здоровья — с оценкой рисков и
-              понятными следующими шагами
+              Регулярно берём анализы и предоставляем отчёт по системам организма — с динамикой
+              показателей, оценкой рисков и понятными следующими шагами.
             </p>
 
-
-            <ul
-              className="flex flex-wrap lg:flex-nowrap justify-center lg:justify-between gap-3 lg:gap-4 w-full animate-fade-in"
-              style={{ animationDelay: "0.25s" }}
-            >
-              {[
-                {
-                  icon: ScanLine,
-                  text: "Комплексная оценка состояние вашего здоровья",
-                },
-                {
-                  icon: Link,
-                  text: "Подробная расшифровка всех показателей",
-                },
-                {
-                  icon: HeartPulse,
-                  text: "Персональные рекомендации врача",
-                },
-              ].map(({ icon: Icon, text }) => (
-                <li key={text} className="flex items-start gap-2.5 sm:gap-3 max-w-[48%] lg:max-w-[33%]">
-                  <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 shrink-0 mt-0.5">
-                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                  </span>
-                  <span className="text-[11px] sm:text-xs lg:text-sm text-foreground/80 leading-snug text-left">
-                    {text}
-                  </span>
-                </li>
-              ))}
-            </ul>
-
+            <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <StatRow />
+            </div>
             <div
               className="hidden lg:flex flex-col sm:flex-row gap-3 w-full sm:w-auto lg:mt-3 animate-fade-in"
-              style={{ animationDelay: "0.3s" }}
+              style={{ animationDelay: "0.4s" }}
             >
               <Button
                 size="lg"
@@ -405,9 +413,12 @@ export function HeroPortrait() {
           </div>
 
           <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
+            <div className="w-full flex justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <StatRow />
+            </div>
             <div
               className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center animate-fade-in"
-              style={{ animationDelay: "0.3s" }}
+              style={{ animationDelay: "0.4s" }}
             >
               <Button
                 size="lg"
