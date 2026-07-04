@@ -188,11 +188,6 @@ export function ReportPrescriptions({ report }: Props) {
           <div className="text-sm text-muted-foreground">Нет данных для отображения.</div>
         )}
       </div>
-
-      {/* Fallback ProseMarkdown import guard (keeps import used if content_json empty) */}
-      <div className="hidden">
-        <ProseMarkdown markdown="" />
-      </div>
     </section>
   );
 }
