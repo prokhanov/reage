@@ -383,32 +383,32 @@ export function HeroPortrait() {
             </p>
 
             <ul
-              className="grid grid-cols-2 gap-x-3 gap-y-2 w-full animate-fade-in text-center lg:text-left"
+              className="flex flex-wrap lg:flex-nowrap justify-center lg:justify-between gap-3 lg:gap-4 w-full animate-fade-in"
               style={{ animationDelay: "0.25s" }}
             >
               {[
                 {
-                  icon: FlaskConical,
+                  icon: ScanLine,
                   text: "Глубокая оценка ключевых процессов организма",
                 },
                 {
-                  icon: Activity,
+                  icon: RefreshCw,
                   text: "Регулярный мониторинг и динамика",
                 },
                 {
-                  icon: ArrowRight,
+                  icon: Link,
                   text: "Персональные рекомендации и план действий",
                 },
                 {
-                  icon: ShieldCheck,
+                  icon: HeartPulse,
                   text: "Поддержка врача на каждом этапе",
                 },
               ].map(({ icon: Icon, text }) => (
-                <li key={text} className="flex items-start gap-2">
-                  <span className="mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/15 shrink-0">
-                    <Icon className="w-3 h-3 text-primary" />
+                <li key={text} className="flex items-center gap-2.5 sm:gap-3 max-w-[48%] lg:max-w-[25%]">
+                  <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 shrink-0">
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                   </span>
-                  <span className="text-xs sm:text-sm text-foreground/80 leading-snug text-left">
+                  <span className="text-[11px] sm:text-xs lg:text-sm text-foreground/80 leading-snug text-left">
                     {text}
                   </span>
                 </li>
