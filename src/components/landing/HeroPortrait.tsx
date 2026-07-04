@@ -77,19 +77,20 @@ function HealthDynamicsWidget() {
         ))}
       </ul>
 
-      <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-[11px] sm:text-xs font-medium text-muted-foreground">Витамин D</span>
-        <div className="flex items-baseline gap-1">
-          <span className="text-sm font-semibold text-foreground">{points[lastIdx]}</span>
-          <span className="text-[10px] text-muted-foreground">нг/мл</span>
+      <div className="w-full rounded-xl border border-slate-200 bg-white p-3">
+        <div className="flex items-baseline justify-between mb-2">
+          <span className="text-[11px] sm:text-xs font-medium text-slate-500">Витамин D</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
+            <span className="text-[10px] text-slate-500">нг/мл</span>
+          </div>
         </div>
-      </div>
 
-      <div className="w-full">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-auto overflow-visible"
-        >
+        <div className="w-full">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="w-full h-auto overflow-visible"
+          >
           <defs>
             <clipPath id="zoneClip">
               <rect x={padL} y={padT} width={chartW} height={chartH} rx="4" />
