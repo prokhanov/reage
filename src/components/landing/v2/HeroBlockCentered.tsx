@@ -87,7 +87,7 @@ export function HeroBlockCentered() {
               className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed animate-fade-in"
               style={{ animationDelay: "0.2s" }}
             >
-              Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с оценкой рисков и понятными следующими шагами.
+              Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с динамиков показателей и понятными следующими шагами.
             </p>
 
             <div
