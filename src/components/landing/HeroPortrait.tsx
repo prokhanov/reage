@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check, RefreshCw, Link, HeartPulse, ScanLine } from "lucide-react";
+import { ArrowRight, MapPin, Moon, Sun, Check, RefreshCw, Link, HeartPulse, ScanLine } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroMan from "@/assets/landing-v2/hero-couple-v4.png";
