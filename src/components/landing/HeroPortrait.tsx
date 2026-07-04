@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-couple-v3.webp";
+import heroMan from "@/assets/landing-v2/hero-couple-v4.png";
 
 const glass =
   "rounded-2xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
@@ -156,19 +156,19 @@ const ARTBOARDS: Record<
     width: 340,
     height: 440,
     scale: 0.82,
-    man: { left: 50, top: 0, width: 240, height: 440, objectPosition: "50% 0" },
+    man: { left: 30, bottom: 0, width: 300, height: 354, objectPosition: "50% 100%" },
   },
   tablet: {
     width: 560,
     height: 500,
     scale: 1,
-    man: { left: 140, bottom: 0, width: 280, height: 500, objectPosition: "50% 0" },
+    man: { left: 90, bottom: 0, width: 400, height: 471, objectPosition: "50% 100%" },
   },
   desktop: {
     width: 560,
     height: 640,
     scale: 1,
-    man: { left: 80, bottom: 0, width: 480, height: 640, objectPosition: "50% 100%" },
+    man: { left: 30, bottom: 0, width: 520, height: 613, objectPosition: "50% 100%" },
   },
 };
 
