@@ -83,9 +83,10 @@ function HealthDynamicsWidget() {
           className="w-full h-auto overflow-visible"
         >
           <defs>
-            <linearGradient id="hpArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+            <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="hsl(0 78% 62%)" />
+              <stop offset="45%" stopColor="hsl(38 92% 58%)" />
+              <stop offset="100%" stopColor="hsl(142 68% 48%)" />
             </linearGradient>
             <linearGradient id="hpZone" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(142 68% 48%)" stopOpacity="0.14" />
