@@ -344,8 +344,8 @@ export function HeroPortrait() {
               className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.2s" }}
             >
-              ReAge — это персональная система мониторинга здоровья, которая позволяет комплексно оценить
-              состояние вашего здоровья.
+              Регулярно берём анализы и составляем отчёт по состоянию вашего здоровья — с оценкой рисков и
+              понятными следующими шагами
             </p>
 
             <ul
