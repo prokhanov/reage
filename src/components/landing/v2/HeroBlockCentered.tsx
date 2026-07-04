@@ -14,8 +14,8 @@ import {
 
 function StatRow() {
   const stats = [
-    { icon: ShieldCheck, label: "систем здоровья", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "30+" },
+    { icon: ShieldCheck, label: "систем здоровья", value: "5" },
     { icon: FlaskConical, label: "чекапов в год", value: "4" },
   ];
   return (
