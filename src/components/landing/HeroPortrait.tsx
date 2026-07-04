@@ -340,6 +340,13 @@ export function HeroPortrait() {
                 в цифрах, динамике и рекомендациях
               </span>
             </h1>
+            <p
+              className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in text-center lg:text-left"
+              style={{ animationDelay: "0.2s" }}
+            >
+              Регулярно берём анализы и составляем отчёт по состоянию вашего здоровья — с оценкой рисков и
+              понятными следующими шагами
+            </p>
 
             <ul
               className="flex flex-wrap lg:flex-nowrap justify-center lg:justify-between gap-3 lg:gap-4 w-full animate-fade-in"
