@@ -2039,8 +2039,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           }
 
         } else {
-          const errorText = await prescriptionsResponse.text();
-          console.error("Failed to generate prescriptions:", prescriptionsResponse.status, errorText);
+          console.error(
+            `[prescriptions] FAILED after ${prescriptionsCall.attempts} attempts (reasoning=${prescriptionsCall.reasoningUsed}): ${prescriptionsCall.errorText ?? "empty content"}`,
+          );
           prescriptionsStatus = "error";
         }
       }
