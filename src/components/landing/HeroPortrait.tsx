@@ -355,15 +355,15 @@ export function HeroPortrait() {
               {[
                 {
                   icon: ScanLine,
-                  text: "Глубокая оценка ключевых процессов организма",
+                  text: "Комплексная оценка состояние вашего здоровья",
                 },
                 {
                   icon: Link,
-                  text: "Персональные рекомендации и план действий",
+                  text: "Подробная расшифровка всех показателей",
                 },
                 {
                   icon: HeartPulse,
-                  text: "Поддержка врача на каждом этапе",
+                  text: "Персональные рекомендации врача",
                 },
               ].map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-start gap-2.5 sm:gap-3 max-w-[48%] lg:max-w-[33%]">
