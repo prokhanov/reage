@@ -200,29 +200,13 @@ html, body {
 }
 .reportlab .rl-callout,
 .reportlab .rl-stats,
+.reportlab .rl-biomarker,
 .reportlab .rl-rx,
 .reportlab .rl-h1,
 .reportlab .rl-h2,
 .reportlab .rl-h3 {
   break-inside: avoid-page;
   page-break-inside: avoid;
-}
-/* Карточка биомаркера: разрешаем перенос между страницами, иначе высокие
-   карточки оставляют полстраницы белой. Атомарной остаётся только связка
-   «заголовок + шкала» — её защищаем ниже. Комментарий (rl-bio-body) может
-   свободно перетекать через границу листа. */
-.reportlab .rl-biomarker {
-  break-inside: auto;
-  page-break-inside: auto;
-}
-.reportlab .rl-biomarker .rl-bio-head,
-.reportlab .rl-biomarker .rl-bio-scale {
-  break-inside: avoid-page;
-  page-break-inside: avoid;
-}
-.reportlab .rl-biomarker .rl-bio-head {
-  break-after: avoid-page;
-  page-break-after: avoid;
 }
 .reportlab .rl-section-header,
 .reportlab .rl-prose h2,
