@@ -8,6 +8,7 @@ import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 import { ReportDocument, PagedReportPreview } from "@/lib/reportLab/renderer";
 import { ReportEditorShell } from "@/lib/reportLab/editor/ReportEditorShell";
 import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
+import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
 
@@ -45,6 +46,28 @@ function formatError(e: unknown) {
   } catch {
     return String(e);
   }
+}
+
+function collectLiveEditorDrafts(): Record<string, string> {
+  const w = window as typeof window & {
+    __reportLabCollectDrafts?: () => Record<string, string>;
+  };
+  return w.__reportLabCollectDrafts?.() ?? {};
+}
+
+function applyDraftsToReport(
+  source: ProkhanovReport,
+  drafts: Record<string, string>,
+): ProkhanovReport {
+  if (Object.keys(drafts).length === 0) return source;
+  return {
+    ...source,
+    generatedAt: new Date().toISOString(),
+    recommendations: source.recommendations.map((rec) => ({
+      ...rec,
+      text: assembleRecommendationText(rec, drafts),
+    })),
+  };
 }
 
 async function readResponseBody(response: Response) {
@@ -228,6 +251,17 @@ export default function ReportVisualsTest() {
         token ? "2/6 JWT получен" : "2/6 JWT не найден — запрос уйдёт без авторизации",
       );
 
+      const liveDrafts = collectLiveEditorDrafts();
+      const reportForPdf = applyDraftsToReport(report, liveDrafts);
+      const changedDraftsCount = Object.keys(liveDrafts).length;
+      if (changedDraftsCount > 0) {
+        stage(
+          "success",
+          "Текущие правки редактора добавлены в PDF-снимок",
+          `blocks=${changedDraftsCount}`,
+        );
+      }
+
       const endpoint = edgeFunctionUrl("render-report-pdf");
       const requestId = crypto.randomUUID();
       stage("info", "3/6 POST render-report-pdf", `requestId=${requestId}\nendpoint=${endpoint}`);
@@ -246,7 +280,7 @@ export default function ReportVisualsTest() {
           // снимком в БД под минтованный токен, а /internal/report-preview
           // подхватит через fetch-report-snapshot. Без этого PDF отрисуется
           // по опубликованному билду.
-          report,
+          report: reportForPdf,
         }),
       });
 
@@ -297,7 +331,7 @@ export default function ReportVisualsTest() {
       const blob = await response.blob();
       stage("success", `5/6 PDF-blob скачан`, `${Math.round(blob.size / 1024)} KB`);
 
-      const filename = `reage-report-prokhanov-${report.analysis.date}.pdf`;
+      const filename = `reage-report-prokhanov-${reportForPdf.analysis.date}.pdf`;
       const file = new File([blob], filename, { type: "application/pdf" });
       const ua = navigator.userAgent || "";
       const isIOS = /iP(hone|ad|od)/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);

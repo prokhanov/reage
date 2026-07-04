@@ -14,6 +14,7 @@ interface ReportEditorState {
   setMode: (m: Mode) => void;
   getDraft: (id: string) => string | undefined;
   setDraft: (id: string, markdown: string) => void;
+  flushDraftsFromDom: () => Record<string, string>;
   resetDrafts: () => void;
   drafts: Record<string, string>;
 }
@@ -30,11 +31,22 @@ export function ReportEditorProvider({ children }: { children: ReactNode }) {
 
   const getDraft = useCallback((id: string) => drafts[id], [drafts]);
 
+  const flushDraftsFromDom = useCallback(() => {
+    const w = window as typeof window & {
+      __reportLabCollectDrafts?: () => Record<string, string>;
+    };
+    const liveDrafts = w.__reportLabCollectDrafts?.() ?? {};
+    if (Object.keys(liveDrafts).length > 0) {
+      setDrafts((current) => ({ ...current, ...liveDrafts }));
+    }
+    return { ...drafts, ...liveDrafts };
+  }, [drafts]);
+
   const resetDrafts = useCallback(() => setDrafts({}), []);
 
   const value = useMemo(
-    () => ({ mode, setMode, getDraft, setDraft, resetDrafts, drafts }),
-    [mode, getDraft, setDraft, resetDrafts, drafts],
+    () => ({ mode, setMode, getDraft, setDraft, flushDraftsFromDom, resetDrafts, drafts }),
+    [mode, getDraft, setDraft, flushDraftsFromDom, resetDrafts, drafts],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -61,6 +73,7 @@ export function StaticReportEditorProvider({
       drafts,
       getDraft: (id) => drafts[id],
       setDraft: () => {},
+      flushDraftsFromDom: () => drafts,
       resetDrafts: () => {},
     }),
     [drafts, mode],

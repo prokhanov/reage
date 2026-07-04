@@ -29,6 +29,7 @@ const TOKEN_TTL_SEC = 15 * 60;
 // обрываем тяжёлый отчёт на 75-й секунде.
 const RENDERER_TIMEOUT_MS = 135_000;
 const RENDERER_WARMUP_TIMEOUT_MS = 10_000;
+const PREVIEW_SUPPORT_TIMEOUT_MS = 25_000;
 const encoder = new TextEncoder();
 
 Deno.serve(async (req) => {
@@ -140,6 +141,24 @@ Deno.serve(async (req) => {
     snapshotStored = true;
   }
 
+  if (snapshotStored) {
+    const support = await previewSupportsSnapshot(previewBase);
+    if (!support.ok) {
+      logError("preview_frontend_outdated", support);
+      return json(
+        {
+          error: "preview_frontend_outdated",
+          requestId,
+          details:
+            "Опубликованная preview-страница ещё не умеет читать свежий JSON-снимок отчёта. Иначе PDF снова будет старой версией.",
+          previewBase,
+          reason: support.reason,
+        },
+        409,
+      );
+    }
+  }
+
   log("calling_renderer", {
     reportId,
     rendererUrl,
@@ -230,6 +249,43 @@ function json(payload: unknown, status: number) {
 }
 
 interface TokenClaims { reportId: string; exp: number }
+
+async function previewSupportsSnapshot(
+  previewBase: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PREVIEW_SUPPORT_TIMEOUT_MS);
+  try {
+    const htmlRes = await fetch(`${previewBase}/internal/report-preview`, {
+      signal: controller.signal,
+    });
+    if (!htmlRes.ok) return { ok: false, reason: `preview_html_http_${htmlRes.status}` };
+    const html = await htmlRes.text();
+    const assetMatches = [...html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css))["']/gi)]
+      .map((m) => m[1])
+      .filter(Boolean)
+      .slice(0, 8);
+    if (html.includes("fetch-report-snapshot")) return { ok: true };
+    for (const asset of assetMatches) {
+      if (!asset.endsWith(".js")) continue;
+      const url = new URL(asset, previewBase).toString();
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) continue;
+      const js = await res.text();
+      if (js.includes("fetch-report-snapshot") || js.includes("snapshot_loaded")) {
+        return { ok: true };
+      }
+    }
+    return { ok: false, reason: "snapshot_loader_not_found_in_published_assets" };
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      return { ok: false, reason: "preview_support_check_timeout" };
+    }
+    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 async function importKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
