@@ -1398,14 +1398,16 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
 
         categoryReport = ensureBiomarkerAnchorCoverage(categoryReport, biomarkers as any[]);
 
-        // Fallback при полной неудаче
-        if (!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) {
-          console.error(`FAILED: Category ${category} content too short after ${retryCount} retries (${categoryReport?.length || 0} chars). Using fallback.`);
+        const finishReason = categoryCall.data?.choices?.[0]?.finish_reason;
+
+        // Fallback при полной неудаче (обе попытки high и medium вернули пусто/коротко)
+        if (!categoryCall.ok || !categoryReport || categoryReport.length < 500) {
+          console.error(`FAILED: Category ${category} content too short after ${categoryCall.attempts} attempts (reasoning=${categoryCall.reasoningUsed}, ${categoryReport?.length || 0} chars). Using fallback.`);
           categoryReport = buildCategoryFallbackReport(category, biomarkers as any[], profile, age);
           categoryStatuses[category] = {
             success: true,
             fallback: true,
-            error: `Content too short after ${retryCount} retries`,
+            error: `Content too short after ${categoryCall.attempts} attempts (reasoning=${categoryCall.reasoningUsed})`,
             tokens: tokensUsed,
           };
         } else if (finishReason === "length") {
@@ -1413,7 +1415,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryReport += "\n\n[⚠️ ВНИМАНИЕ: Отчёт был сокращён из-за ограничения по длине. Рекомендуется перегенерировать.]";
           categoryStatuses[category] = { success: true, tokens: tokensUsed, truncated: true };
         } else {
-          categoryStatuses[category] = { success: true, tokens: tokensUsed, retries: retryCount };
+          categoryStatuses[category] = { success: true, tokens: tokensUsed, attempts: categoryCall.attempts, reasoning: categoryCall.reasoningUsed };
         }
         
         const cleanedCategoryReport = sanitizeReportTextForPatient(categoryReport);
@@ -1433,7 +1435,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           console.log(`Saved: ${category}`);
         }
 
-        console.log(`Category ${category} FINAL: ${categoryReport.length} chars, retries: ${retryCount}`);
+        console.log(`Category ${category} FINAL: ${categoryReport.length} chars, attempts: ${categoryCall.attempts}, reasoning: ${categoryCall.reasoningUsed}`);
+
 
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
