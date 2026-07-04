@@ -10,6 +10,7 @@ interface Cell {
 interface ComparisonRowProps {
   feature: string;
   reage: Cell;
+  checkup: Cell;
   labs: Cell;
   genetics: Cell;
 }
@@ -41,11 +42,12 @@ function CellView({ cell, highlight }: { cell: Cell; highlight?: boolean }) {
   return null;
 }
 
-function ComparisonRow({ feature, reage, labs, genetics }: ComparisonRowProps) {
+function ComparisonRow({ feature, reage, checkup, labs, genetics }: ComparisonRowProps) {
   return (
-    <div className="grid grid-cols-4 gap-3 py-4 border-b border-border/50 last:border-0 items-center">
+    <div className="grid grid-cols-5 gap-3 py-4 border-b border-border/50 last:border-0 items-center">
       <div className="text-sm text-foreground font-medium pr-2">{feature}</div>
       <div className="flex justify-center"><CellView cell={reage} highlight /></div>
+      <div className="flex justify-center"><CellView cell={checkup} /></div>
       <div className="flex justify-center"><CellView cell={labs} /></div>
       <div className="flex justify-center"><CellView cell={genetics} /></div>
     </div>
@@ -57,54 +59,63 @@ export function ComparisonSection() {
     {
       feature: "Расшифровка показателей",
       reage: { icon: "yes" },
+      checkup: { icon: "yes" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Рекомендации врача",
       reage: { icon: "yes" },
+      checkup: { icon: "yes" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Тренды здоровья",
       reage: { text: "Несколько раз в год" },
+      checkup: { text: "Раз в год" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Биологический возраст",
       reage: { icon: "yes" },
+      checkup: { icon: "no" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Анализ систем организма",
       reage: { text: "5 систем" },
+      checkup: { text: "Частично" },
       labs: { text: "Частично" },
       genetics: { text: "Риски" },
     },
     {
       feature: "Персональный план",
       reage: { icon: "yes" },
+      checkup: { text: "Общий" },
       labs: { icon: "no" },
       genetics: { text: "Общий" },
     },
     {
       feature: "AI-ассистент",
       reage: { icon: "yes" },
+      checkup: { icon: "no" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Учет взаимосвязей",
       reage: { icon: "yes" },
+      checkup: { icon: "no" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Цена за год",
       reage: { text: "от 69 990₽" },
+      checkup: { text: "~30 000₽" },
       labs: { text: "~80 000₽*" },
       genetics: { text: "~80 000₽" },
     },
