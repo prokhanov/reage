@@ -2,81 +2,94 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun } from "lucide-react";
+import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroMan from "@/assets/landing-v2/hero-couple-v2.webp";
 
 const glass =
-  "rounded-2xl border border-border/50 bg-card/75 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
+  "rounded-2xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
 
-
-function InterpretationWidget() {
-  return (
-    <div className={`${glass} p-3.5 sm:p-4`}>
-      <div className="mb-2">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Интерпретация
-        </span>
-      </div>
-      <div className="space-y-1.5">
-        <span className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
-          Стабильно
-        </span>
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span className="inline-block w-2 h-2 rounded-full bg-status-optimal" />
-          3 показателя в норме
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-function DoctorRecommendationsWidget() {
+function HealthDynamicsWidget() {
   const items = [
-    "Коррекция витамина D3 под контролем лаборатории",
-    "Омега-3 (EPA/DHA) 2 г/сут в течение 12 недель",
-    "Повторный контроль ферритина и HbA1c через 3 мес",
+    "Биологический возраст",
+    "Риски и предрасположенности",
+    "Ключевые системы организма",
+    "Тренды и изменения",
+    "Персональные рекомендации",
   ];
+
+  const points = [20, 45, 38, 52, 48, 68, 62, 78];
+  const width = 180;
+  const height = 60;
+  const padX = 8;
+  const padY = 8;
+  const chartW = width - padX * 2;
+  const chartH = height - padY * 2;
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const range = max - min || 1;
+
+  const x = (i: number) => padX + (i / (points.length - 1)) * chartW;
+  const y = (v: number) => padY + chartH - ((v - min) / range) * chartH;
+
+  const path = points
+    .map((v, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(v)}`)
+    .join(" ");
+
+  const area = `${path} L ${x(points.length - 1)} ${height} L ${padX} ${height} Z`;
+
   return (
-    <div className={`${glass} p-3.5 sm:p-4`}>
-      <div className="mb-2.5">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Рекомендации врача
-        </span>
-      </div>
-      <ul className="space-y-1.5">
-        {items.map((t, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-2 text-[11px] sm:text-xs text-foreground/85 leading-snug"
-          >
-            <span className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
-            <span>{t}</span>
+    <div className={`${glass} p-4 sm:p-5`}>
+      <h3 className="text-sm sm:text-base font-semibold text-foreground leading-snug mb-3">
+        Ваше здоровье
+        <br />
+        в динамике
+      </h3>
+      <ul className="space-y-2 mb-4">
+        {items.map((item, i) => (
+          <li key={i} className="flex items-start gap-2">
+            <span className="mt-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 shrink-0">
+              <Check className="w-2.5 h-2.5 text-primary" />
+            </span>
+            <span className="text-[11px] sm:text-xs text-foreground/85 leading-snug">
+              {item}
+            </span>
           </li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-function CompactBioAgeWidget() {
-  return (
-    <div className={`${glass} p-3.5 sm:p-4`}>
-      <div className="mb-2">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
-          Биологический возраст
-        </span>
-      </div>
-      <div className="flex items-end gap-1.5">
-        <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-none">
-          34.2
-        </span>
-        <span className="text-xs text-muted-foreground pb-1">года</span>
-      </div>
-      <div className="mt-2.5 pt-2.5 border-t border-border/40">
-        <span className="text-[10px] text-muted-foreground">Ниже фактического на 3.8 лет</span>
+      <div className="w-full h-[60px] sm:h-[70px]">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-full overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="healthLineArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={area} fill="url(#healthLineArea)" />
+          <path
+            d={path}
+            fill="none"
+            stroke="hsl(var(--primary))"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {points.map((v, i) => (
+            <circle
+              key={i}
+              cx={x(i)}
+              cy={y(v)}
+              r="2.5"
+              fill="hsl(var(--primary))"
+              className="opacity-80"
+            />
+          ))}
+        </svg>
       </div>
     </div>
   );
@@ -84,7 +97,6 @@ function CompactBioAgeWidget() {
 
 function StatRow() {
   const stats = [
-
     { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "100+" },
     { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
@@ -119,12 +131,10 @@ function StatRow() {
 
 /* ===================== LAYOUT DATA ===================== */
 
-type WidgetId = "bioAge" | "interpretation" | "doctorRecommendations";
+type WidgetId = "healthDynamics";
 type WidgetPos = { top: number; left: number; width: number; rotate: number };
 type Layout = Record<WidgetId, WidgetPos>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
-
-
 
 const ARTBOARDS: Record<
   Breakpoint,
@@ -164,35 +174,22 @@ const ARTBOARDS: Record<
 
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    bioAge:                { top: 150, left: -10, width: 158, rotate: -2 },
-    interpretation:        { top: 150, left: 190, width: 150, rotate: 2 },
-    doctorRecommendations: { top: 270, left: 165, width: 175, rotate: -1 },
+    healthDynamics: { top: 125, left: 170, width: 165, rotate: 0 },
   },
   tablet: {
-    bioAge:                { top: 170, left: 15,  width: 188, rotate: -2 },
-    interpretation:        { top: 170, left: 360, width: 175, rotate: 2 },
-    doctorRecommendations: { top: 330, left: 310, width: 225, rotate: -1 },
+    healthDynamics: { top: 145, left: 325, width: 205, rotate: 0 },
   },
   desktop: {
-    bioAge:                { top: 280, left: 25,  width: 205, rotate: -2 },
-    interpretation:        { top: 280, left: 355, width: 185, rotate: 2 },
-    doctorRecommendations: { top: 435, left: 315, width: 240, rotate: -1 },
+    healthDynamics: { top: 180, left: 310, width: 235, rotate: 0 },
   },
 };
 
-
 function renderWidget(id: WidgetId) {
   switch (id) {
-    case "bioAge":
-      return <CompactBioAgeWidget />;
-    case "interpretation":
-      return <InterpretationWidget />;
-    case "doctorRecommendations":
-      return <DoctorRecommendationsWidget />;
+    case "healthDynamics":
+      return <HealthDynamicsWidget />;
   }
 }
-
-
 
 function useBreakpoint(): Breakpoint {
   const [bp, setBp] = useState<Breakpoint>(() => {
@@ -220,17 +217,11 @@ function Artboard({ bp }: { bp: Breakpoint }) {
   const layout = LAYOUTS[bp];
 
   const zMap: Record<WidgetId, number> = {
-    bioAge: 30,
-    interpretation: 30,
-    doctorRecommendations: 30,
+    healthDynamics: 30,
   };
   const delayMap: Record<WidgetId, string> = {
-    bioAge: "0.35s",
-    interpretation: "0.55s",
-    doctorRecommendations: "0.75s",
+    healthDynamics: "0.55s",
   };
-
-
 
   return (
     <div
@@ -370,9 +361,6 @@ export function HeroPortrait() {
       )}
 
       <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-16 lg:pb-10">
-
-
-
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
           <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full text-center lg:text-left">
             <ThemedLogo className="h-16 sm:h-20 lg:h-40 w-auto animate-hue-shift mx-auto lg:mx-0" />
