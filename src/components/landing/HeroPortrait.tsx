@@ -366,7 +366,7 @@ export function HeroPortrait() {
             <ThemedLogo className="h-16 sm:h-20 lg:h-40 w-auto animate-hue-shift mx-auto lg:mx-0" />
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.1] tracking-tight animate-fade-in text-center lg:text-left"
-              style={{ animationDelay: "0.1s" }
+              style={{ animationDelay: "0.1s" }}
             >
               <span className="text-foreground">Ваше здоровье</span>
               <br />
