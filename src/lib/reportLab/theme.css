@@ -56,7 +56,7 @@
 
 @page {
   size: A4;
-  margin: 20mm 0 16mm;
+  margin: 14mm 0 11mm;
 
   @top-left {
     content: string(section-title, first);
