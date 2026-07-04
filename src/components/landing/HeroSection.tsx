@@ -79,9 +79,9 @@ export function HeroSection() {
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight animate-fade-in"
             style={{ animationDelay: '0.1s' }}>
             
-            <span className="block text-foreground">Обретите энергию, бодрость и контроль</span>
+            <span className="block text-foreground">Ваше здоровье в цифрах,</span>
             <span className="block mt-1 bg-gradient-hero bg-clip-text text-transparent">
-              над здоровьем
+              динамике и рекомендациях
             </span>
           </h1>
 
@@ -89,7 +89,7 @@ export function HeroSection() {
           <p
             className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in"
             style={{ animationDelay: '0.2s' }}>
-            {"Регулярно отслеживаем изменения в организме, оцениваем риски и подсказываем, какие шаги помогут сохранить здоровье, энергию и хорошее самочувствие"}
+            {"Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с динамикой показателей и понятными следующими шагами"}
           </p>
 
           {/* Value bullets */}
