@@ -39,7 +39,7 @@
   --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  --page-pad-x: 20mm;
+  --page-pad-x: 15mm;
   --page-pad-y: 6mm;
 
   color: var(--ink);
@@ -65,7 +65,7 @@
     letter-spacing: 1.2px;
     text-transform: uppercase;
     color: #7a7f8f;
-    padding-left: 18mm;
+    padding-left: 15mm;
     vertical-align: middle;
   }
 
@@ -76,13 +76,13 @@
     letter-spacing: 1.2px;
     text-transform: uppercase;
     color: #7a7f8f;
-    padding-right: 18mm;
+    padding-right: 15mm;
     vertical-align: middle;
   }
 
   @bottom-left {
     content: none;
-    padding-left: 18mm;
+    padding-left: 15mm;
   }
 
   @bottom-right {
@@ -92,7 +92,7 @@
     letter-spacing: 1.2px;
     text-transform: uppercase;
     color: #7a7f8f;
-    padding-right: 18mm;
+    padding-right: 15mm;
     vertical-align: middle;
   }
 }
@@ -218,7 +218,7 @@ html, body {
 
 /* ─── Обложка ────────────────────────────────────────────────────────────── */
 .reportlab .rl-cover-top {
-  padding: 22mm 20mm 0;
+  padding: 22mm 15mm 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -236,7 +236,7 @@ html, body {
   color: var(--gold-soft);
 }
 .reportlab .rl-cover-center {
-  padding: 0 20mm;
+  padding: 0 15mm;
 }
 .reportlab .rl-cover-eyebrow {
   font-size: 9.5pt;
@@ -270,7 +270,7 @@ html, body {
   color: rgba(246, 240, 224, 0.78);
 }
 .reportlab .rl-cover-meta {
-  padding: 0 20mm 22mm;
+  padding: 0 15mm 22mm;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10mm;
