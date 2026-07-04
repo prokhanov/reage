@@ -180,8 +180,8 @@ function CompactBioAgeWidget() {
 
 function StatRow() {
   const stats = [
-    { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "100+" },
+    { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: FlaskConical, label: "чекапов в год", value: "до 4х" },
   ];
   return (
