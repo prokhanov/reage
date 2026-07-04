@@ -409,12 +409,9 @@ export function HeroPortrait() {
           </div>
 
           <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
-            <div className="w-full flex justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
-              <StatRow />
-            </div>
             <div
               className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
+              style={{ animationDelay: "0.3s" }}
             >
               <Button
                 size="lg"
