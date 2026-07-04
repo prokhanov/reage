@@ -430,15 +430,15 @@ html, body {
 .reportlab .rl-biomarker {
   border: 1px solid var(--hairline-strong);
   background: #ffffff;
-  padding: 6mm 7mm 6.5mm;
-  margin: 0 0 6mm;
+  padding: 4mm 6mm 4.5mm;
+  margin: 0 0 4mm;
 }
 .reportlab .rl-bio-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 4mm;
-  margin-bottom: 3mm;
+  margin-bottom: 2mm;
 }
 .reportlab .rl-bio-title { min-width: 0; }
 .reportlab .rl-bio-name {
