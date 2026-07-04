@@ -18,6 +18,7 @@ export interface AiCallOptions {
   tools?: unknown[];
   toolChoice?: unknown;
   minContentLength?: number; // валидация длины ответа. 0 = не проверять (для tool-calls)
+  validateContent?: (content: string) => { ok: boolean; error?: string }; // доп. валидация полноты/структуры
   rateLimitRetries?: number; // сколько раз повторить на 429
   label?: string; // для логов
 }
@@ -83,6 +84,15 @@ function extractContent(data: any): string {
   return "";
 }
 
+function validateSuccessfulContent(opts: AiCallOptions, content: string): { ok: boolean; error?: string } {
+  const minLen = opts.minContentLength ?? 500;
+  if (content.length < minLen) {
+    return { ok: false, error: `content_too_short: ${content.length} < ${minLen}` };
+  }
+  if (opts.validateContent) return opts.validateContent(content);
+  return { ok: true };
+}
+
 export async function callAiWithReasoningRetry(
   opts: AiCallOptions,
 ): Promise<AiCallResult> {
@@ -120,13 +130,14 @@ export async function callAiWithReasoningRetry(
       `len=${content.length}, finish=${lastData?.choices?.[0]?.finish_reason}, ` +
       `tokens=${lastData?.usage?.total_tokens}`,
     );
-    if (content.length >= minLen) {
+    const validation = validateSuccessfulContent(opts, content);
+    if (validation.ok) {
       return {
         ok: true, content, data: lastData, totalTokens, attempts,
         reasoningUsed: initial ?? "none", status: 200,
       };
     }
-    console.warn(`[${label}] attempt 1 content too short (${content.length} < ${minLen})`);
+    console.warn(`[${label}] attempt 1 validation failed: ${validation.error ?? "invalid_content"}`);
   }
 
   // ===== Попытка 2: degrade reasoning "high" → "medium" =====
@@ -156,7 +167,8 @@ export async function callAiWithReasoningRetry(
     `len=${content2.length}, finish=${lastData?.choices?.[0]?.finish_reason}, ` +
     `tokens=${lastData?.usage?.total_tokens}`,
   );
-  if (content2.length >= minLen) {
+  const validation2 = validateSuccessfulContent(opts, content2);
+  if (validation2.ok) {
     return {
       ok: true, content: content2, data: lastData, totalTokens, attempts,
       reasoningUsed, status: 200,
@@ -165,6 +177,6 @@ export async function callAiWithReasoningRetry(
   return {
     ok: false, content: content2, data: lastData, totalTokens, attempts,
     reasoningUsed, status: 200,
-    errorText: `content_too_short_after_retry: ${content2.length} chars`,
+    errorText: validation2.error ?? `invalid_content_after_retry: ${content2.length} chars`,
   };
 }
