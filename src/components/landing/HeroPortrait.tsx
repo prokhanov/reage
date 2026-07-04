@@ -19,25 +19,34 @@ function HealthDynamicsWidget() {
     "Персональные рекомендации врача",
   ];
 
-  const points = [20, 45, 38, 52, 48, 68, 62, 78];
+  // 4 точки: восходящий тренд из красной (дефицит) в зелёную (оптимум) зону
+  const points = [12, 32, 58, 86];
+  const labels = ["Янв", "Апр", "Июл", "Окт"];
   const width = 200;
-  const height = 52;
-  const padX = 8;
-  const padY = 6;
-  const chartW = width - padX * 2;
-  const chartH = height - padY * 2;
-  const max = Math.max(...points);
-  const min = Math.min(...points);
-  const range = max - min || 1;
+  const height = 84;
+  const padL = 16;
+  const padR = 6;
+  const padT = 6;
+  const padB = 14;
+  const chartW = width - padL - padR;
+  const chartH = height - padT - padB;
 
-  const x = (i: number) => padX + (i / (points.length - 1)) * chartW;
-  const y = (v: number) => padY + chartH - ((v - min) / range) * chartH;
+  // Зоны (в % от 0-100): критично / риск / допустимо / оптимально
+  const zones = [
+    { from: 0, to: 25, color: "hsl(0 75% 60% / 0.14)" },
+    { from: 25, to: 50, color: "hsl(28 85% 60% / 0.13)" },
+    { from: 50, to: 70, color: "hsl(48 90% 55% / 0.13)" },
+    { from: 70, to: 100, color: "hsl(142 65% 48% / 0.15)" },
+  ];
+
+  const x = (i: number) => padL + (i / (points.length - 1)) * chartW;
+  const y = (v: number) => padT + chartH - (v / 100) * chartH;
 
   const path = points
     .map((v, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(v)}`)
     .join(" ");
 
-  const area = `${path} L ${x(points.length - 1)} ${height} L ${padX} ${height} Z`;
+  const yTicks = [0, 50, 100];
 
   return (
     <div className={`${glass} p-3 sm:p-4`}>
@@ -58,42 +67,109 @@ function HealthDynamicsWidget() {
           </li>
         ))}
       </ul>
-      <div className="w-full h-[52px] sm:h-[60px]">
+      <div className="w-full">
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-full overflow-visible"
-          preserveAspectRatio="none"
+          className="w-full h-auto overflow-visible"
         >
-          <defs>
-            <linearGradient id="healthLineArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d={area} fill="url(#healthLineArea)" />
+          {/* Цветные зоны */}
+          {zones.map((z, i) => (
+            <rect
+              key={i}
+              x={padL}
+              y={y(z.to)}
+              width={chartW}
+              height={y(z.from) - y(z.to)}
+              fill={z.color}
+            />
+          ))}
+
+          {/* Горизонтальные сетки + Y-метки */}
+          {yTicks.map((t) => (
+            <g key={t}>
+              <line
+                x1={padL}
+                x2={width - padR}
+                y1={y(t)}
+                y2={y(t)}
+                stroke="hsl(var(--border))"
+                strokeWidth="0.5"
+                strokeDasharray="1.5 2"
+                opacity="0.6"
+              />
+              <text
+                x={padL - 3}
+                y={y(t) + 2}
+                textAnchor="end"
+                fontSize="5"
+                fill="hsl(var(--muted-foreground))"
+              >
+                {t}
+              </text>
+            </g>
+          ))}
+
+          {/* Оси */}
+          <line
+            x1={padL}
+            x2={padL}
+            y1={padT}
+            y2={padT + chartH}
+            stroke="hsl(var(--border))"
+            strokeWidth="0.6"
+          />
+          <line
+            x1={padL}
+            x2={width - padR}
+            y1={padT + chartH}
+            y2={padT + chartH}
+            stroke="hsl(var(--border))"
+            strokeWidth="0.6"
+          />
+
+          {/* Линия тренда */}
           <path
             d={path}
             fill="none"
             stroke="hsl(var(--primary))"
-            strokeWidth="2"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+
+          {/* Точки */}
           {points.map((v, i) => (
-            <circle
-              key={i}
-              cx={x(i)}
-              cy={y(v)}
-              r="2.5"
-              fill="hsl(var(--primary))"
-              className="opacity-80"
-            />
+            <g key={i}>
+              <circle
+                cx={x(i)}
+                cy={y(v)}
+                r="2.2"
+                fill="hsl(var(--background))"
+                stroke="hsl(var(--primary))"
+                strokeWidth="1.2"
+              />
+            </g>
+          ))}
+
+          {/* X-метки */}
+          {labels.map((l, i) => (
+            <text
+              key={l}
+              x={x(i)}
+              y={height - 3}
+              textAnchor="middle"
+              fontSize="5"
+              fill="hsl(var(--muted-foreground))"
+            >
+              {l}
+            </text>
           ))}
         </svg>
       </div>
     </div>
   );
 }
+
 
 function StatRow() {
   const stats = [
