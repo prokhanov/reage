@@ -29,7 +29,7 @@ const TOKEN_TTL_SEC = 15 * 60;
 // обрываем тяжёлый отчёт на 75-й секунде.
 const RENDERER_TIMEOUT_MS = 135_000;
 const RENDERER_WARMUP_TIMEOUT_MS = 10_000;
-const PREVIEW_SUPPORT_TIMEOUT_MS = 8_000;
+const PREVIEW_SUPPORT_TIMEOUT_MS = 25_000;
 const encoder = new TextEncoder();
 
 Deno.serve(async (req) => {
