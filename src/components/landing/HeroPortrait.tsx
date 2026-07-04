@@ -109,12 +109,12 @@ function HealthDynamicsWidget() {
             </filter>
           </defs>
 
-          {/* Горизонтальные зоны фона: high → optimal → suboptimal → deficient */}
+          {/* Горизонтальные зоны фона: яркие земные оттенки */}
           <g clipPath="url(#zoneClip)">
-            <rect x={padL} y={padT} width={chartW} height={chartH / 4} fill="hsl(217 91% 60% / 0.18)" />
-            <rect x={padL} y={padT + chartH / 4} width={chartW} height={chartH / 4} fill="hsl(142 68% 48% / 0.20)" />
-            <rect x={padL} y={padT + (chartH / 4) * 2} width={chartW} height={chartH / 4} fill="hsl(38 92% 58% / 0.18)" />
-            <rect x={padL} y={padT + (chartH / 4) * 3} width={chartW} height={chartH / 4} fill="hsl(0 78% 62% / 0.20)" />
+            <rect x={padL} y={padT} width={chartW} height={chartH / 4} fill="hsl(210 40% 72% / 0.40)" />
+            <rect x={padL} y={padT + chartH / 4} width={chartW} height={chartH / 4} fill="hsl(145 55% 60% / 0.40)" />
+            <rect x={padL} y={padT + (chartH / 4) * 2} width={chartW} height={chartH / 4} fill="hsl(42 80% 72% / 0.40)" />
+            <rect x={padL} y={padT + (chartH / 4) * 3} width={chartW} height={chartH / 4} fill="hsl(18 70% 72% / 0.40)" />
           </g>
 
           {/* Разделители зон */}
