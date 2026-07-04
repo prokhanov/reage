@@ -95,40 +95,6 @@ function HealthDynamicsWidget() {
   );
 }
 
-function StatRow() {
-  const stats = [
-    { icon: ShieldCheck, label: "систем организма", value: "5" },
-    { icon: Activity, label: "биомаркеров", value: "100+" },
-    { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
-  ];
-  return (
-    <div className="flex justify-between gap-2 sm:gap-6 lg:gap-8 w-full max-w-xl lg:max-w-none">
-      {stats.map((s) => {
-        const Icon = s.icon;
-        return (
-          <div
-            key={s.label}
-            className="flex flex-col items-center lg:items-start gap-1 flex-shrink-0"
-          >
-            <Icon className="w-3 h-3 text-primary shrink-0 lg:hidden mb-0.5" />
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
-                {s.value}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Icon className="w-3 h-3 text-primary shrink-0 hidden lg:block" />
-              <span className="text-[11px] sm:text-xs leading-tight whitespace-nowrap">
-                {s.label}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 /* ===================== LAYOUT DATA ===================== */
 
 type WidgetId = "healthDynamics";
