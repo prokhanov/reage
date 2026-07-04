@@ -14,27 +14,24 @@ const glass =
 function InterpretationWidget() {
   return (
     <div className={`${glass} p-3.5 sm:p-4`}>
-      <div className="mb-2.5">
+      <div className="mb-2">
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-          Интерпретация показателей
+          Интерпретация
         </span>
       </div>
-      <div className="space-y-2">
-        <p className="text-xs sm:text-sm text-foreground/90 leading-snug">
-          Все системы в допустимом диапазоне. Отмечается лёгкое смещение метаболизма и уровня витамина D.
-        </p>
+      <div className="space-y-1.5">
+        <span className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
+          Стабильно
+        </span>
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span className="inline-block w-2 h-2 rounded-full bg-status-optimal" />
-          3 показателя в оптимуме
-        </div>
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <span className="inline-block w-2 h-2 rounded-full bg-status-acceptable" />
-          2 требуют внимания
+          3 показателя в норме
         </div>
       </div>
     </div>
   );
 }
+
 
 function DoctorRecommendationsWidget() {
   const items = [
