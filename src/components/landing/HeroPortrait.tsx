@@ -32,8 +32,11 @@ function HealthDynamicsWidget() {
   const chartW = width - padL - padR;
   const chartH = height - padT - padB;
 
+  const yMin = 0;
+  const yMax = 50;
+
   const x = (i: number) => padL + (i / (points.length - 1)) * chartW;
-  const y = (v: number) => padT + chartH - (v / 100) * chartH;
+  const y = (v: number) => padT + chartH - ((v - yMin) / (yMax - yMin)) * chartH;
 
   const pts = points.map((v, i) => [x(i), y(v)] as const);
 
@@ -109,7 +112,7 @@ function HealthDynamicsWidget() {
           />
 
           {/* Тонкая сетка */}
-          {[25, 50, 75].map((t) => (
+          {[20, 35, 50].map((t) => (
             <line
               key={t}
               x1={padL}
@@ -200,7 +203,7 @@ function HealthDynamicsWidget() {
           {/* Подписи зон справа */}
           <text
             x={width - 2}
-            y={y(92)}
+            y={y(48)}
             textAnchor="end"
             fontSize="5.5"
             fontWeight="600"
@@ -211,7 +214,7 @@ function HealthDynamicsWidget() {
           </text>
           <text
             x={width - 2}
-            y={y(6)}
+            y={y(4)}
             textAnchor="end"
             fontSize="5.5"
             fontWeight="600"
