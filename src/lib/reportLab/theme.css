@@ -40,7 +40,7 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --page-pad-x: 20mm;
-  --page-pad-y: 10mm;
+  --page-pad-y: 6mm;
 
   color: var(--ink);
   background: var(--paper);
