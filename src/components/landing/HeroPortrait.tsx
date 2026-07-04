@@ -172,11 +172,9 @@ function HealthDynamicsWidget() {
                   r={isLast ? 2.8 : 2}
                   fill="hsl(var(--background))"
                   stroke={
-                    isLast
-                      ? "hsl(142 68% 48%)"
-                      : i === 0
+                    i === 0
                       ? "hsl(0 78% 62%)"
-                      : "hsl(var(--primary))"
+                      : "hsl(142 68% 48%)"
                   }
                   strokeWidth="1.4"
                 />
