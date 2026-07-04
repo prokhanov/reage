@@ -126,30 +126,11 @@ function HealthDynamicsWidget() {
             />
           ))}
 
-          {/* Заливка под линией */}
-          <path d={areaPath} fill="url(#hpArea)" />
-
-          {/* Прямые отрезки: первый красный, остальные зелёные */}
+          {/* Линия тренда с градиентом от дефицита к оптимуму */}
           <path
-            d={linePath(0, 1)}
+            d={`M ${pts[0][0]} ${pts[0][1]} L ${pts[1][0]} ${pts[1][1]} L ${pts[2][0]} ${pts[2][1]} L ${pts[3][0]} ${pts[3][1]}`}
             fill="none"
-            stroke="hsl(0 78% 62%)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d={linePath(1, 2)}
-            fill="none"
-            stroke="hsl(142 68% 48%)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d={linePath(2, 3)}
-            fill="none"
-            stroke="hsl(142 68% 48%)"
+            stroke="url(#hpLine)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -200,30 +181,6 @@ function HealthDynamicsWidget() {
               {l}
             </text>
           ))}
-
-          {/* Подписи зон справа */}
-          <text
-            x={width - 2}
-            y={y(48)}
-            textAnchor="end"
-            fontSize="5.5"
-            fontWeight="600"
-            fill="hsl(142 68% 45%)"
-            opacity="0.85"
-          >
-            оптимум
-          </text>
-          <text
-            x={width - 2}
-            y={y(4)}
-            textAnchor="end"
-            fontSize="5.5"
-            fontWeight="600"
-            fill="hsl(0 78% 60%)"
-            opacity="0.85"
-          >
-            дефицит
-          </text>
         </svg>
       </div>
     </div>
