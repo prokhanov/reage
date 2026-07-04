@@ -358,10 +358,6 @@ export function HeroPortrait() {
                   text: "Глубокая оценка ключевых процессов организма",
                 },
                 {
-                  icon: RefreshCw,
-                  text: "Регулярный мониторинг и динамика",
-                },
-                {
                   icon: Link,
                   text: "Персональные рекомендации и план действий",
                 },
@@ -370,8 +366,8 @@ export function HeroPortrait() {
                   text: "Поддержка врача на каждом этапе",
                 },
               ].map(({ icon: Icon, text }) => (
-                <li key={text} className="flex items-center gap-2.5 sm:gap-3 max-w-[48%] lg:max-w-[25%]">
-                  <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 shrink-0">
+                <li key={text} className="flex items-start gap-2.5 sm:gap-3 max-w-[48%] lg:max-w-[33%]">
+                  <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 shrink-0 mt-0.5">
                     <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                   </span>
                   <span className="text-[11px] sm:text-xs lg:text-sm text-foreground/80 leading-snug text-left">
