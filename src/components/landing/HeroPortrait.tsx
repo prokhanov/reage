@@ -78,11 +78,14 @@ function HealthDynamicsWidget() {
       </ul>
 
       <div className="w-full rounded-xl border border-slate-200 bg-white p-3">
-        <div className="flex items-baseline justify-between mb-2">
+        <div className="flex items-start justify-between mb-2">
           <span className="text-[11px] sm:text-xs font-medium text-slate-500">Витамин D</span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
-            <span className="text-[10px] text-slate-500">нг/мл</span>
+          <div className="flex flex-col items-end">
+            <div className="flex items-baseline gap-1">
+              <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
+              <span className="text-[10px] text-slate-500">нг/мл</span>
+            </div>
+            <span className="text-[10px] font-medium text-emerald-600">оптимально</span>
           </div>
         </div>
 
