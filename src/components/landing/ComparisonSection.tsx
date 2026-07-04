@@ -20,8 +20,8 @@ function CellView({ cell, highlight }: { cell: Cell; highlight?: boolean }) {
 
   if (icon === "yes") {
     return (
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${highlight ? "bg-primary/20" : "bg-emerald-500/15"}`}>
-        <Check className={`w-4 h-4 ${highlight ? "text-primary" : "text-emerald-500"}`} />
+      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 bg-emerald-500/15">
+        <Check className="w-4 h-4 text-emerald-500" />
       </div>
     );
   }
