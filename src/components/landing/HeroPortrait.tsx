@@ -83,15 +83,13 @@ function HealthDynamicsWidget() {
           className="w-full h-auto overflow-visible"
         >
           <defs>
+            <clipPath id="zoneClip">
+              <rect x={padL} y={padT} width={chartW} height={chartH} rx="4" />
+            </clipPath>
             <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="hsl(0 78% 62%)" />
               <stop offset="45%" stopColor="hsl(38 92% 58%)" />
               <stop offset="100%" stopColor="hsl(142 68% 48%)" />
-            </linearGradient>
-            <linearGradient id="hpZone" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(142 68% 48%)" stopOpacity="0.14" />
-              <stop offset="50%" stopColor="hsl(48 90% 55%)" stopOpacity="0.09" />
-              <stop offset="100%" stopColor="hsl(0 78% 62%)" stopOpacity="0.14" />
             </linearGradient>
             <filter id="hpGlow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="2.2" result="b" />
@@ -102,26 +100,24 @@ function HealthDynamicsWidget() {
             </filter>
           </defs>
 
-          {/* Мягкая вертикальная зона red→green фоном */}
-          <rect
-            x={padL}
-            y={padT}
-            width={chartW}
-            height={chartH}
-            fill="url(#hpZone)"
-            rx="4"
-          />
+          {/* Горизонтальные зоны фона: high → optimal → suboptimal → deficient */}
+          <g clipPath="url(#zoneClip)">
+            <rect x={padL} y={padT} width={chartW} height={chartH / 4} fill="hsl(217 91% 60% / 0.10)" />
+            <rect x={padL} y={padT + chartH / 4} width={chartW} height={chartH / 4} fill="hsl(142 68% 48% / 0.12)" />
+            <rect x={padL} y={padT + (chartH / 4) * 2} width={chartW} height={chartH / 4} fill="hsl(38 92% 58% / 0.10)" />
+            <rect x={padL} y={padT + (chartH / 4) * 3} width={chartW} height={chartH / 4} fill="hsl(0 78% 62% / 0.12)" />
+          </g>
 
-          {/* Тонкая сетка */}
-          {[20, 35, 50].map((t) => (
+          {/* Разделители зон */}
+          {[1, 2, 3].map((i) => (
             <line
-              key={t}
+              key={i}
               x1={padL}
               x2={padL + chartW}
-              y1={y(t)}
-              y2={y(t)}
+              y1={padT + (chartH / 4) * i}
+              y2={padT + (chartH / 4) * i}
               stroke="hsl(var(--foreground))"
-              strokeOpacity="0.06"
+              strokeOpacity="0.08"
               strokeWidth="0.5"
             />
           ))}
