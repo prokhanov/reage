@@ -3,8 +3,9 @@ import { useSearchParams } from "react-router-dom";
 import { PagedReportPreview } from "@/lib/reportLab/renderer";
 import type { ProkhanovReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
+import { edgeFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabaseUrl";
 
-const REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
+const FALLBACK_REPORT = prokhanovReportRaw as unknown as ProkhanovReport;
 
 type VerifyState = "checking" | "allowed" | "denied";
 
@@ -36,6 +37,7 @@ export default function ReportPreview() {
   const [params] = useSearchParams();
   const token = params.get("token");
   const [state, setState] = useState<VerifyState>("checking");
+  const [report, setReport] = useState<ProkhanovReport>(FALLBACK_REPORT);
 
   // Форсируем светлую тему для рендера PDF — иначе тёмный фон приложения
   // просачивается в поля страницы и колонтитулы (тёмные полосы вокруг листа).
@@ -62,18 +64,53 @@ export default function ReportPreview() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     reportLog("preview_mount", { hasToken: Boolean(token), href: window.location.href });
-    // Проверку HMAC-токена выполняет Fly-рендерер до `page.goto()`. Раньше
-    // здесь был вызов edge-функции `mint-preview-token` (action=verify) —
-    // он добавлял ~15 сек к каждой генерации PDF из-за холодного старта
-    // функции. Теперь просто требуем наличие токена: если открыли URL
-    // руками без него — 404, иначе рендерим сразу.
     if (!token) {
       reportError("token_missing");
       setState("denied");
       return;
     }
-    setState("allowed");
+
+    // Пытаемся забрать снимок JSON, положенный render-report-pdf. Если снимка
+    // нет (например, чистое превью через mint-preview-token) — падаем на
+    // встроенный prokhanovReport.json, как раньше.
+    (async () => {
+      try {
+        const res = await fetch(edgeFunctionUrl("fetch-report-snapshot"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ token }),
+        });
+        if (cancelled) return;
+        if (res.ok) {
+          const payload = (await res.json()) as { report?: ProkhanovReport };
+          if (payload?.report) {
+            setReport(payload.report);
+            reportLog("snapshot_loaded");
+          } else {
+            reportLog("snapshot_empty_payload");
+          }
+        } else if (res.status === 404) {
+          reportLog("snapshot_not_found_fallback_to_bundled");
+        } else {
+          reportError("snapshot_fetch_failed", { status: res.status });
+        }
+      } catch (e) {
+        reportError("snapshot_fetch_threw", {
+          message: e instanceof Error ? e.message : String(e),
+        });
+      } finally {
+        if (!cancelled) setState("allowed");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
 
   if (state === "checking") {
@@ -119,7 +156,7 @@ export default function ReportPreview() {
 
   return (
     <div data-report-state="allowed" id="report-root">
-      <PagedReportPreview report={REPORT} signalReady chrome="plain" />
+      <PagedReportPreview report={report} signalReady chrome="plain" />
     </div>
   );
 }

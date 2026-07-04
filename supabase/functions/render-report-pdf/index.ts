@@ -34,7 +34,11 @@ const encoder = new TextEncoder();
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  let body: { reportId?: string; clientRequestId?: string } = {};
+  let body: {
+    reportId?: string;
+    clientRequestId?: string;
+    report?: unknown;
+  } = {};
   try {
     body = await req.json();
   } catch {
@@ -111,11 +115,37 @@ Deno.serve(async (req) => {
   const exp = Math.floor(Date.now() / 1000) + TOKEN_TTL_SEC;
   const token = await signToken({ reportId, exp }, secret);
   const previewUrl = `${previewBase}/internal/report-preview?token=${encodeURIComponent(token)}`;
+
+  // Если фронт передал текущий JSON редактора — кладём снимок в БД, чтобы
+  // /internal/report-preview → fetch-report-snapshot отдал его по этому же
+  // токену. Без снимка страница откатится на встроенный JSON (то есть на
+  // последнюю опубликованную версию сайта — старое поведение).
+  let snapshotStored = false;
+  if (body.report && typeof body.report === "object") {
+    const { error: snapErr } = await admin
+      .from("report_preview_snapshots")
+      .insert({
+        token,
+        report: body.report,
+        expires_at: new Date(exp * 1000).toISOString(),
+        created_by: userRes.user.id,
+      });
+    if (snapErr) {
+      logError("snapshot_insert_failed", snapErr.message);
+      return json(
+        { error: "snapshot_insert_failed", requestId, details: snapErr.message },
+        500,
+      );
+    }
+    snapshotStored = true;
+  }
+
   log("calling_renderer", {
     reportId,
     rendererUrl,
     previewBase,
     previewPath: "/internal/report-preview",
+    snapshotStored,
   });
 
   // Будим Fly-машину перед тяжёлым POST /render. Если warmup не успел — всё
