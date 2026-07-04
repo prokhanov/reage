@@ -123,9 +123,8 @@ function injectMissingBiomarkerAnchors(
 
   const interpretationMatch =
     /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
-  if (!interpretationMatch) return { text: report, injectedCodes: [] };
   const interpretationStart =
-    interpretationMatch.index! + interpretationMatch[0].length;
+    interpretationMatch ? interpretationMatch.index! + interpretationMatch[0].length : 0;
   const summaryMatch =
     /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im
       .exec(report);

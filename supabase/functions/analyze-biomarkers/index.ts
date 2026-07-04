@@ -990,8 +990,10 @@ ${globalBiomarkersInstructions}
 
       // Boundaries
       const interpretationMatch = /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
-      if (!interpretationMatch) return report; // no biomarker zone — nothing to do
-      const interpretationStart = interpretationMatch.index! + interpretationMatch[0].length;
+      // Some sections omit the literal "Интерпретация биомаркеров" header and
+      // list biomarker titles directly. In that case scan the whole section;
+      // exact title-line matching still keeps prose mentions from becoming cards.
+      const interpretationStart = interpretationMatch ? interpretationMatch.index! + interpretationMatch[0].length : 0;
       const summaryMatch = /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im.exec(report);
       const summaryStart = summaryMatch ? summaryMatch.index! : report.length;
 
