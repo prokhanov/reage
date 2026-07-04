@@ -166,37 +166,28 @@ const ARTBOARDS: Record<
 
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    bioAge:          { top: 138, left: -15, width: 170, rotate: -2 },
-    biomarkers:      { top: 139, left: 184, width: 172, rotate: 2 },
-    recommendations: { top: 261, left: -30, width: 165, rotate: -1 },
-    systems:         { top: 296, left: 146, width: 175, rotate: 1 },
+    interpretation:      { top: 160, left: -15, width: 175, rotate: -2 },
+    doctorRecommendations: { top: 160, left: 180, width: 175, rotate: 2 },
   },
   tablet: {
-    bioAge:          { top: 184, left: 39,  width: 208, rotate: -2 },
-    biomarkers:      { top: 162, left: 326, width: 220, rotate: 2 },
-    recommendations: { top: 331, left: 286, width: 232, rotate: -1 },
-    systems:         { top: 332, left: 54,  width: 240, rotate: 1 },
+    interpretation:      { top: 200, left: 30,  width: 230, rotate: -2 },
+    doctorRecommendations: { top: 200, left: 300, width: 230, rotate: 2 },
   },
   desktop: {
-    bioAge:          { top: 309, left: 59,  width: 216, rotate: -2 },
-    biomarkers:      { top: 265, left: 314, width: 236, rotate: 2 },
-    recommendations: { top: 445, left: 301, width: 244, rotate: -2 },
-    systems:         { top: 463, left: 32,  width: 252, rotate: 1 },
+    interpretation:      { top: 309, left: 32,  width: 244, rotate: -2 },
+    doctorRecommendations: { top: 309, left: 306, width: 244, rotate: 2 },
   },
 };
 
 function renderWidget(id: WidgetId) {
   switch (id) {
-    case "bioAge":
-      return <CompactBioAgeWidget />;
-    case "biomarkers":
-      return <CompactBiomarkersWidget />;
-    case "recommendations":
-      return <RecommendationsWidget />;
-    case "systems":
-      return <CompactSystemsWidget />;
+    case "interpretation":
+      return <InterpretationWidget />;
+    case "doctorRecommendations":
+      return <DoctorRecommendationsWidget />;
   }
 }
+
 
 function useBreakpoint(): Breakpoint {
   const [bp, setBp] = useState<Breakpoint>(() => {
