@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check, RefreshCw, Link, HeartPulse, ScanLine } from "lucide-react";
+import { ArrowRight, MapPin, Moon, Sun, Check, RefreshCw, Link, HeartPulse, ScanLine } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
 import heroMan from "@/assets/landing-v2/hero-couple-v4.png";
@@ -91,40 +91,6 @@ function HealthDynamicsWidget() {
           ))}
         </svg>
       </div>
-    </div>
-  );
-}
-
-function StatRow() {
-  const stats = [
-    { icon: ShieldCheck, label: "систем организма", value: "5" },
-    { icon: Activity, label: "биомаркеров", value: "100+" },
-    { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
-  ];
-  return (
-    <div className="flex justify-between gap-2 sm:gap-6 lg:gap-8 w-full max-w-xl lg:max-w-none">
-      {stats.map((s) => {
-        const Icon = s.icon;
-        return (
-          <div
-            key={s.label}
-            className="flex flex-col items-center lg:items-start gap-1 flex-shrink-0"
-          >
-            <Icon className="w-3 h-3 text-primary shrink-0 lg:hidden mb-0.5" />
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
-                {s.value}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Icon className="w-3 h-3 text-primary shrink-0 hidden lg:block" />
-              <span className="text-[11px] sm:text-xs leading-tight whitespace-nowrap">
-                {s.label}
-              </span>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -415,12 +381,9 @@ export function HeroPortrait() {
               ))}
             </ul>
 
-            <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-              <StatRow />
-            </div>
             <div
               className="hidden lg:flex flex-col sm:flex-row gap-3 w-full sm:w-auto lg:mt-3 animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
+              style={{ animationDelay: "0.3s" }}
             >
               <Button
                 size="lg"
@@ -446,12 +409,9 @@ export function HeroPortrait() {
           </div>
 
           <div className="order-3 lg:hidden flex flex-col items-center gap-5 w-full max-w-xl">
-            <div className="w-full flex justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
-              <StatRow />
-            </div>
             <div
               className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
+              style={{ animationDelay: "0.3s" }}
             >
               <Button
                 size="lg"
