@@ -687,9 +687,9 @@ export function HeroBlockPortrait({ editMode: editModeProp }: { editMode?: boole
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.05] tracking-tight animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="block text-foreground">Ваше здоровье</span>
+              <span className="block text-foreground">Обретите энергию, бодрость и контроль</span>
               <span className="block mt-0.5 sm:mt-1 lg:mt-2 bg-gradient-hero bg-clip-text text-transparent">
-                в цифрах, динамике и рекомендациях
+                над здоровьем
               </span>
             </h1>
             <p
