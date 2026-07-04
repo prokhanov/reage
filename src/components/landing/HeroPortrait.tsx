@@ -222,13 +222,16 @@ function Artboard({ bp }: { bp: Breakpoint }) {
   const layout = LAYOUTS[bp];
 
   const zMap: Record<WidgetId, number> = {
+    bioAge: 30,
     interpretation: 30,
     doctorRecommendations: 30,
   };
   const delayMap: Record<WidgetId, string> = {
-    interpretation: "0.5s",
-    doctorRecommendations: "0.7s",
+    bioAge: "0.35s",
+    interpretation: "0.55s",
+    doctorRecommendations: "0.75s",
   };
+
 
 
   return (
