@@ -239,7 +239,15 @@ export default function ReportVisualsTest() {
           apikey: SUPABASE_ANON_KEY,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ reportId: "prokhanov", clientRequestId: requestId }),
+        body: JSON.stringify({
+          reportId: "prokhanov",
+          clientRequestId: requestId,
+          // Передаём текущий JSON редактора: render-report-pdf положит его
+          // снимком в БД под минтованный токен, а /internal/report-preview
+          // подхватит через fetch-report-snapshot. Без этого PDF отрисуется
+          // по опубликованному билду.
+          report,
+        }),
       });
 
       // Серверные тайминги, если edge/рендерер их проставили в заголовки.
