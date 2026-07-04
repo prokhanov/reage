@@ -381,12 +381,9 @@ export function HeroPortrait() {
               ))}
             </ul>
 
-            <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-              <StatRow />
-            </div>
             <div
               className="hidden lg:flex flex-col sm:flex-row gap-3 w-full sm:w-auto lg:mt-3 animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
+              style={{ animationDelay: "0.3s" }}
             >
               <Button
                 size="lg"
