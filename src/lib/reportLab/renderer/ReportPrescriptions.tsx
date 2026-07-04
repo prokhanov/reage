@@ -45,19 +45,6 @@ export function ReportPrescriptions({ report }: Props) {
 
       <h1 className="rl-h1" data-section-title="Рекомендации">Рекомендации</h1>
 
-      {sections.map((s) => (
-        <div key={s.title} style={{ marginBottom: "8mm" }}>
-          <h3 className="rl-h3">{s.title}</h3>
-          {s.items.map((item, i) => (
-            <div key={i} className="rl-rx">
-              <div className="rl-rx-desc">
-                <ProseMarkdown markdown={item} />
-              </div>
-            </div>
-          ))}
-        </div>
-      ))}
-
       {prescriptions.length > 0 && (
         <div style={{ marginBottom: "8mm" }}>
           <h3 className="rl-h3">Нутрицевтики ({prescriptions.length})</h3>
@@ -103,6 +90,19 @@ export function ReportPrescriptions({ report }: Props) {
           })}
         </div>
       )}
+
+      {sections.map((s) => (
+        <div key={s.title} style={{ marginBottom: "8mm" }}>
+          <h3 className="rl-h3">{s.title}</h3>
+          {s.items.map((item, i) => (
+            <div key={i} className="rl-rx">
+              <div className="rl-rx-desc">
+                <ProseMarkdown markdown={item} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
 
       {followUps.length > 0 && (
         <>
