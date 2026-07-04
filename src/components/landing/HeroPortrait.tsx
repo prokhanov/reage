@@ -331,7 +331,7 @@ export function HeroPortrait() {
           <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-4 max-w-2xl w-full text-center lg:text-left">
             <ThemedLogo className="h-12 sm:h-16 lg:h-32 w-auto animate-hue-shift mx-auto lg:mx-0" />
             <h1
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-[2.75rem] font-bold leading-[1.45] tracking-tight animate-fade-in text-center lg:text-left"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-[2.75rem] font-bold leading-[1.7] tracking-tight animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.1s" }}
             >
               <span className="text-foreground">Управляйте здоровьем.</span>
