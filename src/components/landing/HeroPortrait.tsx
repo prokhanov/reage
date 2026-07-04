@@ -78,115 +78,25 @@ function HealthDynamicsWidget() {
       </ul>
 
       <div className="w-full rounded-xl border border-slate-200 bg-white p-3">
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <span className="text-[11px] sm:text-xs font-medium text-slate-500">Витамин D</span>
-          <div className="flex flex-col items-end">
-            <div className="flex items-baseline gap-1">
-              <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
-              <span className="text-[10px] text-slate-500">нг/мл</span>
-            </div>
-            <span className="text-[10px] font-medium text-emerald-600">оптимально</span>
-          </div>
+          <span className="text-[10px] font-semibold text-emerald-600">Оптимально</span>
         </div>
 
-        <div className="w-full">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            className="w-full h-auto overflow-visible"
-          >
-          <defs>
-            <clipPath id="zoneClip">
-              <rect x={padL} y={padT} width={chartW} height={chartH} rx="4" />
-            </clipPath>
-            <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="hsl(0 78% 62%)" />
-              <stop offset="45%" stopColor="hsl(38 92% 58%)" />
-              <stop offset="100%" stopColor="hsl(142 68% 48%)" />
-            </linearGradient>
-            <filter id="hpGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2.2" result="b" />
-              <feMerge>
-                <feMergeNode in="b" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Нейтральный фон графика */}
-          <g clipPath="url(#zoneClip)">
-            <rect x={padL} y={padT} width={chartW} height={chartH} fill="hsl(210 20% 96%)" />
-          </g>
-
-          {/* Тонкая сетка */}
-          {[25, 40, 55].map((t) => (
-            <line
-              key={t}
-              x1={padL}
-              x2={padL + chartW}
-              y1={y(t)}
-              y2={y(t)}
-              stroke="hsl(215 16% 47%)"
-              strokeOpacity="0.08"
-              strokeWidth="0.5"
-            />
-          ))}
-
-          {/* Линия тренда с градиентом от дефицита к оптимуму */}
-          <path
-            d={`M ${pts[0][0]} ${pts[0][1]} L ${pts[1][0]} ${pts[1][1]} L ${pts[2][0]} ${pts[2][1]} L ${pts[3][0]} ${pts[3][1]}`}
-            fill="none"
-            stroke="url(#hpLine)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="relative w-full mb-3">
+          <div className="h-2.5 w-full rounded-full overflow-hidden bg-slate-100">
+            <div className="h-full w-full bg-gradient-to-r from-rose-400 via-amber-300 to-emerald-400" />
+          </div>
+          <div
+            className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white border-2 border-emerald-500 shadow-sm"
+            style={{ left: `${Math.min(100, (points[lastIdx] / 100) * 100)}%` }}
           />
+        </div>
 
-          {/* Точки */}
-          {points.map((v, i) => {
-            const isLast = i === lastIdx;
-            return (
-              <g key={i}>
-                {isLast && (
-                  <circle
-                    cx={x(i)}
-                    cy={y(v)}
-                    r="5"
-                    fill="hsl(142 68% 48%)"
-                    opacity="0.25"
-                    filter="url(#hpGlow)"
-                  />
-                )}
-                <circle
-                  cx={x(i)}
-                  cy={y(v)}
-                  r={isLast ? 2.8 : 2}
-                  fill="hsl(0 0% 100%)"
-                  stroke={
-                    i === 0
-                      ? "hsl(0 78% 62%)"
-                      : "hsl(142 68% 48%)"
-                  }
-                  strokeWidth="1.4"
-                />
-              </g>
-            );
-          })}
-
-          {/* Метки под осью X */}
-          {labels.map((l, i) => (
-            <text
-              key={l}
-              x={x(i)}
-              y={height - 4}
-              textAnchor="middle"
-              fontSize="6.5"
-              fontWeight="500"
-              fill="hsl(215 16% 47%)"
-            >
-              {l}
-            </text>
-          ))}
-        </svg>
+        <div className="flex items-baseline gap-1">
+          <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
+          <span className="text-[10px] text-slate-500">нг/мл</span>
+        </div>
       </div>
     </div>
   </div>
