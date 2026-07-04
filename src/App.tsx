@@ -96,6 +96,7 @@ const App = () => (
         <BrowserRouter>
           <YandexMetrika />
           <RouteMeta />
+          <JivoVisibility />
           <RegisterGuardProvider>
           <Routes>
             {/* Public routes */}
