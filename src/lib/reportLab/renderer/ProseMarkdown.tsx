@@ -54,6 +54,20 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
         <ReactMarkdown
           components={{
             h1: ({ children }) => <h2>{children}</h2>,
+            p: ({ children, ...props }) => {
+              const text = extractText(children).trim();
+              if (text === "Интерпретация биомаркеров") {
+                return (
+                  <p
+                    {...props}
+                    className="rl-page-break-before rl-subheading"
+                  >
+                    {children}
+                  </p>
+                );
+              }
+              return <p {...props}>{children}</p>;
+            },
           }}
         >
           {clean}
@@ -64,4 +78,14 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
       )}
     </div>
   );
+}
+
+function extractText(node: React.ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(extractText).join("");
+  if (typeof node === "object" && "props" in (node as object)) {
+    return extractText((node as { props: { children?: React.ReactNode } }).props?.children);
+  }
+  return "";
 }
