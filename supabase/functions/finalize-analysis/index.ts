@@ -280,28 +280,32 @@ ${symptomsText}
         .replace(/{categoryRecommendations}/g, categoryRecommendations)
         .replace(/{prescriptionsList}/g, prescriptionsList);
 
-      const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: aiProfile.model,
-          ...(aiProfile.reasoning ? { reasoning: { effort: "high" as const } } : {}),
-          messages: [
-            { role: "system", content: summarySystemPrompt },
-            { role: "user", content: summaryPrompt },
-          ],
-          max_completion_tokens: Math.round(64000 * aiProfile.tokenMultiplier),
-        }),
+      const summaryCall = await callAiWithReasoningRetry({
+        apiKey: lovableApiKey,
+        model: aiProfile.model,
+        messages: [
+          { role: "system", content: summarySystemPrompt },
+          { role: "user", content: summaryPrompt },
+        ],
+        // 64k * multiplier — оставляем как было, но теперь с валидацией и retry.
+        maxCompletionTokens: Math.round(64000 * aiProfile.tokenMultiplier),
+        initialReasoning: aiProfile.reasoning ? "high" : undefined,
+        minContentLength: 300,
+        rateLimitRetries: 2,
+        label: "summary",
       });
 
-
-      if (summaryResponse.ok) {
-        const summaryData = await summaryResponse.json();
-        summaryReport = sanitizeReportTextForPatient(summaryData.choices?.[0]?.message?.content || "");
-        totalTokens += summaryData.usage?.total_tokens || 0;
-        console.log(`Summary: tokens=${summaryData.usage?.total_tokens}, length=${summaryReport.length}`);
+      if (summaryCall.status === 402) {
+        summaryReport = "Не удалось сгенерировать общее резюме (недостаточно AI-кредитов)";
+      } else if (summaryCall.content && summaryCall.content.length > 0) {
+        summaryReport = sanitizeReportTextForPatient(summaryCall.content);
+        totalTokens += summaryCall.totalTokens;
+        console.log(
+          `Summary: attempts=${summaryCall.attempts}, reasoning=${summaryCall.reasoningUsed}, ` +
+          `length=${summaryReport.length}, tokens=${summaryCall.totalTokens}`,
+        );
       } else {
-        console.error("Summary AI failed:", summaryResponse.status, await summaryResponse.text());
+        console.error(`Summary AI failed after ${summaryCall.attempts} attempts (reasoning=${summaryCall.reasoningUsed}): ${summaryCall.errorText}`);
         summaryReport = "Не удалось сгенерировать общее резюме";
       }
     } catch (e: any) {
