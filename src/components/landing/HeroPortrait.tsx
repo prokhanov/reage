@@ -64,8 +64,27 @@ function DoctorRecommendationsWidget() {
   );
 }
 
+function CompactBioAgeWidget() {
+  return (
+    <div className={`${glass} p-3.5 sm:p-4`}>
+      <div className="mb-2">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
+          Биологический возраст
+        </span>
+      </div>
+      <div className="flex items-end gap-1.5">
+        <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-none">
+          34.2
+        </span>
+        <span className="text-xs text-muted-foreground pb-1">года</span>
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-border/40">
+        <span className="text-[10px] text-muted-foreground">Ниже фактического на 3.8 лет</span>
+      </div>
+    </div>
+  );
+}
 
-function StatRow() {
   const stats = [
     { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "100+" },
