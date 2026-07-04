@@ -77,19 +77,20 @@ function HealthDynamicsWidget() {
         ))}
       </ul>
 
-      <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-[11px] sm:text-xs font-medium text-muted-foreground">Витамин D</span>
-        <div className="flex items-baseline gap-1">
-          <span className="text-sm font-semibold text-foreground">{points[lastIdx]}</span>
-          <span className="text-[10px] text-muted-foreground">нг/мл</span>
+      <div className="w-full rounded-xl border border-slate-200 bg-white p-3">
+        <div className="flex items-baseline justify-between mb-2">
+          <span className="text-[11px] sm:text-xs font-medium text-slate-500">Витамин D</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
+            <span className="text-[10px] text-slate-500">нг/мл</span>
+          </div>
         </div>
-      </div>
 
-      <div className="w-full">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-auto overflow-visible"
-        >
+        <div className="w-full">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="w-full h-auto overflow-visible"
+          >
           <defs>
             <clipPath id="zoneClip">
               <rect x={padL} y={padT} width={chartW} height={chartH} rx="4" />
@@ -110,10 +111,10 @@ function HealthDynamicsWidget() {
 
           {/* Горизонтальные зоны фона: high → optimal → suboptimal → deficient */}
           <g clipPath="url(#zoneClip)">
-            <rect x={padL} y={padT} width={chartW} height={chartH / 4} fill="hsl(217 91% 60% / 0.10)" />
-            <rect x={padL} y={padT + chartH / 4} width={chartW} height={chartH / 4} fill="hsl(142 68% 48% / 0.12)" />
-            <rect x={padL} y={padT + (chartH / 4) * 2} width={chartW} height={chartH / 4} fill="hsl(38 92% 58% / 0.10)" />
-            <rect x={padL} y={padT + (chartH / 4) * 3} width={chartW} height={chartH / 4} fill="hsl(0 78% 62% / 0.12)" />
+            <rect x={padL} y={padT} width={chartW} height={chartH / 4} fill="hsl(217 91% 60% / 0.18)" />
+            <rect x={padL} y={padT + chartH / 4} width={chartW} height={chartH / 4} fill="hsl(142 68% 48% / 0.20)" />
+            <rect x={padL} y={padT + (chartH / 4) * 2} width={chartW} height={chartH / 4} fill="hsl(38 92% 58% / 0.18)" />
+            <rect x={padL} y={padT + (chartH / 4) * 3} width={chartW} height={chartH / 4} fill="hsl(0 78% 62% / 0.20)" />
           </g>
 
           {/* Разделители зон */}
@@ -124,8 +125,8 @@ function HealthDynamicsWidget() {
               x2={padL + chartW}
               y1={padT + (chartH / 4) * i}
               y2={padT + (chartH / 4) * i}
-              stroke="hsl(var(--foreground))"
-              strokeOpacity="0.08"
+              stroke="hsl(215 16% 47%)"
+              strokeOpacity="0.15"
               strokeWidth="0.5"
             />
           ))}
@@ -159,7 +160,7 @@ function HealthDynamicsWidget() {
                   cx={x(i)}
                   cy={y(v)}
                   r={isLast ? 2.8 : 2}
-                  fill="hsl(var(--background))"
+                  fill="hsl(0 0% 100%)"
                   stroke={
                     i === 0
                       ? "hsl(0 78% 62%)"
@@ -180,7 +181,7 @@ function HealthDynamicsWidget() {
               textAnchor="middle"
               fontSize="6.5"
               fontWeight="500"
-              fill="hsl(var(--muted-foreground))"
+              fill="hsl(215 16% 47%)"
             >
               {l}
             </text>
@@ -188,7 +189,8 @@ function HealthDynamicsWidget() {
         </svg>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 
