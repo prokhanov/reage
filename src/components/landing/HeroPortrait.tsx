@@ -468,10 +468,6 @@ export function HeroPortrait() {
               style={{ animationDelay: "0.1s" }}
             >
               <span className="text-foreground">Обретите энергию, бодрость и контроль над здоровьем</span>
-              <br />
-              <span className="bg-gradient-hero bg-clip-text text-transparent">
-                — в цифрах, динамике и точных рекомендациях
-              </span>
             </h1>
             <p
               className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in text-center lg:text-left"
