@@ -85,7 +85,7 @@ export function ComparisonSection() {
       genetics: { icon: "no" },
     },
     {
-      feature: "Анализ систем организма",
+      feature: "Комплексная оценка организма",
       reage: { text: "5 систем" },
       checkup: { text: "Частично" },
       labs: { text: "Частично" },
