@@ -181,7 +181,7 @@ function HealthDynamicsWidget() {
               textAnchor="middle"
               fontSize="6.5"
               fontWeight="500"
-              fill="hsl(var(--muted-foreground))"
+              fill="hsl(215 16% 47%)"
             >
               {l}
             </text>
