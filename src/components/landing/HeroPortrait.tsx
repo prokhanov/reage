@@ -19,8 +19,8 @@ function HealthDynamicsWidget() {
     "Персональные рекомендации врача",
   ];
 
-  // 4 точки: реалистичный тренд — небольшой провал, затем восстановление в оптимум
-  const points = [22, 16, 54, 84];
+  // 4 точки: восходящий тренд из дефицита в оптимум
+  const points = [12, 23, 27, 46];
 
   const labels = ["Янв", "Апр", "Июл", "Окт"];
   const width = 220;
@@ -35,26 +35,23 @@ function HealthDynamicsWidget() {
   const x = (i: number) => padL + (i / (points.length - 1)) * chartW;
   const y = (v: number) => padT + chartH - (v / 100) * chartH;
 
-  // Плавная кривая через Catmull-Rom → Bezier
-  const smoothPath = (() => {
-    const pts = points.map((v, i) => [x(i), y(v)] as const);
+  const pts = points.map((v, i) => [x(i), y(v)] as const);
+
+  const linePath = (start: number, end: number) => {
+    const p1 = pts[start];
+    const p2 = pts[end];
+    return `M ${p1[0]} ${p1[1]} L ${p2[0]} ${p2[1]}`;
+  };
+
+  const areaPath = (() => {
     let d = `M ${pts[0][0]} ${pts[0][1]}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i - 1] ?? pts[i];
-      const p1 = pts[i];
-      const p2 = pts[i + 1];
-      const p3 = pts[i + 2] ?? p2;
-      const t = 0.18;
-      const c1x = p1[0] + (p2[0] - p0[0]) * t;
-      const c1y = p1[1] + (p2[1] - p0[1]) * t;
-      const c2x = p2[0] - (p3[0] - p1[0]) * t;
-      const c2y = p2[1] - (p3[1] - p1[1]) * t;
-      d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      d += ` L ${pts[i][0]} ${pts[i][1]}`;
     }
+    d += ` L ${pts[pts.length - 1][0]} ${padT + chartH} L ${pts[0][0]} ${padT + chartH} Z`;
     return d;
   })();
 
-  const areaPath = `${smoothPath} L ${x(points.length - 1)} ${padT + chartH} L ${x(0)} ${padT + chartH} Z`;
   const lastIdx = points.length - 1;
 
   return (
@@ -83,11 +80,6 @@ function HealthDynamicsWidget() {
           className="w-full h-auto overflow-visible"
         >
           <defs>
-            <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="hsl(0 78% 62%)" />
-              <stop offset="45%" stopColor="hsl(38 92% 58%)" />
-              <stop offset="100%" stopColor="hsl(142 68% 48%)" />
-            </linearGradient>
             <linearGradient id="hpArea" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.28" />
               <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
@@ -130,14 +122,30 @@ function HealthDynamicsWidget() {
             />
           ))}
 
-          {/* Заливка под кривой */}
+          {/* Заливка под линией */}
           <path d={areaPath} fill="url(#hpArea)" />
 
-          {/* Кривая */}
+          {/* Прямые отрезки: первый красный, остальные зелёные */}
           <path
-            d={smoothPath}
+            d={linePath(0, 1)}
             fill="none"
-            stroke="url(#hpLine)"
+            stroke="hsl(0 78% 62%)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={linePath(1, 2)}
+            fill="none"
+            stroke="hsl(142 68% 48%)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={linePath(2, 3)}
+            fill="none"
+            stroke="hsl(142 68% 48%)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -164,11 +172,9 @@ function HealthDynamicsWidget() {
                   r={isLast ? 2.8 : 2}
                   fill="hsl(var(--background))"
                   stroke={
-                    isLast
-                      ? "hsl(142 68% 48%)"
-                      : i === 0
+                    i === 0
                       ? "hsl(0 78% 62%)"
-                      : "hsl(var(--primary))"
+                      : "hsl(142 68% 48%)"
                   }
                   strokeWidth="1.4"
                 />
