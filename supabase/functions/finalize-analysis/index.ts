@@ -6,6 +6,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callAiWithReasoningRetry } from "../_shared/ai-call-with-retry.ts";
 import { loadHealthModelSettings } from "../_shared/health-model/settings.ts";
 import { normalizeMarker } from "../_shared/health-model/m1-normalize.ts";
 import { computeSystemScores } from "../_shared/health-model/m3-systems.ts";
@@ -279,28 +280,32 @@ ${symptomsText}
         .replace(/{categoryRecommendations}/g, categoryRecommendations)
         .replace(/{prescriptionsList}/g, prescriptionsList);
 
-      const summaryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: aiProfile.model,
-          ...(aiProfile.reasoning ? { reasoning: { effort: "high" as const } } : {}),
-          messages: [
-            { role: "system", content: summarySystemPrompt },
-            { role: "user", content: summaryPrompt },
-          ],
-          max_completion_tokens: Math.round(64000 * aiProfile.tokenMultiplier),
-        }),
+      const summaryCall = await callAiWithReasoningRetry({
+        apiKey: lovableApiKey,
+        model: aiProfile.model,
+        messages: [
+          { role: "system", content: summarySystemPrompt },
+          { role: "user", content: summaryPrompt },
+        ],
+        // 64k * multiplier — оставляем как было, но теперь с валидацией и retry.
+        maxCompletionTokens: Math.round(64000 * aiProfile.tokenMultiplier),
+        initialReasoning: aiProfile.reasoning ? "high" : undefined,
+        minContentLength: 300,
+        rateLimitRetries: 2,
+        label: "summary",
       });
 
-
-      if (summaryResponse.ok) {
-        const summaryData = await summaryResponse.json();
-        summaryReport = sanitizeReportTextForPatient(summaryData.choices?.[0]?.message?.content || "");
-        totalTokens += summaryData.usage?.total_tokens || 0;
-        console.log(`Summary: tokens=${summaryData.usage?.total_tokens}, length=${summaryReport.length}`);
+      if (summaryCall.status === 402) {
+        summaryReport = "Не удалось сгенерировать общее резюме (недостаточно AI-кредитов)";
+      } else if (summaryCall.content && summaryCall.content.length > 0) {
+        summaryReport = sanitizeReportTextForPatient(summaryCall.content);
+        totalTokens += summaryCall.totalTokens;
+        console.log(
+          `Summary: attempts=${summaryCall.attempts}, reasoning=${summaryCall.reasoningUsed}, ` +
+          `length=${summaryReport.length}, tokens=${summaryCall.totalTokens}`,
+        );
       } else {
-        console.error("Summary AI failed:", summaryResponse.status, await summaryResponse.text());
+        console.error(`Summary AI failed after ${summaryCall.attempts} attempts (reasoning=${summaryCall.reasoningUsed}): ${summaryCall.errorText}`);
         summaryReport = "Не удалось сгенерировать общее резюме";
       }
     } catch (e: any) {
@@ -828,60 +833,64 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
           }, {});
           const categoryScoresRequired = (biomarkerCategoriesData || []).map((cat: any) => cat.name);
 
-          const bioAgeResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({
-              model: aiProfile.model,
-              ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
-              temperature: 0,
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt + aiConstraintPrompt },
-              ],
-              tools: [{
-                type: "function",
-                function: {
-                  name: "calculate_biological_age",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      biological_age: { type: "number" },
-                      confidence_score: { type: "integer" },
-                      aging_rate: { type: "number" },
-                      health_index: { type: "integer" },
-                      category_scores: { type: "object", properties: categoryScoresProperties, required: categoryScoresRequired },
-                      key_aging_markers: {
-                        type: "array",
-                        items: {
-                          type: "object",
-                          properties: {
-                            name: { type: "string" },
-                            value: { type: "number" },
-                            normal_max: { type: "number" },
-                            deviation: { type: "string" },
-                            impact: { type: "string", enum: ["low", "moderate", "high"] },
-                            reason: { type: "string" },
-                          },
-                          required: ["name", "value", "impact", "reason"],
-                        },
+          const bioAgeToolDef = [{
+            type: "function",
+            function: {
+              name: "calculate_biological_age",
+              parameters: {
+                type: "object",
+                properties: {
+                  biological_age: { type: "number" },
+                  confidence_score: { type: "integer" },
+                  aging_rate: { type: "number" },
+                  health_index: { type: "integer" },
+                  category_scores: { type: "object", properties: categoryScoresProperties, required: categoryScoresRequired },
+                  key_aging_markers: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        value: { type: "number" },
+                        normal_max: { type: "number" },
+                        deviation: { type: "string" },
+                        impact: { type: "string", enum: ["low", "moderate", "high"] },
+                        reason: { type: "string" },
                       },
-                      missing_critical_markers: { type: "array", items: { type: "string" } },
-                      explanation: { type: "string" },
+                      required: ["name", "value", "impact", "reason"],
                     },
-                    required: ["biological_age", "confidence_score", "health_index", "category_scores", "key_aging_markers", "explanation"],
-                    additionalProperties: false,
                   },
+                  missing_critical_markers: { type: "array", items: { type: "string" } },
+                  explanation: { type: "string" },
                 },
-              }],
-              tool_choice: { type: "function", function: { name: "calculate_biological_age" } },
-            }),
+                required: ["biological_age", "confidence_score", "health_index", "category_scores", "key_aging_markers", "explanation"],
+                additionalProperties: false,
+              },
+            },
+          }];
+
+          const bioAgeCall = await callAiWithReasoningRetry({
+            apiKey: lovableApiKey,
+            model: aiProfile.model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt + aiConstraintPrompt },
+            ],
+            maxCompletionTokens: Math.round(16000 * aiProfile.tokenMultiplier),
+            initialReasoning: aiProfile.reasoning ? "high" : undefined,
+            temperature: 0,
+            tools: bioAgeToolDef,
+            toolChoice: { type: "function", function: { name: "calculate_biological_age" } },
+            minContentLength: 20, // tool_call arguments — короткий JSON, длина не критична
+            rateLimitRetries: 2,
+            label: "bio_age",
           });
 
-          if (!bioAgeResponse.ok) throw new Error("Failed to get AI adjustment");
-          const bioAgeData = await bioAgeResponse.json();
-          totalTokens += bioAgeData.usage?.total_tokens || 0;
+          if (!bioAgeCall.ok && !bioAgeCall.data) throw new Error("Failed to get AI adjustment");
+          const bioAgeData = bioAgeCall.data;
+          totalTokens += bioAgeCall.totalTokens;
           const toolCall = bioAgeData.choices?.[0]?.message?.tool_calls?.[0];
+          console.log(`[bio_age] attempts=${bioAgeCall.attempts}, reasoning=${bioAgeCall.reasoningUsed}, has_tool_call=${!!toolCall}`);
 
           if (toolCall?.function?.arguments) {
             const aiResult = JSON.parse(toolCall.function.arguments);
@@ -889,6 +898,7 @@ health_index ДОЛЖЕН быть равен ${health_index}.`;
             aiBioAge = Math.max(aiLower, Math.min(aiUpper, aiBioAge));
             aiBioAge = Math.max(chronologicalAge - 15, Math.min(chronologicalAge + 15, aiBioAge));
             biological_age = Math.round(aiBioAge * 10) / 10;
+
 
             // Unified source (Variant A): рейтинги систем берём из M3, а НЕ у AI.
             // Так HI (M4) и category_scores строятся из одних system_scores и не могут

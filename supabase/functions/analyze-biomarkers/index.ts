@@ -1,6 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callAiWithReasoningRetry } from "../_shared/ai-call-with-retry.ts";
+
 
 
 function sanitizeReportTextForPatient(text: string): string {
@@ -1355,133 +1357,57 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
         const systemPrompt = prompts[systemPromptKey] || 
           `Ты ${expert.role} с 20-летним опытом. Специализируешься на ${expert.specialization}.`;
 
-        const baseCategoryTokens = categoryKey === "metabolism" ? 14000 : 10000;
+        // Увеличенные бюджеты (страховка от «reasoning съел весь max_completion_tokens»):
+        // категории — 20k, метаболизм (расширенный промпт) — 28k.
+        const baseCategoryTokens = categoryKey === "metabolism" ? 28000 : 20000;
         const categoryMaxCompletionTokens = Math.round(baseCategoryTokens * aiProfile.tokenMultiplier);
 
-        const categoryRequestBody = JSON.stringify({
+        // Единый вызов с политикой retry: high → medium (никогда не low).
+        const categoryCall = await callAiWithReasoningRetry({
+          apiKey: lovableApiKey,
           model: aiProfile.model,
-          ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
           messages: [
-            {
-              role: "system",
-              content: systemPrompt
-            },
-            {
-              role: "user",
-              content: categoryPrompt
-            }
+            { role: "system", content: systemPrompt },
+            { role: "user", content: categoryPrompt },
           ],
-          // Метаболизм требует больше токенов из-за расширенного промпта (печень+почки+электролиты+детоксикация)
-          max_completion_tokens: categoryMaxCompletionTokens
+          maxCompletionTokens: categoryMaxCompletionTokens,
+          initialReasoning: aiProfile.reasoning ? "high" : undefined,
+          minContentLength: 500,
+          rateLimitRetries: mode === "deep" ? 3 : 1,
+          label: `category:${category}`,
         });
 
-        let response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: categoryRequestBody,
-        });
-
-        const rateLimitRetries = mode === "deep" ? 3 : 1;
-        for (let attempt = 1; response.status === 429 && attempt <= rateLimitRetries; attempt++) {
-          const delayMs = attempt * 8000;
-          console.warn(`Rate limit for category ${category}; retry ${attempt}/${rateLimitRetries} after ${delayMs}ms`);
-          await new Promise((r) => setTimeout(r, delayMs));
-          response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${lovableApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: categoryRequestBody,
-          });
+        if (categoryCall.status === 402) {
+          categoryStatuses[category] = { success: false, error: "Insufficient credits" };
+          throw new Error("Недостаточно AI-кредитов для генерации отчёта");
         }
-
-        if (response.status === 429) {
+        if (categoryCall.status === 429) {
           categoryStatuses[category] = { success: false, error: "Rate limit exceeded" };
           console.error(`Rate limit for category ${category}`);
           return;
         }
 
-        if (response.status === 402) {
-          categoryStatuses[category] = { success: false, error: "Insufficient credits" };
-          console.error(`Insufficient credits for category ${category}`);
-          throw new Error("Недостаточно AI-кредитов для генерации отчёта");
-        }
+        let categoryReport = categoryCall.content;
+        const tokensUsed = categoryCall.totalTokens;
+        console.log(
+          `Category ${category}: attempts=${categoryCall.attempts}, reasoning=${categoryCall.reasoningUsed}, ` +
+          `content_length=${categoryReport.length}, total_tokens=${tokensUsed}`,
+        );
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`AI API error for ${category}: ${errorText}`);
-        }
 
-        const data = await response.json();
-        let categoryReport = data.choices[0].message.content;
-        const finishReason = data.choices[0].finish_reason;
-        const promptTokens = data.usage?.prompt_tokens || 0;
-        const completionTokens = data.usage?.completion_tokens || 0;
-        const tokensUsed = data.usage?.total_tokens || 0;
-        const contentLength = categoryReport?.length || 0;
-
-        console.log(`Category ${category}: finish_reason=${finishReason}, prompt_tokens=${promptTokens}, completion_tokens=${completionTokens}, total_tokens=${tokensUsed}, content_length=${contentLength}`);
-
-        if (contentLength > 0) {
-          const preview = contentLength > 200 
-            ? `First 100: ${categoryReport.substring(0, 100)} | Last 100: ${categoryReport.substring(contentLength - 100)}`
-            : `Full: ${categoryReport}`;
-          console.log(`Category ${category} content preview: ${preview}`);
-        }
-
-        // Валидация + retry для коротких ответов
-        const MIN_CONTENT_LENGTH = 500;
-        let retryCount = 0;
-
-        while ((!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) && retryCount < aiProfile.maxRetries) {
-          retryCount++;
-          console.warn(`RETRY ${retryCount}/${aiProfile.maxRetries} for ${category}: content too short (${categoryReport?.length || 0} chars)`);
-          await new Promise(r => setTimeout(r, 3000));
-
-          const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${lovableApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: aiProfile.model,
-              ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: categoryPrompt }
-              ],
-               max_completion_tokens: categoryMaxCompletionTokens
-            }),
-          });
-
-          if (retryResponse.ok) {
-            const retryData = await retryResponse.json();
-            categoryReport = retryData.choices[0].message.content;
-            const retryFinish = retryData.choices[0].finish_reason;
-            const retryCompletionTokens = retryData.usage?.completion_tokens || 0;
-            const retryContentLen = categoryReport?.length || 0;
-            console.log(`Retry ${retryCount} result for ${category}: content_length=${retryContentLen}, finish=${retryFinish}, completion_tokens=${retryCompletionTokens}`);
-          } else {
-            console.error(`Retry ${retryCount} failed for ${category}: status ${retryResponse.status}`);
-            try { await retryResponse.text(); } catch {}
-          }
-        }
 
         categoryReport = ensureBiomarkerAnchorCoverage(categoryReport, biomarkers as any[]);
 
-        // Fallback при полной неудаче
-        if (!categoryReport || categoryReport.length < MIN_CONTENT_LENGTH) {
-          console.error(`FAILED: Category ${category} content too short after ${retryCount} retries (${categoryReport?.length || 0} chars). Using fallback.`);
+        const finishReason = categoryCall.data?.choices?.[0]?.finish_reason;
+
+        // Fallback при полной неудаче (обе попытки high и medium вернули пусто/коротко)
+        if (!categoryCall.ok || !categoryReport || categoryReport.length < 500) {
+          console.error(`FAILED: Category ${category} content too short after ${categoryCall.attempts} attempts (reasoning=${categoryCall.reasoningUsed}, ${categoryReport?.length || 0} chars). Using fallback.`);
           categoryReport = buildCategoryFallbackReport(category, biomarkers as any[], profile, age);
           categoryStatuses[category] = {
             success: true,
             fallback: true,
-            error: `Content too short after ${retryCount} retries`,
+            error: `Content too short after ${categoryCall.attempts} attempts (reasoning=${categoryCall.reasoningUsed})`,
             tokens: tokensUsed,
           };
         } else if (finishReason === "length") {
@@ -1489,7 +1415,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           categoryReport += "\n\n[⚠️ ВНИМАНИЕ: Отчёт был сокращён из-за ограничения по длине. Рекомендуется перегенерировать.]";
           categoryStatuses[category] = { success: true, tokens: tokensUsed, truncated: true };
         } else {
-          categoryStatuses[category] = { success: true, tokens: tokensUsed, retries: retryCount };
+          categoryStatuses[category] = { success: true, tokens: tokensUsed, attempts: categoryCall.attempts, reasoning: categoryCall.reasoningUsed };
         }
         
         const cleanedCategoryReport = sanitizeReportTextForPatient(categoryReport);
@@ -1509,7 +1435,8 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           console.log(`Saved: ${category}`);
         }
 
-        console.log(`Category ${category} FINAL: ${categoryReport.length} chars, retries: ${retryCount}`);
+        console.log(`Category ${category} FINAL: ${categoryReport.length} chars, attempts: ${categoryCall.attempts}, reasoning: ${categoryCall.reasoningUsed}`);
+
 
       } catch (error: any) {
         console.error(`Error processing category ${category}:`, error);
@@ -1986,36 +1913,39 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           .replace('{allBiomarkers}', globalBiomarkersSummary)
           .replace('{categoryRecommendations}', categoryRecommendations || 'Нет извлечённых рекомендаций');
 
-        console.log("Starting prescriptions AI call...");
+        console.log("Starting prescriptions AI call (with validation + reasoning-degradation retry)...");
 
-        const prescriptionsResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: aiProfile.model,
-            ...(aiProfile.reasoning ? { reasoning: aiProfile.reasoning } : {}),
-            messages: [
-              { 
-                role: "system", 
-                content: prescriptionsSystemPrompt.prompt_text
-              },
-              { 
-                role: "user", 
-                content: finalPrescriptionsPrompt 
-              }
-            ]
-          }),
+        // Назначения — самый уязвимый шаг: раньше не имел ни max_completion_tokens, ни retry.
+        // Сейчас: 32k токенов на выход + auto-retry high→medium при пустом ответе.
+        const prescriptionsCall = await callAiWithReasoningRetry({
+          apiKey: lovableApiKey,
+          model: aiProfile.model,
+          messages: [
+            { role: "system", content: prescriptionsSystemPrompt.prompt_text },
+            { role: "user", content: finalPrescriptionsPrompt },
+          ],
+          maxCompletionTokens: Math.round(32000 * aiProfile.tokenMultiplier),
+          initialReasoning: aiProfile.reasoning ? "high" : undefined,
+          minContentLength: 200,
+          rateLimitRetries: 2,
+          label: "prescriptions",
         });
 
-        if (prescriptionsResponse.ok) {
-          const prescriptionsData = await prescriptionsResponse.json();
-          const content = prescriptionsData.choices?.[0]?.message?.content || "";
+        if (prescriptionsCall.status === 402) {
+          prescriptionsStatus = "error";
+          throw new Error("Недостаточно AI-кредитов для генерации назначений");
+        }
+
+        if (prescriptionsCall.content && prescriptionsCall.content.length > 0) {
+          const content = prescriptionsCall.content;
           prescriptionsRawContent = content;
-          
+          totalTokens += prescriptionsCall.totalTokens;
+          console.log(
+            `[prescriptions] attempts=${prescriptionsCall.attempts}, reasoning=${prescriptionsCall.reasoningUsed}, ` +
+            `len=${content.length}, tokens=${prescriptionsCall.totalTokens}`,
+          );
           console.log(`Got prescriptions content snippet: ${content.substring(0, 200)}...`);
+
 
           // ===== MARKDOWN-FIRST PARSER =====
           // Промпт `prescriptions_system` — Markdown. Парсим его в первую очередь.
@@ -2109,8 +2039,9 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           }
 
         } else {
-          const errorText = await prescriptionsResponse.text();
-          console.error("Failed to generate prescriptions:", prescriptionsResponse.status, errorText);
+          console.error(
+            `[prescriptions] FAILED after ${prescriptionsCall.attempts} attempts (reasoning=${prescriptionsCall.reasoningUsed}): ${prescriptionsCall.errorText ?? "empty content"}`,
+          );
           prescriptionsStatus = "error";
         }
       }
