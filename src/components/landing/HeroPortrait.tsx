@@ -98,7 +98,7 @@ function HealthDynamicsWidget() {
 function StatRow() {
   const stats = [
     { icon: ShieldCheck, label: "систем организма", value: "5" },
-    { icon: Activity, label: "биомаркеров", value: "100+" },
+    { icon: Activity, label: "биомаркеров", value: "85+" },
     { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
   ];
   return (
@@ -378,7 +378,7 @@ export function HeroPortrait() {
               className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.2s" }}
             >
-              Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с оценкой рисков и понятными следующими шагами.
+              Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с оценкой рисков и понятными следующими шагами
             </p>
 
             <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
