@@ -346,14 +346,10 @@ export function HeroPortrait() {
             </div>
 
             <a
-              href="#pricing"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
+              href="/auth"
               className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
             >
-              Начать мониторинг
+              Войти в аккаунт
               <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </a>
           </div>
@@ -390,19 +386,19 @@ export function HeroPortrait() {
             >
               <Button
                 size="lg"
-                onClick={requestRegister}
+                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
               >
-                Посмотреть демо-аккаунт
+                Начать мониторинг
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/example-report")}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground transition-all duration-300"
               >
-                Войти в аккаунт
+                Пример отчета
               </Button>
             </div>
           </div>
@@ -421,19 +417,19 @@ export function HeroPortrait() {
             >
               <Button
                 size="lg"
-                onClick={requestRegister}
+                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 shadow-neon-primary hover:scale-[1.02] transition-all duration-300 group"
               >
-                Посмотреть демо-аккаунт
+                Начать мониторинг
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate("/example-report")}
                 className="text-sm sm:text-base px-6 sm:px-7 py-5 border-primary/30 hover:border-primary/60 hover:bg-primary/5 hover:text-foreground transition-all duration-300"
               >
-                Войти в аккаунт
+                Пример отчета
               </Button>
             </div>
           </div>
