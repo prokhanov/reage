@@ -1044,7 +1044,7 @@ ${globalBiomarkersInstructions}
       return result;
     }
 
-    function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
+    function getBiomarkerAnchorCoverage(report: string, biomarkers: any[]): { normalized: string; missingCodes: string[] } {
       if (!report || biomarkers.length === 0) return report;
 
       let normalized = normalizeAnchorTypography(report);
@@ -1058,38 +1058,36 @@ ${globalBiomarkersInstructions}
         if (match[1]) anchoredNormalizedCodes.add(normalizeBiomarkerCode(match[1]));
       }
 
-      // Strip anchors from text so we only search the prose for biomarker mentions
-      const textOnly = normalized.replace(/<!--[\s\S]*?-->/g, ' ');
-
       const missingCodes = biomarkers
         .map((bm: any) => ({ code: bm?.biomarkers?.code as string | undefined, name: bm?.biomarkers?.name as string | undefined }))
         .filter((entry): entry is { code: string; name: string | undefined } => Boolean(entry.code))
         .filter((entry) => {
-          // Already has an anchor (exact or normalized) → skip
           if (anchoredNormalizedCodes.has(normalizeBiomarkerCode(entry.code))) return false;
-          // Mentioned by code or name in prose → frontend auto-inject will handle it; skip fallback
-          const codeMentioned = entry.code && textOnly.toLowerCase().includes(entry.code.toLowerCase());
-          const nameMentioned = entry.name && textOnly.toLowerCase().includes(entry.name.toLowerCase());
-          if (codeMentioned || nameMentioned) return false;
           return true;
         })
         .map((entry) => entry.code);
 
-      if (missingCodes.length === 0) return normalized;
+      return { normalized, missingCodes };
+    }
 
-      const fallbackAnchorBlock = [
-        '',
-        '<!-- anchor:spacer -->',
-        '## Ключевые показатели системы',
-        ...missingCodes.flatMap((code: string) => [
-          `<!-- anchor:biomarker ${code} -->`,
-          '<!-- anchor:biomarker_end -->',
-          '',
-        ]),
-      ].join('\n');
+    function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
+      if (!report || biomarkers.length === 0) return report;
+      const coverage = getBiomarkerAnchorCoverage(report, biomarkers);
+      if (coverage.missingCodes.length > 0) {
+        console.warn(`Biomarkers still missing anchors after normalization: ${coverage.missingCodes.join(', ')}`);
+      }
+      return coverage.normalized;
+    }
 
-      console.warn(`Adding fallback biomarker anchors: ${missingCodes.join(', ')}`);
-      return `${normalized.trim()}\n${fallbackAnchorBlock}`.trim();
+    function validateCategoryBiomarkerCoverage(report: string, biomarkers: any[]): { ok: boolean; error?: string } {
+      const coverage = getBiomarkerAnchorCoverage(report, biomarkers);
+      if (coverage.missingCodes.length > 0) {
+        return {
+          ok: false,
+          error: `missing_biomarker_cards: ${coverage.missingCodes.join(', ')}`,
+        };
+      }
+      return { ok: true };
     }
 
     function buildCategoryFallbackReport(category: string, biomarkers: any[], profile: any, age: number | null): string {
