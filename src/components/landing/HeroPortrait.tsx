@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-couple-v5.png";
+import heroMan from "@/assets/landing-v2/hero-couple-v4.png";
 
 const glass =
   "rounded-2xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
