@@ -2316,6 +2316,30 @@ export type Database = {
         }
         Relationships: []
       }
+      report_preview_snapshots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          report: Json
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          report: Json
+          token: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          report?: Json
+          token?: string
+        }
+        Relationships: []
+      }
       risk_zone_analyses: {
         Row: {
           aging_blockers: Json
