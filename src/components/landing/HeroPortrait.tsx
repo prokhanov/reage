@@ -10,17 +10,6 @@ import heroMan from "@/assets/landing-v2/hero-couple-v2.webp";
 const glass =
   "rounded-2xl border border-border/50 bg-card/75 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
 
-function useIsMobile() {
-  const [m, setM] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 640 : false,
-  );
-  useEffect(() => {
-    const u = () => setM(window.innerWidth < 640);
-    window.addEventListener("resize", u);
-    return () => window.removeEventListener("resize", u);
-  }, []);
-  return m;
-}
 
 function InterpretationWidget() {
   return (
