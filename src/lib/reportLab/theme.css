@@ -128,6 +128,14 @@
   page-break-before: auto;
 }
 
+/* Принудительный разрыв страницы перед подзаголовком «Интерпретация биомаркеров» */
+.reportlab .rl-prose .rl-page-break-before {
+  break-before: page;
+  page-break-before: always;
+}
+
+
+
 /* Обложка: занимает всю страницу A4 (297mm), т.к. @page :first убирает поля */
 .reportlab .rl-page.rl-cover {
   min-height: 297mm !important;
