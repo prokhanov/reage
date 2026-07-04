@@ -182,7 +182,7 @@ function StatRow() {
   const stats = [
     { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "100+" },
-    { icon: FlaskConical, label: "анализов в год", value: "до 4х" },
+    { icon: FlaskConical, label: "чекапов в год", value: "до 4х" },
   ];
   return (
     <div className="flex justify-between gap-2 sm:gap-6 lg:gap-8 w-full max-w-xl lg:max-w-none">
