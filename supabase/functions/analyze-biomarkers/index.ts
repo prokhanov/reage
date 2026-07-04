@@ -972,13 +972,24 @@ ${globalBiomarkersInstructions}
       if (!report || biomarkers.length === 0) return report;
 
       // Build name → code map (longest names first to win on overlapping matches)
-      const nameToCode: Array<{ name: string; code: string }> = biomarkers
-        .map((bm: any) => ({
-          name: String(bm?.biomarkers?.name || '').trim(),
-          code: String(bm?.biomarkers?.code || '').trim(),
-        }))
-        .filter((e) => e.name && e.code)
-        .sort((a, b) => b.name.length - a.name.length);
+      const nameToCode: Array<{ name: string; code: string }> = [];
+      const seenNameCodePairs = new Set<string>();
+      for (const bm of biomarkers) {
+        const rawName = String(bm?.biomarkers?.name || '').trim();
+        const code = String(bm?.biomarkers?.code || '').trim();
+        if (!rawName || !code) continue;
+        const pushName = (name: string) => {
+          const cleanName = name.trim();
+          const key = `${cleanName.toLowerCase()}|${code}`;
+          if (!cleanName || seenNameCodePairs.has(key)) return;
+          seenNameCodePairs.add(key);
+          nameToCode.push({ name: cleanName, code });
+        };
+        pushName(rawName);
+        const strippedName = rawName.replace(/\s*\([^()]{1,20}\)\s*$/u, '').trim();
+        if (strippedName && strippedName !== rawName) pushName(strippedName);
+      }
+      nameToCode.sort((a, b) => b.name.length - a.name.length);
       if (nameToCode.length === 0) return report;
 
       // Skip codes that already have an anchor in the text
