@@ -83,9 +83,10 @@ function HealthDynamicsWidget() {
           className="w-full h-auto overflow-visible"
         >
           <defs>
-            <linearGradient id="hpArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+            <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="hsl(0 78% 62%)" />
+              <stop offset="45%" stopColor="hsl(38 92% 58%)" />
+              <stop offset="100%" stopColor="hsl(142 68% 48%)" />
             </linearGradient>
             <linearGradient id="hpZone" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(142 68% 48%)" stopOpacity="0.14" />
@@ -125,30 +126,11 @@ function HealthDynamicsWidget() {
             />
           ))}
 
-          {/* Заливка под линией */}
-          <path d={areaPath} fill="url(#hpArea)" />
-
-          {/* Прямые отрезки: первый красный, остальные зелёные */}
+          {/* Линия тренда с градиентом от дефицита к оптимуму */}
           <path
-            d={linePath(0, 1)}
+            d={`M ${pts[0][0]} ${pts[0][1]} L ${pts[1][0]} ${pts[1][1]} L ${pts[2][0]} ${pts[2][1]} L ${pts[3][0]} ${pts[3][1]}`}
             fill="none"
-            stroke="hsl(0 78% 62%)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d={linePath(1, 2)}
-            fill="none"
-            stroke="hsl(142 68% 48%)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d={linePath(2, 3)}
-            fill="none"
-            stroke="hsl(142 68% 48%)"
+            stroke="url(#hpLine)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -199,30 +181,6 @@ function HealthDynamicsWidget() {
               {l}
             </text>
           ))}
-
-          {/* Подписи зон справа */}
-          <text
-            x={width - 2}
-            y={y(48)}
-            textAnchor="end"
-            fontSize="5.5"
-            fontWeight="600"
-            fill="hsl(142 68% 45%)"
-            opacity="0.85"
-          >
-            оптимум
-          </text>
-          <text
-            x={width - 2}
-            y={y(4)}
-            textAnchor="end"
-            fontSize="5.5"
-            fontWeight="600"
-            fill="hsl(0 78% 60%)"
-            opacity="0.85"
-          >
-            дефицит
-          </text>
         </svg>
       </div>
     </div>
