@@ -16,7 +16,7 @@ function StatRow() {
   const stats = [
     { icon: ShieldCheck, label: "систем здоровья", value: "5" },
     { icon: Activity, label: "биомаркеров", value: "30+" },
-    { icon: FlaskConical, label: "анализов в год", value: "4" },
+    { icon: FlaskConical, label: "чекапов в год", value: "4" },
   ];
   return (
     <div className="grid grid-cols-3 gap-3 sm:gap-6 max-w-2xl mx-auto lg:mx-0">
