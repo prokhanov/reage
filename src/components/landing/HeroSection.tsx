@@ -89,7 +89,7 @@ export function HeroSection() {
           <p
             className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-5xl mx-auto leading-relaxed animate-fade-in"
             style={{ animationDelay: '0.2s' }}>
-            {"Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с оценкой рисков и понятными следующими шагами"}
+            {"Регулярно берем анализы и предоставляем комплексную оценку состояния вашего здоровья - с динамиков показателей и понятными следующими шагами"}
           </p>
 
           {/* Value bullets */}
