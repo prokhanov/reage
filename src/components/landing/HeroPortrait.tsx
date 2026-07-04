@@ -42,9 +42,9 @@ function HealthDynamicsWidget() {
   return (
     <div className={`${glass} p-3 sm:p-4`}>
       <h3 className="text-sm sm:text-base font-semibold text-foreground leading-snug mb-2">
-        Ваше здоровье
+        Персональный отчет
         <br />
-        в динамике
+        на понятном языке
       </h3>
       <ul className="space-y-1.5 mb-3">
         {items.map((item, i) => (
