@@ -448,6 +448,9 @@ function normalizeName(name: string): string {
 function cleanProse(chunk: string): string {
   return chunk
     .replace(HTML_COMMENT_RE, "")
+    // Служебный fallback-заголовок из edge-функции analyze-biomarkers
+    // (вставляется программно перед «добором» биомаркеров без якорей).
+    .replace(/^[ \t]*#{1,6}[ \t]*Ключевые показатели системы[ \t]*$\n?/gim, "")
     .replace(/\$\$/g, "")
     .replace(/\r\n/g, "\n")
     .replace(/[ \t]+\n/g, "\n")
