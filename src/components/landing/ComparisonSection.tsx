@@ -10,6 +10,7 @@ interface Cell {
 interface ComparisonRowProps {
   feature: string;
   reage: Cell;
+  checkup: Cell;
   labs: Cell;
   genetics: Cell;
 }
@@ -41,11 +42,12 @@ function CellView({ cell, highlight }: { cell: Cell; highlight?: boolean }) {
   return null;
 }
 
-function ComparisonRow({ feature, reage, labs, genetics }: ComparisonRowProps) {
+function ComparisonRow({ feature, reage, checkup, labs, genetics }: ComparisonRowProps) {
   return (
-    <div className="grid grid-cols-4 gap-3 py-4 border-b border-border/50 last:border-0 items-center">
+    <div className="grid grid-cols-5 gap-3 py-4 border-b border-border/50 last:border-0 items-center">
       <div className="text-sm text-foreground font-medium pr-2">{feature}</div>
       <div className="flex justify-center"><CellView cell={reage} highlight /></div>
+      <div className="flex justify-center"><CellView cell={checkup} /></div>
       <div className="flex justify-center"><CellView cell={labs} /></div>
       <div className="flex justify-center"><CellView cell={genetics} /></div>
     </div>
@@ -57,54 +59,63 @@ export function ComparisonSection() {
     {
       feature: "Расшифровка показателей",
       reage: { icon: "yes" },
+      checkup: { icon: "yes" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Рекомендации врача",
       reage: { icon: "yes" },
+      checkup: { icon: "yes" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Тренды здоровья",
       reage: { text: "Несколько раз в год" },
+      checkup: { text: "Раз в год" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Биологический возраст",
       reage: { icon: "yes" },
+      checkup: { icon: "no" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Анализ систем организма",
       reage: { text: "5 систем" },
+      checkup: { text: "Частично" },
       labs: { text: "Частично" },
       genetics: { text: "Риски" },
     },
     {
       feature: "Персональный план",
       reage: { icon: "yes" },
+      checkup: { text: "Общий" },
       labs: { icon: "no" },
       genetics: { text: "Общий" },
     },
     {
       feature: "AI-ассистент",
       reage: { icon: "yes" },
+      checkup: { icon: "no" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Учет взаимосвязей",
       reage: { icon: "yes" },
+      checkup: { icon: "no" },
       labs: { icon: "no" },
       genetics: { icon: "no" },
     },
     {
       feature: "Цена за год",
       reage: { text: "от 69 990₽" },
+      checkup: { text: "~30 000₽" },
       labs: { text: "~80 000₽*" },
       genetics: { text: "~80 000₽" },
     },
@@ -131,16 +142,17 @@ export function ComparisonSection() {
 
         <div className="max-w-5xl mx-auto animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 lg:mx-0 lg:px-0 lg:overflow-visible">
-            <div className="relative min-w-[700px]">
-              {/* Highlight ReAge column (2nd of 4) */}
+            <div className="relative min-w-[860px]">
+              {/* Highlight ReAge column (2nd of 5) */}
               <div
                 className="absolute bg-primary/5 rounded-3xl border border-primary/10"
-                style={{ left: "25%", width: "25%", top: "-1rem", bottom: "-1rem" }}
+                style={{ left: "20%", width: "20%", top: "-1rem", bottom: "-1rem" }}
               />
 
-              <div className="relative grid grid-cols-4 gap-3 mb-2">
+              <div className="relative grid grid-cols-5 gap-3 mb-2">
                 <div />
                 <div className="text-center py-6"><div className="text-lg font-bold text-primary">ReAge</div></div>
+                <div className="text-center py-6"><div className="text-lg font-bold text-foreground">Чекап с врачом</div></div>
                 <div className="text-center py-6"><div className="text-lg font-bold text-foreground">Лаборатории</div></div>
                 <div className="text-center py-6"><div className="text-lg font-bold text-foreground">Генетика</div></div>
               </div>
