@@ -1045,7 +1045,7 @@ ${globalBiomarkersInstructions}
     }
 
     function getBiomarkerAnchorCoverage(report: string, biomarkers: any[]): { normalized: string; missingCodes: string[] } {
-      if (!report || biomarkers.length === 0) return report;
+      if (!report || biomarkers.length === 0) return { normalized: report, missingCodes: [] };
 
       let normalized = normalizeAnchorTypography(report);
       // First, try to inject anchors around biomarkers that AI mentioned by name
@@ -1371,6 +1371,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           maxCompletionTokens: categoryMaxCompletionTokens,
           initialReasoning: aiProfile.reasoning ? "high" : undefined,
           minContentLength: 500,
+          validateContent: (content) => validateCategoryBiomarkerCoverage(content, biomarkers as any[]),
           rateLimitRetries: mode === "deep" ? 3 : 1,
           label: `category:${category}`,
         });
