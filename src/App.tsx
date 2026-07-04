@@ -69,6 +69,7 @@ import ConsentData from "./pages/legal/ConsentData";
 import ConsentResearch from "./pages/legal/ConsentResearch";
 import Documents from "./pages/legal/Documents";
 import Compliance from "./pages/legal/Compliance";
+import { JivoVisibility } from "./components/JivoVisibility";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +97,7 @@ const App = () => (
         <BrowserRouter>
           <YandexMetrika />
           <RouteMeta />
+          <JivoVisibility />
           <RegisterGuardProvider>
           <Routes>
             {/* Public routes */}
