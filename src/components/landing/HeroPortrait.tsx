@@ -164,21 +164,22 @@ const ARTBOARDS: Record<
 
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    bioAge:                { top: 150, left: -10, width: 150, rotate: -2 },
-    interpretation:        { top: 150, left: 185, width: 155, rotate: 2 },
-    doctorRecommendations: { top: 275, left: 165, width: 175, rotate: -1 },
+    bioAge:                { top: 150, left: -10, width: 158, rotate: -2 },
+    interpretation:        { top: 150, left: 190, width: 150, rotate: 2 },
+    doctorRecommendations: { top: 270, left: 165, width: 175, rotate: -1 },
   },
   tablet: {
-    bioAge:                { top: 170, left: 15,  width: 170, rotate: -2 },
-    interpretation:        { top: 170, left: 350, width: 185, rotate: 2 },
+    bioAge:                { top: 170, left: 15,  width: 188, rotate: -2 },
+    interpretation:        { top: 170, left: 360, width: 175, rotate: 2 },
     doctorRecommendations: { top: 330, left: 310, width: 225, rotate: -1 },
   },
   desktop: {
-    bioAge:                { top: 280, left: 25,  width: 185, rotate: -2 },
-    interpretation:        { top: 280, left: 340, width: 200, rotate: 2 },
-    doctorRecommendations: { top: 435, left: 300, width: 240, rotate: -1 },
+    bioAge:                { top: 280, left: 25,  width: 205, rotate: -2 },
+    interpretation:        { top: 280, left: 355, width: 185, rotate: 2 },
+    doctorRecommendations: { top: 435, left: 315, width: 240, rotate: -1 },
   },
 };
+
 
 function renderWidget(id: WidgetId) {
   switch (id) {
