@@ -447,6 +447,15 @@ export function HeroPortrait() {
               <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </a>
           </div>
+
+          <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-center pointer-events-none">
+            <div className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-3.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[11px] sm:text-sm font-medium text-primary whitespace-nowrap">
+                Москва и Санкт-Петербург
+              </span>
+            </div>
+          </div>
         </>
       )}
 
