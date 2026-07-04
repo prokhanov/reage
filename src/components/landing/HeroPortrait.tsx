@@ -160,7 +160,7 @@ function HealthDynamicsWidget() {
                   cx={x(i)}
                   cy={y(v)}
                   r={isLast ? 2.8 : 2}
-                  fill="hsl(var(--background))"
+                  fill="hsl(0 0% 100%)"
                   stroke={
                     i === 0
                       ? "hsl(0 78% 62%)"
