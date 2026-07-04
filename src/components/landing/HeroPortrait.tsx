@@ -331,18 +331,17 @@ export function HeroPortrait() {
           <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-4 max-w-2xl w-full text-center lg:text-left">
             <ThemedLogo className="h-12 sm:h-16 lg:h-32 w-auto animate-hue-shift mx-auto lg:mx-0" />
             <h1
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-[2.75rem] font-bold leading-[3.27] tracking-tight animate-fade-in text-center lg:text-left"
+              className="flex flex-col gap-[100px] text-2xl sm:text-3xl lg:text-4xl xl:text-[2.75rem] font-bold leading-none tracking-tight animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="text-foreground">Управляйте здоровьем.</span>
-              <br />
-              <span className="bg-gradient-hero bg-clip-text text-transparent">
+              <span className="block text-foreground">Управляйте здоровьем.</span>
+              <span className="block bg-gradient-hero bg-clip-text text-transparent">
                 Управляйте своей жизнью.
               </span>
             </h1>
             <p
-              className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-[1.275] animate-fade-in text-center lg:text-left"
-              style={{ animationDelay: "0.2s" }}
+              className="text-sm sm:text-base md:text-lg lg:text-lg text-muted-foreground animate-fade-in text-center lg:text-left"
+              style={{ animationDelay: "0.2s", lineHeight: 1.275 }}
             >
               Регулярно берём анализы и составляем отчёт по состоянию вашего здоровья — с оценкой рисков и
               понятными следующими шагами
