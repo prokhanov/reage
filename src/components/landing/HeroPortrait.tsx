@@ -233,7 +233,7 @@ function Artboard({ bp }: { bp: Breakpoint }) {
         style={{ width: ab.width, height: ab.height, transform: `scale(${ab.scale})` }}
       >
         <img
-          src={heroMan.url}
+          src={heroMan}
           alt="Пара изучает персональный отчёт ReAge на смартфоне"
           className="absolute animate-fade-in pointer-events-none object-contain"
           style={{
