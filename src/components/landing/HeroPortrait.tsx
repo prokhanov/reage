@@ -109,24 +109,21 @@ function HealthDynamicsWidget() {
             </filter>
           </defs>
 
-          {/* Горизонтальные зоны фона: яркие земные оттенки */}
+          {/* Нейтральный фон графика */}
           <g clipPath="url(#zoneClip)">
-            <rect x={padL} y={padT} width={chartW} height={chartH / 4} fill="hsl(210 40% 72% / 0.40)" />
-            <rect x={padL} y={padT + chartH / 4} width={chartW} height={chartH / 4} fill="hsl(145 55% 60% / 0.40)" />
-            <rect x={padL} y={padT + (chartH / 4) * 2} width={chartW} height={chartH / 4} fill="hsl(42 80% 72% / 0.40)" />
-            <rect x={padL} y={padT + (chartH / 4) * 3} width={chartW} height={chartH / 4} fill="hsl(18 70% 72% / 0.40)" />
+            <rect x={padL} y={padT} width={chartW} height={chartH} fill="hsl(210 20% 96%)" />
           </g>
 
-          {/* Разделители зон */}
-          {[1, 2, 3].map((i) => (
+          {/* Тонкая сетка */}
+          {[25, 40, 55].map((t) => (
             <line
-              key={i}
+              key={t}
               x1={padL}
               x2={padL + chartW}
-              y1={padT + (chartH / 4) * i}
-              y2={padT + (chartH / 4) * i}
+              y1={y(t)}
+              y2={y(t)}
               stroke="hsl(215 16% 47%)"
-              strokeOpacity="0.15"
+              strokeOpacity="0.08"
               strokeWidth="0.5"
             />
           ))}
