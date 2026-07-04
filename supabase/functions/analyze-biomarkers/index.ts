@@ -10,6 +10,8 @@ function sanitizeReportTextForPatient(text: string): string {
 
   let cleaned = String(text).replace(/\r\n/g, "\n");
 
+  cleaned = cleaned.replace(/^[ \t]*#{1,6}[ \t]*Ключевые показатели системы[ \t]*\n?/gim, "");
+
   // Remove complete internal prompt blocks if the model echoes them.
   cleaned = cleaned.replace(
     /^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
@@ -997,17 +999,30 @@ ${globalBiomarkersInstructions}
       const hits: Hit[] = [];
       for (const { name, code } of nameToCode) {
         if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
-        // "Имя <опц.(абр)> Заглавная_буква_следующего_слова..."
-        const re = new RegExp(
+        // Формат 1: "Имя <опц.(абр)> Заглавная_буква_следующего_слова..."
+        const sameLineRe = new RegExp(
           `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\\n]+$`,
           'gm'
         );
-        re.lastIndex = interpretationStart;
+        sameLineRe.lastIndex = interpretationStart;
         let m: RegExpExecArray | null;
-        while ((m = re.exec(report)) !== null) {
+        while ((m = sameLineRe.exec(report)) !== null) {
           if (m.index! >= summaryStart) break;
           hits.push({ start: m.index!, end: m.index! + m[0].length, code, nameLen: name.length });
-          if (m[0].length === 0) re.lastIndex++;
+          if (m[0].length === 0) sameLineRe.lastIndex++;
+        }
+
+        // Формат 2: название биомаркера отдельной строкой, затем абзацы интерпретации.
+        // Именно так модель иногда выводит мочевые маркеры, из-за чего карточки не собирались.
+        const titleLineRe = new RegExp(
+          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s*$`,
+          'gm'
+        );
+        titleLineRe.lastIndex = interpretationStart;
+        while ((m = titleLineRe.exec(report)) !== null) {
+          if (m.index! >= summaryStart) break;
+          hits.push({ start: m.index!, end: m.index! + m[0].length, code, nameLen: name.length });
+          if (m[0].length === 0) titleLineRe.lastIndex++;
         }
       }
       if (hits.length === 0) return report;
