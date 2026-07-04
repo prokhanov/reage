@@ -396,6 +396,24 @@ html, body {
   background: var(--gold);
   margin-bottom: 3mm;
 }
+
+/* Компактная типографика для секции «Данные пациента» — там короткие
+   пары «подзаголовок / одна строка», и стандартные h2 с большими
+   margin + декоративной полоской раздували секцию на 3 страницы. */
+.reportlab .rl-patient-data .rl-prose h2 {
+  font-size: 13pt;
+  margin: 6mm 0 2mm;
+  padding-bottom: 1.5mm;
+}
+.reportlab .rl-patient-data .rl-prose h2::before {
+  display: none;
+}
+.reportlab .rl-patient-data .rl-prose h3 {
+  margin: 4mm 0 1.5mm;
+}
+.reportlab .rl-patient-data .rl-prose p {
+  margin: 0 0 2mm;
+}
 .reportlab .rl-prose h3 {
   font-family: var(--font-sans);
   font-weight: 700;
