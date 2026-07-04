@@ -467,7 +467,11 @@ export function HeroPortrait() {
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-[3.25rem] font-bold leading-[1.1] tracking-tight animate-fade-in text-center lg:text-left"
               style={{ animationDelay: "0.1s" }}
             >
-              <span className="text-foreground">Обретите энергию, бодрость и контроль над здоровьем</span>
+              <span className="text-foreground">Ваше здоровье</span>
+              <br />
+              <span className="bg-gradient-hero bg-clip-text text-transparent">
+                в цифрах, динамике и рекомендациях
+              </span>
             </h1>
             <p
               className="text-sm sm:text-base md:text-lg lg:text-lg/relaxed text-muted-foreground leading-snug sm:leading-relaxed animate-fade-in text-center lg:text-left"
