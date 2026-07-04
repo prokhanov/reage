@@ -19,34 +19,42 @@ function HealthDynamicsWidget() {
     "Персональные рекомендации врача",
   ];
 
-  // 4 точки: восходящий тренд из красной (дефицит) в зелёную (оптимум) зону
-  const points = [12, 32, 58, 86];
+  // 4 точки: восходящий тренд из дефицита в оптимум
+  const points = [14, 38, 62, 88];
   const labels = ["Янв", "Апр", "Июл", "Окт"];
-  const width = 200;
-  const height = 84;
-  const padL = 16;
-  const padR = 6;
-  const padT = 6;
-  const padB = 14;
+  const width = 220;
+  const height = 96;
+  const padL = 6;
+  const padR = 10;
+  const padT = 10;
+  const padB = 16;
   const chartW = width - padL - padR;
   const chartH = height - padT - padB;
-
-  // Зоны (в % от 0-100): критично / риск / допустимо / оптимально
-  const zones = [
-    { from: 0, to: 25, color: "hsl(0 75% 60% / 0.14)" },
-    { from: 25, to: 50, color: "hsl(28 85% 60% / 0.13)" },
-    { from: 50, to: 70, color: "hsl(48 90% 55% / 0.13)" },
-    { from: 70, to: 100, color: "hsl(142 65% 48% / 0.15)" },
-  ];
 
   const x = (i: number) => padL + (i / (points.length - 1)) * chartW;
   const y = (v: number) => padT + chartH - (v / 100) * chartH;
 
-  const path = points
-    .map((v, i) => `${i === 0 ? "M" : "L"} ${x(i)} ${y(v)}`)
-    .join(" ");
+  // Плавная кривая через Catmull-Rom → Bezier
+  const smoothPath = (() => {
+    const pts = points.map((v, i) => [x(i), y(v)] as const);
+    let d = `M ${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] ?? pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] ?? p2;
+      const t = 0.18;
+      const c1x = p1[0] + (p2[0] - p0[0]) * t;
+      const c1y = p1[1] + (p2[1] - p0[1]) * t;
+      const c2x = p2[0] - (p3[0] - p1[0]) * t;
+      const c2y = p2[1] - (p3[1] - p1[1]) * t;
+      d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+    }
+    return d;
+  })();
 
-  const yTicks = [0, 50, 100];
+  const areaPath = `${smoothPath} L ${x(points.length - 1)} ${padT + chartH} L ${x(0)} ${padT + chartH} Z`;
+  const lastIdx = points.length - 1;
 
   return (
     <div className={`${glass} p-3 sm:p-4`}>
@@ -67,108 +75,151 @@ function HealthDynamicsWidget() {
           </li>
         ))}
       </ul>
+
       <div className="w-full">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto overflow-visible"
         >
-          {/* Цветные зоны */}
-          {zones.map((z, i) => (
-            <rect
-              key={i}
-              x={padL}
-              y={y(z.to)}
-              width={chartW}
-              height={y(z.from) - y(z.to)}
-              fill={z.color}
+          <defs>
+            <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="hsl(0 78% 62%)" />
+              <stop offset="45%" stopColor="hsl(38 92% 58%)" />
+              <stop offset="100%" stopColor="hsl(142 68% 48%)" />
+            </linearGradient>
+            <linearGradient id="hpArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="hpZone" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="hsl(142 68% 48%)" stopOpacity="0.14" />
+              <stop offset="50%" stopColor="hsl(48 90% 55%)" stopOpacity="0.09" />
+              <stop offset="100%" stopColor="hsl(0 78% 62%)" stopOpacity="0.14" />
+            </linearGradient>
+            <filter id="hpGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.2" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Мягкая вертикальная зона red→green фоном */}
+          <rect
+            x={padL}
+            y={padT}
+            width={chartW}
+            height={chartH}
+            fill="url(#hpZone)"
+            rx="4"
+          />
+
+          {/* Тонкая сетка */}
+          {[25, 50, 75].map((t) => (
+            <line
+              key={t}
+              x1={padL}
+              x2={padL + chartW}
+              y1={y(t)}
+              y2={y(t)}
+              stroke="hsl(var(--foreground))"
+              strokeOpacity="0.06"
+              strokeWidth="0.5"
             />
           ))}
 
-          {/* Горизонтальные сетки + Y-метки */}
-          {yTicks.map((t) => (
-            <g key={t}>
-              <line
-                x1={padL}
-                x2={width - padR}
-                y1={y(t)}
-                y2={y(t)}
-                stroke="hsl(var(--border))"
-                strokeWidth="0.5"
-                strokeDasharray="1.5 2"
-                opacity="0.6"
-              />
-              <text
-                x={padL - 3}
-                y={y(t) + 2}
-                textAnchor="end"
-                fontSize="5"
-                fill="hsl(var(--muted-foreground))"
-              >
-                {t}
-              </text>
-            </g>
-          ))}
+          {/* Заливка под кривой */}
+          <path d={areaPath} fill="url(#hpArea)" />
 
-          {/* Оси */}
-          <line
-            x1={padL}
-            x2={padL}
-            y1={padT}
-            y2={padT + chartH}
-            stroke="hsl(var(--border))"
-            strokeWidth="0.6"
-          />
-          <line
-            x1={padL}
-            x2={width - padR}
-            y1={padT + chartH}
-            y2={padT + chartH}
-            stroke="hsl(var(--border))"
-            strokeWidth="0.6"
-          />
-
-          {/* Линия тренда */}
+          {/* Кривая */}
           <path
-            d={path}
+            d={smoothPath}
             fill="none"
-            stroke="hsl(var(--primary))"
-            strokeWidth="1.5"
+            stroke="url(#hpLine)"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
 
           {/* Точки */}
-          {points.map((v, i) => (
-            <g key={i}>
-              <circle
-                cx={x(i)}
-                cy={y(v)}
-                r="2.2"
-                fill="hsl(var(--background))"
-                stroke="hsl(var(--primary))"
-                strokeWidth="1.2"
-              />
-            </g>
-          ))}
+          {points.map((v, i) => {
+            const isLast = i === lastIdx;
+            return (
+              <g key={i}>
+                {isLast && (
+                  <circle
+                    cx={x(i)}
+                    cy={y(v)}
+                    r="5"
+                    fill="hsl(142 68% 48%)"
+                    opacity="0.25"
+                    filter="url(#hpGlow)"
+                  />
+                )}
+                <circle
+                  cx={x(i)}
+                  cy={y(v)}
+                  r={isLast ? 2.8 : 2}
+                  fill="hsl(var(--background))"
+                  stroke={
+                    isLast
+                      ? "hsl(142 68% 48%)"
+                      : i === 0
+                      ? "hsl(0 78% 62%)"
+                      : "hsl(var(--primary))"
+                  }
+                  strokeWidth="1.4"
+                />
+              </g>
+            );
+          })}
 
-          {/* X-метки */}
+          {/* Метки под осью X */}
           {labels.map((l, i) => (
             <text
               key={l}
               x={x(i)}
-              y={height - 3}
+              y={height - 4}
               textAnchor="middle"
-              fontSize="5"
+              fontSize="6.5"
+              fontWeight="500"
               fill="hsl(var(--muted-foreground))"
             >
               {l}
             </text>
           ))}
+
+          {/* Подписи зон справа */}
+          <text
+            x={width - 2}
+            y={y(92)}
+            textAnchor="end"
+            fontSize="5.5"
+            fontWeight="600"
+            fill="hsl(142 68% 45%)"
+            opacity="0.85"
+          >
+            оптимум
+          </text>
+          <text
+            x={width - 2}
+            y={y(6)}
+            textAnchor="end"
+            fontSize="5.5"
+            fontWeight="600"
+            fill="hsl(0 78% 60%)"
+            opacity="0.85"
+          >
+            дефицит
+          </text>
         </svg>
       </div>
     </div>
   );
 }
+
+
 
 
 function StatRow() {
