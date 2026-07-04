@@ -142,16 +142,17 @@ export function ComparisonSection() {
 
         <div className="max-w-5xl mx-auto animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <div className="overflow-x-auto overflow-y-hidden -mx-4 px-4 lg:mx-0 lg:px-0 lg:overflow-visible">
-            <div className="relative min-w-[700px]">
-              {/* Highlight ReAge column (2nd of 4) */}
+            <div className="relative min-w-[860px]">
+              {/* Highlight ReAge column (2nd of 5) */}
               <div
                 className="absolute bg-primary/5 rounded-3xl border border-primary/10"
-                style={{ left: "25%", width: "25%", top: "-1rem", bottom: "-1rem" }}
+                style={{ left: "20%", width: "20%", top: "-1rem", bottom: "-1rem" }}
               />
 
-              <div className="relative grid grid-cols-4 gap-3 mb-2">
+              <div className="relative grid grid-cols-5 gap-3 mb-2">
                 <div />
                 <div className="text-center py-6"><div className="text-lg font-bold text-primary">ReAge</div></div>
+                <div className="text-center py-6"><div className="text-lg font-bold text-foreground">Чекап с врачом</div></div>
                 <div className="text-center py-6"><div className="text-lg font-bold text-foreground">Лаборатории</div></div>
                 <div className="text-center py-6"><div className="text-lg font-bold text-foreground">Генетика</div></div>
               </div>
