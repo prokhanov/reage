@@ -122,10 +122,11 @@ function StatRow() {
 
 /* ===================== LAYOUT DATA ===================== */
 
-type WidgetId = "bioAge" | "biomarkers" | "recommendations" | "systems";
+type WidgetId = "interpretation" | "doctorRecommendations";
 type WidgetPos = { top: number; left: number; width: number; rotate: number };
 type Layout = Record<WidgetId, WidgetPos>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
+
 
 const ARTBOARDS: Record<
   Breakpoint,
