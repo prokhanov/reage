@@ -125,8 +125,8 @@ function HealthDynamicsWidget() {
               x2={padL + chartW}
               y1={padT + (chartH / 4) * i}
               y2={padT + (chartH / 4) * i}
-              stroke="hsl(var(--foreground))"
-              strokeOpacity="0.08"
+              stroke="hsl(215 16% 47%)"
+              strokeOpacity="0.15"
               strokeWidth="0.5"
             />
           ))}
