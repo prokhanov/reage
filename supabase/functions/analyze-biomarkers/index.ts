@@ -10,6 +10,8 @@ function sanitizeReportTextForPatient(text: string): string {
 
   let cleaned = String(text).replace(/\r\n/g, "\n");
 
+  cleaned = cleaned.replace(/^[ \t]*#{1,6}[ \t]*Ключевые показатели системы[ \t]*\n?/gim, "");
+
   // Remove complete internal prompt blocks if the model echoes them.
   cleaned = cleaned.replace(
     /^\s*ВАЖНО\s+ДЛЯ\s+ИНТЕРПРЕТАЦИИ\s*[:：][\s\S]*?(?=^\s*(?:УЧЁТ|УЧЕТ)\s+СОБЛЮДЕНИЯ\s+НАЗНАЧЕНИЙ|^\s*Всегда\s+указывай|^\s*#{1,6}\s|^\s*[А-ЯЁA-Z][^\n]{2,80}:\s*$|(?![\s\S]))/gim,
@@ -970,13 +972,24 @@ ${globalBiomarkersInstructions}
       if (!report || biomarkers.length === 0) return report;
 
       // Build name → code map (longest names first to win on overlapping matches)
-      const nameToCode: Array<{ name: string; code: string }> = biomarkers
-        .map((bm: any) => ({
-          name: String(bm?.biomarkers?.name || '').trim(),
-          code: String(bm?.biomarkers?.code || '').trim(),
-        }))
-        .filter((e) => e.name && e.code)
-        .sort((a, b) => b.name.length - a.name.length);
+      const nameToCode: Array<{ name: string; code: string }> = [];
+      const seenNameCodePairs = new Set<string>();
+      for (const bm of biomarkers) {
+        const rawName = String(bm?.biomarkers?.name || '').trim();
+        const code = String(bm?.biomarkers?.code || '').trim();
+        if (!rawName || !code) continue;
+        const pushName = (name: string) => {
+          const cleanName = name.trim();
+          const key = `${cleanName.toLowerCase()}|${code}`;
+          if (!cleanName || seenNameCodePairs.has(key)) return;
+          seenNameCodePairs.add(key);
+          nameToCode.push({ name: cleanName, code });
+        };
+        pushName(rawName);
+        const strippedName = rawName.replace(/\s*\([^()]{1,20}\)\s*$/u, '').trim();
+        if (strippedName && strippedName !== rawName) pushName(strippedName);
+      }
+      nameToCode.sort((a, b) => b.name.length - a.name.length);
       if (nameToCode.length === 0) return report;
 
       // Skip codes that already have an anchor in the text
@@ -988,8 +1001,10 @@ ${globalBiomarkersInstructions}
 
       // Boundaries
       const interpretationMatch = /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
-      if (!interpretationMatch) return report; // no biomarker zone — nothing to do
-      const interpretationStart = interpretationMatch.index! + interpretationMatch[0].length;
+      // Some sections omit the literal "Интерпретация биомаркеров" header and
+      // list biomarker titles directly. In that case scan the whole section;
+      // exact title-line matching still keeps prose mentions from becoming cards.
+      const interpretationStart = interpretationMatch ? interpretationMatch.index! + interpretationMatch[0].length : 0;
       const summaryMatch = /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im.exec(report);
       const summaryStart = summaryMatch ? summaryMatch.index! : report.length;
 
@@ -997,17 +1012,30 @@ ${globalBiomarkersInstructions}
       const hits: Hit[] = [];
       for (const { name, code } of nameToCode) {
         if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
-        // "Имя <опц.(абр)> Заглавная_буква_следующего_слова..."
-        const re = new RegExp(
-          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\\n]+$`,
+        // Формат 1: "Имя <опц.(абр)> Заглавная_буква_следующего_слова..."
+        const sameLineRe = new RegExp(
+          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\\n]+$`,
           'gm'
         );
-        re.lastIndex = interpretationStart;
+        sameLineRe.lastIndex = interpretationStart;
         let m: RegExpExecArray | null;
-        while ((m = re.exec(report)) !== null) {
+        while ((m = sameLineRe.exec(report)) !== null) {
           if (m.index! >= summaryStart) break;
           hits.push({ start: m.index!, end: m.index! + m[0].length, code, nameLen: name.length });
-          if (m[0].length === 0) re.lastIndex++;
+          if (m[0].length === 0) sameLineRe.lastIndex++;
+        }
+
+        // Формат 2: название биомаркера отдельной строкой, затем абзацы интерпретации.
+        // Именно так модель иногда выводит мочевые маркеры, из-за чего карточки не собирались.
+        const titleLineRe = new RegExp(
+          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s*$`,
+          'gm'
+        );
+        titleLineRe.lastIndex = interpretationStart;
+        while ((m = titleLineRe.exec(report)) !== null) {
+          if (m.index! >= summaryStart) break;
+          hits.push({ start: m.index!, end: m.index! + m[0].length, code, nameLen: name.length });
+          if (m[0].length === 0) titleLineRe.lastIndex++;
         }
       }
       if (hits.length === 0) return report;
@@ -1044,8 +1072,8 @@ ${globalBiomarkersInstructions}
       return result;
     }
 
-    function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
-      if (!report || biomarkers.length === 0) return report;
+    function getBiomarkerAnchorCoverage(report: string, biomarkers: any[]): { normalized: string; missingCodes: string[] } {
+      if (!report || biomarkers.length === 0) return { normalized: report, missingCodes: [] };
 
       let normalized = normalizeAnchorTypography(report);
       // First, try to inject anchors around biomarkers that AI mentioned by name
@@ -1058,38 +1086,36 @@ ${globalBiomarkersInstructions}
         if (match[1]) anchoredNormalizedCodes.add(normalizeBiomarkerCode(match[1]));
       }
 
-      // Strip anchors from text so we only search the prose for biomarker mentions
-      const textOnly = normalized.replace(/<!--[\s\S]*?-->/g, ' ');
-
       const missingCodes = biomarkers
         .map((bm: any) => ({ code: bm?.biomarkers?.code as string | undefined, name: bm?.biomarkers?.name as string | undefined }))
         .filter((entry): entry is { code: string; name: string | undefined } => Boolean(entry.code))
         .filter((entry) => {
-          // Already has an anchor (exact or normalized) → skip
           if (anchoredNormalizedCodes.has(normalizeBiomarkerCode(entry.code))) return false;
-          // Mentioned by code or name in prose → frontend auto-inject will handle it; skip fallback
-          const codeMentioned = entry.code && textOnly.toLowerCase().includes(entry.code.toLowerCase());
-          const nameMentioned = entry.name && textOnly.toLowerCase().includes(entry.name.toLowerCase());
-          if (codeMentioned || nameMentioned) return false;
           return true;
         })
         .map((entry) => entry.code);
 
-      if (missingCodes.length === 0) return normalized;
+      return { normalized, missingCodes };
+    }
 
-      const fallbackAnchorBlock = [
-        '',
-        '<!-- anchor:spacer -->',
-        '## Ключевые показатели системы',
-        ...missingCodes.flatMap((code: string) => [
-          `<!-- anchor:biomarker ${code} -->`,
-          '<!-- anchor:biomarker_end -->',
-          '',
-        ]),
-      ].join('\n');
+    function ensureBiomarkerAnchorCoverage(report: string, biomarkers: any[]): string {
+      if (!report || biomarkers.length === 0) return report;
+      const coverage = getBiomarkerAnchorCoverage(report, biomarkers);
+      if (coverage.missingCodes.length > 0) {
+        console.warn(`Biomarkers still missing anchors after normalization: ${coverage.missingCodes.join(', ')}`);
+      }
+      return coverage.normalized;
+    }
 
-      console.warn(`Adding fallback biomarker anchors: ${missingCodes.join(', ')}`);
-      return `${normalized.trim()}\n${fallbackAnchorBlock}`.trim();
+    function validateCategoryBiomarkerCoverage(report: string, biomarkers: any[]): { ok: boolean; error?: string } {
+      const coverage = getBiomarkerAnchorCoverage(report, biomarkers);
+      if (coverage.missingCodes.length > 0) {
+        return {
+          ok: false,
+          error: `missing_biomarker_cards: ${coverage.missingCodes.join(', ')}`,
+        };
+      }
+      return { ok: true };
     }
 
     function buildCategoryFallbackReport(category: string, biomarkers: any[], profile: any, age: number | null): string {
@@ -1373,6 +1399,7 @@ ${bm.biomarkers.name} (${bm.biomarkers.code}):
           maxCompletionTokens: categoryMaxCompletionTokens,
           initialReasoning: aiProfile.reasoning ? "high" : undefined,
           minContentLength: 500,
+          validateContent: (content) => validateCategoryBiomarkerCoverage(content, biomarkers as any[]),
           rateLimitRetries: mode === "deep" ? 3 : 1,
           label: `category:${category}`,
         });

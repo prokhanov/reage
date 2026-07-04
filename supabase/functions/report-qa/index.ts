@@ -43,6 +43,11 @@ function normalizeAnchorTypography(text: string): string {
     );
 }
 
+function stripSystemKeyIndicatorsHeading(text: string): string {
+  if (!text) return text;
+  return text.replace(/^[ \t]*#{1,6}[ \t]*Ключевые показатели системы[ \t]*\n?/gim, "");
+}
+
 function normalizeBiomarkerCode(code: string): string {
   if (!code) return "";
   return String(code)
@@ -118,9 +123,8 @@ function injectMissingBiomarkerAnchors(
 
   const interpretationMatch =
     /^\s*(?:#{1,3}\s+)?Интерпретация\s+биомаркеров\b/im.exec(report);
-  if (!interpretationMatch) return { text: report, injectedCodes: [] };
   const interpretationStart =
-    interpretationMatch.index! + interpretationMatch[0].length;
+    interpretationMatch ? interpretationMatch.index! + interpretationMatch[0].length : 0;
   const summaryMatch =
     /^\s*(?:#{1,3}\s+)?(?:Общая\s+оценка(?:\s+системы)?|Сильные\s+стороны|Дефициты\s+и\s+дисфункции|Заключение|Резюме|Итоги?|Выводы?)/im
       .exec(report);
@@ -130,13 +134,13 @@ function injectMissingBiomarkerAnchors(
   const hits: Hit[] = [];
   for (const { name, code } of sorted) {
     if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
-    const re = new RegExp(
-      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\n]+$`,
+    const sameLineRe = new RegExp(
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\n]+$`,
       "gm",
     );
-    re.lastIndex = interpretationStart;
+    sameLineRe.lastIndex = interpretationStart;
     let m: RegExpExecArray | null;
-    while ((m = re.exec(report)) !== null) {
+    while ((m = sameLineRe.exec(report)) !== null) {
       if (m.index! >= summaryStart) break;
       hits.push({
         start: m.index!,
@@ -144,7 +148,23 @@ function injectMissingBiomarkerAnchors(
         code,
         nameLen: name.length,
       });
-      if (m[0].length === 0) re.lastIndex++;
+      if (m[0].length === 0) sameLineRe.lastIndex++;
+    }
+
+    const titleLineRe = new RegExp(
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s*$`,
+      "gm",
+    );
+    titleLineRe.lastIndex = interpretationStart;
+    while ((m = titleLineRe.exec(report)) !== null) {
+      if (m.index! >= summaryStart) break;
+      hits.push({
+        start: m.index!,
+        end: m.index! + m[0].length,
+        code,
+        nameLen: name.length,
+      });
+      if (m[0].length === 0) titleLineRe.lastIndex++;
     }
   }
   if (hits.length === 0) return { text: report, injectedCodes: [] };
@@ -763,6 +783,7 @@ Deno.serve(async (req) => {
           // 1. Normalize typography
           const before1 = text;
           text = normalizeAnchorTypography(text);
+          text = stripSystemKeyIndicatorsHeading(text);
           if (before1 !== text) {
             const msg = `[${sectionLabel}] Нормализованы типографские артефакты в anchor-тегах`;
             fixes.push(msg);
