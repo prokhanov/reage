@@ -1003,7 +1003,7 @@ ${globalBiomarkersInstructions}
         if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
         // Формат 1: "Имя <опц.(абр)> Заглавная_буква_следующего_слова..."
         const sameLineRe = new RegExp(
-          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\\n]+$`,
+          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\\n]+$`,
           'gm'
         );
         sameLineRe.lastIndex = interpretationStart;
@@ -1017,7 +1017,7 @@ ${globalBiomarkersInstructions}
         // Формат 2: название биомаркера отдельной строкой, затем абзацы интерпретации.
         // Именно так модель иногда выводит мочевые маркеры, из-за чего карточки не собирались.
         const titleLineRe = new RegExp(
-          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s*$`,
+          `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s*$`,
           'gm'
         );
         titleLineRe.lastIndex = interpretationStart;

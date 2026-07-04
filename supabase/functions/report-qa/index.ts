@@ -135,7 +135,7 @@ function injectMissingBiomarkerAnchors(
   for (const { name, code } of sorted) {
     if (anchoredCodes.has(normalizeBiomarkerCode(code))) continue;
     const sameLineRe = new RegExp(
-      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\n]+$`,
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s+(?=[A-ZА-ЯЁ0-9])[^\n]+$`,
       "gm",
     );
     sameLineRe.lastIndex = interpretationStart;
@@ -152,7 +152,7 @@ function injectMissingBiomarkerAnchors(
     }
 
     const titleLineRe = new RegExp(
-      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^()\\n]{1,30}\\))?\\s*$`,
+      `^(?!#{1,6}\\s)(?!\\s*[-*•])\\s*(?:${escapeRegex(name)})(?:\\s*\\([^\\n]{1,40}\\))?\\s*$`,
       "gm",
     );
     titleLineRe.lastIndex = interpretationStart;
