@@ -428,10 +428,10 @@ export function HeroPortrait() {
 
       {mounted && (
         <>
-          <div className="fixed top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-between pointer-events-none">
+          <div className="fixed top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-between gap-2 pointer-events-none">
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="pointer-events-auto h-10 w-10 flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg"
+              className="pointer-events-auto h-10 w-10 flex items-center justify-center rounded-full bg-card/80 border border-border/50 backdrop-blur-sm hover:bg-card hover:border-primary/30 transition-all duration-300 shadow-lg shrink-0"
               aria-label={isDark ? "Светлая тема" : "Тёмная тема"}
             >
               {isDark ? (
@@ -440,13 +440,21 @@ export function HeroPortrait() {
                 <Moon className="h-5 w-5 text-foreground" />
               )}
             </button>
+
+            <div className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-3.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[11px] sm:text-sm font-medium text-primary whitespace-nowrap">
+                Москва и Санкт-Петербург
+              </span>
+            </div>
+
             <a
               href="#pricing"
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
-              className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300"
+              className="pointer-events-auto h-10 inline-flex items-center gap-1.5 px-3 sm:px-4 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-neon-primary shadow-lg hover:scale-[1.03] transition-all duration-300 shrink-0"
             >
               Начать мониторинг
               <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -457,14 +465,7 @@ export function HeroPortrait() {
 
       <div className="relative z-10 container mx-auto px-4 md:px-4 lg:px-10 xl:px-16 pt-16 pb-8 md:pt-16 md:pb-8 lg:pt-16 lg:pb-10">
 
-        <div className="flex justify-center w-full mb-4 md:mb-5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm animate-fade-in">
-            <MapPin className="w-3.5 h-3.5 text-primary" />
-            <span className="text-[11px] sm:text-sm font-medium text-primary whitespace-nowrap">
-              Москва и Санкт-Петербург
-            </span>
-          </div>
-        </div>
+
 
         <div className="flex flex-col items-center gap-2 md:gap-0 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
           <div className="order-1 flex flex-col items-center lg:items-start gap-3 md:gap-3 lg:gap-6 max-w-xl w-full text-center lg:text-left">
