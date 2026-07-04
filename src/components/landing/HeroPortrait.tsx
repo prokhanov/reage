@@ -174,13 +174,13 @@ const ARTBOARDS: Record<
 
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    healthDynamics: { top: 125, left: 185, width: 170, rotate: 0 },
+    healthDynamics: { top: 125, left: 315, width: 170, rotate: 0 },
   },
   tablet: {
-    healthDynamics: { top: 145, left: 350, width: 220, rotate: 0 },
+    healthDynamics: { top: 145, left: 515, width: 220, rotate: 0 },
   },
   desktop: {
-    healthDynamics: { top: 180, left: 350, width: 255, rotate: 0 },
+    healthDynamics: { top: 180, left: 541, width: 255, rotate: 0 },
   },
 };
 
