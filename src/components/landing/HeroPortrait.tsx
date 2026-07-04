@@ -382,6 +382,39 @@ export function HeroPortrait() {
               понятными следующими шагами.
             </p>
 
+            <ul
+              className="grid grid-cols-2 gap-x-3 gap-y-2 w-full animate-fade-in text-center lg:text-left"
+              style={{ animationDelay: "0.25s" }}
+            >
+              {[
+                {
+                  icon: FlaskConical,
+                  text: "Глубокая оценка ключевых процессов организма",
+                },
+                {
+                  icon: Activity,
+                  text: "Регулярный мониторинг и динамика",
+                },
+                {
+                  icon: ArrowRight,
+                  text: "Персональные рекомендации и план действий",
+                },
+                {
+                  icon: ShieldCheck,
+                  text: "Поддержка врача на каждом этапе",
+                },
+              ].map(({ icon: Icon, text }) => (
+                <li key={text} className="flex items-start gap-2">
+                  <span className="mt-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/15 shrink-0">
+                    <Icon className="w-3 h-3 text-primary" />
+                  </span>
+                  <span className="text-xs sm:text-sm text-foreground/80 leading-snug text-left">
+                    {text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
             <div className="hidden lg:block w-full pt-1 animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <StatRow />
             </div>
