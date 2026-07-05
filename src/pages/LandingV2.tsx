@@ -1,7 +1,7 @@
 import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
-import { HeroPortrait } from "@/components/landing/HeroPortrait";
+import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
 
 const Block = ({ n, children }: { n?: number; children: ReactNode }) => (
   <section className="relative">
@@ -97,7 +97,7 @@ const LandingV2 = () => {
           <HeroBlockPortrait editMode={editOn} />
         </Block>
         <Block>
-          <HeroPortrait />
+          <HeroPortraitClassic />
         </Block>
         <Block>
           <HowItWorksBlock />
