@@ -242,16 +242,16 @@ const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
     systems:        { top: 296, left: 146, width: 175, rotate: 1 },
   },
   tablet: {
-    bioAge:         { top: 184, left: 39,  width: 208, rotate: -2 },
-    biomarkers:     { top: 162, left: 326, width: 220, rotate: 2 },
+    bioAge:         { top: 185, left: 71,  width: 208, rotate: -2 },
+    biomarkers:     { top: 163, left: 290, width: 220, rotate: 2 },
     recommendations:{ top: 331, left: 286, width: 232, rotate: -1 },
     systems:        { top: 332, left: 54,  width: 240, rotate: 1 },
   },
   desktop: {
-    bioAge:         { top: 309, left: 59,  width: 216, rotate: -2 },
-    biomarkers:     { top: 303, left: 311, width: 236, rotate: 2 },
-    recommendations:{ top: 457, left: 300, width: 244, rotate: -2 },
-    systems:        { top: 463, left: 32,  width: 252, rotate: 1 },
+    bioAge:         { top: 316, left: 46,  width: 216, rotate: -2 },
+    biomarkers:     { top: 318, left: 272, width: 236, rotate: 2 },
+    recommendations:{ top: 474, left: 299, width: 244, rotate: -2 },
+    systems:        { top: 475, left: 32,  width: 252, rotate: 1 },
   },
 };
 
