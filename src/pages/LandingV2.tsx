@@ -103,6 +103,9 @@ const LandingV2 = () => {
         <Block>
           <HowItWorksBlock />
         </Block>
+        <Block>
+          <BenefitsBlock />
+        </Block>
       </Blocks>
     </div>
   );
