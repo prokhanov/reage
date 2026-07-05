@@ -1,7 +1,8 @@
-import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
+import { BenefitsBlock } from "@/components/landing/v2/BenefitsBlock";
 import { HeroBlockPortrait } from "@/components/landing/v2/HeroBlockPortrait";
 import { HowItWorksBlock } from "@/components/landing/v2/HowItWorksBlock";
 import { HeroPortraitClassic } from "@/components/landing/HeroPortraitClassic";
+import { useEffect, useState, Children, isValidElement, cloneElement, ReactNode } from "react";
 
 const Block = ({ n, children }: { n?: number; children: ReactNode }) => (
   <section className="relative">
@@ -101,6 +102,9 @@ const LandingV2 = () => {
         </Block>
         <Block>
           <HowItWorksBlock />
+        </Block>
+        <Block>
+          <BenefitsBlock />
         </Block>
       </Blocks>
     </div>
