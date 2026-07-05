@@ -189,7 +189,8 @@ function HealthDynamicsWidget() {
         </svg>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 function StatRow() {
