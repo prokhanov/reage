@@ -2,199 +2,170 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Moon, Sun, Check } from "lucide-react";
+import { ArrowRight, MapPin, ShieldCheck, Activity, FlaskConical, Heart, Droplets, Moon, Sun } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-couple-v4.png";
+import heroMan from "@/assets/landing-v2/hero-couple-v2.webp";
 
 const glass =
-  "rounded-2xl border border-border/50 bg-card/80 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
+  "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
 
-function HealthDynamicsWidget() {
-  const items = [
-    "Расшифровка анализов",
-    "Тренды и изменения",
-    "Ранние сигналы риска",
-    "Биологический возраст",
-    "Персональные рекомендации врача",
+function useIsMobile() {
+  const [m, setM] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 640 : false,
+  );
+  useEffect(() => {
+    const u = () => setM(window.innerWidth < 640);
+    window.addEventListener("resize", u);
+    return () => window.removeEventListener("resize", u);
+  }, []);
+  return m;
+}
+
+/* ===================== WIDGETS ===================== */
+
+function CompactSystemsWidget() {
+  const systems = [
+    { label: "Сердце", value: 92, icon: Heart, token: "--status-optimal" },
+    { label: "Метаболизм", value: 78, icon: Activity, token: "--status-acceptable" },
+    { label: "Иммунитет", value: 84, icon: ShieldCheck, token: "--status-optimal" },
+    { label: "Печень и почки", value: 71, icon: Droplets, token: "--status-acceptable" },
+    { label: "Гормоны", value: 58, icon: FlaskConical, token: "--status-risk" },
   ];
-
-  // 4 точки: восходящий тренд из дефицита в оптимум
-  const points = [12, 23, 27, 46];
-
-  const labels = ["Янв", "Апр", "Июл", "Окт"];
-  const width = 220;
-  const height = 96;
-  const padL = 6;
-  const padR = 10;
-  const padT = 10;
-  const padB = 16;
-  const chartW = width - padL - padR;
-  const chartH = height - padT - padB;
-
-  const yMin = 0;
-  const yMax = 50;
-
-  const x = (i: number) => padL + (i / (points.length - 1)) * chartW;
-  const y = (v: number) => padT + chartH - ((v - yMin) / (yMax - yMin)) * chartH;
-
-  const pts = points.map((v, i) => [x(i), y(v)] as const);
-
-  const linePath = (start: number, end: number) => {
-    const p1 = pts[start];
-    const p2 = pts[end];
-    return `M ${p1[0]} ${p1[1]} L ${p2[0]} ${p2[1]}`;
-  };
-
-  const areaPath = (() => {
-    let d = `M ${pts[0][0]} ${pts[0][1]}`;
-    for (let i = 1; i < pts.length; i++) {
-      d += ` L ${pts[i][0]} ${pts[i][1]}`;
-    }
-    d += ` L ${pts[pts.length - 1][0]} ${padT + chartH} L ${pts[0][0]} ${padT + chartH} Z`;
-    return d;
-  })();
-
-  const lastIdx = points.length - 1;
+  const isMobile = useIsMobile();
+  const overall = Math.round(systems.reduce((a, s) => a + s.value, 0) / systems.length);
 
   return (
-    <div className={`${glass} p-3 sm:p-4`}>
-      <h3 className="text-sm sm:text-base font-semibold text-foreground leading-snug mb-2">
-        Персональный отчет
-        <br />
-        на понятном языке
-      </h3>
-      <ul className="space-y-1.5 mb-3">
-        {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className="mt-0.5 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary/15 shrink-0">
-              <Check className="w-2.5 h-2.5 text-primary" />
-            </span>
-            <span className="text-[11px] sm:text-xs text-foreground/85 leading-snug">
-              {item}
-            </span>
+    <div className={`${glass} p-2.5 sm:p-3`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+          {isMobile ? "СИСТЕМЫ" : "Системы организма"}
+        </span>
+        <span className="text-[11px] font-semibold text-primary">{overall}%</span>
+      </div>
+      <div className="space-y-1.5">
+        {systems.map((s) => {
+          const Icon = s.icon;
+          const color = `hsl(var(${s.token}))`;
+          return (
+            <div key={s.label} className="flex items-start gap-0.5 sm:gap-2">
+              <Icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color }} />
+              <span className="text-[10px] sm:text-[11px] text-foreground/90 flex-1 min-w-0 leading-tight">
+                {s.label}
+              </span>
+              <div className="flex items-center gap-1 sm:gap-1.5 w-14 sm:w-20 lg:w-24 mt-0.5">
+                <span className="text-[10px] font-semibold tabular-nums text-foreground w-5 text-left">
+                  {s.value}%
+                </span>
+                <div className="flex-1 h-1 sm:h-1.5 bg-muted/60 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${s.value}%`, backgroundColor: color }}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CompactBiomarkersWidget() {
+  const items = [
+    { name: "Витамин D", value: "62", unit: "нг/мл", status: "Оптимум", token: "--status-optimal" },
+    { name: "Ферритин", value: "38", unit: "мкг/л", status: "Допустимо", token: "--status-acceptable" },
+    { name: "HbA1c", value: "5.8", unit: "%", status: "Риск", token: "--status-risk" },
+  ];
+  const isMobile = useIsMobile();
+  return (
+    <div className={`${glass} p-3`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+          {isMobile ? "БИОМАРКЕРЫ" : "Ключевые биомаркеры"}
+        </span>
+      </div>
+      <div className="divide-y divide-border/40">
+        {items.map((b) => (
+          <div key={b.name} className="py-1 first:pt-0 last:pb-0">
+            <div className="text-[11px] text-foreground/90 leading-tight">{b.name}</div>
+            <div className="flex items-center justify-between mt-0.5">
+              <span className="text-xs font-semibold tabular-nums text-foreground">
+                {b.value}
+                <span className="ml-1 text-[10px] font-normal text-muted-foreground">{b.unit}</span>
+              </span>
+              <span
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                style={{
+                  color: `hsl(var(${b.token}))`,
+                  backgroundColor: `hsl(var(${b.token}) / 0.12)`,
+                }}
+              >
+                {b.status}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RecommendationsWidget() {
+  const items = [
+    "Витамин D3 5000 МЕ — утром с жирной пищей",
+    "Омега-3 (EPA/DHA) 2 г/сут — 12 недель",
+    "Контроль ферритина и HbA1c через 3 мес",
+  ];
+  const isMobile = useIsMobile();
+  return (
+    <div className={`${glass} p-3`}>
+      <div className="mb-2">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+          {isMobile ? "НАЗНАЧЕНИЯ" : "Персональные назначения"}
+        </span>
+      </div>
+      <ul className="space-y-1">
+        {items.map((t, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-2 text-[11px] text-foreground/85 leading-snug"
+          >
+            <span className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
+            <span>{t}</span>
           </li>
         ))}
       </ul>
-
-      <div className="w-full rounded-xl border border-slate-200 bg-white p-3">
-        <div className="flex items-start justify-between mb-2">
-          <span className="text-[11px] sm:text-xs font-medium text-slate-500">Витамин D</span>
-          <div className="flex flex-col items-end">
-            <div className="flex items-baseline gap-1">
-              <span className="text-sm font-semibold text-slate-900">{points[lastIdx]}</span>
-              <span className="text-[10px] text-slate-500">нг/мл</span>
-            </div>
-            <span className="text-[10px] font-medium text-emerald-600">оптимально</span>
-          </div>
-        </div>
-
-        <div className="w-full">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            className="w-full h-auto overflow-visible"
-          >
-          <defs>
-            <clipPath id="zoneClip">
-              <rect x={padL} y={padT} width={chartW} height={chartH} rx="4" />
-            </clipPath>
-            <linearGradient id="hpLine" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="hsl(0 78% 62%)" />
-              <stop offset="45%" stopColor="hsl(38 92% 58%)" />
-              <stop offset="100%" stopColor="hsl(142 68% 48%)" />
-            </linearGradient>
-            <filter id="hpGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2.2" result="b" />
-              <feMerge>
-                <feMergeNode in="b" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Нейтральный фон графика */}
-          <g clipPath="url(#zoneClip)">
-            <rect x={padL} y={padT} width={chartW} height={chartH} fill="hsl(210 20% 96%)" />
-          </g>
-
-          {/* Тонкая сетка */}
-          {[25, 40, 55].map((t) => (
-            <line
-              key={t}
-              x1={padL}
-              x2={padL + chartW}
-              y1={y(t)}
-              y2={y(t)}
-              stroke="hsl(215 16% 47%)"
-              strokeOpacity="0.08"
-              strokeWidth="0.5"
-            />
-          ))}
-
-          {/* Линия тренда с градиентом от дефицита к оптимуму */}
-          <path
-            d={`M ${pts[0][0]} ${pts[0][1]} L ${pts[1][0]} ${pts[1][1]} L ${pts[2][0]} ${pts[2][1]} L ${pts[3][0]} ${pts[3][1]}`}
-            fill="none"
-            stroke="url(#hpLine)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Точки */}
-          {points.map((v, i) => {
-            const isLast = i === lastIdx;
-            return (
-              <g key={i}>
-                {isLast && (
-                  <circle
-                    cx={x(i)}
-                    cy={y(v)}
-                    r="5"
-                    fill="hsl(142 68% 48%)"
-                    opacity="0.25"
-                    filter="url(#hpGlow)"
-                  />
-                )}
-                <circle
-                  cx={x(i)}
-                  cy={y(v)}
-                  r={isLast ? 2.8 : 2}
-                  fill="hsl(0 0% 100%)"
-                  stroke={
-                    i === 0
-                      ? "hsl(0 78% 62%)"
-                      : "hsl(142 68% 48%)"
-                  }
-                  strokeWidth="1.4"
-                />
-              </g>
-            );
-          })}
-
-          {/* Метки под осью X */}
-          {labels.map((l, i) => (
-            <text
-              key={l}
-              x={x(i)}
-              y={height - 4}
-              textAnchor="middle"
-              fontSize="6.5"
-              fontWeight="500"
-              fill="hsl(215 16% 47%)"
-            >
-              {l}
-            </text>
-          ))}
-        </svg>
-      </div>
     </div>
-  </div>
-);
+  );
 }
 
-
-
+function CompactBioAgeWidget() {
+  const isMobile = useIsMobile();
+  return (
+    <div className="rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)] p-3.5">
+      <div className="flex items-center justify-between gap-3 mb-2.5">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide leading-tight">
+          {isMobile ? "БИО. ВОЗРАСТ" : "Биологический возраст"}
+        </span>
+        <span className="inline-flex items-center text-[10px] font-semibold text-[hsl(var(--status-optimal))] bg-[hsl(var(--status-optimal)/0.12)] px-2 py-0.5 rounded-full">
+          −3.8
+        </span>
+      </div>
+      <div className="flex items-end gap-2">
+        <span className="text-4xl sm:text-[2.65rem] font-bold tracking-tight text-foreground leading-none">
+          34.2
+        </span>
+        <span className="text-xs text-muted-foreground pb-1">года</span>
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-border/40 flex items-center justify-between">
+        <span className="text-[10px] text-muted-foreground">Реальный</span>
+        <span className="text-[10px] font-medium text-foreground">38 лет</span>
+      </div>
+    </div>
+  );
+}
 
 function StatRow() {
   const stats = [
@@ -232,7 +203,7 @@ function StatRow() {
 
 /* ===================== LAYOUT DATA ===================== */
 
-type WidgetId = "healthDynamics";
+type WidgetId = "bioAge" | "biomarkers" | "recommendations" | "systems";
 type WidgetPos = { top: number; left: number; width: number; rotate: number };
 type Layout = Record<WidgetId, WidgetPos>;
 type Breakpoint = "mobile" | "tablet" | "desktop";
@@ -257,38 +228,49 @@ const ARTBOARDS: Record<
     width: 340,
     height: 440,
     scale: 0.82,
-    man: { left: 30, bottom: 0, width: 300, height: 354, objectPosition: "50% 100%" },
+    man: { left: 50, top: 0, width: 240, height: 440, objectPosition: "50% 0" },
   },
   tablet: {
     width: 560,
     height: 500,
     scale: 1,
-    man: { left: 90, bottom: 0, width: 400, height: 471, objectPosition: "50% 100%" },
+    man: { left: 140, bottom: 0, width: 280, height: 500, objectPosition: "50% 0" },
   },
   desktop: {
     width: 560,
     height: 640,
     scale: 1,
-    man: { left: 30, bottom: 0, width: 520, height: 613, objectPosition: "50% 100%" },
+    man: { left: 80, bottom: 0, width: 480, height: 640, objectPosition: "50% 100%" },
   },
 };
 
 const LAYOUTS: Record<Breakpoint, Layout> = {
   mobile: {
-    healthDynamics: { top: 125, left: 273, width: 170, rotate: 0 },
+    bioAge:         { top: 138, left: -15, width: 170, rotate: -2 },
+    biomarkers:     { top: 139, left: 184, width: 172, rotate: 2 },
+    recommendations:{ top: 261, left: -30, width: 165, rotate: -1 },
+    systems:        { top: 296, left: 146, width: 175, rotate: 1 },
   },
   tablet: {
-    healthDynamics: { top: 145, left: 460, width: 220, rotate: 0 },
+    bioAge:         { top: 184, left: 39,  width: 208, rotate: -2 },
+    biomarkers:     { top: 162, left: 326, width: 220, rotate: 2 },
+    recommendations:{ top: 331, left: 286, width: 232, rotate: -1 },
+    systems:        { top: 332, left: 54,  width: 240, rotate: 1 },
   },
   desktop: {
-    healthDynamics: { top: 180, left: 477, width: 255, rotate: 0 },
+    bioAge:         { top: 309, left: 59,  width: 216, rotate: -2 },
+    biomarkers:     { top: 265, left: 314, width: 236, rotate: 2 },
+    recommendations:{ top: 445, left: 301, width: 244, rotate: -2 },
+    systems:        { top: 463, left: 32,  width: 252, rotate: 1 },
   },
 };
 
 function renderWidget(id: WidgetId) {
   switch (id) {
-    case "healthDynamics":
-      return <HealthDynamicsWidget />;
+    case "bioAge": return <CompactBioAgeWidget />;
+    case "biomarkers": return <CompactBiomarkersWidget />;
+    case "recommendations": return <RecommendationsWidget />;
+    case "systems": return <CompactSystemsWidget />;
   }
 }
 
@@ -318,10 +300,16 @@ function Artboard({ bp }: { bp: Breakpoint }) {
   const layout = LAYOUTS[bp];
 
   const zMap: Record<WidgetId, number> = {
-    healthDynamics: 30,
+    bioAge: 20,
+    biomarkers: 30,
+    recommendations: 30,
+    systems: 30,
   };
   const delayMap: Record<WidgetId, string> = {
-    healthDynamics: "0.55s",
+    bioAge: "0.35s",
+    biomarkers: "0.5s",
+    recommendations: "0.8s",
+    systems: "0.65s",
   };
 
   return (
