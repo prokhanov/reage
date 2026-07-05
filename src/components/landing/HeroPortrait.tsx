@@ -259,8 +259,8 @@ const LAYOUTS: Record<Breakpoint, Layout> = {
   },
   desktop: {
     bioAge:         { top: 309, left: 59,  width: 216, rotate: -2 },
-    biomarkers:     { top: 265, left: 314, width: 236, rotate: 2 },
-    recommendations:{ top: 445, left: 301, width: 244, rotate: -2 },
+    biomarkers:     { top: 303, left: 311, width: 236, rotate: 2 },
+    recommendations:{ top: 457, left: 300, width: 244, rotate: -2 },
     systems:        { top: 463, left: 32,  width: 252, rotate: 1 },
   },
 };
