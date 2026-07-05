@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
 import { useRegisterGuard } from "@/components/RegisterGuard";
-import heroMan from "@/assets/landing-v2/hero-couple-v2.webp";
+import heroMan from "@/assets/landing-v2/hero-couple-v8.webp";
 
 const glass =
   "rounded-2xl border border-border/50 bg-card/50 backdrop-blur-xl shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.35)]";
@@ -180,7 +180,7 @@ function CompactBioAgeWidget() {
 
 function StatRow() {
   const stats = [
-    { icon: Activity, label: "биомаркеров", value: "100+" },
+    { icon: Activity, label: "биомаркеров", value: "85+" },
     { icon: ShieldCheck, label: "систем организма", value: "5" },
     { icon: FlaskConical, label: "чекапов в год", value: "до 4х" },
   ];
@@ -249,8 +249,8 @@ const DEFAULT_LAYOUTS: Record<Breakpoint, Layout> = {
   },
   desktop: {
     bioAge:         { top: 309, left: 59,  width: 216, rotate: -2 },
-    biomarkers:     { top: 265, left: 314, width: 236, rotate: 2 },
-    recommendations:{ top: 445, left: 301, width: 244, rotate: -2 },
+    biomarkers:     { top: 303, left: 311, width: 236, rotate: 2 },
+    recommendations:{ top: 457, left: 300, width: 244, rotate: -2 },
     systems:        { top: 463, left: 32,  width: 252, rotate: 1 },
   },
 };
