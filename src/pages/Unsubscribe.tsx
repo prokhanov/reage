@@ -54,28 +54,14 @@ export default function Unsubscribe() {
       const kind = detectTokenKind(token);
       try {
         if (kind === "queue") {
-          // GET-валидация (handle-email-unsubscribe возвращает { valid, reason } или email).
-          const { data, error } = await supabase.functions.invoke("handle-email-unsubscribe", {
-            method: "GET",
-            body: undefined,
-            headers: {},
-            // supabase-js не поддерживает query-string напрямую в invoke — передаём через URL.
-            // Но invoke собирает URL сам; используем fetch-обвязку через .invoke с query в body-less GET невозможно.
-            // Поэтому вызываем POST с preview-намерением: функция валидирует токен на GET и POST одинаково.
-          } as any);
-
-          // handle-email-unsubscribe принимает token только из query (GET) или form/JSON body (POST).
-          // supabase.functions.invoke делает POST по умолчанию — используем JSON body.
-          if (error || !data) {
-            // Fallback: явный POST с JSON body (валидация без побочных эффектов не поддерживается —
-            // но токен одноразовый, поэтому «проверить и подтвердить» делаем в один шаг ниже).
-          }
-
-          // Реально валидируем через POST + JSON body — это и подтвердит отписку.
-          // Показываем пользователю форму подтверждения перед этим — см. confirm().
+          // Токен из футера транзакционных/auth-писем — одноразовый UUID.
+          // Отдельной «безопасной» GET-валидации у handle-email-unsubscribe нет
+          // (любой POST списывает токен), поэтому сразу показываем экран
+          // подтверждения. Проверка + списание — по клику в confirm().
           setState({ kind: "ready", scope: "all_marketing" });
           return;
         }
+
 
         // drip: HMAC-токен → drip-unsubscribe с preview:true.
         const { data, error } = await supabase.functions.invoke("drip-unsubscribe", {
