@@ -212,7 +212,7 @@ serve(async (req) => {
 
     const [profileRes, analysesRes, prescRes, categoriesRes, complaintsRes, subRes, bookingsRes, adherenceRes, historyRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", targetUserId).single(),
-      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode, aging_weight))").eq("user_id", targetUserId).eq("status", "processed").order("date", { ascending: false }).limit(1),
+      supabase.from("analyses").select("*, analysis_values(value, biomarkers(name, code, category, unit, normal_min, normal_max, normal_min_male, normal_max_male, normal_min_female, normal_max_female, optimal_min, optimal_max, optimal_min_male, optimal_max_male, optimal_min_female, optimal_max_female, critical_min, critical_max, critical_min_male, critical_max_male, critical_min_female, critical_max_female, age_ranges, range_mode, aging_weight))").eq("user_id", targetUserId).in("status", ["processed", "on_review"]).order("date", { ascending: false }).limit(1),
       supabase.from("prescriptions").select("*").eq("user_id", targetUserId).eq("is_archived", false),
       supabase.from("biomarker_categories").select("name, display_order").order("display_order"),
       supabase.from("complaints").select("main_complaints, goals, lifestyle").eq("user_id", targetUserId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
