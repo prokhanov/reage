@@ -187,6 +187,16 @@ export const CALCULATED_FORMULAS: CalculatedFormula[] = [
     },
     precision: 2,
   },
+  // FAI (Индекс свободных андрогенов) = Тестостерон общий / SHBG × 100 (%)
+  {
+    outputCode: "FAI",
+    requiredInputs: ["TEST", "SHBG"],
+    compute: ({ TEST, SHBG }) => {
+      if (SHBG <= 0) return null;
+      return (TEST / SHBG) * 100;
+    },
+    precision: 2,
+  },
 ];
 
 
