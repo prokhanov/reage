@@ -172,18 +172,44 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const getUserRoles = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
+  const getUserAccessMarkers = useCallback(async (userId: string) => {
+    const { data: rolesData, error: rolesError } = await supabase
       .from('user_roles')
-      .select('role')
+      .select('role, role_id')
       .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error fetching roles for demo mode:', error);
-      return [];
+    if (rolesError) {
+      console.error('Error fetching roles for demo mode:', rolesError);
+      return { roles: [], hasAdminAccess: false };
     }
 
-    return (data || []).map((row) => row.role);
+    const roles = (rolesData || []).map((row) => row.role);
+    const roleIds = (rolesData || []).map((row) => row.role_id).filter(Boolean) as string[];
+
+    const [personalPerms, rolePerms] = await Promise.all([
+      supabase
+        .from('admin_permissions')
+        .select('module')
+        .eq('user_id', userId)
+        .eq('enabled', true)
+        .limit(1),
+      roleIds.length > 0
+        ? supabase
+            .from('role_permissions')
+            .select('module')
+            .in('role_id', roleIds)
+            .eq('enabled', true)
+            .limit(1)
+        : Promise.resolve({ data: [], error: null } as any),
+    ]);
+
+    if (personalPerms.error) console.error('Error fetching personal admin permissions for demo mode:', personalPerms.error);
+    if (rolePerms.error) console.error('Error fetching role admin permissions for demo mode:', rolePerms.error);
+
+    return {
+      roles,
+      hasAdminAccess: (personalPerms.data?.length || 0) > 0 || (rolePerms.data?.length || 0) > 0,
+    };
   }, []);
 
   const fetchDemoModeStatus = useCallback(async () => {
@@ -201,8 +227,8 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', userId)
         .maybeSingle();
 
-      const roles = await getUserRoles(userId);
-      const access = resolveDemoModeAccess(roles, !!viewAsUserId);
+      const { roles, hasAdminAccess } = await getUserAccessMarkers(userId);
+      const access = resolveDemoModeAccess(roles, !!viewAsUserId, hasAdminAccess);
 
       if (!access.allowed) {
         if (profile?.demo_mode_enabled && access.shouldClearOwnDemoFlag) {
@@ -229,7 +255,7 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, [getUserId, getUserRoles, loadDemoData, viewAsUserId]);
+  }, [getUserId, getUserAccessMarkers, loadDemoData, viewAsUserId]);
 
   useEffect(() => {
     // Пере-запрашиваем статус демо-режима при смене просматриваемого пользователя.
@@ -243,8 +269,8 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       if (!userId) return false;
 
       if (enabled) {
-        const roles = await getUserRoles(userId);
-        const access = resolveDemoModeAccess(roles, !!viewAsUserId);
+        const { roles, hasAdminAccess } = await getUserAccessMarkers(userId);
+        const access = resolveDemoModeAccess(roles, !!viewAsUserId, hasAdminAccess);
 
         if (!access.allowed) {
           if (access.shouldClearOwnDemoFlag) {
@@ -321,7 +347,7 @@ export const DemoModeProvider = ({ children }: { children: ReactNode }) => {
       });
       return false;
     }
-  }, [getUserId, getUserRoles, loadDemoData, toast, viewAsUserId]);
+  }, [getUserId, getUserAccessMarkers, loadDemoData, toast, viewAsUserId]);
 
   return (
     <DemoModeContext.Provider

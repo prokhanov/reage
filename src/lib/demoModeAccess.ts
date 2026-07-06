@@ -6,7 +6,11 @@ export type DemoModeAccess = {
   reason: "allowed" | "viewed-user-not-patient" | "own-staff-account" | "own-non-patient-account";
 };
 
-export function resolveDemoModeAccess(roles: Array<string | null | undefined>, isViewMode: boolean): DemoModeAccess {
+export function resolveDemoModeAccess(
+  roles: Array<string | null | undefined>,
+  isViewMode: boolean,
+  hasAdminAccess = false,
+): DemoModeAccess {
   const normalizedRoles = new Set(
     roles
       .filter((role): role is string => typeof role === "string")
@@ -14,7 +18,7 @@ export function resolveDemoModeAccess(roles: Array<string | null | undefined>, i
   );
 
   const hasPatientRole = normalizedRoles.has("patient");
-  const hasStaffRole = Array.from(STAFF_ROLES).some((role) => normalizedRoles.has(role));
+  const hasStaffRole = hasAdminAccess || Array.from(STAFF_ROLES).some((role) => normalizedRoles.has(role));
 
   if (isViewMode) {
     return {

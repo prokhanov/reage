@@ -85,12 +85,32 @@ export default function Profile() {
       if (!uid) return;
       const { data } = await supabase
         .from('user_roles')
-        .select('role')
+        .select('role, role_id')
         .eq('user_id', uid);
 
       const roles = (data || []).map((row) => row.role);
+      const roleIds = (data || []).map((row) => row.role_id).filter(Boolean) as string[];
+
+      const [personalPerms, rolePerms] = await Promise.all([
+        supabase
+          .from('admin_permissions')
+          .select('module')
+          .eq('user_id', uid)
+          .eq('enabled', true)
+          .limit(1),
+        roleIds.length > 0
+          ? supabase
+              .from('role_permissions')
+              .select('module')
+              .in('role_id', roleIds)
+              .eq('enabled', true)
+              .limit(1)
+          : Promise.resolve({ data: [], error: null } as any),
+      ]);
+
+      const hasAdminAccess = (personalPerms.data?.length || 0) > 0 || (rolePerms.data?.length || 0) > 0;
       setIsPatientProfile(roles.includes('patient'));
-      setCanShowDemoModeCard(resolveDemoModeAccess(roles, isViewMode).allowed);
+      setCanShowDemoModeCard(resolveDemoModeAccess(roles, isViewMode, hasAdminAccess).allowed);
     } catch (error) {
       console.error('Error checking patient role:', error);
     }

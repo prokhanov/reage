@@ -28,8 +28,23 @@ describe("resolveDemoModeAccess", () => {
     });
   });
 
+  it("forbids demo mode on an own account with admin access even if role is patient", () => {
+    expect(resolveDemoModeAccess(["patient"], false, true)).toMatchObject({
+      allowed: false,
+      shouldClearOwnDemoFlag: true,
+      reason: "own-staff-account",
+    });
+  });
+
   it("allows an admin in view-as mode to use demo mode for the viewed patient", () => {
     expect(resolveDemoModeAccess(["patient"], true)).toMatchObject({
+      allowed: true,
+      shouldClearOwnDemoFlag: false,
+    });
+  });
+
+  it("allows view-as patient even when the operator has admin access", () => {
+    expect(resolveDemoModeAccess(["patient"], true, true)).toMatchObject({
       allowed: true,
       shouldClearOwnDemoFlag: false,
     });
