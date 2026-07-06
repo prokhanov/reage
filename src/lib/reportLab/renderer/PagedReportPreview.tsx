@@ -363,7 +363,10 @@ export function PagedReportPreview({
 
       try {
         await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready;
-        if (token.cancelled) return;
+        if (token.cancelled) {
+          scratch.remove();
+          return;
+        }
         const previewer = new Previewer({});
         const flow = await previewer.preview(
           content.content,
