@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import { useReportEditor } from "../editor/ReportEditorContext";
 
 interface Props {
@@ -52,6 +53,7 @@ export function ProseMarkdown({ markdown, className = "", editableId }: Props) {
     >
       {clean ? (
         <ReactMarkdown
+          remarkPlugins={[remarkBreaks]}
           components={{
             h1: ({ children }) => <h2>{children}</h2>,
             p: ({ children, ...props }) => {
