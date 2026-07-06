@@ -100,8 +100,13 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) return new Response(JSON.stringify({ error: "No auth" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      console.error("[compute-health-strategy] getClaims failed", claimsErr?.message);
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const user = { id: claimsData.claims.sub as string };
 
     const body = await req.json().catch(() => ({}));
     const { userId, force, preview, publish, edited } = body || {};
