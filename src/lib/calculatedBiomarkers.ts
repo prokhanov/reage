@@ -265,8 +265,10 @@ export function getFormulaDescription(code: string): string | null {
       return "CKD-EPI 2021: f(Креатинин, возраст, пол)";
     case "TSAT":
       return "Fe / (Трансферрин × 25.1) × 100";
-    case "OSI-proxy":
-      return "(MDA / GSH) × 1000";
+    case "ApoB/A1":
+      return "ApoB / ApoA1";
+    case "non-HDL":
+      return "Общий холестерин − HDL";
     default:
       return null;
   }
