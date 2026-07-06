@@ -756,6 +756,7 @@ function installCoverInlineEditor(
     i.addEventListener("input", () => {
       onChange(i.value);
       applyBg();
+      emit();
     });
     return i;
   };
@@ -765,10 +766,11 @@ function installCoverInlineEditor(
     "background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:2px 4px;font:inherit;cursor:pointer";
   modeSel.innerHTML =
     '<option value="gradient">Градиент</option><option value="solid">Однотонный</option>';
+  modeSel.value = state.mode;
   const solidWrap = document.createElement("span");
   const gradWrap = document.createElement("span");
-  gradWrap.style.cssText = "display:flex;gap:4px;align-items:center";
-  solidWrap.style.cssText = "display:none;gap:4px;align-items:center";
+  gradWrap.style.cssText = `display:${state.mode === "gradient" ? "flex" : "none"};gap:4px;align-items:center`;
+  solidWrap.style.cssText = `display:${state.mode === "solid" ? "flex" : "none"};gap:4px;align-items:center`;
 
   const c1 = mkColor(state.c1, (v) => (state.c1 = v));
   const c2 = mkColor(state.c2, (v) => (state.c2 = v));
@@ -783,6 +785,7 @@ function installCoverInlineEditor(
   angle.addEventListener("input", () => {
     state.angle = parseInt(angle.value, 10);
     applyBg();
+    emit();
   });
   gradWrap.append(c1, c2, c3, angle);
 
@@ -794,6 +797,7 @@ function installCoverInlineEditor(
     gradWrap.style.display = state.mode === "gradient" ? "flex" : "none";
     solidWrap.style.display = state.mode === "solid" ? "flex" : "none";
     applyBg();
+    emit();
   });
 
   const bgReset = document.createElement("button");
