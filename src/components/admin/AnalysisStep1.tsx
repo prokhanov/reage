@@ -352,17 +352,37 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
         <Dialog open={showHealthDialog} onOpenChange={setShowHealthDialog}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Уровень здоровья</DialogTitle>
+              <DialogTitle>Генерация мок-данных</DialogTitle>
               <DialogDescription>
-                Выберите профиль для генерации мок-значений биомаркеров
+                Выберите тариф и профиль здоровья
               </DialogDescription>
             </DialogHeader>
+            <div className="space-y-2 pt-1">
+              <Label>Тариф</Label>
+              <Select
+                value={selectedPlanId ?? undefined}
+                onValueChange={(v) => setSelectedPlanId(v)}
+                disabled={plansLoading || plans.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={plansLoading ? "Загрузка..." : "Выберите тариф"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} ({p.count} маркеров)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid gap-2 py-2">
               {HEALTH_LEVELS.map((hl) => (
                 <Button
                   key={hl.level}
                   variant="outline"
                   className="justify-start h-auto py-3"
+                  disabled={!selectedPlanId || plansLoading}
                   onClick={() => handleGenerateMock(hl.level)}
                 >
                   <span className="text-lg mr-3">{hl.emoji}</span>
