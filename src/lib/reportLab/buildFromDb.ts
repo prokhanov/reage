@@ -10,6 +10,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type {
+  CoverOverrides,
   LabReport,
   ReportAnalysis,
   ReportBiomarker,
