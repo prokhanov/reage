@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Previewer } from "pagedjs";
 import { ReportDocument } from "./ReportDocument";
-import type { LabReport } from "../types";
+import type { CoverOverrides, LabReport } from "../types";
 
 import { StaticReportEditorProvider } from "../editor/ReportEditorContext";
 import { htmlToMarkdown } from "../editor/markdown";
