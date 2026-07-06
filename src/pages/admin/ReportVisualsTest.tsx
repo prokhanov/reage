@@ -11,6 +11,7 @@ import { useReportEditor } from "@/lib/reportLab/editor/ReportEditorContext";
 import { assembleRecommendationText } from "@/lib/reportLab/editor/assemble";
 import type { LabReport } from "@/lib/reportLab/types";
 import prokhanovReportRaw from "@/data/prokhanovReport.json";
+import { buildLabReportFromDb } from "@/lib/reportLab/buildFromDb";
 
 const INITIAL_REPORT = prokhanovReportRaw as unknown as LabReport;
 
