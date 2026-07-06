@@ -49,7 +49,11 @@ function Toolbar({
   };
 
   const save = async () => {
-    const changed = collectDirtyRecommendations(report, drafts);
+    const changed = collectDirtyRecommendations(report, drafts).map((c) => ({
+      ...c,
+      // Митигация: v1-редактор ждёт чистый markdown без HTML-мусора.
+      text: cleanMarkdownArtifacts(c.text),
+    }));
     if (changed.length === 0) {
       toast.info("Ничего не изменилось");
       resetDrafts();
