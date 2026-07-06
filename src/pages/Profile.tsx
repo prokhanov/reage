@@ -24,6 +24,7 @@ import { useViewAsUser } from "@/hooks/useViewAsUser";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { useQueryClient } from "@tanstack/react-query";
 import { performSafeLogout } from "@/lib/authLogout";
+import { resolveDemoModeAccess } from "@/lib/demoModeAccess";
 
 interface Profile {
   name: string;
@@ -66,6 +67,7 @@ export default function Profile() {
   // Является ли ПРОСМАТРИВАЕМЫЙ пользователь пациентом.
   // Пациентские блоки (мед. анкета, паспорт, демо-режим) показываем только пациентам.
   const [isPatientProfile, setIsPatientProfile] = useState(false);
+  const [canShowDemoModeCard, setCanShowDemoModeCard] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -84,10 +86,11 @@ export default function Profile() {
       const { data } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', uid)
-        .eq('role', 'patient')
-        .maybeSingle();
-      setIsPatientProfile(!!data);
+        .eq('user_id', uid);
+
+      const roles = (data || []).map((row) => row.role);
+      setIsPatientProfile(roles.includes('patient'));
+      setCanShowDemoModeCard(resolveDemoModeAccess(roles, isViewMode).allowed);
     } catch (error) {
       console.error('Error checking patient role:', error);
     }
@@ -505,7 +508,7 @@ export default function Profile() {
 
 
           {/* Demo Mode Card */}
-          <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
+          {canShowDemoModeCard && <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur border-border/50">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -560,7 +563,7 @@ export default function Profile() {
                 </Alert>
               )}
             </div>
-          </Card>
+          </Card>}
           </>}
 
           {/* Security Card */}
