@@ -1,8 +1,9 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
@@ -156,26 +157,80 @@ function roundToReasonable(value: number): number {
 export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual", onModeChange, onAutoImported, onAutoClose }: AnalysisStep1Props) {
   const [showHealthDialog, setShowHealthDialog] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [plans, setPlans] = useState<Array<{ id: string; name: string; count: number }>>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [plansLoading, setPlansLoading] = useState(false);
   const { viewAsUserId } = useContext(ViewAsPatientContext);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (!showHealthDialog || plans.length > 0 || !viewAsUserId) return;
+    setPlansLoading(true);
+    (async () => {
+      try {
+        const [plansRes, pbRes, subRes] = await Promise.all([
+          supabase.from("subscription_plans").select("id, name").order("name"),
+          supabase.from("plan_biomarkers").select("plan_id, biomarker_id"),
+          supabase
+            .from("subscriptions")
+            .select("plan_id")
+            .eq("user_id", viewAsUserId)
+            .eq("status", "active")
+            .maybeSingle(),
+        ]);
+        if (plansRes.error) throw plansRes.error;
+        if (pbRes.error) throw pbRes.error;
+
+        const counts = new Map<string, number>();
+        (pbRes.data || []).forEach((row: any) => {
+          counts.set(row.plan_id, (counts.get(row.plan_id) || 0) + 1);
+        });
+        const list = (plansRes.data || []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          count: counts.get(p.id) || 0,
+        }));
+        setPlans(list);
+
+        const activePlanId = subRes.data?.plan_id as string | undefined;
+        const defaultId =
+          (activePlanId && list.find((p) => p.id === activePlanId)?.id) ||
+          list[0]?.id ||
+          null;
+        setSelectedPlanId(defaultId);
+      } catch (err: any) {
+        console.error("Error loading plans:", err);
+        toast({ title: "Ошибка загрузки тарифов", description: err.message, variant: "destructive" });
+      } finally {
+        setPlansLoading(false);
+      }
+    })();
+  }, [showHealthDialog, viewAsUserId, plans.length, toast]);
+
   const handleGenerateMock = async (healthLevel: number) => {
     if (!viewAsUserId || !onMockGenerate) return;
+    if (!selectedPlanId) {
+      toast({ title: "Выберите тариф", variant: "destructive" });
+      return;
+    }
     setGenerating(true);
     setShowHealthDialog(false);
 
     try {
-      // Fetch patient profile and all biomarkers in parallel
-      const [profileRes, biomarkersRes] = await Promise.all([
+      // Fetch patient profile, all biomarkers, and plan biomarkers in parallel
+      const [profileRes, biomarkersRes, planBmRes] = await Promise.all([
         supabase.from("profiles").select("birth_date, gender").eq("id", viewAsUserId).single(),
         supabase.from("biomarkers").select("*").order("display_order"),
+        supabase.from("plan_biomarkers").select("biomarker_id").eq("plan_id", selectedPlanId),
       ]);
 
       if (profileRes.error) throw profileRes.error;
       if (biomarkersRes.error) throw biomarkersRes.error;
+      if (planBmRes.error) throw planBmRes.error;
 
       const profile = profileRes.data;
       const biomarkers = biomarkersRes.data;
+      const allowedIds = new Set<string>((planBmRes.data || []).map((r: any) => r.biomarker_id));
       const age = calculateAge(profile.birth_date);
       const gender = (profile.gender === "female" ? "female" : "male") as "male" | "female";
       const weights = HEALTH_WEIGHTS[healthLevel];
@@ -183,6 +238,7 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
       const values: Array<{ biomarkerId: string; value: string; unitOverride?: string }> = [];
 
       for (const bm of biomarkers) {
+        if (!allowedIds.has(bm.id)) continue;
         // Расчётные биомаркеры пропускаем — заполним их формулами после генерации.
         if (CALCULATED_BIOMARKER_CODES.has(bm.code)) continue;
 
@@ -215,16 +271,18 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
       derived.forEach((value, code) => {
         const bm = codeToBiomarker.get(code);
         if (!bm) return;
+        if (!allowedIds.has(bm.id)) return;
         values.push({
           biomarkerId: bm.id,
           value: String(value),
         });
       });
 
+      const planName = plans.find((p) => p.id === selectedPlanId)?.name || "";
       onMockGenerate(values);
       toast({
         title: "Мок-данные сгенерированы",
-        description: `${values.length} значений (уровень: ${HEALTH_LEVELS[healthLevel - 1].label})`,
+        description: `${values.length} значений (тариф ${planName}, уровень: ${HEALTH_LEVELS[healthLevel - 1].label})`,
       });
     } catch (error: any) {
       console.error("Error generating mock data:", error);
@@ -294,17 +352,37 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
         <Dialog open={showHealthDialog} onOpenChange={setShowHealthDialog}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Уровень здоровья</DialogTitle>
+              <DialogTitle>Генерация мок-данных</DialogTitle>
               <DialogDescription>
-                Выберите профиль для генерации мок-значений биомаркеров
+                Выберите тариф и профиль здоровья
               </DialogDescription>
             </DialogHeader>
+            <div className="space-y-2 pt-1">
+              <Label>Тариф</Label>
+              <Select
+                value={selectedPlanId ?? undefined}
+                onValueChange={(v) => setSelectedPlanId(v)}
+                disabled={plansLoading || plans.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={plansLoading ? "Загрузка..." : "Выберите тариф"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} ({p.count} маркеров)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid gap-2 py-2">
               {HEALTH_LEVELS.map((hl) => (
                 <Button
                   key={hl.level}
                   variant="outline"
                   className="justify-start h-auto py-3"
+                  disabled={!selectedPlanId || plansLoading}
                   onClick={() => handleGenerateMock(hl.level)}
                 >
                   <span className="text-lg mr-3">{hl.emoji}</span>
