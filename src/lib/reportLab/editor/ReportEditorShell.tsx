@@ -84,7 +84,7 @@ export function ReportEditorToolbar({
         if (coverDirty) {
           const { error } = await supabase
             .from("analyses")
-            .update({ cover_overrides: coverOverrides })
+            .update({ cover_overrides: (coverOverrides ?? null) as never })
             .eq("id", report.analysis.id);
           if (error) throw error;
         }
