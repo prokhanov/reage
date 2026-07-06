@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { notify as toast } from "@/lib/toast";
+import { cleanMarkdownArtifacts } from "@/lib/markdown";
 import type { LabReport } from "../types";
 import {
   ReportEditorProvider,
