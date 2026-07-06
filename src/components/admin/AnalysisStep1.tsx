@@ -271,16 +271,18 @@ export function AnalysisStep1({ data, onChange, onMockGenerate, mode = "manual",
       derived.forEach((value, code) => {
         const bm = codeToBiomarker.get(code);
         if (!bm) return;
+        if (!allowedIds.has(bm.id)) return;
         values.push({
           biomarkerId: bm.id,
           value: String(value),
         });
       });
 
+      const planName = plans.find((p) => p.id === selectedPlanId)?.name || "";
       onMockGenerate(values);
       toast({
         title: "Мок-данные сгенерированы",
-        description: `${values.length} значений (уровень: ${HEALTH_LEVELS[healthLevel - 1].label})`,
+        description: `${values.length} значений (тариф ${planName}, уровень: ${HEALTH_LEVELS[healthLevel - 1].label})`,
       });
     } catch (error: any) {
       console.error("Error generating mock data:", error);
