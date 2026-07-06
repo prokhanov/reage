@@ -219,10 +219,12 @@ html, body {
   break-inside: avoid-page;
   page-break-inside: avoid;
 }
-.reportlab .rl-bio-head {
+.reportlab .rl-bio-head,
+.reportlab .rl-bio-scale {
   break-after: avoid-page;
   page-break-after: avoid;
 }
+
 .reportlab .rl-section-header,
 .reportlab .rl-prose h2,
 .reportlab .rl-prose h3,
