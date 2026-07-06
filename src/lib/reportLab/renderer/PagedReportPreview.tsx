@@ -1064,6 +1064,12 @@ function installCoverInlineEditor(
       el.contentEditable = "true";
       el.focus();
     });
+    // Отслеживаем ручную правку текста в contentEditable.
+    el.addEventListener("input", () => {
+      const key = el.getAttribute("data-cover-el");
+      if (key) htmlDirty.add(key);
+      emit();
+    });
     el.addEventListener("mousedown", (e) => {
       if ((e.target as HTMLElement).isContentEditable) return;
       if (el.contentEditable === "true") return;
@@ -1087,6 +1093,7 @@ function installCoverInlineEditor(
     positionPanel();
   };
   const onUp = () => {
+    if (dragging) emit();
     dragging = false;
   };
   document.addEventListener("mousemove", onMove);
