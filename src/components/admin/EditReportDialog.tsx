@@ -98,6 +98,16 @@ export function EditReportDialog({
   const [qaRunning, setQaRunning] = useState(false);
   const [qaEvents, setQaEvents] = useState<Array<{ type: string; message: string }>>([]);
   const [qaCompleted, setQaCompleted] = useState(false);
+  const [viewMode, setViewMode] = useState<"classic" | "v2">(() => {
+    if (!ENABLE_REPORT_V2) return "classic";
+    try {
+      const saved = localStorage.getItem(REPORT_V2_STORAGE_KEY);
+      return saved === "v2" ? "v2" : "classic";
+    } catch {
+      return "classic";
+    }
+  });
+  const [analysisUserId, setAnalysisUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const runQaCheck = async () => {
