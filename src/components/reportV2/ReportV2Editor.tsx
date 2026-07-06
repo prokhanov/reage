@@ -282,6 +282,8 @@ function EditablePreview({
       editable={editable}
       drafts={ctx?.drafts ?? EMPTY_DRAFTS}
       onEditChange={(id, md) => ctx?.setDraft(id, md)}
+      coverOverrides={ctx?.coverOverrides ?? report.coverOverrides ?? null}
+      onCoverOverridesChange={(next) => ctx?.setCoverOverrides(next)}
     />
   );
 }
