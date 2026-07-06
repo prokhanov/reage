@@ -1,12 +1,15 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useContext, useState, useEffect } from "react";
 import { ViewAsPatientProvider, ViewAsPatientContext } from "@/contexts/ViewAsPatientContext";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { AppSidebar } from "@/components/AppSidebar";
 
 import { AnalysisBookingBanner } from "@/components/AnalysisBookingBanner";
+import { DemoBanner } from "@/components/DemoBanner";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { ThemedLogo } from "@/components/ThemedLogo";
+import { useDemoMode } from "@/hooks/useDemoMode";
 import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Analyses from "@/pages/Analyses";
@@ -55,6 +58,49 @@ function SimulatedContent() {
   }
 }
 
+function PatientViewShell({
+  sidebarOpen,
+  setSidebarOpen,
+}: {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+}) {
+  const { demoMode, toggleDemoMode } = useDemoMode();
+
+  return (
+    <div className="h-full w-full overflow-hidden bg-gradient-dark">
+      <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      
+      {/* Mobile header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-30 border-b border-border/30 bg-secondary/90 backdrop-blur-xl">
+        <div className="flex items-center justify-between p-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <ThemedLogo className="h-8 w-auto" />
+          <div className="w-10" />
+        </div>
+      </header>
+      
+      <div className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+        <div className="pt-16 lg:pt-0 flex-shrink-0">
+          <div className="px-4 md:px-8 pt-4 space-y-4">
+            {demoMode && <DemoBanner onToggleDemoMode={() => toggleDemoMode(false)} />}
+            <AnalysisBookingBanner />
+          </div>
+        </div>
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <SimulatedContent />
+        </main>
+      </div>
+    </div>
+  );
+}
+
 interface PatientViewDialogProps {
   patientId: string | null;
   onClose: () => void;
@@ -81,33 +127,9 @@ export function PatientViewDialog({ patientId, onClose }: PatientViewDialogProps
         <DialogTitle className="sr-only">Просмотр пациента</DialogTitle>
         <DialogDescription className="sr-only">Режим просмотра пациентского интерфейса</DialogDescription>
         <ViewAsPatientProvider userId={patientId} onExitView={onClose}>
-          <div className="h-full w-full overflow-hidden bg-gradient-dark">
-            <AppSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-            
-            {/* Mobile header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 z-30 border-b border-border/30 bg-secondary/90 backdrop-blur-xl">
-              <div className="flex items-center justify-between p-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarOpen(true)}
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-                <ThemedLogo className="h-8 w-auto" />
-                <div className="w-10" />
-              </div>
-            </header>
-            
-            <div className={`h-full flex flex-col transition-all duration-300 overflow-hidden ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
-              <div className="pt-16 lg:pt-0 flex-shrink-0">
-                <AnalysisBookingBanner />
-              </div>
-              <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-                <SimulatedContent />
-              </main>
-            </div>
-          </div>
+          <DemoModeProvider>
+            <PatientViewShell sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          </DemoModeProvider>
         </ViewAsPatientProvider>
       </DialogContent>
     </Dialog>
