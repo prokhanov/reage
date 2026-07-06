@@ -153,23 +153,27 @@ function ShellInner({
   onReportUpdate,
   children,
   persist,
+  hideToolbar,
 }: {
   report: LabReport;
   onReportUpdate: (next: LabReport) => void;
   children: (state: { mode: "view" | "edit" }) => React.ReactNode;
   persist: boolean;
+  hideToolbar: boolean;
 }) {
   const ctx = useReportEditor();
   const mode = ctx?.mode ?? "view";
   return (
     <>
-      <div className="mb-3 flex items-center justify-end gap-2">
-        <Toolbar
-          report={report}
-          onReportUpdate={onReportUpdate}
-          persist={persist}
-        />
-      </div>
+      {!hideToolbar && (
+        <div className="mb-3 flex items-center justify-end gap-2">
+          <ReportEditorToolbar
+            report={report}
+            onReportUpdate={onReportUpdate}
+            persist={persist}
+          />
+        </div>
+      )}
       <ModeBanner />
       {children({ mode })}
     </>
@@ -181,16 +185,20 @@ export function ReportEditorShell({
   onReportUpdate,
   children,
   persist = true,
+  initialMode = "view",
+  hideToolbar = false,
 }: Props) {
   return (
-    <ReportEditorProvider>
+    <ReportEditorProvider initialMode={initialMode}>
       <ShellInner
         report={report}
         onReportUpdate={onReportUpdate}
         persist={persist}
+        hideToolbar={hideToolbar}
       >
         {children}
       </ShellInner>
     </ReportEditorProvider>
   );
 }
+
