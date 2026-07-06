@@ -117,7 +117,11 @@ interface Props {
   chrome?: "framed" | "plain";
   editable?: boolean;
   drafts?: Record<string, string>;
-  
+  /** Стартовые overrides обложки (из БД / контекста). */
+  coverOverrides?: CoverOverrides | null;
+  /** Коллбэк на любое изменение обложки в инлайн-редакторе. */
+  onCoverOverridesChange?: (next: CoverOverrides | null) => void;
+
   /**
    * Реалтайм-коллбэк: срабатывает и во время ввода (debounced),
    * и на blur — родитель должен положить markdown в drafts, что
