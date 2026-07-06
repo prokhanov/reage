@@ -1455,6 +1455,18 @@ export default function Recommendations() {
           />
         )}
 
+        {/* Report V2 Dialog (Beta) */}
+        {ENABLE_REPORT_V2 && (
+          <ReportV2Dialog
+            open={reportV2State.open}
+            onOpenChange={(open) => setReportV2State((s) => ({ ...s, open }))}
+            analysisId={reportV2State.analysisId}
+            userId={reportV2State.userId}
+            mode={reportV2State.mode}
+          />
+        )}
+
+
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
