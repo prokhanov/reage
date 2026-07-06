@@ -52,7 +52,7 @@ export function ReportOverview({ report }: Props) {
       </div>
 
       {(summaryText || summaryRow) && (
-        <div className="rl-conclusion">
+        <div className={`rl-conclusion${summaryRow ? " rl-conclusion-editable" : ""}`}>
           <ProseMarkdown
             markdown={summaryText}
             editableId={summaryRow ? `rec:${summaryRow.id}#body` : undefined}

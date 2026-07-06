@@ -28,7 +28,7 @@ export function BiomarkerCard({ biomarker, commentary, gender, age = null, edita
   const label = BUCKET_LABEL[bucket];
 
   return (
-    <div className="rl-biomarker">
+    <div className={`rl-biomarker${editableId ? " rl-biomarker-editable" : ""}`}>
       <div className="rl-bio-head">
         <div className="rl-bio-title">
           <h3 className="rl-bio-name">

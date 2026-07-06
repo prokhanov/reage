@@ -114,9 +114,9 @@ const pagedCss = `
   break-inside: auto !important;
   page-break-inside: auto !important;
 }
-.reportlab .rl-biomarker:has(.rl-prose-editable),
-.reportlab .rl-conclusion:has(.rl-prose-editable),
-.reportlab .rl-callout:has(.rl-prose-editable) {
+.reportlab .rl-biomarker-editable,
+.reportlab .rl-conclusion-editable,
+.reportlab .rl-callout-editable {
   break-inside: auto !important;
   page-break-inside: auto !important;
 }
