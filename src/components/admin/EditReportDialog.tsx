@@ -906,21 +906,23 @@ export function EditReportDialog({
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
-            <Button
-              onClick={handleSaveChanges}
-              disabled={saving || loading}
-            >
-              {saving ? (
-                <>
-                  <ButtonSpinner className="mr-2" />
-                  Сохранение...
-                </>
-              ) : (
-                "Сохранить изменения"
-              )}
-            </Button>
-          </div>
+          {viewMode === "classic" && (
+            <div className="flex justify-end gap-3 pt-4 border-t shrink-0">
+              <Button
+                onClick={handleSaveChanges}
+                disabled={saving || loading}
+              >
+                {saving ? (
+                  <>
+                    <ButtonSpinner className="mr-2" />
+                    Сохранение...
+                  </>
+                ) : (
+                  "Сохранить изменения"
+                )}
+              </Button>
+            </div>
+          )}
 
           {(qaRunning || qaEvents.length > 0) && (
             <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6">
