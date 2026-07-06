@@ -242,7 +242,8 @@ export function PagedReportPreview({
   chrome = "framed",
   editable = false,
   drafts,
-  
+  coverOverrides = null,
+  onCoverOverridesChange,
   onEditChange,
   onEditBlur,
 }: Props) {
@@ -252,6 +253,10 @@ export function PagedReportPreview({
   onEditChangeRef.current = onEditChange;
   const onEditBlurRef = useRef(onEditBlur);
   onEditBlurRef.current = onEditBlur;
+  const onCoverOverridesChangeRef = useRef(onCoverOverridesChange);
+  onCoverOverridesChangeRef.current = onCoverOverridesChange;
+  const coverOverridesRef = useRef<CoverOverrides | null>(coverOverrides);
+  coverOverridesRef.current = coverOverrides;
   // Сериализация ребилдов: один Previewer одновременно, иначе Paged.js падает
   // на getBoundingClientRect.
   const runQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -263,11 +268,12 @@ export function PagedReportPreview({
         <StaticReportEditorProvider
           drafts={draftsSnapshot}
           mode={editable ? "edit" : "view"}
+          coverOverrides={coverOverrides}
         >
           <ReportDocument report={report} />
         </StaticReportEditorProvider>,
       ),
-    [report, draftsSnapshot, editable],
+    [report, draftsSnapshot, editable, coverOverrides],
   );
 
   useEffect(() => {
