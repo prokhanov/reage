@@ -35,6 +35,7 @@ type AnalysisRow = {
   note: string | null;
   health_index: number | null;
   biological_age: number | null;
+  cover_overrides: unknown;
 };
 
 type ValueRow = {
