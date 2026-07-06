@@ -822,6 +822,7 @@ function installCoverInlineEditor(
     state.c3 = DEFAULT_C3;
     state.angle = DEFAULT_ANGLE;
     state.solid = DEFAULT_C2;
+    state.hasBgOverride = false;
     modeSel.value = "gradient";
     c1.value = DEFAULT_C1;
     c2.value = DEFAULT_C2;
@@ -837,7 +838,11 @@ function installCoverInlineEditor(
       e.style.textAlign = "";
       e.style.fontWeight = "";
       e.style.fontStyle = "";
+      const key = e.getAttribute("data-cover-el");
+      if (key) htmlDirty.delete(key);
     });
+    // Полный сброс: overrides снимаются, БД получит NULL.
+    onChange(null);
   });
 
   bgBar.append(bgLabel, modeSel, gradWrap, solidWrap, bgReset);
