@@ -664,6 +664,25 @@ export default function Recommendations() {
     setEditDialogOpen(true);
   };
 
+  const [reportV2State, setReportV2State] = useState<{
+    open: boolean;
+    mode: "view" | "edit";
+    analysisId: string | null;
+    userId: string | null;
+  }>({ open: false, mode: "view", analysisId: null, userId: null });
+
+  const openReportV2 = async (report: RecommendationReport, mode: "view" | "edit") => {
+    const userId = await getUserId();
+    setReportV2State({
+      open: true,
+      mode,
+      analysisId: report.analysisId ?? null,
+      userId: userId ?? null,
+    });
+  };
+
+
+
   const handleDeleteClick = (report: RecommendationReport) => {
     setSelectedReport(report);
     setDeleteDialogOpen(true);
