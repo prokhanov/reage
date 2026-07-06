@@ -400,6 +400,10 @@ export function PagedReportPreview({
             }
           }
         }
+        // Метка «только что перепагинировали» — блокирует немедленный
+        // повторный reflow (в новой раскладке overflow-check ещё может
+        // ложно сработать на первом кадре).
+        output.dataset.rlReflowedAt = String(Date.now());
 
         if (signalReady) {
           requestAnimationFrame(() => emitReady({ pages: flow.pages?.length ?? flow.total ?? null }));
@@ -417,6 +421,9 @@ export function PagedReportPreview({
 
     // Imperative-триггер: доступен во время всей жизни useEffect.
     triggerReflowRef.current = () => {
+      // Cooldown: не даём reflow пойти в цикл сразу после предыдущего.
+      const last = Number(output.dataset.rlReflowedAt || 0);
+      if (last && Date.now() - last < 600) return;
       runQueueRef.current = runQueueRef.current.then(build, build);
     };
 
