@@ -69,20 +69,31 @@ function extractSummaryText(
   contentJson: unknown,
   fallback: string | null | undefined,
 ): string {
+  const cleanup = (s: string) =>
+    s
+      .replace(/^Общее резюме\s*/i, "")
+      .replace(/<!--[\s\S]*?(?:-->|→|\n)/g, "")
+      .trim();
+
   if (contentJson && typeof contentJson === "object") {
     const cj = contentJson as Record<string, unknown>;
-    if (typeof cj.summary === "string") return cj.summary;
-    if (typeof cj.content === "string") return cj.content;
+    if (typeof cj.summary === "string") return cleanup(cj.summary);
+    if (typeof cj.content === "string") return cleanup(cj.content);
     if (Array.isArray(cj.blocks)) {
-      const parts: string[] = [];
-      for (const b of cj.blocks as Array<Record<string, unknown>>) {
-        if (typeof b.content === "string") parts.push(b.content);
+      // ВНИМАНИЕ: в content_json «Общего резюме» edge-функция кладёт весь отчёт
+      // (section/text/biomarker/spacer по всем 5 системам). Склеивать всё
+      // подряд нельзя — иначе в блок «Общее резюме» попадают заголовки и
+      // интро каждой категории плоским текстом. Берём только настоящее резюме
+      // (первый блок `summary` с overall scope, либо просто первый summary).
+      const blocks = cj.blocks as Array<Record<string, unknown>>;
+      const summaryBlock =
+        blocks.find(
+          (b) => b.type === "summary" && (b.scope === "overall" || b.scope === undefined),
+        ) ?? blocks.find((b) => b.type === "summary");
+      if (summaryBlock && typeof summaryBlock.content === "string") {
+        return cleanup(summaryBlock.content);
       }
-      if (parts.length) return parts.join("\n\n");
     }
   }
-  return (fallback || "")
-    .replace(/^Общее резюме\s*/i, "")
-    .replace(/<!--[\s\S]*?(?:-->|→|\n)/g, "")
-    .trim();
+  return cleanup(fallback || "");
 }
