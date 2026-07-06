@@ -977,6 +977,7 @@ function installCoverInlineEditor(
   colorInput.addEventListener("input", () => {
     if (!selected) return;
     selected.style.color = colorInput.value;
+    emit();
   });
   row1.append(colorLabel, colorInput);
 
