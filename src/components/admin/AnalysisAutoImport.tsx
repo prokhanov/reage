@@ -439,12 +439,23 @@ export function AnalysisAutoImport({ onImported, onClose }: Props) {
             if (vErr) throw vErr;
           }
 
+          // Автоматически считаем производные показатели (HOMA-IR, LDL, ApoB/A1, FAI и т.д.)
+          const derivedRows = await buildDerivedValueRows(
+            analysis.id,
+            Array.from(byBm.values()),
+          );
+          if (derivedRows.length) {
+            const { error: dErr } = await supabase.from("analysis_values").insert(derivedRows);
+            if (dErr) console.warn("derived insert failed", dErr);
+          }
+
           for (const e of ready) updateEntry(e.id, { status: "imported" });
           created = 1;
           toast({
             title: "Импорт завершён",
-            description: `Создан 1 анализ из ${ready.length} файлов, показателей: ${values.length}`,
+            description: `Создан 1 анализ из ${ready.length} файлов, показателей: ${values.length + derivedRows.length}${derivedRows.length ? ` (в т.ч. расчётных: ${derivedRows.length})` : ""}`,
           });
+
           onImported?.();
           onClose?.();
         } catch (err: any) {
