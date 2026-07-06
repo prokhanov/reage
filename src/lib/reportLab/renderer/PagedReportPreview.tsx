@@ -687,6 +687,40 @@ function installEditableOverlay(
     // input-listener оставляем пустым: сбор драфтов идёт из DOM в момент
     // Save через window.__reportLabCollectDrafts().
 
+    // ─── Enter → <br>, а не новый <p> ─────────────────────────────────────
+    // Причина: у `.rl-prose p` заданы вертикальные margin. Дефолтное
+    // поведение Chrome в contentEditable — на Enter расщепить текущий <p>
+    // на два, каждый со своим margin. При нескольких Enter margin
+    // накапливается, между курсором и следующим абзацем растёт «пустота»,
+    // а Paged.js уже разложил страницы и не пересчитывает их на лету —
+    // отсюда раздувание блока и слом пагинации.
+    // insertLineBreak вставляет <br> в точке курсора: без margin,
+    // предсказуемая высота, текст до/после остаётся в одном блоке.
+    // Ctrl/Cmd+Enter оставляем на дефолтное поведение (новый абзац) на
+    // случай, если пользователю нужен именно параграф.
+    el.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      e.preventDefault();
+      try {
+        document.execCommand("insertLineBreak");
+      } catch {
+        // fallback: ручная вставка <br>
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0) return;
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const br = document.createElement("br");
+        range.insertNode(br);
+        // сдвигаем каретку за <br>
+        const after = document.createRange();
+        after.setStartAfter(br);
+        after.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(after);
+      }
+    });
+
     el.addEventListener("blur", () => {
       const id = el.getAttribute("data-editable-id");
       if (!id) return;
